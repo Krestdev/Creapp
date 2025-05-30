@@ -19,6 +19,7 @@ import axiosConfig from "@/api/api";
 import { User } from "@/types/types";
 import { Loader } from "lucide-react";
 import { toast } from "sonner";
+import useStore from "@/store/useUserStore";
 
 const formSchema = z.object({
   email: z.string().email("Veuillez entrer un email valide"),
@@ -27,6 +28,7 @@ const formSchema = z.object({
 
 function Login() {
     const router = useRouter();
+    const { login } = useStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,10 +41,11 @@ function Login() {
 
   const loginAPI = useMutation({
     mutationFn: async (data:z.infer<typeof formSchema>)=>{
-        return axiosClient.post<User>("/api/login", data);
+        return axiosClient.post<{token:string; user:User}>("/api/login", data);
     },
-    onSuccess: ()=>{
+    onSuccess: (data)=>{
         toast.success("Connexion réussie !");
+        login(data.data.user);
         router.push("/tableau-de-bord");
     },
     onError: (error: any) => {
