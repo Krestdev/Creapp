@@ -1,9 +1,7 @@
-import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
 
 export default function Home() {
   return (
-    <div>
-      <Button>testing button</Button>
-    </div>
+    redirect("/tableau-de-bord")
   );
 }

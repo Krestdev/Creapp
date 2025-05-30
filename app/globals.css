@@ -128,4 +128,10 @@
   body {
     @apply bg-background text-foreground text-xs sm:text-sm lg:text-base;
   }
+  h1, h2, h3, h4, h5 {
+    @apply font-mono font-semibold tracking-[-0.1rem];
+  }
+  h1 {
+    @apply text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] ;
+  }
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins, Work_Sans } from "next/font/google";
 import "./globals.css";
+import Providers from "@/components/providers";
 
 const sans = Work_Sans({
   variable: "--font-worksans",
@@ -20,8 +21,15 @@ const mono = Poppins({
 export const metadata: Metadata = {
   title: {
     template: "%s - CreApp",
-    default: "CreApp - CréaConsult",
+    default: "CreApp",
   },
+  icons: {
+    icon: "/logo-icon.svg",
+    shortcut: "/logo-icon.svg",
+    apple: "/logo-icon.svg",
+  },
+  authors: [{name: "KrestDev", url: "https://krestdev.com"}],
+  creator: "KrestDev",
 };
 
 export default function RootLayout({
@@ -34,7 +42,9 @@ export default function RootLayout({
       <body
         className={`${sans.variable} ${mono.variable} antialiased`}
       >
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
