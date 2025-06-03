@@ -70,8 +70,8 @@ const UsersTable = () => {
                                         <UserDetail user={user}>
                                             <Button variant={"ghost"} className='!font-medium'>{"Voir"}</Button>
                                         </UserDetail>
-                                        <Button onClick={() => router.push(`/tableau-de-bord/utilisateurs/modifier-un-utilisateur/${user.id}`)} variant={"ghost"} className='!font-medium'>{"Modifier"}</Button>
-                                        <Button onClick={() => router.push(`/tableau-de-bord/utilisateurs/mot-de-passe/${user.id}`)} variant={"ghost"} className='!font-medium'>{"Changer le mot de passe"}</Button>
+                                        <Button onClick={() => router.push(`/tableau-de-bord/utilisateurs/${user.id}/modifier-un-utilisateur`)} variant={"ghost"} className='!font-medium'>{"Modifier"}</Button>
+                                        <Button onClick={() => router.push(`/tableau-de-bord/utilisateurs/${user.id}/mot-de-passe`)} variant={"ghost"} className='!font-medium'>{"Changer le mot de passe"}</Button>
                                         <Button variant={"ghost"} className='!font-medium'>{"Désactiver"}</Button>
                                         <Button variant={"ghost"} className='!font-medium'>{"Supprimer"}</Button>
                                     </PopoverContent>

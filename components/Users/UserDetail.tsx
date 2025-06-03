@@ -1,3 +1,5 @@
+"use client"
+
 import React from 'react'
 import {
     Dialog,
@@ -30,7 +32,7 @@ interface Props {
 
 
 const UserDetail = ({ children, user }: Props) => {
-    const router = useRouter()
+    const router = useRouter();
     return (
         <Dialog>
             <form>
@@ -75,7 +77,7 @@ const UserDetail = ({ children, user }: Props) => {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button onClick={() => router.push(`/tableau-de-bord/utilisateurs/modifier-un-utilisateur/${user.id}`)} className='h-10'>{"Modifier"}</Button>
+                        <Button onClick={() => router.push(`/tableau-de-bord/utilisateurs${user.id}/modifier-un-utilisateur/`)} className='h-10'>{"Modifier"}</Button>
                         <DialogClose asChild>
                             <Button className='h-10' variant="outline">{"Fermer"}</Button>
                         </DialogClose>
