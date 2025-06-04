@@ -134,4 +134,31 @@
   h1 {
     @apply text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] ;
   }
+
+  /* Personnalisation globale de la scrollbar */
+* {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--primary) transparent;
+  }
+
+/* Webkit (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+    width: 1px;
+    height: 1px;
+  }
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--primary);
+    border-radius: 4px;
+  }
+
+::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+/* Supprimer les flèches haut/bas (WebKit) */
+::-webkit-scrollbar-button {
+    display: none;
+  }
+  
 }

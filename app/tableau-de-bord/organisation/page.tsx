@@ -1,5 +1,5 @@
-import ActionsServices from '@/components/Organisation/ActionService'
-import ServicesTable from '@/components/Organisation/ServicesTable'
+import ActionsServices from '@/components/Organisation/Services/ActionService'
+import ServicesTable from '@/components/Organisation/Services/ServicesTable'
 import React from 'react'
 
 const ServicesPage = () => {

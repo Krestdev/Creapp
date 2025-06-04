@@ -11,8 +11,8 @@ import {
   BreadcrumbEllipsis,
 } from './ui/breadcrumb';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './ui/dropdown-menu';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { Button } from './ui/button';
 
 function NavigationBreadcrumb() {
   const pathname = usePathname();
@@ -21,6 +21,7 @@ function NavigationBreadcrumb() {
   const formatSegment = (segment: string) => {
     return segment.split('-').join(' ');
   };
+  const router = useRouter()
 
   return (
     <Breadcrumb className="px-4 py-2">
@@ -37,9 +38,9 @@ function NavigationBreadcrumb() {
                     const href = '/' + pathSegments.slice(0, index + 1).join('/');
                     return (
                       <DropdownMenuItem key={href} asChild>
-                        <Link href={href} className="first-letter:uppercase">
+                        <Button variant={"ghost"} onClick={() => router.push(href)} className="first-letter:uppercase">
                           {formatSegment(segment)}
-                        </Link>
+                        </Button>
                       </DropdownMenuItem>
                     );
                   })}
@@ -49,9 +50,9 @@ function NavigationBreadcrumb() {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage className="first-letter:uppercase">
-                <Link href={`${'/' + pathSegments.slice(0, pathSegments.length - 1).join('/')}`} className="first-letter:uppercase">
+                <Button variant={"ghost"} onClick={() => router.push(`${'/' + pathSegments.slice(0, pathSegments.length - 1).join('/')}`)} className="first-letter:uppercase">
                   {formatSegment(pathSegments[pathSegments.length - 2])}
-                </Link>
+                </Button>
               </BreadcrumbPage>
               <BreadcrumbSeparator />
               <BreadcrumbPage className="first-letter:uppercase">
@@ -71,8 +72,8 @@ function NavigationBreadcrumb() {
                   {isLast ? (
                     <BreadcrumbPage className="first-letter:uppercase">{formattedSegment}</BreadcrumbPage>
                   ) : (
-                    <BreadcrumbLink asChild>
-                      <Link href={href}>{formattedSegment}</Link>
+                    <BreadcrumbLink href={href} asChild>
+                      {formattedSegment}
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>

@@ -1,13 +1,13 @@
 export type User = {
-    id: number,
-    name: string,
-    email: string
-    role: string,
-    status: "en ligne" | "hors-ligne",
-    lastConnection: string,
-    service: string,
-    poste: string,
-    dateCreation: string
+  id: number,
+  name: string,
+  email: string
+  role: string,
+  status: "en ligne" | "hors-ligne",
+  lastConnection: string,
+  service: string,
+  poste: string,
+  dateCreation: string
 }
 
 export const users: User[] = [
@@ -112,51 +112,103 @@ export const users: User[] = [
   },
 ];
 
-type Service = {
-    name: string,
-    manager: string,
-    department: string,
-    createdAt: string,
-    updateAt: string,
-    description: string
-    member: string[],
+export type Service = {
+  id: number
+  name: string,
+  manager: string,
+  department: string,
+  createdAt: string,
+  updateAt: string,
+  description: string
+  member: string[],
 }
 
-export const services:Service[] = [
-    {
-        name: "Etudes des sols",
-        manager: "Stéphane Mbandjo",
-        department: "Etudes Techniques",
-        createdAt: "01/06/2025",
-        updateAt: "01/06/2025",
-        description: "la description",
-        member: [
-            "Heman Bop", "Ange Kifack", "George Atangana"
-        ]
-    },
-    {
-        name: "DAO & Plans",
-        manager: "Mélanie Ntefack",
-        department: "Etudes Techniques",
-        createdAt: "01/06/2025",
-        updateAt: "01/06/2025",
-        description: "la description",
-        member: [
-            "Heman Bop", "Ange Kifack", "George Atangana"
-        ]
-    },
-    {
-        name: "Topographie",
-        manager: "Magloire Jean Mbarga",
-        department: "Etudes Techniques",
-        createdAt: "01/06/2025",
-        updateAt: "01/06/2025",
-        description: "la description",
-        member: [
-            "Heman Bop", "Ange Kifack", "George Atangana"
-        ]
-    }
+export const services: Service[] = [
+  {
+    id: 0,
+    name: "Etudes des sols",
+    manager: "1",
+    department: "Etudes Techniques",
+    createdAt: "01/06/2025",
+    updateAt: "01/06/2025",
+    description: "la description",
+    member: [
+      "1", "2", "3"
+    ]
+  },
+  {
+    id: 1,
+    name: "DAO & Plans",
+    manager: "2",
+    department: "Etudes Techniques",
+    createdAt: "01/06/2025",
+    updateAt: "01/06/2025",
+    description: "la description",
+    member: [
+      "1", "2", "3"
+    ]
+  },
+  {
+    id: 2,
+    name: "Topographie",
+    manager: "3",
+    department: "Etudes Techniques",
+    createdAt: "01/06/2025",
+    updateAt: "01/06/2025",
+    description: "la description",
+    member: [
+      "1", "2", "3"
+    ]
+  }
+]
 
+export type Department = {
+  id: number,
+  name: string,
+  manager: string,
+  service: string[],
+  createdAt: string,
+  updateAt: string,
+  description: string
+}
+
+export const department: Department[] = [
+  {
+    id: 1,
+    name: "Etudes techniques",
+    manager: "1",
+    service: ["0"],
+    createdAt: "01/06/2025",
+    updateAt: "01/06/2025",
+    description: "La description"
+  },
+  {
+    id: 1,
+    name: "Finances",
+    manager: "2",
+    service: ["1", "2"],
+    createdAt: "01/06/2025",
+    updateAt: "01/06/2025",
+    description: "La description"
+  },
+  {
+    id: 1,
+    name: "QHSE",
+    manager: "3",
+    service: ["2", "1"],
+    createdAt: "01/06/2025",
+    updateAt: "01/06/2025",
+    description: "La description"
+  },
+  {
+    id: 1,
+    name: "Direction Generale",
+    manager: "4",
+    service: ["2", "1", "0"],
+    createdAt: "01/06/2025",
+    updateAt: "01/06/2025",
+    description: ""
+  },
 ]
 
 
