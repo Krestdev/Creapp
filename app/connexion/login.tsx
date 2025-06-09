@@ -91,7 +91,7 @@ function Login() {
             </FormItem>
           )}
         />
-        <Button type="submit" variant={"primary"} size={"lg"} disabled={loginAPI.isPending}>Se connecter {loginAPI.isPending && <Loader className="animate-spin" size={16}/>}</Button>
+        <Button type="submit" size={"lg"} disabled={loginAPI.isPending}>Se connecter {loginAPI.isPending && <Loader className="animate-spin" size={16}/>}</Button>
       </form>
     </Form>
   );

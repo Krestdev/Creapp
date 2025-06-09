@@ -17,6 +17,7 @@ function AppSidebar() {
             <NavigationItem href={"/tableau-de-bord/taches"} title={"Tâches"} />
             <NavigationItem href={"/tableau-de-bord/besoins"} title={"Besoins"} />
             <NavigationItem href={"/tableau-de-bord/depenses"} title={"Dépenses"} />
+            <NavigationItem href={"/tableau-de-bord/fournisseurs"} title={"Fournisseurs"} />
             <NavigationItem href={"/tableau-de-bord/notifications"} title={"Notifications"} badge={4} />
             <NavigationItem href={"/tableau-de-bord/missions"} title={"Missions"} />
             <NavigationItem href={"/tableau-de-bord/documents"} title={"Documents"} />

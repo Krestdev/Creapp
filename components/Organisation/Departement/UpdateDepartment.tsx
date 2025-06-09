@@ -34,7 +34,7 @@ import {
 import {
     Textarea
 } from "@/components/ui/textarea"
-import { MultiSelectUsers } from "../Services/MultiSelectUsers"
+import { MultiSelectUsers } from "../Services/MultiSelect"
 import { Department, services, users } from "@/lib/data"
 import { MultiSelectService } from "./MultiSelectService"
 

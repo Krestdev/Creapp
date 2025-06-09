@@ -211,4 +211,61 @@ export const department: Department[] = [
   },
 ]
 
+export type Fournisseur = {
+  id: number,
+  name: string,
+  activities: string[],
+  type: string,
+  proprietaire: string,
+  tel: string,
+  adresse: string,
+  mail?: string,
+  nui?: string,
+  registreFiscal?: string
+  registreCommerce?: string,
+  banque?: string,
+  nuCompte?: string,
+  codeBanque?: string,
+  note?: string
+  pieceJointe?: string[],
+  lastOrder: string,
+  requirement: number,
+}
+
+export const fournisseurs : Fournisseur[] = [
+  {
+    id: 0,
+    name: "MAC Computer",
+    type: "Distributeur",
+    activities: ["Informatique", "Electronique"],
+    lastOrder: "23/04/2025",
+    requirement: 12,
+    proprietaire: "John DOe",
+    tel: "+237658854558",
+    adresse: "Bonamoussadi, Rue des cocotiers"
+  },
+  {
+    id: 1,
+    name: "MAC Computer",
+    type: "Grossiste",
+    activities: ["Informatique", "Electronique"],
+    lastOrder: "23/04/2025",
+    requirement: 9,
+    proprietaire: "Janne Smith",
+    tel: "+237658854558",
+    adresse: "Bonamoussadi, Rue des cocotiers"
+  },
+  {
+    id: 2,
+    name: "MAC Computer",
+    type: "Distributeur",
+    activities: ["Informatique", "Electronique"],
+    lastOrder: "23/04/2025",
+    requirement: 21,
+    proprietaire: "Laura Miller",
+    tel: "+237658854558",
+    adresse: "Bonamoussadi, Rue des cocotiers"
+  },
+]
+
 

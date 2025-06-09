@@ -40,7 +40,7 @@ import {
 import {
   Textarea
 } from "@/components/ui/textarea"
-import { MultiSelectUsers } from "./MultiSelectUsers"
+import { MultiSelectUsers } from "./MultiSelect"
 import { users } from "@/lib/data"
 
 const userSchema = z.object({

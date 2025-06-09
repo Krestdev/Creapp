@@ -39,7 +39,7 @@ function NavigationBreadcrumb() {
                     return (
                       <DropdownMenuItem key={href} asChild>
                         <Button variant={"ghost"} onClick={() => router.push(href)} className="first-letter:uppercase">
-                          {formatSegment(segment)}
+                          {decodeURIComponent(formatSegment(segment))}
                         </Button>
                       </DropdownMenuItem>
                     );
@@ -51,12 +51,12 @@ function NavigationBreadcrumb() {
             <BreadcrumbItem>
               <BreadcrumbPage className="first-letter:uppercase">
                 <Button variant={"ghost"} onClick={() => router.push(`${'/' + pathSegments.slice(0, pathSegments.length - 1).join('/')}`)} className="first-letter:uppercase">
-                  {formatSegment(pathSegments[pathSegments.length - 2])}
+                  {decodeURIComponent(formatSegment(pathSegments[pathSegments.length - 2]))}
                 </Button>
               </BreadcrumbPage>
               <BreadcrumbSeparator />
               <BreadcrumbPage className="first-letter:uppercase">
-                {formatSegment(pathSegments[pathSegments.length - 1])}
+                {decodeURIComponent(formatSegment(pathSegments[pathSegments.length - 1]))}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </>
@@ -64,7 +64,7 @@ function NavigationBreadcrumb() {
           pathSegments.map((segment, index) => {
             const href = '/' + pathSegments.slice(0, index + 1).join('/');
             const isLast = index === pathSegments.length - 1;
-            const formattedSegment = formatSegment(segment);
+            const formattedSegment = decodeURIComponent(formatSegment(segment));
 
             return (
               <React.Fragment key={href}>
