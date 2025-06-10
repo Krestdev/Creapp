@@ -232,7 +232,7 @@ export type Fournisseur = {
   requirement: number,
 }
 
-export const fournisseurs : Fournisseur[] = [
+export const fournisseurs: Fournisseur[] = [
   {
     id: 0,
     name: "MAC Computer",
@@ -266,6 +266,114 @@ export const fournisseurs : Fournisseur[] = [
     tel: "+237658854558",
     adresse: "Bonamoussadi, Rue des cocotiers"
   },
+]
+
+export type Besoins = {
+  id: number,
+  name: string,
+  projet: string,
+  cout: number,
+  dateEcheance: string,
+  dateEmission: string,
+  statut: "En attente" | "Validé" | "Terminé" | "Refusé",
+  nbValidation: number,
+  nbTotalVali: number,
+  description: string,
+  justificatifs: string[]
+}
+
+export const besoins: Besoins[] = [
+  {
+    id: 0,
+    name: "Achat pain pour les ouvriers",
+    projet: "Voies sur le port de Douala",
+    cout: 255000,
+    dateEcheance: "12/06/2025",
+    dateEmission: "01/06/2025",
+    statut: "En attente",
+    nbValidation: 2,
+    nbTotalVali: 5,
+    description: "",
+    justificatifs: ["Facture Proformat", "Ordre de service"]
+  },
+  {
+    name: "Fourniture de ciment Portland",
+    projet: "Construction pont Wouri",
+    cout: 1250000,
+    dateEcheance: "15/06/2025",
+    dateEmission: "03/06/2025",
+    statut: "Validé",
+    nbValidation: 5,
+    nbTotalVali: 5,
+    id: 1,
+    description: "",
+    justificatifs: ["Facture Proformat", "Ordre de service"]
+  },
+  {
+    name: "Location engins de terrassement",
+    projet: "Route Yaoundé-Bafoussam",
+    cout: 3500000,
+    dateEcheance: "20/06/2025",
+    dateEmission: "05/06/2025",
+    statut: "En attente",
+    nbValidation: 3,
+    nbTotalVali: 4,
+    id: 2,
+    description: "",
+    justificatifs: ["Facture Proformat", "Ordre de service"]
+  },
+  {
+    name: "Achat carburant pour véhicules",
+    projet: "Maintenance réseau électrique",
+    cout: 780000,
+    dateEcheance: "18/06/2025",
+    dateEmission: "08/06/2025",
+    statut: "En attente",
+    nbValidation: 1,
+    nbTotalVali: 3,
+    id: 3,
+    description: "",
+    justificatifs: ["Facture Proformat", "Ordre de service"]
+  },
+  {
+    name: "Fourniture matériaux électriques",
+    projet: "Extension réseau Garoua",
+    cout: 2100000,
+    dateEcheance: "25/06/2025",
+    dateEmission: "02/06/2025",
+    statut: "Refusé",
+    nbValidation: 0,
+    nbTotalVali: 4,
+    id: 4,
+    description: "",
+    justificatifs: ["Facture Proformat", "Ordre de service"]
+  },
+  {
+    name: "Service de gardiennage",
+    projet: "Sécurisation chantier Limbé",
+    cout: 450000,
+    dateEcheance: "30/06/2025",
+    dateEmission: "07/06/2025",
+    statut: "En attente",
+    nbValidation: 2,
+    nbTotalVali: 3,
+    id: 5,
+    description: "",
+    justificatifs: ["Facture Proformat", "Ordre de service"]
+  },
+  {
+    name: "Achat équipements de protection",
+    projet: "Rénovation stade Ahmadou Ahidjo",
+    cout: 320000,
+    dateEcheance: "14/06/2025",
+    dateEmission: "04/06/2025",
+    statut: "Terminé",
+    nbValidation: 4,
+    nbTotalVali: 4,
+    id: 5,
+    description: "",
+    justificatifs: ["Facture Proformat", "Ordre de service"]
+  }
 ]
 
 
