@@ -14,7 +14,13 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { AlertCircle, ChevronLeft } from 'lucide-react';
+import { AlertCircle, CalendarIcon, ChevronLeft } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { DatePicker } from '@/components/ui/date-picker';
+import { toast } from 'sonner';
 
 // Schéma de validation pour l'étape 1
 const step1Schema = z.object({
@@ -29,11 +35,11 @@ const step2Schema = z.object({
     priorite: z.boolean(),
     cout: z.string().optional(),
     destination: z.string().optional(),
-    dateDepart: z.string().optional(),
-    dateRetour: z.string().optional(),
+    dateDepart: z.date().optional(),
+    dateRetour: z.date().optional(),
     fournisseur: z.string().optional(),
-    dateFacture: z.string().optional(),
-    dateEcheance: z.string().optional(),
+    dateFacture: z.date().optional(),
+    dateEcheance: z.date().optional(),
     justificatif: z.any().optional(),
     modePaiement: z.string().optional(),
     coutEstime: z.string().optional(),
@@ -66,11 +72,11 @@ const NouveauBesoin = () => {
             priorite: false,
             cout: '',
             destination: '',
-            dateDepart: '',
-            dateRetour: '',
+            dateDepart: undefined,
+            dateRetour: undefined,
             fournisseur: '',
-            dateFacture: '',
-            dateEcheance: '',
+            dateFacture: undefined,
+            dateEcheance: undefined,
             justificatif: undefined,
             modePaiement: '',
             coutEstime: '',
@@ -86,7 +92,9 @@ const NouveauBesoin = () => {
     const onSubmitStep2 = (data: z.infer<typeof step2Schema>) => {
         const finalData = { ...step1Data, ...data };
         console.log('Données finales:', finalData);
-        alert('Besoin soumis avec succès !');
+        toast.success("Besoin enrégistré", {
+            description: "Votre besoin a bien été enrégistré",
+        });
     };
 
     const [progress, setProgress] = React.useState(0)
@@ -264,8 +272,6 @@ const NouveauBesoin = () => {
                                         <FormLabel>Coût</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="0.00"
-                                                step="0.01"
                                                 {...field}
                                             />
                                         </FormControl>
@@ -282,7 +288,7 @@ const NouveauBesoin = () => {
                                     <FormItem>
                                         <FormLabel>Destination</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Lieu de destination" {...field} />
+                                            <Input {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -297,7 +303,7 @@ const NouveauBesoin = () => {
                                     <FormItem>
                                         <FormLabel>Date de départ</FormLabel>
                                         <FormControl>
-                                            <Input type="date" {...field} />
+                                            <DatePicker value={field.value} onChange={field.onChange} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -312,7 +318,7 @@ const NouveauBesoin = () => {
                                     <FormItem>
                                         <FormLabel>Date de retour</FormLabel>
                                         <FormControl>
-                                            <Input type="date" {...field} />
+                                            <DatePicker value={field.value} onChange={field.onChange} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -327,7 +333,7 @@ const NouveauBesoin = () => {
                                     <FormItem>
                                         <FormLabel>Fournisseur</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Nom du fournisseur" {...field} />
+                                            <Input {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -342,7 +348,7 @@ const NouveauBesoin = () => {
                                     <FormItem>
                                         <FormLabel>Date de la facture</FormLabel>
                                         <FormControl>
-                                            <Input type="date" {...field} />
+                                            <DatePicker value={field.value} onChange={field.onChange} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -357,7 +363,7 @@ const NouveauBesoin = () => {
                                     <FormItem>
                                         <FormLabel>Date d'échéance</FormLabel>
                                         <FormControl>
-                                            <Input type="date" {...field} />
+                                            <DatePicker value={field.value} onChange={field.onChange} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -379,9 +385,6 @@ const NouveauBesoin = () => {
                                                 {...fieldProps}
                                             />
                                         </FormControl>
-                                        <FormDescription>
-                                            Formats acceptés: PDF, JPG, PNG, DOC, DOCX
-                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -421,9 +424,6 @@ const NouveauBesoin = () => {
                                         <FormLabel>Coût estimé</FormLabel>
                                         <FormControl>
                                             <Input
-                                                type="number"
-                                                placeholder="0.00"
-                                                step="0.01"
                                                 {...field}
                                             />
                                         </FormControl>

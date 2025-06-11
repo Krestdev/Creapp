@@ -1,118 +1,147 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// Simuler le composant Calendar simplifié
 type CalendarProps = {
-  selected: Date | undefined;
+  selected?: Date;
   onSelect: (date: Date) => void;
   className?: string;
+  disabled?: (date: Date) => boolean;
 };
 
-export function Calendar({ selected, onSelect, className = "" }: CalendarProps) {
+export function Calendar({
+  selected,
+  onSelect,
+  className = "",
+  disabled,
+}: CalendarProps) {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  
-  // Générer les jours du mois
+
+  // Generate days of the month
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-  
+
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+    "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
   ];
-  
-  const dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-  
-  const days = [];
-  
-  // Jours vides au début
+
+  const dayNames = ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"];
+
+  const days: (number | null)[] = [];
+
+  // Empty days at start
   for (let i = 0; i < firstDayOfMonth; i++) {
     days.push(null);
   }
-  
-  // Jours du mois
+
+  // Days of month
   for (let day = 1; day <= daysInMonth; day++) {
     days.push(day);
   }
-  
-  const handleDayClick = (day: number | null | undefined) => {
-    if (day && onSelect) {
-      const newDate = new Date(currentYear, currentMonth, day);
-      onSelect(newDate);
+
+  const handleDayClick = (day: number | null) => {
+    if (day) {
+      const selectedDate = new Date(currentYear, currentMonth, day);
+      onSelect(selectedDate);
     }
   };
-  
-  const goToPreviousMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(currentYear - 1);
-    } else {
-      setCurrentMonth(currentMonth - 1);
-    }
+
+  const changeMonth = (direction: "prev" | "next") => {
+    setCurrentMonth(prev => {
+      let newMonth = direction === "prev" ? prev - 1 : prev + 1;
+      let newYear = currentYear;
+
+      if (newMonth < 0) {
+        newMonth = 11;
+        newYear--;
+      } else if (newMonth > 11) {
+        newMonth = 0;
+        newYear++;
+      }
+
+      setCurrentYear(newYear);
+      return newMonth;
+    });
   };
-  
-  const goToNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
-    }
+
+  const isToday = (day: number) => {
+    return (
+      day === today.getDate() &&
+      currentMonth === today.getMonth() &&
+      currentYear === today.getFullYear()
+    );
   };
-  
+
+  const isSelected = (day: number) => {
+    return (
+      selected?.getDate() === day &&
+      selected?.getMonth() === currentMonth &&
+      selected?.getFullYear() === currentYear
+    );
+  };
+
+  const isDisabled = (day: number) => {
+    const date = new Date(currentYear, currentMonth, day);
+    return disabled ? disabled(date) : false;
+  };
+
   return (
-    <div className={`p-4 bg-white border rounded-lg shadow-sm ${className}`}>
-      {/* En-tête avec mois/année */}
+    <div className={cn("p-4 bg-background border rounded-lg shadow-sm w-[280px]", className)}>
+      {/* Month header */}
       <div className="flex items-center justify-between mb-4">
-        <button 
-          onClick={goToPreviousMonth}
-          className="p-1 hover:bg-gray-100 rounded transition-colors"
+        <button
+          onClick={() => changeMonth("prev")}
+          className="p-1 rounded-md hover:bg-accent transition-colors"
+          aria-label="Previous month"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+          <ChevronLeft className="w-5 h-5" />
         </button>
-        <h2 className="text-sm font-medium">
+        
+        <h2 className="text-base font-medium">
           {monthNames[currentMonth]} {currentYear}
         </h2>
-        <button 
-          onClick={goToNextMonth}
-          className="p-1 hover:bg-gray-100 rounded transition-colors"
+        
+        <button
+          onClick={() => changeMonth("next")}
+          className="p-1 rounded-md hover:bg-accent transition-colors"
+          aria-label="Next month"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          <ChevronRight className="w-5 h-5" />
         </button>
       </div>
       
-      {/* Jours de la semaine */}
+      {/* Day names */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {dayNames.map((day) => (
-          <div key={day} className="h-8 flex items-center justify-center text-xs font-medium text-gray-500">
+          <div 
+            key={day} 
+            className="h-8 flex items-center justify-center text-sm font-medium text-muted-foreground"
+          >
             {day}
           </div>
         ))}
       </div>
       
-      {/* Grille des jours */}
+      {/* Days grid */}
       <div className="grid grid-cols-7 gap-1">
         {days.map((day, index) => (
           <button
             key={index}
-            onClick={() => handleDayClick(day)}
-            disabled={!day}
-            className={`
-              h-8 w-8 flex items-center justify-center text-sm rounded-md transition-colors
-              ${!day ? 'invisible' : ''}
-              ${day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear() 
-                ? 'bg-primary/30 text-primary font-medium' : ''}
-              ${selected && selected.getDate() === day && selected.getMonth() === currentMonth && selected.getFullYear() === currentYear
-                ? 'bg-primary text-white' 
-                : 'hover:bg-gray-100'
-              }
-              disabled:cursor-not-allowed
-            `}
+            onClick={() => day && handleDayClick(day)}
+            disabled={!day || isDisabled(day)}
+            className={cn(
+              "h-8 w-8 flex items-center justify-center text-sm rounded-md transition-colors",
+              !day && "invisible",
+              day && isToday(day) && "bg-primary/10 text-primary font-medium",
+              day && isSelected(day) && "bg-primary text-primary-foreground",
+              day && !isSelected(day) && !isToday(day) && "hover:bg-accent",
+              day && isDisabled(day) && "opacity-50 cursor-not-allowed"
+            )}
+            aria-selected={day ? isSelected(day) : false}
+            aria-disabled={!day || isDisabled(day)}
           >
             {day}
           </button>
