@@ -21,6 +21,9 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { DatePicker } from '@/components/ui/date-picker';
 import { toast } from 'sonner';
+import { users } from '@/lib/data';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { Check, ChevronsUpDown } from "lucide-react"
 
 // Schéma de validation pour l'étape 1
 const step1Schema = z.object({
@@ -286,7 +289,7 @@ const NouveauBesoin = () => {
                                 name="destination"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Destination</FormLabel>
+                                        <FormLabel>Adresse</FormLabel>
                                         <FormControl>
                                             <Input {...field} />
                                         </FormControl>
@@ -329,15 +332,69 @@ const NouveauBesoin = () => {
                             <FormField
                                 control={step2Form.control}
                                 name="fournisseur"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Fournisseur</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                render={({ field }) => {
+                                    const [open, setOpen] = useState(false)
+                                    const [searchTerm, setSearchTerm] = useState("")
+
+                                    const filteredUsers = users.filter(user =>
+                                        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+                                    )
+
+                                    return (
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel>Fournisseur</FormLabel>
+                                            <Popover open={open} onOpenChange={setOpen}>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant="outline"
+                                                            role="combobox"
+                                                            aria-expanded={open}
+                                                            className="w-full justify-between"
+                                                        >
+                                                            {field.value
+                                                                ? users.find(user => String(user.id) === field.value)?.name
+                                                                : "Sélectionner le fournisseur"}
+                                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[400px] p-0">
+                                                    <Command shouldFilter={false}>
+                                                        <CommandInput
+                                                            placeholder="Rechercher un fournisseur..."
+                                                            value={searchTerm}
+                                                            onValueChange={setSearchTerm}
+                                                        />
+                                                        <CommandEmpty>Aucun fournisseur trouvé.</CommandEmpty>
+                                                        <CommandGroup className="max-h-[300px] overflow-y-auto">
+                                                            {filteredUsers.map((user) => (
+                                                                <CommandItem
+                                                                    key={user.id}
+                                                                    value={String(user.id)}
+                                                                    onSelect={() => {
+                                                                        field.onChange(String(user.id))
+                                                                        setOpen(false)
+                                                                        setSearchTerm("")
+                                                                    }}
+                                                                >
+                                                                    <Check
+                                                                        className={cn(
+                                                                            "mr-2 h-4 w-4",
+                                                                            field.value === String(user.id) ? "opacity-100" : "opacity-0"
+                                                                        )}
+                                                                    />
+                                                                    {user.name}
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )
+                                }}
                             />
 
                             {/* Date de facture */}
