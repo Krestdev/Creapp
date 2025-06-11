@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/textarea"
 import { MultiSelectUsers } from "./MultiSelect"
 import { Service, users } from "@/lib/data"
+import { Loader } from "lucide-react"
+import { useTransition } from "react"
 
 const userSchema = z.object({
     id: z.number(),
@@ -74,15 +76,20 @@ export default function UpdateServices({ service }: Props) {
         },
     })
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        try {
-            console.log(values);
-            toast.success("Service créé avec succès");
-        } catch (error) {
-            console.error("Form submission error", error);
-            toast.error("Erreur lors de la création du service");
-        }
-    }
+    const [isPending, startTransition] = useTransition()
+
+     const onSubmit = (values: z.infer<typeof formSchema>) => {
+    startTransition(() => {
+      try {
+        console.log(values)
+        toast.success('Service créé avec succès')
+        // ici tu peux faire un appel API ou une redirection
+      } catch (error) {
+        console.error('Form submission error', error)
+        toast.error('Erreur lors de la création du service')
+      }
+    })
+  }
 
     return (
         <Form {...form}>
@@ -197,7 +204,14 @@ export default function UpdateServices({ service }: Props) {
                         </FormItem>
                     )}
                 />
-                <Button className="w-full h-10" type="submit">{"Modifier"}</Button>
+                <Button
+                    type='submit'
+                    className='w-full h-10'
+                    disabled={isPending}
+                >
+                    {isPending && <Loader className='animate-spin mr-2' size={16} />}
+                    {"Modifier"}
+                </Button>
             </form>
         </Form>
     )

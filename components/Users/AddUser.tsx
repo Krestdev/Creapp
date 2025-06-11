@@ -1,6 +1,7 @@
 "use client"
 import {
-  useState
+  useState,
+  useTransition
 } from "react"
 import {
   toast
@@ -38,6 +39,7 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { PasswordInput } from "../ui/password-input"
+import { Loader } from "lucide-react"
 
 const formSchema = z
   .object({
@@ -78,19 +80,22 @@ export default function AddUser() {
       service: "",
     }
   })
+  const [isPending, startTransition] = useTransition()
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      console.log(values);
-      toast.success("Utilisateur créé avec succès", 
-        {
-          description: "Un mail a été envoyé a l'adresse mail renseignée",
-        },
-      );
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
-    }
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    startTransition(() => {
+      try {
+        console.log(values)
+        toast.success("Utilisateur créé avec succès",
+          {
+            description: "Un mail a été envoyé a l'adresse mail renseignée",
+          },)
+        // ici tu peux faire un appel API ou une redirection
+      } catch (error) {
+        console.error('Form submission error', error)
+        toast.error('Erreur lors de la création du service')
+      }
+    })
   }
 
   return (
@@ -237,7 +242,14 @@ export default function AddUser() {
               </FormItem>
             )}
           />
-          <Button type="submit" className="h-10">{"Créer l'utilisateur"}</Button>
+          <Button
+            type='submit'
+            className='w-full h-10'
+            disabled={isPending}
+          >
+            {isPending && <Loader className='animate-spin mr-2' size={16} />}
+            {"Créer l'utilisateur"}
+          </Button>
         </form>
       </Form>
     </div>

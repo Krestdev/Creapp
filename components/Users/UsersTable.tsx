@@ -3,7 +3,7 @@
 import { users } from '@/lib/data'
 import React, { useState } from 'react'
 import { Input } from '../ui/input'
-import { LucideEllipsisVertical, LucidePlusCircle, Search } from 'lucide-react'
+import { Loader, LucideEllipsisVertical, LucidePlusCircle, Search } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { Badge } from '../ui/badge'
@@ -20,6 +20,13 @@ const UsersTable = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const slicedItems = users.slice(startIndex, startIndex + itemsPerPage);
 
+    const [loadingButton, setLoadingButton] = useState<string | null>(null)
+
+    const handleClick = (path: string, key: string) => {
+        setLoadingButton(key)
+        router.push(path)
+    }
+
     return (
         <div className='flex flex-col gap-4 px-6'>
             <div className='flex gap-4 p-2'>
@@ -33,8 +40,14 @@ const UsersTable = () => {
                                 placeholder="Rechercher"
                             />
                         </div>
-                        <Button className='bg-primary'>
-                            <LucidePlusCircle />
+                        <Button
+                            onClick={() =>
+                                handleClick('/tableau-de-bord/utilisateurs/creer-un-utilisateur', 'creer')
+                            }
+                            className='bg-primary'
+                            disabled={loadingButton === 'creer'}
+                        >
+                            {loadingButton === 'creer' ? <Loader className='animate-spin mr-2' size={18} /> : <LucidePlusCircle />}
                             {"Ajouter"}
                         </Button>
                     </div>
@@ -70,8 +83,26 @@ const UsersTable = () => {
                                         <UserDetail user={user}>
                                             <Button variant={"ghost"} className='!font-medium'>{"Voir"}</Button>
                                         </UserDetail>
-                                        <Button onClick={() => router.push(`/tableau-de-bord/utilisateurs/${user.id}/modifier-un-utilisateur`)} variant={"ghost"} className='!font-medium'>{"Modifier"}</Button>
-                                        <Button onClick={() => router.push(`/tableau-de-bord/utilisateurs/${user.id}/mot-de-passe`)} variant={"ghost"} className='!font-medium'>{"Changer le mot de passe"}</Button>
+                                        <Button
+                                            onClick={() =>
+                                                handleClick(`/tableau-de-bord/utilisateurs/${user.id}/modifier-un-utilisateur`, 'modifier')
+                                            }
+                                            variant={"ghost"} className='!font-medium'
+                                            disabled={loadingButton === 'modifier'}
+                                        >
+                                            {loadingButton === 'modifier' && <Loader className='animate-spin mr-2' size={18} />}
+                                            {"Modifier"}
+                                        </Button>
+                                        <Button
+                                            onClick={() =>
+                                                handleClick(`/tableau-de-bord/utilisateurs/${user.id}/mot-de-passe`, 'password')
+                                            }
+                                            variant={"ghost"} className='!font-medium'
+                                            disabled={loadingButton === 'password'}
+                                        >
+                                            {loadingButton === 'password' && <Loader className='animate-spin mr-2' size={18} />}
+                                            {"Changer le mot de passe"}
+                                        </Button>
                                         <Button variant={"ghost"} className='!font-medium'>{"Désactiver"}</Button>
                                         <Button variant={"ghost"} className='!font-medium'>{"Supprimer"}</Button>
                                     </PopoverContent>

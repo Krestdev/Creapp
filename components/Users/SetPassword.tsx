@@ -1,6 +1,7 @@
 "use client"
 import {
-    useState
+    useState,
+    useTransition
 } from "react"
 import {
     toast
@@ -39,6 +40,7 @@ import {
 } from "@/components/ui/select"
 import { PasswordInput } from "../ui/password-input"
 import { useRouter } from "next/navigation"
+import { Loader } from "lucide-react"
 
 const formSchema = z
     .object({
@@ -58,7 +60,7 @@ interface Props {
     userId: number
 }
 
-export default function SetPassword({userId}: Props) {
+export default function SetPassword({ userId }: Props) {
 
     const router = useRouter();
     const form = useForm<z.infer<typeof formSchema>>({
@@ -68,20 +70,22 @@ export default function SetPassword({userId}: Props) {
             passwordConfirm: "",
         }
     })
+    const [isPending, startTransition] = useTransition()
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        try {
-            console.log(values);
-            toast.success("Mot de passe modifié avec succès",
-                {
-                    description: "Un mail a été envoyé à votre l'adresse mail de l'utilisateur",
-                },
-            );
-            router.push("/tableau-de-bord/utilisateurs")
-        } catch (error) {
-            console.error("Form submission error", error);
-            toast.error("Failed to submit the form. Please try again.");
-        }
+    const onSubmit = (values: z.infer<typeof formSchema>) => {
+        startTransition(() => {
+            try {
+                console.log(values)
+                toast.success("Mot de passe modifié avec succès",
+                    {
+                        description: "Un mail a été envoyé a l'adresse mail renseignée",
+                    },)
+                // ici tu peux faire un appel API ou une redirection
+            } catch (error) {
+                console.error('Form submission error', error)
+                toast.error('Erreur lors de la création du service')
+            }
+        })
     }
 
     return (
@@ -121,7 +125,14 @@ export default function SetPassword({userId}: Props) {
                             </FormItem>
                         )}
                     />
-                    <Button type="submit" className="h-10">{"Modifier le mot de passe"}</Button>
+                    <Button
+                        type='submit'
+                        className='w-full h-10'
+                        disabled={isPending}
+                    >
+                        {isPending && <Loader className='animate-spin mr-2' size={16} />}
+                        {"Modifier le mot de passe"}
+                    </Button>
                 </form>
             </Form>
         </div>

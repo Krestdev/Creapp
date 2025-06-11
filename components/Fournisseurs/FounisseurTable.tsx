@@ -25,7 +25,7 @@ const FournisseurTable = () => {
         <div className='flex flex-col gap-4 px-6'>
             <div className='flex gap-4 p-2'>
                 <div className='flex flex-row gap-2 items-center justify-between w-full'>
-                    <p className='text-base font-semibold'>{"Utilisateurs"}</p>
+                    <p className='text-base font-semibold'>{"Fournisseurs"}</p>
                     <div className='flex gap-2 items-center'>
                         <div className="relative w-full max-w-sm">
                             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -69,7 +69,7 @@ const FournisseurTable = () => {
                             <TableCell className="items-start font-normal" >
                                 <div className='flex flex-wrap gap-2 max-w-[240px]'>
                                     {fournisseur.activities.map((x, i) =>
-                                        <Badge className='px-2 py-1 flex gap-[10px]' variant={"outline"}>{x}</Badge>
+                                        <Badge key={i} className='px-2 py-1 flex gap-[10px]' variant={"outline"}>{x}</Badge>
                                     )}
                                 </div>
                             </TableCell>

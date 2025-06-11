@@ -1,9 +1,9 @@
 "use client"
 
 import { department, services, users } from '@/lib/data'
-import React, { useState } from 'react'
+import React, { useState, useTransition } from 'react'
 import { Input } from '../../ui/input'
-import { LucidePlusCircle, Search } from 'lucide-react'
+import { Loader, LucidePlusCircle, Search } from 'lucide-react'
 import { Button } from '../../ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table'
 import { useRouter } from 'next/navigation'
@@ -18,6 +18,8 @@ const DepartmentTable = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const slicedItems = department.slice(startIndex, startIndex + itemsPerPage);
 
+    const [isPending, startTransition] = useTransition()
+
     return (
         <div className='flex flex-col gap-4 px-6'>
             <div className='flex gap-4 p-2'>
@@ -31,9 +33,21 @@ const DepartmentTable = () => {
                                 placeholder="Rechercher"
                             />
                         </div>
-                        <Button className='bg-primary'>
-                            <LucidePlusCircle />
-                            {"Ajouter"}
+                        <Button
+                            disabled={isPending}
+                            onClick={() =>
+                                startTransition(() => {
+                                    router.push("/tableau-de-bord/organisation/creer-un-departement")
+                                })
+                            }
+                            className='bg-primary'
+                        >
+                            {isPending ? (
+                                <Loader className='animate-spin mr-2' size={16} />
+                            ) : (
+                                <LucidePlusCircle className='mr-2' />
+                            )}
+                            Ajouter
                         </Button>
                     </div>
                 </div>
@@ -65,7 +79,12 @@ const DepartmentTable = () => {
                                     <DetailDepartment department={depart}>
                                         <Button variant={"outline"}>{"Details"}</Button>
                                     </DetailDepartment>
-                                    <Button onClick={() => router.push(`/tableau-de-bord/organisation/departements/${depart.id}/modifier-un-departement`)} variant={"outline"}>{"Modifier"}</Button>
+                                    <Button disabled={isPending} onClick={() => startTransition(() => {
+                                        router.push(`/tableau-de-bord/organisation/departements/${depart.id}/modifier-un-departement`)
+                                    })} variant={"outline"}>
+                                        {"Modifier"}
+                                        {isPending && <Loader className='animate-spin mr-2' size={16} />}
+                                    </Button>
                                     <ModalWarning id={depart.id} action={() => console.log(depart)} name={depart.name} section='ce département'>
                                         <Button variant={"outline"}>{"Supprimer"}</Button>
                                     </ModalWarning>

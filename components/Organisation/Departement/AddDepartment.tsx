@@ -37,6 +37,8 @@ import {
 import { MultiSelectUsers } from "../Services/MultiSelect"
 import { Department, services, users } from "@/lib/data"
 import { MultiSelectService } from "./MultiSelectService"
+import { useTransition } from "react"
+import { Loader } from "lucide-react"
 
 const serviceSchema = z.object({
     id: z.number(),
@@ -68,15 +70,19 @@ export default function AddDepartment() {
             service: []
         },
     })
+    const [isPending, startTransition] = useTransition()
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        try {
-            console.log(values);
-            toast.success("Service créé avec succès");
-        } catch (error) {
-            console.error("Form submission error", error);
-            toast.error("Erreur lors de la création du service");
-        }
+    const onSubmit = (values: z.infer<typeof formSchema>) => {
+        startTransition(() => {
+            try {
+                console.log(values)
+                toast.success('Service créé avec succès')
+                // ici tu peux faire un appel API ou une redirection
+            } catch (error) {
+                console.error('Form submission error', error)
+                toast.error('Erreur lors de la création du service')
+            }
+        })
     }
 
     return (
@@ -168,8 +174,15 @@ export default function AddDepartment() {
                         </FormItem>
                     )}
                 />
-                <Button className="w-full h-10" type="submit">{"Creer un département"}</Button>
+                <Button
+                    type='submit'
+                    className='w-full h-10'
+                    disabled={isPending}
+                >
+                    {isPending && <Loader className='animate-spin mr-2' size={16} />}
+                    Créer un département
+                </Button>
             </form>
-        </Form>
+        </Form >
     )
 }

@@ -1,9 +1,9 @@
 "use client"
 
 import { services, users } from '@/lib/data'
-import React, { useState } from 'react'
+import React, { useState, useTransition } from 'react'
 import { Input } from '../../ui/input'
-import { LucideEllipsisVertical, LucidePlusCircle, Search } from 'lucide-react'
+import { Loader, LucideEllipsisVertical, LucidePlusCircle, Search } from 'lucide-react'
 import { Button } from '../../ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table'
 import { Badge } from '../../ui/badge'
@@ -21,6 +21,8 @@ const ServicesTable = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const slicedItems = services.slice(startIndex, startIndex + itemsPerPage);
 
+    const [isPending, startTransition] = useTransition()
+
     return (
         <div className='flex flex-col gap-4 px-6'>
             <div className='flex gap-4 p-2'>
@@ -34,9 +36,21 @@ const ServicesTable = () => {
                                 placeholder="Rechercher"
                             />
                         </div>
-                        <Button className='bg-primary'>
-                            <LucidePlusCircle />
-                            {"Ajouter"}
+                        <Button
+                            disabled={isPending}
+                            onClick={() =>
+                                startTransition(() => {
+                                    router.push('/tableau-de-bord/organisation/creer-un-service')
+                                })
+                            }
+                            className='bg-primary'
+                        >
+                            {isPending ? (
+                                <Loader className='animate-spin mr-2' size={16} />
+                            ) : (
+                                <LucidePlusCircle className='mr-2' />
+                            )}
+                            Ajouter
                         </Button>
                     </div>
                 </div>
@@ -62,7 +76,14 @@ const ServicesTable = () => {
                                 <DetailService service={service}>
                                     <Button variant={"outline"}>{"Details"}</Button>
                                 </DetailService>
-                                <Button onClick={() => router.push(`/tableau-de-bord/organisation/${service.id}/modifier-un-service`)} variant={"outline"}>{"Modifier"}</Button>
+                                <Button disabled={isPending} onClick={() =>
+                                    startTransition(() => {
+                                        router.push(`/tableau-de-bord/organisation/${service.id}/modifier-un-service`)
+                                    })
+                                } variant={"outline"}>
+                                    {"Modifier"}
+                                    {isPending && <Loader className="animate-spin" size={16} />}
+                                </Button>
                                 <ModalWarning id={service.id} action={() => console.log(service)} name={service.name} section='ce service'>
                                     <Button variant={"outline"}>{"Supprimer"}</Button>
                                 </ModalWarning>
