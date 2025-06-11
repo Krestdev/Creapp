@@ -1,9 +1,9 @@
 "use client"
 
 import { fournisseurs } from '@/lib/data'
-import React, { useState } from 'react'
+import React, { useState, useTransition } from 'react'
 import { Input } from '../ui/input'
-import { LucideEllipsisVertical, LucideFunnel, LucidePlusCircle, Search } from 'lucide-react'
+import { Loader, LucideEllipsisVertical, LucideFunnel, LucidePlusCircle, Search } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { Badge } from '../ui/badge'
@@ -20,6 +20,7 @@ const FournisseurTable = () => {
     const itemsPerPage = 10;
     const startIndex = (currentPage - 1) * itemsPerPage;
     const slicedItems = fournisseurs.slice(startIndex, startIndex + itemsPerPage);
+    const [isPending, startTransition] = useTransition();
 
     return (
         <div className='flex flex-col gap-4 px-6'>
@@ -40,9 +41,13 @@ const FournisseurTable = () => {
                                 {"Filtrer"}
                             </Button>
                         </Filtrer>
-                        <Button onClick={() => router.push("/tableau-de-bord/fournisseurs/creer-un-fournisseur")} className='bg-primary'>
+                        <Button disabled={isPending} onClick={() => startTransition(() => {
+                            router.push("/tableau-de-bord/fournisseurs/creer-un-fournisseur")
+                        })}
+                            className='bg-primary'>
                             <LucidePlusCircle />
                             {"Ajouter"}
+                            {isPending && <Loader className='animate-spin mr-2' size={18} />}
                         </Button>
                         <Button variant={"secondary"}>
                             {"Exporter en PDF"}

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useTransition } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -24,8 +24,9 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { X, Plus } from "lucide-react"
+import { X, Plus, Loader } from "lucide-react"
 import { PieceJointeDialog } from './PieceJointeDialog'
+import { toast } from 'sonner'
 
 // Schema Zod
 const fournisseurSchema = z.object({
@@ -138,13 +139,23 @@ export default function FournisseurForm() {
         form.setValue("activities", newActivities)
     }
 
-    function onSubmit(values: FournisseurFormValues) {
-        const finalValues = {
-            ...values,
-            pieceJointe: piecesJointes.map(piece => piece.nom)
-        }
-        console.log(finalValues)
-        console.log("Pièces jointes:", piecesJointes)
+    const [isPending, startTransition] = useTransition()
+
+    const onSubmit = (values: z.infer<typeof fournisseurSchema>) => {
+        startTransition(() => {
+            try {
+                const finalValues = {
+                    ...values,
+                    pieceJointe: piecesJointes
+                }
+                console.log(finalValues)
+                toast.success('Projet créé avec succès')
+                // ici tu peux faire un appel API ou une redirection
+            } catch (error) {
+                console.error('Form submission error', error)
+                toast.error('Erreur lors de la création du Projet')
+            }
+        })
     }
 
     return (
@@ -473,9 +484,11 @@ export default function FournisseurForm() {
                     </div>
 
                     <Button
-                        type="submit"
-                        className='h-10 w-full'
+                        type='submit'
+                        className='w-full h-10'
+                        disabled={isPending}
                     >
+                        {isPending && <Loader className='animate-spin mr-2' size={16} />}
                         Ajouter
                     </Button>
                 </form>

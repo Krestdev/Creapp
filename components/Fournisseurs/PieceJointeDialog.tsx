@@ -116,7 +116,6 @@ export const PieceJointeDialog = ({
               type="button" 
               onClick={handleAddPiece}
               disabled={!newPiece.nom || !newPiece.fichier}
-              className="bg-purple-900 hover:bg-purple-800"
             >
               Ajouter
             </Button>

@@ -134,6 +134,7 @@
   h1 {
     @apply text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] ;
   }
+  
 
   /* Personnalisation globale de la scrollbar */
 * {

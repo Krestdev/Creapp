@@ -94,7 +94,7 @@ const MultiSelectUsers = React.forwardRef<HTMLDivElement, MultiSelectUsersProps>
                     </div>
 
                     {/* Utilisateurs sélectionnés */}
-                    <div className="space-y-2 max-h-[240px] overflow-auto">
+                    <div className="space-y-2 max-h-[240px] overflow-auto pt-2">
                         {selected.map((user, i) => (
                             <div
                                 key={i}
