@@ -64,7 +64,6 @@ export function Filtrer({ children, onSubmit }: Props) {
           <DrawerHeader className="border-b border-gray-200">
             <DrawerTitle>Filtres</DrawerTitle>
           </DrawerHeader>
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-2 px-2">
               <FormField
