@@ -1,18 +1,21 @@
+import { LucideIcon, LucideProps } from "lucide-react";
+
 export interface NavigationItemProps {
-    href: string;
-    title: string;
-    badge?: Number;
+  Icon: LucideIcon;
+  href: string;
+  title: string;
+  badge?: Number;
 }
 
-export type UserRole = 'admin' | 'user';
+export type UserRole = "admin" | "user";
 
 export type User = {
-    id: string;
-    email: string;
-    name: string;
-    role: UserRole;
-}
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+};
 
 export interface UserTest extends User {
-    password: string;
+  password: string;
 }
