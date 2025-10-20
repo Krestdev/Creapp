@@ -134,4 +134,9 @@
   h1 {
     @apply text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] ;
   }
+
+  /* button css */
+  button {
+    @apply rounded-[8px]!
+  }
 }

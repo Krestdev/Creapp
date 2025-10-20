@@ -4,7 +4,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-} from "./ui/sidebar";
+} from "../ui/sidebar";
 import Link from "next/link";
 import NavigationItem from "./navigation-item";
 import {
@@ -12,8 +12,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
+} from "../ui/dropdown-menu";
+import { Button } from "../ui/button";
 import {
   Bell,
   BookText,

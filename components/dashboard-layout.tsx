@@ -1,7 +1,7 @@
 import React from "react";
 import { SidebarProvider, SidebarTrigger } from "./ui/sidebar";
-import AppSidebar from "./app-sidebar";
-import NavigationBreadcrumb from "./breadcrumb-main";
+import AppSidebar from "./navigation/app-sidebar";
+import NavigationBreadcrumb from "./navigation/breadcrumb-main";
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,14 +18,16 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
               fill="none"
               viewBox="0 0 1 16"
             >
-              <path fill="currentColor" d="M0 0h1v16H0z" className="text-gray-300"></path>
+              <path
+                fill="currentColor"
+                d="M0 0h1v16H0z"
+                className="text-gray-300"
+              ></path>
             </svg>
-            <NavigationBreadcrumb/>
+            <NavigationBreadcrumb />
           </div>
         </div>
-        <main className="p-6">
-          {children}
-        </main>
+        <main className="p-6">{children}</main>
       </section>
     </SidebarProvider>
   );
