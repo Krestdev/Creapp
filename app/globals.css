@@ -140,3 +140,25 @@
     @apply rounded-[8px]!
   }
 }
+
+/* scroll bar edit */
+/* Add this to your global CSS */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f12f; /* Tailwind: bg-gray-100 */
+  border-radius: 9999px; /* Fully rounded */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9e1348; /* Tailwind: bg-gray-400 */
+  border-radius: 9999px; /* Fully rounded */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9e13489f; /* Tailwind: bg-gray-600 */
+}
+

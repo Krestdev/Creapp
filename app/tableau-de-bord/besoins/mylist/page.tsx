@@ -1,27 +1,20 @@
 import RequestList from "@/components/pages/besoin/RequestList";
 import PageTitle from "@/components/pageTitle";
-import { title } from "process";
 import React from "react";
 
-function Besoins() {
-  const links = [
-    { title: "Creer un besoin", href: "/tableau-de-bord/besoins/create" },
-    { title: "Mes Besoins", href: "/tableau-de-bord/besoins/mylist" },
-    { title: "Approbation", href: "/tableau-de-bord/besoins/approbation" },
-  ];
+const Page = () => {
   return (
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Besoins"
+        title="Mes Besoins"
         subtitle="Consulter et gerez les besoins"
         color="red"
-        links={links}
       />
       {/* Page table */}
       <RequestList />
     </div>
   );
-}
+};
 
-export default Besoins;
+export default Page;

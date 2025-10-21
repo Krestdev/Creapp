@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -31,48 +31,66 @@ function AppSidebar() {
   // ...existing code...
   const navLinks = [
     {
-      Icon: BriefcaseBusiness,
+      icon: BriefcaseBusiness,
       href: "/tableau-de-bord/projets",
       title: "Projets",
     },
     {
-      Icon: Clipboard,
+      icon: Clipboard,
       href: "/tableau-de-bord/taches",
       title: "Tâches",
     },
     {
-      Icon: ScrollText,
+      icon: ScrollText,
       href: "/tableau-de-bord/besoins",
       title: "Besoins",
+      items: [
+        { title: "Creer un besoin", href: "/tableau-de-bord/besoins/create" },
+        { title: "Mes besoin", href: "/tableau-de-bord/besoins/mylist" },
+        { title: "Approbation", href: "/tableau-de-bord/besoins/approbation" },
+      ],
     },
     {
-      Icon: ClipboardList,
-      href: "/tableau-de-bord/depenses",
-      title: "Dépenses",
+      icon: ClipboardList,
+      href: "/tableau-de-bord/bdcommande",
+      title: "Bon de commande",
+      items: [
+        {
+          title: "Demande de cotation",
+          href: "/tableau-de-bordbdcommande/cotation",
+        },
+        { title: "Devis", href: "/tableau-de-bordbdcommande/devis" },
+        { title: "Besoins", href: "/tableau-de-bordbdcommande/besoins" },
+        { title: "Validation", href: "/tableau-de-bordbdcommande/validation" },
+        {
+          title: "Bons de commande",
+          href: "/tableau-de-bordbdcommande/commande",
+        },
+      ],
     },
     {
-      Icon: Bell,
+      icon: Bell,
       href: "/tableau-de-bord/notifications",
       title: "Notifications",
       badge: 4,
     },
     {
-      Icon: BookText,
+      icon: BookText,
       href: "/tableau-de-bord/missions",
       title: "Missions",
     },
     {
-      Icon: FolderOpen,
+      icon: FolderOpen,
       href: "/tableau-de-bord/documents",
       title: "Documents",
     },
     {
-      Icon: UsersRound,
+      icon: UsersRound,
       href: "/tableau-de-bord/utilisateurs",
       title: "Utilisateurs",
     },
     {
-      Icon: Building,
+      icon: Building,
       href: "/tableau-de-bord/organisation",
       title: "Organisation",
     },
@@ -87,7 +105,7 @@ function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="p-2 flex flex-col gap-2">
         {navLinks.map((navLink) => {
-          return <NavigationItem {...navLink} />;
+          return <NavigationItem key={navLink.href} {...navLink} />;
         })}
       </SidebarContent>
       <SidebarFooter>

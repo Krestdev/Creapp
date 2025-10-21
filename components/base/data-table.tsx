@@ -23,6 +23,10 @@ import {
   Eye,
   X,
   Check,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -54,6 +58,9 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { DetailModal } from "./detail-modal";
+import { Badge } from "../ui/badge";
+import { RejectModal } from "./reject-modal";
+import { ApproveModal } from "./approuver-modal";
 
 // Define the data type
 export type TableData = {
@@ -133,6 +140,41 @@ const data: TableData[] = [
   },
 ];
 
+const statusConfig = {
+  pending: {
+    label: "Pending",
+    icon: Clock,
+    badgeClassName:
+      "bg-yellow-200 text-yellow-500 outline outline-yellow-600 hover:bg-yellow-600",
+    rowClassName:
+      "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30",
+  },
+  approved: {
+    label: "Approved",
+    icon: CheckCircle,
+    badgeClassName:
+      "bg-green-200 text-green-500 outline outline-green-600 hover:bg-green-600",
+    rowClassName:
+      "bg-green-50 hover:bg-green-100 dark:bg-green-950/20 dark:hover:bg-green-950/30",
+  },
+  rejected: {
+    label: "Rejected",
+    icon: XCircle,
+    badgeClassName:
+      "bg-red-200 text-red-500 outline outline-red-600 hover:bg-red-600",
+    rowClassName:
+      "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
+  },
+  "in-review": {
+    label: "In Review",
+    icon: AlertCircle,
+    badgeClassName:
+      "bg-blue-200 text-blue-500 outline outline-blue-600 hover:bg-blue-600",
+    rowClassName:
+      "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
+  },
+};
+
 // Status color mapping
 const statusColors = {
   pending: "bg-yellow-50 dark:bg-yellow-950/20",
@@ -156,6 +198,11 @@ export function DataTable() {
     null
   );
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  const [isRejectModalOpen, setIsRejectModalOpen] = React.useState(false);
+
+  const [isApprobationModalOpen, setIsApprobationModalOpen] =
+    React.useState(false);
 
   // Define columns
   const columns: ColumnDef<TableData>[] = [
@@ -257,8 +304,16 @@ export function DataTable() {
         );
       },
       cell: ({ row }) => {
-        const status = row.getValue("status") as string;
-        return <div className="capitalize">{status.replace("-", " ")}</div>;
+        const status = row.getValue("status") as keyof typeof statusConfig;
+        const config = statusConfig[status];
+        const Icon = config.icon;
+
+        return (
+          <Badge className={cn("gap-1", config.badgeClassName)}>
+            <Icon className="h-3 w-3" />
+            {config.label}
+          </Badge>
+        );
       },
     },
     {
@@ -288,11 +343,21 @@ export function DataTable() {
                 View
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => console.log("Validate", item)}>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedItem(item);
+                  setIsApprobationModalOpen(true);
+                }}
+              >
                 <Check className="mr-2 h-4 w-4" />
                 Validate
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedItem(item);
+                  setIsRejectModalOpen(true);
+                }}
+              >
                 <X className="mr-2 h-4 w-4" />
                 Reject
               </DropdownMenuItem>
@@ -450,9 +515,9 @@ export function DataTable() {
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className={cn(
-                    statusColors[
-                      row.original.status as keyof typeof statusColors
-                    ]
+                    statusConfig[
+                      row.original.status as keyof typeof statusConfig
+                    ].rowClassName
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -532,6 +597,16 @@ export function DataTable() {
       <DetailModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
+        data={selectedItem}
+      />
+      <RejectModal
+        open={isRejectModalOpen}
+        onOpenChange={setIsRejectModalOpen}
+        data={selectedItem}
+      />
+      <ApproveModal
+        open={isApprobationModalOpen}
+        onOpenChange={setIsApprobationModalOpen}
         data={selectedItem}
       />
     </div>
