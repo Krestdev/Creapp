@@ -16,7 +16,8 @@ const PageTitle = ({ title, subtitle, links, color }: PageTitleProps) => {
         "bg-gradient-to-r rounded-[12px] px-[24px] py-[20px] gap-4 flex flex-col text-white",
         color === "red" && "from-[#9E1349] to-[#700032]",
         color === "blue" && "from-[#0F5499] to-[#002244]",
-        color === "green" && "from-[#15803D] to-[#0B411F]"
+        color === "green" && "from-[#15803D] to-[#0B411F]",
+        color === "none" && "from-[#606160] to-[#242424]"
       )}
     >
       <div className="flex justify-between">
@@ -34,7 +35,7 @@ const PageTitle = ({ title, subtitle, links, color }: PageTitleProps) => {
           return (
             <Link
               key={linkButton.href}
-              className="text-white outline px-5 py-2 rounded-md bg-primary"
+              className="text-primary outline px-5 py-2 rounded-md bg-white"
               href={linkButton.href}
             >
               {linkButton.title}

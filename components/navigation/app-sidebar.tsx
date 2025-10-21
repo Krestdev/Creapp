@@ -24,6 +24,7 @@ import {
   EllipsisVertical,
   FolderOpen,
   ScrollText,
+  Ticket,
   UsersRound,
 } from "lucide-react";
 
@@ -57,14 +58,39 @@ function AppSidebar() {
       items: [
         {
           title: "Demande de cotation",
-          href: "/tableau-de-bordbdcommande/cotation",
+          href: "/tableau-de-bord/bdcommande/cotation",
         },
-        { title: "Devis", href: "/tableau-de-bordbdcommande/devis" },
-        { title: "Besoins", href: "/tableau-de-bordbdcommande/besoins" },
-        { title: "Validation", href: "/tableau-de-bordbdcommande/validation" },
+        { title: "Devis", href: "/tableau-de-bord/bdcommande/devis" },
+        { title: "Besoins", href: "/tableau-de-bord/bdcommande/besoins" },
+        { title: "Validation", href: "/tableau-de-bord/bdcommande/validation" },
         {
           title: "Bons de commande",
-          href: "/tableau-de-bordbdcommande/commande",
+          href: "/tableau-de-bord/bdcommande/commande",
+        },
+        {
+          title: "Nouveaux",
+          href: "/tableau-de-bord/bdcommande/nouveaux",
+        },
+      ],
+    },
+    {
+      icon: Ticket,
+      href: "/tableau-de-bord/ticket",
+      title: "Tickets",
+      items: [
+        { title: "Validation", href: "/tableau-de-bord/ticket/validation" },
+        {
+          title: "Liste des tickets",
+          href: "/tableau-de-bord/ticket/liste",
+        },
+        {
+          title: "Créer un paiement",
+          href: "/tableau-de-bord/ticket/nouveaux",
+        },
+        { title: "Paiements", href: "/tableau-de-bord/ticket/paiements" },
+        {
+          title: "Paiements reçus",
+          href: "/tableau-de-bord/ticket/paiementrecus",
         },
       ],
     },

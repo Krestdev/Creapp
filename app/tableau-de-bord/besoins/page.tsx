@@ -1,9 +1,7 @@
 import RequestList from "@/components/pages/besoin/RequestList";
 import PageTitle from "@/components/pageTitle";
-import { title } from "process";
-import React from "react";
 
-function Besoins() {
+function Page() {
   const links = [
     { title: "Creer un besoin", href: "/tableau-de-bord/besoins/create" },
     { title: "Mes Besoins", href: "/tableau-de-bord/besoins/mylist" },
@@ -24,4 +22,4 @@ function Besoins() {
   );
 }
 
-export default Besoins;
+export default Page;

@@ -1,7 +1,7 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { NavigationItemProps } from "@/types/types";
-import { ChevronDown } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState } from "react";
@@ -63,10 +63,10 @@ function NavigationItem(item: NavigationItemProps) {
               {item.icon && <item.icon size={20} className="w-4 h-4" />}
               <span>{item.title}</span>
             </div>
-            <ChevronDown
+            <ChevronRight
               className={cn(
                 "w-4 h-4 transition-transform",
-                openSections.includes(item.title) && "rotate-180"
+                openSections.includes(item.title) && "rotate-90"
               )}
             />
           </Link>

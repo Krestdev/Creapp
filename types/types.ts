@@ -14,7 +14,7 @@ export interface NavigationItemProps {
 export interface PageTitleProps {
   title: string;
   subtitle: string;
-  color: "red" | "blue" | "green";
+  color: "red" | "blue" | "green" | "none";
   links?: {
     title: string;
     href: string;
