@@ -1,3 +1,4 @@
+import Liste from "@/components/pages/ticket/liste";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 
@@ -9,6 +10,7 @@ const Page = () => {
         subtitle="Consultez et gérez les tickets."
         color="red"
       />
+      <Liste />
     </div>
   );
 };

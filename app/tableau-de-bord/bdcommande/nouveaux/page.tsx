@@ -1,3 +1,4 @@
+import CreateBonPage from "@/components/pages/bdcommande/CreateBonPage";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 
@@ -9,6 +10,7 @@ const Page = () => {
         subtitle="Complétez le formulaire pour créer un bon de Commande"
         color="blue"
       />
+      <CreateBonPage />
     </div>
   );
 };

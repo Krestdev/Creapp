@@ -1,3 +1,4 @@
+import Tickets from "@/components/pages/ticket/tickets";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {
@@ -26,6 +27,7 @@ function Page() {
         color="red"
         links={links}
       />
+      <Tickets />
     </div>
   );
 }

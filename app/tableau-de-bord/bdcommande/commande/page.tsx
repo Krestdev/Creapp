@@ -1,3 +1,4 @@
+import CommandeBd from "@/components/pages/bdcommande/commande";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 
@@ -15,6 +16,7 @@ const Page = () => {
           },
         ]}
       />
+      <CommandeBd />
     </div>
   );
 };

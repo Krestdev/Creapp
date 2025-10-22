@@ -1,3 +1,4 @@
+import CreateTicketPage from "@/components/pages/ticket/CreateTicketPage";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 
@@ -9,6 +10,7 @@ const Page = () => {
         subtitle="Formulaire de création de ticket de paiement"
         color="blue"
       />
+      <CreateTicketPage />
     </div>
   );
 };

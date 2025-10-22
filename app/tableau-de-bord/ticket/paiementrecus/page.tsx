@@ -1,3 +1,4 @@
+import PaiementRecus from "@/components/pages/ticket/paiementRecu";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 
@@ -9,6 +10,7 @@ const Page = () => {
         subtitle="Consultez la liste des paiements reçus"
         color="red"
       />
+      <PaiementRecus />
     </div>
   );
 };
