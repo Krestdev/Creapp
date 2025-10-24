@@ -27,6 +27,7 @@ import {
   Ticket,
   UsersRound,
 } from "lucide-react";
+import { title } from "process";
 
 function AppSidebar() {
   // ...existing code...
@@ -66,6 +67,10 @@ function AppSidebar() {
         {
           title: "Bons de commande",
           href: "/tableau-de-bord/bdcommande/commande",
+        },
+        {
+          title: "Créer une cotation",
+          href: "/tableau-de-bord/bdcommande/creercotation",
         },
         {
           title: "Nouveaux",
@@ -114,11 +119,43 @@ function AppSidebar() {
       icon: UsersRound,
       href: "/tableau-de-bord/utilisateurs",
       title: "Utilisateurs",
+      items: [
+        {
+          title: "Creer un utilisateur",
+          href: "/tableau-de-bord/utilisateurs/create",
+        },
+        {
+          title: "Liste des utilisateurs",
+          href: "/tableau-de-bord/utilisateurs/liste",
+        },
+      ],
     },
     {
       icon: Building,
       href: "/tableau-de-bord/organisation",
       title: "Organisation",
+      items: [
+        {
+          title: "les Departements",
+          href: "/tableau-de-bord/organisation/departements",
+        },
+        {
+          title: "Creer un departement",
+          href: "/tableau-de-bord/organisation/createdepartement",
+        },
+        {
+          title: "les Services",
+          href: "/tableau-de-bord/organisation/services",
+        },
+        {
+          title: "Creer un service",
+          href: "/tableau-de-bord/organisation/createservice",
+        },
+        {
+          title: "gerer les postes",
+          href: "/tableau-de-bord/organisation/postes",
+        },
+      ],
     },
   ];
 

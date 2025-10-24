@@ -23,11 +23,30 @@ export interface PageTitleProps {
 
 export type UserRole = "admin" | "user";
 
+// export type User = {
+//   id: string;
+//   email: string;
+//   name: string;
+//   role: UserRole;
+// };
+
 export type User = {
-  id: string;
+  id: number;
   email: string;
   name: string;
-  role: UserRole;
+  phone: string;
+  password: string;
+  projectId: number | null;
+  verificationOtp: null;
+  verified: true;
+  createdAt: string;
+  updatedAt: string;
+  role: [
+    {
+      id: number;
+      label: string;
+    }
+  ];
 };
 
 export interface UserTest extends User {

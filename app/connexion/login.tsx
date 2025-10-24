@@ -27,39 +27,47 @@ const formSchema = z.object({
 });
 
 function Login() {
-    const router = useRouter();
-    const { login } = useStore();
+  const router = useRouter();
+  const { login } = useStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        email: "",
-        password: "",
-    }
+      email: "",
+      password: "",
+    },
   });
 
   const axiosClient = axiosConfig();
 
   const loginAPI = useMutation({
-    mutationFn: async (data:z.infer<typeof formSchema>)=>{
-        return axiosClient.post<{token:string; user:User}>("/api/login", data);
+    mutationFn: async (data: z.infer<typeof formSchema>) => {
+      // return axiosClient.post<{token:string; user:User}>("/api/login", data);
+      return axiosClient.post<{
+        message: string;
+        data: { token: string; user: User };
+      }>("/api/v1.0.0/base/user/login", data);
     },
-    onSuccess: (data)=>{
-        toast.success("Connexion réussie !");
-        login(data.data.user);
-        router.push("/tableau-de-bord");
+    onSuccess: (data) => {
+      toast.success("Connexion réussie !");
+      console.log("Login successful:", data.data);
+      login(data.data.data.user);
+      router.push("/tableau-de-bord");
     },
     onError: (error: any) => {
-        console.error("Login error:", error);
-        toast.error("Erreur de connexion, veuillez vérifier vos identifiants.");
-    }
-  })
+      console.error("Login error:", error);
+      toast.error("Erreur de connexion, veuillez vérifier vos identifiants.");
+    },
+  });
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     loginAPI.mutate(data);
   }
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full max-w-80 flex flex-col gap-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="w-full max-w-80 flex flex-col gap-4"
+      >
         <FormField
           control={form.control}
           name="email"
@@ -72,7 +80,7 @@ function Login() {
                   placeholder="ex. jeanmichelatangana@betcreaconsult.com"
                 />
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -83,15 +91,20 @@ function Login() {
             <FormItem>
               <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <Input
-                type="password"
-                  {...field}
-                />
+                <Input type="password" {...field} />
               </FormControl>
             </FormItem>
           )}
         />
-        <Button type="submit" variant={"primary"} size={"lg"} disabled={loginAPI.isPending}>Se connecter {loginAPI.isPending && <Loader className="animate-spin" size={16}/>}</Button>
+        <Button
+          type="submit"
+          variant={"primary"}
+          size={"lg"}
+          disabled={loginAPI.isPending}
+        >
+          Se connecter{" "}
+          {loginAPI.isPending && <Loader className="animate-spin" size={16} />}
+        </Button>
       </form>
     </Form>
   );

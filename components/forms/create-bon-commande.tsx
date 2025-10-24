@@ -96,7 +96,7 @@ export default function CreateBonForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl"
+        className="space-y-8 max-w-3xl py-10"
       >
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-6">
