@@ -1,4 +1,4 @@
-import RequestList from "@/components/pages/besoin/RequestList";
+import RequestList from "@/components/pages/besoin/RequestListPage";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {
