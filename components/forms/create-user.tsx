@@ -24,12 +24,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { UserQueries } from "@/queries/baseModule";
+import { useMutation } from "@tanstack/react-query";
+import { RegisterResponse, ResponseT, User } from "@/types/types";
 
 const formSchema = z.object({
-  Nom: z.string().min(1),
-  mail: z.string().min(1),
+  name: z.string().min(1),
+  email: z.string().min(1),
   password: z.string(),
   cpassword: z.string(),
+  phone: z.string().min(1),
   role: z.string(),
   poste: z.string().min(1),
   Service: z.string(),
@@ -40,14 +44,24 @@ export default function CreateUserForm() {
     resolver: zodResolver(formSchema),
   });
 
+  const userQueries = new UserQueries();
+
+  const registerAPI = useMutation({
+    mutationFn: (data: User) => userQueries.register(data),
+    onSuccess: (data: ResponseT<RegisterResponse>) => {
+      toast.success("Inscription réussie !");
+      console.log("Register successful:", data);
+    },
+    onError: (error: any) => {
+      console.error("Register error:", error);
+    },
+  });
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       console.log(values);
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-        </pre>
-      );
+      const { role, cpassword, poste, Service, ...data } = values;
+      registerAPI.mutate(data);
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
@@ -62,10 +76,24 @@ export default function CreateUserForm() {
       >
         <FormField
           control={form.control}
-          name="Nom"
+          name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nom</FormLabel>
+              <FormLabel>name</FormLabel>
+              <FormControl className="w-full">
+                <Input placeholder="ex. John Doe" type="" {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>phone</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="ex. John Doe" type="" {...field} />
               </FormControl>
@@ -77,12 +105,16 @@ export default function CreateUserForm() {
 
         <FormField
           control={form.control}
-          name="mail"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Adresse mail</FormLabel>
+              <FormLabel>Adresse email</FormLabel>
               <FormControl className="w-full">
-                <Input placeholder="ex. johndoe@gmail.com" type="" {...field} />
+                <Input
+                  placeholder="ex. johndoe@gemail.com"
+                  type=""
+                  {...field}
+                />
               </FormControl>
 
               <FormMessage />

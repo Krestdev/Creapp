@@ -16,10 +16,11 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import axiosConfig from "@/api/api";
-import { User } from "@/types/types";
+import { LoginResponse, ResponseT, User } from "@/types/types";
 import { Loader } from "lucide-react";
 import { toast } from "sonner";
 import useStore from "@/store/useUserStore";
+import { UserQueries } from "@/queries/baseModule";
 
 const formSchema = z.object({
   email: z.string().email("Veuillez entrer un email valide"),
@@ -37,20 +38,15 @@ function Login() {
     },
   });
 
-  const axiosClient = axiosConfig();
+  const userQueries = new UserQueries();
 
   const loginAPI = useMutation({
-    mutationFn: async (data: z.infer<typeof formSchema>) => {
-      // return axiosClient.post<{token:string; user:User}>("/api/login", data);
-      return axiosClient.post<{
-        message: string;
-        data: { token: string; user: User };
-      }>("/api/v1.0.0/base/user/login", data);
-    },
-    onSuccess: (data) => {
+    mutationFn: (data: { email: string; password: string }) =>
+      userQueries.login(data),
+    onSuccess: (data: ResponseT<LoginResponse>) => {
       toast.success("Connexion réussie !");
-      console.log("Login successful:", data.data);
-      login(data.data.data.user);
+      console.log("Login successful:", data);
+      login(data.data.user);
       router.push("/tableau-de-bord");
     },
     onError: (error: any) => {
