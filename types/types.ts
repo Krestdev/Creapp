@@ -74,6 +74,24 @@ export type ProjectT = {
   chiefId: number | null;
 };
 
+// Request / Besoin
+
+export type RequestModelT = {
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
+  label: string;
+  userId: number;
+  description: string | null;
+  quantity: number;
+  dueDate: Date;
+  unit: string;
+  beneficiary: string;
+  beficiaryList: string | null;
+  state: string;
+  proprity: string;
+};
+
 // queries response
 
 export type ResponseT<T> = {
