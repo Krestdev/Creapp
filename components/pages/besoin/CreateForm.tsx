@@ -1,5 +1,5 @@
 "use client";
-import { SuccessModal } from "@/components/success-modal";
+import { SuccessModal } from "@/components/modals/success-modal";
 import { Button } from "@/components/ui/button";
 import {
   Form,
