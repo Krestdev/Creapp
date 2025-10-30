@@ -6,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { TableData } from "./base/data-table";
 
 interface DetailModalProps {
   open: boolean;
