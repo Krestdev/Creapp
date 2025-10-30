@@ -57,7 +57,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { DetailModal } from "./detail-modal";
+import { DetailModal } from "../modals/detail-modal";
 import { Badge } from "../ui/badge";
 import { RejectModal } from "./reject-modal";
 import { ApproveModal } from "./approuver-modal";

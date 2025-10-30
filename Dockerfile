@@ -13,6 +13,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ENV NEXT_PUBLIC_API=${NEXT_PUBLIC_API}
+
 RUN npm run build
 
 # -------- Runtime Stage --------
@@ -22,5 +24,6 @@ WORKDIR /app
 COPY --from=builder  /app ./
 
 EXPOSE 3000
+
 
 CMD ["npm", "start"]

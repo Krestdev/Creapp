@@ -18,7 +18,7 @@ import {
   Calendar,
   X,
 } from "lucide-react";
-import type { TableData } from "./data-table";
+import type { TableData } from "../base/data-table";
 
 interface DetailModalProps {
   open: boolean;
