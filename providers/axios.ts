@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { toast } from "sonner";
 
 const baseURL =
-  process.env.NEXT_PUBLIC_API || "http://localhost:5000/api/v1.0.0";
+  process.env.NEXT_PUBLIC_API || "https://creappapi.krestdev.com/api/v1.0.0";
 
 const api = axios.create({
   baseURL,
