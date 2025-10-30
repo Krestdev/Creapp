@@ -36,6 +36,16 @@ function AppSidebar() {
       icon: BriefcaseBusiness,
       href: "/tableau-de-bord/projets",
       title: "Projets",
+      items: [
+        {
+          title: "Creer un projet",
+          href: "/tableau-de-bord/projets/create",
+        },
+        {
+          title: "Liste des projets",
+          href: "/tableau-de-bord/projets/liste",
+        },
+      ],
     },
     {
       icon: Clipboard,

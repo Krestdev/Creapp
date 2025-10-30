@@ -31,24 +31,83 @@ export type UserRole = "admin" | "user";
 // };
 
 export type User = {
-  id: number;
+  id?: number;
   email: string;
   name: string;
-  phone: string;
-  password: string;
-  projectId: number | null;
-  verificationOtp: null;
-  verified: true;
-  createdAt: string;
-  updatedAt: string;
-  role: [
-    {
-      id: number;
-      label: string;
-    }
-  ];
+  phone?: string;
+  password?: string;
+  projectId?: number | null;
+  verificationOtp?: number | null;
+  verified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  role?: Role[];
+};
+
+export type Role = {
+  id: number;
+  label: string;
 };
 
 export interface UserTest extends User {
   password: string;
 }
+
+// Departement
+
+export type DepartmentT = {
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
+  label: string;
+  description: string | null;
+};
+
+// projects
+
+export type ProjectT = {
+  id?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+  label: string;
+  description: string | null;
+  chiefId: number | null;
+};
+
+// Request / Besoin
+
+export type RequestModelT = {
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
+  label: string;
+  userId: number;
+  description: string | null;
+  quantity: number;
+  dueDate: Date;
+  unit: string;
+  beneficiary: string;
+  beficiaryList: string | null;
+  state: string;
+  proprity: string;
+};
+
+// queries response
+
+export type ResponseT<T> = {
+  message: string;
+  data: T;
+};
+
+export type LoginResponse = {
+  user: User;
+  token: string;
+};
+
+export type RegisterResponse = {
+  user: User;
+};
+
+export type ProjectCreateResponse = {
+  project: ProjectT;
+};
