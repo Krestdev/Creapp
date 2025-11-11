@@ -1,5 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
+import useStore from "@/store/useUserStore";
 import { NavigationItemProps } from "@/types/types";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -12,6 +13,9 @@ function NavigationItem(item: NavigationItemProps) {
   // This component is used to render a navigation item in the sidebar
   const pathname = usePathname();
   const isActive = pathname === item.href;
+
+  const { user } = useStore();
+  const roles = user?.role.map((r) => r.label) || ["USER"];
 
   const [openSections, setOpenSections] = useState<string[]>(["Analytics"]);
 
@@ -74,6 +78,9 @@ function NavigationItem(item: NavigationItemProps) {
             <div className="mt-1 space-y-1 ml-7">
               {item.items.map((subItem) => {
                 const isSubActive = pathname === subItem.href;
+                if (!subItem.authorized.some((role) => roles.includes(role))) {
+                  return null;
+                }
                 return (
                   <Link
                     key={subItem.href}

@@ -21,6 +21,7 @@ import { Loader } from "lucide-react";
 import { toast } from "sonner";
 import useStore from "@/store/useUserStore";
 import { UserQueries } from "@/queries/baseModule";
+import { NextResponse } from "next/server";
 
 const formSchema = z.object({
   email: z.string().email("Veuillez entrer un email valide"),
@@ -44,8 +45,12 @@ function Login() {
     mutationFn: (data: { email: string; password: string }) =>
       userQueries.login(data),
     onSuccess: (data: ResponseT<LoginResponse>) => {
-      toast.success("Connexion réussie !");
-      console.log("Login successful:", data);
+      const user = data.data.user;
+      const res = NextResponse.json({ success: true, user });
+      res.cookies.set("userRole", JSON.stringify(user.role), {
+        httpOnly: true,
+      });
+      console.log("User roles set in cookies:", res.cookies.get("userRole"));
       login(data.data.user);
       router.push("/tableau-de-bord");
     },
