@@ -1,28 +1,62 @@
-import { DataTable } from "@/components/base/data-table";
+import { data, DataTable } from "@/components/base/data-table";
 import { BesoinsTraiterTable } from "@/components/tables/besoins-traiter-table";
 import { CommandeTable } from "@/components/tables/commande-table";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import React from "react";
 
-const commandeData = [
+export const commandeData = [
   {
     id: "1",
     reference: "CMD-001",
     titre: "Achat de matériel informatique",
     bonDeCommande: "BC-2025-001",
+    author: "BONFOU Jacques",
+    besoins: [
+      {
+        title: "Ordinateur Architecte FANDO",
+        qte: 1,
+      },
+      {
+        title: "Ordinateur Comptable Loïc",
+        qte: 1,
+      }
+    ],
+    datelimite: "22 Octobre 2025",
+    createdAt: "12 septembre 2025",
+    updatedAt: "12 septembre 2025 ",
   },
   {
     id: "2",
     reference: "CMD-002",
     titre: "Fournitures de bureau",
     bonDeCommande: "BC-2025-002",
+    author: "BONFOU Jacques",
+    besoins: [
+      {
+        title: "Fournitures de bureau",
+        qte: 2,
+      },
+    ],
+    datelimite: "22 Octobre 2025",
+    createdAt: "12 septembre 2025",
+    updatedAt: "12 septembre 2025 ",
   },
   {
     id: "3",
     reference: "CMD-003",
     titre: "Équipement de sécurité",
     bonDeCommande: "BC-2025-003",
+    author: "BONFOU Jacques",
+    besoins: [
+      {
+        title: "Fournitures de bureau",
+        qte: 2,
+      },
+    ],
+    datelimite: "22 Octobre 2025",
+    createdAt: "12 septembre 2025",
+    updatedAt: "12 septembre 2025 ",
   },
 ];
 
@@ -200,7 +234,7 @@ const Bdcommande = () => {
             Créer une commande <Plus />
           </Button>
         </div>
-        <BesoinsTraiterTable data={besoinsTraiterData} />
+        <BesoinsTraiterTable data={data} />
       </div>
     </div>
   );

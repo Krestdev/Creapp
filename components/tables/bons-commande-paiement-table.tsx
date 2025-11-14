@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -12,7 +12,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 import {
   ArrowUpDown,
   ChevronLeft,
@@ -24,10 +24,10 @@ import {
   X,
   Check,
   Flag,
-} from "lucide-react"
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -36,24 +36,38 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { cn, XAF } from "@/lib/utils";
+import { BonCommandePaiement, DetailBC } from "../modals/detail-bc";
 
 export type BonsCommandePaiementData = {
-  id: string
-  reference: string
-  fournisseur: string
-  titre: string
-  montant: number
-  priorite: "low" | "medium" | "high" | "urgent"
-}
+  id: string;
+  reference: string;
+  fournisseur: string;
+  titre: string;
+  montant: number;
+  priorite: "low" | "medium" | "high" | "urgent";
+};
 
 interface BonsCommandePaiementTableProps {
-  data: BonsCommandePaiementData[]
+  data: BonCommandePaiement[];
 }
 
 const priorityConfig = {
@@ -73,21 +87,32 @@ const priorityConfig = {
     label: "Urgente",
     badgeClassName: "bg-red-500 text-white hover:bg-red-600",
   },
-}
+};
 
-export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [globalFilter, setGlobalFilter] = React.useState("")
+export function BonsCommandePaiementTable({
+  data,
+}: BonsCommandePaiementTableProps) {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState("");
+  const [selected, setSelected] =
+    React.useState<BonCommandePaiement | null>(null);
+  const [showDetail, setShowDetail] = React.useState<boolean>(false);
 
-  const columns: ColumnDef<BonsCommandePaiementData>[] = [
+  const columns: ColumnDef<BonCommandePaiement>[] = [
     {
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
@@ -106,23 +131,31 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
       accessorKey: "reference",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             Référence
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
-      cell: ({ row }) => <div className="font-medium">{row.getValue("reference")}</div>,
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("reference")}</div>
+      ),
     },
     {
       accessorKey: "fournisseur",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             Fournisseur
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       cell: ({ row }) => <div>{row.getValue("fournisseur")}</div>,
     },
@@ -130,11 +163,14 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
       accessorKey: "titre",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             Titre
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       cell: ({ row }) => <div>{row.getValue("titre")}</div>,
     },
@@ -142,42 +178,46 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
       accessorKey: "montant",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             Montant
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       cell: ({ row }) => {
-        const montant = Number.parseFloat(row.getValue("montant"))
-        const formatted = new Intl.NumberFormat("fr-FR", {
-          style: "currency",
-          currency: "XAF",
-        }).format(montant)
+        const montant = Number.parseFloat(row.getValue("montant"));
 
-        return <div className="font-medium">{formatted}</div>
+        return <div className="font-medium">{XAF.format(montant)}</div>;
       },
     },
     {
       accessorKey: "priorite",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             Priorité
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       cell: ({ row }) => {
-        const priorite = row.getValue("priorite") as keyof typeof priorityConfig
-        const config = priorityConfig[priorite]
+        const priorite = row.getValue(
+          "priorite"
+        ) as keyof typeof priorityConfig;
+        const config = priorityConfig[priorite];
 
         return (
           <Badge className={cn("gap-1", config.badgeClassName)}>
             <Flag className="h-3 w-3" />
             {config.label}
           </Badge>
-        )
+        );
       },
     },
     {
@@ -185,7 +225,7 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
       header: "Actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const item = row.original
+        const item = row.original;
 
         return (
           <DropdownMenu>
@@ -197,7 +237,12 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => console.log("View", item)}>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setShowDetail(true);
+                }}
+              >
                 <Eye className="mr-2 h-4 w-4" />
                 View
               </DropdownMenuItem>
@@ -212,10 +257,10 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )
+        );
       },
     },
-  ]
+  ];
 
   const table = useReactTable({
     data,
@@ -230,13 +275,13 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "fournisseur", "titre"]
-      const searchValue = filterValue.toLowerCase()
+      const searchableColumns = ["reference", "fournisseur", "titre"];
+      const searchValue = filterValue.toLowerCase();
 
       return searchableColumns.some((column) => {
-        const value = row.getValue(column) as string
-        return value?.toLowerCase().includes(searchValue)
-      })
+        const value = row.getValue(column) as string;
+        return value?.toLowerCase().includes(searchValue);
+      });
     },
     state: {
       sorting,
@@ -245,7 +290,7 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
       rowSelection,
       globalFilter,
     },
-  })
+  });
 
   return (
     <div className="w-full">
@@ -258,8 +303,14 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
         />
 
         <Select
-          value={(table.getColumn("priorite")?.getFilterValue() as string) ?? "all"}
-          onValueChange={(value) => table.getColumn("priorite")?.setFilterValue(value === "all" ? "" : value)}
+          value={
+            (table.getColumn("priorite")?.getFilterValue() as string) ?? "all"
+          }
+          onValueChange={(value) =>
+            table
+              .getColumn("priorite")
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by priority" />
@@ -289,11 +340,13 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
-                )
+                );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -306,10 +359,18 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="border-r last:border-r-0">
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    <TableHead
+                      key={header.id}
+                      className="border-r last:border-r-0"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -317,17 +378,29 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="border-r last:border-r-0">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <TableCell
+                      key={cell.id}
+                      className="border-r last:border-r-0"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -338,8 +411,8 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
 
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
-          selected.
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -360,10 +433,16 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
           </Button>
           <div className="flex items-center gap-1">
             <div className="text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount()}
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
           <Button
@@ -376,6 +455,7 @@ export function BonsCommandePaiementTable({ data }: BonsCommandePaiementTablePro
           </Button>
         </div>
       </div>
+      <DetailBC data={selected} open={showDetail} onOpenChange={setShowDetail} />
     </div>
-  )
+  );
 }

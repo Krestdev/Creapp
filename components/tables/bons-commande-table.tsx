@@ -28,6 +28,9 @@ import {
   XCircle,
   AlertCircle,
   Flag,
+  Pencil,
+  Ban,
+  Download,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -46,6 +49,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { BonCommandePaiement, DetailBC } from "../modals/detail-bc"
+
 
 export type BonsCommandeData = {
   id: string
@@ -57,7 +62,7 @@ export type BonsCommandeData = {
 }
 
 interface BonsCommandeTableProps {
-  data: BonsCommandeData[]
+  data: BonCommandePaiement[]
 }
 
 const statusConfig = {
@@ -112,8 +117,10 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
   const [globalFilter, setGlobalFilter] = React.useState("")
+  const [selected, setSelected] = React.useState<BonCommandePaiement | null>(null)
+  const [showDetail, setShowDetail] = React.useState(false)
 
-  const columns: ColumnDef<BonsCommandeData>[] = [
+  const columns: ColumnDef<BonCommandePaiement>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -231,18 +238,25 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => console.log("View", item)}>
+              <DropdownMenuItem onClick={() => {
+                setSelected(item)
+                setShowDetail(true)
+              }}>
                 <Eye className="mr-2 h-4 w-4" />
-                View
+                {"View"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => console.log("Validate", item)}>
-                <Check className="mr-2 h-4 w-4" />
-                Validate
+                <Download className="mr-2 h-4 w-4" />
+                {"Télécharger"}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => console.log("Reject", item)}>
-                <X className="mr-2 h-4 w-4" />
-                Reject
+                <Pencil className="mr-2 h-4 w-4" />
+                {"Modifier"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
+                <Ban className="mr-2 h-4 w-4 text-red-500" />
+                {"Annuler"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -430,6 +444,7 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
           </Button>
         </div>
       </div>
+      <DetailBC data={selected} open={showDetail} onOpenChange={setShowDetail} />
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { CommandeTable } from "@/components/tables/commande-table";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import React from "react";
+import { bonsCommandePaiementData } from "./bdCommandePaiement";
 
 const bonsCommandeData = [
   {
@@ -48,7 +49,7 @@ const CommandeBd = () => {
         <div className="flex justify-between">
           <h2>Commandes</h2>
         </div>
-        <BonsCommandeTable data={bonsCommandeData} />
+        <BonsCommandeTable data={bonsCommandePaiementData} />
       </div>
     </div>
   );

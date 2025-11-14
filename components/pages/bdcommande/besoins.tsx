@@ -1,33 +1,35 @@
 import { BesoinsTraiterTable } from "@/components/tables/besoins-traiter-table";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { commandeData } from "./bdcommande";
+import { data } from "@/components/base/data-table";
 
-const besoinsTraiterData = [
-  {
-    id: "1",
-    titre: "Casque de protection",
-    projet: "Mediatech",
-    categorie: "Matériel technique & logistique",
-    emetteur: "Jean Michel Atangana",
-    beneficiaires: "Jean Michel Atangana, Marie Dupont",
-  },
-  {
-    id: "2",
-    titre: "Ordinateurs portables",
-    projet: "IT Infrastructure",
-    categorie: "Informatique",
-    emetteur: "Sophie Martin",
-    beneficiaires: "Équipe développement",
-  },
-  {
-    id: "3",
-    titre: "Mobilier de bureau",
-    projet: "Aménagement",
-    categorie: "Mobilier",
-    emetteur: "Pierre Dubois",
-    beneficiaires: "Tous les employés",
-  },
-];
+// const besoinsTraiterData = [
+//   {
+//     id: "1",
+//     titre: "Casque de protection",
+//     projet: "Mediatech",
+//     categorie: "Matériel technique & logistique",
+//     emetteur: "Jean Michel Atangana",
+//     beneficiaires: "Jean Michel Atangana, Marie Dupont",
+//   },
+//   {
+//     id: "2",
+//     titre: "Ordinateurs portables",
+//     projet: "IT Infrastructure",
+//     categorie: "Informatique",
+//     emetteur: "Sophie Martin",
+//     beneficiaires: "Équipe développement",
+//   },
+//   {
+//     id: "3",
+//     titre: "Mobilier de bureau",
+//     projet: "Aménagement",
+//     categorie: "Mobilier",
+//     emetteur: "Pierre Dubois",
+//     beneficiaires: "Tous les employés",
+//   },
+// ];
 
 const Besoins = () => {
   return (
@@ -39,7 +41,7 @@ const Besoins = () => {
             Créer une commande <Plus />
           </Button>
         </div>
-        <BesoinsTraiterTable data={besoinsTraiterData} />
+        <BesoinsTraiterTable data={data} />
       </div>
     </div>
   );

@@ -162,3 +162,12 @@
   background: #9e13489f; /* Tailwind: bg-gray-600 */
 }
 
+.scrollbar-thin::-webkit-scrollbar {
+  height: 2px; /* pour la scrollbar horizontale */
+  width: 2px; /* pour la scrollbar verticale */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #9e1348; /* couleur du curseur */
+  border-radius: 10px;
+}

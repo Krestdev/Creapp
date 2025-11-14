@@ -17,16 +17,20 @@ import {
   UserPlus,
   Calendar,
   X,
+  LucideScrollText,
+  UserRound,
+  CalendarFold,
 } from "lucide-react";
 import type { TableData } from "../base/data-table";
+import { CommandeData } from "../tables/commande-table";
 
-interface DetailModalProps {
+interface DetailOrderProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: TableData | null;
+  data: CommandeData | null;
 }
 
-export function DetailModal({ open, onOpenChange, data }: DetailModalProps) {
+export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
   if (!data) return null;
 
   const statusConfig = {
@@ -50,11 +54,9 @@ export function DetailModal({ open, onOpenChange, data }: DetailModalProps) {
     },
   };
 
-  const currentStatus = statusConfig[data.status];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
+      <DialogContent className="max-w-[420px] max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
           <button
@@ -65,9 +67,9 @@ export function DetailModal({ open, onOpenChange, data }: DetailModalProps) {
             <span className="sr-only">Close</span>
           </button>
           <DialogTitle className="text-xl font-semibold text-white">
-            Achat d'un nouveau casque
+            {data.titre}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">Details du besoin</p>
+          <p className="text-sm text-white/80 mt-1">{"Informations relatives à la commande"}</p>
         </DialogHeader>
 
         {/* Content */}
@@ -88,77 +90,45 @@ export function DetailModal({ open, onOpenChange, data }: DetailModalProps) {
             </div>
           </div>
 
-          {/* Project */}
+          {/* Besoins */}
           <div className="flex items-start gap-3">
             <div className="mt-1">
-              <FolderOpen className="h-5 w-5 text-muted-foreground" />
+              <LucideScrollText className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">Projet</p>
-              <p className="font-semibold">{data.project}</p>
+              <p className="text-sm text-muted-foreground mb-1">{"Besoins"}</p>
+              <div className="flex flex-col gap-1">
+                {data.besoins.map((besoin, index) => (
+                    <div key={index} className="flex flex-col gap-[2px]">
+                        <p className="text-[14px] font-medium">{besoin.title}</p>
+                        <p className="text-primary text-[12px] font-medium">{"x"+ besoin.qte + " Pièce"}</p>
+                    </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Description */}
+          {/* Auteur */}
           <div className="flex items-start gap-3">
             <div className="mt-1">
-              <FileText className="h-5 w-5 text-muted-foreground" />
+              <UserRound className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">Description</p>
-              <p className="text-sm">
-                Un casque de protection individuel m'est nécessaire pour mes
-                déplacement sur le chantier
+              <p className="text-sm text-muted-foreground mb-1">{"Initié par"}</p>
+              <p className="text-[14px] font-semibold">
+                {data.author}
               </p>
             </div>
           </div>
 
-          {/* Category */}
+          {/* Date limite */}
           <div className="flex items-start gap-3">
             <div className="mt-1">
-              <FolderTree className="h-5 w-5 text-muted-foreground" />
+              <CalendarFold className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">Catégorie</p>
-              <p className="font-semibold">{data.category}</p>
-            </div>
-          </div>
-
-          {/* Status */}
-          <div className="flex items-start gap-3">
-            <div className="mt-1">
-              <AlertCircle className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">Statut</p>
-              <Badge className={currentStatus.color}>
-                <X className="h-3 w-3 mr-1" />
-                {currentStatus.label}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Beneficiaries */}
-          <div className="flex items-start gap-3">
-            <div className="mt-1">
-              <Users className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">
-                Bénéficiaires
-              </p>
-              <p className="font-semibold">Jean Michel Atangana</p>
-            </div>
-          </div>
-
-          {/* Initiated by */}
-          <div className="flex items-start gap-3">
-            <div className="mt-1">
-              <UserPlus className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">Initié par</p>
-              <p className="font-semibold">Jean Michel Atangana</p>
+              <p className="text-sm text-muted-foreground mb-1">{"Data limite"}</p>
+              <p className="font-semibold">{data.datelimite}</p>
             </div>
           </div>
 
@@ -183,30 +153,22 @@ export function DetailModal({ open, onOpenChange, data }: DetailModalProps) {
               <p className="font-semibold">12 Septembre 2025</p>
             </div>
           </div>
-
-          {/* Deadline */}
-          <div className="flex items-start gap-3">
-            <div className="mt-1">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">Date limite</p>
-              <p className="font-semibold">22 Octobre 2025</p>
-            </div>
-          </div>
         </div>
 
         {/* Footer buttons */}
-        <div className="flex gap-3 p-6 pt-0">
-          <Button className="flex-1 bg-[#003D82] hover:bg-[#002D62] text-white">
-            Modifier
+        <div className="flex w-full justify-end gap-3 p-6 pt-0">
+          <Button className="bg-[#27272A] hover:bg-[#27272A]/80 text-white">
+            {"Télécharger"}
+          </Button>
+          <Button className="bg-primary hover:bg-primary/80 text-white">
+            {"Modifier"}
           </Button>
           <Button
             variant="outline"
-            className="flex-1 bg-transparent"
+            className="bg-transparent"
             onClick={() => onOpenChange(false)}
           >
-            Fermer
+            {"Fermer"}
           </Button>
         </div>
       </DialogContent>

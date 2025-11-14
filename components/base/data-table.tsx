@@ -57,10 +57,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { DetailModal } from "../modals/detail-modal";
+import { DetailBesoin } from "../modals/detail-besoin";
 import { Badge } from "../ui/badge";
 import { RejectModal } from "./reject-modal";
 import { ApproveModal } from "./approuver-modal";
+import { ValidationModal } from "../modals/ValidationModal";
+import { title } from "process";
+import { BesoinLastVal } from "../modals/BesoinLastVal";
 
 // Define the data type
 export type TableData = {
@@ -70,10 +73,17 @@ export type TableData = {
   project: string;
   category: string;
   status: "pending" | "approved" | "rejected" | "in-review";
+  emeteur: string;
+  beneficiaires: string;
+  limiteDate: string;
+  priorite: "low" | "medium" | "high" | "urgent";
+  quantite: number;
+  unite: string;
+  description: string;
 };
 
 // Sample data
-const data: TableData[] = [
+export const data: TableData[] = [
   {
     id: "1",
     reference: "REF-001",
@@ -81,6 +91,14 @@ const data: TableData[] = [
     project: "Marketing Site",
     category: "Design",
     status: "approved",
+    emeteur: "Atangana Paul",
+    beneficiaires: "Njoh Mouelle",
+    description:
+      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
+    limiteDate: "23/05/2025",
+    priorite: "low",
+    quantite: 3,
+    unite: "Piece",
   },
   {
     id: "2",
@@ -89,6 +107,14 @@ const data: TableData[] = [
     project: "Backend Services",
     category: "Development",
     status: "in-review",
+    emeteur: "Atangana Paul",
+    beneficiaires: "Njoh Mouelle",
+    description:
+      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
+    limiteDate: "23/05/2025",
+    priorite: "low",
+    quantite: 3,
+    unite: "Piece",
   },
   {
     id: "3",
@@ -97,6 +123,14 @@ const data: TableData[] = [
     project: "Auth System",
     category: "Security",
     status: "pending",
+    emeteur: "Atangana Paul",
+    beneficiaires: "Njoh Mouelle",
+    description:
+      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
+    limiteDate: "23/05/2025",
+    priorite: "low",
+    quantite: 3,
+    unite: "Piece",
   },
   {
     id: "4",
@@ -105,6 +139,14 @@ const data: TableData[] = [
     project: "Backend Services",
     category: "Development",
     status: "rejected",
+    emeteur: "Atangana Paul",
+    beneficiaires: "Njoh Mouelle",
+    description:
+      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
+    limiteDate: "23/05/2025",
+    priorite: "low",
+    quantite: 3,
+    unite: "Piece",
   },
   {
     id: "5",
@@ -113,6 +155,14 @@ const data: TableData[] = [
     project: "Mobile App",
     category: "Design",
     status: "approved",
+    emeteur: "Atangana Paul",
+    beneficiaires: "Njoh Mouelle",
+    description:
+      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
+    limiteDate: "23/05/2025",
+    priorite: "low",
+    quantite: 3,
+    unite: "Piece",
   },
   {
     id: "6",
@@ -121,6 +171,14 @@ const data: TableData[] = [
     project: "E-commerce",
     category: "Development",
     status: "in-review",
+    emeteur: "Atangana Paul",
+    beneficiaires: "Njoh Mouelle",
+    description:
+      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
+    limiteDate: "23/05/2025",
+    priorite: "low",
+    quantite: 3,
+    unite: "Piece",
   },
   {
     id: "7",
@@ -129,6 +187,14 @@ const data: TableData[] = [
     project: "Marketing Site",
     category: "Marketing",
     status: "pending",
+    emeteur: "Atangana Paul",
+    beneficiaires: "Njoh Mouelle",
+    description:
+      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
+    limiteDate: "23/05/2025",
+    priorite: "low",
+    quantite: 3,
+    unite: "Piece",
   },
   {
     id: "8",
@@ -137,6 +203,14 @@ const data: TableData[] = [
     project: "Admin Panel",
     category: "Development",
     status: "approved",
+    emeteur: "Atangana Paul",
+    beneficiaires: "Njoh Mouelle",
+    description:
+      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
+    limiteDate: "23/05/2025",
+    priorite: "low",
+    quantite: 3,
+    unite: "Piece",
   },
 ];
 
@@ -197,12 +271,44 @@ export function DataTable() {
   const [selectedItem, setSelectedItem] = React.useState<TableData | null>(
     null
   );
+
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const [isRejectModalOpen, setIsRejectModalOpen] = React.useState(false);
 
   const [isApprobationModalOpen, setIsApprobationModalOpen] =
     React.useState(false);
+
+  const [modalProp, setModalProp] = React.useState({
+    open: false,
+    type: "approve" as "approve" | "reject",
+    title: "",
+    description: "",
+    selectedItem: null as TableData | null,
+  });
+
+  const openModal = (type: "approve" | "reject") => {
+    setModalProp({
+      open: true,
+      type,
+      title: type === "approve" ? "Approuver la demande" : "Rejeter la demande",
+      description:
+        type === "approve"
+          ? "Êtes-vous sûr de vouloir approuver cette demande ?"
+          : "Êtes-vous sûr de vouloir rejeter cette demande ?",
+      selectedItem: selectedItem,
+    });
+  };
+
+  const handleValidate = async (motif?: string): Promise<boolean> => {
+    if (modalProp.type === "approve") {
+      console.log("✅ Demande approuvée !");
+      return true;
+    } else {
+      console.log("❌ Demande rejetée avec motif :", motif);
+      return true;
+    }
+  };
 
   // Define columns
   const columns: ColumnDef<TableData>[] = [
@@ -346,7 +452,8 @@ export function DataTable() {
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedItem(item);
-                  setIsApprobationModalOpen(true);
+                  // setIsApprobationModalOpen(true);
+                  openModal("approve");
                 }}
               >
                 <Check className="mr-2 h-4 w-4" />
@@ -355,7 +462,8 @@ export function DataTable() {
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedItem(item);
-                  setIsRejectModalOpen(true);
+                  // setIsRejectModalOpen(true);
+                  openModal("reject");
                 }}
               >
                 <X className="mr-2 h-4 w-4" />
@@ -594,7 +702,7 @@ export function DataTable() {
           </Button>
         </div>
       </div>
-      <DetailModal
+      <DetailBesoin
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         data={selectedItem}
@@ -609,6 +717,29 @@ export function DataTable() {
         onOpenChange={setIsApprobationModalOpen}
         data={selectedItem}
       />
+      {false || modalProp.type === "reject"  ? (
+        <ValidationModal
+          open={modalProp.open}
+          onOpenChange={(v) => setModalProp({ ...modalProp, open: v })}
+          type={modalProp.type}
+          title={modalProp.title}
+          description={modalProp.description}
+          onSubmit={(motif) => handleValidate(motif)}
+          selectedItem={selectedItem}
+        />
+      ) : (
+        <BesoinLastVal
+          open={modalProp.open}
+          onOpenChange={(v) => setModalProp({ ...modalProp, open: v })}
+          data={selectedItem}
+          titre={selectedItem?.title}
+          description={modalProp.title}
+          onSubmit={async (data) => {
+            console.log("submit", data);
+            return true;
+          }}
+        />
+      )}
     </div>
   );
 }
