@@ -1,13 +1,17 @@
 import { LucideIcon, LucideProps } from "lucide-react";
 
 export interface NavigationItemProps {
+  pageId: string;
   icon: LucideIcon;
   href: string;
+  authorized: string[];
   title: string;
   badge?: Number;
   items?: {
+    pageId: string;
     title: string;
     href: string;
+    authorized: string[];
   }[];
 }
 
@@ -41,7 +45,7 @@ export type User = {
   verified?: boolean;
   createdAt?: string;
   updatedAt?: string;
-  role?: Role[];
+  role: Role[];
 };
 
 export type Role = {
