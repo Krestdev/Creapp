@@ -15,13 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import axiosConfig from "@/api/api";
 import { LoginResponse, ResponseT, User } from "@/types/types";
 import { Loader } from "lucide-react";
 import { toast } from "sonner";
-import useStore from "@/store/useUserStore";
 import { UserQueries } from "@/queries/baseModule";
 import { NextResponse } from "next/server";
+import { useStore } from "@/providers/datastore";
 
 const formSchema = z.object({
   email: z.string().email("Veuillez entrer un email valide"),

@@ -27,6 +27,8 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  LucideBan,
+  LucidePen,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -62,8 +64,13 @@ import { Badge } from "../ui/badge";
 import { RejectModal } from "./reject-modal";
 import { ApproveModal } from "./approuver-modal";
 import { ValidationModal } from "../modals/ValidationModal";
-import { title } from "process";
 import { BesoinLastVal } from "../modals/BesoinLastVal";
+import { RequestQueries } from "@/queries/requestModule";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useStore } from "@/providers/datastore";
+import { RequestModelT } from "@/types/types";
+import UpdateRequest from "../pages/besoin/UpdateRequest";
+import { toast } from "sonner";
 
 // Define the data type
 export type TableData = {
@@ -80,139 +87,9 @@ export type TableData = {
   quantite: number;
   unite: string;
   description: string;
+  createdAt: string;
+  updatedAt: string;
 };
-
-// Sample data
-export const data: TableData[] = [
-  {
-    id: "1",
-    reference: "REF-001",
-    title: "Website Redesign",
-    project: "Marketing Site",
-    category: "Design",
-    status: "approved",
-    emeteur: "Atangana Paul",
-    beneficiaires: "Njoh Mouelle",
-    description:
-      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
-    limiteDate: "23/05/2025",
-    priorite: "low",
-    quantite: 3,
-    unite: "Piece",
-  },
-  {
-    id: "2",
-    reference: "REF-002",
-    title: "API Integration",
-    project: "Backend Services",
-    category: "Development",
-    status: "in-review",
-    emeteur: "Atangana Paul",
-    beneficiaires: "Njoh Mouelle",
-    description:
-      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
-    limiteDate: "23/05/2025",
-    priorite: "low",
-    quantite: 3,
-    unite: "Piece",
-  },
-  {
-    id: "3",
-    reference: "REF-003",
-    title: "User Authentication",
-    project: "Auth System",
-    category: "Security",
-    status: "pending",
-    emeteur: "Atangana Paul",
-    beneficiaires: "Njoh Mouelle",
-    description:
-      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
-    limiteDate: "23/05/2025",
-    priorite: "low",
-    quantite: 3,
-    unite: "Piece",
-  },
-  {
-    id: "4",
-    reference: "REF-004",
-    title: "Database Migration",
-    project: "Backend Services",
-    category: "Development",
-    status: "rejected",
-    emeteur: "Atangana Paul",
-    beneficiaires: "Njoh Mouelle",
-    description:
-      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
-    limiteDate: "23/05/2025",
-    priorite: "low",
-    quantite: 3,
-    unite: "Piece",
-  },
-  {
-    id: "5",
-    reference: "REF-005",
-    title: "Mobile App UI",
-    project: "Mobile App",
-    category: "Design",
-    status: "approved",
-    emeteur: "Atangana Paul",
-    beneficiaires: "Njoh Mouelle",
-    description:
-      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
-    limiteDate: "23/05/2025",
-    priorite: "low",
-    quantite: 3,
-    unite: "Piece",
-  },
-  {
-    id: "6",
-    reference: "REF-006",
-    title: "Payment Gateway",
-    project: "E-commerce",
-    category: "Development",
-    status: "in-review",
-    emeteur: "Atangana Paul",
-    beneficiaires: "Njoh Mouelle",
-    description:
-      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
-    limiteDate: "23/05/2025",
-    priorite: "low",
-    quantite: 3,
-    unite: "Piece",
-  },
-  {
-    id: "7",
-    reference: "REF-007",
-    title: "SEO Optimization",
-    project: "Marketing Site",
-    category: "Marketing",
-    status: "pending",
-    emeteur: "Atangana Paul",
-    beneficiaires: "Njoh Mouelle",
-    description:
-      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
-    limiteDate: "23/05/2025",
-    priorite: "low",
-    quantite: 3,
-    unite: "Piece",
-  },
-  {
-    id: "8",
-    reference: "REF-008",
-    title: "Analytics Dashboard",
-    project: "Admin Panel",
-    category: "Development",
-    status: "approved",
-    emeteur: "Atangana Paul",
-    beneficiaires: "Njoh Mouelle",
-    description:
-      "J'ai besoin d'un ensemble de stylos, de blocs-notes et d'agendas pour équiper les nouveaux employés.",
-    limiteDate: "23/05/2025",
-    priorite: "low",
-    quantite: 3,
-    unite: "Piece",
-  },
-];
 
 const statusConfig = {
   pending: {
@@ -258,6 +135,7 @@ const statusColors = {
 };
 
 export function DataTable() {
+  const { user, isHydrated } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -271,6 +149,7 @@ export function DataTable() {
   const [selectedItem, setSelectedItem] = React.useState<TableData | null>(
     null
   );
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
@@ -279,6 +158,8 @@ export function DataTable() {
   const [isApprobationModalOpen, setIsApprobationModalOpen] =
     React.useState(false);
 
+    const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
+
   const [modalProp, setModalProp] = React.useState({
     open: false,
     type: "approve" as "approve" | "reject",
@@ -286,6 +167,68 @@ export function DataTable() {
     description: "",
     selectedItem: null as TableData | null,
   });
+
+  const request = new RequestQueries();
+  const requestData = useQuery({
+    queryKey: ["requests", user?.id],
+    queryFn: () => {
+      if (!user?.id) {
+        throw new Error("ID utilisateur non disponible");
+      }
+      return request.getMine(user.id);
+    },
+    enabled: !!user?.id && isHydrated,
+  });
+
+  const requestMutation = useMutation({
+    mutationKey: ["requests"],
+    mutationFn: async (data: Partial<RequestModelT>) => {
+      const id = selectedItem?.id;
+      if (!id) throw new Error("ID de besoin manquant");
+      await request.update(Number(id), data);
+    },
+    onSuccess: () => {
+      toast.success("Besoin annulé avec succès !");
+    },
+    onError: () => {
+      toast.error("Une erreur est survenue.");
+    },
+  });
+
+  const mapApiStatusToTableStatus = (
+    apiStatus: string
+  ): TableData["status"] => {
+    const statusMap: Record<string, TableData["status"]> = {
+      pending: "pending",
+      approved: "approved",
+      rejected: "rejected",
+      "in-review": "in-review",
+      // Ajoutez d'autres mappings selon vos statuts réels
+    };
+    return statusMap[apiStatus] || "pending";
+  };
+  // Transformation des données RequestModelT vers TableData
+  // Transformation des données RequestModelT vers TableData
+
+  // Fonctions utilitaires
+
+  const mapApiPriorityToTablePriority = (
+    apiPriority: string
+  ): TableData["priorite"] => {
+    const priorityMap: Record<string, TableData["priorite"]> = {
+      low: "low",
+      medium: "medium",
+      high: "high",
+      urgent: "urgent",
+    };
+    return priorityMap[apiPriority] || "medium";
+  };
+
+  const formatDate = (date: Date | string): string => {
+    if (!date) return "Non définie";
+    const dateObj = new Date(date);
+    return dateObj.toLocaleDateString("fr-FR");
+  };
 
   const openModal = (type: "approve" | "reject") => {
     setModalProp({
@@ -309,6 +252,40 @@ export function DataTable() {
       return true;
     }
   };
+
+  const handleCancel = async () => {
+    try {
+      await requestMutation.mutateAsync({ state: "cancel" });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const data = React.useMemo(() => {
+    // Accédez à requestData.data.data (le tableau de données)
+    if (!requestData.data?.data || !Array.isArray(requestData.data.data)) {
+      return [];
+    }
+
+    return requestData.data.data.map((item: RequestModelT) => ({
+      id: item.id.toString(),
+      reference: `REF-${item.id.toString().padStart(3, "0")}`,
+      title: item.label,
+      project: item.projectId ? `${item.projectId}` : "Non assigné",
+      category: "Général",
+      status: mapApiStatusToTableStatus(item.state),
+      emeteur: user?.name || "Utilisateur",
+      beneficiaires: item.beneficiary || "Non spécifié",
+      description: item.description || "Aucune description",
+      limiteDate: formatDate(item.dueDate),
+      priorite: mapApiPriorityToTablePriority(item.proprity),
+      quantite: item.quantity,
+      unite: item.unit || "Unité",
+      createdAt: formatDate(item.createdAt),
+      updatedAt: formatDate(item.updatedAt),
+    }));
+  }, [requestData.data, user]); // ⬅️ Dépendance sur requestData.data
 
   // Define columns
   const columns: ColumnDef<TableData>[] = [
@@ -449,7 +426,7 @@ export function DataTable() {
                 View
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
+              {/* <DropdownMenuItem
                 onClick={() => {
                   setSelectedItem(item);
                   // setIsApprobationModalOpen(true);
@@ -468,6 +445,26 @@ export function DataTable() {
               >
                 <X className="mr-2 h-4 w-4" />
                 Reject
+              </DropdownMenuItem> */}
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedItem(item);
+                  // setIsApprobationModalOpen(true);
+                  setIsUpdateModalOpen(true);
+                }}
+              >
+                <LucidePen className="mr-2 h-4 w-4" />
+                Modifier
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedItem(item);
+                  // setIsRejectModalOpen(true);
+                  setIsCancelModalOpen(true);
+                }}
+              >
+                <LucideBan className="mr-2 h-4 w-4 text-red-500" />
+                Annuler
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -505,6 +502,17 @@ export function DataTable() {
       globalFilter,
     },
   });
+
+  // Debug complet
+  console.log("=== DEBUG COMPLET ===");
+  console.log("requestData:", requestData);
+  console.log("requestData.data:", requestData.data);
+  console.log("requestData.isLoading:", requestData.isLoading);
+  console.log("requestData.error:", requestData.error);
+  console.log("user:", user);
+  console.log("isHydrated:", isHydrated);
+  console.log("data transformée:", data);
+  console.log("=== FIN DEBUG ===");
 
   return (
     <div className="w-full">
@@ -656,11 +664,11 @@ export function DataTable() {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+      <div className="flex items-center justify-center space-x-2 py-4">
+        {/* <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
+        </div> */}
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
@@ -707,6 +715,11 @@ export function DataTable() {
         onOpenChange={setIsModalOpen}
         data={selectedItem}
       />
+      <UpdateRequest
+        open={isUpdateModalOpen}
+        setOpen={setIsUpdateModalOpen}
+        data={selectedItem}
+      />
       <RejectModal
         open={isRejectModalOpen}
         onOpenChange={setIsRejectModalOpen}
@@ -717,15 +730,65 @@ export function DataTable() {
         onOpenChange={setIsApprobationModalOpen}
         data={selectedItem}
       />
-      {false || modalProp.type === "reject"  ? (
+      <ValidationModal
+        open={isCancelModalOpen}
+        onOpenChange={setIsCancelModalOpen}
+        type="reject"
+        title="Annuler le besoin"
+        description="Êtes-vous sûr de vouloir annuler ce besoin ?"
+        successConfirmation={{
+          title: "Succès ✅",
+          description: "Le besoin a eété annulé avec succès.",
+        }}
+        errorConfirmation={{
+          title: "Erreur ❌",
+          description: "Une erreur est survenue lors de l'annulation.",
+        }}
+        buttonTexts={{
+          approve: "Annuler",
+          reject: "Rejeter",
+          cancel: "Annuler",
+          close: "Fermer",
+          retry: "Réessayer",
+          processing: "Traitement...",
+        }}
+        labels={{
+          rejectionReason: "Motif de l'annulation",
+          rejectionPlaceholder: "Expliquez la raison de l'annulation...",
+          rejectionError: "Veuillez fournir un motif",
+        }}
+        onSubmit={() => handleCancel()}
+      />
+      {true || modalProp.type === "reject" ? (
         <ValidationModal
           open={modalProp.open}
           onOpenChange={(v) => setModalProp({ ...modalProp, open: v })}
           type={modalProp.type}
-          title={modalProp.title}
-          description={modalProp.description}
+          title="Rejeter la demande"
+          description="Êtes-vous sûr de vouloir rejeter cette demande ?"
+          successConfirmation={{
+            title: "Succès ✅",
+            description: "La demande a été rejetée avec succès.",
+          }}
+          errorConfirmation={{
+            title: "Erreur ❌",
+            description: "Une erreur est survenue lors du rejet.",
+          }}
+          buttonTexts={{
+            approve: "Approuver",
+            reject: "Rejeter",
+            cancel: "Annuler",
+            close: "Fermer",
+            retry: "Réessayer",
+            processing: "Traitement...",
+          }}
+          labels={{
+            rejectionReason: "Motif du rejet",
+            rejectionPlaceholder: "Expliquez la raison du rejet...",
+            rejectionError: "Veuillez fournir un motif",
+          }}
           onSubmit={(motif) => handleValidate(motif)}
-          selectedItem={selectedItem}
+          // isMotifRequired={true}
         />
       ) : (
         <BesoinLastVal

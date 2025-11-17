@@ -168,7 +168,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
             </div>
             <div className="flex-1">
               <p className="text-sm text-muted-foreground mb-1">{"Créé le"}</p>
-              <p className="font-semibold">12 Septembre 2025</p>
+              <p className="font-semibold">{data.createdAt}</p>
             </div>
           </div>
 
@@ -179,7 +179,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
             </div>
             <div className="flex-1">
               <p className="text-sm text-muted-foreground mb-1">Modifié le</p>
-              <p className="font-semibold">12 Septembre 2025</p>
+              <p className="font-semibold">{data.updatedAt}</p>
             </div>
           </div>
 
@@ -190,7 +190,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
             </div>
             <div className="flex-1">
               <p className="text-sm text-muted-foreground mb-1">{"Date limite"}</p>
-              <p className="font-semibold">22 Octobre 2025</p>
+              <p className="font-semibold">{data.limiteDate}</p>
             </div>
           </div>
         </div>

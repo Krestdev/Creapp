@@ -1,40 +1,48 @@
 import api from "@/providers/axios";
-import { ProjectT } from "@/types/types";
+import { ProjectT, User } from "@/types/types";
 
 // Project Queries
 export class ProjectQueries {
-  route = "/project";
+  route = "/project/management";
 
-  create = (data: ProjectT) => {
+  create = async (data: ProjectT) => {
     return api.post(this.route, data).then((response) => {
       console.log(response.data);
       return response.data;
     });
   };
 
-  update = (id: number, data: Partial<ProjectT>) => {
+  update = async (id: number, data: Partial<ProjectT>) => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
       console.log(response.data);
       return response.data;
     });
   };
 
-  getAll = () => {
+  getAll = async (): Promise<{ data: ProjectT[] }> => {
     return api.get(this.route).then((response) => {
       console.log(response.data);
       return response.data;
     });
   };
 
-  getOne = (id: number) => {
+  getOne = async (id: number): Promise<{ data: ProjectT }> => {
     return api.get(`${this.route}/${id}`).then((response) => {
       console.log(response.data);
       return response.data;
     });
   };
 
-  delete = (id: number) => {
+  delete = async (id: number): Promise<{ data: ProjectT }> => {
     return api.delete(`${this.route}/${id}`).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
+  };
+
+  // Récupérer le chef d'un projet
+  getChief = async (id: number): Promise<{ data: User }> => {
+    return api.get(`${this.route}/${id}/chief`).then((response) => {
       console.log(response.data);
       return response.data;
     });

@@ -8,22 +8,52 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
-import { TableData } from "../base/data-table";
+import { Loader, Loader2 } from "lucide-react";
 
 interface ValidationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   type: "approve" | "reject";
-  title: string | undefined;
-  description: string | undefined;
+  
+  // Textes principaux
+  title: string;
+  description: string;
+  
+  // Textes pour les états de résultat
+  successConfirmation: {
+    title: string;
+    description: string;
+  };
+  errorConfirmation: {
+    title: string;
+    description: string;
+  };
+  
+  // Textes des boutons
+  buttonTexts: {
+    approve: string;
+    reject: string;
+    cancel: string;
+    close: string;
+    retry: string;
+    processing: string;
+  };
+  
+  // Textes des labels et placeholders
+  labels: {
+    rejectionReason: string;
+    rejectionPlaceholder: string;
+    rejectionError: string;
+  };
+
+  isMotifRequired?: boolean;
+  
   /** 
    * Fonction appelée lors de la validation
    * Elle reçoit un éventuel motif et retourne une Promise<boolean>
    * (true = succès, false = erreur)
    */
   onSubmit: (motif?: string) => Promise<boolean>;
-  selectedItem: TableData | null;
 }
 
 export function ValidationModal({
@@ -32,8 +62,12 @@ export function ValidationModal({
   type,
   title,
   description,
+  successConfirmation,
+  errorConfirmation,
+  buttonTexts,
+  labels,
   onSubmit,
-  selectedItem
+  isMotifRequired = false,
 }: ValidationModalProps) {
   const [motif, setMotif] = useState("");
   const [error, setError] = useState("");
@@ -52,10 +86,9 @@ export function ValidationModal({
     }
   }, [open]);
 
-  // Le handleSubmit n’est plus interne : il exécute la prop onSubmit
   const handleSubmit = async () => {
-    if (!isApprove && !motif.trim()) {
-      setError("Veuillez fournir un motif");
+    if (isMotifRequired && !isApprove && !motif.trim()) {
+      setError(labels.rejectionError);
       return;
     }
 
@@ -74,19 +107,15 @@ export function ValidationModal({
 
   // Affichage dynamique
   const renderTitle = () => {
-    if (result === "success") return "Succès ✅";
-    if (result === "error") return "Erreur ❌";
+    if (result === "success") return successConfirmation.title;
+    if (result === "error") return errorConfirmation.title;
     return title;
   };
 
   const renderDescription = () => {
-    if (result === "success")
-      return isApprove
-        ? "L’opération a été approuvée avec succès."
-        : "L’opération a été rejetée avec succès.";
-    if (result === "error")
-      return "Une erreur est survenue. Vous pouvez réessayer.";
-    return selectedItem?.title;
+    if (result === "success") return successConfirmation.description;
+    if (result === "error") return errorConfirmation.description;
+    return description;
   };
 
   const gradient =
@@ -97,6 +126,9 @@ export function ValidationModal({
       : isApprove
       ? "bg-gradient-to-r from-[#15803D] to-[#0B411F]"
       : "bg-gradient-to-r from-[#B91C1C] to-[#7F1D1D]";
+
+      console.log(isApprove);
+      
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,22 +141,23 @@ export function ValidationModal({
           <p className="text-sm text-white/80 mt-1">{renderDescription()}</p>
         </DialogHeader>
 
-        {/* DESCRIPTION */}
-        {isApprove && (
+        {/* DESCRIPTION (uniquement pour approbation et avant résultat) */}
+        {isApprove && !result && (
           <div className="px-6 pb-4">
             <p className="text-sm text-[#2F2F2F]">{description}</p>
           </div>
         )}
+
         {/* MOTIF uniquement pour rejet et avant résultat */}
-        {!isApprove && !result && (
+        {isMotifRequired && !isApprove && !result && (
           <div className="px-6 pb-4">
             <label className="text-sm font-medium text-gray-700">
-              Motif du rejet
+              {labels.rejectionReason}
             </label>
             <Textarea
               value={motif}
               onChange={(e) => setMotif(e.target.value)}
-              placeholder="Expliquez la raison du rejet..."
+              placeholder={labels.rejectionPlaceholder}
               className="mt-2 resize-none"
               disabled={isPending}
             />
@@ -142,14 +175,15 @@ export function ValidationModal({
                   onClick={handleSubmit}
                   disabled={isPending}
                 >
-                  Réessayer
+                  {buttonTexts.retry}
+                  {isPending && <Loader className="ml-2 h-4 w-4 animate-spin" />}
                 </Button>
               )}
               <Button
                 className="bg-gray-600 hover:bg-gray-700 text-white"
                 onClick={() => onOpenChange(false)}
               >
-                Fermer
+                {buttonTexts.close}
               </Button>
             </>
           ) : (
@@ -160,7 +194,8 @@ export function ValidationModal({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                Annuler
+                {buttonTexts.cancel}
+                {isPending && <Loader className="ml-2 h-4 w-4 animate-spin" />}
               </Button>
               <Button
                 className={`text-white ${
@@ -173,13 +208,13 @@ export function ValidationModal({
               >
                 {isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Traitement...
+                    {buttonTexts.processing}
+                    <Loader className="ml-2 h-4 w-4 animate-spin" />
                   </>
                 ) : isApprove ? (
-                  "Approuver"
+                  buttonTexts.approve
                 ) : (
-                  "Rejeter"
+                  buttonTexts.reject
                 )}
               </Button>
             </>

@@ -1,19 +1,29 @@
 // hooks/useAuthGuard.ts
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import useUserStore from '@/store/useUserStore';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useStore } from "@/providers/datastore";
 
-export default function useAuthGuard({ requireAuth = true }: { requireAuth?: boolean } = {}) {
-  const user = useUserStore((state) => state.user);
+export default function useAuthGuard({
+  requireAuth = true,
+}: { requireAuth?: boolean } = {}) {
+  const user = useStore((s) => s.user);
+  const isHydrated = useStore((s) => s.isHydrated);
   const router = useRouter();
 
   useEffect(() => {
+    // ⛔ Tant que Zustand n'a pas restauré user → ne rien faire
+    if (!isHydrated) return;
+
+    // 🔐 Page protégée mais user absent → redirection vers login
     if (requireAuth && !user) {
-      router.push('/connexion');
-    } else if (!requireAuth && user) {
-      router.push('/tableau-de-bord');
+      router.replace("/connexion");
     }
-  }, [user, requireAuth, router]);
+
+    // 🔓 Page publique mais user présent → redirection vers dashboard
+    if (!requireAuth && user) {
+      router.replace("/tableau-de-bord");
+    }
+  }, [user, requireAuth, router, isHydrated]);
 }

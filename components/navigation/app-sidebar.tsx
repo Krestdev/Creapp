@@ -26,7 +26,7 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
-import useStore from "@/store/useUserStore";
+import { useStore } from "@/providers/datastore";
 
 function AppSidebar() {
   // ...existing code...
@@ -260,8 +260,11 @@ function AppSidebar() {
     },
   ];
 
-  const { user } = useStore();
+  const { user, logout } = useStore();
   const roles = user?.role.map((r) => r.label) || ["USER"];
+
+  console.log(user);
+  
 
   return (
     <Sidebar>
@@ -293,7 +296,7 @@ function AppSidebar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>{"Déconnexion"}</DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>{"Déconnexion"}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

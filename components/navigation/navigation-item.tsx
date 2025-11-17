@@ -1,6 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
-import useStore from "@/store/useUserStore";
+import { useStore } from "@/providers/datastore";
 import { NavigationItemProps } from "@/types/types";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";

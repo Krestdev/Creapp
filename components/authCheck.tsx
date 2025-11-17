@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { redirect } from "next/navigation";
-import useStore from "@/store/useUserStore";
+import { useStore } from "@/providers/datastore";
 
 function AuthCheck({
   children,

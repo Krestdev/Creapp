@@ -3,6 +3,7 @@ import React from 'react'
 import Login from './login'
 import { Copyright } from 'lucide-react'
 import useAuthGuard from '@/hooks/useAuthGuard'
+import Link from 'next/link';
 
 function Page() {
   useAuthGuard({requireAuth: false})
@@ -17,7 +18,7 @@ function Page() {
             <Login/>
         </div>
         </div>
-        <div className='border-t border-gray-200 w-full h-10 inline-flex items-center justify-center gap-3 text-gray-600 text-sm'><span>{"CREAPP."}</span><span className='inline-flex items-center gap-1'><Copyright className='text-gray-600' size={14}/> {"2025 KrestDev"}</span></div>
+        <div className='border-t border-gray-200 w-full h-10 inline-flex items-center justify-center gap-3 text-gray-600 text-sm'><span>{"CREAPP."}</span><span className='inline-flex items-center gap-1'><Copyright className='text-gray-600' size={14}/> 2025 <Link href={"https://krestdev.com/"}>{"KrestDev"}</Link></span></div>
     </React.Fragment>
   )
 }

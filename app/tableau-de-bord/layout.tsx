@@ -1,7 +1,7 @@
 'use client';
 import DashboardLayout from "@/components/dashboard-layout";
 import useAuthGuard from "@/hooks/useAuthGuard";
-import useStore from "@/store/useUserStore";
+import { useStore } from "@/providers/datastore";
 import { Loader2 } from "lucide-react";
 import React from "react";
 

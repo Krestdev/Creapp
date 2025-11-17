@@ -76,6 +76,7 @@ export type ProjectT = {
   label: string;
   description: string | null;
   chiefId: number | null;
+  budget: number | null;
 };
 
 // Request / Besoin
@@ -94,6 +95,7 @@ export type RequestModelT = {
   beficiaryList: string | null;
   state: string;
   proprity: string;
+  projectId: number | null;
 };
 
 // queries response
