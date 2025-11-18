@@ -1,5 +1,6 @@
 "use client";
 
+import { DataTable } from "@/components/base/data-table";
 import StatsCard from "@/components/base/StatsCard";
 import RequestList from "@/components/pages/besoin/RequestListPage";
 import PageTitle from "@/components/pageTitle";
@@ -74,7 +75,7 @@ function Page() {
         />
       </div>
       {/* Page table */}
-      <RequestList />
+      <DataTable />
     </div>
   );
 }

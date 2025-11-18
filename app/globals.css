@@ -132,7 +132,10 @@
     @apply font-mono font-semibold tracking-[-0.1rem];
   }
   h1 {
-    @apply text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] ;
+    @apply text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] leading-[150%] ;
+  }
+  h2 {
+    @apply text-[18px] leading-[120%] tracking-normal;
   }
 
   /* button css */
