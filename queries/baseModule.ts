@@ -12,6 +12,8 @@ export class UserQueries {
   login = async (
     data: { email: string; password: string }
   ): Promise<ResponseT<LoginResponse>> => {
+    console.log(this.route);
+    
     return api.post(`${this.route}/login`, data).then((response) => {
       console.log(response.data);
       return response.data;
