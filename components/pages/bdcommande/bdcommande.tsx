@@ -1,4 +1,4 @@
-import { data, DataTable } from "@/components/base/data-table";
+import { DataTable } from "@/components/base/data-table";
 import { BesoinsTraiterTable } from "@/components/tables/besoins-traiter-table";
 import { CommandeTable } from "@/components/tables/commande-table";
 import { Button } from "@/components/ui/button";
@@ -234,7 +234,7 @@ const Bdcommande = () => {
             Créer une commande <Plus />
           </Button>
         </div>
-        <BesoinsTraiterTable data={data} />
+        {/* <BesoinsTraiterTable data={data} /> */}
       </div>
     </div>
   );

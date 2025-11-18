@@ -1,6 +1,8 @@
-import { BonsCommandePaiementTable } from "@/components/tables/bons-commande-paiement-table";
+import React from "react";
+import { BonsCommandePaiementData, BonsCommandePaiementTable } from "@/components/tables/bons-commande-paiement-table";
+import { BonCommandePaiement } from "@/components/modals/detail-bc";
 
-const bonsCommandePaiementData = [
+const bonsCommandePaiementData: BonCommandePaiement[] = [
   {
     id: "1",
     reference: "BCP-001",
@@ -24,6 +26,14 @@ const bonsCommandePaiementData = [
     titre: "Équipement sécurité",
     montant: 2500000,
     priorite: "urgent" as const,
+  },
+  {
+    id: "3",
+    reference: "BCP-003",
+    fournisseur: "Safety First",
+    titre: "Équipement sécurité",
+    montant: 2500000,
+    priorite: "low" as const,
   },
 ];
 

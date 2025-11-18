@@ -55,17 +55,17 @@ export interface BonCommandePaiement {
   fournisseur: string;
   titre: string;
   montant: number;
-  priorite: "high" | "medium" | "urgent";
-  moyen: string; // ex: "Espece", "Virement", etc.
-  statut: "pending" | "approved" | "rejected" | "in-review"
-  delai: string; // date au format JJ/MM/AAAA
-  lieu: string;
-  emetteur: string;
-  creeLe: string; // date au format JJ/MM/AAAA
-  modifieLe: string; // date au format JJ/MM/AAAA
-  justificatif: Justificatif[];
-  condition: string;
-  besoin: Besoin[];
+  priorite: "low" | "high" | "medium" | "urgent";
+  moyen?: string; // ex: "Espece", "Virement", etc.
+  statut?: "pending" | "approved" | "rejected" | "in-review"
+  delai?: string; // date au format JJ/MM/AAAA
+  lieu?: string;
+  emetteur?: string;
+  creeLe?: string; // date au format JJ/MM/AAAA
+  modifieLe?: string; // date au format JJ/MM/AAAA
+  justificatif?: Justificatif[];
+  condition?: string;
+  besoin?: Besoin[];
 }
 
 interface DetailBCProps {
@@ -204,7 +204,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Besoins"}</p>
                 <div className="flex flex-col gap-1">
-                  {data.besoin.map((bes, index) => (
+                  {data.besoin?.map((bes, index) => (
                     <div key={index} className="flex flex-col gap-[2px]">
                       <p className="text-[14px] font-medium">{bes.title}</p>
                       <p className="text-primary text-[12px] font-medium">
@@ -269,7 +269,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 </p>
 
                 <div className="flex flex-row gap-3  overflow-auto scrollbar-thin pb-1 w-full">
-                  {data.justificatif.map((just, index) => (
+                  {data.justificatif?.map((just, index) => (
                     <Link
                       href={`lien-vers-le-justificatif/${just.nom}`}
                       key={index}

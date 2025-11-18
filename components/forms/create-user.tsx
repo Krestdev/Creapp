@@ -25,8 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserQueries } from "@/queries/baseModule";
-import { useMutation } from "@tanstack/react-query";
-import { RegisterResponse, ResponseT, User } from "@/types/types";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ResponseT, User } from "@/types/types";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -45,10 +45,9 @@ export default function CreateUserForm() {
   });
 
   const userQueries = new UserQueries();
-
   const registerAPI = useMutation({
     mutationFn: (data: User) => userQueries.register(data),
-    onSuccess: (data: ResponseT<RegisterResponse>) => {
+    onSuccess: (data: ResponseT<User>) => {
       toast.success("Inscription réussie !");
       console.log("Register successful:", data);
     },
@@ -57,10 +56,26 @@ export default function CreateUserForm() {
     },
   });
 
+  const roleData = useQuery({
+    queryKey: ["roles"],
+    queryFn: () => userQueries.getRoles(),
+  });
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       console.log(values);
-      const { role, cpassword, poste, Service, ...data } = values;
+      const selectedRoles = roleData.data?.data.filter(
+        (x) => x.id.toString() === values.role
+      ) || [];
+      const data = {
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        phone: values.phone,
+        role: selectedRoles,
+        poste: values.poste,
+        Service: values.Service,
+      };
       registerAPI.mutate(data);
     } catch (error) {
       console.error("Form submission error", error);
@@ -168,9 +183,11 @@ export default function CreateUserForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="m@example.com">m@example.com</SelectItem>
-                  <SelectItem value="m@google.com">m@google.com</SelectItem>
-                  <SelectItem value="m@support.com">m@support.com</SelectItem>
+                  {roleData.data?.data.map((role) => (
+                    <SelectItem key={role.id} value={role.id.toString()}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 

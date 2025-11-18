@@ -1,4 +1,5 @@
-import { BonCommandePaiement } from "@/components/modals/detail-bc-val";
+
+import { BonCommandePaiement } from "@/components/modals/detail-bc";
 import { BonsCommandePaiementTable } from "@/components/tables/bons-commande-paiement-table";
 
 export const bonsCommandePaiementData: BonCommandePaiement[] = [

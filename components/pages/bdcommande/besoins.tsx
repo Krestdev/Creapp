@@ -1,8 +1,6 @@
 import { BesoinsTraiterTable } from "@/components/tables/besoins-traiter-table";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { commandeData } from "./bdcommande";
-import { data } from "@/components/base/data-table";
 
 // const besoinsTraiterData = [
 //   {
@@ -41,7 +39,7 @@ const Besoins = () => {
             Créer une commande <Plus />
           </Button>
         </div>
-        <BesoinsTraiterTable data={data} />
+        {/* <BesoinsTraiterTable data={data} /> */}
       </div>
     </div>
   );
