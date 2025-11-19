@@ -5,5 +5,5 @@ import { redirect } from "next/navigation";
 
 export default function Home() {
   useAuthGuard();
-  return <div></div>;
+  return redirect("/tableau-de-bord");
 }

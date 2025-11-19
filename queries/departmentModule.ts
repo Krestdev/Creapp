@@ -99,10 +99,11 @@ export class DepartmentQueries {
 
   // Ajouter des validateurs
   addValidators = async (
-    id: number,
+    idDep: number,
+    idU: number
   ): Promise<{ data: Member[] }> => {
     return api
-      .post(`${this.route}/${id}/validators`)
+      .post(`${this.route}/${idDep}/validators`, { idU })
       .then((response) => {
         console.log(response.data);
         return response.data;
@@ -117,7 +118,6 @@ export class DepartmentQueries {
     return api
       .delete(`${this.route}/${id}/validators`, { data: { validators } })
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };

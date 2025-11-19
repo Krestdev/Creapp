@@ -209,14 +209,19 @@ export default function TestDepartmentPage() {
             onChange={(e) => setValidatorIds(e.target.value)}
           />
 
+          <input
+            placeholder="Dept ID"
+            className="border p-2 rounded w-full"
+            value={deptId}
+            onChange={(e) => setDeptId(e.target.value)}
+          />
+
           <div className="flex gap-2">
             <Button
               className="bg-green-600 text-white"
               onClick={() =>
                 handle(() =>
-                  departmentQueries.addValidators(
-                    Number(deptId)
-                  )
+                  departmentQueries.addValidators(Number(deptId), Number(validatorIds),)
                 )
               }
             >
