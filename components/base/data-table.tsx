@@ -15,14 +15,7 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  MoreHorizontal,
   Eye,
-  X,
-  Check,
   Clock,
   CheckCircle,
   XCircle,
@@ -33,7 +26,6 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -62,10 +54,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DetailBesoin } from "../modals/detail-besoin";
 import { Badge } from "../ui/badge";
-import { RejectModal } from "./reject-modal";
-import { ApproveModal } from "./approuver-modal";
 import { ValidationModal } from "../modals/ValidationModal";
-import { BesoinLastVal } from "../modals/BesoinLastVal";
 import { RequestQueries } from "@/queries/requestModule";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useStore } from "@/providers/datastore";
@@ -131,14 +120,6 @@ const statusConfig = {
   },
 };
 
-// Status color mapping
-const statusColors = {
-  pending: "bg-yellow-50 dark:bg-yellow-950/20",
-  validated: "bg-green-50 dark:bg-green-950/20",
-  rejected: "bg-red-50 dark:bg-red-950/20",
-  "in-review": "bg-blue-50 dark:bg-blue-950/20",
-};
-
 export function DataTable() {
   const { user, isHydrated } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -158,20 +139,7 @@ export function DataTable() {
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
-  const [isRejectModalOpen, setIsRejectModalOpen] = React.useState(false);
-
-  const [isApprobationModalOpen, setIsApprobationModalOpen] =
-    React.useState(false);
-
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
-
-  const [modalProp, setModalProp] = React.useState({
-    open: false,
-    type: "approve" as "approve" | "reject",
-    title: "",
-    description: "",
-    selectedItem: null as TableData | null,
-  });
 
   const projects = new ProjectQueries();
   const projectsData = useQuery({
@@ -229,12 +197,9 @@ export function DataTable() {
       validated: "validated",
       rejected: "rejected",
       "in-review": "in-review",
-      // Ajoutez d'autres mappings selon vos statuts réels
     };
     return statusMap[apiStatus] || "pending";
   };
-  // Transformation des données RequestModelT vers TableData
-  // Transformation des données RequestModelT vers TableData
 
   // Fonctions utilitaires
 
@@ -254,29 +219,6 @@ export function DataTable() {
     if (!date) return "Non définie";
     const dateObj = new Date(date);
     return dateObj.toLocaleDateString("fr-FR");
-  };
-
-  const openModal = (type: "approve" | "reject") => {
-    setModalProp({
-      open: true,
-      type,
-      title: type === "approve" ? "Approuver la demande" : "Rejeter la demande",
-      description:
-        type === "approve"
-          ? "Êtes-vous sûr de vouloir approuver cette demande ?"
-          : "Êtes-vous sûr de vouloir rejeter cette demande ?",
-      selectedItem: selectedItem,
-    });
-  };
-
-  const handleValidate = async (motif?: string): Promise<boolean> => {
-    if (modalProp.type === "approve") {
-      console.log("✅ Demande approuvée !");
-      return true;
-    } else {
-      console.log("❌ Demande rejetée avec motif :", motif);
-      return true;
-    }
   };
 
   const handleCancel = async () => {
@@ -324,28 +266,6 @@ export function DataTable() {
   // Define columns
   const columns: ColumnDef<TableData>[] = [
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
       accessorKey: "reference",
       header: ({ column }) => {
         return (
@@ -353,7 +273,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Reference
+            {"Reférences"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -370,7 +290,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Title
+            {"Titres"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -385,7 +305,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Project
+            {"Projets"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -400,7 +320,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Category
+            {"Catégories"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -415,7 +335,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Status
+            {"Statuts"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -428,7 +348,7 @@ export function DataTable() {
         return (
           <Badge className={cn("gap-1", config.badgeClassName)}>
             <Icon className="h-3 w-3" />
-            {config.label}
+            {config.label === "Validated" ? "Validé" : config.label === "Rejected" ? "Refusé" : config.label === "Pending" ? "En attente" : config.label === "Cancel" ? "Annulé" : config.label}
           </Badge>
         );
       },
@@ -449,7 +369,7 @@ export function DataTable() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedItem(item);
@@ -457,7 +377,7 @@ export function DataTable() {
                 }}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                {"View"}
+                {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -519,10 +439,10 @@ export function DataTable() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-4 py-4">
+      <div className="flex flex-wrap items-center gap-4 py-4">
         {/* Global search */}
         <Input
-          placeholder="Search by title, reference, or project..."
+          placeholder="Rechercher par titre, reférence, ou project..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
@@ -543,7 +463,7 @@ export function DataTable() {
             <SelectValue placeholder="Filter by category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">{"Toutes les catégories"}</SelectItem>
             <SelectItem value="Design">Design</SelectItem>
             <SelectItem value="Development">Development</SelectItem>
             <SelectItem value="Security">Security</SelectItem>
@@ -566,7 +486,7 @@ export function DataTable() {
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="all">{"Tous les statuts"}</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="validated">Validated</SelectItem>
             <SelectItem value="rejected">Rejected</SelectItem>
@@ -578,7 +498,7 @@ export function DataTable() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns
+              {"Colonnes"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -667,20 +587,17 @@ export function DataTable() {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         data={selectedItem}
+        actionButton= "Modifier"
+        action={
+          () => {
+            setIsModalOpen(false)
+            setIsUpdateModalOpen(true)
+          }
+        }
       />
       <UpdateRequest
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
-        data={selectedItem}
-      />
-      <RejectModal
-        open={isRejectModalOpen}
-        onOpenChange={setIsRejectModalOpen}
-        data={selectedItem}
-      />
-      <ApproveModal
-        open={isApprobationModalOpen}
-        onOpenChange={setIsApprobationModalOpen}
         data={selectedItem}
       />
       <ValidationModal
@@ -712,50 +629,6 @@ export function DataTable() {
         }}
         onSubmit={() => handleCancel()}
       />
-      {true || modalProp.type === "reject" ? (
-        <ValidationModal
-          open={modalProp.open}
-          onOpenChange={(v) => setModalProp({ ...modalProp, open: v })}
-          type={modalProp.type}
-          title="Rejeter la demande"
-          description="Êtes-vous sûr de vouloir rejeter cette demande ?"
-          successConfirmation={{
-            title: "Succès ✅",
-            description: "La demande a été rejetée avec succès.",
-          }}
-          errorConfirmation={{
-            title: "Erreur ❌",
-            description: "Une erreur est survenue lors du rejet.",
-          }}
-          buttonTexts={{
-            approve: "Approuver",
-            reject: "Rejeter",
-            cancel: "Annuler",
-            close: "Fermer",
-            retry: "Réessayer",
-            processing: "Traitement...",
-          }}
-          labels={{
-            rejectionReason: "Motif du rejet",
-            rejectionPlaceholder: "Expliquez la raison du rejet...",
-            rejectionError: "Veuillez fournir un motif",
-          }}
-          onSubmit={(motif) => handleValidate(motif)}
-          // isMotifRequired={true}
-        />
-      ) : (
-        <BesoinLastVal
-          open={modalProp.open}
-          onOpenChange={(v) => setModalProp({ ...modalProp, open: v })}
-          data={selectedItem}
-          titre={selectedItem?.title}
-          description={modalProp.title}
-          onSubmit={async (data) => {
-            console.log("submit", data);
-            return true;
-          }}
-        />
-      )}
     </div>
   );
 }

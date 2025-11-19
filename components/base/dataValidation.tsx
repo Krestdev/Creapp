@@ -18,9 +18,6 @@ import {
   Eye,
   CheckCircle,
   XCircle,
-  MoreHorizontal,
-  Check,
-  X,
   ChevronDown,
   CheckCheck,
   LucideBan,
@@ -54,7 +51,6 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { DetailBesoin } from "../modals/detail-besoin";
-import { Badge } from "../ui/badge";
 import { ValidationModal } from "../modals/ValidationModal";
 import { RequestQueries } from "@/queries/requestModule";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -66,6 +62,8 @@ import { Pagination } from "./pagination";
 import { ProjectQueries } from "@/queries/projectModule";
 import { UserQueries } from "@/queries/baseModule";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
+import { DepartmentQueries } from "@/queries/departmentModule";
+import { BesoinLastVal } from "../modals/BesoinLastVal";
 
 // Define the data type
 export type TableData = {
@@ -114,7 +112,7 @@ const statusConfig = {
 };
 
 export function DataValidation() {
-  const { isHydrated } = useStore();
+  const { isHydrated, user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -131,9 +129,18 @@ export function DataValidation() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isValidationModalOpen, setIsValidationModalOpen] =
     React.useState(false);
+  const [isLastValModalOpen, setIsLastValModalOpen] = React.useState(false);
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
+
+  const department = new DepartmentQueries();
+  const departmentData = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      return department.getAll();
+    },
+  });
 
   const projects = new ProjectQueries();
   const projectsData = useQuery({
@@ -152,7 +159,6 @@ export function DataValidation() {
   });
 
   const request = new RequestQueries();
-
   // Récupérer tous les besoins en attente de validation (pour les validateurs)
   const requestData = useQuery({
     queryKey: ["requests-validation"],
@@ -221,6 +227,14 @@ export function DataValidation() {
   };
 
   // Validation function
+
+  // verifier si le validateur est le dernier validateur:
+  const isLastValidator =
+    departmentData.data?.data
+      .flatMap((mem) => mem.members)
+      .find((mem) => mem.userId === user?.id)?.finalValidator === true;
+
+  console.log(isLastValidator);
 
   const handleValidation = async (motif?: string): Promise<boolean> => {
     try {
@@ -291,28 +305,28 @@ export function DataValidation() {
 
   // Define columns - Seulement les champs demandés
   const columns: ColumnDef<TableData>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    // {
+    //   id: "select",
+    //   header: ({ table }) => (
+    //     <Checkbox
+    //       checked={
+    //         table.getIsAllPageRowsSelected() ||
+    //         (table.getIsSomePageRowsSelected() && "indeterminate")
+    //       }
+    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //       aria-label="Select all"
+    //     />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Checkbox
+    //       checked={row.getIsSelected()}
+    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //       aria-label="Select row"
+    //     />
+    //   ),
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
     {
       accessorKey: "title",
       header: ({ column }) => {
@@ -321,7 +335,7 @@ export function DataValidation() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Titre
+            {"Titres"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -338,7 +352,7 @@ export function DataValidation() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Projet
+            {"Projets"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -353,7 +367,7 @@ export function DataValidation() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Catégorie
+            {"Catégories"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -368,7 +382,7 @@ export function DataValidation() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Emetteur
+            {"Emetteurs"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -383,7 +397,7 @@ export function DataValidation() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Bénéficiaire
+            {"Bénéficiaires"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -398,38 +412,6 @@ export function DataValidation() {
         const item = row.original;
 
         return (
-          // <div className="flex items-center gap-2">
-          //   {/* Bouton Voir */}
-          //   <Button
-          //     variant="outline"
-          //     size="sm"
-          //     onClick={() => {
-          //       setSelectedItem(item);
-          //       setIsModalOpen(true);
-          //     }}
-          //   >
-          //     <Eye className="h-4 w-4" />
-          //   </Button>
-
-          //   {/* Bouton Valider */}
-          //   <Button
-          //     variant="default"
-          //     size="sm"
-          //     className="bg-green-600 hover:bg-green-700"
-          //     onClick={() => openValidationModal("approve", item)}
-          //   >
-          //     <CheckCircle className="h-4 w-4" />
-          //   </Button>
-
-          //   {/* Bouton Rejeter */}
-          //   <Button
-          //     variant="destructive"
-          //     size="sm"
-          //     onClick={() => openValidationModal("reject", item)}
-          //   >
-          //     <XCircle className="h-4 w-4" />
-          //   </Button>
-          // </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant={"outline"}>
@@ -446,20 +428,24 @@ export function DataValidation() {
                 }}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                View
+                Voir
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => openValidationModal("approve", item)}
+                onClick={() =>
+                  isLastValidator
+                    ? setIsLastValModalOpen(true)
+                    : openValidationModal("approve", item)
+                }
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
-                Validate
+                Valider
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => openValidationModal("reject", item)}
               >
                 <LucideBan className="text-red-500 mr-2 h-4 w-4" />
-                Reject
+                Rejeter
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -632,6 +618,12 @@ export function DataValidation() {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         data={selectedItem}
+        actionButton= "Valider"
+        action={() =>
+          isLastValidator
+            ? (setIsModalOpen(false), setIsLastValModalOpen(true))
+            : (setIsModalOpen(false), openValidationModal("approve", selectedItem!))
+        }
       />
 
       <ValidationModal
@@ -674,6 +666,17 @@ export function DataValidation() {
           rejectionError: "Veuillez fournir un motif",
         }}
         onSubmit={() => handleValidation()}
+      />
+      <BesoinLastVal
+        open={isLastValModalOpen}
+        onOpenChange={setIsLastValModalOpen}
+        data={selectedItem}
+        titre={"Valider le besoin"}
+        description={"Êtes-vous sûr de vouloir valider ce besoin ?"}
+        onSubmit={async (data) => {
+          console.log("submit", data);
+          return true;
+        }}
       />
     </div>
   );

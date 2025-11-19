@@ -1,25 +1,18 @@
 "use client";
+
+import MultiSelectUsers from "@/components/base/multiSelectUsers";
 import { SuccessModal } from "@/components/modals/success-modal";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  MultiSelector,
-  MultiSelectorContent,
-  MultiSelectorInput,
-  MultiSelectorItem,
-  MultiSelectorList,
-  MultiSelectorTrigger,
-} from "@/components/ui/multi-select";
 import {
   Popover,
   PopoverContent,
@@ -33,19 +26,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
+
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronDownIcon, LoaderIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+// ----------------------------------------------------------------------
+// VALIDATION
+// ----------------------------------------------------------------------
 const formSchema = z.object({
   projet: z.string(),
   categorie: z.string(),
@@ -55,18 +53,26 @@ const formSchema = z.object({
   quantity: z.string().refine((val) => !isNaN(Number(val)), {
     message: "Le montant doit être un nombre valide",
   }),
-  unite: z.string().min(1).optional(),
+  unite: z.string().optional(),
   datelimite: z.date().optional(),
-  name: z.number().optional(),
   beneficiaire: z.string().optional(),
+  utilisateurs: z.array(z.number()).optional(), // IDs des users
 });
 
 export default function MyForm() {
-  // Prendre le user du store
   const { user } = useStore();
+
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [open, setOpen] = useState(false);
+
+  const [selectedUsers, setSelectedUsers] = useState<
+    { id: number; name: string }[]
+  >([]);
+
+  // ----------------------------------------------------------------------
+  // FORM INITIALISATION
+  // ----------------------------------------------------------------------
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -78,70 +84,90 @@ export default function MyForm() {
       quantity: "",
       unite: "",
       datelimite: new Date(),
+      beneficiaire: "",
+      utilisateurs: [],
     },
   });
 
+  const beneficiaire = form.watch("beneficiaire");
+
+  // si on repasse à "me", on vide les utilisateurs
+  useEffect(() => {
+    if (beneficiaire !== "groupe") {
+      setSelectedUsers([]);
+      form.setValue("utilisateurs", []);
+    }
+  }, [beneficiaire]);
+
+  // ----------------------------------------------------------------------
+  // QUERY PROJECTS
+  // ----------------------------------------------------------------------
+  const projects = new ProjectQueries();
+  const projectsData = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => projects.getAll(),
+  });
+
+  // ----------------------------------------------------------------------
+  // QUERY USERS
+  // ----------------------------------------------------------------------
+  const users = new UserQueries();
+  const usersData = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => users.getAll(),
+  });
+
+  const USERS =
+    usersData.data?.data.map((u) => ({ id: u.id!, name: u.name })) || [];
+
+  // ----------------------------------------------------------------------
+  // REQUEST MUTATION
+  // ----------------------------------------------------------------------
   const request = new RequestQueries();
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (
       data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt">
-    ) => {
-      return request.create(data);
-    },
+    ) => request.create(data),
+
     onSuccess: () => {
       toast.success("Besoin soumis avec succès !");
       setIsSuccessModalOpen(true);
       form.reset();
+      setSelectedUsers([]);
     },
-    onError: () => {
-      toast.error("Une erreur est survenue.");
-    },
-  });
 
-  const projects = new ProjectQueries();
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => {
-      return projects.getAll();
-    },
-  });
-
-  const users = new UserQueries();
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      return users.getAll();
-    },
+    onError: () => toast.error("Une erreur est survenue."),
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      requestMutation.mutate({
-        label: values.titre,
-        description: values.description || null,
-        quantity: Number(values.quantity),
-        unit: values.unite!,
-        beneficiary: values.beneficiaire!,
-        beficiaryList: null,
-        state: "pending",
-        proprity: "normal",
-        userId: Number(user?.id),
-        dueDate: new Date(),
-        projectId: Number(values.projet),
-      });
-    } catch (error) {}
+    requestMutation.mutate({
+      label: values.titre,
+      description: values.description || null,
+      quantity: Number(values.quantity),
+      unit: values.unite!,
+      beneficiary: values.beneficiaire!,
+      beficiaryList:
+        values.beneficiaire === "groupe" ? values.utilisateurs! : null,
+      state: "pending",
+      proprity: "normal",
+      userId: Number(user?.id),
+      dueDate: new Date(),
+      projectId: Number(values.projet),
+    });
   }
 
-  // modal spesific states
-
+  // ----------------------------------------------------------------------
+  // RENDER
+  // ----------------------------------------------------------------------
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl mx-12 py-10"
+        className="space-y-8 max-w-3xl md:mx-12 py-10"
       >
-        <div className="max-w-[760px] w-full grid grid-cols-2 gap-4">
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
+          {/* PROJET */}
           <FormField
             control={form.control}
             name="projet"
@@ -152,81 +178,68 @@ export default function MyForm() {
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <FormControl className="w-full">
-                    <SelectTrigger>
+                  <FormControl>
+                    <SelectTrigger className="w-full h-10 py-1">
                       <SelectValue placeholder="Sélectionner un projet" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {projectsData.data?.data.map((project) => (
-                      <SelectItem
-                        key={project.id}
-                        value={project?.id!.toString()}
-                      >
-                        {project.label}
+                    {projectsData.data?.data.map((p) => (
+                      <SelectItem key={p.id} value={p.id!.toString()}>
+                        {p.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-
-                <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* CATEGORIE */}
           <FormField
             control={form.control}
             name="categorie"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Catégorie</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl className="w-full">
-                    <SelectTrigger>
+                <Select onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-full h-10 py-1">
                       <SelectValue placeholder="Sélectionner une catégorie" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="m@example.com">m@example.com</SelectItem>
-                    <SelectItem value="m@google.com">m@google.com</SelectItem>
-                    <SelectItem value="m@support.com">m@support.com</SelectItem>
+                    <SelectItem value="A">Catégorie A</SelectItem>
+                    <SelectItem value="B">Catégorie B</SelectItem>
                   </SelectContent>
                 </Select>
-
-                <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* SOUS-CATEGORIE */}
           <FormField
             control={form.control}
             name="souscategorie"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Sous-catégorie</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl className="w-full">
-                    <SelectTrigger>
+                <Select onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-full h-10 py-1">
                       <SelectValue placeholder="Sélectionner une sous-catégorie" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="m@example.com">m@example.com</SelectItem>
-                    <SelectItem value="m@google.com">m@google.com</SelectItem>
-                    <SelectItem value="m@support.com">m@support.com</SelectItem>
+                    <SelectItem value="A1">A1</SelectItem>
+                    <SelectItem value="A2">A2</SelectItem>
                   </SelectContent>
                 </Select>
-
-                <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* TITRE */}
           <FormField
             control={form.control}
             name="titre"
@@ -234,18 +247,13 @@ export default function MyForm() {
               <FormItem>
                 <FormLabel>Titre</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="ex. Achat du carburant groupe"
-                    type=""
-                    {...field}
-                  />
+                  <Input placeholder="Titre du besoin" {...field} />
                 </FormControl>
-
-                <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* DESCRIPTION */}
           <FormField
             control={form.control}
             name="description"
@@ -253,52 +261,13 @@ export default function MyForm() {
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Décrivez le besoin"
-                    className="resize-none"
-                    {...field}
-                  />
+                  <Textarea className="resize-none" {...field} />
                 </FormControl>
-
-                <FormMessage />
               </FormItem>
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="quantity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Quantité</FormLabel>
-                <FormControl>
-                  <Input placeholder="ex. 10" type="number" {...field} />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="unite"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Unité</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Sélectionner l’unité"
-                    type=""
-                    {...field}
-                  />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+          {/* DATE LIMITE */}
           <FormField
             control={form.control}
             name="datelimite"
@@ -310,124 +279,117 @@ export default function MyForm() {
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        id="date"
-                        className="w-full h-10 justify-between font-normal"
+                        className="w-full justify-between"
                       >
-                        {date ? date.toLocaleDateString() : "Select date"}
+                        {date
+                          ? date.toLocaleDateString()
+                          : "Sélectionner une date"}
                         <ChevronDownIcon />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent
-                      className="w-auto overflow-hidden p-0"
-                      align="start"
-                    >
+                    <PopoverContent align="start" className="p-0">
                       <Calendar
+                        className="h-10 py-1"
                         mode="single"
                         selected={date}
-                        captionLayout="dropdown"
-                        onSelect={(date) => {
-                          setDate(date);
+                        onSelect={(d) => {
+                          setDate(d);
+                          field.onChange(d);
                           setOpen(false);
                         }}
                       />
                     </PopoverContent>
                   </Popover>
                 </FormControl>
-
-                <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* QUANTITE */}
+          <FormField
+            control={form.control}
+            name="quantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantité</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="ex. 10" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          {/* UNITE */}
+          <FormField
+            control={form.control}
+            name="unite"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unité</FormLabel>
+                <Select onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-full h-10 py-1">
+                      <SelectValue placeholder="Sélectionner l’unité" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="KG">KG</SelectItem>
+                    <SelectItem value="L">Litre</SelectItem>
+                    <SelectItem value="FCFA">FCFA</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          {/* BENEFICIAIRE */}
           <FormField
             control={form.control}
             name="beneficiaire"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Bénéficiaire</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={user?.id?.toString()}
-                >
-                  <FormControl className="w-full">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sois-même" />
+                <Select onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-full h-10 py-1">
+                      <SelectValue placeholder="Sélectionner" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {usersData.data?.data.map((use) => (
-                      <SelectItem key={use.id} value={use.id!.toString()}>
-                        {use.id === user?.id ? "Sois-même" : use.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="me">Sois-même</SelectItem>
+                    <SelectItem value="groupe">Groupe</SelectItem>
                   </SelectContent>
                 </Select>
-
-                <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* MULTISELECT CONDITIONNEL */}
+          {beneficiaire === "groupe" && (
+            <FormField
+              control={form.control}
+              name="utilisateurs"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Utilisateurs</FormLabel>
+
+                  <MultiSelectUsers
+                    users={USERS}
+                    selected={selectedUsers}
+                    onChange={(list) => {
+                      setSelectedUsers(list);
+                      field.onChange(list.map((u) => u.id));
+                    }}
+                  />
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
-        {/* <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-6">
-            <FormField
-              control={form.control}
-              name="Montant"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Montant</FormLabel>
-                  <FormControl>
-                    <Input placeholder="shadcn" type="number" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This is your public display name.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="col-span-6">
-            <FormField
-              control={form.control}
-              name="users"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Utilisateurs</FormLabel>
-                  <FormControl className="w-full">
-                    <MultiSelector
-                      values={field.value}
-                      onValuesChange={field.onChange}
-                      loop
-                      className="max-w-xs"
-                    >
-                      <MultiSelectorTrigger>
-                        <MultiSelectorInput placeholder="Select languages" />
-                      </MultiSelectorTrigger>
-                      <MultiSelectorContent>
-                        <MultiSelectorList>
-                          <MultiSelectorItem value={"React"}>
-                            React
-                          </MultiSelectorItem>
-                          <MultiSelectorItem value={"Vue"}>
-                            Vue
-                          </MultiSelectorItem>
-                          <MultiSelectorItem value={"Svelte"}>
-                            Svelte
-                          </MultiSelectorItem>
-                        </MultiSelectorList>
-                      </MultiSelectorContent>
-                    </MultiSelector>
-                  </FormControl>
-                  <FormDescription>Select multiple options.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div> */}
+        {/* SUBMIT */}
         <Button disabled={requestMutation.isPending} type="submit">
           Soumettre le besoin
           {requestMutation.isPending && (
@@ -435,6 +397,7 @@ export default function MyForm() {
           )}
         </Button>
       </form>
+
       <SuccessModal
         open={isSuccessModalOpen}
         onOpenChange={setIsSuccessModalOpen}

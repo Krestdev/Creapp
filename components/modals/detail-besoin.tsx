@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Dialog,
   DialogContent,
@@ -19,14 +20,23 @@ import {
   X,
 } from "lucide-react";
 import type { TableData } from "../base/data-table";
+import { useStore } from "@/providers/datastore";
 
 interface DetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: TableData | null;
+  action: () => void;
+  actionButton: string
 }
 
-export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
+export function DetailBesoin({
+  open,
+  onOpenChange,
+  data,
+  action,
+  actionButton
+}: DetailModalProps) {
   if (!data) return null;
 
   const statusConfig = {
@@ -51,6 +61,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   };
 
   const currentStatus = statusConfig[data.status];
+  const { user } = useStore();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -78,7 +89,9 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <Hash className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">{"Référence"}</p>
+              <p className="text-sm text-muted-foreground mb-1">
+                {"Référence"}
+              </p>
               <Badge
                 variant="secondary"
                 className="bg-pink-100 text-pink-900 hover:bg-pink-100 dark:bg-pink-900 dark:text-pink-100"
@@ -105,10 +118,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <FileText className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">{"Description"}</p>
-              <p className="text-sm">
-                {data.description}
+              <p className="text-sm text-muted-foreground mb-1">
+                {"Description"}
               </p>
+              <p className="text-sm">{data.description}</p>
             </div>
           </div>
 
@@ -118,7 +131,9 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <FolderTree className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">{"Catégorie"}</p>
+              <p className="text-sm text-muted-foreground mb-1">
+                {"Catégorie"}
+              </p>
               <p className="font-semibold">{data.category}</p>
             </div>
           </div>
@@ -156,7 +171,9 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <UserPlus className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">{"Initié par"}</p>
+              <p className="text-sm text-muted-foreground mb-1">
+                {"Initié par"}
+              </p>
               <p className="font-semibold">{data.emeteur}</p>
             </div>
           </div>
@@ -189,7 +206,9 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <Calendar className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">{"Date limite"}</p>
+              <p className="text-sm text-muted-foreground mb-1">
+                {"Date limite"}
+              </p>
               <p className="font-semibold">{data.limiteDate}</p>
             </div>
           </div>
@@ -197,9 +216,14 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
         {/* Footer buttons */}
         <div className="flex gap-3 p-6 pt-0">
-          <Button className="flex-1 bg-[#003D82] hover:bg-[#002D62] text-white">
-            {"Modifier"}
-          </Button>
+          
+            <Button
+              onClick={action}
+              className="flex-1 bg-[#003D82] hover:bg-[#002D62] text-white"
+              disabled={data.status !== "pending"}
+            >
+              {actionButton}
+            </Button>
           <Button
             variant="outline"
             className="flex-1 bg-transparent"

@@ -48,7 +48,7 @@ function Page() {
         color="red"
         links={links}
       />
-      <div className="grid grid-cols-4 gap-5">
+      <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
         {/* Statistics cards could go here in the future */}
         <StatsCard
           title="Total besoins soumis"

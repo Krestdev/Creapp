@@ -11,7 +11,7 @@ export default function TestUserPage() {
   const [password, setPassword] = useState("");
   const [userId, setUserId] = useState<number | string>("");
   const [roleLabel, setRoleLabel] = useState("");
-  const [roleId, setRoleId] = useState<number | string>("");
+  const [roleId, setRoleId] = useState<string>("");
   const [result, setResult] = useState<any>(null);
   const [otp, setOtp] = useState<string>("");
 
@@ -233,7 +233,7 @@ export default function TestUserPage() {
             className="bg-blue-700 text-white px-4 py-2 rounded"
             onClick={() =>
               handle(() =>
-                userQueries.assignRoles(Number(userId), [Number(roleId)])
+                userQueries.assignRoles(Number(userId), roleId)
               )
             }
           >

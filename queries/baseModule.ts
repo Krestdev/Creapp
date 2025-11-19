@@ -95,10 +95,10 @@ export class UserQueries {
 
   assignRoles = async (
     id: number,
-    roles: number[]
+    roleId: string
   ): Promise<{ data: any }> => {
     return api
-      .post(`${this.route}/${id}/roles`, { roles })
+      .post(`${this.route}/${id}/roles`, { roleId })
       .then((response) => {
         console.log(response.data);
         return response.data;

@@ -63,6 +63,7 @@ export type DepartmentT = {
   id: number;
   label: string;
   description: string | null;
+  members: Member[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -103,7 +104,7 @@ export type RequestModelT = {
   dueDate: Date;
   unit: string;
   beneficiary: string;
-  beficiaryList: string | null;
+  beficiaryList: number[] | null;
   state: string;
   proprity: string;
   projectId: number | null;

@@ -234,7 +234,7 @@ export default function TestDepartmentPage() {
                 handle(() =>
                   departmentQueries.removeValidators(
                     Number(deptId),
-                    parseIds(validatorIds)
+                    Number(validatorIds)
                   )
                 )
               }
@@ -249,11 +249,19 @@ export default function TestDepartmentPage() {
           <h2 className="text-xl font-semibold">Final Validators</h2>
 
           <input
+            placeholder="Dept ID"
+            className="border p-2 rounded w-full"
+            value={deptId}
+            onChange={(e) => setDeptId(e.target.value)}
+          />
+          
+          <input
             placeholder="IDs final validateurs"
             className="border p-2 rounded w-full"
             value={finalValidatorIds}
             onChange={(e) => setFinalValidatorIds(e.target.value)}
           />
+
 
           <div className="flex gap-2">
             <Button
@@ -262,7 +270,7 @@ export default function TestDepartmentPage() {
                 handle(() =>
                   departmentQueries.addFinalValidators(
                     Number(deptId),
-                    parseIds(finalValidatorIds)
+                    Number(finalValidatorIds)
                   )
                 )
               }
@@ -276,7 +284,7 @@ export default function TestDepartmentPage() {
                 handle(() =>
                   departmentQueries.removeFinalValidators(
                     Number(deptId),
-                    parseIds(finalValidatorIds)
+                    Number(finalValidatorIds)
                   )
                 )
               }

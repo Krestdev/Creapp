@@ -8,7 +8,7 @@ export class DepartmentQueries {
 
   // Créer un département
   create = async (
-    data: Omit<DepartmentT, "id" | "createdAt" | "updatedAt">
+    data: Omit<DepartmentT, "id" | "createdAt" | "updatedAt" | "members">
   ): Promise<{ data: DepartmentT }> => {
     return api.post(this.route, data).then((response) => {
       console.log(response.data);
@@ -100,10 +100,10 @@ export class DepartmentQueries {
   // Ajouter des validateurs
   addValidators = async (
     idDep: number,
-    idU: number
+    userId: number
   ): Promise<{ data: Member[] }> => {
     return api
-      .post(`${this.route}/${idDep}/validators`, { idU })
+      .post(`${this.route}/${idDep}/validators`, { userId })
       .then((response) => {
         console.log(response.data);
         return response.data;
@@ -113,10 +113,10 @@ export class DepartmentQueries {
   // Retirer des validateurs
   removeValidators = async (
     id: number,
-    validators: number[]
+    userId: number
   ): Promise<{ data: Member[] }> => {
     return api
-      .delete(`${this.route}/${id}/validators`, { data: { validators } })
+      .delete(`${this.route}/${id}/validators`, { data: { userId } })
       .then((response) => {
         return response.data;
       });
@@ -133,10 +133,10 @@ export class DepartmentQueries {
 
   addFinalValidators = async (
     id: number,
-    finalValidators: number[]
+    userId: number
   ): Promise<{ data: Member[] }> => {
     return api
-      .post(`${this.route}/${id}/final-validators`, { finalValidators })
+      .post(`${this.route}/${id}/final-validators`, { userId })
       .then((response) => {
         console.log(response.data);
         return response.data;
@@ -145,12 +145,13 @@ export class DepartmentQueries {
 
   removeFinalValidators = async (
     id: number,
-    finalValidators: number[]
+    userId: number
   ): Promise<{ data: Member[] }> => {
     return api
-      .delete(`${this.route}/${id}/final-validators`, { data: { finalValidators } })
+      .delete(`${this.route}/${id}/final-validators`, {
+        data: { userId },
+      })
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };
@@ -158,10 +159,7 @@ export class DepartmentQueries {
   // -------------------- CHIEF --------------------
 
   // Ajouter un chef
-  addChief = async (
-    id: number,
-    userId: number
-  ): Promise<{ data: Member }> => {
+  addChief = async (id: number, userId: number): Promise<{ data: Member }> => {
     return api
       .post(`${this.route}/${id}/chief`, { userId })
       .then((response) => {

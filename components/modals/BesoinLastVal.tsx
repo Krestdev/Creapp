@@ -198,15 +198,15 @@ export function BesoinLastVal({
                       disabled={isPending}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionnez une priorité" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="normale">Normale</SelectItem>
-                        <SelectItem value="moyenne">Moyenne</SelectItem>
-                        <SelectItem value="haute">Haute</SelectItem>
-                        <SelectItem value="elevee">Élevée</SelectItem>
+                        <SelectItem value="NORMAL">Normale</SelectItem>
+                        <SelectItem value="MEDIUM">medium</SelectItem>
+                        <SelectItem value="HIGH">Haute</SelectItem>
+                        <SelectItem value="CRITIC">Élevée</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
