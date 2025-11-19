@@ -88,8 +88,6 @@ export function RejectModal({ open, onOpenChange, data }: DetailModalProps) {
     },
   };
 
-  const currentStatus = statusConfig[data.status];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">

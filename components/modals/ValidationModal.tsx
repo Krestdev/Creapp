@@ -126,8 +126,6 @@ export function ValidationModal({
       : isApprove
       ? "bg-gradient-to-r from-[#15803D] to-[#0B411F]"
       : "bg-gradient-to-r from-[#B91C1C] to-[#7F1D1D]";
-
-      console.log(isApprove);
       
 
   return (

@@ -27,26 +27,56 @@ import {
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
 import { useStore } from "@/providers/datastore";
+import useAuthGuard from "@/hooks/useAuthGuard";
+import { usePathname, useRouter } from "next/navigation";
 
 function AppSidebar() {
-  // ...existing code...
+  const { user, logout } = useStore();
+  
+  // Utilisation du hook pour la protection globale
+  const { hasAccess, isChecking, userRoles } = useAuthGuard({
+    requireAuth: true,
+    authorizedRoles: [], 
+  });
+
+  // Si en cours de vérification, afficher un loader
+  if (isChecking) {
+    return (
+      <Sidebar>
+        <SidebarHeader>
+          <div className="h-8 w-8 bg-gray-200 animate-pulse rounded"></div>
+        </SidebarHeader>
+        <SidebarContent className="p-2 flex flex-col gap-2">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-8 bg-gray-100 animate-pulse rounded"></div>
+          ))}
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
+
+  // Si pas d'accès, ne pas afficher la sidebar
+  if (!hasAccess) {
+    return null;
+  }
+
   const navLinks = [
     {
       pageId: "PG-00",
       icon: BriefcaseBusiness,
       href: "/tableau-de-bord/projets",
-      authorized: ["ADMIN", "MANAGER"],
+      authorized: ["ADMIN"],
       title: "Projets",
       items: [
         {
           pageId: "PG-00-01",
-          authorized: ["ADMIN", "MANAGER"],
+          authorized: ["ADMIN"],
           title: "Creer un projet",
           href: "/tableau-de-bord/projets/create",
         },
         {
           pageId: "PG-00-02",
-          authorized: ["ADMIN", "MANAGER"],
+          authorized: ["ADMIN"],
           title: "Liste des projets",
           href: "/tableau-de-bord/projets/liste",
         },
@@ -56,7 +86,7 @@ function AppSidebar() {
       icon: Clipboard,
       pageId: "PG-001",
       href: "/tableau-de-bord/taches",
-      authorized: ["ADMIN", "MANAGER", "USER"],
+      authorized: ["ADMIN"],
       title: "Tâches",
     },
     {
@@ -82,7 +112,7 @@ function AppSidebar() {
           pageId: "PG-02-03",
           title: "Approbation",
           href: "/tableau-de-bord/besoins/approbation",
-          authorized: ["ADMIN", "MANAGER", "USER"],
+          authorized: ["ADMIN", "MANAGER"],
         },
       ],
     },
@@ -90,50 +120,50 @@ function AppSidebar() {
       pageId: "PG-03",
       icon: ClipboardList,
       href: "/tableau-de-bord/bdcommande",
-      authorized: ["ADMIN", "MANAGER", "SALES"],
+      authorized: ["ADMIN", "SALES"],
       title: "Bon de commande",
       items: [
         {
           pageId: "PG-03-01",
           title: "Demande de cotation",
           href: "/tableau-de-bord/bdcommande/cotation",
-          authorized: ["ADMIN", "MANAGER", "SALES"],
+          authorized: ["ADMIN", "SALES"],
         },
         {
           pageId: "PG-03-02",
           title: "Devis",
           href: "/tableau-de-bord/bdcommande/devis",
-          authorized: ["ADMIN", "MANAGER", "SALES"],
+          authorized: ["ADMIN", "SALES"],
         },
         {
           pageId: "PG-03-03",
           title: "Besoins",
           href: "/tableau-de-bord/bdcommande/besoins",
-          authorized: ["ADMIN", "MANAGER", "SALES"],
+          authorized: ["ADMIN", "SALES"],
         },
         {
           pageId: "PG-03-04",
           title: "Validation",
           href: "/tableau-de-bord/bdcommande/validation",
-          authorized: ["ADMIN", "MANAGER", "SALES"],
+          authorized: ["ADMIN", "SALES"],
         },
         {
           pageId: "PG-03-5",
           title: "Bons de commande",
           href: "/tableau-de-bord/bdcommande/commande",
-          authorized: ["ADMIN", "MANAGER", "SALES"],
+          authorized: ["ADMIN", "SALES"],
         },
         {
           pageId: "PG-03-06",
           title: "Créer une cotation",
           href: "/tableau-de-bord/bdcommande/creercotation",
-          authorized: ["ADMIN", "MANAGER", "SALES"],
+          authorized: ["ADMIN", "SALES"],
         },
         {
           pageId: "PG-03-07",
           title: "Nouveaux",
           href: "/tableau-de-bord/bdcommande/nouveaux",
-          authorized: ["ADMIN", "MANAGER", "SALES"],
+          authorized: ["ADMIN", "SALES"],
         },
       ],
     },
@@ -141,38 +171,38 @@ function AppSidebar() {
       pageId: "PG-04",
       icon: Ticket,
       href: "/tableau-de-bord/ticket",
-      authorized: ["ADMIN", "MANAGER", "SALES", "ACCOUNTING"],
+      authorized: ["ADMIN", "SALES", "ACCOUNTING"],
       title: "Tickets",
       items: [
         {
           pageId: "PG-04-01",
           title: "Validation",
           href: "/tableau-de-bord/ticket/validation",
-          authorized: ["ADMIN", "MANAGER", "SALES", "ACCOUNTING"],
+          authorized: ["ADMIN", "SALES", "ACCOUNTING"],
         },
         {
           pageId: "PG-04-02",
           title: "Liste des tickets",
           href: "/tableau-de-bord/ticket/liste",
-          authorized: ["ADMIN", "MANAGER", "SALES", "ACCOUNTING"],
+          authorized: ["ADMIN", "SALES", "ACCOUNTING"],
         },
         {
           pageId: "PG-04-03",
           title: "Créer un paiement",
           href: "/tableau-de-bord/ticket/nouveaux",
-          authorized: ["ADMIN", "MANAGER", "SALES", "ACCOUNTING"],
+          authorized: ["ADMIN", "SALES", "ACCOUNTING"],
         },
         {
           pageId: "PG-04-04",
           title: "Paiements",
           href: "/tableau-de-bord/ticket/paiements",
-          authorized: ["ADMIN", "MANAGER", "SALES", "ACCOUNTING"],
+          authorized: ["ADMIN", "SALES", "ACCOUNTING"],
         },
         {
           pageId: "PG-04-5",
           title: "Paiements reçus",
           href: "/tableau-de-bord/ticket/paiementrecus",
-          authorized: ["ADMIN", "MANAGER", "SALES", "ACCOUNTING"],
+          authorized: ["ADMIN", "SALES", "ACCOUNTING"],
         },
       ],
     },
@@ -180,7 +210,7 @@ function AppSidebar() {
       pageId: "PG-05",
       icon: Bell,
       href: "/tableau-de-bord/notifications",
-      authorized: ["ADMIN", "MANAGER", "USER"],
+      authorized: ["ADMIN"],
       title: "Notifications",
       badge: 4,
     },
@@ -188,14 +218,14 @@ function AppSidebar() {
       pageId: "PG-06",
       icon: BookText,
       href: "/tableau-de-bord/missions",
-      authorized: ["ADMIN", "MANAGER", "USER"],
+      authorized: ["ADMIN"],
       title: "Missions",
     },
     {
       pageId: "PG-07",
       icon: FolderOpen,
       href: "/tableau-de-bord/documents",
-      authorized: ["ADMIN", "MANAGER", "USER"],
+      authorized: ["ADMIN"],
       title: "Documents",
     },
     {
@@ -260,11 +290,10 @@ function AppSidebar() {
     },
   ];
 
-  const { user, logout } = useStore();
-  const roles = user?.role.map((r) => r.label) || ["USER"];
-
-  console.log(user);
-  
+  // Filtrer les liens de navigation selon les rôles de l'utilisateur
+  const filteredNavLinks = navLinks.filter(navLink => 
+    navLink.authorized.some(role => userRoles.includes(role))
+  );
 
   return (
     <Sidebar>
@@ -274,19 +303,16 @@ function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2 flex flex-col gap-02">
-        {navLinks.map((navLink) => {
-          if (!navLink.authorized.some((role) => roles.includes(role))) {
-            return null;
-          }
-          return <NavigationItem key={navLink.href} {...navLink} />;
-        })}
+        {filteredNavLinks.map((navLink) => (
+          <NavigationItem key={navLink.href} {...navLink} />
+        ))}
       </SidebarContent>
       <SidebarFooter>
         <div className="flex items-center gap-2 justify-between">
           <div className="flex flex-col gap-01">
             <span className="text-xs text-gray-500">{"Employé"}</span>
             <span className="text-sm font-medium text-gray-900">
-              {"St. Charles"}
+              {user?.name || "Utilisateur"}
             </span>
           </div>
           <DropdownMenu>

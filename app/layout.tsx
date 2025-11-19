@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Poppins, Work_Sans } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers";
-import useAuthGuard from "@/hooks/useAuthGuard";
 
 const sans = Work_Sans({
   variable: "--font-worksans",

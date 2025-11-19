@@ -1,4 +1,4 @@
-import { DataTable } from "@/components/base/data-table";
+import { DataValidation } from "@/components/base/dataValidation";
 import React from "react";
 
 const Approbation = () => {
@@ -6,7 +6,7 @@ const Approbation = () => {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">
         <h2>Liste des besoins a Valider</h2>
-        <DataTable />
+        <DataValidation />
       </div>
     </div>
   );

@@ -61,11 +61,22 @@ export interface UserTest extends User {
 
 export type DepartmentT = {
   id: number;
-  createdAt: Date;
-  updatedAt: Date;
   label: string;
   description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
+export type Member = {
+    id: number;
+    label: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: number;
+    departmentId: number;
+    validator: boolean;
+    chief: boolean;
+    finalValidator: boolean;
+}
 
 // projects
 

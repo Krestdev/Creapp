@@ -347,7 +347,7 @@ export default function MyForm() {
                 <FormLabel>Bénéficiaire</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  defaultValue={user?.id?.toString()}
                 >
                   <FormControl className="w-full">
                     <SelectTrigger>
@@ -355,9 +355,9 @@ export default function MyForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {usersData.data?.data.map((user) => (
-                      <SelectItem key={user.id} value={user.id!.toString()}>
-                        {`${user.name}`}
+                    {usersData.data?.data.map((use) => (
+                      <SelectItem key={use.id} value={use.id!.toString()}>
+                        {use.id === user?.id ? "Sois-même" : use.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

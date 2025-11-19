@@ -1,15 +1,36 @@
+"use client";
+
 import React from "react";
 import { Button } from "./ui/button";
 import { ArrowBigLeft } from "lucide-react";
 import { PageTitleProps } from "@/types/types";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
 
 // needs parameters to update content with respect to page
 // needs button colors
 // needs fonts to be set
 const PageTitle = ({ title, subtitle, links, color }: PageTitleProps) => {
   // setting background color to "bg-gradient-to-r from-[#9E1349] to-[#700032]
+  const { user } = useStore();
+
+  // Fonction pour filtrer les liens selon le rôle de l'utilisateur
+  const filteredLinks = React.useMemo(() => {
+    if (!user || !links) return links || [];
+
+    const userRoles = user.role.map((r) => r.label);
+    
+    return links.filter(linkButton => {
+      // Si le lien s'appelle "Approbation" et l'utilisateur est USER, on le cache
+      if (linkButton.title === "Approbation" && userRoles.includes("USER") && user.role.length === 1) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [links, user]);
+
   return (
     <div
       className={cn(
@@ -31,7 +52,7 @@ const PageTitle = ({ title, subtitle, links, color }: PageTitleProps) => {
         </Button>
       </div>
       <div className="flex gap-3">
-        {links?.map((linkButton) => {
+        {filteredLinks?.map((linkButton) => {
           return (
             <Link
               key={linkButton.href}

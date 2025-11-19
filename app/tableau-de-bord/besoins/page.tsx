@@ -2,7 +2,6 @@
 
 import { DataTable } from "@/components/base/data-table";
 import StatsCard from "@/components/base/StatsCard";
-import RequestList from "@/components/pages/besoin/RequestListPage";
 import PageTitle from "@/components/pageTitle";
 import { useStore } from "@/providers/datastore";
 import { RequestQueries } from "@/queries/requestModule";
@@ -28,16 +27,16 @@ function Page() {
     enabled: !!user?.id && isHydrated,
   });
 
-  const soumis = requestData.data?.data.length;
+  const soumis = requestData.data?.data.length ?? 0;
   const soumisMois = requestData.data?.data.filter(
     (item) => new Date(item.createdAt).getMonth() === new Date().getMonth()
-  ).length;
+  ).length ?? 0;
   const attentes = requestData.data?.data.filter(
     (item) => item.state === "pending"
-  ).length;
+  ).length ?? 0;
   const rejetes = requestData.data?.data.filter(
     (item) => item.state === "rejected"
-  ).length;
+  ).length ?? 0;
 
   if (!isHydrated) return null;
   return (

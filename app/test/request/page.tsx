@@ -198,6 +198,13 @@ export default function TestRequestPage() {
         {/* VALIDATE */}
         <section className="space-y-2">
           <h2 className="text-xl font-semibold">Valider Request</h2>
+          <input
+            type="number"
+            placeholder="Request ID"
+            className="border p-2 rounded w-full"
+            value={requestId}
+            onChange={(e) => setRequestId(e.target.value)}
+          />
           <Button
             className="bg-green-700 text-white px-4 py-2 rounded"
             onClick={() =>
@@ -211,6 +218,13 @@ export default function TestRequestPage() {
         {/* REJECT */}
         <section className="space-y-2">
           <h2 className="text-xl font-semibold">Rejeter Request</h2>
+          <input
+            type="number"
+            placeholder="Request ID"
+            className="border p-2 rounded w-full"
+            value={requestId}
+            onChange={(e) => setRequestId(e.target.value)}
+          />
           <Button
             className="bg-red-700 text-white px-4 py-2 rounded"
             onClick={() =>
@@ -258,7 +272,9 @@ export default function TestRequestPage() {
 
       {/* RESULT */}
       <section>
-        <h2 className="text-xl font-semibold max-w-[500px] w-full">Résultat :</h2>
+        <h2 className="text-xl font-semibold max-w-[500px] w-full">
+          Résultat :
+        </h2>
         <pre className="bg-gray-100 p-4 rounded max-h-96 overflow-auto text-sm">
           {JSON.stringify(result, null, 2)}
         </pre>

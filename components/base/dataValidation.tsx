@@ -15,21 +15,15 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  MoreHorizontal,
   Eye,
-  X,
-  Check,
-  Clock,
   CheckCircle,
   XCircle,
-  AlertCircle,
-  LucideBan,
-  LucidePen,
+  MoreHorizontal,
+  Check,
+  X,
   ChevronDown,
+  CheckCheck,
+  LucideBan,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,7 +33,6 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -62,20 +55,17 @@ import {
 import { cn } from "@/lib/utils";
 import { DetailBesoin } from "../modals/detail-besoin";
 import { Badge } from "../ui/badge";
-import { RejectModal } from "./reject-modal";
-import { ApproveModal } from "./approuver-modal";
 import { ValidationModal } from "../modals/ValidationModal";
-import { BesoinLastVal } from "../modals/BesoinLastVal";
 import { RequestQueries } from "@/queries/requestModule";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useStore } from "@/providers/datastore";
 import { RequestModelT } from "@/types/types";
-import UpdateRequest from "../pages/besoin/UpdateRequest";
 import { toast } from "sonner";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { ProjectQueries } from "@/queries/projectModule";
 import { UserQueries } from "@/queries/baseModule";
+import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 
 // Define the data type
 export type TableData = {
@@ -98,49 +88,33 @@ export type TableData = {
 
 const statusConfig = {
   pending: {
-    label: "Pending",
-    icon: Clock,
-    badgeClassName:
-      "bg-yellow-200 text-yellow-500 outline outline-yellow-600 hover:bg-yellow-600",
-    rowClassName:
-      "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30",
+    label: "En attente",
+    icon: CheckCircle,
+    badgeClassName: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    rowClassName: "bg-yellow-50 hover:bg-yellow-100",
   },
   validated: {
-    label: "Validated",
+    label: "Approuvé",
     icon: CheckCircle,
-    badgeClassName:
-      "bg-green-200 text-green-500 outline outline-green-600 hover:bg-green-600",
-    rowClassName:
-      "bg-green-50 hover:bg-green-100 dark:bg-green-950/20 dark:hover:bg-green-950/30",
+    badgeClassName: "bg-green-100 text-green-800 border-green-200",
+    rowClassName: "bg-green-50 hover:bg-green-100",
   },
   rejected: {
-    label: "Rejected",
+    label: "Rejeté",
     icon: XCircle,
-    badgeClassName:
-      "bg-red-200 text-red-500 outline outline-red-600 hover:bg-red-600",
-    rowClassName:
-      "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
+    badgeClassName: "bg-red-100 text-red-800 border-red-200",
+    rowClassName: "bg-red-50 hover:bg-red-100",
   },
   "in-review": {
-    label: "In Review",
-    icon: AlertCircle,
-    badgeClassName:
-      "bg-blue-200 text-blue-500 outline outline-blue-600 hover:bg-blue-600",
-    rowClassName:
-      "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
+    label: "En revue",
+    icon: CheckCircle,
+    badgeClassName: "bg-blue-100 text-blue-800 border-blue-200",
+    rowClassName: "bg-blue-50 hover:bg-blue-100",
   },
 };
 
-// Status color mapping
-const statusColors = {
-  pending: "bg-yellow-50 dark:bg-yellow-950/20",
-  validated: "bg-green-50 dark:bg-green-950/20",
-  rejected: "bg-red-50 dark:bg-red-950/20",
-  "in-review": "bg-blue-50 dark:bg-blue-950/20",
-};
-
-export function DataTable() {
-  const { user, isHydrated } = useStore();
+export function DataValidation() {
+  const { isHydrated } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -150,28 +124,16 @@ export function DataTable() {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  // modal spesific states
+  // Modal states
   const [selectedItem, setSelectedItem] = React.useState<TableData | null>(
     null
   );
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
-
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-
-  const [isRejectModalOpen, setIsRejectModalOpen] = React.useState(false);
-
-  const [isApprobationModalOpen, setIsApprobationModalOpen] =
+  const [isValidationModalOpen, setIsValidationModalOpen] =
     React.useState(false);
-
-  const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
-
-  const [modalProp, setModalProp] = React.useState({
-    open: false,
-    type: "approve" as "approve" | "reject",
-    title: "",
-    description: "",
-    selectedItem: null as TableData | null,
-  });
+  const [validationType, setValidationType] = React.useState<
+    "approve" | "reject"
+  >("approve");
 
   const projects = new ProjectQueries();
   const projectsData = useQuery({
@@ -190,36 +152,43 @@ export function DataTable() {
   });
 
   const request = new RequestQueries();
+
+  // Récupérer tous les besoins en attente de validation (pour les validateurs)
   const requestData = useQuery({
-    queryKey: ["requests", user?.id],
+    queryKey: ["requests-validation"],
     queryFn: () => {
-      if (!user?.id) {
-        throw new Error("ID utilisateur non disponible");
-      }
-      return request.getMine(user.id);
+      return request.getAll();
     },
-    enabled: !!user?.id && isHydrated,
+    enabled: isHydrated,
   });
 
-  const requestMutation = useMutation({
-    mutationKey: ["requests"],
-    mutationFn: async (data: Partial<RequestModelT>) => {
-      const id = selectedItem?.id;
-      if (!id) throw new Error("ID de besoin manquant");
-      await request.update(Number(id), data);
+  const rejectRequest = useMutation({
+    mutationKey: ["requests-validation"],
+    mutationFn: async ({ id }: { id: number }) => {
+      await request.reject(id);
     },
     onSuccess: () => {
-      toast.success("Besoin annulé avec succès !");
+      toast.success("Besoin rejeté avec succès !");
+      requestData.refetch();
     },
     onError: () => {
       toast.error("Une erreur est survenue.");
     },
   });
 
-  // useEffect pour recharger les données
-  React.useEffect(() => {
-    requestData.refetch();
-  }, [requestData.data?.data]);
+  const validateRequest = useMutation({
+    mutationKey: ["requests-validation"],
+    mutationFn: async ({ id }: { id: number }) => {
+      await request.validate(id);
+    },
+    onSuccess: () => {
+      toast.success("Besoin rejeté avec succès !");
+      requestData.refetch();
+    },
+    onError: () => {
+      toast.error("Une erreur est survenue.");
+    },
+  });
 
   const mapApiStatusToTableStatus = (
     apiStatus: string
@@ -229,14 +198,9 @@ export function DataTable() {
       validated: "validated",
       rejected: "rejected",
       "in-review": "in-review",
-      // Ajoutez d'autres mappings selon vos statuts réels
     };
     return statusMap[apiStatus] || "pending";
   };
-  // Transformation des données RequestModelT vers TableData
-  // Transformation des données RequestModelT vers TableData
-
-  // Fonctions utilitaires
 
   const mapApiPriorityToTablePriority = (
     apiPriority: string
@@ -256,45 +220,47 @@ export function DataTable() {
     return dateObj.toLocaleDateString("fr-FR");
   };
 
-  const openModal = (type: "approve" | "reject") => {
-    setModalProp({
-      open: true,
-      type,
-      title: type === "approve" ? "Approuver la demande" : "Rejeter la demande",
-      description:
-        type === "approve"
-          ? "Êtes-vous sûr de vouloir approuver cette demande ?"
-          : "Êtes-vous sûr de vouloir rejeter cette demande ?",
-      selectedItem: selectedItem,
-    });
-  };
+  // Validation function
 
-  const handleValidate = async (motif?: string): Promise<boolean> => {
-    if (modalProp.type === "approve") {
-      console.log("✅ Demande approuvée !");
-      return true;
-    } else {
-      console.log("❌ Demande rejetée avec motif :", motif);
-      return true;
-    }
-  };
-
-  const handleCancel = async () => {
+  const handleValidation = async (motif?: string): Promise<boolean> => {
     try {
-      await requestMutation.mutateAsync({ state: "cancel" });
+      if (!selectedItem) {
+        setIsValidationModalOpen(false);
+        return false;
+      }
+
+      if (validationType === "approve") {
+        await validateRequest.mutateAsync({ id: Number(selectedItem.id) });
+      } else if (validationType === "reject") {
+        await rejectRequest.mutateAsync({ id: Number(selectedItem.id) });
+      }
+
       return true;
-    } catch (e) {
+    } catch (error) {
       return false;
+    } finally {
+      setIsValidationModalOpen(false);
     }
+  };
+
+  const openValidationModal = (type: "approve" | "reject", item: TableData) => {
+    setSelectedItem(item);
+    setValidationType(type);
+    setIsValidationModalOpen(true);
   };
 
   const data = React.useMemo(() => {
-    // Accédez à requestData.data.data (le tableau de données)
     if (!requestData.data?.data || !Array.isArray(requestData.data.data)) {
       return [];
     }
 
-    return requestData.data.data.map((item: RequestModelT) => ({
+    // Filtrer pour ne montrer que les besoins en attente de validation
+    const pendingRequests = requestData.data.data.filter(
+      (item: RequestModelT) =>
+        item.state === "pending" || item.state === "in-review"
+    );
+
+    return pendingRequests.map((item: RequestModelT) => ({
       id: item.id.toString(),
       reference: `REF-${item.id.toString().padStart(3, "0")}`,
       title: item.label,
@@ -305,11 +271,13 @@ export function DataTable() {
         : "Non assigné",
       category: "Général",
       status: mapApiStatusToTableStatus(item.state),
-      emeteur: user?.name || "Utilisateur",
+      emeteur:
+        usersData.data?.data.find((user) => user.id === item.userId)?.name ||
+        "Utilisateur inconnu",
       beneficiaires: item.beneficiary
         ? usersData.data?.data.find(
             (user) => user.id === Number(item.beneficiary)
-          )?.name ?? "Non spécifié"
+          )?.name || "Non spécifié"
         : "Non spécifié",
       description: item.description || "Aucune description",
       limiteDate: formatDate(item.dueDate),
@@ -319,9 +287,9 @@ export function DataTable() {
       createdAt: formatDate(item.createdAt),
       updatedAt: formatDate(item.updatedAt),
     }));
-  }, [requestData.data, user, usersData.data, projectsData.data]);
+  }, [requestData.data, usersData.data, projectsData.data]);
 
-  // Define columns
+  // Define columns - Seulement les champs demandés
   const columns: ColumnDef<TableData>[] = [
     {
       id: "select",
@@ -346,23 +314,6 @@ export function DataTable() {
       enableHiding: false,
     },
     {
-      accessorKey: "reference",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Reference
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("reference")}</div>
-      ),
-    },
-    {
       accessorKey: "title",
       header: ({ column }) => {
         return (
@@ -370,12 +321,14 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Title
+            Titre
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("title")}</div>,
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("title")}</div>
+      ),
     },
     {
       accessorKey: "project",
@@ -385,7 +338,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Project
+            Projet
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -400,7 +353,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Category
+            Catégorie
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -408,30 +361,34 @@ export function DataTable() {
       cell: ({ row }) => <div>{row.getValue("category")}</div>,
     },
     {
-      accessorKey: "status",
+      accessorKey: "emeteur",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Status
+            Emetteur
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
-      cell: ({ row }) => {
-        const status = row.getValue("status") as keyof typeof statusConfig;
-        const config = statusConfig[status];
-        const Icon = config.icon;
-
+      cell: ({ row }) => <div>{row.getValue("emeteur")}</div>,
+    },
+    {
+      accessorKey: "beneficiaires",
+      header: ({ column }) => {
         return (
-          <Badge className={cn("gap-1", config.badgeClassName)}>
-            <Icon className="h-3 w-3" />
-            {config.label}
-          </Badge>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Bénéficiaire
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
         );
       },
+      cell: ({ row }) => <div>{row.getValue("beneficiaires")}</div>,
     },
     {
       id: "actions",
@@ -441,6 +398,38 @@ export function DataTable() {
         const item = row.original;
 
         return (
+          // <div className="flex items-center gap-2">
+          //   {/* Bouton Voir */}
+          //   <Button
+          //     variant="outline"
+          //     size="sm"
+          //     onClick={() => {
+          //       setSelectedItem(item);
+          //       setIsModalOpen(true);
+          //     }}
+          //   >
+          //     <Eye className="h-4 w-4" />
+          //   </Button>
+
+          //   {/* Bouton Valider */}
+          //   <Button
+          //     variant="default"
+          //     size="sm"
+          //     className="bg-green-600 hover:bg-green-700"
+          //     onClick={() => openValidationModal("approve", item)}
+          //   >
+          //     <CheckCircle className="h-4 w-4" />
+          //   </Button>
+
+          //   {/* Bouton Rejeter */}
+          //   <Button
+          //     variant="destructive"
+          //     size="sm"
+          //     onClick={() => openValidationModal("reject", item)}
+          //   >
+          //     <XCircle className="h-4 w-4" />
+          //   </Button>
+          // </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant={"outline"}>
@@ -457,28 +446,20 @@ export function DataTable() {
                 }}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                {"View"}
+                View
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => {
-                  setSelectedItem(item);
-                  setIsUpdateModalOpen(true);
-                }}
-                disabled={item.status !== "pending"}
+                onClick={() => openValidationModal("approve", item)}
               >
-                <LucidePen className="mr-2 h-4 w-4" />
-                {"Modifier"}
+                <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
+                Validate
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
-                  setSelectedItem(item);
-                  setIsCancelModalOpen(true);
-                }}
-                disabled={item.status !== "pending"}
+                onClick={() => openValidationModal("reject", item)}
               >
-                <LucideBan className="mr-2 h-4 w-4 text-red-500" />
-                {"Annuler"}
+                <LucideBan className="text-red-500 mr-2 h-4 w-4" />
+                Reject
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -500,7 +481,12 @@ export function DataTable() {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "title", "project"];
+      const searchableColumns = [
+        "title",
+        "project",
+        "emeteur",
+        "beneficiaires",
+      ];
       const searchValue = filterValue.toLowerCase();
 
       return searchableColumns.some((column) => {
@@ -522,7 +508,7 @@ export function DataTable() {
       <div className="flex items-center gap-4 py-4">
         {/* Global search */}
         <Input
-          placeholder="Search by title, reference, or project..."
+          placeholder="Rechercher par titre, projet, émetteur..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
@@ -540,10 +526,10 @@ export function DataTable() {
           }
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by category" />
+            <SelectValue placeholder="Filtrer par catégorie" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">Toutes les catégories</SelectItem>
             <SelectItem value="Design">Design</SelectItem>
             <SelectItem value="Development">Development</SelectItem>
             <SelectItem value="Security">Security</SelectItem>
@@ -551,34 +537,11 @@ export function DataTable() {
           </SelectContent>
         </Select>
 
-        {/* Status filter */}
-        <Select
-          value={
-            (table.getColumn("status")?.getFilterValue() as string) ?? "all"
-          }
-          onValueChange={(value) =>
-            table
-              .getColumn("status")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="validated">Validated</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="in-review">In Review</SelectItem>
-          </SelectContent>
-        </Select>
-
         {/* Column visibility */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns
+              Colonnes
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -656,49 +619,49 @@ export function DataTable() {
           </Table>
         </div>
       ) : (
-        <Empty message={"Aucun besoin enrégistré"} />
+        <Empty message={"Aucun besoin en attente de validation"} />
       )}
 
       {/* Pagination */}
       {table.getRowModel().rows?.length > 0 && (
         <Pagination table={table} pageSize={15} />
       )}
+
+      {/* Modals */}
       <DetailBesoin
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         data={selectedItem}
       />
-      <UpdateRequest
-        open={isUpdateModalOpen}
-        setOpen={setIsUpdateModalOpen}
-        data={selectedItem}
-      />
-      <RejectModal
-        open={isRejectModalOpen}
-        onOpenChange={setIsRejectModalOpen}
-        data={selectedItem}
-      />
-      <ApproveModal
-        open={isApprobationModalOpen}
-        onOpenChange={setIsApprobationModalOpen}
-        data={selectedItem}
-      />
+
       <ValidationModal
-        open={isCancelModalOpen}
-        onOpenChange={setIsCancelModalOpen}
-        type="reject"
-        title="Annuler le besoin"
-        description="Êtes-vous sûr de vouloir annuler ce besoin ?"
+        isMotifRequired={true}
+        open={isValidationModalOpen}
+        onOpenChange={setIsValidationModalOpen}
+        type={validationType}
+        title={
+          validationType === "approve"
+            ? "Valider le besoin"
+            : "Rejeter le besoin"
+        }
+        description={
+          validationType === "approve"
+            ? "Êtes-vous sûr de vouloir valider ce besoin ?"
+            : "Êtes-vous sûr de vouloir rejeter ce besoin ? Veuillez fournir un motif."
+        }
         successConfirmation={{
           title: "Succès ✅",
-          description: "Le besoin a eété annulé avec succès.",
+          description:
+            validationType === "approve"
+              ? "Le besoin a été validé avec succès."
+              : "Le besoin a été rejeté avec succès.",
         }}
         errorConfirmation={{
           title: "Erreur ❌",
-          description: "Une erreur est survenue lors de l'annulation.",
+          description: "Une erreur est survenue lors de l'opération.",
         }}
         buttonTexts={{
-          approve: "Annuler",
+          approve: "Valider",
           reject: "Rejeter",
           cancel: "Annuler",
           close: "Fermer",
@@ -706,56 +669,12 @@ export function DataTable() {
           processing: "Traitement...",
         }}
         labels={{
-          rejectionReason: "Motif de l'annulation",
-          rejectionPlaceholder: "Expliquez la raison de l'annulation...",
+          rejectionReason: "Motif du rejet",
+          rejectionPlaceholder: "Expliquez la raison du rejet...",
           rejectionError: "Veuillez fournir un motif",
         }}
-        onSubmit={() => handleCancel()}
+        onSubmit={() => handleValidation()}
       />
-      {true || modalProp.type === "reject" ? (
-        <ValidationModal
-          open={modalProp.open}
-          onOpenChange={(v) => setModalProp({ ...modalProp, open: v })}
-          type={modalProp.type}
-          title="Rejeter la demande"
-          description="Êtes-vous sûr de vouloir rejeter cette demande ?"
-          successConfirmation={{
-            title: "Succès ✅",
-            description: "La demande a été rejetée avec succès.",
-          }}
-          errorConfirmation={{
-            title: "Erreur ❌",
-            description: "Une erreur est survenue lors du rejet.",
-          }}
-          buttonTexts={{
-            approve: "Approuver",
-            reject: "Rejeter",
-            cancel: "Annuler",
-            close: "Fermer",
-            retry: "Réessayer",
-            processing: "Traitement...",
-          }}
-          labels={{
-            rejectionReason: "Motif du rejet",
-            rejectionPlaceholder: "Expliquez la raison du rejet...",
-            rejectionError: "Veuillez fournir un motif",
-          }}
-          onSubmit={(motif) => handleValidate(motif)}
-          // isMotifRequired={true}
-        />
-      ) : (
-        <BesoinLastVal
-          open={modalProp.open}
-          onOpenChange={(v) => setModalProp({ ...modalProp, open: v })}
-          data={selectedItem}
-          titre={selectedItem?.title}
-          description={modalProp.title}
-          onSubmit={async (data) => {
-            console.log("submit", data);
-            return true;
-          }}
-        />
-      )}
     </div>
   );
 }

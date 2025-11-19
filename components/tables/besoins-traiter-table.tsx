@@ -315,7 +315,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
           <SelectContent>
             <SelectItem value="all">All Projects</SelectItem>
             {uniqueProjets.map((proj) => (
-              <SelectItem key={proj} value={proj}>
+              <SelectItem key={proj} value={proj!}>
                 {proj}
               </SelectItem>
             ))}
