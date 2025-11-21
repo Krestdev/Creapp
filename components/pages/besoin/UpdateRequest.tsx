@@ -12,21 +12,12 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  MultiSelector,
-  MultiSelectorContent,
-  MultiSelectorInput,
-  MultiSelectorItem,
-  MultiSelectorList,
-  MultiSelectorTrigger,
-} from "@/components/ui/multi-select";
 import {
   Popover,
   PopoverContent,
@@ -54,6 +45,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { parseFrenchDate } from "@/lib/utils";
 
 interface BesoinsProps {
   open: boolean;
@@ -76,33 +68,6 @@ const formSchema = z.object({
   beneficiaire: z.string().optional(),
 });
 
-const parseFrenchDate = (dateString: string): Date | undefined => {
-  if (!dateString || dateString === "Non définie") return undefined;
-
-  const cleanedDate = dateString.trim();
-  const parts = cleanedDate.split("/");
-
-  if (parts.length !== 3) return undefined;
-
-  const [day, month, year] = parts.map((part) => parseInt(part, 10));
-
-  if (isNaN(day) || isNaN(month) || isNaN(year)) return undefined;
-  if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1000)
-    return undefined;
-
-  const date = new Date(year, month - 1, day);
-
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
-    return undefined;
-  }
-
-  return date;
-};
-
 const UpdateRequest = (props: BesoinsProps) => {
   const [openD, setOpenD] = useState(false);
   const { user } = useStore();
@@ -124,7 +89,7 @@ const UpdateRequest = (props: BesoinsProps) => {
   // Mettre à jour les valeurs du formulaire quand props.data change
   useEffect(() => {
     if (props.data) {
-      const initialDate = parseFrenchDate(props.data.limiteDate || "");
+      const initialDate = props.data.limiteDate;
       form.reset({
         projet: props.data.project || "",
         categorie: props.data.category || "",
@@ -182,7 +147,7 @@ const UpdateRequest = (props: BesoinsProps) => {
         quantity: Number(values.quantity),
         unit: values.unite!,
         beneficiary: values.beneficiaire!,
-        beficiaryList: null,
+        benef: null,
         state: "pending",
         proprity: "normal",
         userId: Number(user?.id),

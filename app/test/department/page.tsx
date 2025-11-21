@@ -13,7 +13,6 @@ export default function TestDepartmentPage() {
   const [label, setLabel] = useState("");
   const [description, setDescription] = useState("");
 
-  const [memberIds, setMemberIds] = useState("");
   const [validatorIds, setValidatorIds] = useState("");
   const [finalValidatorIds, setFinalValidatorIds] = useState("");
 
@@ -164,10 +163,22 @@ export default function TestDepartmentPage() {
           <h2 className="text-xl font-semibold">Ajouter / Retirer Membres</h2>
 
           <input
-            placeholder="IDs séparés par ,"
+            placeholder="Label d'utilisateur"
             className="border p-2 rounded w-full"
-            value={memberIds}
-            onChange={(e) => setMemberIds(e.target.value)}
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+           <input
+            placeholder="ID utilisateur ,"
+            className="border p-2 rounded w-full"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+          />
+          <input
+            placeholder="ID du departement ,"
+            className="border p-2 rounded w-full"
+            value={deptId}
+            onChange={(e) => setDeptId(e.target.value)}
           />
 
           <div className="flex gap-2">
@@ -175,7 +186,7 @@ export default function TestDepartmentPage() {
               className="bg-green-600 text-white"
               onClick={() =>
                 handle(() =>
-                  departmentQueries.addMembers(Number(deptId), parseIds(memberIds))
+                  departmentQueries.addMembers(Number(deptId), {label: label, userId: Number(userId)})
                 )
               }
             >
@@ -188,7 +199,7 @@ export default function TestDepartmentPage() {
                 handle(() =>
                   departmentQueries.removeMembers(
                     Number(deptId),
-                    parseIds(memberIds)
+                    Number(userId)
                   )
                 )
               }

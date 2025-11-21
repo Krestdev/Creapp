@@ -49,7 +49,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn, parseFrenchDate } from "@/lib/utils";
 import { DetailBesoin } from "../modals/detail-besoin";
 import { ValidationModal } from "../modals/ValidationModal";
 import { RequestQueries } from "@/queries/requestModule";
@@ -75,7 +75,7 @@ export type TableData = {
   status: "pending" | "validated" | "rejected" | "in-review";
   emeteur: string;
   beneficiaires: string;
-  limiteDate: string;
+  limiteDate: Date | undefined;
   priorite: "low" | "medium" | "high" | "urgent";
   quantite: number;
   unite: string;
@@ -133,6 +133,7 @@ export function DataValidation() {
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
+  const [toShow, setToShow] = React.useState<RequestModelT[]>([]);
 
   const department = new DepartmentQueries();
   const departmentData = useQuery({
@@ -182,19 +183,36 @@ export function DataValidation() {
     },
   });
 
-  const validateRequest = useMutation({
-    mutationKey: ["requests-validation"],
+  const reviewRequest = useMutation({
+    mutationKey: ["requests-review"],
     mutationFn: async ({ id }: { id: number }) => {
-      await request.validate(id);
+      await request.review(id, { validated: true, userId: user?.id! } );
     },
     onSuccess: () => {
-      toast.success("Besoin rejeté avec succès !");
+      toast.success("Besoin validé avec succès !");
       requestData.refetch();
     },
     onError: () => {
-      toast.error("Une erreur est survenue.");
+      toast.error("Une erreur est survenue lors de la validation.");
     },
   });
+
+  // const requestMutation = useMutation({
+  //   mutationKey: ["requests"],
+  //   mutationFn: async (data: Partial<RequestModelT>) => {
+  //     const id = data?.id;
+  //     if (!id) throw new Error("ID de besoin manquant");
+
+  //     await request.update(Number(id), data);
+  //     return { id: Number(id) };
+  //   },
+  //   onSuccess: (res) => {
+  //     validateRequest.mutateAsync({ id: res.id });
+  //   },
+  //   onError: () => {
+  //     toast.error("Une erreur est survenue.");
+  //   },
+  // });
 
   const mapApiStatusToTableStatus = (
     apiStatus: string
@@ -226,15 +244,31 @@ export function DataValidation() {
     return dateObj.toLocaleDateString("fr-FR");
   };
 
-  // Validation function
-
-  // verifier si le validateur est le dernier validateur:
   const isLastValidator =
     departmentData.data?.data
       .flatMap((mem) => mem.members)
       .find((mem) => mem.userId === user?.id)?.finalValidator === true;
 
-  console.log(isLastValidator);
+  // afficher les element a valider en fonction du validateur
+  React.useEffect(() => {
+    if (requestData.data?.data && user) {
+      const show = requestData.data?.data.filter((item) => {
+        // Récupérer la liste des IDs des validateurs pour ce departement
+        const validatorIds = departmentData.data?.data.flatMap(x => x.members).filter(x => x.validator === true).map(x => x.userId);
+
+        console.log(validatorIds, item.revieweeList);
+        
+
+        if (isLastValidator) {
+          
+          return validatorIds?.every((id) => item.revieweeList?.flatMap(x => x.validatorId).includes(id));
+        } else {
+          return !item.revieweeList?.flatMap(x => x.validatorId).includes(user?.id!) && item.state === "pending";
+        }
+      });
+      setToShow(show);
+    }
+  }, [requestData.data?.data, user, isLastValidator, departmentData.data?.data]);
 
   const handleValidation = async (motif?: string): Promise<boolean> => {
     try {
@@ -244,7 +278,7 @@ export function DataValidation() {
       }
 
       if (validationType === "approve") {
-        await validateRequest.mutateAsync({ id: Number(selectedItem.id) });
+        await reviewRequest.mutateAsync({ id: Number(selectedItem.id) });
       } else if (validationType === "reject") {
         await rejectRequest.mutateAsync({ id: Number(selectedItem.id) });
       }
@@ -264,12 +298,12 @@ export function DataValidation() {
   };
 
   const data = React.useMemo(() => {
-    if (!requestData.data?.data || !Array.isArray(requestData.data.data)) {
+    if (!toShow || !Array.isArray(toShow)) {
       return [];
     }
 
     // Filtrer pour ne montrer que les besoins en attente de validation
-    const pendingRequests = requestData.data.data.filter(
+    const pendingRequests = toShow.filter(
       (item: RequestModelT) =>
         item.state === "pending" || item.state === "in-review"
     );
@@ -294,14 +328,14 @@ export function DataValidation() {
           )?.name || "Non spécifié"
         : "Non spécifié",
       description: item.description || "Aucune description",
-      limiteDate: formatDate(item.dueDate),
+      limiteDate: item.dueDate,
       priorite: mapApiPriorityToTablePriority(item.proprity),
       quantite: item.quantity,
       unite: item.unit || "Unité",
       createdAt: formatDate(item.createdAt),
       updatedAt: formatDate(item.updatedAt),
     }));
-  }, [requestData.data, usersData.data, projectsData.data]);
+  }, [toShow, usersData.data, projectsData.data]);
 
   // Define columns - Seulement les champs demandés
   const columns: ColumnDef<TableData>[] = [
@@ -434,7 +468,7 @@ export function DataValidation() {
               <DropdownMenuItem
                 onClick={() =>
                   isLastValidator
-                    ? setIsLastValModalOpen(true)
+                    ? (setSelectedItem(item), setIsLastValModalOpen(true))
                     : openValidationModal("approve", item)
                 }
               >
@@ -618,11 +652,12 @@ export function DataValidation() {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         data={selectedItem}
-        actionButton= "Valider"
+        actionButton="Valider"
         action={() =>
           isLastValidator
             ? (setIsModalOpen(false), setIsLastValModalOpen(true))
-            : (setIsModalOpen(false), openValidationModal("approve", selectedItem!))
+            : (setIsModalOpen(false),
+              openValidationModal("approve", selectedItem!))
         }
       />
 
@@ -673,10 +708,6 @@ export function DataValidation() {
         data={selectedItem}
         titre={"Valider le besoin"}
         description={"Êtes-vous sûr de vouloir valider ce besoin ?"}
-        onSubmit={async (data) => {
-          console.log("submit", data);
-          return true;
-        }}
       />
     </div>
   );

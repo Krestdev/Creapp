@@ -76,7 +76,7 @@ export type TableData = {
   status: "pending" | "validated" | "rejected" | "in-review";
   emeteur: string;
   beneficiaires: string;
-  limiteDate: string;
+  limiteDate: Date | undefined;
   priorite: "low" | "medium" | "high" | "urgent";
   quantite: number;
   unite: string;
@@ -254,7 +254,7 @@ export function DataTable() {
           )?.name ?? "Non spécifié"
         : "Non spécifié",
       description: item.description || "Aucune description",
-      limiteDate: formatDate(item.dueDate),
+      limiteDate: item.dueDate,
       priorite: mapApiPriorityToTablePriority(item.proprity),
       quantite: item.quantity,
       unite: item.unit || "Unité",

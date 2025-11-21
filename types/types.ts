@@ -68,16 +68,16 @@ export type DepartmentT = {
   updatedAt: Date;
 };
 export type Member = {
-    id: number;
-    label: string;
-    createdAt: Date;
-    updatedAt: Date;
-    userId: number;
-    departmentId: number;
-    validator: boolean;
-    chief: boolean;
-    finalValidator: boolean;
-}
+  id: number;
+  label: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: number;
+  departmentId: number;
+  validator: boolean;
+  chief: boolean;
+  finalValidator: boolean;
+};
 
 // projects
 
@@ -104,10 +104,27 @@ export type RequestModelT = {
   dueDate: Date;
   unit: string;
   beneficiary: string;
-  beficiaryList: number[] | null;
+  benef: number[] | null;
   state: string;
   proprity: string;
   projectId: number | null;
+  categoryId: number | null;
+  revieweeList?: Review[] | null;
+};
+
+export type Review = {
+  decision: string;
+  validatorId: number;
+  requestId: number;
+};
+
+export type Category = {
+  id: number;
+  label: string;
+  description: string | null;
+  parentId: number | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 // queries response

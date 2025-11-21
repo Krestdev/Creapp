@@ -19,8 +19,9 @@ import {
   Calendar,
   X,
 } from "lucide-react";
-import type { TableData } from "../base/data-table";
 import { useStore } from "@/providers/datastore";
+import { TableData } from "../base/dataValidation";
+import { format } from "date-fns";
 
 interface DetailModalProps {
   open: boolean;
@@ -209,7 +210,7 @@ export function DetailBesoin({
               <p className="text-sm text-muted-foreground mb-1">
                 {"Date limite"}
               </p>
-              <p className="font-semibold">{data.limiteDate}</p>
+              <p className="font-semibold">{format(data.limiteDate!, "dd/MM/yyyy")}</p>
             </div>
           </div>
         </div>

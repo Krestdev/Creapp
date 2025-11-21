@@ -27,14 +27,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
-import { TableData } from "../base/data-table";
+import { ChevronDownIcon, Loader2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar } from "../ui/calendar";
+import { format, set } from "date-fns";
+import { fr } from "date-fns/locale";
+import { TableData } from "../base/dataValidation";
+import { RequestQueries } from "@/queries/requestModule";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { RequestModelT } from "@/types/types";
+import { toast } from "sonner";
+import { useStore } from "@/providers/datastore";
 
-// Schéma de validation Zod
+// Validation Zod
 const formSchema = z.object({
   title: z.string().min(1, "Le titre est obligatoire"),
-  limiteDate: z.string().optional(),
-  priorite: z.enum(["low" , "medium" , "high" , "urgent"], {
+  limiteDate: z.date().optional(),
+  priorite: z.enum(["medium", "high", "low", "urgent"], {
     required_error: "La priorité est obligatoire",
   }),
   quantite: z.string().min(1, "La quantité est obligatoire"),
@@ -49,7 +58,6 @@ interface ValidationModalProps {
   data: TableData | null;
   titre: string | undefined;
   description: string | undefined;
-  onSubmit: (data: TableData) => Promise<boolean>;
 }
 
 export function BesoinLastVal({
@@ -58,95 +66,135 @@ export function BesoinLastVal({
   data,
   titre,
   description,
-  onSubmit,
 }: ValidationModalProps) {
+  const [openD, setOpenD] = useState(false);
+  const { isHydrated } = useStore();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: data?.title || "",
-      limiteDate: data?.limiteDate || "",
+      limiteDate: new Date(data?.limiteDate!),
       priorite: data?.priorite,
       quantite: String(data?.quantite) || "",
       description: data?.description || "",
     },
   });
 
-  const [isPending, setIsPending] = useState(false);
-  const [result, setResult] = useState<"success" | "error" | null>(null);
+  const request = new RequestQueries();
 
-  // Réinitialisation à chaque ouverture
+  const requestData = useQuery({
+    queryKey: ["requests-validation"],
+    queryFn: () => {
+      return request.getAll();
+    },
+    enabled: isHydrated,
+  });
+
+  const validateRequest = useMutation({
+    mutationKey: ["requests-validation"],
+    mutationFn: async ({ id }: { id: number }) => {
+      await request.validate(id);
+    },
+    onSuccess: () => {
+      toast.success("Besoin validé avec succès !");
+      requestData.refetch();
+    },
+    onError: () => {
+      toast.error("Erreur lors de la validation");
+    },
+  });
+
+  const requestMutation = useMutation({
+    mutationKey: ["requests"],
+    mutationFn: async (data: Partial<RequestModelT>) => {
+      const id = data?.id;
+
+      console.log(id);
+
+      if (!id) throw new Error("ID de besoin manquant");
+
+      await request.update(Number(id), data);
+      return { id: Number(id) };
+    },
+    onSuccess: (res) => {
+      validateRequest.mutateAsync({ id: res.id });
+    },
+    onError: (error) => {
+      toast.error("Une erreur est survenue.");
+      console.log(error);
+    },
+  });
+
+  const isSuccess = requestMutation.isSuccess || validateRequest.isSuccess; 
+  const isError = requestMutation.isError || validateRequest.isError;
+  const isPending = requestMutation.isPending || validateRequest.isPending;
+
+  // Reset when modal opens
   useEffect(() => {
     if (open) {
       form.reset({
         title: data?.title || "",
-        limiteDate: data?.limiteDate || "",
+        limiteDate: new Date(data?.limiteDate!),
         priorite: data?.priorite,
         quantite: String(data?.quantite) || "",
         description: data?.description || "",
       });
-      setIsPending(false);
-      setResult(null);
     }
   }, [open, data, form]);
 
-  const handleSubmit = async (values: FormValues) => {
-    setIsPending(true);
-
+  const submitForm = async (values: FormValues) => {
+    console.log(isSuccess, isPending, isError);
+    
     try {
-      // Merge form values with existing data, ensure required string fields are not undefined
-      const merged = {
-        id: data?.id ?? 0,
-        ...(data ?? {}),
-        ...values,
-        // provide fallbacks for required string fields that may be undefined on `data`
-        reference: data?.reference ?? "",
-        project: data?.project ?? "",
-        unite: data?.unite ?? "",
-        quantite: Number(values.quantite)
-      };
-      const success = await onSubmit(merged as TableData);
-      setResult(success ? "success" : "error");
-    } catch {
-      setResult("error");
-    } finally {
-      setIsPending(false);
+      requestMutation.mutate({
+        id: Number(data?.id),
+        label: values.title,
+        description: values.description,
+        proprity: values.priorite,
+        quantity: Number(values.quantite),
+        dueDate: values.limiteDate,
+      });
+    } catch (error) {
+      toast.error("Une erreur est survenue");
     }
   };
 
-  const handleRetry = async () => {
-    await form.handleSubmit(handleSubmit)();
-  };
+  /** Header dynamique */
+  const headerColor = isError
+    ? "from-red-500 to-[#581114]"
+    : isSuccess
+    ? "from-[#15803D] to-[#0B411F]"
+    : "from-[#15803D] to-[#0B411F]";
 
-  // Affichage dynamique
-  const renderTitle = () => {
-    if (result === "success") return "Succès ✅";
-    if (result === "error") return "Erreur ❌";
-    return titre;
-  };
+  const headerTitle = isError ? "Erreur ❌" : isSuccess ? "Succès ✅" : titre;
 
-  const renderDescription = () => {
-    if (result === "success")
-      return "Les modifications ont été enregistrées avec succès.";
-    if (result === "error")
-      return "Une erreur est survenue lors de l'enregistrement. Vous pouvez réessayer.";
-    return description;
-  };
+  const headerDescription = isError
+    ? "Une erreur est survenue. Vous pouvez réessayer."
+    : isSuccess
+    ? "Les modifications ont bien été enregistrées."
+    : description;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-screen overflow-y-auto p-0 gap-0 border-none">
         {/* HEADER */}
-        <DialogHeader className={`bg-gradient-to-r from-[#15803D] to-[#0B411F] text-white p-6 m-4 rounded-lg pb-8`}>
+        <DialogHeader
+          className={`bg-gradient-to-r ${headerColor} text-white p-6 m-4 rounded-lg pb-8`}
+        >
           <DialogTitle className="text-xl font-semibold text-white">
-            {renderTitle()}
+            {headerTitle}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">{renderDescription()}</p>
+          <p className="text-sm text-white/80 mt-1">{headerDescription}</p>
         </DialogHeader>
 
-        {/* FORMULAIRE uniquement avant résultat */}
-        {!result && (
+        {/* FORM - Only if not success/error */}
+        {!isSuccess && !isError && (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="px-6 pb-4 space-y-4">
+            <form
+              onSubmit={form.handleSubmit(submitForm)}
+              className="px-6 pb-4 space-y-4"
+            >
               {/* Titre */}
               <FormField
                 control={form.control}
@@ -166,20 +214,39 @@ export function BesoinLastVal({
                 )}
               />
 
-              {/* Data */}
+              {/* Date */}
               <FormField
                 control={form.control}
                 name="limiteDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Données</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Données..."
-                        {...field}
-                        disabled={isPending}
-                      />
-                    </FormControl>
+                    <FormLabel>Date limite</FormLabel>
+                    <Popover open={openD} onOpenChange={setOpenD}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className="w-full h-10 justify-between font-normal"
+                          >
+                            {field.value
+                              ? format(field.value, "PPP", { locale: fr })
+                              : "Sélectionner une date"}
+                            <ChevronDownIcon />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(date) => {
+                            field.onChange(date);
+                            setOpenD(false);
+                          }}
+                          locale={fr}
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -203,10 +270,10 @@ export function BesoinLastVal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="NORMAL">Normale</SelectItem>
-                        <SelectItem value="MEDIUM">medium</SelectItem>
-                        <SelectItem value="HIGH">Haute</SelectItem>
-                        <SelectItem value="CRITIC">Élevée</SelectItem>
+                        <SelectItem value="low">Normale</SelectItem>
+                        <SelectItem value="medium">Moyenne</SelectItem>
+                        <SelectItem value="high">Haute</SelectItem>
+                        <SelectItem value="urgent">Urgente</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -242,9 +309,9 @@ export function BesoinLastVal({
                     <FormLabel>Description *</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Description détaillée..."
-                        className="resize-none"
                         rows={4}
+                        className="resize-none"
+                        placeholder="Description détaillée..."
                         {...field}
                         disabled={isPending}
                       />
@@ -254,6 +321,7 @@ export function BesoinLastVal({
                 )}
               />
 
+              {/* Boutons */}
               <div className="flex justify-end gap-3 pt-4">
                 <Button
                   type="submit"
@@ -263,40 +331,35 @@ export function BesoinLastVal({
                   {isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {"Enregistrement..."}
+                      Enregistrement...
                     </>
                   ) : (
                     "Approuver"
                   )}
                 </Button>
+
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => onOpenChange(false)}
                   disabled={isPending}
                 >
-                  {"Fermer"}
+                  Fermer
                 </Button>
               </div>
             </form>
           </Form>
         )}
 
-        {/* FOOTER pour les résultats */}
-        {result && (
+        {/* Footer Success/Error */}
+        {(isSuccess || isError) && (
           <div className="flex justify-end gap-3 p-6 pt-0">
-            {result === "error" && (
-              <Button
-                className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                onClick={handleRetry}
-                disabled={isPending}
-              >
-                Réessayer
-              </Button>
-            )}
             <Button
               className="bg-gray-600 hover:bg-gray-700 text-white"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                form.reset();
+                onOpenChange(false)}
+              }
             >
               Fermer
             </Button>

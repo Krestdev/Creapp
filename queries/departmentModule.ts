@@ -64,10 +64,13 @@ export class DepartmentQueries {
   // Ajouter des membres
   addMembers = async (
     id: number,
-    members: number[]
+    data: { label: string; userId: number } // Modifier le type pour userId
   ): Promise<{ data: Member[] }> => {
     return api
-      .post(`${this.route}/${id}/members`, { members })
+      .post(`${this.route}/${id}/members`, {
+        label: data.label,
+        userId: data.userId, 
+      })
       .then((response) => {
         console.log(response.data);
         return response.data;
@@ -77,8 +80,8 @@ export class DepartmentQueries {
   // Retirer des membres
   removeMembers = async (
     id: number,
-    members: number[]
-  ): Promise<{ data: Member[] }> => {
+    members: number
+  ): Promise<{ data: Member }> => {
     return api
       .delete(`${this.route}/${id}/members`, { data: { members } })
       .then((response) => {

@@ -97,12 +97,13 @@ export default function TestRequestPage() {
                   quantity,
                   unit,
                   beneficiary,
-                  beficiaryList: null,
+                  benef: null,
                   state: "pending",
                   proprity: "normal",
                   userId: Number(userId),
                   dueDate: new Date(),
                   projectId: Number(projectId),
+                  categoryId: 1
                 })
               )
             }

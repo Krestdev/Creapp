@@ -90,6 +90,7 @@ export default function MyForm() {
   });
 
   const beneficiaire = form.watch("beneficiaire");
+  const selectedCategorie = form.watch("categorie");
 
   // si on repasse à "me", on vide les utilisateurs
   useEffect(() => {
@@ -98,6 +99,13 @@ export default function MyForm() {
       form.setValue("utilisateurs", []);
     }
   }, [beneficiaire]);
+
+  // Réinitialiser la sous-catégorie quand la catégorie change
+  useEffect(() => {
+    if (selectedCategorie) {
+      form.setValue("souscategorie", "");
+    }
+  }, [selectedCategorie, form]);
 
   // ----------------------------------------------------------------------
   // QUERY PROJECTS
@@ -134,26 +142,46 @@ export default function MyForm() {
       toast.success("Besoin soumis avec succès !");
       setIsSuccessModalOpen(true);
       form.reset();
+
       setSelectedUsers([]);
     },
 
     onError: () => toast.error("Une erreur est survenue."),
   });
 
+  const categoriesData = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => request.getCategories(),
+  });
+
+  // Filtrer les catégories parentes (parentId === null)
+  const categories =
+    categoriesData.data?.data.filter((cat) => cat.parentId === null) || [];
+
+  // Filtrer les sous-catégories en fonction de la catégorie sélectionnée
+  const souscategories = selectedCategorie
+    ? categoriesData.data?.data.filter(
+        (cat) =>
+          cat.parentId !== null &&
+          cat.parentId?.toString() === selectedCategorie
+      ) || []
+    : [];
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     requestMutation.mutate({
       label: values.titre,
       description: values.description || null,
+      categoryId: Number(values.souscategorie || values.categorie), 
       quantity: Number(values.quantity),
       unit: values.unite!,
       beneficiary: values.beneficiaire!,
-      beficiaryList:
+      benef:
         values.beneficiaire === "groupe" ? values.utilisateurs! : null,
+      userId: Number(user?.id),
+      dueDate: values.datelimite!,
+      projectId: Number(values.projet),
       state: "pending",
       proprity: "normal",
-      userId: Number(user?.id),
-      dueDate: new Date(),
-      projectId: Number(values.projet),
     });
   }
 
@@ -209,8 +237,11 @@ export default function MyForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="A">Catégorie A</SelectItem>
-                    <SelectItem value="B">Catégorie B</SelectItem>
+                    {categories?.map((c) => (
+                      <SelectItem key={c.id} value={c.id!.toString()}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormItem>
@@ -224,17 +255,40 @@ export default function MyForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Sous-catégorie</FormLabel>
-                <Select onValueChange={field.onChange}>
+                <Select
+                  onValueChange={field.onChange}
+                  disabled={!selectedCategorie} // Désactivé si aucune catégorie sélectionnée
+                >
                   <FormControl>
                     <SelectTrigger className="w-full h-10 py-1">
-                      <SelectValue placeholder="Sélectionner une sous-catégorie" />
+                      <SelectValue
+                        placeholder={
+                          !selectedCategorie
+                            ? "Sélectionnez d'abord une catégorie"
+                            : "Sélectionner une sous-catégorie"
+                        }
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="A1">A1</SelectItem>
-                    <SelectItem value="A2">A2</SelectItem>
+                    {souscategories.length > 0 ? (
+                      souscategories.map((c) => (
+                        <SelectItem key={c.id} value={c.id!.toString()}>
+                          {c.label}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-subcategory" disabled>
+                        Aucune sous-catégorie disponible
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
+                {!selectedCategorie && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Veuillez d'abord sélectionner une catégorie
+                  </p>
+                )}
               </FormItem>
             )}
           />
@@ -329,7 +383,7 @@ export default function MyForm() {
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full h-10 py-1">
-                      <SelectValue placeholder="Sélectionner l’unité" />
+                      <SelectValue placeholder="Sélectionner l'unité" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -356,7 +410,7 @@ export default function MyForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="me">Sois-même</SelectItem>
+                    <SelectItem value="me">Soi-même</SelectItem>
                     <SelectItem value="groupe">Groupe</SelectItem>
                   </SelectContent>
                 </Select>
