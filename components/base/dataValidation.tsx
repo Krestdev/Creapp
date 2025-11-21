@@ -185,8 +185,8 @@ export function DataValidation() {
 
   const reviewRequest = useMutation({
     mutationKey: ["requests-review"],
-    mutationFn: async ({ id }: { id: number }) => {
-      await request.review(id, { validated: true, userId: user?.id! } );
+    mutationFn: async ({ id, validated, decision }: { id: number; validated: boolean; decision?: string }) => {
+      await request.review(id, { validated: validated, decision, userId: user?.id! });
     },
     onSuccess: () => {
       toast.success("Besoin validé avec succès !");
@@ -254,21 +254,33 @@ export function DataValidation() {
     if (requestData.data?.data && user) {
       const show = requestData.data?.data.filter((item) => {
         // Récupérer la liste des IDs des validateurs pour ce departement
-        const validatorIds = departmentData.data?.data.flatMap(x => x.members).filter(x => x.validator === true).map(x => x.userId);
+        const validatorIds = departmentData.data?.data
+          .flatMap((x) => x.members)
+          .filter((x) => x.validator === true)
+          .map((x) => x.userId);
 
         console.log(validatorIds, item.revieweeList);
-        
 
         if (isLastValidator) {
-          
-          return validatorIds?.every((id) => item.revieweeList?.flatMap(x => x.validatorId).includes(id));
+          return validatorIds?.every((id) =>
+            item.revieweeList?.flatMap((x) => x.validatorId).includes(id)
+          );
         } else {
-          return !item.revieweeList?.flatMap(x => x.validatorId).includes(user?.id!) && item.state === "pending";
+          return (
+            !item.revieweeList
+              ?.flatMap((x) => x.validatorId)
+              .includes(user?.id!) && item.state === "pending"
+          );
         }
       });
       setToShow(show);
     }
-  }, [requestData.data?.data, user, isLastValidator, departmentData.data?.data]);
+  }, [
+    requestData.data?.data,
+    user,
+    isLastValidator,
+    departmentData.data?.data,
+  ]);
 
   const handleValidation = async (motif?: string): Promise<boolean> => {
     try {
@@ -278,9 +290,17 @@ export function DataValidation() {
       }
 
       if (validationType === "approve") {
-        await reviewRequest.mutateAsync({ id: Number(selectedItem.id) });
+        await reviewRequest.mutateAsync({
+          id: Number(selectedItem.id),
+          validated: true
+        });
       } else if (validationType === "reject") {
-        await rejectRequest.mutateAsync({ id: Number(selectedItem.id) });
+        // await rejectRequest.mutateAsync({ id: Number(selectedItem.id) });
+        await reviewRequest.mutateAsync({
+          id: Number(selectedItem.id),
+          validated: false,
+          decision: motif
+        });
       }
 
       return true;

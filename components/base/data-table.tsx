@@ -58,7 +58,7 @@ import { ValidationModal } from "../modals/ValidationModal";
 import { RequestQueries } from "@/queries/requestModule";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useStore } from "@/providers/datastore";
-import { RequestModelT } from "@/types/types";
+import { RequestModelT, TableData } from "@/types/types";
 import UpdateRequest from "../pages/besoin/UpdateRequest";
 import { toast } from "sonner";
 import Empty from "./empty";
@@ -67,23 +67,7 @@ import { ProjectQueries } from "@/queries/projectModule";
 import { UserQueries } from "@/queries/baseModule";
 
 // Define the data type
-export type TableData = {
-  id: string;
-  reference: string;
-  title: string;
-  project?: string;
-  category: string;
-  status: "pending" | "validated" | "rejected" | "in-review";
-  emeteur: string;
-  beneficiaires: string;
-  limiteDate: Date | undefined;
-  priorite: "low" | "medium" | "high" | "urgent";
-  quantite: number;
-  unite: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-};
+
 
 const statusConfig = {
   pending: {
@@ -236,28 +220,24 @@ export function DataTable() {
       return [];
     }
 
+    console.log(requestData.data.data);
+    
+
     return requestData.data.data.map((item: RequestModelT) => ({
       id: item.id.toString(),
-      reference: `REF-${item.id.toString().padStart(3, "0")}`,
+      reference: item.ref || "N/A",
       title: item.label,
-      project: item.projectId
-        ? projectsData.data?.data.find(
-            (project) => project.id === item.projectId
-          )?.label
-        : "Non assigné",
-      category: "Général",
+      project: item.projectId?.toString(),
+      category: item.categoryId!.toString(),
       status: mapApiStatusToTableStatus(item.state),
       emeteur: user?.name || "Utilisateur",
-      beneficiaires: item.beneficiary
-        ? usersData.data?.data.find(
-            (user) => user.id === Number(item.beneficiary)
-          )?.name ?? "Non spécifié"
-        : "Non spécifié",
+      beneficiaires: item.beneficiary,
+      benef: item.beficiaryList!.flatMap(x => x.id),
       description: item.description || "Aucune description",
       limiteDate: item.dueDate,
       priorite: mapApiPriorityToTablePriority(item.proprity),
       quantite: item.quantity,
-      unite: item.unit || "Unité",
+      unite: item.unit,
       createdAt: formatDate(item.createdAt),
       updatedAt: formatDate(item.updatedAt),
     }));
@@ -598,7 +578,7 @@ export function DataTable() {
       <UpdateRequest
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
-        data={selectedItem}
+        requestData={selectedItem}
       />
       <ValidationModal
         open={isCancelModalOpen}

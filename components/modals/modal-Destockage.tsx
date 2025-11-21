@@ -10,11 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import {
   Hash,
   Calendar,
-  LucideScrollText,
   UserRound,
   CalendarFold,
 } from "lucide-react";
-import { TableData } from "../base/data-table";
+import { TableData } from "@/types/types";
 
 interface DetailOrderProps {
   open: boolean;

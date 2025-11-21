@@ -1,6 +1,6 @@
 "use client";
-import { TableData } from "@/components/base/data-table";
-import { SuccessModal } from "@/components/modals/success-modal";
+
+import MultiSelectUsers from "@/components/base/multiSelectUsers";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -31,11 +31,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+
+import { RequestModelT, TableData } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronDownIcon, LoaderIcon } from "lucide-react";
@@ -45,14 +47,10 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { parseFrenchDate } from "@/lib/utils";
 
-interface BesoinsProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  data: TableData | null;
-}
-
+// ----------------------------------------------------------------------
+// VALIDATION
+// ----------------------------------------------------------------------
 const formSchema = z.object({
   projet: z.string(),
   categorie: z.string(),
@@ -62,16 +60,64 @@ const formSchema = z.object({
   quantity: z.string().refine((val) => !isNaN(Number(val)), {
     message: "Le montant doit être un nombre valide",
   }),
-  unite: z.string().min(1).optional(),
+  unite: z.string().optional(),
   datelimite: z.date().optional(),
-  name: z.number().optional(),
   beneficiaire: z.string().optional(),
+  utilisateurs: z.array(z.number()).optional(), // IDs des users
 });
 
-const UpdateRequest = (props: BesoinsProps) => {
-  const [openD, setOpenD] = useState(false);
+interface UpdateRequestProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  requestData: TableData | null;
+  onSuccess?: () => void;
+}
+
+export default function UpdateRequest({
+  open,
+  setOpen,
+  requestData,
+  onSuccess,
+}: UpdateRequestProps) {
   const { user } = useStore();
-  
+
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [openCalendar, setOpenCalendar] = useState(false);
+
+  const [selectedUsers, setSelectedUsers] = useState<
+    { id: number; name: string }[]
+  >([]);
+
+   // ----------------------------------------------------------------------
+  // QUERY PROJECTS
+  // ----------------------------------------------------------------------
+  const projects = new ProjectQueries();
+  const projectsData = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => projects.getAll(),
+  });
+
+  // ----------------------------------------------------------------------
+  // QUERY USERS
+  // ----------------------------------------------------------------------
+  const users = new UserQueries();
+  const usersData = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => users.getAll(),
+  });
+
+  const USERS =
+    usersData.data?.data.map((u) => ({ id: u.id!, name: u.name })) || [];
+
+   const categoriesData = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => request.getCategories(),
+  });
+
+  // ----------------------------------------------------------------------
+  // FORM INITIALISATION
+  // ----------------------------------------------------------------------
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -82,127 +128,232 @@ const UpdateRequest = (props: BesoinsProps) => {
       description: "",
       quantity: "",
       unite: "",
-      datelimite: undefined,
+      datelimite: new Date(),
+      beneficiaire: "",
+      utilisateurs: [],
     },
   });
 
-  // Mettre à jour les valeurs du formulaire quand props.data change
-  useEffect(() => {
-    if (props.data) {
-      const initialDate = props.data.limiteDate;
-      form.reset({
-        projet: props.data.project || "",
-        categorie: props.data.category || "",
-        souscategorie: "",
-        titre: props.data.title || "",
-        description: props.data.description || "",
-        quantity: props.data.quantite?.toString() || "",
-        unite: props.data.unite || "",
-        datelimite: initialDate,
-        beneficiaire: props.data.beneficiaires || "",
-      });
-    }
-  }, [props.data, form]);
+  const beneficiaire = form.watch("beneficiaire");
+  const selectedCategorie = form.watch("categorie");
 
+  // si on repasse à "me", on vide les utilisateurs
+  useEffect(() => {
+    if (beneficiaire !== "groupe") {
+      setSelectedUsers([]);
+      form.setValue("utilisateurs", []);
+    }
+  }, [beneficiaire]);
+
+  // Réinitialiser la sous-catégorie quand la catégorie change
+  useEffect(() => {
+    if (selectedCategorie) {
+      form.setValue("souscategorie", "");
+    }
+  }, [selectedCategorie, form]);
+
+  // ----------------------------------------------------------------------
+  // INITIALISATION DES DONNEES DU BESOIN
+  // ----------------------------------------------------------------------
+  useEffect(() => {
+  if (requestData && open && categoriesData.data) {
+    // Attendre que les catégories soient chargées
+    const initializeForm = async () => {
+      // Trouver la catégorie parente si c'est une sous-catégorie
+      const categoryId = requestData.category;
+      let categorieValue = "";
+      let sousCategorieValue = "";
+
+      const category = categoriesData.data.data.find(
+        (cat) => cat.id === Number(categoryId)
+      );
+
+      console.log("Category found:", category);
+      
+      if (category) {
+        if (category.parentId === null) {
+          // C'est une catégorie parente
+          categorieValue = category.id!.toString();
+        } else {
+          // C'est une sous-catégorie
+          sousCategorieValue = category.id!.toString();
+          categorieValue = category.parentId!.toString();
+        }
+      }
+
+      // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
+      const usersSelection: { id: number; name: string }[] = [];
+      if (requestData.beneficiaires === "groupe" && requestData.benef) {
+        const benefIds = Array.isArray(requestData.benef)
+          ? requestData.benef
+          : [];
+        benefIds.forEach((id: number) => {
+          const user = USERS.find((u) => u.id === id);
+          if (user) usersSelection.push(user);
+        });
+        setSelectedUsers(usersSelection);
+      }
+
+      console.log("Values to set:", { 
+        categorie: categorieValue, 
+        souscategorie: sousCategorieValue 
+      });
+
+      // Réinitialiser le formulaire avec les valeurs
+      form.reset({
+        projet: requestData.projectId?.toString() || requestData.project?.toString() || "",
+        categorie: categorieValue,
+        souscategorie: sousCategorieValue,
+        titre: requestData.title || "",
+        description: requestData.description || "",
+        quantity: requestData.quantite?.toString() || "",
+        unite: requestData.unite || "",
+        datelimite: requestData.limiteDate ? new Date(requestData.limiteDate) : new Date(),
+        beneficiaire: requestData.beneficiaires || "me",
+        utilisateurs: usersSelection.map(u => u.id),
+      });
+
+      // Forcer la mise à jour de la sous-catégorie après un court délai
+      if (sousCategorieValue) {
+        setTimeout(() => {
+          form.setValue("souscategorie", sousCategorieValue);
+        }, 50);
+      }
+
+      setDate(requestData.limiteDate ? new Date(requestData.limiteDate) : new Date());
+    };
+
+    initializeForm();
+  }
+}, [requestData, open, categoriesData.data, form]);
+
+// Ajouter un état pour suivre le chargement des données
+const [isFormInitialized, setIsFormInitialized] = useState(false);
+
+// Et modifier l'useEffect comme ceci :
+useEffect(() => {
+  if (requestData && open && categoriesData.data && USERS.length > 0) {
+    const initializeForm = async () => {
+      // ... le code d'initialisation précédent ...
+
+      setIsFormInitialized(true);
+    };
+
+    initializeForm();
+  } else {
+    setIsFormInitialized(false);
+  }
+}, [requestData, open, categoriesData.data, USERS.length]);
+
+  // Ajouter un useEffect pour debugger les valeurs du formulaire
+  useEffect(() => {
+    if (open) {
+      const subscription = form.watch((value, { name, type }) => {
+        console.log("Form values:", value);
+        console.log(form.getValues().souscategorie);
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [form, open]);
+
+
+  // ----------------------------------------------------------------------
+  // REQUEST MUTATION
+  // ----------------------------------------------------------------------
   const request = new RequestQueries();
   const requestMutation = useMutation({
-    mutationKey: ["requests"],
-    mutationFn: async (
-        data: Partial<RequestModelT>
-    ) => {
-        const id = props.data?.id;
-        if (!id) throw new Error("ID de besoin manquant");
-        await request.update(Number(id), data);
+    mutationKey: ["requests", "update"],
+    mutationFn: async (data: Partial<RequestModelT>) => {
+      if (!requestData?.id) throw new Error("ID du besoin manquant");
+      return request.update(Number(requestData.id), data);
     },
+
     onSuccess: () => {
       toast.success("Besoin modifié avec succès !");
-      props.setOpen(false);
+      setIsSuccessModalOpen(true);
+      setOpen(false);
+      onSuccess?.();
     },
-    onError: () => {
-      toast.error("Une erreur est survenue.");
-    },
+
+    onError: () =>
+      toast.error("Une erreur est survenue lors de la modification."),
   });
 
-  const projects = new ProjectQueries();
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => {
-      return projects.getAll();
-    },
-  });
 
-  const users = new UserQueries();
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      return users.getAll();
-    },
-  });
+  // Filtrer les catégories parentes (parentId === null)
+  const categories =
+    categoriesData.data?.data.filter((cat) => cat.parentId === null) || [];
+
+  // Filtrer les sous-catégories en fonction de la catégorie sélectionnée
+  const souscategories = selectedCategorie
+    ? categoriesData.data?.data.filter(
+        (cat) =>
+          cat.parentId !== null &&
+          cat.parentId?.toString() === selectedCategorie
+      ) || []
+    : [];
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      requestMutation.mutate({
-        label: values.titre,
-        description: values.description || null,
-        quantity: Number(values.quantity),
-        unit: values.unite!,
-        beneficiary: values.beneficiaire!,
-        benef: null,
-        state: "pending",
-        proprity: "normal",
-        userId: Number(user?.id),
-        dueDate: values.datelimite || undefined,
-        projectId: Number(values.projet),
-      });
-    } catch (error) {
-      console.error("Erreur lors de la modification:", error);
+    if (!requestData?.id) {
+      toast.error("ID du besoin manquant");
+      return;
     }
+
+    requestMutation.mutate({
+      label: values.titre,
+      description: values.description || null,
+      categoryId: Number(values.souscategorie || values.categorie),
+      quantity: Number(values.quantity),
+      unit: values.unite!,
+      beneficiary: values.beneficiaire!,
+      benef: values.beneficiaire === "groupe" ? values.utilisateurs! : null,
+      userId: Number(user?.id),
+      dueDate: values.datelimite!,
+      projectId: Number(values.projet),
+      state: requestData?.state || "pending",
+      proprity: requestData?.proprity || "normal",
+    });
   }
 
+  // ----------------------------------------------------------------------
+  // RENDER
+  // ----------------------------------------------------------------------
   return (
-    <Dialog open={props.open} onOpenChange={props.setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
-        {/* Header with burgundy background */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <button
-            onClick={() => props.setOpen(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10"
-          >
-            <span className="sr-only">Close</span>
-          </button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-[760px] w-full overflow-y-auto max-h-[90vh] p-0 gap-0 overflow-x-hidden">
+        {/* Header avec fond bordeaux */}
+        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8">
           <DialogTitle className="text-xl font-semibold text-white">
-            {"Modifier le besoin"}
+            Modifier le besoin
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">{""}</p>
+          <p className="text-sm text-white/80 mt-1">
+            Modifiez les informations du besoin existant
+          </p>
         </DialogHeader>
+
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-8 max-w-3xl mx-12 py-10"
           >
-            <div className="max-w-[760px] w-full grid grid-cols-2 gap-4">
+            <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
+              {/* PROJET */}
               <FormField
                 control={form.control}
                 name="projet"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Projet concerné</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl className="w-full">
-                        <SelectTrigger>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 py-1">
                           <SelectValue placeholder="Sélectionner un projet" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {projectsData.data?.data.map((project) => (
-                          <SelectItem
-                            key={project.id}
-                            value={project?.id!.toString()}
-                          >
-                            {project.label}
+                        {projectsData.data?.data.map((p) => (
+                          <SelectItem key={p.id} value={p.id!.toString()}>
+                            {p.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -212,38 +363,33 @@ const UpdateRequest = (props: BesoinsProps) => {
                 )}
               />
 
+              {/* CATEGORIE */}
               <FormField
                 control={form.control}
                 name="categorie"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Catégorie</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl className="w-full">
-                        <SelectTrigger>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 py-1">
                           <SelectValue placeholder="Sélectionner une catégorie" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="m@example.com">
-                          m@example.com
-                        </SelectItem>
-                        <SelectItem value="m@google.com">
-                          m@google.com
-                        </SelectItem>
-                        <SelectItem value="m@support.com">
-                          m@support.com
-                        </SelectItem>
+                        {categories?.map((c) => (
+                          <SelectItem key={c.id} value={c.id!.toString()}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
+              {/* SOUS-CATEGORIE */}
               <FormField
                 control={form.control}
                 name="souscategorie"
@@ -253,29 +399,44 @@ const UpdateRequest = (props: BesoinsProps) => {
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
+                      disabled={!selectedCategorie}
                     >
-                      <FormControl className="w-full">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une sous-catégorie" />
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 py-1">
+                          <SelectValue
+                            placeholder={
+                              !selectedCategorie
+                                ? "Sélectionnez d'abord une catégorie"
+                                : "Sélectionner une sous-catégorie"
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="m@example.com">
-                          m@example.com
-                        </SelectItem>
-                        <SelectItem value="m@google.com">
-                          m@google.com
-                        </SelectItem>
-                        <SelectItem value="m@support.com">
-                          m@support.com
-                        </SelectItem>
+                        {souscategories.length > 0 ? (
+                          souscategories.map((c) => (
+                            <SelectItem key={c.id} value={c.id!.toString()}>
+                              {c.label}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-subcategory" disabled>
+                            Aucune sous-catégorie disponible
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
+                    {!selectedCategorie && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Veuillez d'abord sélectionner une catégorie
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* TITRE */}
               <FormField
                 control={form.control}
                 name="titre"
@@ -283,16 +444,14 @@ const UpdateRequest = (props: BesoinsProps) => {
                   <FormItem>
                     <FormLabel>Titre</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="ex. Achat du carburant groupe"
-                        {...field}
-                      />
+                      <Input placeholder="Titre du besoin" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* DESCRIPTION */}
               <FormField
                 control={form.control}
                 name="description"
@@ -301,8 +460,8 @@ const UpdateRequest = (props: BesoinsProps) => {
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Décrivez le besoin"
                         className="resize-none"
+                        placeholder="Décrivez le besoin en détail..."
                         {...field}
                       />
                     </FormControl>
@@ -311,6 +470,48 @@ const UpdateRequest = (props: BesoinsProps) => {
                 )}
               />
 
+              {/* DATE LIMITE */}
+              <FormField
+                control={form.control}
+                name="datelimite"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date limite</FormLabel>
+                    <FormControl>
+                      <Popover
+                        open={openCalendar}
+                        onOpenChange={setOpenCalendar}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-between"
+                          >
+                            {field.value
+                              ? format(field.value, "PPP", { locale: fr })
+                              : "Sélectionner une date"}
+                            <ChevronDownIcon />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="p-0">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(d) => {
+                              field.onChange(d);
+                              setOpenCalendar(false);
+                            }}
+                            locale={fr}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* QUANTITE */}
               <FormField
                 control={form.control}
                 name="quantity"
@@ -318,106 +519,109 @@ const UpdateRequest = (props: BesoinsProps) => {
                   <FormItem>
                     <FormLabel>Quantité</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex. 10" type="number" {...field} />
+                      <Input type="number" placeholder="ex. 10" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* UNITE */}
               <FormField
                 control={form.control}
                 name="unite"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Unité</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Sélectionner l'unité"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="datelimite"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date limite</FormLabel>
-                    <Popover open={openD} onOpenChange={setOpenD}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className="w-full h-10 justify-between font-normal"
-                          >
-                            {field.value ? format(field.value, "PPP", { locale: fr }) : "Sélectionner une date"}
-                            <ChevronDownIcon />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                        className="z-10"
-                          mode="single"
-                          selected={field.value}
-                          onSelect={(date) => {
-                            field.onChange(date);
-                            setOpenD(false);
-                          }}
-                          locale={fr}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="beneficiaire"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bénéficiaire</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl className="w-full">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Soi-même" />
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 py-1">
+                          <SelectValue placeholder="Sélectionner l'unité" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {usersData.data?.data.map((user) => (
-                          <SelectItem key={user.id} value={user.id!.toString()}>
-                            {`${user.name}`}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="KG">KG</SelectItem>
+                        <SelectItem value="L">Litre</SelectItem>
+                        <SelectItem value="FCFA">FCFA</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* BENEFICIAIRE */}
+              <FormField
+                control={form.control}
+                name="beneficiaire"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bénéficiaire</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 py-1">
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="me">Soi-même</SelectItem>
+                        <SelectItem value="groupe">Groupe</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* MULTISELECT CONDITIONNEL */}
+              {beneficiaire === "groupe" && (
+                <FormField
+                  control={form.control}
+                  name="utilisateurs"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Utilisateurs</FormLabel>
+
+                      <MultiSelectUsers
+                        users={USERS}
+                        selected={selectedUsers}
+                        onChange={(list) => {
+                          setSelectedUsers(list);
+                          field.onChange(list.map((u) => u.id));
+                        }}
+                      />
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
-            <Button disabled={requestMutation.isPending} type="submit">
-              Modifier le besoin
-              {requestMutation.isPending && (
-                <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />
-              )}
-            </Button>
+            {/* BOUTONS */}
+            <div className="flex gap-4 justify-end pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={requestMutation.isPending}
+              >
+                Annuler
+              </Button>
+              <Button
+                type="submit"
+                disabled={requestMutation.isPending}
+                className="bg-[#8B1538] hover:bg-[#7A1230]"
+              >
+                Modifier le besoin
+                {requestMutation.isPending && (
+                  <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />
+                )}
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default UpdateRequest;
+}

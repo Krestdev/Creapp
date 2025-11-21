@@ -53,9 +53,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TableData } from "../base/data-table";
 import { DetailBesoin } from "../modals/detail-besoin";
 import { ModalDestockage } from "../modals/modal-Destockage";
+import { TableData } from "@/types/types";
 
 export type BesoinsTraiterData = {
   id: string;

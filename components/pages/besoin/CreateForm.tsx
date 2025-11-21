@@ -135,7 +135,7 @@ export default function MyForm() {
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt">
+      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
     ) => request.create(data),
 
     onSuccess: () => {

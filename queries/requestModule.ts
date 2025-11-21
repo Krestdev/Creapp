@@ -19,7 +19,7 @@ export class RequestQueries {
 
   // Créer une demande
   create = async (
-    data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt">
+    data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
   ): Promise<{ data: RequestModelT }> => {
     return api.post(this.route, data).then((res) => res.data);
   };
@@ -60,7 +60,7 @@ export class RequestQueries {
   // Revoir (review)
   review = async (
     id: number,
-    data: {validated: boolean, userId: number}
+    data: {validated: boolean, userId: number, decision?: string}
   ): Promise<{ data: RequestModelT }> => {
     return api.put(`${this.route}/review/${id}`, 
       {

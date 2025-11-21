@@ -21,7 +21,6 @@ import {
   UserRound,
   CalendarFold,
 } from "lucide-react";
-import type { TableData } from "../base/data-table";
 import { CommandeData } from "../tables/commande-table";
 
 interface DetailOrderProps {

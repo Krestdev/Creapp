@@ -18,7 +18,6 @@ import {
   Calendar,
   X,
 } from "lucide-react";
-import type { TableData } from "./data-table";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,6 +32,7 @@ import {
 } from "../ui/form";
 import { Textarea } from "../ui/textarea";
 import { Input } from "../ui/input";
+import { TableData } from "@/types/types";
 
 interface DetailModalProps {
   open: boolean;
