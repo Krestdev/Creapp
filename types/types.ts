@@ -106,7 +106,7 @@ export type RequestModelT = {
   unit: string;
   beneficiary: string;
   benef: number[] | null;
-  beficiaryList?: { id: number; name: string, email: string }[] | null;
+  beficiaryList?: { id: number; name: string; email: string }[] | null;
   state: string;
   proprity: string;
   projectId: number | null;
@@ -158,6 +158,20 @@ export type Category = {
   parentId: number | null;
   createdAt: Date;
   updatedAt: Date;
+};
+
+export type CommandRequestT = {
+  id: number;
+  state: string;
+  createdAt: Date;
+  updatedAt: Date;
+  submited: boolean;
+  reference: string;
+  totalPrice: number;
+  modality: string;
+  deliveryDate: Date;
+  justification: string;
+  providerId: number | null;
 };
 
 // queries response

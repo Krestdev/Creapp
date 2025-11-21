@@ -21,8 +21,6 @@ import {
   ChevronsRight,
   MoreHorizontal,
   Eye,
-  X,
-  Check,
   Clock,
   CheckCircle,
   XCircle,

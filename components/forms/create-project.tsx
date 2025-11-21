@@ -2,16 +2,11 @@
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
-import { motion } from "motion/react";
-import { Check } from "lucide-react";
 import {
   Field,
   FieldGroup,
-  FieldContent,
   FieldLabel,
-  FieldDescription,
   FieldError,
-  FieldSeparator,
 } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

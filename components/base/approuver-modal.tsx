@@ -44,15 +44,15 @@ const formSchema = z.object({
   message: z.string(),
 });
 
-export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
-  if (!data) return null;
 
+export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       message: "",
     },
   });
+  if (!data) return null;
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {

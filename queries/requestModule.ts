@@ -65,7 +65,8 @@ export class RequestQueries {
     return api.put(`${this.route}/review/${id}`, 
       {
         validated: data.validated,
-        userId: data.userId
+        userId: data.userId,
+        decision: data.decision
       }
     ).then((res) => res.data);
   };

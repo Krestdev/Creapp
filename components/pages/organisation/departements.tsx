@@ -1,12 +1,4 @@
-import { DataTable } from "@/components/base/data-table";
-import { BesoinsTraiterTable } from "@/components/tables/besoins-traiter-table";
-import { CommandeTable } from "@/components/tables/commande-table";
 import { DepartementTable } from "@/components/tables/departement-table";
-import { PaiementTable } from "@/components/tables/paiement-table";
-import { TicketsTable } from "@/components/tables/tickets-table";
-import { UtilisateursTable } from "@/components/tables/utilisateurs-table";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import React from "react";
 
 const departementData = [

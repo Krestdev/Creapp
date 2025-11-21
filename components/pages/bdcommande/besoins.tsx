@@ -34,7 +34,7 @@ const Besoins = () => {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">
         <div className="flex justify-between">
-          <h2>En attente d'approbation</h2>
+          <h2>{"En attente d'approbation"}</h2>
           <Button>
             Créer une commande <Plus />
           </Button>

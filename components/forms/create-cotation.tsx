@@ -16,14 +16,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  MultiSelector,
-  MultiSelectorContent,
-  MultiSelectorInput,
-  MultiSelectorItem,
-  MultiSelectorList,
-  MultiSelectorTrigger,
-} from "@/components/ui/multi-select";
+// import {
+//   MultiSelector,
+//   MultiSelectorContent,
+//   MultiSelectorInput,
+//   MultiSelectorItem,
+//   MultiSelectorList,
+//   MultiSelectorTrigger,
+// } from "@/components/ui/multi-select";
 import { format } from "date-fns";
 import {
   Popover,
@@ -89,7 +89,7 @@ export default function CreateCotationForm() {
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="name_0890398282"
           render={({ field }) => (
@@ -122,7 +122,7 @@ export default function CreateCotationForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         <FormField
           control={form.control}

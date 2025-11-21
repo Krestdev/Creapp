@@ -121,7 +121,7 @@ function AppSidebar() {
       icon: ClipboardList,
       href: "/tableau-de-bord/bdcommande",
       authorized: ["ADMIN", "SALES"],
-      title: "Bon de commande",
+      title: "Commande",
       items: [
         {
           pageId: "PG-03-01",
@@ -142,15 +142,15 @@ function AppSidebar() {
           authorized: ["ADMIN", "SALES"],
         },
         {
-          pageId: "PG-03-04",
-          title: "Validation",
-          href: "/tableau-de-bord/bdcommande/validation",
-          authorized: ["ADMIN", "SALES"],
-        },
-        {
           pageId: "PG-03-5",
           title: "Bons de commande",
           href: "/tableau-de-bord/bdcommande/commande",
+          authorized: ["ADMIN", "SALES"],
+        },
+        {
+          pageId: "PG-03-04",
+          title: "Validation",
+          href: "/tableau-de-bord/bdcommande/validation",
           authorized: ["ADMIN", "SALES"],
         },
         {
@@ -165,13 +165,25 @@ function AppSidebar() {
           href: "/tableau-de-bord/bdcommande/nouveaux",
           authorized: ["ADMIN", "SALES"],
         },
+         {
+          pageId: "PG-03-06",
+          title: "Factures",
+          href: "/tableau-de-bord/bdcommande/factures",
+          authorized: ["ADMIN", "SALES"],
+        },
+        {
+          pageId: "PG-03-07",
+          title: "Receptions",
+          href: "/tableau-de-bord/bdcommande/receptions",
+          authorized: ["ADMIN", "SALES"],
+        },
       ],
     },
     {
       pageId: "PG-04",
       icon: Ticket,
       href: "/tableau-de-bord/ticket",
-      authorized: ["ADMIN", "SALES", "ACCOUNTING"],
+      authorized: ["ADMIN" , "ACCOUNTING"],
       title: "Tickets",
       items: [
         {
@@ -299,7 +311,7 @@ function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Link href={"/tableau-de-bord"}>
-          <img src={"/logo.svg"} className="h-8 w-auto" />
+          <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2 flex flex-col gap-02">

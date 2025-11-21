@@ -119,7 +119,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
         header: ({ column }) => {
           return (
             <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-              Nombre d'employés
+              {"Nombre d'employés"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           )

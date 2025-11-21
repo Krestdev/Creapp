@@ -186,7 +186,7 @@ export function DataValidation() {
   const reviewRequest = useMutation({
     mutationKey: ["requests-review"],
     mutationFn: async ({ id, validated, decision }: { id: number; validated: boolean; decision?: string }) => {
-      await request.review(id, { validated: validated, decision, userId: user?.id! });
+      await request.review(id, { validated: validated, decision: decision, userId: user?.id! });
     },
     onSuccess: () => {
       toast.success("Besoin validé avec succès !");
@@ -196,23 +196,6 @@ export function DataValidation() {
       toast.error("Une erreur est survenue lors de la validation.");
     },
   });
-
-  // const requestMutation = useMutation({
-  //   mutationKey: ["requests"],
-  //   mutationFn: async (data: Partial<RequestModelT>) => {
-  //     const id = data?.id;
-  //     if (!id) throw new Error("ID de besoin manquant");
-
-  //     await request.update(Number(id), data);
-  //     return { id: Number(id) };
-  //   },
-  //   onSuccess: (res) => {
-  //     validateRequest.mutateAsync({ id: res.id });
-  //   },
-  //   onError: () => {
-  //     toast.error("Une erreur est survenue.");
-  //   },
-  // });
 
   const mapApiStatusToTableStatus = (
     apiStatus: string
@@ -283,6 +266,8 @@ export function DataValidation() {
   ]);
 
   const handleValidation = async (motif?: string): Promise<boolean> => {
+    console.log(motif);
+    
     try {
       if (!selectedItem) {
         setIsValidationModalOpen(false);
@@ -395,7 +380,7 @@ export function DataValidation() {
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("title")}</div>
+        <div className="max-w-[200px] truncate">{row.getValue("title")}</div>
       ),
     },
     {
@@ -720,7 +705,7 @@ export function DataValidation() {
           rejectionPlaceholder: "Expliquez la raison du rejet...",
           rejectionError: "Veuillez fournir un motif",
         }}
-        onSubmit={() => handleValidation()}
+        onSubmit={(motif) => handleValidation(motif)}
       />
       <BesoinLastVal
         open={isLastValModalOpen}

@@ -81,8 +81,6 @@ export default function UpdateRequest({
 }: UpdateRequestProps) {
   const { user } = useStore();
 
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [date, setDate] = useState<Date | undefined>(new Date());
   const [openCalendar, setOpenCalendar] = useState(false);
 
   const [selectedUsers, setSelectedUsers] = useState<
@@ -220,7 +218,6 @@ export default function UpdateRequest({
         }, 50);
       }
 
-      setDate(requestData.limiteDate ? new Date(requestData.limiteDate) : new Date());
     };
 
     initializeForm();
@@ -245,18 +242,6 @@ useEffect(() => {
   }
 }, [requestData, open, categoriesData.data, USERS.length]);
 
-  // Ajouter un useEffect pour debugger les valeurs du formulaire
-  useEffect(() => {
-    if (open) {
-      const subscription = form.watch((value, { name, type }) => {
-        console.log("Form values:", value);
-        console.log(form.getValues().souscategorie);
-      });
-      return () => subscription.unsubscribe();
-    }
-  }, [form, open]);
-
-
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
@@ -270,7 +255,6 @@ useEffect(() => {
 
     onSuccess: () => {
       toast.success("Besoin modifié avec succès !");
-      setIsSuccessModalOpen(true);
       setOpen(false);
       onSuccess?.();
     },
@@ -421,14 +405,14 @@ useEffect(() => {
                           ))
                         ) : (
                           <SelectItem value="no-subcategory" disabled>
-                            Aucune sous-catégorie disponible
+                            {"Aucune sous-catégorie disponible"}
                           </SelectItem>
                         )}
                       </SelectContent>
                     </Select>
                     {!selectedCategorie && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        Veuillez d'abord sélectionner une catégorie
+                       {" Veuillez d'abord sélectionner une catégorie"}
                       </p>
                     )}
                     <FormMessage />

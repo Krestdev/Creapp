@@ -286,7 +286,7 @@ export default function MyForm() {
                 </Select>
                 {!selectedCategorie && (
                   <p className="text-sm text-muted-foreground mt-1">
-                    Veuillez d'abord sélectionner une catégorie
+                    {"Veuillez d'abord sélectionner une catégorie"}
                   </p>
                 )}
               </FormItem>

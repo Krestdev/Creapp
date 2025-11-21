@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/components/base/data-table";
-import React, { use } from "react";
+import React from "react";
 
 const RequestList = () => {
 

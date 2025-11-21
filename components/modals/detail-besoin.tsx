@@ -20,15 +20,17 @@ import {
   X,
 } from "lucide-react";
 import { useStore } from "@/providers/datastore";
-import { TableData } from "../base/dataValidation";
 import { format } from "date-fns";
+import { TableData } from "@/types/types";
+import { UserQueries } from "@/queries/baseModule";
+import { useQuery } from "@tanstack/react-query";
 
 interface DetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: TableData | null;
   action: () => void;
-  actionButton: string
+  actionButton: string;
 }
 
 export function DetailBesoin({
@@ -36,8 +38,14 @@ export function DetailBesoin({
   onOpenChange,
   data,
   action,
-  actionButton
+  actionButton,
 }: DetailModalProps) {
+  const { user } = useStore();
+  const users = new UserQueries();
+  const usersData = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => users.getAll(),
+  });
   if (!data) return null;
 
   const statusConfig = {
@@ -62,7 +70,6 @@ export function DetailBesoin({
   };
 
   const currentStatus = statusConfig[data.status];
-  const { user } = useStore();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -162,7 +169,21 @@ export function DetailBesoin({
               <p className="text-sm text-muted-foreground mb-1">
                 {"Bénéficiaires"}
               </p>
-              <p className="font-semibold">{data.beneficiaires}</p>
+              <div className="flex flex-col ">
+                {data.beneficiaires === "me" ? (
+                  <p className="font-semibold">{user?.name}</p>
+                ) : (
+                  <div className="flex flex-col">
+                    {data.benef?.map((id) => {
+                      return (
+                        <p key={id} className="font-semibold">{`• ${
+                          usersData.data?.data.find((x) => x.id === id)?.name
+                        }`}</p>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -210,21 +231,22 @@ export function DetailBesoin({
               <p className="text-sm text-muted-foreground mb-1">
                 {"Date limite"}
               </p>
-              <p className="font-semibold">{format(data.limiteDate!, "dd/MM/yyyy")}</p>
+              <p className="font-semibold">
+                {format(data.limiteDate!, "dd/MM/yyyy")}
+              </p>
             </div>
           </div>
         </div>
 
         {/* Footer buttons */}
         <div className="flex gap-3 p-6 pt-0">
-          
-            <Button
-              onClick={action}
-              className="flex-1 bg-[#003D82] hover:bg-[#002D62] text-white"
-              disabled={data.status !== "pending"}
-            >
-              {actionButton}
-            </Button>
+          <Button
+            onClick={action}
+            className="flex-1 bg-[#003D82] hover:bg-[#002D62] text-white"
+            disabled={data.status !== "pending"}
+          >
+            {actionButton}
+          </Button>
           <Button
             variant="outline"
             className="flex-1 bg-transparent"

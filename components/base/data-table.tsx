@@ -68,39 +68,30 @@ import { UserQueries } from "@/queries/baseModule";
 
 // Define the data type
 
-
 const statusConfig = {
   pending: {
     label: "Pending",
     icon: Clock,
-    badgeClassName:
-      "bg-yellow-200 text-yellow-500 outline outline-yellow-600 hover:bg-yellow-600",
-    rowClassName:
-      "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30",
+    badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
+    rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20",
   },
   validated: {
     label: "Validated",
     icon: CheckCircle,
-    badgeClassName:
-      "bg-green-200 text-green-500 outline outline-green-600 hover:bg-green-600",
-    rowClassName:
-      "bg-green-50 hover:bg-green-100 dark:bg-green-950/20 dark:hover:bg-green-950/30",
+    badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
+    rowClassName: "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
   },
   rejected: {
     label: "Rejected",
     icon: XCircle,
-    badgeClassName:
-      "bg-red-200 text-red-500 outline outline-red-600 hover:bg-red-600",
-    rowClassName:
-      "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
+    badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
+    rowClassName: "bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30",
   },
   "in-review": {
     label: "In Review",
     icon: AlertCircle,
-    badgeClassName:
-      "bg-blue-200 text-blue-500 outline outline-blue-600 hover:bg-blue-600",
-    rowClassName:
-      "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
+    badgeClassName: "bg-blue-200 text-blue-500 outline outline-blue-600 ",
+    rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
   },
 };
 
@@ -171,7 +162,7 @@ export function DataTable() {
   // useEffect pour recharger les données
   React.useEffect(() => {
     requestData.refetch();
-  }, [requestData.data?.data]);
+  }, [requestData, requestData.data?.data]);
 
   const mapApiStatusToTableStatus = (
     apiStatus: string
@@ -221,7 +212,6 @@ export function DataTable() {
     }
 
     console.log(requestData.data.data);
-    
 
     return requestData.data.data.map((item: RequestModelT) => ({
       id: item.id.toString(),
@@ -232,7 +222,7 @@ export function DataTable() {
       status: mapApiStatusToTableStatus(item.state),
       emeteur: user?.name || "Utilisateur",
       beneficiaires: item.beneficiary,
-      benef: item.beficiaryList!.flatMap(x => x.id),
+      benef: item.beficiaryList!.flatMap((x) => x.id),
       description: item.description || "Aucune description",
       limiteDate: item.dueDate,
       priorite: mapApiPriorityToTablePriority(item.proprity),
@@ -241,7 +231,7 @@ export function DataTable() {
       createdAt: formatDate(item.createdAt),
       updatedAt: formatDate(item.updatedAt),
     }));
-  }, [requestData.data, user, usersData.data, projectsData.data]);
+  }, [requestData.data, user]);
 
   // Define columns
   const columns: ColumnDef<TableData>[] = [
@@ -275,7 +265,9 @@ export function DataTable() {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("title")}</div>,
+      cell: ({ row }) => (
+        <div className="max-w-[200px] truncate">{row.getValue("title")}</div>
+      ),
     },
     {
       accessorKey: "project",
@@ -328,7 +320,15 @@ export function DataTable() {
         return (
           <Badge className={cn("gap-1", config.badgeClassName)}>
             <Icon className="h-3 w-3" />
-            {config.label === "Validated" ? "Validé" : config.label === "Rejected" ? "Refusé" : config.label === "Pending" ? "En attente" : config.label === "Cancel" ? "Annulé" : config.label}
+            {config.label === "Validated"
+              ? "Validé"
+              : config.label === "Rejected"
+              ? "Refusé"
+              : config.label === "Pending"
+              ? "En attente"
+              : config.label === "Cancel"
+              ? "Annulé"
+              : config.label}
           </Badge>
         );
       },
@@ -567,13 +567,11 @@ export function DataTable() {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         data={selectedItem}
-        actionButton= "Modifier"
-        action={
-          () => {
-            setIsModalOpen(false)
-            setIsUpdateModalOpen(true)
-          }
-        }
+        actionButton="Modifier"
+        action={() => {
+          setIsModalOpen(false);
+          setIsUpdateModalOpen(true);
+        }}
       />
       <UpdateRequest
         open={isUpdateModalOpen}

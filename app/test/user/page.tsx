@@ -63,9 +63,9 @@ export default function TestUserPage() {
             onClick={() =>
               handle(() =>
                 userQueries.register({
-                  email: "empl@gmail.com",
-                  password: "Employe123",
-                  name: "Employé Testeur",
+                  email: "achat@gmail.com",
+                  password: "Achat123",
+                  name: "Achat Testeur",
                   phone: "690000000",
                 })
               )
@@ -130,7 +130,7 @@ export default function TestUserPage() {
             className="bg-yellow-600 text-white px-4 py-2 rounded"
             onClick={() => handle(() => userQueries.getOne(Number(userId)))}
           >
-            Tester getOne
+            {"Tester getOne"}
           </Button>
         </section>
 
@@ -156,13 +156,13 @@ export default function TestUserPage() {
               )
             }
           >
-            Tester Update
+            {"Tester Update"}
           </Button>
         </section>
 
         {/* DELETE */}
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Delete User</h2>
+          <h2 className="text-xl font-semibold">{"Delete User"}</h2>
           <input
             type="number"
             placeholder="id user"
@@ -174,7 +174,7 @@ export default function TestUserPage() {
             className="bg-red-600 text-white px-4 py-2 rounded"
             onClick={() => handle(() => userQueries.delete(Number(userId)))}
           >
-            Tester Delete
+            {"Tester Delete"}
           </Button>
         </section>
 
@@ -182,7 +182,7 @@ export default function TestUserPage() {
 
         {/* GET ROLES */}
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Roles - Liste</h2>
+          <h2 className="text-xl font-semibold">{"Roles - Liste"}</h2>
           <Button
             className="bg-indigo-600 text-white px-4 py-2 rounded"
             onClick={() => handle(() => userQueries.getRoles())}
@@ -193,7 +193,7 @@ export default function TestUserPage() {
 
         {/* CREATE ROLE */}
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Créer un rôle</h2>
+          <h2 className="text-xl font-semibold">{"Créer un rôle"}</h2>
 
           <input
             placeholder="Nom du rôle"
@@ -208,13 +208,13 @@ export default function TestUserPage() {
               handle(() => userQueries.createRole({ label: roleLabel }))
             }
           >
-            Créer rôle
+            {"Créer rôle"}
           </Button>
         </section>
 
         {/* ASSIGN ROLE */}
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Assigner rôle à user</h2>
+          <h2 className="text-xl font-semibold">{"Assigner rôle à user"}</h2>
           <input
             type="number"
             placeholder="id user"
@@ -237,13 +237,13 @@ export default function TestUserPage() {
               )
             }
           >
-            Assigner rôle
+            {"Assigner rôle"}
           </Button>
         </section>
 
         {/* REMOVE ROLE */}
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Retirer rôle à user</h2>
+          <h2 className="text-xl font-semibold">{"Retirer rôle à user"}</h2>
 
           <input
             type="number"
@@ -260,13 +260,13 @@ export default function TestUserPage() {
               )
             }
           >
-            Retirer rôle
+           {"Retirer rôle"}
           </Button>
         </section>
 
         {/* ROLE PAGES */}
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Liste Pages d'un Rôle</h2>
+          <h2 className="text-xl font-semibold">{"Liste Pages d'un Rôle"}</h2>
 
           <input
             type="number"
@@ -282,14 +282,14 @@ export default function TestUserPage() {
               handle(() => userQueries.getRolePages(Number(roleId)))
             }
           >
-            Voir pages du rôle
+            {"Voir pages du rôle"}
           </Button>
         </section>
       </div>
 
       {/* RESULT */}
       <section className="fixed top-0 right-50">
-        <h2 className="text-xl font-semibold">Résultat :</h2>
+        <h2 className="text-xl font-semibold">{"Résultat :"}</h2>
         <pre className="bg-gray-100 p-4 rounded h-fit max-w-[450px] overflow-auto text-sm">
           {JSON.stringify(result, null, 2)}
         </pre>

@@ -22,14 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  MultiSelector,
-  MultiSelectorContent,
-  MultiSelectorInput,
-  MultiSelectorItem,
-  MultiSelectorList,
-  MultiSelectorTrigger,
-} from "@/components/ui/multi-select";
+// import {
+//   MultiSelector,
+//   MultiSelectorContent,
+//   MultiSelectorInput,
+//   MultiSelectorItem,
+//   MultiSelectorList,
+//   MultiSelectorTrigger,
+// } from "@/components/ui/multi-select";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import {
@@ -41,12 +41,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { CloudUpload, Paperclip } from "lucide-react";
-import {
-  FileInput,
-  FileUploader,
-  FileUploaderContent,
-  FileUploaderItem,
-} from "@/components/ui/file-upload";
+// import {
+//   FileInput,
+//   FileUploader,
+//   FileUploaderContent,
+//   FileUploaderItem,
+// } from "@/components/ui/file-upload";
 
 const formSchema = z.object({
   commande: z.string(),
@@ -166,7 +166,7 @@ export default function CreateBonForm() {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-4">
+        {/* <div className="grid grid-cols-12 gap-4">
           <div className="col-span-6">
             <FormField
               control={form.control}
@@ -224,7 +224,7 @@ export default function CreateBonForm() {
               )}
             />
           </div>
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-6">
@@ -332,7 +332,7 @@ export default function CreateBonForm() {
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="justificatifs"
           render={({ field }) => (
@@ -376,7 +376,7 @@ export default function CreateBonForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <Button type="submit">Submit</Button>
       </form>
     </Form>
