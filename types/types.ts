@@ -108,7 +108,7 @@ export type RequestModelT = {
   benef: number[] | null;
   beficiaryList?: { id: number; name: string; email: string }[] | null;
   state: string;
-  proprity: string;
+  proprity: "medium" | "high" | "low" | "urgent";
   projectId: number | null;
   categoryId: number | null;
   category?: number | null;
@@ -162,11 +162,15 @@ export type Category = {
 
 export type CommandRequestT = {
   id: number;
-  state: string;
+  reference: string;
+  requestIds: number[];
+  userId: number;
+  dueDate: Date;
   createdAt: Date;
   updatedAt: Date;
+
+  state: string;
   submited: boolean;
-  reference: string;
   totalPrice: number;
   modality: string;
   deliveryDate: Date;

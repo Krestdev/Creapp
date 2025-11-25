@@ -32,7 +32,7 @@ export default function TestCommandRequestPage() {
 
         {/* CREATE */}
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Créer une commande</h2>
+          <h2 className="text-xl font-semibold">Créer une commande</h2> 
           <input
             placeholder="Modality"
             className="border p-2 rounded w-full"
@@ -68,7 +68,10 @@ export default function TestCommandRequestPage() {
                   modality,
                   deliveryDate: new Date(deliveryDate),
                   justification,
-                  providerId: providerId ? Number(providerId) : null
+                  providerId: providerId ? Number(providerId) : null,
+                  requestIds: [],
+                  userId: 0,
+                  dueDate: new Date(),
                 })
               )
             }

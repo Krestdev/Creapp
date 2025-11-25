@@ -24,6 +24,7 @@ import {
   X,
   Check,
   ChevronDown,
+  LucidePackage,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -55,19 +56,15 @@ import {
 } from "@/components/ui/select";
 import { DetailBesoin } from "../modals/detail-besoin";
 import { ModalDestockage } from "../modals/modal-Destockage";
-import { TableData } from "@/types/types";
-
-export type BesoinsTraiterData = {
-  id: string;
-  titre: string;
-  projet: string;
-  categorie: string;
-  emetteur: string;
-  beneficiaires: string;
-};
+import { RequestModelT } from "@/types/types";
+import { ProjectQueries } from "@/queries/projectModule";
+import { RequestQueries } from "@/queries/requestModule";
+import { useQuery } from "@tanstack/react-query";
+import { UserQueries } from "@/queries/baseModule";
+import { Pagination } from "../base/pagination";
 
 interface BesoinsTraiterTableProps {
-  data: TableData[];
+  data: RequestModelT[];
 }
 
 export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
@@ -86,13 +83,65 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [selectedItem, setSelectedItem] = React.useState<TableData | null>(
+  const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
     null
   );
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [modalDestockage, setModalDestockage] = React.useState(false);
 
-  const columns: ColumnDef<TableData>[] = [
+  const projects = new ProjectQueries();
+  const request = new RequestQueries();
+  const users = new UserQueries();
+
+  const usersData = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => users.getAll(),
+  });
+
+  const projectsData = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => projects.getAll(),
+  });
+
+  const categoriesData = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => request.getCategories(),
+  });
+
+  const getProjectName = (projectId: string) => {
+    const project = projectsData.data?.data?.find(
+      (proj) => proj.id === Number(projectId)
+    );
+    return project?.label || projectId;
+  };
+
+  const getCategoryName = (categoryId: string) => {
+    const category = categoriesData.data?.data?.find(
+      (cat) => cat.id === Number(categoryId)
+    );
+    return category?.label || categoryId;
+  };
+
+  const getUserName = (userId: string) => {
+    const user = usersData.data?.data?.find((u) => u.id === Number(userId));
+    return user?.name || userId;
+  };
+
+  const getBeneficiaryDisplay = (request: RequestModelT) => {
+    if (request.beneficiary === "me") {
+      return getUserName(String(request.userId));
+    } else if (request.beficiaryList && request.beficiaryList.length > 0) {
+      return request.beficiaryList.map((ben) => getUserName(String(ben.name))).join(", ");
+    }
+    return "Aucun bénéficiaire";
+  };
+
+  const getSelectedRequestIds = () => {
+    return table.getSelectedRowModel().rows.map((row) => row.original.id);
+  };
+  
+
+  const columns: ColumnDef<RequestModelT>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -116,69 +165,71 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
       enableHiding: false,
     },
     {
-      accessorKey: "title",
+      accessorKey: "label",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Titre
+          {"Titre"}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("title")}</div>,
+      cell: ({ row }) => <div>{row.getValue("label")}</div>,
     },
     {
-      accessorKey: "project",
+      accessorKey: "projectId",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Projet
+          {"Projet"}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("project")}</div>,
+      cell: ({ row }) => <div>{getProjectName(row.getValue("projectId"))}</div>,
     },
     {
-      accessorKey: "category",
+      accessorKey: "categoryId",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Catégorie
+          {"Catégorie"}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("category")}</div>,
+      cell: ({ row }) => (
+        <div>{getCategoryName(row.getValue("categoryId"))}</div>
+      ),
     },
     {
-      accessorKey: "emeteur",
+      accessorKey: "userId",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Émetteur
+          {"Émetteur"}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("emeteur")}</div>,
+      cell: ({ row }) => <div>{getUserName(row.getValue("userId"))}</div>,
     },
     {
-      accessorKey: "beneficiaires",
+      accessorKey: "beneficiary",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Bénéficiaire(s)
+          {"Bénéficiaire"}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("beneficiaires")}</div>,
+      cell: ({ row }) => <div className="max-w-[200px] truncate">{getBeneficiaryDisplay(row.original)}</div>,
     },
     {
       id: "actions",
@@ -194,12 +245,12 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
               asChild
             >
               <Button variant="outline" className="w-fit">
-                Actions
+                {"Actions"}
                 <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedItem(item);
@@ -207,7 +258,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
                 }}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                Voir
+                {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -216,8 +267,8 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
                   setModalDestockage(true);
                 }}
               >
-                <Check className="mr-2 h-4 w-4" />
-                Destocker
+                <LucidePackage className="mr-2 h-4 w-4" />
+                {"Destocker"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -239,18 +290,33 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = [
-        "titre",
-        "projet",
-        "category",
-        "emetteur",
-        "beneficiaires",
-      ];
       const searchValue = filterValue.toLowerCase();
 
-      return searchableColumns.some((column) => {
-        const value = row.getValue(column) as string;
-        return value?.toLowerCase().includes(searchValue);
+      // Recherche dans toutes les colonnes principales avec conversion des IDs en noms
+      const searchableColumns = [
+        "label",
+        "projectId",
+        "categoryId",
+        "userId",
+        "beneficiary",
+      ];
+
+      return searchableColumns.some((columnId) => {
+        const rawValue = row.getValue(columnId);
+        let displayValue = rawValue;
+
+        // Convertir les IDs en noms pour la recherche
+        if (columnId === "projectId") {
+          displayValue = getProjectName(String(rawValue));
+        } else if (columnId === "categoryId") {
+          displayValue = getCategoryName(String(rawValue));
+        } else if (columnId === "userId") {
+          displayValue = getUserName(String(rawValue));
+        } else if (columnId === "beneficiary") {
+          displayValue = getBeneficiaryDisplay(row.original);
+        }
+
+        return String(displayValue).toLowerCase().includes(searchValue);
       });
     },
     state: {
@@ -262,17 +328,36 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
     },
   });
 
-  // Get unique values for filters
-  const uniqueCategories = Array.from(
-    new Set(data.map((item) => item.category))
-  );
-  const uniqueProjets = Array.from(new Set(data.map((item) => item.project)));
+  // Préparer les données pour les filtres avec mapping ID -> nom
+  const uniqueCategories = React.useMemo(() => {
+    const categoryMap = new Map();
+    data.forEach((item) => {
+      const categoryName = getCategoryName(String(item.categoryId));
+      categoryMap.set(item.categoryId, categoryName);
+    });
+    return Array.from(categoryMap.entries()).map(([id, name]) => ({
+      id,
+      name,
+    }));
+  }, [data, categoriesData.data]);
+
+  const uniqueProjets = React.useMemo(() => {
+    const projectMap = new Map();
+    data.forEach((item) => {
+      const projectName = getProjectName(String(item.projectId));
+      projectMap.set(item.projectId, projectName);
+    });
+    return Array.from(projectMap.entries()).map(([id, name]) => ({
+      id,
+      name,
+    }));
+  }, [data, projectsData.data]);
 
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
         <Input
-          placeholder="Search..."
+          placeholder="Rechercher par titre, projet, catégorie, émetteur..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
@@ -280,22 +365,22 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
 
         <Select
           value={
-            (table.getColumn("categorie")?.getFilterValue() as string) ?? "all"
+            (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
           }
           onValueChange={(value) =>
             table
-              .getColumn("categorie")
+              .getColumn("categoryId")
               ?.setFilterValue(value === "all" ? "" : value)
           }
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by category" />
+            <SelectValue placeholder="Filtrer par catégorie" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">Toutes les catégories</SelectItem>
             {uniqueCategories.map((cat) => (
-              <SelectItem key={cat} value={cat}>
-                {cat}
+              <SelectItem key={cat.id} value={cat.id}>
+                {cat.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -303,22 +388,22 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
 
         <Select
           value={
-            (table.getColumn("project")?.getFilterValue() as string) ?? "all"
+            (table.getColumn("projectId")?.getFilterValue() as string) ?? "all"
           }
           onValueChange={(value) =>
             table
-              .getColumn("projet")
+              .getColumn("projectId")
               ?.setFilterValue(value === "all" ? "" : value)
           }
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by project" />
+            <SelectValue placeholder="Filtrer par projet" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Projects</SelectItem>
+            <SelectItem value="all">Tous les projets</SelectItem>
             {uniqueProjets.map((proj) => (
-              <SelectItem key={proj} value={proj!}>
-                {proj}
+              <SelectItem key={proj.id} value={proj.id}>
+                {proj.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -327,7 +412,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns
+              Colonnes
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -401,60 +486,17 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Aucun résultat trouvé.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-1">
-            <div className="text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      {/* Pagination */}
+      {table.getRowModel().rows?.length > 0 && (
+        <Pagination table={table} pageSize={15} />
+      )}
       <DetailBesoin
         open={isModalOpen}
         onOpenChange={setIsModalOpen}

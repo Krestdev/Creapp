@@ -23,6 +23,7 @@ import {
   LucideBan,
   LucidePen,
   ChevronDown,
+  Ban, // Ajout de l'icône pour le statut cancel
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -58,7 +59,7 @@ import { ValidationModal } from "../modals/ValidationModal";
 import { RequestQueries } from "@/queries/requestModule";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useStore } from "@/providers/datastore";
-import { RequestModelT, TableData } from "@/types/types";
+import { RequestModelT } from "@/types/types";
 import UpdateRequest from "../pages/besoin/UpdateRequest";
 import { toast } from "sonner";
 import Empty from "./empty";
@@ -93,6 +94,12 @@ const statusConfig = {
     badgeClassName: "bg-blue-200 text-blue-500 outline outline-blue-600 ",
     rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
   },
+  cancel: { // Ajout du statut cancel manquant
+    label: "Cancel",
+    icon: Ban,
+    badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+    rowClassName: "bg-gray-50 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
+  },
 };
 
 export function DataTable() {
@@ -107,7 +114,7 @@ export function DataTable() {
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   // modal spesific states
-  const [selectedItem, setSelectedItem] = React.useState<TableData | null>(
+  const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
     null
   );
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
@@ -115,6 +122,7 @@ export function DataTable() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
+  const [data, setData] = React.useState<RequestModelT[]>()
 
   const projects = new ProjectQueries();
   const projectsData = useQuery({
@@ -144,6 +152,17 @@ export function DataTable() {
     enabled: !!user?.id && isHydrated,
   });
 
+  const categoryData = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      return request.getCategories();
+    },
+  });
+
+  React.useEffect(() => {
+    if(requestData.data) setData(requestData.data.data)
+  }, [requestData.data])
+
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (data: Partial<RequestModelT>) => {
@@ -164,31 +183,8 @@ export function DataTable() {
     requestData.refetch();
   }, [requestData, requestData.data?.data]);
 
-  const mapApiStatusToTableStatus = (
-    apiStatus: string
-  ): TableData["status"] => {
-    const statusMap: Record<string, TableData["status"]> = {
-      pending: "pending",
-      validated: "validated",
-      rejected: "rejected",
-      "in-review": "in-review",
-    };
-    return statusMap[apiStatus] || "pending";
-  };
 
   // Fonctions utilitaires
-
-  const mapApiPriorityToTablePriority = (
-    apiPriority: string
-  ): TableData["priorite"] => {
-    const priorityMap: Record<string, TableData["priorite"]> = {
-      low: "low",
-      medium: "medium",
-      high: "high",
-      urgent: "urgent",
-    };
-    return priorityMap[apiPriority] || "medium";
-  };
 
   const formatDate = (date: Date | string): string => {
     if (!date) return "Non définie";
@@ -205,55 +201,39 @@ export function DataTable() {
     }
   };
 
-  const data = React.useMemo(() => {
-    // Accédez à requestData.data.data (le tableau de données)
-    if (!requestData.data?.data || !Array.isArray(requestData.data.data)) {
-      return [];
-    }
-
-    console.log(requestData.data.data);
-
-    return requestData.data.data.map((item: RequestModelT) => ({
-      id: item.id.toString(),
-      reference: item.ref || "N/A",
-      title: item.label,
-      project: item.projectId?.toString(),
-      category: item.categoryId!.toString(),
-      status: mapApiStatusToTableStatus(item.state),
-      emeteur: user?.name || "Utilisateur",
-      beneficiaires: item.beneficiary,
-      benef: item.beficiaryList!.flatMap((x) => x.id),
-      description: item.description || "Aucune description",
-      limiteDate: item.dueDate,
-      priorite: mapApiPriorityToTablePriority(item.proprity),
-      quantite: item.quantity,
-      unite: item.unit,
-      createdAt: formatDate(item.createdAt),
-      updatedAt: formatDate(item.updatedAt),
-    }));
-  }, [requestData.data, user]);
+  // Fonction sécurisée pour obtenir la configuration du statut
+  const getStatusConfig = (status: string) => {
+    const config = statusConfig[status as keyof typeof statusConfig];
+    // Retourne une configuration par défaut si le statut n'est pas trouvé
+    return config || {
+      label: status,
+      icon: AlertCircle,
+      badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+      rowClassName: "bg-gray-50 dark:bg-gray-950/20",
+    };
+  };
 
   // Define columns
-  const columns: ColumnDef<TableData>[] = [
+  const columns: ColumnDef<RequestModelT>[] = [
     {
-      accessorKey: "reference",
+      accessorKey: "ref", // Changé de "reference" à "ref" pour correspondre à votre type RequestModelT
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Reférences"}
+            {"Références"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("reference")}</div>
+        <div className="font-medium">{row.getValue("ref")}</div>
       ),
     },
     {
-      accessorKey: "title",
+      accessorKey: "label", // Changé de "title" à "label" pour correspondre à votre type RequestModelT
       header: ({ column }) => {
         return (
           <Button
@@ -266,11 +246,11 @@ export function DataTable() {
         );
       },
       cell: ({ row }) => (
-        <div className="max-w-[200px] truncate">{row.getValue("title")}</div>
+        <div className="max-w-[200px] truncate">{row.getValue("label")}</div>
       ),
     },
     {
-      accessorKey: "project",
+      accessorKey: "projectId",
       header: ({ column }) => {
         return (
           <Button
@@ -282,10 +262,14 @@ export function DataTable() {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("project")}</div>,
+      cell: ({ row }) => {
+        const projectId = row.getValue("projectId") as string;
+        const project = projectsData.data?.data?.find(proj => proj.id === Number(projectId));
+        return <div>{project?.label || projectId}</div>;
+      },
     },
     {
-      accessorKey: "category",
+      accessorKey: "categoryId",
       header: ({ column }) => {
         return (
           <Button
@@ -297,10 +281,16 @@ export function DataTable() {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("category")}</div>,
+      cell: ({ row }) => {
+        const categoryId = row.getValue("categoryId") as string;
+        const getCategoryName = (id: number) => {
+          return categoryData.data?.data.find(x => x.id === id)?.label || id;
+        }
+        return <div>{getCategoryName(Number(categoryId))}</div>;
+      },
     },
     {
-      accessorKey: "status",
+      accessorKey: "state",
       header: ({ column }) => {
         return (
           <Button
@@ -313,22 +303,25 @@ export function DataTable() {
         );
       },
       cell: ({ row }) => {
-        const status = row.getValue("status") as keyof typeof statusConfig;
-        const config = statusConfig[status];
+        const status = row.getValue("state") as string;
+        const config = getStatusConfig(status);
         const Icon = config.icon;
+
+        const getTranslatedLabel = (label: string) => {
+          const translations: Record<string, string> = {
+            "Pending": "En attente",
+            "Validated": "Validé", 
+            "Rejected": "Refusé",
+            "In Review": "En révision",
+            "Cancel": "Annulé"
+          };
+          return translations[label] || label;
+        };
 
         return (
           <Badge className={cn("gap-1", config.badgeClassName)}>
             <Icon className="h-3 w-3" />
-            {config.label === "Validated"
-              ? "Validé"
-              : config.label === "Rejected"
-              ? "Refusé"
-              : config.label === "Pending"
-              ? "En attente"
-              : config.label === "Cancel"
-              ? "Annulé"
-              : config.label}
+            {getTranslatedLabel(config.label)}
           </Badge>
         );
       },
@@ -365,7 +358,7 @@ export function DataTable() {
                   setSelectedItem(item);
                   setIsUpdateModalOpen(true);
                 }}
-                disabled={item.status !== "pending"}
+                disabled={item.state !== "pending"}
               >
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
@@ -375,7 +368,7 @@ export function DataTable() {
                   setSelectedItem(item);
                   setIsCancelModalOpen(true);
                 }}
-                disabled={item.status !== "pending"}
+                disabled={item.state !== "pending"}
               >
                 <LucideBan className="mr-2 h-4 w-4 text-red-500" />
                 {"Annuler"}
@@ -387,8 +380,8 @@ export function DataTable() {
     },
   ];
 
-  const table = useReactTable<TableData>({
-    data,
+  const table = useReactTable<RequestModelT>({
+    data: data || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -400,7 +393,7 @@ export function DataTable() {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "title", "project"];
+      const searchableColumns = ["ref", "label", "projectId"];
       const searchValue = filterValue.toLowerCase();
 
       return searchableColumns.some((column) => {
@@ -422,7 +415,7 @@ export function DataTable() {
       <div className="flex flex-wrap items-center gap-4 py-4">
         {/* Global search */}
         <Input
-          placeholder="Rechercher par titre, reférence, ou project..."
+          placeholder="Rechercher par titre, référence, ou projet..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
@@ -431,11 +424,11 @@ export function DataTable() {
         {/* Category filter */}
         <Select
           value={
-            (table.getColumn("category")?.getFilterValue() as string) ?? "all"
+            (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
           }
           onValueChange={(value) =>
             table
-              .getColumn("category")
+              .getColumn("categoryId")
               ?.setFilterValue(value === "all" ? "" : value)
           }
         >
@@ -454,11 +447,11 @@ export function DataTable() {
         {/* Status filter */}
         <Select
           value={
-            (table.getColumn("status")?.getFilterValue() as string) ?? "all"
+            (table.getColumn("state")?.getFilterValue() as string) ?? "all"
           }
           onValueChange={(value) =>
             table
-              .getColumn("status")
+              .getColumn("state")
               ?.setFilterValue(value === "all" ? "" : value)
           }
         >
@@ -467,10 +460,11 @@ export function DataTable() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="validated">Validated</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="in-review">In Review</SelectItem>
+            <SelectItem value="pending">En attente</SelectItem>
+            <SelectItem value="validated">Validé</SelectItem>
+            <SelectItem value="rejected">Refusé</SelectItem>
+            <SelectItem value="in-review">En révision</SelectItem>
+            <SelectItem value="cancel">Annulé</SelectItem>
           </SelectContent>
         </Select>
 
@@ -529,34 +523,35 @@ export function DataTable() {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className={cn(
-                    statusConfig[
-                      row.original.status as keyof typeof statusConfig
-                    ].rowClassName
-                  )}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+              {table.getRowModel().rows.map((row) => {
+                const status = row.original.state;
+                const config = getStatusConfig(status);
+                
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn(config.rowClassName)}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="border-r last:border-r-0"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
       ) : (
-        <Empty message={"Aucun besoin enrégistré"} />
+        <Empty message={"Aucun besoin enregistré"} />
       )}
 
       {/* Pagination */}
@@ -573,11 +568,11 @@ export function DataTable() {
           setIsUpdateModalOpen(true);
         }}
       />
-      <UpdateRequest
+      {/* <UpdateRequest
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
         requestData={selectedItem}
-      />
+      /> */}
       <ValidationModal
         open={isCancelModalOpen}
         onOpenChange={setIsCancelModalOpen}
@@ -586,7 +581,7 @@ export function DataTable() {
         description="Êtes-vous sûr de vouloir annuler ce besoin ?"
         successConfirmation={{
           title: "Succès ✅",
-          description: "Le besoin a eété annulé avec succès.",
+          description: "Le besoin a été annulé avec succès.",
         }}
         errorConfirmation={{
           title: "Erreur ❌",

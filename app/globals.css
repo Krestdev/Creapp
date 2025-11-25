@@ -137,11 +137,6 @@
   h2 {
     @apply text-[18px] leading-[120%] tracking-normal;
   }
-
-  /* button css */
-  button {
-    @apply rounded-[8px]!
-  }
 }
 
 /* scroll bar edit */

@@ -295,7 +295,7 @@ useEffect(() => {
       dueDate: values.datelimite!,
       projectId: Number(values.projet),
       state: requestData?.state || "pending",
-      proprity: requestData?.proprity || "normal",
+      proprity: requestData?.proprity || "medium",
     });
   }
 

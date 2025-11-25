@@ -32,7 +32,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format, set } from "date-fns";
 import { fr } from "date-fns/locale";
-import { TableData } from "../base/dataValidation";
 import { RequestQueries } from "@/queries/requestModule";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { RequestModelT } from "@/types/types";
@@ -55,7 +54,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface ValidationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: TableData | null;
+  data: RequestModelT | null;
   titre: string | undefined;
   description: string | undefined;
 }
@@ -73,10 +72,10 @@ export function BesoinLastVal({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: data?.title || "",
-      limiteDate: new Date(data?.limiteDate!),
-      priorite: data?.priorite,
-      quantite: String(data?.quantite) || "",
+      title: data?.label || "",
+      limiteDate: new Date(data?.dueDate!),
+      priorite: data?.proprity as "medium" | "high" | "low" | "urgent",
+      quantite: String(data?.quantity) || "",
       description: data?.description || "",
     },
   });
@@ -126,7 +125,7 @@ export function BesoinLastVal({
     },
   });
 
-  const isSuccess = requestMutation.isSuccess || validateRequest.isSuccess; 
+  const isSuccess = requestMutation.isSuccess || validateRequest.isSuccess;
   const isError = requestMutation.isError || validateRequest.isError;
   const isPending = requestMutation.isPending || validateRequest.isPending;
 
@@ -134,10 +133,10 @@ export function BesoinLastVal({
   useEffect(() => {
     if (open) {
       form.reset({
-        title: data?.title || "",
-        limiteDate: new Date(data?.limiteDate!),
-        priorite: data?.priorite,
-        quantite: String(data?.quantite) || "",
+        title: data?.label || "",
+        limiteDate: new Date(data?.dueDate!),
+        priorite: data?.proprity,
+        quantite: String(data?.quantity) || "",
         description: data?.description || "",
       });
     }
@@ -145,7 +144,7 @@ export function BesoinLastVal({
 
   const submitForm = async (values: FormValues) => {
     console.log(isSuccess, isPending, isError);
-    
+
     try {
       requestMutation.mutate({
         id: Number(data?.id),
@@ -158,6 +157,10 @@ export function BesoinLastVal({
     } catch (error) {
       toast.error("Une erreur est survenue");
     }
+  };
+
+  const handleRetry = () => {
+    requestMutation.reset();
   };
 
   /** Header dynamique */
@@ -180,7 +183,7 @@ export function BesoinLastVal({
       <DialogContent className="max-w-lg max-h-screen overflow-y-auto p-0 gap-0 border-none">
         {/* HEADER */}
         <DialogHeader
-          className={`bg-gradient-to-r ${headerColor} text-white p-6 m-4 rounded-lg pb-8`}
+          className={`bg-linear-to-r ${headerColor} text-white p-6 m-4 rounded-lg pb-8`}
         >
           <DialogTitle className="text-xl font-semibold text-white">
             {headerTitle}
@@ -203,11 +206,7 @@ export function BesoinLastVal({
                   <FormItem>
                     <FormLabel>Titre *</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Titre..."
-                        {...field}
-                        disabled={isPending}
-                      />
+                      <Input placeholder="Titre..." {...field} disabled />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -313,7 +312,7 @@ export function BesoinLastVal({
                         className="resize-none"
                         placeholder="Description détaillée..."
                         {...field}
-                        disabled={isPending}
+                        disabled
                       />
                     </FormControl>
                     <FormMessage />
@@ -354,12 +353,18 @@ export function BesoinLastVal({
         {/* Footer Success/Error */}
         {(isSuccess || isError) && (
           <div className="flex justify-end gap-3 p-6 pt-0">
+            {/* Bouton pour réessayer */}
+            {isError && (
+              <Button type="button" variant={"primary"} onClick={handleRetry}>
+                {"Réessayer"}
+              </Button>
+            )}
             <Button
               className="bg-gray-600 hover:bg-gray-700 text-white"
               onClick={() => {
                 form.reset();
-                onOpenChange(false)}
-              }
+                onOpenChange(false);
+              }}
             >
               Fermer
             </Button>

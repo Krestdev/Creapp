@@ -104,7 +104,7 @@ function AppSidebar() {
         },
         {
           pageId: "PG-02-02",
-          title: "Mes besoin",
+          title: "Mes besoins",
           href: "/tableau-de-bord/besoins/mylist",
           authorized: ["ADMIN", "MANAGER", "USER"],
         },

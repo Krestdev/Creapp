@@ -65,25 +65,6 @@ import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { DepartmentQueries } from "@/queries/departmentModule";
 import { BesoinLastVal } from "../modals/BesoinLastVal";
 
-// Define the data type
-export type TableData = {
-  id: string;
-  reference: string;
-  title: string;
-  project?: string;
-  category: string;
-  status: "pending" | "validated" | "rejected" | "in-review";
-  emeteur: string;
-  beneficiaires: string;
-  limiteDate: Date | undefined;
-  priorite: "low" | "medium" | "high" | "urgent";
-  quantite: number;
-  unite: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
 const statusConfig = {
   pending: {
     label: "En attente",
@@ -123,7 +104,7 @@ export function DataValidation() {
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   // Modal states
-  const [selectedItem, setSelectedItem] = React.useState<TableData | null>(
+  const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
     null
   );
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -134,6 +115,7 @@ export function DataValidation() {
     "approve" | "reject"
   >("approve");
   const [toShow, setToShow] = React.useState<RequestModelT[]>([]);
+  const [data, setData] = React.useState<RequestModelT[]>([]);
 
   const department = new DepartmentQueries();
   const departmentData = useQuery({
@@ -169,24 +151,70 @@ export function DataValidation() {
     enabled: isHydrated,
   });
 
-  const rejectRequest = useMutation({
-    mutationKey: ["requests-validation"],
-    mutationFn: async ({ id }: { id: number }) => {
-      await request.reject(id);
-    },
-    onSuccess: () => {
-      toast.success("Besoin rejeté avec succès !");
-      requestData.refetch();
-    },
-    onError: () => {
-      toast.error("Une erreur est survenue.");
-    },
+  const categoriesData = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => request.getCategories(),
   });
+
+  const getProjectName = (projectId: string) => {
+    const project = projectsData.data?.data?.find(
+      (proj) => proj.id === Number(projectId)
+    );
+    return project?.label || projectId;
+  };
+
+  const getCategoryName = (categoryId: string) => {
+    const category = categoriesData.data?.data?.find(
+      (cat) => cat.id === Number(categoryId)
+    );
+    return category?.label || categoryId;
+  };
+
+  const getUserName = (userId: string) => {
+    const user = usersData.data?.data?.find((u) => u.id === Number(userId));
+    return user?.name || userId;
+  };
+
+  const getBeneficiaryDisplay = (request: RequestModelT) => {
+    if (request.beneficiary === "me") {
+      return getUserName(String(request.userId));
+    } else if (request.benef && request.benef.length > 0) {
+      return request.beficiaryList?.map((id) => getUserName(String(id))).join(", ");
+    }
+    return "Aucun bénéficiaire";
+  };
+
+  React.useEffect(() => {
+    if (requestData?.data) {
+      setData(
+        requestData.data.data.filter(
+          (item) =>
+            (item.state === "pending" || item.state === "in-review") &&
+            !item.revieweeList
+              ?.flatMap((x) => x.validatorId)
+              .includes(user?.id!)
+        )
+      );
+      requestData.refetch();
+    }
+  }, [requestData?.data]);
 
   const reviewRequest = useMutation({
     mutationKey: ["requests-review"],
-    mutationFn: async ({ id, validated, decision }: { id: number; validated: boolean; decision?: string }) => {
-      await request.review(id, { validated: validated, decision: decision, userId: user?.id! });
+    mutationFn: async ({
+      id,
+      validated,
+      decision,
+    }: {
+      id: number;
+      validated: boolean;
+      decision?: string;
+    }) => {
+      await request.review(id, {
+        validated: validated,
+        decision: decision,
+        userId: user?.id!,
+      });
     },
     onSuccess: () => {
       toast.success("Besoin validé avec succès !");
@@ -196,36 +224,6 @@ export function DataValidation() {
       toast.error("Une erreur est survenue lors de la validation.");
     },
   });
-
-  const mapApiStatusToTableStatus = (
-    apiStatus: string
-  ): TableData["status"] => {
-    const statusMap: Record<string, TableData["status"]> = {
-      pending: "pending",
-      validated: "validated",
-      rejected: "rejected",
-      "in-review": "in-review",
-    };
-    return statusMap[apiStatus] || "pending";
-  };
-
-  const mapApiPriorityToTablePriority = (
-    apiPriority: string
-  ): TableData["priorite"] => {
-    const priorityMap: Record<string, TableData["priorite"]> = {
-      low: "low",
-      medium: "medium",
-      high: "high",
-      urgent: "urgent",
-    };
-    return priorityMap[apiPriority] || "medium";
-  };
-
-  const formatDate = (date: Date | string): string => {
-    if (!date) return "Non définie";
-    const dateObj = new Date(date);
-    return dateObj.toLocaleDateString("fr-FR");
-  };
 
   const isLastValidator =
     departmentData.data?.data
@@ -267,7 +265,7 @@ export function DataValidation() {
 
   const handleValidation = async (motif?: string): Promise<boolean> => {
     console.log(motif);
-    
+
     try {
       if (!selectedItem) {
         setIsValidationModalOpen(false);
@@ -277,14 +275,14 @@ export function DataValidation() {
       if (validationType === "approve") {
         await reviewRequest.mutateAsync({
           id: Number(selectedItem.id),
-          validated: true
+          validated: true,
         });
       } else if (validationType === "reject") {
         // await rejectRequest.mutateAsync({ id: Number(selectedItem.id) });
         await reviewRequest.mutateAsync({
           id: Number(selectedItem.id),
           validated: false,
-          decision: motif
+          decision: motif,
         });
       }
 
@@ -296,78 +294,19 @@ export function DataValidation() {
     }
   };
 
-  const openValidationModal = (type: "approve" | "reject", item: TableData) => {
+  const openValidationModal = (
+    type: "approve" | "reject",
+    item: RequestModelT
+  ) => {
     setSelectedItem(item);
     setValidationType(type);
     setIsValidationModalOpen(true);
   };
 
-  const data = React.useMemo(() => {
-    if (!toShow || !Array.isArray(toShow)) {
-      return [];
-    }
-
-    // Filtrer pour ne montrer que les besoins en attente de validation
-    const pendingRequests = toShow.filter(
-      (item: RequestModelT) =>
-        item.state === "pending" || item.state === "in-review"
-    );
-
-    return pendingRequests.map((item: RequestModelT) => ({
-      id: item.id.toString(),
-      reference: `REF-${item.id.toString().padStart(3, "0")}`,
-      title: item.label,
-      project: item.projectId
-        ? projectsData.data?.data.find(
-            (project) => project.id === item.projectId
-          )?.label
-        : "Non assigné",
-      category: "Général",
-      status: mapApiStatusToTableStatus(item.state),
-      emeteur:
-        usersData.data?.data.find((user) => user.id === item.userId)?.name ||
-        "Utilisateur inconnu",
-      beneficiaires: item.beneficiary
-        ? usersData.data?.data.find(
-            (user) => user.id === Number(item.beneficiary)
-          )?.name || "Non spécifié"
-        : "Non spécifié",
-      description: item.description || "Aucune description",
-      limiteDate: item.dueDate,
-      priorite: mapApiPriorityToTablePriority(item.proprity),
-      quantite: item.quantity,
-      unite: item.unit || "Unité",
-      createdAt: formatDate(item.createdAt),
-      updatedAt: formatDate(item.updatedAt),
-    }));
-  }, [toShow, usersData.data, projectsData.data]);
-
   // Define columns - Seulement les champs demandés
-  const columns: ColumnDef<TableData>[] = [
-    // {
-    //   id: "select",
-    //   header: ({ table }) => (
-    //     <Checkbox
-    //       checked={
-    //         table.getIsAllPageRowsSelected() ||
-    //         (table.getIsSomePageRowsSelected() && "indeterminate")
-    //       }
-    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //       aria-label="Select all"
-    //     />
-    //   ),
-    //   cell: ({ row }) => (
-    //     <Checkbox
-    //       checked={row.getIsSelected()}
-    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-    //       aria-label="Select row"
-    //     />
-    //   ),
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
+  const columns: ColumnDef<RequestModelT>[] = [
     {
-      accessorKey: "title",
+      accessorKey: "label",
       header: ({ column }) => {
         return (
           <Button
@@ -380,11 +319,11 @@ export function DataValidation() {
         );
       },
       cell: ({ row }) => (
-        <div className="max-w-[200px] truncate">{row.getValue("title")}</div>
+        <div className="max-w-[200px] truncate">{row.getValue("label")}</div>
       ),
     },
     {
-      accessorKey: "project",
+      accessorKey: "projectId",
       header: ({ column }) => {
         return (
           <Button
@@ -396,10 +335,10 @@ export function DataValidation() {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("project")}</div>,
+      cell: ({ row }) => <div>{getProjectName(row.getValue("projectId"))}</div>,
     },
     {
-      accessorKey: "category",
+      accessorKey: "categoryId",
       header: ({ column }) => {
         return (
           <Button
@@ -411,10 +350,10 @@ export function DataValidation() {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("category")}</div>,
+      cell: ({ row }) => <div>{getCategoryName(row.getValue("categoryId"))}</div>,
     },
     {
-      accessorKey: "emeteur",
+      accessorKey: "userId",
       header: ({ column }) => {
         return (
           <Button
@@ -426,10 +365,10 @@ export function DataValidation() {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("emeteur")}</div>,
+      cell: ({ row }) => <div>{getUserName(row.getValue("userId"))}</div>,
     },
     {
-      accessorKey: "beneficiaires",
+      accessorKey: "beneficiary",
       header: ({ column }) => {
         return (
           <Button
@@ -441,7 +380,7 @@ export function DataValidation() {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("beneficiaires")}</div>,
+      cell: ({ row }) => <div className="max-w-[200px] truncate">{row.getValue("beneficiary")}</div>,
     },
     {
       id: "actions",
@@ -493,7 +432,7 @@ export function DataValidation() {
     },
   ];
 
-  const table = useReactTable<TableData>({
+  const table = useReactTable({
     data,
     columns,
     onSortingChange: setSorting,
@@ -506,17 +445,33 @@ export function DataValidation() {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = [
-        "title",
-        "project",
-        "emeteur",
-        "beneficiaires",
-      ];
       const searchValue = filterValue.toLowerCase();
 
-      return searchableColumns.some((column) => {
-        const value = row.getValue(column) as string;
-        return value?.toLowerCase().includes(searchValue);
+      // Recherche dans toutes les colonnes principales avec conversion des IDs en noms
+      const searchableColumns = [
+        "label",
+        "projectId",
+        "categoryId",
+        "userId",
+        "beneficiary",
+      ];
+
+      return searchableColumns.some((columnId) => {
+        const rawValue = row.getValue(columnId);
+        let displayValue = rawValue;
+
+        // Convertir les IDs en noms pour la recherche
+        if (columnId === "projectId") {
+          displayValue = getProjectName(String(rawValue));
+        } else if (columnId === "categoryId") {
+          displayValue = getCategoryName(String(rawValue));
+        } else if (columnId === "userId") {
+          displayValue = getUserName(String(rawValue));
+        } else if (columnId === "beneficiary") {
+          displayValue = getBeneficiaryDisplay(row.original);
+        }
+
+        return String(displayValue).toLowerCase().includes(searchValue);
       });
     },
     state: {
@@ -623,7 +578,7 @@ export function DataValidation() {
                   data-state={row.getIsSelected() && "selected"}
                   className={cn(
                     statusConfig[
-                      row.original.status as keyof typeof statusConfig
+                      row.original.state as keyof typeof statusConfig
                     ].rowClassName
                   )}
                 >

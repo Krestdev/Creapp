@@ -181,7 +181,7 @@ export default function MyForm() {
       dueDate: values.datelimite!,
       projectId: Number(values.projet),
       state: "pending",
-      proprity: "normal",
+      proprity: "medium",
     });
   }
 

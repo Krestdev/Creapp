@@ -63,9 +63,9 @@ export default function TestUserPage() {
             onClick={() =>
               handle(() =>
                 userQueries.register({
-                  email: "achat@gmail.com",
-                  password: "Achat123",
-                  name: "Achat Testeur",
+                  email: "example@gmail.com",
+                  password: "password",
+                  name: "Validateur",
                   phone: "690000000",
                 })
               )
@@ -248,6 +248,13 @@ export default function TestUserPage() {
           <input
             type="number"
             placeholder="id user"
+            className="border p-2 rounded w-full"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="id role"
             className="border p-2 rounded w-full"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}

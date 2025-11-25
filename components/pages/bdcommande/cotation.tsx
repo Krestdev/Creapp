@@ -22,7 +22,7 @@ import { commandeData } from "./bdcommande";
 //   },
 // ];
 
-const Cotation = () => {
+const  Cotation = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">

@@ -99,7 +99,7 @@ export default function TestRequestPage() {
                   beneficiary,
                   benef: null,
                   state: "pending",
-                  proprity: "normal",
+                  proprity: "medium",
                   userId: Number(userId),
                   dueDate: new Date(),
                   projectId: Number(projectId),

@@ -9,15 +9,18 @@ export const commandeData = [
   {
     id: "1",
     reference: "CMD-001",
+    statut: "pending",
     titre: "Achat de matériel informatique",
     bonDeCommande: "BC-2025-001",
     author: "BONFOU Jacques",
     besoins: [
       {
+        ref: "B-001",
         title: "Ordinateur Architecte FANDO",
         qte: 1,
       },
       {
+        ref: "B-002",
         title: "Ordinateur Comptable Loïc",
         qte: 1,
       }
@@ -29,6 +32,7 @@ export const commandeData = [
   {
     id: "2",
     reference: "CMD-002",
+    statut: "pending",
     titre: "Fournitures de bureau",
     bonDeCommande: "BC-2025-002",
     author: "BONFOU Jacques",
@@ -45,6 +49,7 @@ export const commandeData = [
   {
     id: "3",
     reference: "CMD-003",
+    statut: "pending",
     titre: "Équipement de sécurité",
     bonDeCommande: "BC-2025-003",
     author: "BONFOU Jacques",
