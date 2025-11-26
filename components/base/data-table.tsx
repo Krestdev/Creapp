@@ -94,7 +94,8 @@ const statusConfig = {
     badgeClassName: "bg-blue-200 text-blue-500 outline outline-blue-600 ",
     rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
   },
-  cancel: { // Ajout du statut cancel manquant
+  cancel: {
+    // Ajout du statut cancel manquant
     label: "Cancel",
     icon: Ban,
     badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
@@ -122,7 +123,7 @@ export function DataTable() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
-  const [data, setData] = React.useState<RequestModelT[]>()
+  const [data, setData] = React.useState<RequestModelT[]>();
 
   const projects = new ProjectQueries();
   const projectsData = useQuery({
@@ -160,8 +161,8 @@ export function DataTable() {
   });
 
   React.useEffect(() => {
-    if(requestData.data) setData(requestData.data.data)
-  }, [requestData.data])
+    if (requestData.data) setData(requestData.data.data);
+  }, [requestData.data]);
 
   const requestMutation = useMutation({
     mutationKey: ["requests"],
@@ -183,15 +184,6 @@ export function DataTable() {
     requestData.refetch();
   }, [requestData, requestData.data?.data]);
 
-
-  // Fonctions utilitaires
-
-  const formatDate = (date: Date | string): string => {
-    if (!date) return "Non définie";
-    const dateObj = new Date(date);
-    return dateObj.toLocaleDateString("fr-FR");
-  };
-
   const handleCancel = async () => {
     try {
       await requestMutation.mutateAsync({ state: "cancel" });
@@ -205,12 +197,14 @@ export function DataTable() {
   const getStatusConfig = (status: string) => {
     const config = statusConfig[status as keyof typeof statusConfig];
     // Retourne une configuration par défaut si le statut n'est pas trouvé
-    return config || {
-      label: status,
-      icon: AlertCircle,
-      badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
-      rowClassName: "bg-gray-50 dark:bg-gray-950/20",
-    };
+    return (
+      config || {
+        label: status,
+        icon: AlertCircle,
+        badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+        rowClassName: "bg-gray-50 dark:bg-gray-950/20",
+      }
+    );
   };
 
   // Define columns
@@ -264,7 +258,9 @@ export function DataTable() {
       },
       cell: ({ row }) => {
         const projectId = row.getValue("projectId") as string;
-        const project = projectsData.data?.data?.find(proj => proj.id === Number(projectId));
+        const project = projectsData.data?.data?.find(
+          (proj) => proj.id === Number(projectId)
+        );
         return <div>{project?.label || projectId}</div>;
       },
     },
@@ -284,8 +280,8 @@ export function DataTable() {
       cell: ({ row }) => {
         const categoryId = row.getValue("categoryId") as string;
         const getCategoryName = (id: number) => {
-          return categoryData.data?.data.find(x => x.id === id)?.label || id;
-        }
+          return categoryData.data?.data.find((x) => x.id === id)?.label || id;
+        };
         return <div>{getCategoryName(Number(categoryId))}</div>;
       },
     },
@@ -309,11 +305,11 @@ export function DataTable() {
 
         const getTranslatedLabel = (label: string) => {
           const translations: Record<string, string> = {
-            "Pending": "En attente",
-            "Validated": "Validé", 
-            "Rejected": "Refusé",
+            Pending: "En attente",
+            Validated: "Validé",
+            Rejected: "Refusé",
             "In Review": "En révision",
-            "Cancel": "Annulé"
+            Cancel: "Annulé",
           };
           return translations[label] || label;
         };
@@ -437,10 +433,11 @@ export function DataTable() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{"Toutes les catégories"}</SelectItem>
-            <SelectItem value="Design">Design</SelectItem>
-            <SelectItem value="Development">Development</SelectItem>
-            <SelectItem value="Security">Security</SelectItem>
-            <SelectItem value="Marketing">Marketing</SelectItem>
+            {categoryData.data?.data.map((category) => (
+              <SelectItem key={category.id} value={category.id.toString()}>
+                {category.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -526,7 +523,7 @@ export function DataTable() {
               {table.getRowModel().rows.map((row) => {
                 const status = row.original.state;
                 const config = getStatusConfig(status);
-                
+
                 return (
                   <TableRow
                     key={row.id}
@@ -568,11 +565,11 @@ export function DataTable() {
           setIsUpdateModalOpen(true);
         }}
       />
-      {/* <UpdateRequest
+      <UpdateRequest
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
         requestData={selectedItem}
-      /> */}
+      />
       <ValidationModal
         open={isCancelModalOpen}
         onOpenChange={setIsCancelModalOpen}

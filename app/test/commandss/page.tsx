@@ -1,10 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CommandRequestQueries } from "@/queries/commandModule";
+import { CommandQueries } from "@/queries/commandModule";
 import React, { useState } from "react";
 
-const commandQueries = new CommandRequestQueries();
+const commandQueries = new CommandQueries();
 
 export default function TestCommandRequestPage() {
   const [state, setState] = useState("");
@@ -14,6 +14,8 @@ export default function TestCommandRequestPage() {
   const [providerId, setProviderId] = useState<number | string>("");
   const [requestId, setRequestId] = useState<number | string>("");
   const [docId, setDocId] = useState<number | string>("");
+  const [totalPrice, setTotalPrice] = useState<number | string>("");
+  const [reference, setReference] = useState("");
   const [result, setResult] = useState<any>(null);
 
   const handle = async (fn: () => Promise<any>) => {
@@ -28,11 +30,12 @@ export default function TestCommandRequestPage() {
   return (
     <div className="p-8 max-w-[1440px] mx-auto space-y-6 grid grid-cols-3 gap-8">
       <div className="flex flex-col gap-8 col-span-2">
-        <h1 className="text-3xl font-bold">📦 Test Routes Command Request</h1>
+        <h1 className="text-3xl font-bold">📦 Test Command Request API</h1>
 
         {/* CREATE */}
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Créer une commande</h2> 
+          <h2 className="text-xl font-semibold">Créer une commande</h2>
+
           <input
             placeholder="Modality"
             className="border p-2 rounded w-full"
@@ -59,6 +62,19 @@ export default function TestCommandRequestPage() {
             value={providerId}
             onChange={(e) => setProviderId(e.target.value)}
           />
+          <input
+            type="number"
+            placeholder="Total Price"
+            className="border p-2 rounded w-full"
+            value={totalPrice}
+            onChange={(e) => setTotalPrice(e.target.value)}
+          />
+          <input
+            placeholder="Reference"
+            className="border p-2 rounded w-full"
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+          />
 
           <Button
             className="bg-green-600 text-white px-4 py-2 rounded"
@@ -69,9 +85,8 @@ export default function TestCommandRequestPage() {
                   deliveryDate: new Date(deliveryDate),
                   justification,
                   providerId: providerId ? Number(providerId) : null,
-                  requestIds: [],
-                  userId: 0,
-                  dueDate: new Date(),
+                  totalPrice: Number(totalPrice),
+                  reference,
                 })
               )
             }
@@ -117,9 +132,8 @@ export default function TestCommandRequestPage() {
             onClick={() =>
               handle(() =>
                 commandQueries.update(Number(requestId), {
-                  state: "updated",
-                  modality: "Updated Modality",
-                  justification: "Updated justification",
+                  state: "UPDATED",
+                  justification: "Nouvelle justification",
                 })
               )
             }
@@ -173,7 +187,9 @@ export default function TestCommandRequestPage() {
           />
           <Button
             className="bg-blue-700 text-white px-4 py-2 rounded"
-            onClick={() => handle(() => commandQueries.attachDoc(Number(requestId), Number(docId)))}
+            onClick={() =>
+              handle(() => commandQueries.attachDoc(Number(requestId), Number(docId)))
+            }
           >
             Tester Attach Doc
           </Button>
@@ -202,7 +218,11 @@ export default function TestCommandRequestPage() {
           />
           <Button
             className="bg-indigo-700 text-white px-4 py-2 rounded"
-            onClick={() => handle(() => commandQueries.linkProvider(Number(requestId), Number(providerId)))}
+            onClick={() =>
+              handle(() =>
+                commandQueries.linkProvider(Number(requestId), Number(providerId))
+              )
+            }
           >
             Tester Link Provider
           </Button>

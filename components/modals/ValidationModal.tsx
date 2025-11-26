@@ -14,11 +14,11 @@ interface ValidationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   type: "approve" | "reject";
-  
+
   // Textes principaux
   title: string;
   description: string;
-  
+
   // Textes pour les états de résultat
   successConfirmation: {
     title: string;
@@ -28,7 +28,7 @@ interface ValidationModalProps {
     title: string;
     description: string;
   };
-  
+
   // Textes des boutons
   buttonTexts: {
     approve: string;
@@ -38,7 +38,7 @@ interface ValidationModalProps {
     retry: string;
     processing: string;
   };
-  
+
   // Textes des labels et placeholders
   labels: {
     rejectionReason: string;
@@ -47,8 +47,8 @@ interface ValidationModalProps {
   };
 
   isMotifRequired?: boolean;
-  
-  /** 
+
+  /**
    * Fonction appelée lors de la validation
    * Elle reçoit un éventuel motif et retourne une Promise<boolean>
    * (true = succès, false = erreur)
@@ -126,13 +126,14 @@ export function ValidationModal({
       : isApprove
       ? "bg-gradient-to-r from-[#15803D] to-[#0B411F]"
       : "bg-gradient-to-r from-[#B91C1C] to-[#7F1D1D]";
-      
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-screen overflow-y-auto p-0 gap-0 border-none">
         {/* HEADER */}
-        <DialogHeader className={`${gradient} text-white p-6 m-4 rounded-lg pb-8`}>
+        <DialogHeader
+          className={`${gradient} text-white p-6 m-4 rounded-lg pb-8`}
+        >
           <DialogTitle className="text-xl font-semibold text-white">
             {renderTitle()}
           </DialogTitle>
@@ -174,7 +175,9 @@ export function ValidationModal({
                   disabled={isPending}
                 >
                   {buttonTexts.retry}
-                  {isPending && <Loader className="ml-2 h-4 w-4 animate-spin" />}
+                  {isPending && (
+                    <Loader className="ml-2 h-4 w-4 animate-spin" />
+                  )}
                 </Button>
               )}
               <Button

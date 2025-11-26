@@ -19,8 +19,8 @@ const StatsCard = (props: StatsCardProps) => {
     >
       <p className={`text-sm font-medium ${props.titleColor}`}>{props.title}</p>
       <p className="text-[32px] font-medium">{props.value}</p>
-      <div className={`h-[1px] w-full ${props.dividerColor}`} />
-      <p className={`text-[12px] `}>{props.description} <span className={`font-semibold ${props.dvalueColor}`}>{props.descriptionValue}</span> </p>
+      <div className={`h-px w-full ${props.dividerColor}`} />
+      <p className={`text-[12px] ${props.descriptionColor} `}>{props.description} <span className={`font-medium ${props.dvalueColor}`}>{props.descriptionValue}</span> </p>
     </div>
   );
 };

@@ -161,21 +161,22 @@ export type Category = {
 };
 
 export type CommandRequestT = {
-  id: number;
-  reference: string;
-  requestIds: number[];
-  userId: number;
+  id?: number;
+  providerId?: number | null;
+  justification?: string;
+  submitted?: boolean;
+  deliveryDate?: Date;
+  modality?: string;
+  totalPrice?: number;
+  reference?: string;
+  updatedAt?: Date;
+  createdAt?: Date;
+  userId?: number;
+  state?: string;
   dueDate: Date;
-  createdAt: Date;
-  updatedAt: Date;
-
-  state: string;
-  submited: boolean;
-  totalPrice: number;
-  modality: string;
-  deliveryDate: Date;
-  justification: string;
-  providerId: number | null;
+  title: string;
+  requests?: number[];
+  besoins?: RequestModelT[];
 };
 
 // queries response

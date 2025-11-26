@@ -114,7 +114,6 @@ export function DataValidation() {
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
-  const [toShow, setToShow] = React.useState<RequestModelT[]>([]);
   const [data, setData] = React.useState<RequestModelT[]>([]);
 
   const department = new DepartmentQueries();
@@ -184,21 +183,6 @@ export function DataValidation() {
     return "Aucun bénéficiaire";
   };
 
-  React.useEffect(() => {
-    if (requestData?.data) {
-      setData(
-        requestData.data.data.filter(
-          (item) =>
-            (item.state === "pending" || item.state === "in-review") &&
-            !item.revieweeList
-              ?.flatMap((x) => x.validatorId)
-              .includes(user?.id!)
-        )
-      );
-      requestData.refetch();
-    }
-  }, [requestData?.data]);
-
   const reviewRequest = useMutation({
     mutationKey: ["requests-review"],
     mutationFn: async ({
@@ -233,14 +217,12 @@ export function DataValidation() {
   // afficher les element a valider en fonction du validateur
   React.useEffect(() => {
     if (requestData.data?.data && user) {
-      const show = requestData.data?.data.filter((item) => {
+      const show = requestData.data?.data.filter(x => x.state === "pending").filter((item) => {
         // Récupérer la liste des IDs des validateurs pour ce departement
         const validatorIds = departmentData.data?.data
           .flatMap((x) => x.members)
           .filter((x) => x.validator === true)
           .map((x) => x.userId);
-
-        console.log(validatorIds, item.revieweeList);
 
         if (isLastValidator) {
           return validatorIds?.every((id) =>
@@ -254,7 +236,7 @@ export function DataValidation() {
           );
         }
       });
-      setToShow(show);
+      setData(show);
     }
   }, [
     requestData.data?.data,
@@ -497,11 +479,11 @@ export function DataValidation() {
         {/* Category filter */}
         <Select
           value={
-            (table.getColumn("category")?.getFilterValue() as string) ?? "all"
+            (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
           }
           onValueChange={(value) =>
             table
-              .getColumn("category")
+              .getColumn("categoryId")
               ?.setFilterValue(value === "all" ? "" : value)
           }
         >

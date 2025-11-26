@@ -171,12 +171,11 @@ export default function MyForm() {
     requestMutation.mutate({
       label: values.titre,
       description: values.description || null,
-      categoryId: Number(values.souscategorie || values.categorie), 
+      categoryId: Number(values.souscategorie || values.categorie),
       quantity: Number(values.quantity),
       unit: values.unite!,
       beneficiary: values.beneficiaire!,
-      benef:
-        values.beneficiaire === "groupe" ? values.utilisateurs! : null,
+      benef: values.beneficiaire === "groupe" ? values.utilisateurs! : null,
       userId: Number(user?.id),
       dueDate: values.datelimite!,
       projectId: Number(values.projet),
@@ -428,6 +427,7 @@ export default function MyForm() {
                   <FormLabel>Utilisateurs</FormLabel>
 
                   <MultiSelectUsers
+                    display="user"
                     users={USERS}
                     selected={selectedUsers}
                     onChange={(list) => {

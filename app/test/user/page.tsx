@@ -63,9 +63,9 @@ export default function TestUserPage() {
             onClick={() =>
               handle(() =>
                 userQueries.register({
-                  email: "example@gmail.com",
-                  password: "password",
-                  name: "Validateur",
+                  email: "achat@gmail.com",
+                  password: "Achat123",
+                  name: "Achat",
                   phone: "690000000",
                 })
               )

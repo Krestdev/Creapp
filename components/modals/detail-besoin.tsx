@@ -18,6 +18,7 @@ import {
   UserPlus,
   Calendar,
   X,
+  LucidePieChart,
 } from "lucide-react";
 import { useStore } from "@/providers/datastore";
 import { format } from "date-fns";
@@ -207,6 +208,17 @@ export function DetailBesoin({
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Quantité */}
+          <div className="flex items-start gap-3">
+            <div className="mt-1">
+              <LucidePieChart className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground mb-1">{"Quantité"}</p>
+              <p className="font-semibold">{data.quantity + ' ' + data.unit}</p>
             </div>
           </div>
 

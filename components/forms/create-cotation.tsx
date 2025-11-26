@@ -16,14 +16,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-// import {
-//   MultiSelector,
-//   MultiSelectorContent,
-//   MultiSelectorInput,
-//   MultiSelectorItem,
-//   MultiSelectorList,
-//   MultiSelectorTrigger,
-// } from "@/components/ui/multi-select";
 import { format } from "date-fns";
 import {
   Popover,
@@ -32,37 +24,102 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
+import MultiSelectUsers from "../base/multiSelectUsers";
+import { RequestQueries } from "@/queries/requestModule";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { CommandQueries } from "@/queries/commandModule";
+import { CommandRequestT } from "@/types/types";
+import { useStore } from "@/providers/datastore";
 
 const formSchema = z.object({
   titre: z.string().min(1),
-  name_0890398282: z.array(z.string()).min(1, {
-    message: "Please select at least one item",
+  requests: z.array(z.number()).min(1, {
+    message: "Veuillez sélectionner au moins un besoin",
   }),
   date_limite: z.coerce.date(),
 });
 
+interface Request {
+  id: number;
+  name: string;
+  dueDate?: Date;
+}
+
 export default function CreateCotationForm() {
+
+  const {user} = useStore();
+  const [selected, setSelected] = useState<Request[]>([]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name_0890398282: ["React"],
+      titre: "",
+      requests: [],
       date_limite: new Date(),
     },
   });
 
+  const command = new CommandQueries();
+  const createCommand = useMutation({
+    mutationKey: ["command"],
+    mutationFn: (data: CommandRequestT) => command.create(data),
+  });
+
+  const request = new RequestQueries();
+  const requestData = useQuery({
+    queryKey: ["requests"],
+    queryFn: () => request.getAll(),
+  });
+
+  // map request to Request Type {id: number, name: string}
+  const requests =
+    requestData.data?.data
+      .filter((x) => x.state === "validated")
+      .map((item) => ({
+        id: item.id,
+        name: item.label,
+        dueDate: item.dueDate,
+      })) ?? [];
+
+  // Fonction pour gérer la sélection des besoins
+  const handleRequestsChange = (list: Request[]) => {
+    setSelected(list);
+    // Mettre à jour directement la valeur du champ dans react-hook-form
+    form.setValue(
+      "requests",
+      list.map((u) => u.id),
+      {
+        shouldValidate: true, // Déclencher la validation immédiatement
+        shouldDirty: true,
+        shouldTouch: true,
+      }
+    );
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       console.log(values);
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-        </pre>
-      );
+      const data = {
+        title: values.titre,
+        requests: values.requests,
+        dueDate: values.date_limite,
+        userId: Number(user?.id),
+        totalPrice: 0,
+        modality: "",
+        state: "pending",
+        submited: false,
+        justification: "",
+      };
+      createCommand.mutate(data);
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
     }
   }
+
+  // Vérifier l'état actuel du champ pour debug
+  console.log("Selected requests:", selected);
+  console.log("Form requests field:", form.watch("requests"));
 
   return (
     <Form {...form}>
@@ -76,74 +133,63 @@ export default function CreateCotationForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Titre</FormLabel>
-              <FormControl className="w-full">
+              <FormControl className="w-[320px]">
                 <Input
                   placeholder="ex. Fournitures pour Cédric et Samuel en Papier et stylos"
-                  type=""
                   {...field}
                 />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* <FormField
+        <FormField
           control={form.control}
-          name="name_0890398282"
+          name="requests"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Select your framework</FormLabel>
-              <FormControl className="w-full">
-                <MultiSelector
-                  values={field.value}
-                  onValuesChange={field.onChange}
-                  loop
-                  className="max-w-xs"
-                >
-                  <MultiSelectorTrigger>
-                    <MultiSelectorInput placeholder="Select languages" />
-                  </MultiSelectorTrigger>
-                  <MultiSelectorContent>
-                    <MultiSelectorList>
-                      <MultiSelectorItem value={"React"}>
-                        React
-                      </MultiSelectorItem>
-                      <MultiSelectorItem value={"Vue"}>Vue</MultiSelectorItem>
-                      <MultiSelectorItem value={"Svelte"}>
-                        Svelte
-                      </MultiSelectorItem>
-                    </MultiSelectorList>
-                  </MultiSelectorContent>
-                </MultiSelector>
+              <FormLabel>{"Besoins"}</FormLabel>
+              <FormControl className="h-fit">
+                <MultiSelectUsers
+                  display="request"
+                  users={requests}
+                  selected={selected}
+                  onChange={handleRequestsChange}
+                  className="max-w-[320px] w-full h-9"
+                />
               </FormControl>
-              <FormDescription>Select multiple options.</FormDescription>
+              <FormDescription>
+                {selected.length > 0
+                  ? `${selected.length} besoin(s) sélectionné(s)`
+                  : "Aucun besoin sélectionné"}
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
-        /> */}
+        />
 
         <FormField
           control={form.control}
           name="date_limite"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Date limite</FormLabel>
+              <FormLabel>{"Date limite"}</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl className="w-full">
                     <Button
+                    type="button"
                       variant={"outline"}
                       className={cn(
-                        "w-[240px] pl-3 text-left font-normal",
+                        "w-[320px] pl-3 text-left font-normal",
                         !field.value && "text-muted-foreground"
                       )}
                     >
                       {field.value ? (
                         format(field.value, "PPP")
                       ) : (
-                        <span>Pick a date</span>
+                        <span>Choisir une date</span>
                       )}
                       <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
@@ -154,16 +200,19 @@ export default function CreateCotationForm() {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    initialFocus
                   />
                 </PopoverContent>
               </Popover>
-
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit">Créer la demande de cotation</Button>
+
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting
+            ? "Création..."
+            : "Créer la demande de cotation"}
+        </Button>
       </form>
     </Form>
   );

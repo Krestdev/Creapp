@@ -58,7 +58,7 @@ function Page() {
           descriptionValue={String(soumisMois)}
           descriptionColor="red"
           dividerColor="bg-[#2262A2]"
-          className={"bg-[#013E7B] text-[#fff] border-[#2262A2]"}
+          className={"bg-[#013E7B] text-[#fffff] border-[#2262A2]"}
           dvalueColor="text-[#FFFFFF]"
         />
         <StatsCard

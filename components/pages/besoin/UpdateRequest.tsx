@@ -37,7 +37,7 @@ import { UserQueries } from "@/queries/baseModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
 
-import { RequestModelT, TableData } from "@/types/types";
+import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronDownIcon, LoaderIcon } from "lucide-react";
@@ -69,7 +69,7 @@ const formSchema = z.object({
 interface UpdateRequestProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  requestData: TableData | null;
+  requestData: RequestModelT | null;
   onSuccess?: () => void;
 }
 
@@ -87,7 +87,7 @@ export default function UpdateRequest({
     { id: number; name: string }[]
   >([]);
 
-   // ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
   // QUERY PROJECTS
   // ----------------------------------------------------------------------
   const projects = new ProjectQueries();
@@ -108,7 +108,7 @@ export default function UpdateRequest({
   const USERS =
     usersData.data?.data.map((u) => ({ id: u.id!, name: u.name })) || [];
 
-   const categoriesData = useQuery({
+  const categoriesData = useQuery({
     queryKey: ["categories"],
     queryFn: async () => request.getCategories(),
   });
@@ -154,93 +154,95 @@ export default function UpdateRequest({
   // INITIALISATION DES DONNEES DU BESOIN
   // ----------------------------------------------------------------------
   useEffect(() => {
-  if (requestData && open && categoriesData.data) {
-    // Attendre que les catégories soient chargées
-    const initializeForm = async () => {
-      // Trouver la catégorie parente si c'est une sous-catégorie
-      const categoryId = requestData.category;
-      let categorieValue = "";
-      let sousCategorieValue = "";
+    if (requestData && open && categoriesData.data) {
+      // Attendre que les catégories soient chargées
+      const initializeForm = async () => {
+        // Trouver la catégorie parente si c'est une sous-catégorie
+        const categoryId = requestData.category;
+        let categorieValue = "";
+        let sousCategorieValue = "";
 
-      const category = categoriesData.data.data.find(
-        (cat) => cat.id === Number(categoryId)
-      );
+        const category = categoriesData.data.data.find(
+          (cat) => cat.id === Number(categoryId)
+        );
 
-      console.log("Category found:", category);
-      
-      if (category) {
-        if (category.parentId === null) {
-          // C'est une catégorie parente
-          categorieValue = category.id!.toString();
-        } else {
-          // C'est une sous-catégorie
-          sousCategorieValue = category.id!.toString();
-          categorieValue = category.parentId!.toString();
+        console.log("Category found:", category);
+
+        if (category) {
+          if (category.parentId === null) {
+            // C'est une catégorie parente
+            categorieValue = category.id!.toString();
+          } else {
+            // C'est une sous-catégorie
+            sousCategorieValue = category.id!.toString();
+            categorieValue = category.parentId!.toString();
+          }
         }
-      }
 
-      // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
-      const usersSelection: { id: number; name: string }[] = [];
-      if (requestData.beneficiaires === "groupe" && requestData.benef) {
-        const benefIds = Array.isArray(requestData.benef)
-          ? requestData.benef
-          : [];
-        benefIds.forEach((id: number) => {
-          const user = USERS.find((u) => u.id === id);
-          if (user) usersSelection.push(user);
+        // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
+        const usersSelection: { id: number; name: string }[] = [];
+        if (requestData.beneficiary === "groupe" && requestData.benef) {
+          const benefIds = Array.isArray(requestData.benef)
+            ? requestData.benef
+            : [];
+          benefIds.forEach((id: number) => {
+            const user = USERS.find((u) => u.id === id);
+            if (user) usersSelection.push(user);
+          });
+          setSelectedUsers(usersSelection);
+        }
+
+        console.log("Values to set:", {
+          categorie: categorieValue,
+          souscategorie: sousCategorieValue,
         });
-        setSelectedUsers(usersSelection);
-      }
 
-      console.log("Values to set:", { 
-        categorie: categorieValue, 
-        souscategorie: sousCategorieValue 
-      });
+        // Réinitialiser le formulaire avec les valeurs
+        form.reset({
+          projet:
+            requestData.projectId?.toString(),
+          categorie: categorieValue,
+          souscategorie: sousCategorieValue,
+          titre: requestData.label || "",
+          description: requestData.description || "",
+          quantity: requestData.quantity?.toString() || "",
+          unite: requestData.unit || "",
+          datelimite: requestData.dueDate
+            ? new Date(requestData.dueDate)
+            : new Date(),
+          beneficiaire: requestData.beneficiary || "me",
+          utilisateurs: usersSelection.map((u) => u.id),
+        });
 
-      // Réinitialiser le formulaire avec les valeurs
-      form.reset({
-        projet: requestData.projectId?.toString() || requestData.project?.toString() || "",
-        categorie: categorieValue,
-        souscategorie: sousCategorieValue,
-        titre: requestData.title || "",
-        description: requestData.description || "",
-        quantity: requestData.quantite?.toString() || "",
-        unite: requestData.unite || "",
-        datelimite: requestData.limiteDate ? new Date(requestData.limiteDate) : new Date(),
-        beneficiaire: requestData.beneficiaires || "me",
-        utilisateurs: usersSelection.map(u => u.id),
-      });
+        // Forcer la mise à jour de la sous-catégorie après un court délai
+        if (sousCategorieValue) {
+          setTimeout(() => {
+            form.setValue("souscategorie", sousCategorieValue);
+          }, 50);
+        }
+      };
 
-      // Forcer la mise à jour de la sous-catégorie après un court délai
-      if (sousCategorieValue) {
-        setTimeout(() => {
-          form.setValue("souscategorie", sousCategorieValue);
-        }, 50);
-      }
+      initializeForm();
+    }
+  }, [requestData, open, categoriesData.data, form]);
 
-    };
+  // Ajouter un état pour suivre le chargement des données
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
 
-    initializeForm();
-  }
-}, [requestData, open, categoriesData.data, form]);
+  // Et modifier l'useEffect comme ceci :
+  useEffect(() => {
+    if (requestData && open && categoriesData.data && USERS.length > 0) {
+      const initializeForm = async () => {
+        // ... le code d'initialisation précédent ...
 
-// Ajouter un état pour suivre le chargement des données
-const [isFormInitialized, setIsFormInitialized] = useState(false);
+        setIsFormInitialized(true);
+      };
 
-// Et modifier l'useEffect comme ceci :
-useEffect(() => {
-  if (requestData && open && categoriesData.data && USERS.length > 0) {
-    const initializeForm = async () => {
-      // ... le code d'initialisation précédent ...
-
-      setIsFormInitialized(true);
-    };
-
-    initializeForm();
-  } else {
-    setIsFormInitialized(false);
-  }
-}, [requestData, open, categoriesData.data, USERS.length]);
+      initializeForm();
+    } else {
+      setIsFormInitialized(false);
+    }
+  }, [requestData, open, categoriesData.data, USERS.length]);
 
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
@@ -262,7 +264,6 @@ useEffect(() => {
     onError: () =>
       toast.error("Une erreur est survenue lors de la modification."),
   });
-
 
   // Filtrer les catégories parentes (parentId === null)
   const categories =
@@ -412,7 +413,7 @@ useEffect(() => {
                     </Select>
                     {!selectedCategorie && (
                       <p className="text-sm text-muted-foreground mt-1">
-                       {" Veuillez d'abord sélectionner une catégorie"}
+                        {" Veuillez d'abord sélectionner une catégorie"}
                       </p>
                     )}
                     <FormMessage />
@@ -567,6 +568,7 @@ useEffect(() => {
                       <FormLabel>Utilisateurs</FormLabel>
 
                       <MultiSelectUsers
+                        display="user"
                         users={USERS}
                         selected={selectedUsers}
                         onChange={(list) => {

@@ -1,65 +1,119 @@
 import api from "@/providers/axios";
 import { CommandRequestT } from "@/types/types";
 
-export class CommandRequestQueries {
+export class CommandQueries {
   route = "/request/cmdrqst";
 
-  // ============================
-  //       COMMAND REQUEST CRUD
-  // ============================
+  // --------------------------------------
+  // CREATE
+  // --------------------------------------
 
-  // Créer une commande
   create = async (
-    data: Omit<CommandRequestT, "id" | "createdAt" | "updatedAt" | "submited" | "reference" | "totalPrice" | "state">
+    data: Partial<CommandRequestT>
   ): Promise<{ data: CommandRequestT }> => {
-    return api.post(this.route, data).then(res => res.data);
+    return api.post(this.route, data).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
-  // Récupérer toutes les commandes
+  // --------------------------------------
+  // READ
+  // --------------------------------------
+
   getAll = async (): Promise<{ data: CommandRequestT[] }> => {
-    return api.get(this.route).then(res => res.data);
+    return api.get(this.route).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
-  // Récupérer une commande par ID
   getOne = async (id: number): Promise<{ data: CommandRequestT }> => {
-    return api.get(`${this.route}/${id}`).then(res => res.data);
+    return api.get(`${this.route}/${id}`).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
-  // Mettre à jour une commande
+  // --------------------------------------
+  // UPDATE (PUT)
+  // --------------------------------------
+
   update = async (
     id: number,
     data: Partial<CommandRequestT>
   ): Promise<{ data: CommandRequestT }> => {
-    return api.put(`${this.route}/${id}`, data).then(res => res.data);
+    return api.put(`${this.route}/${id}`, data).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
-  // Supprimer une commande
+  // --------------------------------------
+  // DELETE
+  // --------------------------------------
+
   delete = async (id: number): Promise<{ data: CommandRequestT }> => {
-    return api.delete(`${this.route}/${id}`).then(res => res.data);
+    return api.delete(`${this.route}/${id}`).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
-  // Valider une commande
+  // --------------------------------------
+  // VALIDATE / REJECT / SUBMIT
+  // --------------------------------------
+
   validate = async (id: number): Promise<{ data: CommandRequestT }> => {
-    return api.put(`${this.route}/validate/${id}`).then(res => res.data);
+    return api.put(`${this.route}/validate/${id}`).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
-  // Rejeter une commande
   reject = async (id: number): Promise<{ data: CommandRequestT }> => {
-    return api.put(`${this.route}/reject/${id}`).then(res => res.data);
+    return api.put(`${this.route}/reject/${id}`).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
-  // Attacher un document
-  attachDoc = async (id: number, docId: number): Promise<{ data: CommandRequestT }> => {
-    return api.put(`${this.route}/attachDoc/${id}/${docId}`).then(res => res.data);
-  };
-
-  // Soumettre la commande
   submit = async (id: number): Promise<{ data: CommandRequestT }> => {
-    return api.put(`${this.route}/submit/${id}`).then(res => res.data);
+    return api.put(`${this.route}/submit/${id}`).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
-  // Lier un fournisseur
-  linkProvider = async (id: number, providerId: number): Promise<{ data: CommandRequestT }> => {
-    return api.put(`${this.route}/linkProvider/${id}/${providerId}`).then(res => res.data);
+  // --------------------------------------
+  // DOCUMENT ATTACHMENT
+  // --------------------------------------
+
+  attachDoc = async (
+    id: number,
+    docId: number
+  ): Promise<{ data: CommandRequestT }> => {
+    return api
+      .put(`${this.route}/attachDoc/${id}/${docId}`)
+      .then((response) => {
+        console.log(response.data);
+        return response.data;
+      });
+  };
+
+  // --------------------------------------
+  // PROVIDER LINK
+  // --------------------------------------
+
+  linkProvider = async (
+    id: number,
+    providerId: number
+  ): Promise<{ data: CommandRequestT }> => {
+    return api
+      .put(`${this.route}/linkProvider/${id}/${providerId}`)
+      .then((response) => {
+        console.log(response.data);
+        return response.data;
+      });
   };
 }

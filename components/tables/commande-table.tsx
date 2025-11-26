@@ -15,14 +15,11 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  MoreHorizontal,
   Eye,
-  X,
-  Check,
+  Trash,
+  LucideDownload,
+  LucidePen,
+  ChevronDown,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -46,24 +43,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DetailOrder } from "../modals/detail-order";
-
-export type CommandeData = {
-  id: string;
-  reference: string;
-  titre: string;
-  bonDeCommande: string;
-  author: string;
-  besoins: {
-    title: string;
-    qte: number;
-  }[];
-  datelimite: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import { CommandRequestT } from "@/types/types";
+import { format } from "date-fns";
+import { Pagination } from "../base/pagination";
 
 interface CommandeTableProps {
-  data: CommandeData[];
+  data: CommandRequestT[] | undefined;
 }
 
 export function CommandeTable({ data }: CommandeTableProps) {
@@ -75,12 +60,11 @@ export function CommandeTable({ data }: CommandeTableProps) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [selectedOrder, setSelectedOrder] = React.useState<CommandeData | null>(
-    null
-  );
+  const [selectedOrder, setSelectedOrder] =
+    React.useState<CommandRequestT | null>(null);
   const [showOrder, setShowOrder] = React.useState(false);
 
-  const columns: ColumnDef<CommandeData>[] = [
+  const columns: ColumnDef<CommandRequestT>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -111,7 +95,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Référence
+            {"Référence"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -121,34 +105,51 @@ export function CommandeTable({ data }: CommandeTableProps) {
       ),
     },
     {
-      accessorKey: "titre",
+      accessorKey: "title",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Titre
+            {"Titre"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("titre")}</div>,
+      cell: ({ row }) => <div>{row.getValue("title")}</div>,
     },
     {
-      accessorKey: "bonDeCommande",
+      accessorKey: "dueDate",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Bon de commande
+            {"Date limite"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("bonDeCommande")}</div>,
+      cell: ({ row }) => (
+        <div>{format(row.getValue("dueDate"), "dd/MM/yyyy")}</div>
+      ),
+    },
+    {
+      accessorKey: "state",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Statut"}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue("state")}</div>,
     },
     {
       id: "actions",
@@ -159,10 +160,12 @@ export function CommandeTable({ data }: CommandeTableProps) {
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
+            <DropdownMenuTrigger asChild className="w-fit">
+              <Button variant="ghost">
+                <Button variant={"outline"}>
+                  {"Actions"}
+                  <ChevronDown />
+                </Button>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -174,16 +177,20 @@ export function CommandeTable({ data }: CommandeTableProps) {
                 }}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                View
+                {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => console.log("Validate", item)}>
-                <Check className="mr-2 h-4 w-4" />
-                Validate
+                <LucidePen className="mr-2 h-4 w-4" />
+                {"Modifier"}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => console.log("Reject", item)}>
-                <X className="mr-2 h-4 w-4" />
-                Reject
+                <LucideDownload className="mr-2 h-4 w-4" />
+                {"Télécharger"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
+                <Trash color="red" className="mr-2 h-4 w-4" />
+                {"Annuler"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -193,7 +200,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
   ];
 
   const table = useReactTable({
-    data,
+    data: data || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -205,7 +212,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "titre", "bonDeCommande"];
+      const searchableColumns = ["reference", "titre"];
       const searchValue = filterValue.toLowerCase();
 
       return searchableColumns.some((column) => {
@@ -226,7 +233,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
         <Input
-          placeholder="Search..."
+          placeholder="Reference, titre..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
@@ -235,7 +242,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns
+              {"Colonnes"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -309,7 +316,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {"Aucun résultat"}
                 </TableCell>
               </TableRow>
             )}
@@ -317,52 +324,10 @@ export function CommandeTable({ data }: CommandeTableProps) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-1">
-            <div className="text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      {/* Pagination */}
+      {table.getRowModel().rows?.length > 0 && (
+        <Pagination table={table} pageSize={15} />
+      )}
       <DetailOrder
         open={showOrder}
         onOpenChange={setShowOrder}
