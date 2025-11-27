@@ -1,12 +1,7 @@
-import { Button } from '@/components/ui/button'
+import { redirect } from 'next/navigation'
 
 function Dashboard() {
-
-  return (
-    <div>
-      <Button>Toast</Button>
-    </div>
-  )
+  return redirect('/tableau-de-bord/besoins')
 }
 
 export default Dashboard

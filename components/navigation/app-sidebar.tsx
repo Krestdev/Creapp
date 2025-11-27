@@ -125,7 +125,7 @@ function AppSidebar() {
       items: [
         {
           pageId: "PG-03-01",
-          title: "Demande de cotation",
+          title: "Demande de quotation",
           href: "/tableau-de-bord/bdcommande/cotation",
           authorized: ["ADMIN", "SALES"],
         },
@@ -155,7 +155,7 @@ function AppSidebar() {
         },
         {
           pageId: "PG-03-06",
-          title: "Créer une cotation",
+          title: "Créer une quotation",
           href: "/tableau-de-bord/bdcommande/creercotation",
           authorized: ["ADMIN", "SALES"],
         },

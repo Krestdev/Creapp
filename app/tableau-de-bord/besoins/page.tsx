@@ -4,8 +4,11 @@ import { DataTable } from "@/components/base/data-table";
 import StatsCard from "@/components/base/StatsCard";
 import PageTitle from "@/components/pageTitle";
 import { useStore } from "@/providers/datastore";
+import { DepartmentQueries } from "@/queries/departmentModule";
 import { RequestQueries } from "@/queries/requestModule";
+import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
+import React from "react";
 
 function Page() {
   const links = [
@@ -15,28 +18,73 @@ function Page() {
   ];
 
   const { user, isHydrated } = useStore();
+  const [data, setData] = React.useState<RequestModelT[]>([]);
   const request = new RequestQueries();
+  // Récupérer tous les besoins en attente de validation (pour les validateurs)
   const requestData = useQuery({
-    queryKey: ["requests", user?.id],
+    queryKey: ["requests-validation"],
     queryFn: () => {
-      if (!user?.id) {
-        throw new Error("ID utilisateur non disponible");
-      }
-      return request.getMine(user.id);
+      return request.getAll();
     },
-    enabled: !!user?.id && isHydrated,
+    enabled: isHydrated,
   });
 
-  const soumis = requestData.data?.data.length ?? 0;
-  const soumisMois = requestData.data?.data.filter(
-    (item) => new Date(item.createdAt).getMonth() === new Date().getMonth()
-  ).length ?? 0;
-  const attentes = requestData.data?.data.filter(
-    (item) => item.state === "pending"
-  ).length ?? 0;
-  const rejetes = requestData.data?.data.filter(
-    (item) => item.state === "rejected"
-  ).length ?? 0;
+  const department = new DepartmentQueries();
+  const departmentData = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      return department.getAll();
+    },
+  });
+
+  
+  const isLastValidator =
+    departmentData.data?.data
+      .flatMap((mem) => mem.members)
+      .find((mem) => mem.userId === user?.id)?.finalValidator === true;
+
+  // afficher les element a valider en fonction du validateur
+  React.useEffect(() => {
+    if (requestData.data?.data && user) {
+      const show = requestData.data?.data
+        .filter((x) => x.state === "pending")
+        .filter((item) => {
+          // Récupérer la liste des IDs des validateurs pour ce departement
+          const validatorIds = departmentData.data?.data
+            .flatMap((x) => x.members)
+            .filter((x) => x.validator === true)
+            .map((x) => x.userId);
+
+          if (isLastValidator) {
+            return validatorIds?.every((id) =>
+              item.revieweeList?.flatMap((x) => x.validatorId).includes(id)
+            );
+          } else {
+            return (
+              !item.revieweeList
+                ?.flatMap((x) => x.validatorId)
+                .includes(user?.id!) && item.state === "pending"
+            );
+          }
+        });
+      setData(show);
+    }
+  }, [
+    requestData.data?.data,
+    user,
+    isLastValidator,
+    departmentData.data?.data,
+  ]);
+
+  const reçus = requestData.data?.data.length ?? 0;
+  const reçusMois =
+    requestData.data?.data.filter(
+      (item) => new Date(item.createdAt).getMonth() === new Date().getMonth()
+    ).length ?? 0;
+  const attentes =
+    data.filter((item) => item.state === "pending").length ??
+    0;
+  const mine = data.filter((item) => item.userId === user?.id).length ?? 0;
 
   if (!isHydrated) return null;
   return (
@@ -48,31 +96,33 @@ function Page() {
         color="red"
         links={links}
       />
-      <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
-        {/* Statistics cards could go here in the future */}
-        <StatsCard
-          title="Total besoins soumis"
-          titleColor="text-[#E4E4E7]"
-          value={String(soumis)}
-          description="Besoins soumis ce mois :"
-          descriptionValue={String(soumisMois)}
-          descriptionColor="red"
-          dividerColor="bg-[#2262A2]"
-          className={"bg-[#013E7B] text-[#fffff] border-[#2262A2]"}
-          dvalueColor="text-[#FFFFFF]"
-        />
-        <StatsCard
-          title="En attente de validation"
-          titleColor="text-[#52525B]"
-          value={String(attentes)}
-          description="Besoins rejetés :"
-          descriptionValue={String(rejetes)}
-          descriptionColor="bg-[#A1A1AA]"
-          dividerColor="bg-[#DFDFDF]"
-          className={"bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"}
-          dvalueColor="text-[#DC2626]"
-        />
-      </div>
+      {user?.role.flatMap((r) => r.label).includes("MANAGER") && (
+        <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
+          {/* Statistics cards could go here in the future */}
+          <StatsCard
+            title="Total besoins recus"
+            titleColor="text-[#E4E4E7]"
+            value={String(reçus)}
+            description="Besoins reçus ce mois :"
+            descriptionValue={String(reçusMois)}
+            descriptionColor="red"
+            dividerColor="bg-[#2262A2]"
+            className={"bg-[#013E7B] text-[#ffffff] border-[#2262A2]"}
+            dvalueColor="text-[#FFFFFF]"
+          />
+          <StatsCard
+            title="En attente de validation"
+            titleColor="text-[#52525B]"
+            value={String(attentes)}
+            description="Mes besoins en attente :"
+            descriptionValue={String(mine)}
+            descriptionColor="text-[#A1A1AA]"
+            dividerColor="bg-[#DFDFDF]"
+            className={"bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"}
+            dvalueColor="text-[#000000]"
+          />
+        </div>
+      )}
       {/* Page table */}
       <DataTable />
     </div>

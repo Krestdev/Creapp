@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
@@ -35,7 +36,9 @@ import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ChevronDownIcon, LoaderIcon } from "lucide-react";
+import { format, Locale } from "date-fns";
+import { fr } from "date-fns/locale";
+import { CalendarIcon, ChevronDownIcon, LoaderIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -206,7 +209,7 @@ export default function MyForm() {
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="w-full h-10 py-1">
+                    <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
                       <SelectValue placeholder="Sélectionner un projet" />
                     </SelectTrigger>
                   </FormControl>
@@ -231,7 +234,7 @@ export default function MyForm() {
                 <FormLabel>Catégorie</FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger className="w-full h-10 py-1">
+                    <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
                       <SelectValue placeholder="Sélectionner une catégorie" />
                     </SelectTrigger>
                   </FormControl>
@@ -259,7 +262,7 @@ export default function MyForm() {
                   disabled={!selectedCategorie} // Désactivé si aucune catégorie sélectionnée
                 >
                   <FormControl>
-                    <SelectTrigger className="w-full h-10 py-1">
+                    <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
                       <SelectValue
                         placeholder={
                           !selectedCategorie
@@ -283,11 +286,6 @@ export default function MyForm() {
                     )}
                   </SelectContent>
                 </Select>
-                {!selectedCategorie && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {"Veuillez d'abord sélectionner une catégorie"}
-                  </p>
-                )}
               </FormItem>
             )}
           />
@@ -325,35 +323,37 @@ export default function MyForm() {
             control={form.control}
             name="datelimite"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date limite</FormLabel>
-                <FormControl>
-                  <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
+              <FormItem className="flex flex-col">
+                <FormLabel>{"Date limite"}</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild className="h-10 w-full!">
+                    <FormControl className="w-full">
                       <Button
-                        variant="outline"
-                        className="w-full justify-between"
+                        type="button"
+                        variant={"outline"}
+                        className={cn(
+                          "w-[320px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
                       >
-                        {date
-                          ? date.toLocaleDateString()
-                          : "Sélectionner une date"}
-                        <ChevronDownIcon />
+                        {field.value ? (
+                          format(field.value, "PPP", { locale: fr })
+                        ) : (
+                          <span>Choisir une date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent align="start" className="p-0">
-                      <Calendar
-                        className="h-10 py-1"
-                        mode="single"
-                        selected={date}
-                        onSelect={(d) => {
-                          setDate(d);
-                          field.onChange(d);
-                          setOpen(false);
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </FormControl>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -381,7 +381,7 @@ export default function MyForm() {
                 <FormLabel>Unité</FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger className="w-full h-10 py-1">
+                    <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
                       <SelectValue placeholder="Sélectionner l'unité" />
                     </SelectTrigger>
                   </FormControl>
@@ -404,7 +404,7 @@ export default function MyForm() {
                 <FormLabel>Bénéficiaire</FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger className="w-full h-10 py-1">
+                    <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
                       <SelectValue placeholder="Sélectionner" />
                     </SelectTrigger>
                   </FormControl>

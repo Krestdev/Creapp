@@ -166,8 +166,6 @@ export default function UpdateRequest({
           (cat) => cat.id === Number(categoryId)
         );
 
-        console.log("Category found:", category);
-
         if (category) {
           if (category.parentId === null) {
             // C'est une catégorie parente
@@ -192,15 +190,9 @@ export default function UpdateRequest({
           setSelectedUsers(usersSelection);
         }
 
-        console.log("Values to set:", {
-          categorie: categorieValue,
-          souscategorie: sousCategorieValue,
-        });
-
         // Réinitialiser le formulaire avec les valeurs
         form.reset({
-          projet:
-            requestData.projectId?.toString(),
+          projet: requestData.projectId?.toString(),
           categorie: categorieValue,
           souscategorie: sousCategorieValue,
           titre: requestData.label || "",
@@ -230,10 +222,69 @@ export default function UpdateRequest({
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
   // Et modifier l'useEffect comme ceci :
+  // Et modifier l'useEffect comme ceci :
   useEffect(() => {
     if (requestData && open && categoriesData.data && USERS.length > 0) {
       const initializeForm = async () => {
-        // ... le code d'initialisation précédent ...
+        // Trouver la catégorie parente si c'est une sous-catégorie
+        const categoryId = requestData.categoryId;
+        let categorieValue = "";
+        let sousCategorieValue = "";
+
+        const category = categoriesData.data.data.find(
+          (cat) => cat.id === Number(categoryId)
+        );
+
+        if (category) {
+          if (category.parentId === null) {
+            // C'est une catégorie parente
+            categorieValue = category.id!.toString();
+          } else {
+            // C'est une sous-catégorie
+            sousCategorieValue = category.id!.toString();
+            categorieValue = category.parentId!.toString();
+          }
+        }
+
+        // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
+        const usersSelection: { id: number; name: string }[] = [];
+        if (requestData.beneficiary === "groupe" && requestData.beficiaryList?.flatMap(b=> b.id)) {
+          const benefIds = Array.isArray(requestData.beficiaryList?.flatMap(b=> b.id))
+            ? requestData.beficiaryList?.flatMap(b=> b.id)
+            : [];
+          benefIds.forEach((id: number) => {
+            const user = USERS.find((u) => u.id === id);
+            if (user) usersSelection.push(user);
+          });
+          setSelectedUsers(usersSelection);
+        }
+        
+        // Réinitialiser le formulaire avec les valeurs
+        form.reset({
+          projet: requestData.projectId?.toString() || "",
+          categorie: categorieValue,
+          souscategorie: sousCategorieValue,
+          titre: requestData.label || "",
+          description: requestData.description || "",
+          quantity: requestData.quantity?.toString() || "",
+          unite: requestData.unit || "",
+          datelimite: requestData.dueDate
+            ? new Date(requestData.dueDate)
+            : new Date(),
+          beneficiaire: requestData.beneficiary || "me",
+          utilisateurs: usersSelection.map((u) => u.id),
+        });
+
+        // Forcer la mise à jour de la sous-catégorie après un court délai
+        if (sousCategorieValue) {
+          setTimeout(() => {
+            form.setValue("souscategorie", sousCategorieValue, {
+              shouldValidate: true,
+              shouldDirty: false,
+              shouldTouch: false,
+            });
+          }, 100);
+        }
 
         setIsFormInitialized(true);
       };
@@ -242,7 +293,7 @@ export default function UpdateRequest({
     } else {
       setIsFormInitialized(false);
     }
-  }, [requestData, open, categoriesData.data, USERS.length]);
+  }, [requestData, open, categoriesData.data, USERS.length, form]);
 
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
@@ -331,7 +382,7 @@ export default function UpdateRequest({
                     <FormLabel>Projet concerné</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="w-full h-10 py-1">
+                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
                           <SelectValue placeholder="Sélectionner un projet" />
                         </SelectTrigger>
                       </FormControl>
@@ -357,7 +408,7 @@ export default function UpdateRequest({
                     <FormLabel>Catégorie</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="w-full h-10 py-1">
+                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
                           <SelectValue placeholder="Sélectionner une catégorie" />
                         </SelectTrigger>
                       </FormControl>
@@ -387,7 +438,7 @@ export default function UpdateRequest({
                       disabled={!selectedCategorie}
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full h-10 py-1">
+                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
                           <SelectValue
                             placeholder={
                               !selectedCategorie
@@ -411,11 +462,6 @@ export default function UpdateRequest({
                         )}
                       </SelectContent>
                     </Select>
-                    {!selectedCategorie && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {" Veuillez d'abord sélectionner une catégorie"}
-                      </p>
-                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -467,7 +513,10 @@ export default function UpdateRequest({
                         open={openCalendar}
                         onOpenChange={setOpenCalendar}
                       >
-                        <PopoverTrigger asChild>
+                        <PopoverTrigger
+                          asChild
+                          className="h-10! w-full! rounded! shadow-none!"
+                        >
                           <Button
                             variant="outline"
                             className="w-full justify-between"
@@ -520,7 +569,7 @@ export default function UpdateRequest({
                     <FormLabel>Unité</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="w-full h-10 py-1">
+                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
                           <SelectValue placeholder="Sélectionner l'unité" />
                         </SelectTrigger>
                       </FormControl>
@@ -544,7 +593,7 @@ export default function UpdateRequest({
                     <FormLabel>Bénéficiaire</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="w-full h-10 py-1">
+                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
                           <SelectValue placeholder="Sélectionner" />
                         </SelectTrigger>
                       </FormControl>

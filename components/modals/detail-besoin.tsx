@@ -104,6 +104,7 @@ export function DetailBesoin({
 
   type StatusKey = keyof typeof statusConfig;
   const currentStatus = statusConfig[data.state as StatusKey] ?? statusConfig.pending;
+  const curentPriority = data.proprity === "urgent" ? "Urgent" : data.proprity === "medium" ? "Moyen" : data.proprity === "low" ? "Faible" : "Elevé";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -183,6 +184,20 @@ export function DetailBesoin({
               <Badge className={currentStatus.color}>
                 <X className="h-3 w-3 mr-1" />
                 {currentStatus.label}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Statut */}
+          <div className="flex items-start gap-3">
+            <div className="mt-1">
+              <AlertCircle className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground mb-1">{"Priorité"}</p>
+              <Badge className={`${data.proprity === "urgent" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : data.proprity === "medium" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" : data.proprity === "low" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"}`}>
+                <X className="h-3 w-3 mr-1" />
+                {curentPriority}
               </Badge>
             </div>
           </div>

@@ -5,7 +5,7 @@ import React from "react";
 const Page = () => {
   const links = [
     {
-      title: "Demande de cotation",
+      title: "Demande de quotation",
       href: "/tableau-de-bord/bdcommande/cotation",
     },
     { title: "Devis", href: "/tableau-de-bord/bdcommande/devis" },

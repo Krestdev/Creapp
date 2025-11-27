@@ -174,11 +174,51 @@ export function DataValidation() {
     return user?.name || userId;
   };
 
+  const uniqueCategories = React.useMemo(() => {
+    if (!data.length || !categoriesData.data?.data) return [];
+
+    const categoryIds = [...new Set(data.map((req) => req.categoryId))];
+
+    return categoryIds.map((categoryId) => {
+      const category = categoriesData.data.data.find(
+        (cat) => cat.id === Number(categoryId)
+      );
+      return {
+        id: categoryId,
+        name: category?.label || `Catégorie ${categoryId}`,
+      };
+    });
+  }, [data, categoriesData.data]);
+
   const getBeneficiaryDisplay = (request: RequestModelT) => {
     if (request.beneficiary === "me") {
       return getUserName(String(request.userId));
-    } else if (request.benef && request.benef.length > 0) {
-      return request.beficiaryList?.map((id) => getUserName(String(id))).join(", ");
+    } else if (
+      request.beneficiary === "groupe" &&
+      request.benef &&
+      request.benef.length === 1
+    ) {
+      return request.beficiaryList![0].name;
+    } else if (
+      request.beneficiary === "groupe" &&
+      request.beficiaryList &&
+      request.beficiaryList.length > 0
+    ) {
+      if (request.beficiaryList.length > 2) {
+        return (
+          request.beficiaryList
+            .slice(0, 2)
+            .map((ben) => getUserName(String(ben.name)))
+            .join(", ") +
+          " + " +
+          (request.beficiaryList.length - 2) +
+          " autre" +
+          (request.beficiaryList.length > 2 ? "s" : "")
+        );
+      }
+      return request.beficiaryList
+        .map((ben) => getUserName(String(ben.name)))
+        .join(", ");
     }
     return "Aucun bénéficiaire";
   };
@@ -217,25 +257,27 @@ export function DataValidation() {
   // afficher les element a valider en fonction du validateur
   React.useEffect(() => {
     if (requestData.data?.data && user) {
-      const show = requestData.data?.data.filter(x => x.state === "pending").filter((item) => {
-        // Récupérer la liste des IDs des validateurs pour ce departement
-        const validatorIds = departmentData.data?.data
-          .flatMap((x) => x.members)
-          .filter((x) => x.validator === true)
-          .map((x) => x.userId);
+      const show = requestData.data?.data
+        .filter((x) => x.state === "pending")
+        .filter((item) => {
+          // Récupérer la liste des IDs des validateurs pour ce departement
+          const validatorIds = departmentData.data?.data
+            .flatMap((x) => x.members)
+            .filter((x) => x.validator === true)
+            .map((x) => x.userId);
 
-        if (isLastValidator) {
-          return validatorIds?.every((id) =>
-            item.revieweeList?.flatMap((x) => x.validatorId).includes(id)
-          );
-        } else {
-          return (
-            !item.revieweeList
-              ?.flatMap((x) => x.validatorId)
-              .includes(user?.id!) && item.state === "pending"
-          );
-        }
-      });
+          if (isLastValidator) {
+            return validatorIds?.every((id) =>
+              item.revieweeList?.flatMap((x) => x.validatorId).includes(id)
+            );
+          } else {
+            return (
+              !item.revieweeList
+                ?.flatMap((x) => x.validatorId)
+                .includes(user?.id!) && item.state === "pending"
+            );
+          }
+        });
       setData(show);
     }
   }, [
@@ -332,7 +374,18 @@ export function DataValidation() {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{getCategoryName(row.getValue("categoryId"))}</div>,
+      cell: ({ row }) => {
+        const categoryId = row.getValue("categoryId") as string;
+        return <div>{getCategoryName(categoryId)}</div>;
+      },
+      // Ajoutez cette propriété pour améliorer le filtrage
+      filterFn: (row, columnId, filterValue) => {
+        
+        if (!filterValue || filterValue === "all") return true;
+        const categoryId = row.getValue(columnId) as string;
+        console.log(filterValue, categoryId);
+        return categoryId === filterValue;
+      },
     },
     {
       accessorKey: "userId",
@@ -362,7 +415,11 @@ export function DataValidation() {
           </Button>
         );
       },
-      cell: ({ row }) => <div className="max-w-[200px] truncate">{row.getValue("beneficiary")}</div>,
+      cell: ({ row }) => (
+        <div className="max-w-[200px] truncate">
+          {getBeneficiaryDisplay(row.original)}
+        </div>
+      ),
     },
     {
       id: "actions",
@@ -481,21 +538,30 @@ export function DataValidation() {
           value={
             (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
           }
-          onValueChange={(value) =>
+          onValueChange={(value) => {
             table
               .getColumn("categoryId")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
+              ?.setFilterValue(value === "all" ? "" : value);
+          }}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filtrer par catégorie" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Toutes les catégories</SelectItem>
-            <SelectItem value="Design">Design</SelectItem>
-            <SelectItem value="Development">Development</SelectItem>
-            <SelectItem value="Security">Security</SelectItem>
-            <SelectItem value="Marketing">Marketing</SelectItem>
+            {categoriesData.data?.data
+              ?.filter((category) =>
+                // Vérifier que la catégorie existe dans les données actuelles
+                data.some(
+                  (request) =>
+                    String(request.categoryId) === String(category.id)
+                )
+              )
+              .map((category) => (
+                <SelectItem key={category.id} value={String(category.id)}>
+                  {category.label}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
 
@@ -520,7 +586,17 @@ export function DataValidation() {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "label"
+                      ? "Titres"
+                      : column.id === "projectId"
+                      ? "Projets"
+                      : column.id === "categoryId"
+                      ? "Catégories"
+                      : column.id === "userId"
+                      ? "Emetteurs"
+                      : column.id === "beneficiary"
+                      ? "Beneficiaires"
+                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}

@@ -211,7 +211,7 @@ export default function CreateCotationForm() {
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting
             ? "Création..."
-            : "Créer la demande de cotation"}
+            : "Créer la demande de quotation"}
         </Button>
       </form>
     </Form>
