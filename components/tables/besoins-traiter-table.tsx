@@ -131,7 +131,9 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
     if (request.beneficiary === "me") {
       return getUserName(String(request.userId));
     } else if (request.beficiaryList && request.beficiaryList.length > 0) {
-      return request.beficiaryList.map((ben) => getUserName(String(ben.name))).join(", ");
+      return request.beficiaryList
+        .map((ben) => getUserName(String(ben.name)))
+        .join(", ");
     }
     return "Aucun bénéficiaire";
   };
@@ -139,7 +141,6 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
   const getSelectedRequestIds = () => {
     return table.getSelectedRowModel().rows.map((row) => row.original.id);
   };
-  
 
   const columns: ColumnDef<RequestModelT>[] = [
     {
@@ -229,7 +230,11 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div className="max-w-[200px] truncate">{getBeneficiaryDisplay(row.original)}</div>,
+      cell: ({ row }) => (
+        <div className="max-w-[200px] truncate">
+          {getBeneficiaryDisplay(row.original)}
+        </div>
+      ),
     },
     {
       id: "actions",
@@ -412,7 +417,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Colonnes
+              {"Colonnes"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -429,7 +434,17 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "label"
+                      ? "Titre"
+                      : column.id === "projectId"
+                      ? "Projet"
+                      : column.id === "categoryId"
+                      ? "Catégorie"
+                      : column.id === "userId"
+                      ? "Emetteur"
+                      : column.id === "beneficiary"
+                      ? "Beneficiaire"
+                      : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}

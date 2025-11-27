@@ -178,6 +178,24 @@ export function BesoinLastVal({
     ? "Les modifications ont bien été enregistrées."
     : description;
 
+  // Reset complet quand le modal se ferme
+  useEffect(() => {
+    if (!open) {
+      // Reset du formulaire
+      form.reset({
+        title: data?.label || "",
+        limiteDate: data?.dueDate ? new Date(data.dueDate) : undefined,
+        priorite: data?.proprity as "medium" | "high" | "low" | "urgent",
+        quantite: String(data?.quantity || ""),
+        description: data?.description || "",
+      });
+
+      // Reset des mutations
+      requestMutation.reset();
+      validateRequest.reset();
+    }
+  }, [open, data]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-screen overflow-y-auto p-0 gap-0 border-none">

@@ -207,6 +207,39 @@ export function DataTable() {
     );
   };
 
+  const uniqueCategories = React.useMemo(() => {
+    if (!data?.length || !categoryData.data?.data) return [];
+
+    const categoryIds = [...new Set(data.map((req) => req.categoryId))];
+
+    return categoryIds.map((categoryId) => {
+      const category = categoryData.data.data.find(
+        (cat) => cat.id === Number(categoryId)
+      );
+      return {
+        id: categoryId,
+        name: category?.label || `Catégorie ${categoryId}`,
+      };
+    });
+  }, [data, categoryData.data]);
+
+  const uniqueStatuses = React.useMemo(() => {
+    if (!data?.length) return [];
+
+    const statuses = [...new Set(data.map((req) => req.state))];
+
+    return statuses.map((status) => {
+      const config = getStatusConfig(status);
+      return {
+        id: status,
+        name: config.label,
+        icon: config.icon,
+        badgeClassName: config.badgeClassName,
+        rowClassName: config.rowClassName,
+      };
+    });
+  }, [data]);
+
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
     {
@@ -266,6 +299,9 @@ export function DataTable() {
     },
     {
       accessorKey: "categoryId",
+      filterFn: (row, columnId, filterValue) => {
+        return String(row.getValue(columnId)) === String(filterValue);
+      },
       header: ({ column }) => {
         return (
           <Button
@@ -287,6 +323,9 @@ export function DataTable() {
     },
     {
       accessorKey: "state",
+      filterFn: (row, columnId, filterValue) => {
+        return String(row.getValue(columnId)) === String(filterValue);
+      },
       header: ({ column }) => {
         return (
           <Button
@@ -433,9 +472,9 @@ export function DataTable() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{"Toutes les catégories"}</SelectItem>
-            {categoryData.data?.data.map((category) => (
-              <SelectItem key={category.id} value={category.id.toString()}>
-                {category.label}
+            {uniqueCategories.map((category) => (
+              <SelectItem key={category.id} value={String(category.id)}>
+                {category.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -457,11 +496,11 @@ export function DataTable() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-            <SelectItem value="pending">En attente</SelectItem>
-            <SelectItem value="validated">Validé</SelectItem>
-            <SelectItem value="rejected">Refusé</SelectItem>
-            <SelectItem value="in-review">En révision</SelectItem>
-            <SelectItem value="cancel">Annulé</SelectItem>
+            {uniqueStatuses.map((state) => (
+              <SelectItem key={state.id} value={String(state.id)}>
+                {state.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -486,7 +525,17 @@ export function DataTable() {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "ref"
+                      ? "Références"
+                      : column.id === "label"
+                      ? "Titres"
+                      : column.id === "state"
+                      ? "Statuts"
+                      : column.id === "projectId"
+                      ? "Projets"
+                      : column.id === "categoryId"
+                      ? "Catégories"
+                      : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}

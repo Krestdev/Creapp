@@ -39,8 +39,7 @@ const Bdcommande = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
-        {/* Statistics cards could go here in the future */}
+      {/* <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
         <StatsCard
           title="Bons de commande"
           titleColor="text-[#E4E4E7]"
@@ -91,7 +90,7 @@ const Bdcommande = () => {
           className={"bg-[#FFFFFF] text-[#000000] border border-[#DFDFDF]"}
           dvalueColor="text-[#2F2F2F]"
         />
-      </div>
+      </div> */}
       {cotation.length > 0 && (
         <div className="flex flex-col">
           <div className="flex justify-between">

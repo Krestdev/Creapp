@@ -7,26 +7,26 @@ import { PageTitleProps } from "@/types/types";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
+import { useRouter } from "next/navigation";
 
-// needs parameters to update content with respect to page
-// needs button colors
-// needs fonts to be set
 const PageTitle = ({ title, subtitle, links, color }: PageTitleProps) => {
-  // setting background color to "bg-gradient-to-r from-[#9E1349] to-[#700032]
+  const router = useRouter();
   const { user } = useStore();
 
-  // Fonction pour filtrer les liens selon le rôle de l'utilisateur
   const filteredLinks = React.useMemo(() => {
     if (!user || !links) return links || [];
 
     const userRoles = user.role.map((r) => r.label);
-    
-    return links.filter(linkButton => {
-      // Si le lien s'appelle "Approbation" et l'utilisateur est USER, on le cache
-      if (linkButton.title === "Approbation" && userRoles.includes("USER") && user.role.length === 1) {
+
+    return links.filter((linkButton) => {
+      if (
+        linkButton.title === "Approbation" &&
+        userRoles.includes("USER") &&
+        user.role.length === 1
+      ) {
         return false;
       }
-      
+
       return true;
     });
   }, [links, user]);
@@ -34,7 +34,7 @@ const PageTitle = ({ title, subtitle, links, color }: PageTitleProps) => {
   return (
     <div
       className={cn(
-        "bg-gradient-to-r rounded-[12px] px-[24px] py-[20px] gap-4 flex flex-col text-white",
+        "bg-linear-to-r rounded-[12px] px-6 py-5 gap-4 flex flex-col text-white",
         color === "red" && "from-[#9E1349] to-[#700032]",
         color === "blue" && "from-[#0F5499] to-[#002244]",
         color === "green" && "from-[#15803D] to-[#0B411F]",
@@ -46,9 +46,9 @@ const PageTitle = ({ title, subtitle, links, color }: PageTitleProps) => {
           <h1 className="font-bold">{title}</h1>
           <h4 className="font-extralight tracking-wide">{subtitle}</h4>
         </div>
-        <Button>
+        <Button onClick={() => router.back()}>
           <ArrowBigLeft size={20} />
-          Precedent
+          {"Précédent"}
         </Button>
       </div>
       <div className="flex gap-3">

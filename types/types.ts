@@ -12,6 +12,7 @@ export interface NavigationItemProps {
     title: string;
     href: string;
     authorized: string[];
+    badge?: Number;
   }[];
 }
 

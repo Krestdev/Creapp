@@ -20,6 +20,11 @@ import {
   LucideDownload,
   LucidePen,
   ChevronDown,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Ban,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -46,6 +51,8 @@ import { DetailOrder } from "../modals/detail-order";
 import { CommandRequestT } from "@/types/types";
 import { format } from "date-fns";
 import { Pagination } from "../base/pagination";
+import { Badge } from "../ui/badge";
+import { cn } from "@/lib/utils";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -63,6 +70,55 @@ export function CommandeTable({ data }: CommandeTableProps) {
   const [selectedOrder, setSelectedOrder] =
     React.useState<CommandRequestT | null>(null);
   const [showOrder, setShowOrder] = React.useState(false);
+
+  const statusConfig = {
+    pending: {
+      label: "Pending",
+      icon: Clock,
+      badgeClassName:
+        "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
+      rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20",
+    },
+    validated: {
+      label: "Validated",
+      icon: CheckCircle,
+      badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
+      rowClassName:
+        "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
+    },
+    rejected: {
+      label: "Rejected",
+      icon: XCircle,
+      badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
+      rowClassName: "bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30",
+    },
+    "in-review": {
+      label: "In Review",
+      icon: AlertCircle,
+      badgeClassName: "bg-blue-200 text-blue-500 outline outline-blue-600 ",
+      rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
+    },
+    cancel: {
+      // Ajout du statut cancel manquant
+      label: "Cancel",
+      icon: Ban,
+      badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+      rowClassName: "bg-gray-50 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
+    },
+  };
+
+  const getStatusConfig = (status: string) => {
+    const config = statusConfig[status as keyof typeof statusConfig];
+    // Retourne une configuration par défaut si le statut n'est pas trouvé
+    return (
+      config || {
+        label: status,
+        icon: AlertCircle,
+        badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+        rowClassName: "bg-gray-50 dark:bg-gray-950/20",
+      }
+    );
+  };
 
   const columns: ColumnDef<CommandRequestT>[] = [
     {
@@ -138,18 +194,43 @@ export function CommandeTable({ data }: CommandeTableProps) {
     },
     {
       accessorKey: "state",
+      filterFn: (row, columnId, filterValue) => {
+        return String(row.getValue(columnId)) === String(filterValue);
+      },
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Statut"}
+            {"Statuts"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("state")}</div>,
+      cell: ({ row }) => {
+        const status = row.getValue("state") as string;
+        const config = getStatusConfig(status);
+        const Icon = config.icon;
+
+        const getTranslatedLabel = (label: string) => {
+          const translations: Record<string, string> = {
+            Pending: "En attente",
+            Validated: "Validé",
+            Rejected: "Refusé",
+            "In Review": "En révision",
+            Cancel: "Annulé",
+          };
+          return translations[label] || label;
+        };
+
+        return (
+          <Badge className={cn("gap-1", config.badgeClassName)}>
+            <Icon className="h-3 w-3" />
+            {getTranslatedLabel(config.label)}
+          </Badge>
+        );
+      },
     },
     {
       id: "actions",
@@ -169,7 +250,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedOrder(item);
@@ -259,7 +340,15 @@ export function CommandeTable({ data }: CommandeTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "reference"
+                      ? "Référence"
+                      : column.id === "title"
+                      ? "Titre"
+                      : column.id === "dueDate"
+                      ? "Date limite"
+                      : column.id === "state"
+                      ? "Statut"
+                      : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}

@@ -49,7 +49,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn, parseFrenchDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { DetailBesoin } from "../modals/detail-besoin";
 import { ValidationModal } from "../modals/ValidationModal";
 import { RequestQueries } from "@/queries/requestModule";
@@ -92,7 +92,17 @@ const statusConfig = {
   },
 };
 
-export function DataValidation() {
+interface DataTableProps {
+  data: RequestModelT[];
+  isLastValidator: boolean;
+  empty: string;
+}
+
+export function DataValidation({
+  data,
+  isLastValidator,
+  empty,
+}: DataTableProps) {
   const { isHydrated, user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -114,15 +124,6 @@ export function DataValidation() {
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
-  const [data, setData] = React.useState<RequestModelT[]>([]);
-
-  const department = new DepartmentQueries();
-  const departmentData = useQuery({
-    queryKey: ["departments"],
-    queryFn: async () => {
-      return department.getAll();
-    },
-  });
 
   const projects = new ProjectQueries();
   const projectsData = useQuery({
@@ -141,15 +142,11 @@ export function DataValidation() {
   });
 
   const request = new RequestQueries();
-  // Récupérer tous les besoins en attente de validation (pour les validateurs)
-  const requestData = useQuery({
-    queryKey: ["requests-validation"],
-    queryFn: () => {
-      return request.getAll();
-    },
-    enabled: isHydrated,
-  });
 
+  const requestData = useQuery({
+    queryKey: ["requests"],
+    queryFn: async () => request.getAll(),
+  });
   const categoriesData = useQuery({
     queryKey: ["categories"],
     queryFn: async () => request.getCategories(),
@@ -204,16 +201,16 @@ export function DataValidation() {
       request.beficiaryList &&
       request.beficiaryList.length > 0
     ) {
-      if (request.beficiaryList.length > 2) {
+      if (request.beficiaryList.length > 1) {
         return (
           request.beficiaryList
-            .slice(0, 2)
+            .slice(0, 1)
             .map((ben) => getUserName(String(ben.name)))
             .join(", ") +
           " + " +
-          (request.beficiaryList.length - 2) +
+          (request.beficiaryList.length - 1) +
           " autre" +
-          (request.beficiaryList.length > 2 ? "s" : "")
+          (request.beficiaryList.length - 1 > 1 ? "s" : "")
         );
       }
       return request.beficiaryList
@@ -248,44 +245,6 @@ export function DataValidation() {
       toast.error("Une erreur est survenue lors de la validation.");
     },
   });
-
-  const isLastValidator =
-    departmentData.data?.data
-      .flatMap((mem) => mem.members)
-      .find((mem) => mem.userId === user?.id)?.finalValidator === true;
-
-  // afficher les element a valider en fonction du validateur
-  React.useEffect(() => {
-    if (requestData.data?.data && user) {
-      const show = requestData.data?.data
-        .filter((x) => x.state === "pending")
-        .filter((item) => {
-          // Récupérer la liste des IDs des validateurs pour ce departement
-          const validatorIds = departmentData.data?.data
-            .flatMap((x) => x.members)
-            .filter((x) => x.validator === true)
-            .map((x) => x.userId);
-
-          if (isLastValidator) {
-            return validatorIds?.every((id) =>
-              item.revieweeList?.flatMap((x) => x.validatorId).includes(id)
-            );
-          } else {
-            return (
-              !item.revieweeList
-                ?.flatMap((x) => x.validatorId)
-                .includes(user?.id!) && item.state === "pending"
-            );
-          }
-        });
-      setData(show);
-    }
-  }, [
-    requestData.data?.data,
-    user,
-    isLastValidator,
-    departmentData.data?.data,
-  ]);
 
   const handleValidation = async (motif?: string): Promise<boolean> => {
     console.log(motif);
@@ -363,6 +322,9 @@ export function DataValidation() {
     },
     {
       accessorKey: "categoryId",
+      filterFn: (row, columnId, filterValue) => {
+        return String(row.getValue(columnId)) === String(filterValue);
+      },
       header: ({ column }) => {
         return (
           <Button
@@ -374,18 +336,9 @@ export function DataValidation() {
           </Button>
         );
       },
-      cell: ({ row }) => {
-        const categoryId = row.getValue("categoryId") as string;
-        return <div>{getCategoryName(categoryId)}</div>;
-      },
-      // Ajoutez cette propriété pour améliorer le filtrage
-      filterFn: (row, columnId, filterValue) => {
-        
-        if (!filterValue || filterValue === "all") return true;
-        const categoryId = row.getValue(columnId) as string;
-        console.log(filterValue, categoryId);
-        return categoryId === filterValue;
-      },
+      cell: ({ row }) => (
+        <div>{getCategoryName(row.getValue("categoryId"))}</div>
+      ),
     },
     {
       accessorKey: "userId",
@@ -535,33 +488,32 @@ export function DataValidation() {
 
         {/* Category filter */}
         <Select
+          defaultValue="all"
           value={
             (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
           }
-          onValueChange={(value) => {
+          onValueChange={(value) =>
             table
               .getColumn("categoryId")
-              ?.setFilterValue(value === "all" ? "" : value);
-          }}
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filtrer par catégorie" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Toutes les catégories</SelectItem>
-            {categoriesData.data?.data
-              ?.filter((category) =>
-                // Vérifier que la catégorie existe dans les données actuelles
-                data.some(
-                  (request) =>
-                    String(request.categoryId) === String(category.id)
-                )
-              )
-              .map((category) => (
-                <SelectItem key={category.id} value={String(category.id)}>
-                  {category.label}
+            {uniqueCategories?.map((category) => {
+              return (
+                <SelectItem
+                  key={category.id}
+                  value={String(category.id)}
+                  className="capitalize"
+                >
+                  {category.name}
                 </SelectItem>
-              ))}
+              );
+            })}
           </SelectContent>
         </Select>
 
@@ -657,7 +609,7 @@ export function DataValidation() {
           </Table>
         </div>
       ) : (
-        <Empty message={"Aucun besoin en attente de validation"} />
+        <Empty message={empty} />
       )}
 
       {/* Pagination */}

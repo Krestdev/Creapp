@@ -58,9 +58,9 @@ function NavigationItem(item: NavigationItemProps) {
             href={item.href}
             onClick={() => toggleSection(item.title)}
             className={cn(
-              "inline-flex w-full items-center gap-2 justify-between p-2 h-10 transition-colors rounded-[8px] bg-transparent hover:bg-primary/10 text-gray-700 font-mono text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary/50 focus:ring-offset-2",
+              "inline-flex w-full items-center gap-2 justify-between p-2 h-10 transition-colors rounded bg-transparent hover:bg-primary/10 text-gray-700 font-mono text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary/50 focus:ring-offset-2",
               isActive &&
-                "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                "bg-[#F2CFDE] text-black hover:bg-[#F2CFDE]/90 hover:text-black"
             )}
           >
             <div className="flex items-center gap-3">
@@ -86,14 +86,19 @@ function NavigationItem(item: NavigationItemProps) {
                     key={subItem.href}
                     href={subItem.href}
                     className={cn(
-                      "block px-3 py-2 text-sm rounded-md transition-colors",
+                      "block items-center justify-between px-3 py-2 text-sm rounded transition-colors",
                       "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                      "inline-flex w-full items-center gap-2 justify-between p-2 h-10 transition-colors rounded-[8px] bg-transparent hover:bg-primary/10 text-gray-700 font-mono text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary/50 focus:ring-offset-2",
+                      "inline-flex w-full items-center gap-2 justify-between p-2 h-10 transition-colors rounded bg-transparent hover:bg-primary/10 text-gray-700 font-mono text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary/50 focus:ring-offset-2",
                       isSubActive &&
-                        "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                        "bg-[#F2CFDE] text-black hover:bg-[#F2CFDE]/90 hover:text-black"
                     )}
                   >
                     {subItem.title}
+                    {subItem.badge && (
+                      <div className="flex items-center justify-center w-[29px] h-[26px] p-1 rounded bg-[#FFAF06] text-[#700032]">
+                        {`${subItem.badge}`}
+                      </div>
+                    )}
                   </Link>
                 );
               })}
@@ -105,7 +110,7 @@ function NavigationItem(item: NavigationItemProps) {
         <Link
           href={item.href}
           className={cn(
-            "inline-flex w-full items-center gap-2 justify-between p-2 h-10 transition-colors rounded-[8px] bg-transparent hover:bg-primary/10 text-gray-700 font-mono text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary/50 focus:ring-offset-2",
+            "inline-flex w-full items-center gap-2 justify-between p-2 h-10 transition-colors rounded bg-transparent hover:bg-primary/10 text-gray-700 font-mono text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary/50 focus:ring-offset-2",
             isActive &&
               "bg-primary text-white hover:bg-primary/90 hover:text-white"
           )}

@@ -28,16 +28,92 @@ import {
 import NavigationItem from "./navigation-item";
 import { useStore } from "@/providers/datastore";
 import useAuthGuard from "@/hooks/useAuthGuard";
-import { usePathname, useRouter } from "next/navigation";
+import React from "react";
+import { RequestQueries } from "@/queries/requestModule";
+import { useQuery } from "@tanstack/react-query";
+import { DepartmentQueries } from "@/queries/departmentModule";
+import { RequestModelT } from "@/types/types";
+
+type ItemSide = {
+  pageId: string;
+  href: string;
+  authorized: string[];
+  title: string;
+  badge?: number;
+};
+type Sidebar = {
+  pageId: string;
+  icon: any;
+  href: string;
+  authorized: string[];
+  title: string;
+  items?: ItemSide[];
+};
 
 function AppSidebar() {
-  const { user, logout } = useStore();
-  
+  const { user, logout, isHydrated } = useStore();
+  const [data, setData] = React.useState<RequestModelT[]>([]);
+
+  const request = new RequestQueries();
+  const department = new DepartmentQueries();
+
+  const departmentData = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      return department.getAll();
+    },
+  });
+  // Récupérer tous les besoins en attente de validation (pour les validateurs)
+  const requestData = useQuery({
+    queryKey: ["requests-validation"],
+    queryFn: () => {
+      return request.getAll();
+    },
+    enabled: isHydrated,
+  });
+
   // Utilisation du hook pour la protection globale
   const { hasAccess, isChecking, userRoles } = useAuthGuard({
     requireAuth: true,
-    authorizedRoles: [], 
+    authorizedRoles: [],
   });
+
+  const isLastValidator =
+    departmentData.data?.data
+      .flatMap((mem) => mem.members)
+      .find((mem) => mem.userId === user?.id)?.finalValidator === true;
+
+  React.useEffect(() => {
+    if (requestData.data?.data && user) {
+      const show = requestData.data?.data
+        .filter((x) => x.state === "pending")
+        .filter((item) => {
+          // Récupérer la liste des IDs des validateurs pour ce departement
+          const validatorIds = departmentData.data?.data
+            .flatMap((x) => x.members)
+            .filter((x) => x.validator === true)
+            .map((x) => x.userId);
+
+          if (isLastValidator) {
+            return validatorIds?.every((id) =>
+              item.revieweeList?.flatMap((x) => x.validatorId).includes(id)
+            );
+          } else {
+            return (
+              !item.revieweeList
+                ?.flatMap((x) => x.validatorId)
+                .includes(user?.id!) && item.state === "pending"
+            );
+          }
+        });
+      setData(show);
+    }
+  }, [
+    requestData.data?.data,
+    user,
+    isLastValidator,
+    departmentData.data?.data,
+  ]);
 
   // Si en cours de vérification, afficher un loader
   if (isChecking) {
@@ -48,7 +124,10 @@ function AppSidebar() {
         </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-8 bg-gray-100 animate-pulse rounded"></div>
+            <div
+              key={i}
+              className="h-8 bg-gray-100 animate-pulse rounded"
+            ></div>
           ))}
         </SidebarContent>
       </Sidebar>
@@ -60,7 +139,7 @@ function AppSidebar() {
     return null;
   }
 
-  const navLinks = [
+  const navLinks: Sidebar[] = [
     {
       pageId: "PG-00",
       icon: BriefcaseBusiness,
@@ -113,6 +192,7 @@ function AppSidebar() {
           title: "Approbation",
           href: "/tableau-de-bord/besoins/approbation",
           authorized: ["ADMIN", "MANAGER"],
+          badge: data?.length > 0 ? data?.length : undefined,
         },
       ],
     },
@@ -165,7 +245,7 @@ function AppSidebar() {
           href: "/tableau-de-bord/bdcommande/nouveaux",
           authorized: ["ADMIN", "SALES"],
         },
-         {
+        {
           pageId: "PG-03-06",
           title: "Factures",
           href: "/tableau-de-bord/bdcommande/factures",
@@ -183,7 +263,7 @@ function AppSidebar() {
       pageId: "PG-04",
       icon: Ticket,
       href: "/tableau-de-bord/ticket",
-      authorized: ["ADMIN" , "ACCOUNTING"],
+      authorized: ["ADMIN", "ACCOUNTING"],
       title: "Tickets",
       items: [
         {
@@ -224,7 +304,6 @@ function AppSidebar() {
       href: "/tableau-de-bord/notifications",
       authorized: ["ADMIN"],
       title: "Notifications",
-      badge: 4,
     },
     {
       pageId: "PG-06",
@@ -303,8 +382,8 @@ function AppSidebar() {
   ];
 
   // Filtrer les liens de navigation selon les rôles de l'utilisateur
-  const filteredNavLinks = navLinks.filter(navLink => 
-    navLink.authorized.some(role => userRoles.includes(role))
+  const filteredNavLinks = navLinks.filter((navLink) =>
+    navLink.authorized.some((role) => userRoles.includes(role))
   );
 
   return (
@@ -334,7 +413,9 @@ function AppSidebar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={logout}>{"Déconnexion"}</DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>
+                {"Déconnexion"}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
