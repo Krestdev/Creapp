@@ -1,16 +1,23 @@
 "use client";
 
 import Empty from "@/components/base/empty";
-import { BesoinsTraiterTable } from "@/components/tables/besoins-traiter-table";
-import { Button } from "@/components/ui/button";
+import { BesoinsTraiter } from "@/components/tables/besoin-traiter";
 import { CommandQueries } from "@/queries/commandModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Dispatch, SetStateAction } from "react";
 
-const Besoins = () => {
-  const router = useRouter();
+interface Request {
+  id: number;
+  name: string;
+  dueDate?: Date;
+}
+interface Props {
+  selected: Request[]
+  setSelected: Dispatch<SetStateAction<Request[]>>
+}
+
+const Besoins = ({ selected, setSelected }: Props) => {
   const command = new CommandQueries();
   const request = new RequestQueries();
 
@@ -26,7 +33,6 @@ const Besoins = () => {
 
   const cotation = commandData.data?.data ?? [];
 
-  // Filtrer les besoins a traiter de telle sorte que que seul ceux qui sont validé et pas dans une command.request soit affiché
   const besoinCommandes =
     cotation.flatMap((item) => item.besoins?.flatMap((b) => b.id)) ?? [];
   const filteredData =
@@ -36,22 +42,13 @@ const Besoins = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      {filteredData.length > 0 ? 
-      <div className="flex flex-col">
-        <div className="flex justify-end">
-          <Button
-            onClick={() =>
-              router.push("/tableau-de-bord/bdcommande/cotation/creer")
-            }
-          >
-            {"Créer une commande"}
-            <Plus />
-          </Button>
+      {filteredData.length > 0 ? (
+        <div className="flex flex-col">
+          <BesoinsTraiter data={filteredData} selected={selected} setSelected={setSelected} />
         </div>
-        <BesoinsTraiterTable data={filteredData} />
-      </div> : 
-      <Empty message={"Aucune donnée a afficher"} />
-      }
+      ) : (
+        <Empty message={"Aucune donnée a afficher"} />
+      )}
     </div>
   );
 };

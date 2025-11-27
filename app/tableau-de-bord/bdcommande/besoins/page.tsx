@@ -10,7 +10,7 @@ const Page = () => {
         subtitle="Liste des besoins à traiter vers une commande ou en destockage"
         color="red"
       />
-      <Besoins />
+      {/* <Besoins /> */}
     </div>
   );
 };

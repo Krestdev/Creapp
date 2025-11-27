@@ -30,6 +30,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { CommandQueries } from "@/queries/commandModule";
 import { CommandRequestT } from "@/types/types";
 import { useStore } from "@/providers/datastore";
+import Besoins from "../pages/bdcommande/besoins";
 
 const formSchema = z.object({
   titre: z.string().min(1),
@@ -46,8 +47,7 @@ interface Request {
 }
 
 export default function CreateCotationForm() {
-
-  const {user} = useStore();
+  const { user } = useStore();
   const [selected, setSelected] = useState<Request[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -84,12 +84,12 @@ export default function CreateCotationForm() {
   // Fonction pour gérer la sélection des besoins
   const handleRequestsChange = (list: Request[]) => {
     setSelected(list);
-    // Mettre à jour directement la valeur du champ dans react-hook-form
+
     form.setValue(
       "requests",
       list.map((u) => u.id),
       {
-        shouldValidate: true, // Déclencher la validation immédiatement
+        shouldValidate: true,
         shouldDirty: true,
         shouldTouch: true,
       }
@@ -117,103 +117,103 @@ export default function CreateCotationForm() {
     }
   }
 
-  // Vérifier l'état actuel du champ pour debug
-  console.log("Selected requests:", selected);
-  console.log("Form requests field:", form.watch("requests"));
-
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl py-10"
-      >
-        <FormField
-          control={form.control}
-          name="titre"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Titre</FormLabel>
-              <FormControl className="w-[320px]">
-                <Input
-                  placeholder="ex. Fournitures pour Cédric et Samuel en Papier et stylos"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="requests"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Besoins"}</FormLabel>
-              <FormControl className="h-fit">
-                <MultiSelectUsers
-                  display="request"
-                  users={requests}
-                  selected={selected}
-                  onChange={handleRequestsChange}
-                  className="max-w-[320px] w-full h-9"
-                />
-              </FormControl>
-              <FormDescription>
-                {selected.length > 0
-                  ? `${selected.length} besoin(s) sélectionné(s)`
-                  : "Aucun besoin sélectionné"}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="date_limite"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>{"Date limite"}</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl className="w-full">
-                    <Button
-                    type="button"
-                      variant={"outline"}
-                      className={cn(
-                        "w-[320px] pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Choisir une date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
+    <div className="flex flex-row gap-4">
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-8 max-w-3xl"
+        >
+          <FormField
+            control={form.control}
+            name="titre"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Titre</FormLabel>
+                <FormControl className="w-[320px]">
+                  <Input
+                    placeholder="ex. Fournitures pour Cédric et Samuel en Papier et stylos"
+                    {...field}
                   />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting
-            ? "Création..."
-            : "Créer la demande de quotation"}
-        </Button>
-      </form>
-    </Form>
+          <FormField
+            control={form.control}
+            name="requests"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{"Besoins"}</FormLabel>
+                <FormControl className="h-fit">
+                  <MultiSelectUsers
+                    display="request"
+                    users={requests}
+                    selected={selected}
+                    onChange={handleRequestsChange}
+                    className="max-w-[320px] w-full h-9"
+                  />
+                </FormControl>
+                <FormDescription>
+                  {selected.length > 0
+                    ? `${selected.length} besoin(s) sélectionné(s)`
+                    : "Aucun besoin sélectionné"}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="date_limite"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>{"Date limite"}</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl className="w-full">
+                      <Button
+                        type="button"
+                        variant={"outline"}
+                        className={cn(
+                          "w-[320px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Choisir une date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? "Création..." : "Créer la demande"}
+          </Button>
+        </form>
+      </Form>
+      <div className="flex flex-col gap-4 w-full">
+        <p className="text-[18px] font-semibold">{`Besoins (${requests.length})`}</p>
+        <Besoins selected={selected} setSelected={setSelected} />
+      </div>
+    </div>
   );
 }

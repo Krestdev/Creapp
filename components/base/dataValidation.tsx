@@ -407,12 +407,14 @@ export function DataValidation({
                     ? (setSelectedItem(item), setIsLastValModalOpen(true))
                     : openValidationModal("approve", item)
                 }
+                disabled={item.state !== "pending" || item.revieweeList?.some((x) => x.validatorId === user?.id)}
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
                 Valider
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => openValidationModal("reject", item)}
+                disabled={item.state !== "pending" || item.revieweeList?.some((x) => x.validatorId === user?.id)}
               >
                 <LucideBan className="text-red-500 mr-2 h-4 w-4" />
                 Rejeter

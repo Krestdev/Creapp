@@ -231,19 +231,19 @@ function AppSidebar() {
           pageId: "PG-03-04",
           title: "Validation",
           href: "/tableau-de-bord/bdcommande/validation",
-          authorized: ["ADMIN", "SALES"],
+          authorized: ["ADMIN"],
         },
-        {
-          pageId: "PG-03-06",
-          title: "Créer une quotation",
-          href: "/tableau-de-bord/bdcommande/creercotation",
-          authorized: ["ADMIN", "SALES"],
-        },
+        // {
+        //   pageId: "PG-03-06",
+        //   title: "Créer une quotation",
+        //   href: "/tableau-de-bord/bdcommande/creercotation",
+        //   authorized: ["ADMIN", "SALES"],
+        // },
         {
           pageId: "PG-03-07",
           title: "Nouveaux",
           href: "/tableau-de-bord/bdcommande/nouveaux",
-          authorized: ["ADMIN", "SALES"],
+          authorized: ["ADMIN"],
         },
         {
           pageId: "PG-03-06",

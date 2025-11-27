@@ -105,6 +105,7 @@ export function DetailBesoin({
   type StatusKey = keyof typeof statusConfig;
   const currentStatus = statusConfig[data.state as StatusKey] ?? statusConfig.pending;
   const curentPriority = data.proprity === "urgent" ? "Urgent" : data.proprity === "medium" ? "Moyen" : data.proprity === "low" ? "Faible" : "Elevé";
+  const motifRejet = data.revieweeList?.length ? data.revieweeList[data.revieweeList.length -1].decision : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -187,6 +188,17 @@ export function DetailBesoin({
               </Badge>
             </div>
           </div>
+
+          {data.state === "rejected" &&
+           <div className="flex items-start gap-3">
+            <div className="mt-1">
+              <AlertCircle className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground mb-1">{"Motif"}</p>
+              <p className="text-sm">{motifRejet}</p>
+            </div>
+          </div>}
 
           {/* Statut */}
           <div className="flex items-start gap-3">
