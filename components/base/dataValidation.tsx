@@ -443,9 +443,7 @@ export function DataValidation({
       const searchableColumns = [
         "label",
         "projectId",
-        "categoryId",
         "userId",
-        "beneficiary",
       ];
 
       return searchableColumns.some((columnId) => {

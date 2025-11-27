@@ -243,7 +243,7 @@ export function DataTable() {
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
     {
-      accessorKey: "ref", // Changé de "reference" à "ref" pour correspondre à votre type RequestModelT
+      accessorKey: "ref",
       header: ({ column }) => {
         return (
           <Button
@@ -260,7 +260,7 @@ export function DataTable() {
       ),
     },
     {
-      accessorKey: "label", // Changé de "title" à "label" pour correspondre à votre type RequestModelT
+      accessorKey: "label",
       header: ({ column }) => {
         return (
           <Button
@@ -415,6 +415,13 @@ export function DataTable() {
     },
   ];
 
+  const getProjectName = (projectId: string) => {
+    const project = projectsData.data?.data?.find(
+      (proj) => proj.id === Number(projectId)
+    );
+    return project?.label || projectId;
+  };
+
   const table = useReactTable<RequestModelT>({
     data: data || [],
     columns,
@@ -428,12 +435,21 @@ export function DataTable() {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["ref", "label", "projectId"];
       const searchValue = filterValue.toLowerCase();
 
-      return searchableColumns.some((column) => {
-        const value = row.getValue(column) as string;
-        return value?.toLowerCase().includes(searchValue);
+      // Recherche dans toutes les colonnes principales avec conversion des IDs en noms
+      const searchableColumns = ["label", "projectId", "ref"];
+
+      return searchableColumns.some((columnId) => {
+        const rawValue = row.getValue(columnId);
+        let displayValue = rawValue;
+
+        // Convertir les IDs en noms pour la recherche
+        if (columnId === "projectId") {
+          displayValue = getProjectName(String(rawValue));
+        }
+
+        return String(displayValue).toLowerCase().includes(searchValue);
       });
     },
     state: {
