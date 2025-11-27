@@ -215,12 +215,12 @@ function AppSidebar() {
           href: "/tableau-de-bord/bdcommande/devis",
           authorized: ["ADMIN", "SALES"],
         },
-        {
-          pageId: "PG-03-03",
-          title: "Besoins",
-          href: "/tableau-de-bord/bdcommande/besoins",
-          authorized: ["ADMIN", "SALES"],
-        },
+        // {
+        //   pageId: "PG-03-03",
+        //   title: "Besoins",
+        //   href: "/tableau-de-bord/bdcommande/besoins",
+        //   authorized: ["ADMIN", "SALES"],
+        // },
         {
           pageId: "PG-03-5",
           title: "Bons de commande",
@@ -247,8 +247,8 @@ function AppSidebar() {
         },
         {
           pageId: "PG-03-06",
-          title: "Factures",
-          href: "/tableau-de-bord/bdcommande/factures",
+          title: "Paiements",
+          href: "/tableau-de-bord/bdcommande/paiements",
           authorized: ["ADMIN", "SALES"],
         },
         {

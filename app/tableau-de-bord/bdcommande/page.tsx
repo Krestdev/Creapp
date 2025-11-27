@@ -9,16 +9,17 @@ const Page = () => {
       href: "/tableau-de-bord/bdcommande/cotation",
     },
     { title: "Devis", href: "/tableau-de-bord/bdcommande/devis" },
-    { title: "Besoins", href: "/tableau-de-bord/bdcommande/besoins" },
-    { title: "Validation", href: "/tableau-de-bord/bdcommande/validation" },
+    // { title: "Besoins", href: "/tableau-de-bord/bdcommande/besoins" },
+    // { title: "Validation", href: "/tableau-de-bord/bdcommande/validation" },
     {
       title: "Bons de commande",
       href: "/tableau-de-bor/bdcommande/commande",
     },
-    {
-      title: "Nouveaux Bons de commande",
-      href: "/tableau-de-bord/bdcommande/nouveaux",
-    },
+    { title: "Paiements", href: "/tableau-de-bord/bdcommande/paiements" },
+    // {
+    //   title: "Nouveaux Bons de commande",
+    //   href: "/tableau-de-bord/bdcommande/nouveaux",
+    // },
   ];
   return (
     <div className="flex flex-col gap-6">

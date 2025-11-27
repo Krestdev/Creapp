@@ -31,6 +31,7 @@ import { CommandQueries } from "@/queries/commandModule";
 import { CommandRequestT } from "@/types/types";
 import { useStore } from "@/providers/datastore";
 import Besoins from "../pages/bdcommande/besoins";
+import { SuccessModal } from "../modals/success-modal";
 
 const formSchema = z.object({
   titre: z.string().min(1),
@@ -49,6 +50,7 @@ interface Request {
 export default function CreateCotationForm() {
   const { user } = useStore();
   const [selected, setSelected] = useState<Request[]>([]);
+  const [successOpen, setSuccessOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,6 +65,9 @@ export default function CreateCotationForm() {
   const createCommand = useMutation({
     mutationKey: ["command"],
     mutationFn: (data: CommandRequestT) => command.create(data),
+    onSuccess: () => {
+      setSuccessOpen(true);
+    },
   });
 
   const request = new RequestQueries();
@@ -210,10 +215,15 @@ export default function CreateCotationForm() {
           </Button>
         </form>
       </Form>
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-4 w-full border border-gray-200 rounded-md p-4">
         <p className="text-[18px] font-semibold">{`Besoins (${requests.length})`}</p>
         <Besoins selected={selected} setSelected={setSelected} />
       </div>
+      <SuccessModal
+        open={successOpen}
+        onOpenChange={setSuccessOpen}
+        message="Demande de cotation créée avec succès."
+      />
     </div>
   );
 }
