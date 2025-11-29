@@ -248,9 +248,14 @@ export default function UpdateRequest({
 
         // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
         const usersSelection: { id: number; name: string }[] = [];
-        if (requestData.beneficiary === "groupe" && requestData.beficiaryList?.flatMap(b=> b.id)) {
-          const benefIds = Array.isArray(requestData.beficiaryList?.flatMap(b=> b.id))
-            ? requestData.beficiaryList?.flatMap(b=> b.id)
+        if (
+          requestData.beneficiary === "groupe" &&
+          requestData.beficiaryList?.flatMap((b) => b.id)
+        ) {
+          const benefIds = Array.isArray(
+            requestData.beficiaryList?.flatMap((b) => b.id)
+          )
+            ? requestData.beficiaryList?.flatMap((b) => b.id)
             : [];
           benefIds.forEach((id: number) => {
             const user = USERS.find((u) => u.id === id);
@@ -258,7 +263,7 @@ export default function UpdateRequest({
           });
           setSelectedUsers(usersSelection);
         }
-        
+
         // Réinitialiser le formulaire avec les valeurs
         form.reset({
           projet: requestData.projectId?.toString() || "",
@@ -356,9 +361,9 @@ export default function UpdateRequest({
   // ----------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full overflow-y-auto max-h-[90vh] p-0 gap-0 overflow-x-hidden">
-        {/* Header avec fond bordeaux */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8">
+      <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
+        {/* Header avec fond bordeaux - FIXE */}
+        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
             Modifier le besoin
           </DialogTitle>
@@ -370,271 +375,292 @@ export default function UpdateRequest({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-8 max-w-3xl mx-12 py-10"
+            className="flex-1 flex flex-col"
           >
-            <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
-              {/* PROJET */}
-              <FormField
-                control={form.control}
-                name="projet"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Projet concerné</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                          <SelectValue placeholder="Sélectionner un projet" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {projectsData.data?.data.map((p) => (
-                          <SelectItem key={p.id} value={p.id!.toString()}>
-                            {p.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* CATEGORIE */}
-              <FormField
-                control={form.control}
-                name="categorie"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Catégorie</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                          <SelectValue placeholder="Sélectionner une catégorie" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories?.map((c) => (
-                          <SelectItem key={c.id} value={c.id!.toString()}>
-                            {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* SOUS-CATEGORIE */}
-              <FormField
-                control={form.control}
-                name="souscategorie"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sous-catégorie</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={!selectedCategorie}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                          <SelectValue
-                            placeholder={
-                              !selectedCategorie
-                                ? "Sélectionnez d'abord une catégorie"
-                                : "Sélectionner une sous-catégorie"
-                            }
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {souscategories.length > 0 ? (
-                          souscategories.map((c) => (
-                            <SelectItem key={c.id} value={c.id!.toString()}>
-                              {c.label}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="no-subcategory" disabled>
-                            {"Aucune sous-catégorie disponible"}
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* TITRE */}
-              <FormField
-                control={form.control}
-                name="titre"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Titre</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Titre du besoin" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* DESCRIPTION */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        className="resize-none"
-                        placeholder="Décrivez le besoin en détail..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* DATE LIMITE */}
-              <FormField
-                control={form.control}
-                name="datelimite"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date limite</FormLabel>
-                    <FormControl>
-                      <Popover
-                        open={openCalendar}
-                        onOpenChange={setOpenCalendar}
-                      >
-                        <PopoverTrigger
-                          asChild
-                          className="h-10! w-full! rounded! shadow-none!"
+            {/* Contenu du formulaire - SCROLLABLE */}
+            <div className="flex-1 overflow-y-auto px-12 pb-12">
+              <div className="space-y-8 max-w-3xl mx-auto">
+                <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
+                  {/* PROJET */}
+                  <FormField
+                    control={form.control}
+                    name="projet"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Projet concerné</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
                         >
-                          <Button
-                            variant="outline"
-                            className="w-full justify-between"
-                          >
-                            {field.value
-                              ? format(field.value, "PPP", { locale: fr })
-                              : "Sélectionner une date"}
-                            <ChevronDownIcon />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent align="start" className="p-0">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(d) => {
-                              field.onChange(d);
-                              setOpenCalendar(false);
-                            }}
-                            locale={fr}
+                          <FormControl>
+                            <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
+                              <SelectValue placeholder="Sélectionner un projet" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {projectsData.data?.data.map((p) => (
+                              <SelectItem key={p.id} value={p.id!.toString()}>
+                                {p.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* CATEGORIE */}
+                  <FormField
+                    control={form.control}
+                    name="categorie"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Catégorie</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
+                              <SelectValue placeholder="Sélectionner une catégorie" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categories?.map((c) => (
+                              <SelectItem key={c.id} value={c.id!.toString()}>
+                                {c.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* SOUS-CATEGORIE */}
+                  <FormField
+                    control={form.control}
+                    name="souscategorie"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sous-catégorie</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={!selectedCategorie}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
+                              <SelectValue
+                                placeholder={
+                                  !selectedCategorie
+                                    ? "Sélectionnez d'abord une catégorie"
+                                    : "Sélectionner une sous-catégorie"
+                                }
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {souscategories.length > 0 ? (
+                              souscategories.map((c) => (
+                                <SelectItem key={c.id} value={c.id!.toString()}>
+                                  {c.label}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="no-subcategory" disabled>
+                                {"Aucune sous-catégorie disponible"}
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* TITRE */}
+                  <FormField
+                    control={form.control}
+                    name="titre"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Titre</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Titre du besoin" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* DESCRIPTION */}
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            className="resize-none"
+                            placeholder="Décrivez le besoin en détail..."
+                            {...field}
                           />
-                        </PopoverContent>
-                      </Popover>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* QUANTITE */}
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quantité</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="ex. 10" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  {/* DATE LIMITE */}
+                  <FormField
+                    control={form.control}
+                    name="datelimite"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date limite</FormLabel>
+                        <FormControl>
+                          <Popover
+                            open={openCalendar}
+                            onOpenChange={setOpenCalendar}
+                          >
+                            <PopoverTrigger
+                              asChild
+                              className="h-10! w-full! rounded! shadow-none!"
+                            >
+                              <Button
+                                variant="outline"
+                                className="w-full justify-between"
+                              >
+                                {field.value
+                                  ? format(field.value, "PPP", { locale: fr })
+                                  : "Sélectionner une date"}
+                                <ChevronDownIcon />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="start" className="p-0">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={(d) => {
+                                  field.onChange(d);
+                                  setOpenCalendar(false);
+                                }}
+                                locale={fr}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* UNITE */}
-              <FormField
-                control={form.control}
-                name="unite"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unité</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                          <SelectValue placeholder="Sélectionner l'unité" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="KG">KG</SelectItem>
-                        <SelectItem value="L">Litre</SelectItem>
-                        <SelectItem value="FCFA">FCFA</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  {/* QUANTITE */}
+                  <FormField
+                    control={form.control}
+                    name="quantity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Quantité</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="ex. 10"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* BENEFICIAIRE */}
-              <FormField
-                control={form.control}
-                name="beneficiaire"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bénéficiaire</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                          <SelectValue placeholder="Sélectionner" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="me">Soi-même</SelectItem>
-                        <SelectItem value="groupe">Groupe</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  {/* UNITE */}
+                  <FormField
+                    control={form.control}
+                    name="unite"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Unité</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
+                              <SelectValue placeholder="Sélectionner l'unité" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="KG">KG</SelectItem>
+                            <SelectItem value="L">Litre</SelectItem>
+                            <SelectItem value="FCFA">FCFA</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* MULTISELECT CONDITIONNEL */}
-              {beneficiaire === "groupe" && (
-                <FormField
-                  control={form.control}
-                  name="utilisateurs"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Utilisateurs</FormLabel>
+                  {/* BENEFICIAIRE */}
+                  <FormField
+                    control={form.control}
+                    name="beneficiaire"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bénéficiaire</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
+                              <SelectValue placeholder="Sélectionner" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="me">Soi-même</SelectItem>
+                            <SelectItem value="groupe">Groupe</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                      <MultiSelectUsers
-                        display="user"
-                        users={USERS}
-                        selected={selectedUsers}
-                        onChange={(list) => {
-                          setSelectedUsers(list);
-                          field.onChange(list.map((u) => u.id));
-                        }}
-                      />
+                  {/* MULTISELECT CONDITIONNEL */}
+                  {beneficiaire === "groupe" && (
+                    <FormField
+                      control={form.control}
+                      name="utilisateurs"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Utilisateurs</FormLabel>
 
-                      <FormMessage />
-                    </FormItem>
+                          <MultiSelectUsers
+                            display="user"
+                            users={USERS}
+                            selected={selectedUsers}
+                            onChange={(list) => {
+                              setSelectedUsers(list);
+                              field.onChange(list.map((u) => u.id));
+                            }}
+                          />
+
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
-              )}
+                </div>
+              </div>
             </div>
 
-            {/* BOUTONS */}
-            <div className="flex gap-4 justify-end pt-4">
+            {/* Boutons - FIXE */}
+            <div className="flex gap-4 justify-end p-6 pt-0 shrink-0">
               <Button
                 type="button"
                 variant="outline"

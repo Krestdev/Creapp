@@ -96,7 +96,7 @@ export function BesoinLastVal({
       await request.validate(id);
     },
     onSuccess: () => {
-      toast.success("Besoin validé avec succès !");
+      toast.success("Besoin soulis avec succès !");
       requestData.refetch();
     },
     onError: () => {
@@ -198,7 +198,7 @@ export function BesoinLastVal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-screen overflow-y-auto p-0 gap-0 border-none">
+      <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none">
         {/* HEADER */}
         <DialogHeader
           className={`bg-linear-to-r ${headerColor} text-white p-6 m-4 rounded-lg pb-8`}
@@ -211,161 +211,163 @@ export function BesoinLastVal({
 
         {/* FORM - Only if not success/error */}
         {!isSuccess && !isError && (
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(submitForm)}
-              className="px-6 pb-4 space-y-4"
-            >
-              {/* Titre */}
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Titre *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Titre..." {...field} disabled />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Date */}
-              <FormField
-                control={form.control}
-                name="limiteDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date limite</FormLabel>
-                    <Popover open={openD} onOpenChange={setOpenD}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className="w-full h-10 justify-between font-normal"
-                          >
-                            {field.value
-                              ? format(field.value, "PPP", { locale: fr })
-                              : "Sélectionner une date"}
-                            <ChevronDownIcon />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={(date) => {
-                            field.onChange(date);
-                            setOpenD(false);
-                          }}
-                          locale={fr}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Priorité */}
-              <FormField
-                control={form.control}
-                name="priorite"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Priorité *</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      disabled={isPending}
-                    >
+          <div className="flex-1 overflow-y-auto">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(submitForm)}
+                className="px-6 pb-4 space-y-4"
+              >
+                {/* Titre */}
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Titre *</FormLabel>
                       <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionnez une priorité" />
-                        </SelectTrigger>
+                        <Input placeholder="Titre..." {...field} disabled />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">Normale</SelectItem>
-                        <SelectItem value="medium">Moyenne</SelectItem>
-                        <SelectItem value="high">Haute</SelectItem>
-                        <SelectItem value="urgent">Urgente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Quantité */}
-              <FormField
-                control={form.control}
-                name="quantite"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quantité *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Quantité..."
-                        {...field}
-                        disabled={isPending}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Description */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description *</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        rows={4}
-                        className="resize-none"
-                        placeholder="Description détaillée..."
-                        {...field}
-                        disabled
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Boutons */}
-              <div className="flex justify-end gap-3 pt-4">
-                <Button
-                  type="submit"
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  disabled={isPending}
-                >
-                  {isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Enregistrement...
-                    </>
-                  ) : (
-                    "Approuver"
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </Button>
+                />
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  disabled={isPending}
-                >
-                  Fermer
-                </Button>
-              </div>
-            </form>
-          </Form>
+                {/* Date */}
+                <FormField
+                  control={form.control}
+                  name="limiteDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date limite</FormLabel>
+                      <Popover open={openD} onOpenChange={setOpenD}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className="w-full h-10 justify-between font-normal"
+                            >
+                              {field.value
+                                ? format(field.value, "PPP", { locale: fr })
+                                : "Sélectionner une date"}
+                              <ChevronDownIcon />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(date) => {
+                              field.onChange(date);
+                              setOpenD(false);
+                            }}
+                            locale={fr}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Priorité */}
+                <FormField
+                  control={form.control}
+                  name="priorite"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Priorité *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        disabled={isPending}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Sélectionnez une priorité" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Normale</SelectItem>
+                          <SelectItem value="medium">Moyenne</SelectItem>
+                          <SelectItem value="high">Haute</SelectItem>
+                          <SelectItem value="urgent">Urgente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Quantité */}
+                <FormField
+                  control={form.control}
+                  name="quantite"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quantité *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Quantité..."
+                          {...field}
+                          disabled={isPending}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Description */}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description *</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={4}
+                          className="resize-none"
+                          placeholder="Description détaillée..."
+                          {...field}
+                          disabled
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Boutons */}
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button
+                    type="submit"
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    disabled={isPending}
+                  >
+                    {isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Enregistrement...
+                      </>
+                    ) : (
+                      "Soumettre"
+                    )}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                    disabled={isPending}
+                  >
+                    Fermer
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
         )}
 
         {/* Footer Success/Error */}

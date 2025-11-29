@@ -83,12 +83,12 @@ const Approbation = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">
-        <h2>Liste des besoins à valider</h2>
+        <h2>Liste des besoins à soumettre</h2>
         <DataValidation data={data} isLastValidator={isLastValidator} empty={"Aucun besoin en attente de validation"} />
       </div>
       <div className="flex flex-col">
         <h2>Liste des besoins traités</h2>
-        <DataValidation data={proceedData} isLastValidator={isLastValidator} empty={"Aucun besoin traité"} />
+        <DataValidation data={proceedData} isLastValidator={isLastValidator} empty={"Aucun besoin traité"} type="proceed" />
       </div>
     </div>
   );

@@ -504,7 +504,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
         action={function (): void {
           throw new Error("Function not implemented.");
         }}
-        actionButton={"Valider"}
+        actionButton={"Soumettre"}
       />
       <ModalDestockage
         open={modalDestockage}

@@ -193,7 +193,7 @@ export function BesoinsTraiter({
   ];
 
   const table = useReactTable({
-    data,
+    data: data.reverse() ?? [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -216,7 +216,7 @@ export function BesoinsTraiter({
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection: internalRowSelection, // Utiliser l'état interne synchronisé
+      rowSelection: internalRowSelection, 
       globalFilter,
     },
   });

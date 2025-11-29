@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { LucidePlus, LucideX, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 type User = {
   id: number;
@@ -32,7 +33,10 @@ export default function MultiSelectUsers({
   // Fermer le dropdown quand on clique à l'extérieur
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setOpen(false);
       }
     };
@@ -54,7 +58,10 @@ export default function MultiSelectUsers({
   };
 
   return (
-    <div className={`${className} w-full flex flex-col gap-2`} ref={dropdownRef}>
+    <div
+      className={`${className} w-full flex flex-col gap-2`}
+      ref={dropdownRef}
+    >
       <div
         className={`relative ${
           display === "user" && "p-3 border"
@@ -86,7 +93,9 @@ export default function MultiSelectUsers({
           variant={"ghost"}
           type="button"
           onClick={() => setOpen(!open)}
-          className={`${display === "user" ? "ml-auto" : "mx-auto w-full border"}`}
+          className={`${
+            display === "user" ? "ml-auto" : "mx-auto w-full border"
+          }`}
         >
           {display === "request" ? "Ajouter un besoin" : ""}
           <LucidePlus
@@ -106,7 +115,8 @@ export default function MultiSelectUsers({
                   <p className="text-[#2F2F2F] text-sm ">{item.name}</p>
                   <p className="text-[12px] text-[#B0B0B0]">{`avant le ${format(
                     item.dueDate!,
-                    "dd/MM/yyyy"
+                    "PPP",
+                    { locale: fr }
                   )}`}</p>
                 </div>
                 <Button
@@ -126,7 +136,9 @@ export default function MultiSelectUsers({
           <div className="absolute right-0 top-full w-full bg-white shadow-md rounded-lg border z-20 transition-all ease-in-out max-h-60 overflow-y-auto">
             {available.length === 0 ? (
               <p className="p-2 text-sm text-gray-500 text-center">
-                {display === "request" ? "Aucun besoin disponible" : "Aucun utilisateur disponible"}
+                {display === "request"
+                  ? "Aucun besoin disponible"
+                  : "Aucun utilisateur disponible"}
               </p>
             ) : (
               available.map((user) => (

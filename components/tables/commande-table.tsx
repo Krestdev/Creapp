@@ -53,6 +53,7 @@ import { format } from "date-fns";
 import { Pagination } from "../base/pagination";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
+import { fr } from "date-fns/locale";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -157,7 +158,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("reference")}</div>
+        <div className="font-medium first-letter:uppercase">{row.getValue("reference")}</div>
       ),
     },
     {
@@ -173,7 +174,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("title")}</div>,
+      cell: ({ row }) => <div className="first-letter:uppercase">{row.getValue("title")}</div>,
     },
     {
       accessorKey: "dueDate",
@@ -189,7 +190,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
         );
       },
       cell: ({ row }) => (
-        <div>{format(row.getValue("dueDate"), "dd/MM/yyyy")}</div>
+        <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>
       ),
     },
     {
@@ -281,7 +282,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
   ];
 
   const table = useReactTable({
-    data: data || [],
+    data: data?.reverse() || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

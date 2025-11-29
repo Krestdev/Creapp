@@ -66,6 +66,8 @@ import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { ProjectQueries } from "@/queries/projectModule";
 import { UserQueries } from "@/queries/baseModule";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 // Define the data type
 
@@ -110,7 +112,9 @@ export function DataTable() {
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      createdAt: false,
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
@@ -207,6 +211,17 @@ export function DataTable() {
     );
   };
 
+  const getTranslatedLabel = (label: string) => {
+    const translations: Record<string, string> = {
+      Pending: "En attente",
+      Validated: "Soumis",
+      Rejected: "Refusé",
+      "In Review": "En révision",
+      Cancel: "Annulé",
+    };
+    return translations[label] || label;
+  };
+
   const uniqueCategories = React.useMemo(() => {
     if (!data?.length || !categoryData.data?.data) return [];
 
@@ -273,7 +288,9 @@ export function DataTable() {
         );
       },
       cell: ({ row }) => (
-        <div className="max-w-[200px] truncate">{row.getValue("label")}</div>
+        <div className="max-w-[200px] truncate first-letter:uppercase">
+          {row.getValue("label")}
+        </div>
       ),
     },
     {
@@ -294,7 +311,11 @@ export function DataTable() {
         const project = projectsData.data?.data?.find(
           (proj) => proj.id === Number(projectId)
         );
-        return <div>{project?.label || projectId}</div>;
+        return (
+          <div className="first-letter:uppercase">
+            {project?.label || projectId}
+          </div>
+        );
       },
     },
     {
@@ -318,8 +339,34 @@ export function DataTable() {
         const getCategoryName = (id: number) => {
           return categoryData.data?.data.find((x) => x.id === id)?.label || id;
         };
-        return <div>{getCategoryName(Number(categoryId))}</div>;
+        return (
+          <div className="first-letter:uppercase">
+            {getCategoryName(Number(categoryId))}
+          </div>
+        );
       },
+    },
+    {
+      accessorKey: "createdAt",
+      filterFn: (row, columnId, filterValue) => {
+        return String(row.getValue(columnId)) === String(filterValue);
+      },
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Date d'émission"}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="max-w-[200px] truncate first-letter:uppercase">
+          {format(row.getValue("createdAt"), "PP", { locale: fr })}
+        </div>
+      ),
     },
     {
       accessorKey: "state",
@@ -341,17 +388,6 @@ export function DataTable() {
         const status = row.getValue("state") as string;
         const config = getStatusConfig(status);
         const Icon = config.icon;
-
-        const getTranslatedLabel = (label: string) => {
-          const translations: Record<string, string> = {
-            Pending: "En attente",
-            Validated: "Validé",
-            Rejected: "Refusé",
-            "In Review": "En révision",
-            Cancel: "Annulé",
-          };
-          return translations[label] || label;
-        };
 
         return (
           <Badge className={cn("gap-1", config.badgeClassName)}>
@@ -423,7 +459,7 @@ export function DataTable() {
   };
 
   const table = useReactTable<RequestModelT>({
-    data: data || [],
+    data: data?.reverse() || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -514,7 +550,7 @@ export function DataTable() {
             <SelectItem value="all">{"Tous les statuts"}</SelectItem>
             {uniqueStatuses.map((state) => (
               <SelectItem key={state.id} value={String(state.id)}>
-                {state.name}
+                {getTranslatedLabel(state.name)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -551,6 +587,8 @@ export function DataTable() {
                       ? "Projets"
                       : column.id === "categoryId"
                       ? "Catégories"
+                      : column.id === "createdAt"
+                      ? "Date d'émission"
                       : null}
                   </DropdownMenuCheckboxItem>
                 );

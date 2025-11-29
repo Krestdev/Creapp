@@ -82,13 +82,6 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
       <DialogContent className="sm:max-w-[760px] w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <button
-            onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10"
-          >
-            {/* <X className="h-4 w-4 text-white" /> */}
-            <span className="sr-only">Close</span>
-          </button>
           <DialogTitle className="text-xl font-semibold text-white">
             {data.titre}
           </DialogTitle>
@@ -205,8 +198,8 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="text-sm text-muted-foreground">{"Besoins"}</p>
                 <div className="flex flex-col gap-1">
                   {data.besoin?.map((bes, index) => (
-                    <div key={index} className="flex flex-col gap-[2px]">
-                      <p className="text-[14px] font-medium">{bes.title}</p>
+                    <div key={index} className="flex flex-col gap-0.5">
+                      <p className="text-[14px] font-medium first-letter:uppercase">{bes.title}</p>
                       <p className="text-primary text-[12px] font-medium">
                         {XAF.format(bes.prix) + " (x" + bes.qte + " Pièce)"}
                       </p>

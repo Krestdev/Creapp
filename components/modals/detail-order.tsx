@@ -9,14 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Hash,
-  FolderOpen,
-  FileText,
-  FolderTree,
-  AlertCircle,
-  Users,
-  UserPlus,
   Calendar,
-  X,
   LucideScrollText,
   UserRound,
   CalendarFold,
@@ -25,6 +18,9 @@ import { CommandRequestT } from "@/types/types";
 import { RequestQueries } from "@/queries/requestModule";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { UserQueries } from "@/queries/baseModule";
+
 
 interface DetailOrderProps {
   open: boolean;
@@ -33,7 +29,15 @@ interface DetailOrderProps {
 }
 
 export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
+
   const request = new RequestQueries();
+  const user = new UserQueries();
+
+  const userData = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => user.getAll(),
+  });
+
   const requestData = useQuery({
     queryKey: ["requests"],
     queryFn: async () => request.getAll(),
@@ -48,7 +52,7 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
         "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
     },
     approved: {
-      label: "Approuvé",
+      label: "Soumis",
       color:
         "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
     },
@@ -67,13 +71,6 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
       <DialogContent className="max-w-[420px] max-h-[750px] overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <button
-            onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10"
-          >
-            {/* <X className="h-4 w-4 text-white" /> */}
-            <span className="sr-only">Close</span>
-          </button>
           <DialogTitle className="text-xl font-semibold text-white">
             {data.title}
           </DialogTitle>
@@ -131,7 +128,7 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
                 {data.besoins?.map((besoin, index) => {
                   return (
                     <div key={index} className="flex flex-col gap-0.5">
-                      <p className="text-[14px] font-medium">{besoin?.label}</p>
+                      <p className="text-[14px] font-medium first-letter:uppercase">{besoin?.label}</p>
                       <p className="text-primary text-[12px] font-medium">
                         {"x" + besoin?.quantity + " " + besoin?.unit}
                       </p>
@@ -151,7 +148,7 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
               <p className="text-sm text-muted-foreground mb-1">
                 {"Initié par"}
               </p>
-              <p className="text-[14px] font-semibold">{data.userId}</p>
+              <p className="text-[14px] font-semibold capitalize">{userData.data?.data.find((user) => user.id === data.userId)?.name}</p>
             </div>
           </div>
 
@@ -165,7 +162,7 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
                 {"Data limite"}
               </p>
               <p className="font-semibold">
-                {format(data.dueDate, "dd/MM/yyyy")}
+                {format(data.dueDate, "PPP", { locale: fr })}
               </p>
             </div>
           </div>
@@ -176,8 +173,8 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
               <Calendar className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">Créé le</p>
-              <p className="font-semibold">12 Septembre 2025</p>
+              <p className="text-sm text-muted-foreground mb-1">{"Créé le"}</p>
+              <p className="font-semibold">{format(data.createdAt!, "PPP", { locale: fr })}</p>
             </div>
           </div>
 
@@ -187,8 +184,8 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
               <Calendar className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">Modifié le</p>
-              <p className="font-semibold">12 Septembre 2025</p>
+              <p className="text-sm text-muted-foreground mb-1">{"Modifié le"}</p>
+              <p className="font-semibold">{format(data.updatedAt!, "PPP", { locale: fr })}</p>
             </div>
           </div>
         </div>

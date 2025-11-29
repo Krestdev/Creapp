@@ -75,7 +75,7 @@ export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
         "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
     },
     approved: {
-      label: "Approuvé",
+      label: "Soumis",
       color:
         "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
     },
@@ -94,15 +94,8 @@ export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
       <DialogContent className="max-w-md max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#15803D] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <button
-            onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10"
-          >
-            {/* <X className="h-4 w-4 text-white" /> */}
-            <span className="sr-only">Close</span>
-          </button>
           <DialogTitle className="text-xl font-semibold text-white">
-            Approuver un besoin
+            Soumettre un besoin
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">Approbation du besoin</p>
         </DialogHeader>
@@ -117,7 +110,7 @@ export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
             <div className="flex-1">
               <p className="text-sm text-muted-foreground mb-1">Attention</p>
               <p className="text-sm">
-                Êtes-vous sûr de vouloir approuver ce besoin ?
+                Êtes-vous sûr de vouloir soumettre ce besoin ?
               </p>
             </div>
           </div>

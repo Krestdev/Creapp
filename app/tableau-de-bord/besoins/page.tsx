@@ -11,13 +11,13 @@ import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
 function Page() {
+  const { user, isHydrated } = useStore();
   const links = [
     { title: "Creer un besoin", href: "/tableau-de-bord/besoins/create" },
     { title: "Mes Besoins", href: "/tableau-de-bord/besoins/mylist" },
     { title: "Approbation", href: "/tableau-de-bord/besoins/approbation" },
   ];
 
-  const { user, isHydrated } = useStore();
   const [data, setData] = React.useState<RequestModelT[]>([]);
   const request = new RequestQueries();
   // Récupérer tous les besoins en attente de validation (pour les validateurs)
@@ -37,7 +37,6 @@ function Page() {
     },
   });
 
-  
   const isLastValidator =
     departmentData.data?.data
       .flatMap((mem) => mem.members)
@@ -81,9 +80,7 @@ function Page() {
     requestData.data?.data.filter(
       (item) => new Date(item.createdAt).getMonth() === new Date().getMonth()
     ).length ?? 0;
-  const attentes =
-    data.filter((item) => item.state === "pending").length ??
-    0;
+  const attentes = data.filter((item) => item.state === "pending").length ?? 0;
   const mine = data.filter((item) => item.userId === user?.id).length ?? 0;
 
   if (!isHydrated) return null;
@@ -94,28 +91,33 @@ function Page() {
         title="Besoins"
         subtitle="Consulter et gerez les besoins"
         color="red"
-        links={links}
+        links={links.filter(
+          (x) =>
+            !(
+              x.title === "Approbation" &&
+              !user?.role.flatMap((r) => r.label).includes("MANAGER")
+            )
+        )}
       />
       {user?.role.flatMap((r) => r.label).includes("MANAGER") && (
         <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
-          {/* Statistics cards could go here in the future */}
           <StatsCard
-            title="Total besoins recus"
+            title="En attente de validation"
             titleColor="text-[#E4E4E7]"
-            value={String(reçus)}
-            description="Besoins reçus ce mois :"
-            descriptionValue={String(reçusMois)}
+            value={String(attentes)}
+            description="Mes besoins en attente :"
+            descriptionValue={String(mine)}
             descriptionColor="red"
             dividerColor="bg-[#2262A2]"
             className={"bg-[#013E7B] text-[#ffffff] border-[#2262A2]"}
             dvalueColor="text-[#FFFFFF]"
           />
           <StatsCard
-            title="En attente de validation"
+            title="Total besoins recus"
             titleColor="text-[#52525B]"
-            value={String(attentes)}
-            description="Mes besoins en attente :"
-            descriptionValue={String(mine)}
+            value={String(reçus)}
+            description="Besoins reçus ce mois :"
+            descriptionValue={String(reçusMois)}
             descriptionColor="text-[#A1A1AA]"
             dividerColor="bg-[#DFDFDF]"
             className={"bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"}

@@ -62,8 +62,10 @@ import { Pagination } from "./pagination";
 import { ProjectQueries } from "@/queries/projectModule";
 import { UserQueries } from "@/queries/baseModule";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
-import { DepartmentQueries } from "@/queries/departmentModule";
 import { BesoinLastVal } from "../modals/BesoinLastVal";
+import { Badge } from "../ui/badge";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const statusConfig = {
   pending: {
@@ -73,7 +75,7 @@ const statusConfig = {
     rowClassName: "bg-yellow-50 hover:bg-yellow-100",
   },
   validated: {
-    label: "Approuvé",
+    label: "Soumis",
     icon: CheckCircle,
     badgeClassName: "bg-green-100 text-green-800 border-green-200",
     rowClassName: "bg-green-50 hover:bg-green-100",
@@ -96,12 +98,14 @@ interface DataTableProps {
   data: RequestModelT[];
   isLastValidator: boolean;
   empty: string;
+  type?: "pending" | "proceed";
 }
 
 export function DataValidation({
   data,
   isLastValidator,
   empty,
+  type = "pending",
 }: DataTableProps) {
   const { isHydrated, user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -109,7 +113,9 @@ export function DataValidation({
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      createdAt: false,
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
@@ -187,6 +193,20 @@ export function DataValidation({
     });
   }, [data, categoriesData.data]);
 
+  const uniqueStatus = React.useMemo(() => {
+    if (!data.length) return [];
+    return [...new Set(data.map((req) => req.state))].map((state) => {
+      const status = statusConfig[state as keyof typeof statusConfig];
+      return {
+        id: state,
+        name: status.label,
+        icon: status.icon,
+        badgeClassName: status.badgeClassName,
+        rowClassName: status.rowClassName,
+      };
+    });
+  }, [data]);
+
   const getBeneficiaryDisplay = (request: RequestModelT) => {
     if (request.beneficiary === "me") {
       return getUserName(String(request.userId));
@@ -238,7 +258,7 @@ export function DataValidation({
       });
     },
     onSuccess: () => {
-      toast.success("Besoin validé avec succès !");
+      toast.success("Besoin soumis avec succès !");
       requestData.refetch();
     },
     onError: () => {
@@ -287,94 +307,167 @@ export function DataValidation({
   };
 
   // Define columns - Seulement les champs demandés
-  const columns: ColumnDef<RequestModelT>[] = [
-    {
-      accessorKey: "label",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Titres"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
+  const columns: ColumnDef<RequestModelT>[] = React.useMemo(() => {
+    const baseColumns: ColumnDef<RequestModelT>[] = [
+      {
+        accessorKey: "label",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Titres"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="max-w-[200px] truncate">{row.getValue("label")}</div>
+        ),
       },
-      cell: ({ row }) => (
-        <div className="max-w-[200px] truncate">{row.getValue("label")}</div>
-      ),
-    },
-    {
-      accessorKey: "projectId",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Projets"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
+      {
+        accessorKey: "projectId",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Projets"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div>{getProjectName(row.getValue("projectId"))}</div>
+        ),
       },
-      cell: ({ row }) => <div>{getProjectName(row.getValue("projectId"))}</div>,
-    },
-    {
-      accessorKey: "categoryId",
-      filterFn: (row, columnId, filterValue) => {
-        return String(row.getValue(columnId)) === String(filterValue);
+      {
+        accessorKey: "categoryId",
+        filterFn: (row, columnId, filterValue) => {
+          return String(row.getValue(columnId)) === String(filterValue);
+        },
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Catégories"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div>{getCategoryName(row.getValue("categoryId"))}</div>
+        ),
       },
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Catégories"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
+      {
+        accessorKey: "userId",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Emetteurs"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => <div>{getUserName(row.getValue("userId"))}</div>,
       },
-      cell: ({ row }) => (
-        <div>{getCategoryName(row.getValue("categoryId"))}</div>
-      ),
-    },
-    {
-      accessorKey: "userId",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Emetteurs"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
+      {
+        accessorKey: "createdAt",
+        filterFn: (row, columnId, filterValue) => {
+          return String(row.getValue(columnId)) === String(filterValue);
+        },
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Date d'émission"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="max-w-[200px] truncate first-letter:uppercase">
+            {format(row.getValue("createdAt"), "PP", { locale: fr })}
+          </div>
+        ),
       },
-      cell: ({ row }) => <div>{getUserName(row.getValue("userId"))}</div>,
-    },
-    {
-      accessorKey: "beneficiary",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Bénéficiaires"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
+      {
+        accessorKey: "beneficiary",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Bénéficiaires"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="max-w-[200px] truncate">
+            {getBeneficiaryDisplay(row.original)}
+          </div>
+        ),
       },
-      cell: ({ row }) => (
-        <div className="max-w-[200px] truncate">
-          {getBeneficiaryDisplay(row.original)}
-        </div>
-      ),
-    },
-    {
+    ];
+
+    // Ajouter la colonne Statut seulement si type === "proceed"
+    if (type === "proceed") {
+      baseColumns.splice(2, 0, {
+        // Insérer après la 2ème colonne (ajuster l'index selon vos besoins)
+        accessorKey: "state",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Statuts"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => {
+          const state = row.getValue("state") as keyof typeof statusConfig;
+          const config = statusConfig[state];
+          const Icon = config.icon;
+
+          return (
+            <Badge className={cn("gap-1", config.badgeClassName)}>
+              <Icon className="h-3 w-3" />
+              {config.label}
+            </Badge>
+          );
+        },
+      });
+    }
+
+    // Toujours ajouter la colonne Actions à la fin
+    baseColumns.push({
       id: "actions",
       enableHiding: false,
       header: "Actions",
@@ -407,14 +500,20 @@ export function DataValidation({
                     ? (setSelectedItem(item), setIsLastValModalOpen(true))
                     : openValidationModal("approve", item)
                 }
-                disabled={item.state !== "pending" || item.revieweeList?.some((x) => x.validatorId === user?.id)}
+                disabled={
+                  item.state !== "pending" ||
+                  item.revieweeList?.some((x) => x.validatorId === user?.id)
+                }
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
-                Valider
+                {"Soumettre"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => openValidationModal("reject", item)}
-                disabled={item.state !== "pending" || item.revieweeList?.some((x) => x.validatorId === user?.id)}
+                disabled={
+                  item.state !== "pending" ||
+                  item.revieweeList?.some((x) => x.validatorId === user?.id)
+                }
               >
                 <LucideBan className="text-red-500 mr-2 h-4 w-4" />
                 Rejeter
@@ -423,11 +522,13 @@ export function DataValidation({
           </DropdownMenu>
         );
       },
-    },
-  ];
+    });
+
+    return baseColumns;
+  }, [type, isLastValidator, user?.id]);
 
   const table = useReactTable({
-    data,
+    data: data.reverse() || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -442,11 +543,7 @@ export function DataValidation({
       const searchValue = filterValue.toLowerCase();
 
       // Recherche dans toutes les colonnes principales avec conversion des IDs en noms
-      const searchableColumns = [
-        "label",
-        "projectId",
-        "userId",
-      ];
+      const searchableColumns = ["label", "projectId", "userId"];
 
       return searchableColumns.some((columnId) => {
         const rawValue = row.getValue(columnId);
@@ -517,11 +614,44 @@ export function DataValidation({
           </SelectContent>
         </Select>
 
+        {/* Status filter */}
+        {type === "proceed" && (
+          <Select
+            defaultValue="all"
+            value={
+              (table.getColumn("state")?.getFilterValue() as string) ?? "all"
+            }
+            onValueChange={(value) =>
+              table
+                .getColumn("state")
+                ?.setFilterValue(value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtrer par statu" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              {uniqueStatus?.map((state) => {
+                return (
+                  <SelectItem
+                    key={state.id}
+                    value={state.id}
+                    className="capitalize"
+                  >
+                    {state.name}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        )}
+
         {/* Column visibility */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Colonnes
+              {"Colonnes"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -548,6 +678,10 @@ export function DataValidation({
                       ? "Emetteurs"
                       : column.id === "beneficiary"
                       ? "Beneficiaires"
+                      : column.id === "createdAt"
+                      ? "Date d'émission"
+                      : column.id === "state"
+                      ? "Statuts"
                       : column.id}
                   </DropdownMenuCheckboxItem>
                 );
@@ -622,7 +756,7 @@ export function DataValidation({
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         data={selectedItem}
-        actionButton="Valider"
+        actionButton="Soumettre"
         action={() =>
           isLastValidator
             ? (setIsModalOpen(false), setIsLastValModalOpen(true))
@@ -638,19 +772,19 @@ export function DataValidation({
         type={validationType}
         title={
           validationType === "approve"
-            ? "Valider le besoin"
+            ? "Soumettre le besoin"
             : "Rejeter le besoin"
         }
         description={
           validationType === "approve"
-            ? "Êtes-vous sûr de vouloir valider ce besoin ?"
+            ? "Êtes-vous sûr de vouloir soumettre ce besoin ?"
             : "Êtes-vous sûr de vouloir rejeter ce besoin ? Veuillez fournir un motif."
         }
         successConfirmation={{
           title: "Succès ✅",
           description:
             validationType === "approve"
-              ? "Le besoin a été validé avec succès."
+              ? "Le besoin a été soumis avec succès."
               : "Le besoin a été rejeté avec succès.",
         }}
         errorConfirmation={{
@@ -658,7 +792,7 @@ export function DataValidation({
           description: "Une erreur est survenue lors de l'opération.",
         }}
         buttonTexts={{
-          approve: "Valider",
+          approve: "Soumettre",
           reject: "Rejeter",
           cancel: "Annuler",
           close: "Fermer",
@@ -676,8 +810,8 @@ export function DataValidation({
         open={isLastValModalOpen}
         onOpenChange={setIsLastValModalOpen}
         data={selectedItem}
-        titre={"Valider le besoin"}
-        description={"Êtes-vous sûr de vouloir valider ce besoin ?"}
+        titre={"Soumettre le besoin"}
+        description={"Êtes-vous sûr de vouloir soumettre ce besoin ?"}
       />
     </div>
   );
