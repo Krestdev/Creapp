@@ -23,7 +23,11 @@ import {
   LucideBan,
   LucidePen,
   ChevronDown,
-  Ban, // Ajout de l'icône pour le statut cancel
+  Ban,
+  CalendarIcon,
+  ChevronRight,
+  CalendarDays,
+  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -66,10 +70,23 @@ import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { ProjectQueries } from "@/queries/projectModule";
 import { UserQueries } from "@/queries/baseModule";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
-
-// Define the data type
+import { Calendar } from "../ui/calendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import { Label } from "../ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../ui/popover";
 
 const statusConfig = {
   pending: {
@@ -97,7 +114,6 @@ const statusConfig = {
     rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
   },
   cancel: {
-    // Ajout du statut cancel manquant
     label: "Cancel",
     icon: Ban,
     badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
@@ -105,7 +121,21 @@ const statusConfig = {
   },
 };
 
-export function DataTable() {
+interface Props {
+  dateFilter: "today" | "week" | "month" | "year" | "custom" | undefined;
+  setDateFilter: React.Dispatch<
+    React.SetStateAction<"today" | "week" | "month" | "year" | "custom" | undefined>
+  >;
+  customDateRange?: { from: Date; to: Date } | undefined;
+  setCustomDateRange?: React.Dispatch<React.SetStateAction<{ from: Date; to: Date } | undefined>>;
+}
+
+export function DataTable({ 
+  dateFilter, 
+  setDateFilter,
+  customDateRange,
+  setCustomDateRange 
+}: Props) {
   const { user, isHydrated } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -118,16 +148,19 @@ export function DataTable() {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  // modal spesific states
+  // modal specific states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
     null
   );
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
-
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
-  const [data, setData] = React.useState<RequestModelT[]>();
+  
+  // États pour le modal personnalisé
+  const [isCustomDateModalOpen, setIsCustomDateModalOpen] = React.useState(false);
+  const [tempCustomDateRange, setTempCustomDateRange] = React.useState<{ from: Date; to: Date } | undefined>(
+    customDateRange || { from: addDays(new Date(), -7), to: new Date() }
+  );
 
   const projects = new ProjectQueries();
   const projectsData = useQuery({
@@ -164,10 +197,6 @@ export function DataTable() {
     },
   });
 
-  React.useEffect(() => {
-    if (requestData.data) setData(requestData.data.data);
-  }, [requestData.data]);
-
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (data: Partial<RequestModelT>) => {
@@ -177,16 +206,13 @@ export function DataTable() {
     },
     onSuccess: () => {
       toast.success("Besoin annulé avec succès !");
+      // Rafraîchir les données après une annulation réussie
+      requestData.refetch();
     },
     onError: () => {
       toast.error("Une erreur est survenue.");
     },
   });
-
-  // useEffect pour recharger les données
-  React.useEffect(() => {
-    requestData.refetch();
-  }, [requestData, requestData.data?.data]);
 
   const handleCancel = async () => {
     try {
@@ -197,10 +223,114 @@ export function DataTable() {
     }
   };
 
+  // Fonction pour filtrer les données selon la période sélectionnée
+  const getFilteredData = React.useMemo(() => {
+    if (!requestData.data?.data) {
+      return requestData.data?.data || [];
+    }
+
+    // Si pas de filtre, retourner toutes les données
+    if (!dateFilter) {
+      return requestData.data.data;
+    }
+
+    const now = new Date();
+    let startDate = new Date();
+    let endDate = now;
+
+    switch (dateFilter) {
+      case "today":
+        // Début de la journée
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case "week":
+        // Début de la semaine (lundi)
+        startDate.setDate(
+          now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+        );
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case "month":
+        // Début du mois
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case "year":
+        // Début de l'année
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      case "custom":
+        // Utiliser la plage personnalisée
+        if (customDateRange?.from && customDateRange?.to) {
+          startDate = customDateRange.from;
+          endDate = customDateRange.to;
+        } else {
+          return requestData.data.data;
+        }
+        break;
+      default:
+        return requestData.data.data;
+    }
+
+    return requestData.data.data.filter((item) => {
+      const itemDate = new Date(item.createdAt);
+      return itemDate >= startDate && itemDate <= endDate;
+    });
+  }, [requestData.data?.data, dateFilter, customDateRange]);
+
+  // Fonction pour obtenir le texte d'affichage du filtre de date
+  const getDateFilterText = () => {
+    switch (dateFilter) {
+      case "today":
+        return "Aujourd'hui";
+      case "week":
+        return "Cette semaine";
+      case "month":
+        return "Ce mois";
+      case "year":
+        return "Cette année";
+      case "custom":
+        if (customDateRange?.from && customDateRange?.to) {
+          return `${format(customDateRange.from, "dd/MM/yyyy")} - ${format(customDateRange.to, "dd/MM/yyyy")}`;
+        }
+        return "Personnaliser";
+      default:
+        return "Toutes les périodes";
+    }
+  };
+
+  // Gérer l'ouverture du modal personnalisé
+  const handleCustomDateClick = () => {
+    // Initialiser avec la plage actuelle ou une plage par défaut
+    setTempCustomDateRange(
+      customDateRange || { from: addDays(new Date(), -7), to: new Date() }
+    );
+    setIsCustomDateModalOpen(true);
+  };
+
+  // Appliquer la plage personnalisée
+  const applyCustomDateRange = () => {
+    if (tempCustomDateRange?.from && tempCustomDateRange?.to) {
+      setDateFilter("custom");
+      if (setCustomDateRange) {
+        setCustomDateRange(tempCustomDateRange);
+      }
+      setIsCustomDateModalOpen(false);
+    } else {
+      toast.error("Veuillez sélectionner une plage de dates valide");
+    }
+  };
+
+  // Réinitialiser le filtre personnalisé
+  const clearCustomDateRange = () => {
+    setDateFilter(undefined);
+    if (setCustomDateRange) {
+      setCustomDateRange(undefined);
+    }
+  };
+
   // Fonction sécurisée pour obtenir la configuration du statut
   const getStatusConfig = (status: string) => {
     const config = statusConfig[status as keyof typeof statusConfig];
-    // Retourne une configuration par défaut si le statut n'est pas trouvé
     return (
       config || {
         label: status,
@@ -223,9 +353,11 @@ export function DataTable() {
   };
 
   const uniqueCategories = React.useMemo(() => {
-    if (!data?.length || !categoryData.data?.data) return [];
+    if (!getFilteredData || !categoryData.data?.data) return [];
 
-    const categoryIds = [...new Set(data.map((req) => req.categoryId))];
+    const categoryIds = [
+      ...new Set(getFilteredData.map((req) => req.categoryId)),
+    ];
 
     return categoryIds.map((categoryId) => {
       const category = categoryData.data.data.find(
@@ -236,12 +368,12 @@ export function DataTable() {
         name: category?.label || `Catégorie ${categoryId}`,
       };
     });
-  }, [data, categoryData.data]);
+  }, [getFilteredData, categoryData.data]);
 
   const uniqueStatuses = React.useMemo(() => {
-    if (!data?.length) return [];
+    if (!getFilteredData) return [];
 
-    const statuses = [...new Set(data.map((req) => req.state))];
+    const statuses = [...new Set(getFilteredData.map((req) => req.state))];
 
     return statuses.map((status) => {
       const config = getStatusConfig(status);
@@ -253,7 +385,7 @@ export function DataTable() {
         rowClassName: config.rowClassName,
       };
     });
-  }, [data]);
+  }, [getFilteredData]);
 
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
@@ -364,7 +496,7 @@ export function DataTable() {
       },
       cell: ({ row }) => (
         <div className="max-w-[200px] truncate first-letter:uppercase">
-          {format(row.getValue("createdAt"), "PP", { locale: fr })}
+          {format(new Date(row.getValue("createdAt")), "PP", { locale: fr })}
         </div>
       ),
     },
@@ -459,7 +591,7 @@ export function DataTable() {
   };
 
   const table = useReactTable<RequestModelT>({
-    data: data?.reverse() || [],
+    data: getFilteredData?.reverse() || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -473,14 +605,12 @@ export function DataTable() {
     globalFilterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
 
-      // Recherche dans toutes les colonnes principales avec conversion des IDs en noms
       const searchableColumns = ["label", "projectId", "ref"];
 
       return searchableColumns.some((columnId) => {
         const rawValue = row.getValue(columnId);
         let displayValue = rawValue;
 
-        // Convertir les IDs en noms pour la recherche
         if (columnId === "projectId") {
           displayValue = getProjectName(String(rawValue));
         }
@@ -556,7 +686,84 @@ export function DataTable() {
           </SelectContent>
         </Select>
 
-        {/* Column visibility */}
+        {/* Date filter avec option personnalisée */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="bg-transparent">
+              {getDateFilterText()}
+              <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem
+              onClick={() => clearCustomDateRange()}
+              className={cn(
+                "flex items-center justify-between",
+                !dateFilter && "bg-accent"
+              )}
+            >
+              <span>{"Toutes les périodes"}</span>
+              {!dateFilter && <ChevronRight className="h-4 w-4" />}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setDateFilter("today")}
+              className={cn(
+                "flex items-center justify-between",
+                dateFilter === "today" && "bg-accent"
+              )}
+            >
+              <span>{"Aujourd'hui"}</span>
+              {dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setDateFilter("week")}
+              className={cn(
+                "flex items-center justify-between",
+                dateFilter === "week" && "bg-accent"
+              )}
+            >
+              <span>{"Cette semaine"}</span>
+              {dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setDateFilter("month")}
+              className={cn(
+                "flex items-center justify-between",
+                dateFilter === "month" && "bg-accent"
+              )}
+            >
+              <span>{"Ce mois"}</span>
+              {dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setDateFilter("year")}
+              className={cn(
+                "flex items-center justify-between",
+                dateFilter === "year" && "bg-accent"
+              )}
+            >
+              <span>{"Cette année"}</span>
+              {dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleCustomDateClick}
+              className={cn(
+                "flex items-center justify-between",
+                dateFilter === "custom" && "bg-accent"
+              )}
+            >
+              <span className="flex items-center">
+                <CalendarDays className="mr-2 h-4 w-4" />
+                {"Personnaliser"}
+              </span>
+              {dateFilter === "custom" && <ChevronRight className="h-4 w-4" />}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Colonne de visibilité */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
@@ -658,6 +865,118 @@ export function DataTable() {
       {table.getRowModel().rows?.length > 0 && (
         <Pagination table={table} pageSize={15} />
       )}
+
+      {/* Modal pour la plage de dates personnalisée */}
+      <Dialog open={isCustomDateModalOpen} onOpenChange={setIsCustomDateModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Sélectionner une plage de dates</DialogTitle>
+            <DialogDescription>
+              Choisissez la période que vous souhaitez filtrer
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="date-from">Date de début</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !tempCustomDateRange?.from && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {tempCustomDateRange?.from ? (
+                        format(tempCustomDateRange.from, "PPP", { locale: fr })
+                      ) : (
+                        <span>Sélectionner une date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={tempCustomDateRange?.from}
+                      onSelect={(date) =>
+                        setTempCustomDateRange((prev) => ({
+                          from: date || prev?.from || new Date(),
+                          to: prev?.to || new Date(),
+                        }))
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="date-to">Date de fin</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !tempCustomDateRange?.to && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {tempCustomDateRange?.to ? (
+                        format(tempCustomDateRange.to, "PPP", { locale: fr })
+                      ) : (
+                        <span>Sélectionner une date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={tempCustomDateRange?.to}
+                      onSelect={(date) =>
+                        setTempCustomDateRange((prev) => ({
+                          from: prev?.from || new Date(),
+                          to: date || prev?.to || new Date(),
+                        }))
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            <div className="rounded-md border p-4">
+              <Calendar
+                mode="range"
+                selected={tempCustomDateRange}
+                onSelect={(range) =>
+                  setTempCustomDateRange(range as { from: Date; to: Date })
+                }
+                numberOfMonths={1}
+                className="rounded-md border"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCustomDateModalOpen(false)}
+            >
+              Annuler
+            </Button>
+            <Button onClick={applyCustomDateRange}>
+              Appliquer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modals existants */}
       <DetailBesoin
         open={isModalOpen}
         onOpenChange={setIsModalOpen}

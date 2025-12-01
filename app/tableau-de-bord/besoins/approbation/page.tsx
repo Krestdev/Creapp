@@ -9,6 +9,12 @@ const Page = () => {
   const { hasAccess, isChecking } = useAuthGuard({
     authorizedRoles: ["ADMIN", "MANAGER"],
   });
+  const [dateFilter, setDateFilter] = React.useState<
+    "today" | "week" | "month" | "year" | "custom" | undefined
+  >();
+  const [customDateRange, setCustomDateRange] = React.useState<
+    { from: Date; to: Date } | undefined
+  >();
 
   if (isChecking) {
     return <div>Chargement...</div>;
@@ -26,7 +32,7 @@ const Page = () => {
         subtitle="Soumettez ou rejetez les besoins."
         color="green"
       />
-      <Approbation />
+      <Approbation dateFilter={dateFilter} setDateFilter={setDateFilter} />
     </div>
   );
 };

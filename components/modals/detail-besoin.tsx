@@ -19,11 +19,8 @@ import {
   Calendar,
   X,
   LucidePieChart,
-  SettingsIcon,
-  FileWarning,
   UserCheck,
   Check,
-  CheckCheck,
   Clock,
 } from "lucide-react";
 import { useStore } from "@/providers/datastore";
@@ -35,14 +32,6 @@ import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { fr } from "date-fns/locale";
 import { DepartmentQueries } from "@/queries/departmentModule";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Card } from "../ui/card";
 
 interface DetailModalProps {
@@ -239,7 +228,17 @@ export function DetailBesoin({
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground mb-1">{"Statut"}</p>
                 <Badge className={currentStatus.color}>
-                  <X className="h-3 w-3 mr-1" />
+                  {currentStatus.label === "Rejeté" ? (
+                    <X className="h-3 w-3 mr-1" />
+                  ) : currentStatus.label === "Valide" ? (
+                    <Check className="h-3 w-3 mr-1" />
+                  ) : currentStatus.label === "En attente" ? (
+                    <Clock className="h-3 w-3 mr-1" />
+                  ) : currentStatus.label === "En cours" ? (
+                    <Clock className="h-3 w-3 mr-1" />
+                  ) : (
+                    ""
+                  )}
                   {currentStatus.label}
                 </Badge>
               </div>
@@ -530,7 +529,7 @@ export function DetailBesoin({
           <Button
             onClick={action}
             className="flex-1 bg-[#003D82] hover:bg-[#002D62] text-white"
-            disabled={data.state !== "pending"}
+            disabled={data.state !== "pending" || data.revieweeList?.some((x) => x.validatorId === user?.id)}
           >
             {actionButton}
           </Button>

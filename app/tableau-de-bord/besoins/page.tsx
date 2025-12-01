@@ -12,29 +12,32 @@ import React from "react";
 
 function Page() {
   const { user, isHydrated } = useStore();
+  const [dateFilter, setDateFilter] = React.useState<
+    "today" | "week" | "month" | "year" | "custom" | undefined
+  >();
+  const [customDateRange, setCustomDateRange] = React.useState<
+    { from: Date; to: Date } | undefined
+  >();
+
   const links = [
     { title: "Creer un besoin", href: "/tableau-de-bord/besoins/create" },
     { title: "Mes Besoins", href: "/tableau-de-bord/besoins/mylist" },
     { title: "Approbation", href: "/tableau-de-bord/besoins/approbation" },
   ];
 
-  const [data, setData] = React.useState<RequestModelT[]>([]);
   const request = new RequestQueries();
-  // Récupérer tous les besoins en attente de validation (pour les validateurs)
+
   const requestData = useQuery({
     queryKey: ["requests-validation"],
-    queryFn: () => {
-      return request.getAll();
-    },
+    queryFn: () => request.getAll(),
     enabled: isHydrated,
   });
 
   const department = new DepartmentQueries();
+
   const departmentData = useQuery({
     queryKey: ["departments"],
-    queryFn: async () => {
-      return department.getAll();
-    },
+    queryFn: () => department.getAll(),
   });
 
   const isLastValidator =
@@ -42,54 +45,102 @@ function Page() {
       .flatMap((mem) => mem.members)
       .find((mem) => mem.userId === user?.id)?.finalValidator === true;
 
-  // afficher les element a valider en fonction du validateur
-  React.useEffect(() => {
-    if (requestData.data?.data && user) {
-      const show = requestData.data?.data
-        .filter((x) => x.state === "pending")
-        .filter((item) => {
-          // Récupérer la liste des IDs des validateurs pour ce departement
-          const validatorIds = departmentData.data?.data
-            .flatMap((x) => x.members)
-            .filter((x) => x.validator === true)
-            .map((x) => x.userId);
+  // -------------------------------------------------
+  // FILTER BY DATE — MEMOIZED (IMPORTANT)
+  // -------------------------------------------------
+  const filteredData = React.useMemo(() => {
+    if (!requestData.data?.data) return [];
 
-          if (isLastValidator) {
-            return validatorIds?.every((id) =>
-              item.revieweeList?.flatMap((x) => x.validatorId).includes(id)
-            );
-          } else {
-            return (
-              !item.revieweeList
-                ?.flatMap((x) => x.validatorId)
-                .includes(user?.id!) && item.state === "pending"
-            );
-          }
-        });
-      setData(show);
+    const data = requestData.data.data;
+
+    if (!dateFilter) return data;
+
+    const now = new Date();
+    let startDate = new Date();
+
+    switch (dateFilter) {
+      case "week":
+        startDate.setDate(
+          now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+        );
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case "month":
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case "year":
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
     }
-  }, [
-    requestData.data?.data,
-    user,
-    isLastValidator,
-    departmentData.data?.data,
-  ]);
 
-  const reçus = requestData.data?.data.length ?? 0;
+    return data.filter((item) => {
+      const itemDate = new Date(item.createdAt);
+      return itemDate >= startDate && itemDate <= now;
+    });
+  }, [requestData.data?.data, dateFilter]);
+
+  // -------------------------------------------------
+  // VALIDATION LOGIC
+  // -------------------------------------------------
+
+  const [data, setData] = React.useState<RequestModelT[]>([]);
+
+  React.useEffect(() => {
+    if (!filteredData || !user || !departmentData.data?.data) return;
+
+    const allMembers = departmentData.data.data.flatMap((x) => x.members);
+
+    const validatorIds = allMembers
+      .filter((x) => x.validator)
+      .map((x) => x.userId);
+
+    const show = filteredData
+      .filter((x) => x.state === "pending")
+      .filter((item) => {
+        const reviewedIds =
+          item.revieweeList?.flatMap((x) => x.validatorId) ?? [];
+
+        if (isLastValidator) {
+          return validatorIds.every((id) => reviewedIds.includes(id));
+        } else {
+          return !reviewedIds.includes(user.id!);
+        }
+      });
+
+    setData(show);
+  }, [filteredData, user, isLastValidator, departmentData.data?.data]);
+
+  // -------------------------------------------------
+  // STATS
+  // -------------------------------------------------
+
+  const reçus = filteredData.length;
+
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
   const reçusMois =
-    requestData.data?.data.filter(
-      (item) => new Date(item.createdAt).getMonth() === new Date().getMonth()
-    ).length ?? 0;
-  const attentes = data.filter((item) => item.state === "pending").length ?? 0;
-  const mine = data.filter((item) => item.userId === user?.id).length ?? 0;
+    filteredData.filter((item) => {
+      const itemDate = new Date(item.createdAt);
+      return (
+        itemDate.getMonth() === currentMonth &&
+        itemDate.getFullYear() === currentYear
+      );
+    }).length ?? 0;
+
+  const attentes = data.filter((i) => i.state === "pending").length;
+
+  const mine = data.filter((i) => i.userId === user?.id).length;
 
   if (!isHydrated) return null;
+
   return (
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
         title="Besoins"
-        subtitle="Consulter et gerez les besoins"
+        subtitle="Consulter et gérez les besoins"
         color="red"
         links={links.filter(
           (x) =>
@@ -99,6 +150,7 @@ function Page() {
             )
         )}
       />
+
       {user?.role.flatMap((r) => r.label).includes("MANAGER") && (
         <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
           <StatsCard
@@ -112,8 +164,9 @@ function Page() {
             className={"bg-[#013E7B] text-[#ffffff] border-[#2262A2]"}
             dvalueColor="text-[#FFFFFF]"
           />
+
           <StatsCard
-            title="Total besoins recus"
+            title="Total besoins reçus"
             titleColor="text-[#52525B]"
             value={String(reçus)}
             description="Besoins reçus ce mois :"
@@ -125,8 +178,15 @@ function Page() {
           />
         </div>
       )}
-      {/* Page table */}
-      <DataTable />
+
+      {/* Table */}
+
+      <DataTable
+        dateFilter={dateFilter}
+        setDateFilter={setDateFilter}
+        customDateRange={customDateRange}
+        setCustomDateRange={setCustomDateRange}
+      />
     </div>
   );
 }

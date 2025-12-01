@@ -35,7 +35,7 @@ import { RequestQueries } from "@/queries/requestModule";
 
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, Locale } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon, ChevronDownIcon, LoaderIcon } from "lucide-react";
@@ -64,10 +64,9 @@ const formSchema = z.object({
 
 export default function MyForm() {
   const { user } = useStore();
+  const queryClient = useQueryClient(); // Ajout du QueryClient
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [open, setOpen] = useState(false);
 
   const [selectedUsers, setSelectedUsers] = useState<
     { id: number; name: string }[]
@@ -145,8 +144,12 @@ export default function MyForm() {
       toast.success("Besoin soumis avec succès !");
       setIsSuccessModalOpen(true);
       form.reset();
-
       setSelectedUsers([]);
+      
+      // Invalider et rafraîchir toutes les requêtes liées aux besoins
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      queryClient.invalidateQueries({ queryKey: ["requests-validation"] });
+      queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
     },
 
     onError: () => toast.error("Une erreur est survenue."),

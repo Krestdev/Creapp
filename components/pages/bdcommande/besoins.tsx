@@ -13,8 +13,8 @@ interface Request {
   dueDate?: Date;
 }
 interface Props {
-  selected: Request[]
-  setSelected: Dispatch<SetStateAction<Request[]>>
+  selected: Request[];
+  setSelected: Dispatch<SetStateAction<Request[]>>;
 }
 
 const Besoins = ({ selected, setSelected }: Props) => {
@@ -31,6 +31,11 @@ const Besoins = ({ selected, setSelected }: Props) => {
     queryFn: () => request.getAll(),
   });
 
+  const categoriesData = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => request.getCategories(),
+  });
+
   const cotation = commandData.data?.data ?? [];
 
   const besoinCommandes =
@@ -44,7 +49,12 @@ const Besoins = ({ selected, setSelected }: Props) => {
     <div className="flex flex-col gap-4">
       {filteredData.length > 0 ? (
         <div className="flex flex-col">
-          <BesoinsTraiter data={filteredData} selected={selected} setSelected={setSelected} />
+          <BesoinsTraiter
+            data={filteredData}
+            selected={selected}
+            setSelected={setSelected}
+            categories={categoriesData.data?.data ?? []}
+          />
         </div>
       ) : (
         <Empty message={"Aucune donnée a afficher"} />

@@ -76,9 +76,23 @@ export default function CreateCotationForm() {
     queryFn: () => request.getAll(),
   });
 
+  const commandData = useQuery({
+    queryKey: ["commands"],
+    queryFn: async () => command.getAll(),
+  });
+
+  const cotation = commandData.data?.data ?? [];
+
+  const besoinCommandes =
+    cotation.flatMap((item) => item.besoins?.flatMap((b) => b.id)) ?? [];
+  const filteredData =
+    requestData.data?.data.filter(
+      (item) => !besoinCommandes.includes(item.id)
+    ) ?? [];
+
   // map request to Request Type {id: number, name: string}
   const requests =
-    requestData.data?.data
+    filteredData
       .filter((x) => x.state === "validated")
       .map((item) => ({
         id: item.id,
@@ -176,7 +190,7 @@ export default function CreateCotationForm() {
             name="date_limite"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>{"Date limite"}</FormLabel>
+                <FormLabel>{"Date limite de livraison"}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl className="w-full">

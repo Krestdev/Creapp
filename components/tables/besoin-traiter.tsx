@@ -34,8 +34,17 @@ import {
 } from "@/components/ui/table";
 import { RequestModelT } from "@/types/types";
 import { Pagination } from "../base/pagination";
-import { Label } from "../ui/label";
 import { ModalDestockage } from "../modals/modal-Destockage";
+import { CategoryT } from "@/queries/requestModule";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface Request {
   id: number;
@@ -47,12 +56,14 @@ interface BesoinsTraiterTableProps {
   data: RequestModelT[];
   selected?: Request[];
   setSelected?: React.Dispatch<React.SetStateAction<Request[]>>;
+  categories: CategoryT[];
 }
 
 export function BesoinsTraiter({
   data,
   selected,
   setSelected,
+  categories,
 }: BesoinsTraiterTableProps) {
   const [isOpenModal, setIsModalOpen] = React.useState(false);
   const [select, setSelect] = React.useState<RequestModelT>();
@@ -123,15 +134,25 @@ export function BesoinsTraiter({
     [internalRowSelection, data, setSelected]
   );
 
-  const getSelectedRequestIds = () => {
-    return Object.keys(internalRowSelection)
-      .filter((key) => internalRowSelection[key])
-      .map((key) => {
-        const rowIndex = parseInt(key);
-        return data[rowIndex]?.id;
-      })
-      .filter(Boolean);
+  const getCategoryName = (categoryId: string | number) => {
+    const id = typeof categoryId === 'string' ? Number(categoryId) : categoryId;
+    const category = categories.find((cat) => cat.id === id);
+    return category?.label || String(categoryId);
   };
+
+  const uniqueCategories = React.useMemo(() => {
+    if (!data.length || !categories) return [];
+
+    const categoryIds = [...new Set(data.map((req) => req.categoryId))];
+    return categoryIds.map((categoryId) => {
+      const id = typeof categoryId === 'string' ? Number(categoryId) : categoryId;
+      const category = categories.find((cat) => cat.id === id);
+      return {
+        id: String(categoryId), // Toujours stocker en string pour la compatibilité
+        name: category?.label || `Catégorie ${categoryId}`,
+      };
+    });
+  }, [data, categories]);
 
   const columns: ColumnDef<RequestModelT>[] = [
     {
@@ -151,6 +172,7 @@ export function BesoinsTraiter({
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
+          className="border-gray-500"
         />
       ),
       enableSorting: false,
@@ -162,6 +184,7 @@ export function BesoinsTraiter({
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="text-white hover:bg-gray-500"
         >
           {"Titre"}
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -170,13 +193,57 @@ export function BesoinsTraiter({
       cell: ({ row }) => <div>{row.getValue("label")}</div>,
     },
     {
+      accessorKey: "categoryId",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="text-white hover:bg-gray-500"
+        >
+          {"Catégorie"}
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const categoryId = row.getValue("categoryId");
+        return <div>{getCategoryName(categoryId as string | number)}</div>;
+      },
+      // Fonction de filtrage corrigée
+      filterFn: (row, columnId, filterValue) => {
+        
+        if (!filterValue || filterValue === "all" || filterValue === "") {
+          return true;
+        }
+        
+        const rowValue = row.getValue(columnId);
+        // Normaliser les deux côtés en string pour la comparaison
+        const rowValueStr = String(rowValue);
+        const filterValueStr = String(filterValue);
+        
+        return rowValueStr === filterValueStr;
+      },
+    },
+    {
+      accessorKey: "dueDate",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="text-white hover:bg-gray-500"
+        >
+          {"Date Limite"}
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>,
+    },
+    {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
         return (
           <div className=" flex justify-end gap-2">
-            {/* Container avec largeur fixe */}
             <Button
               onClick={() => {
                 setSelect(item);
@@ -202,7 +269,7 @@ export function BesoinsTraiter({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: handleRowSelectionChange, // Utiliser le handler personnalisé
+    onRowSelectionChange: handleRowSelectionChange,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
@@ -216,28 +283,52 @@ export function BesoinsTraiter({
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection: internalRowSelection, 
+      rowSelection: internalRowSelection,
       globalFilter,
     },
   });
 
-  // Debug: afficher la sélection actuelle
-  React.useEffect(() => {
-    console.log("Sélection interne:", internalRowSelection);
-    console.log("Sélection externe:", selected);
-  }, [internalRowSelection, selected]);
-
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
-        <div className="w-full flex flex-col gap-1.5">
-          <Label htmlFor="search">Rechercher un besoin</Label>
+        <div className="w-full flex flex-row gap-1.5">
           <Input
             placeholder="Rechercher un besoin"
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="max-w-[320px] w-full"
           />
+          {/* Category filter */}
+          <Select
+            value={
+              (table.getColumn("categoryId")?.getFilterValue() as string) ??
+              "all"
+            }
+            onValueChange={(value) => {
+              // Définir le filtre avec la valeur sélectionnée
+              table.getColumn("categoryId")?.setFilterValue(
+                value === "all" ? "" : value
+              );
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtrer par catégorie" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les catégories</SelectItem>
+              {uniqueCategories?.map((category) => {
+                return (
+                  <SelectItem
+                    key={category.id}
+                    value={category.id}
+                    className="capitalize"
+                  >
+                    {category.name}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -279,7 +370,7 @@ export function BesoinsTraiter({
 
       <div className="rounded-md">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-gray-500">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-none">
                 {headerGroup.headers.map((header) => {
@@ -297,24 +388,28 @@ export function BesoinsTraiter({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody className="border shadow bg-white">
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="border-none"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="border-none">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row, index) => {
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={`border-none ${
+                      index % 2 === 1 ? "bg-gray-200" : ""
+                    }`}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="border-none">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow className="border-none">
                 <TableCell
