@@ -154,7 +154,7 @@ function Page() {
             )
         )
         .map((link, id)=>{
-          const isLast = id === links.length - 1;
+          const isLast = links.length > 1 ? false : id === links.length - 1;
           return (
           <Link key={id} href={link.href}>
             <Button size={"lg"} variant={isLast ? "accent" : "ghost"}>{link.title}</Button>
