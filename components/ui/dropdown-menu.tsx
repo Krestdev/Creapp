@@ -21,11 +21,13 @@ function DropdownMenuPortal({
 }
 
 function DropdownMenuTrigger({
+  className,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
   return (
     <DropdownMenuPrimitive.Trigger
       data-slot="dropdown-menu-trigger"
+      className={cn("w-fit h-10 inline-flex gap-2 px-4 items-center rounded-md border border-input shadow-xs [&_svg]:size-4 [&_svg]:text-muted-foreground [&_svg]:opacity-50", className)}
       {...props}
     />
   )
