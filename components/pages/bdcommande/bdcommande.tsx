@@ -13,6 +13,9 @@ import { useRouter } from "next/navigation";
 import React from "react";
 
 const Bdcommande = () => {
+  const [dateFilter, setDateFilter] = React.useState<
+    "today" | "week" | "month" | "year" | "custom" | undefined
+  >();
   const router = useRouter();
   const request = new RequestQueries();
   const command = new CommandQueries();
@@ -96,7 +99,11 @@ const Bdcommande = () => {
           <div className="flex justify-between">
             <h2>{"Demandes de quotation"}</h2>
           </div>
-          <CommandeTable data={commandData.data?.data} />
+          <CommandeTable
+            data={commandData.data?.data}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+          />
         </div>
       )}
       {filteredData.length > 0 && (
