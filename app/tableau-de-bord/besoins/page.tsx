@@ -3,11 +3,13 @@
 import { DataTable } from "@/components/base/data-table";
 import StatsCard from "@/components/base/StatsCard";
 import PageTitle from "@/components/pageTitle";
+import { Button } from "@/components/ui/button";
 import { useStore } from "@/providers/datastore";
 import { DepartmentQueries } from "@/queries/departmentModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import React from "react";
 
 function Page() {
@@ -19,7 +21,7 @@ function Page() {
     { from: Date; to: Date } | undefined
   >();
 
-  const links = [
+  const links:Array<{title: string; href: string;}> = [
     { title: "Creer un besoin", href: "/tableau-de-bord/besoins/create" },
     { title: "Mes Besoins", href: "/tableau-de-bord/besoins/mylist" },
     { title: "Approbation", href: "/tableau-de-bord/besoins/approbation" },
@@ -142,14 +144,26 @@ function Page() {
         title="Besoins"
         subtitle="Consulter et gérez les besoins"
         color="red"
-        links={links.filter(
+      >
+        {links
+        .filter(
           (x) =>
             !(
               x.title === "Approbation" &&
               !user?.role.flatMap((r) => r.label).includes("MANAGER")
             )
-        )}
-      />
+        )
+        .map((link, id)=>{
+          const isLast = id === links.length - 1;
+          return (
+          <Link key={id} href={link.href}>
+            <Button size={"lg"} variant={isLast ? "accent" : "ghost"}>{link.title}</Button>
+          </Link>
+          )
+        }
+          )
+        }
+      </PageTitle>
 
       {user?.role.flatMap((r) => r.label).includes("MANAGER") && (
         <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">

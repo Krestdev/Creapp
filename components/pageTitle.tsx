@@ -1,35 +1,14 @@
 "use client";
 
-import React from "react";
-import { Button } from "./ui/button";
-import { ArrowBigLeft } from "lucide-react";
-import { PageTitleProps } from "@/types/types";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
+import { PageTitleProps } from "@/types/types";
+import { ArrowBigLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "./ui/button";
 
-const PageTitle = ({ title, subtitle, links, color }: PageTitleProps) => {
+const PageTitle = ({ title, subtitle, children, color }: PageTitleProps) => {
   const router = useRouter();
-  const { user } = useStore();
 
-  const filteredLinks = React.useMemo(() => {
-    if (!user || !links) return links || [];
-
-    const userRoles = user.role.map((r) => r.label);
-
-    return links.filter((linkButton) => {
-      if (
-        linkButton.title === "Approbation" &&
-        userRoles.includes("USER") &&
-        user.role.length === 1
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [links, user]);
 
   return (
     <div
@@ -46,23 +25,13 @@ const PageTitle = ({ title, subtitle, links, color }: PageTitleProps) => {
           <h1 className="font-bold">{title}</h1>
           <h4 className="font-extralight tracking-wide">{subtitle}</h4>
         </div>
-        <Button onClick={() => router.back()}>
-          <ArrowBigLeft size={20} />
+        <Button variant={"outline"} size={'lg'} onClick={() => router.back()}>
+          <ArrowBigLeft />
           {"Précédent"}
         </Button>
       </div>
       <div className="flex gap-3">
-        {filteredLinks?.map((linkButton) => {
-          return (
-            <Link
-              key={linkButton.href}
-              className="text-primary outline px-5 py-2 rounded-md bg-white"
-              href={linkButton.href}
-            >
-              {linkButton.title}
-            </Link>
-          );
-        })}
+        {children}
       </div>
     </div>
   );

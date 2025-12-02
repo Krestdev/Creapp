@@ -393,13 +393,13 @@ export function DataTable({
       accessorKey: "ref",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+          className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Références"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown />
+          </span>
         );
       },
       cell: ({ row }) => (
@@ -410,13 +410,13 @@ export function DataTable({
       accessorKey: "label",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+           className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Titres"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown />
+          </span>
         );
       },
       cell: ({ row }) => (
@@ -429,13 +429,13 @@ export function DataTable({
       accessorKey: "projectId",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Projets"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown />
+          </span>
         );
       },
       cell: ({ row }) => {
@@ -457,13 +457,13 @@ export function DataTable({
       },
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Catégories"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown />
+          </span>
         );
       },
       cell: ({ row }) => {
@@ -485,13 +485,13 @@ export function DataTable({
       },
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Date d'émission"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown />
+          </span>
         );
       },
       cell: ({ row }) => (
@@ -507,13 +507,13 @@ export function DataTable({
       },
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Statuts"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown />
+          </span>
         );
       },
       cell: ({ row }) => {
@@ -523,7 +523,7 @@ export function DataTable({
 
         return (
           <Badge className={cn("gap-1", config.badgeClassName)}>
-            <Icon className="h-3 w-3" />
+            <Icon size={12} />
             {getTranslatedLabel(config.label)}
           </Badge>
         );
@@ -532,7 +532,7 @@ export function DataTable({
     {
       id: "actions",
       enableHiding: false,
-      header: "Actions",
+      header: ()=><span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
 
@@ -631,137 +631,149 @@ export function DataTable({
     <div className="w-full">
       <div className="flex flex-wrap items-center gap-4 py-4">
         {/* Global search */}
-        <Input
-          placeholder="Rechercher par titre, référence, ou projet..."
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
-
+        <div className="grid gap-1.5">
+          <Label htmlFor="search">{"Rechercher"}</Label>
+          <Input
+            placeholder="Rechercher par titre, référence, ou projet..."
+            name="search"
+            type="search"
+            value={globalFilter ?? ""}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            className="max-w-sm"
+          />
+        </div>
         {/* Category filter */}
-        <Select
-          value={
-            (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
-          }
-          onValueChange={(value) =>
-            table
-              .getColumn("categoryId")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{"Toutes les catégories"}</SelectItem>
-            {uniqueCategories.map((category) => (
-              <SelectItem key={category.id} value={String(category.id)}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
+        <div className="grid gap-1.5">
+          <Label htmlFor="category">{"Catégorie"}</Label>
+          <Select
+            name="category"
+            value={
+              (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
+            }
+            onValueChange={(value) =>
+              table
+                .getColumn("categoryId")
+                ?.setFilterValue(value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="min-w-48">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Toutes les catégories"}</SelectItem>
+              {uniqueCategories.map((category) => (
+                <SelectItem key={category.id} value={String(category.id)}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         {/* Status filter */}
-        <Select
-          value={
-            (table.getColumn("state")?.getFilterValue() as string) ?? "all"
-          }
-          onValueChange={(value) =>
-            table
-              .getColumn("state")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-            {uniqueStatuses.map((state) => (
-              <SelectItem key={state.id} value={String(state.id)}>
-                {getTranslatedLabel(state.name)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
+        <div className="grid gap-1.5">
+          <Label htmlFor="status">{"Statut"}</Label>
+          <Select
+          name="status"
+            value={
+              (table.getColumn("state")?.getFilterValue() as string) ?? "all"
+            }
+            onValueChange={(value) =>
+              table
+                .getColumn("state")
+                ?.setFilterValue(value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Tous les statuts"}</SelectItem>
+              {uniqueStatuses.map((state) => (
+                <SelectItem key={state.id} value={String(state.id)}>
+                  {getTranslatedLabel(state.name)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         {/* Date filter avec option personnalisée */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="bg-transparent">
-              {getDateFilterText()}
-              <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem
-              onClick={() => clearCustomDateRange()}
-              className={cn(
-                "flex items-center justify-between",
-                !dateFilter && "bg-accent"
-              )}
-            >
-              <span>{"Toutes les périodes"}</span>
-              {!dateFilter && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => setDateFilter("today")}
-              className={cn(
-                "flex items-center justify-between",
-                dateFilter === "today" && "bg-accent"
-              )}
-            >
-              <span>{"Aujourd'hui"}</span>
-              {dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setDateFilter("week")}
-              className={cn(
-                "flex items-center justify-between",
-                dateFilter === "week" && "bg-accent"
-              )}
-            >
-              <span>{"Cette semaine"}</span>
-              {dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setDateFilter("month")}
-              className={cn(
-                "flex items-center justify-between",
-                dateFilter === "month" && "bg-accent"
-              )}
-            >
-              <span>{"Ce mois"}</span>
-              {dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setDateFilter("year")}
-              className={cn(
-                "flex items-center justify-between",
-                dateFilter === "year" && "bg-accent"
-              )}
-            >
-              <span>{"Cette année"}</span>
-              {dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleCustomDateClick}
-              className={cn(
-                "flex items-center justify-between",
-                dateFilter === "custom" && "bg-accent"
-              )}
-            >
-              <span className="flex items-center">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                {"Personnaliser"}
-              </span>
-              {dateFilter === "custom" && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="grid gap-1.5">
+          <Label>{"Période"}</Label>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="h-10 inline-flex gap-2 flex-row items-center text-base border border-input px-5 rounded-md shadow-xs">
+                {getDateFilterText()}
+                <ChevronDown className="text-muted-foreground opacity-50" size={16} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={() => clearCustomDateRange()}
+                className={cn(
+                  "flex items-center justify-between",
+                  !dateFilter && "bg-accent"
+                )}
+              >
+                <span>{"Toutes les périodes"}</span>
+                {!dateFilter && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setDateFilter("today")}
+                className={cn(
+                  "flex items-center justify-between",
+                  dateFilter === "today" && "bg-accent"
+                )}
+              >
+                <span>{"Aujourd'hui"}</span>
+                {dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setDateFilter("week")}
+                className={cn(
+                  "flex items-center justify-between",
+                  dateFilter === "week" && "bg-accent"
+                )}
+              >
+                <span>{"Cette semaine"}</span>
+                {dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setDateFilter("month")}
+                className={cn(
+                  "flex items-center justify-between",
+                  dateFilter === "month" && "bg-accent"
+                )}
+              >
+                <span>{"Ce mois"}</span>
+                {dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setDateFilter("year")}
+                className={cn(
+                  "flex items-center justify-between",
+                  dateFilter === "year" && "bg-accent"
+                )}
+              >
+                <span>{"Cette année"}</span>
+                {dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleCustomDateClick}
+                className={cn(
+                  "flex items-center justify-between",
+                  dateFilter === "custom" && "bg-accent"
+                )}
+              >
+                <span className="flex items-center">
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  {"Personnaliser"}
+                </span>
+                {dateFilter === "custom" && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
 
         {/* Colonne de visibilité */}
         <DropdownMenu>

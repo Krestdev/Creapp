@@ -1,4 +1,5 @@
 import { LucideIcon, LucideProps } from "lucide-react";
+import React from "react";
 
 export interface NavigationItemProps {
   pageId: string;
@@ -20,10 +21,7 @@ export interface PageTitleProps {
   title: string;
   subtitle: string;
   color: "red" | "blue" | "green" | "none";
-  links?: {
-    title: string;
-    href: string;
-  }[];
+  children?: React.ReactNode;
 }
 
 export type UserRole = "admin" | "user";

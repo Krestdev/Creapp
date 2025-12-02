@@ -27,6 +27,8 @@
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+  --color-accent-700: var(--accent-700);
+  --color-accent-800: var(--accent-800);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -46,7 +48,7 @@
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.13 0.028 261.692);
+  --foreground: oklch(0.3052 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.13 0.028 261.692);
   --popover: oklch(1 0 0);
@@ -56,12 +58,14 @@
   --secondary: oklch(0.2506 0.074853 251.9371);
   --secondary-foreground: oklch(0.21 0.034 264.665);
   --muted: oklch(0.967 0.003 264.542);
-  --muted-foreground: oklch(0.551 0.027 264.364);
-  --accent: oklch(0.967 0.003 264.542);
-  --accent-foreground: oklch(0.21 0.034 264.665);
+  --muted-foreground: oklch(0.7118 0.0129 286.07);
+  --accent: oklch(0.8107 0.1697 75.7);
+  --accent-foreground: oklch(0.3052 0 0);
+  --accent-700: oklch(0.6825 0.1423 76.49);
+  --accent-800: oklch(0.5269 0.1134 69.64);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.928 0.006 264.531);
-  --input: oklch(0.928 0.006 264.531);
+  --input: oklch(0.9197 0.004 286.32);
   --ring: oklch(0.707 0.022 261.325);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -117,16 +121,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-sans;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground text-xs sm:text-sm lg:text-base;
+    @apply bg-background font-sans text-foreground text-xs sm:text-sm lg:text-base;
   }
   h1, h2, h3, h4, h5 {
     @apply font-mono font-semibold tracking-[-0.1rem];
@@ -136,6 +131,12 @@
   }
   h2 {
     @apply text-[18px] leading-[120%] tracking-normal;
+  }
+}
+
+@layer components {
+  .tablehead {
+    @apply w-full text-base px-2 font-semibold has-[>svg]:cursor-pointer inline-flex gap-2 items-center justify-between [&_svg]:size-4;
   }
 }
 
