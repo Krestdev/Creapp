@@ -13,20 +13,18 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  AlertCircle,
   ArrowUpDown,
-  Ban,
   CalendarDays,
   CalendarIcon,
   CheckCircle,
   ChevronDown,
   ChevronRight,
-  Clock,
   Eye,
+  Hourglass,
   LucideDownload,
+  LucideIcon,
   LucidePen,
-  Trash,
-  XCircle
+  Trash
 } from "lucide-react";
 import * as React from "react";
 
@@ -52,6 +50,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { CommandRequestT } from "@/types/types";
+import { VariantProps } from "class-variance-authority";
 import {
   addDays,
   format
@@ -60,7 +59,7 @@ import { fr } from "date-fns/locale";
 import { Pagination } from "../base/pagination";
 import { DetailOrder } from "../modals/detail-order";
 import { UpdateCotationModal } from "../pages/bdcommande/UpdateCotationModal";
-import { Badge } from "../ui/badge";
+import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
 import {
   Dialog,
@@ -125,51 +124,21 @@ export function CommandeTable({
     { from: Date; to: Date } | undefined
   >(customDateRange || { from: addDays(new Date(), -7), to: new Date() });
 
-  const statusConfig = {
-    pending: {
-      label: "pending",
-      icon: Clock,
-      badgeClassName:
-        "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
-      rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20",
-    },
-    validated: {
-      label: "validated",
-      icon: CheckCircle,
-      badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
-      rowClassName:
-        "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
-    },
-    rejected: {
-      label: "rejected",
-      icon: XCircle,
-      badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
-      rowClassName: "bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30",
-    },
-    "in-review": {
-      label: "in review",
-      icon: AlertCircle,
-      badgeClassName: "bg-blue-200 text-blue-500 outline outline-blue-600 ",
-      rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
-    },
-    cancel: {
-      label: "Cancel",
-      icon: Ban,
-      badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
-      rowClassName: "bg-gray-50 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
-    },
-  };
-
-  const getStatusConfig = (status: string) => {
-    const config = statusConfig[status as keyof typeof statusConfig];
-    return (
-      config || {
-        label: status,
-        icon: AlertCircle,
-        badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
-        rowClassName: "bg-gray-50 dark:bg-gray-950/20",
-      }
-    );
+  const getStatusConfig = (status: string):{label:string; icon?: LucideIcon; variant: VariantProps<typeof badgeVariants>["variant"], rowClassName?:string} => {
+    switch(status){
+      case "pending":
+        return {label: "En attente", icon: Hourglass, variant:"amber", rowClassName: "bg-amber-50/50 hover:bg-amber-50"};
+      case "validated":
+        return {label: "Validé", icon: CheckCircle, variant:"success", rowClassName: "bg-green-50/50 hover:bg-green-50"};
+      case "rejected":
+        return {label: "Rejeté",  variant:"destructive", rowClassName: "bg-red-50/50 hover:bg-red-50"};
+      case "in-review":
+        return {label: "En révision", variant:"sky", rowClassName: "bg-sky-50/50 hover:bg-sky-50"};
+      case "cancel":
+        return {label: "Annulé", variant:"default"};
+      default:
+        return {label: "Inconnu", variant: "default" }
+    }
   };
 
   // Fonction pour filtrer les données selon la période sélectionnée
@@ -409,8 +378,8 @@ export function CommandeTable({
         const Icon = config.icon;
 
         return (
-          <Badge className={cn("gap-1", config.badgeClassName)}>
-            <Icon />
+          <Badge variant={config.variant}>
+            {Icon && <Icon />}
             {getTranslatedLabel(config.label)}
           </Badge>
         );
@@ -692,7 +661,7 @@ export function CommandeTable({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className={cn(config.rowClassName)}
+                    className={cn(config.rowClassName ?? "")}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
@@ -734,16 +703,16 @@ export function CommandeTable({
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Sélectionner une plage de dates</DialogTitle>
+            <DialogTitle>{"Sélectionner une plage de dates"}</DialogTitle>
             <DialogDescription>
-              Choisissez la période que vous souhaitez filtrer
+              {"Choisissez la période que vous souhaitez filtrer"}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date-from">Date de début</Label>
+                <Label htmlFor="date-from">{"Date de début"}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -757,7 +726,7 @@ export function CommandeTable({
                       {tempCustomDateRange?.from ? (
                         format(tempCustomDateRange.from, "PPP", { locale: fr })
                       ) : (
-                        <span>Sélectionner une date</span>
+                        <span>{"Sélectionner une date"}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -778,7 +747,7 @@ export function CommandeTable({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date-to">Date de fin</Label>
+                <Label htmlFor="date-to">{"Date de fin"}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -792,7 +761,7 @@ export function CommandeTable({
                       {tempCustomDateRange?.to ? (
                         format(tempCustomDateRange.to, "PPP", { locale: fr })
                       ) : (
-                        <span>Sélectionner une date</span>
+                        <span>{"Sélectionner une date"}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -830,9 +799,9 @@ export function CommandeTable({
               variant="outline"
               onClick={() => setIsCustomDateModalOpen(false)}
             >
-              Annuler
+              {"Annuler"}
             </Button>
-            <Button onClick={applyCustomDateRange}>Appliquer</Button>
+            <Button onClick={applyCustomDateRange}>{"Appliquer"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

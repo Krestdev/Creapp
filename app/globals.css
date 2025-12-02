@@ -33,8 +33,20 @@
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
+  --color-secondary-100: var(--secondary-100);
+  --color-secondary-200: var(--secondary-200);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-50: var(--primary-50);
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-300: var(--primary-300);
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  --color-primary-700: var(--primary-700);
+  --color-primary-800: var(--primary-800);
+  --color-primary-900: var(--primary-900);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -55,8 +67,20 @@
   --popover-foreground: oklch(0.13 0.028 261.692);
   --primary: oklch(0.351 0.1412 4.14);
   --primary-foreground: oklch(0.985 0.002 247.839);
+  --primary-50: oklch(98.123% 0.01095 347.852);
+  --primary-100: oklch(88.83% 0.04372 350.191);
+  --primary-200: oklch(74.487% 0.13073 352.593);
+  --primary-300: oklch(66.431% 0.16243 354.682);
+  --primary-400: oklch(59.837% 0.23086 2.354);
+  --primary-500: oklch(54.282% 0.21418 4.413);
+  --primary-600: oklch(45.962% 0.17435 1.592);
+  --primary-700: oklch(35.099% 0.14123 4.125);
+  --primary-800: oklch(32.132% 0.12231 1.339);
+  --primary-900: oklch(23.06% 0.09345 0.249);
   --secondary: oklch(0.2506 0.074853 251.9371);
   --secondary-foreground: oklch(0.21 0.034 264.665);
+  --secondary-100: oklch(86.354% 0.01243 248.155);
+  --secondary-200: oklch(67.814% 0.03372 248.381);
   --muted: oklch(0.967 0.003 264.542);
   --muted-foreground: oklch(0.7118 0.0129 286.07);
   --accent: oklch(0.8107 0.1697 75.7);
@@ -124,7 +148,7 @@
     @apply bg-background font-sans text-foreground text-xs sm:text-sm lg:text-base;
   }
   h1, h2, h3, h4, h5 {
-    @apply font-mono font-semibold tracking-[-0.1rem];
+    @apply font-mono font-semibold tracking-[-1.2%];
   }
   h1 {
     @apply text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] leading-[150%] ;
@@ -137,6 +161,9 @@
 @layer components {
   .tablehead {
     @apply w-full text-base px-2 font-semibold has-[>svg]:cursor-pointer inline-flex gap-2 items-center justify-between [&_svg]:size-4;
+  }
+  .content {
+    @apply grid gap-4 @min-[640px]:gap-6;
   }
 }
 
