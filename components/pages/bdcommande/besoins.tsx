@@ -4,6 +4,7 @@ import Empty from "@/components/base/empty";
 import { BesoinsTraiter } from "@/components/tables/besoin-traiter";
 import { CommandQueries } from "@/queries/commandModule";
 import { RequestQueries } from "@/queries/requestModule";
+import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { Dispatch, SetStateAction } from "react";
 
@@ -15,9 +16,11 @@ interface Request {
 interface Props {
   selected: Request[];
   setSelected: Dispatch<SetStateAction<Request[]>>;
+  dataSup?: RequestModelT[];
 }
 
-const Besoins = ({ selected, setSelected }: Props) => {
+const Besoins = ({ selected, setSelected, dataSup = [] }: Props) => {
+
   const command = new CommandQueries();
   const request = new RequestQueries();
 
@@ -40,10 +43,13 @@ const Besoins = ({ selected, setSelected }: Props) => {
 
   const besoinCommandes =
     cotation.flatMap((item) => item.besoins?.flatMap((b) => b.id)) ?? [];
-  const filteredData =
-    requestData.data?.data.filter(
+
+  const filteredData = [
+    ...(requestData.data?.data?.filter(
       (item) => item.state === "validated" && !besoinCommandes.includes(item.id)
-    ) ?? [];
+    ) ?? []),
+    ...(dataSup ?? []),
+  ];
 
   return (
     <div className="flex flex-col gap-4">

@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
 const Cotation = () => {
-
   const [dateFilter, setDateFilter] = React.useState<
     "today" | "week" | "month" | "year" | "custom" | undefined
   >();
@@ -20,7 +19,11 @@ const Cotation = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">
-        <CommandeTable data={commandData.data?.data} dateFilter={dateFilter} setDateFilter={setDateFilter} />
+        <CommandeTable
+          data={commandData.data?.data}
+          dateFilter={dateFilter}
+          setDateFilter={setDateFilter}
+        />
       </div>
     </div>
   );

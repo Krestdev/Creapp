@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -32,21 +32,14 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { RequestQueries } from "@/queries/requestModule";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CommandQueries } from "@/queries/commandModule";
-import { CommandRequestT } from "@/types/types";
+import { CommandRequestT, RequestModelT } from "@/types/types";
 import { useStore } from "@/providers/datastore";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import MultiSelectUsers from "@/components/base/multiSelectUsers";
 import { toast } from "sonner";
 import { SuccessModal } from "@/components/modals/success-modal";
+import MultiSelectUsers from "@/components/base/multiSelectUsers";
+import Besoins from "./besoins";
 
 const formSchema = z.object({
   titre: z.string().min(1, "Le titre est obligatoire"),
@@ -54,9 +47,6 @@ const formSchema = z.object({
     message: "Veuillez sélectionner au moins un besoin",
   }),
   date_limite: z.coerce.date(),
-  modality: z.string().optional(),
-  justification: z.string().optional(),
-  state: z.enum(["pending", "validated", "rejected", "in-review", "cancel"]),
 });
 
 interface Request {
@@ -71,6 +61,7 @@ interface UpdateCotationModalProps {
   commandId: number;
   commandData?: CommandRequestT;
   onSuccess?: () => void;
+  allCommands: CommandRequestT[] | undefined;
 }
 
 export function UpdateCotationModal({
@@ -78,11 +69,13 @@ export function UpdateCotationModal({
   onOpenChange,
   commandId,
   onSuccess,
+  commandData,
 }: UpdateCotationModalProps) {
-  const { user } = useStore();
   const [selected, setSelected] = useState<Request[]>([]);
+  const [dataSup, setDataSup] = useState<RequestModelT[] | undefined>();
   const [successOpen, setSuccessOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useStore();
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -90,21 +83,11 @@ export function UpdateCotationModal({
       titre: "",
       requests: [],
       date_limite: new Date(),
-      modality: "",
-      justification: "",
-      state: "pending",
     },
   });
 
   const command = new CommandQueries();
-
-  // Récupérer les données de la commande
-  const commandDetails = useQuery({
-    queryKey: ["command", commandId],
-    queryFn: () => command.getOne(commandId),
-    enabled: !!commandId && open,
-  });
-
+  
   // Mutation pour la mise à jour
   const updateCommand = useMutation({
     mutationKey: ["update-command", commandId],
@@ -113,8 +96,12 @@ export function UpdateCotationModal({
     onSuccess: () => {
       toast.success("Demande de cotation mise à jour avec succès");
       setSuccessOpen(true);
-      commandDetails.refetch();
       onSuccess?.();
+
+      // Invalider et rafraîchir les données
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      queryClient.invalidateQueries({ queryKey: ["requests-validation"] });
+      queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
     },
     onError: (error) => {
       toast.error("Erreur lors de la mise à jour de la demande");
@@ -129,47 +116,59 @@ export function UpdateCotationModal({
     enabled: open,
   });
 
-  const commandData = useQuery({
-    queryKey: ["commands"],
-    queryFn: async () => command.getAll(),
-    enabled: open,
-  });
+  // Calculer les besoins disponibles avec useMemo
+  const availableRequests = React.useMemo(() => {
+    if (!open) return [];
+    return (requestData.data?.data || [])
+      .filter((item) => item.state === "validated")
+      .map((item) => ({
+        id: item.id,
+        name: item.label,
+        dueDate: item.dueDate,
+      }));
+  }, [open, requestData.data?.data]);
 
-  // Initialiser le formulaire
+  // Effet pour initialiser les données quand la modal s'ouvre
   React.useEffect(() => {
-    if ((commandDetails.data?.data || commandData) && open) {
-      const data = commandDetails.data?.data;
+    if (!open || !commandData || !availableRequests.length) return;
 
-      if (data) {
-        // Transformer les besoins sélectionnés
-        const selectedRequests =
-          data.besoins?.map((besoin) => ({
-            id: besoin.id,
-            name: besoin.label || besoin.label || `Besoin ${besoin.id}`,
-            dueDate: besoin.dueDate,
-          })) || [];
+    // Calculer les données initiales
+    const selectedRequests = commandData.besoins?.map((b) => ({
+      id: b.id,
+      name: b.label,
+      dueDate: b.dueDate,
+    })) || [];
 
-        setSelected(selectedRequests);
+    const dataSupData = commandData.besoins || [];
 
-        form.reset({
-          titre: data.title || "",
-          requests: selectedRequests.map((r) => r.id),
-          date_limite: data.dueDate ? new Date(data.dueDate) : new Date(),
-          modality: data.modality || "",
-          justification: data.justification || "",
-          state: data.state as
-            | "pending"
-            | "validated"
-            | "rejected"
-            | "in-review"
-            | "cancel"
-            | undefined,
-        });
+    // Mettre à jour les états
+    setSelected(selectedRequests);
+    setDataSup(dataSupData);
 
-        setIsLoading(false);
-      }
+    // Reset du formulaire
+    form.reset({
+      titre: commandData.title || "",
+      requests: selectedRequests.map((r) => r.id),
+      date_limite: commandData.dueDate
+        ? new Date(commandData.dueDate)
+        : new Date(),
+    });
+
+  }, [open, commandData, availableRequests.length, form]);
+
+  // Effet pour nettoyer les états quand la modal se ferme
+  React.useEffect(() => {
+    if (!open) {
+      // Réinitialiser les états
+      setSelected([]);
+      setDataSup(undefined);
+      form.reset({
+        titre: "",
+        requests: [],
+        date_limite: new Date(),
+      });
     }
-  }, [commandDetails.data, commandData, open, form]);
+  }, [open, form]);
 
   // Fonction pour gérer la sélection des besoins
   const handleRequestsChange = (list: Request[]) => {
@@ -191,9 +190,6 @@ export function UpdateCotationModal({
         title: values.titre,
         requests: values.requests,
         dueDate: values.date_limite,
-        modality: values.modality,
-        justification: values.justification,
-        state: values.state,
         updatedAt: new Date(),
       };
 
@@ -208,262 +204,154 @@ export function UpdateCotationModal({
     onOpenChange(false);
   };
 
-  const handleSuccess = () => {
-    onOpenChange(false);
-    onSuccess?.();
-  };
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[70vw]! w-full max-h-[90vh] p-0 overflow-hidden">
+        <DialogContent className="max-w-[80vw]! w-full max-h-[90vh] p-0 overflow-hidden">
           <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
             <DialogTitle className="text-xl font-semibold text-white">
               {"Modifier la demande de cotation"}
             </DialogTitle>
-            <p className="text-sm text-white/80 mt-1">
+            <DialogDescription className="text-sm text-white/80 mt-1">
               {"Modifiez les informations de la demande de cotation"}
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+          <div className="flex flex-row flex-1 overflow-y-auto gap-4 p-6">
             {/* Formulaire */}
-            <div>
+            <div className="w-1/3">
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(handleSubmit)}
-                  className="space-y-6"
+                  className="space-y-8"
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Titre */}
-                    <FormField
-                      control={form.control}
-                      name="titre"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Titre *</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="ex. Fournitures pour Cédric et Samuel"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <FormField
+                    control={form.control}
+                    name="titre"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Titre</FormLabel>
+                        <FormControl className="w-full">
+                          <Input
+                            placeholder="ex. Fournitures pour Cédric et Samuel en Papier et stylos"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    {/* Date limite */}
-                    <FormField
-                      control={form.control}
-                      name="date_limite"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Date limite de livraison *</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  type="button"
-                                  variant={"outline"}
-                                  className={cn(
-                                    "pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, "dd/MM/yyyy")
-                                  ) : (
-                                    <span>Choisir une date</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto p-0"
-                              align="start"
-                            >
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) => date < new Date()}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <FormField
+                    control={form.control}
+                    name="requests"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{"Besoins"}</FormLabel>
+                        <FormControl className="h-fit">
+                          <MultiSelectUsers
+                            display="request"
+                            users={availableRequests}
+                            selected={selected}
+                            onChange={handleRequestsChange}
+                            className="w-full h-9"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {selected.length > 0
+                            ? `${selected.length} besoin(s) sélectionné(s)`
+                            : "Aucun besoin sélectionné"}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    {/* Modalité */}
-                    <FormField
-                      control={form.control}
-                      name="modality"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Modalité</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Modalité de paiement ou livraison"
-                              {...field}
-                              value={field.value || ""}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Statut */}
-                    <FormField
-                      control={form.control}
-                      name="state"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Statut</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner un statut" />
-                              </SelectTrigger>
+                  <FormField
+                    control={form.control}
+                    name="date_limite"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>{"Date limite de livraison"}</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl className="w-full">
+                              <Button
+                                type="button"
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Choisir une date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="pending">
-                                En attente
-                              </SelectItem>
-                              <SelectItem value="validated">Validé</SelectItem>
-                              <SelectItem value="in-review">
-                                En révision
-                              </SelectItem>
-                              <SelectItem value="rejected">Refusé</SelectItem>
-                              <SelectItem value="cancel">Annulé</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Besoins */}
-                    <FormField
-                      control={form.control}
-                      name="requests"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Besoins *</FormLabel>
-                          <FormControl>
-                            <MultiSelectUsers
-                              display="request"
-                              users={[]} // Vous devrez passer les données réelles ici
-                              selected={selected}
-                              onChange={handleRequestsChange}
-                              className="w-full"
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
                             />
-                          </FormControl>
-                          <FormDescription>
-                            {selected.length > 0
-                              ? `${selected.length} besoin(s) sélectionné(s)`
-                              : "Aucun besoin sélectionné"}
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    {/* Justification */}
-                    <FormField
-                      control={form.control}
-                      name="justification"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Justification</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Justification de la demande..."
-                              className="min-h-20"
-                              {...field}
-                              value={field.value || ""}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {/* Boutons d'action */}
+                  <div className="flex justify-end gap-4 pt-4 border-t shrink-0">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancel}
+                      disabled={updateCommand.isPending}
+                    >
+                      Annuler
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={
+                        updateCommand.isPending || !form.formState.isDirty
+                      }
+                    >
+                      {updateCommand.isPending
+                        ? "Mise à jour..."
+                        : "Mettre à jour"}
+                    </Button>
                   </div>
                 </form>
               </Form>
             </div>
 
             {/* Liste des besoins sélectionnés */}
-            <div  className="lg:col-span-2">
-              <div className="border border-gray-200 rounded-lg p-4 h-full">
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-lg font-semibold">
+            <div className="w-2/3">
+              <div className="flex flex-col gap-4 w-full border border-gray-200 rounded-md p-4 h-full">
+                <div className="flex justify-between items-center">
+                  <p className="text-[18px] font-semibold">
                     {`Besoins sélectionnés (${selected.length})`}
+                    <span className="text-sm font-normal text-muted-foreground ml-2">
+                      {`sur ${availableRequests.length} disponibles`}
+                    </span>
                   </p>
-                  <div className="space-y-2">
-                    {selected.map((request) => (
-                      <div
-                        key={request.id}
-                        className="flex items-center justify-between p-3 border rounded-md hover:bg-gray-50"
-                      >
-                        <div>
-                          <p className="font-medium text-sm">{request.name}</p>
-                          {request.dueDate && (
-                            <p className="text-xs text-muted-foreground">
-                              Échéance: {format(request.dueDate, "dd/MM/yyyy")}
-                            </p>
-                          )}
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const newSelected = selected.filter(
-                              (r) => r.id !== request.id
-                            );
-                            handleRequestsChange(newSelected);
-                          }}
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    ))}
-                    {selected.length === 0 && (
-                      <p className="text-center text-muted-foreground py-8">
-                        Aucun besoin sélectionné
-                      </p>
-                    )}
-                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {"Cliquez sur un besoin pour le retirer"}
+                  </p>
                 </div>
+                <Besoins
+                  selected={selected}
+                  setSelected={setSelected}
+                  dataSup={dataSup}
+                />
               </div>
             </div>
-          </div>
-
-          {/* Boutons d'action */}
-          <div className="flex justify-end gap-4 p-6 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={updateCommand.isPending}
-            >
-              Annuler
-            </Button>
-            <Button
-              type="button"
-              onClick={form.handleSubmit(handleSubmit)}
-              disabled={updateCommand.isPending || !form.formState.isDirty}
-            >
-              {updateCommand.isPending ? "Mise à jour..." : "Mettre à jour"}
-            </Button>
           </div>
         </DialogContent>
       </Dialog>

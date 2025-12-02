@@ -28,7 +28,6 @@ import {
   CalendarDays,
   CalendarIcon,
   ChevronRight,
-  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -53,13 +52,7 @@ import {
 } from "@/components/ui/table";
 import { DetailOrder } from "../modals/detail-order";
 import { CommandRequestT } from "@/types/types";
-import {
-  format,
-  addDays,
-  startOfWeek,
-  startOfMonth,
-  startOfYear,
-} from "date-fns";
+import { format, addDays } from "date-fns";
 import { Pagination } from "../base/pagination";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -83,6 +76,8 @@ import { Calendar } from "../ui/calendar";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { UpdateCotationModal } from "../pages/bdcommande/UpdateCotationModal";
+import { CommandQueries } from "@/queries/commandModule";
+import { useQuery } from "@tanstack/react-query";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -119,8 +114,9 @@ export function CommandeTable({
 
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
-  const [selectedCommand, setSelectedCommand] = React.useState<CommandRequestT | undefined>(undefined);
-
+  const [selectedCommand, setSelectedCommand] = React.useState<
+    CommandRequestT | undefined
+  >(undefined);
 
   // États pour le modal personnalisé
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
@@ -128,6 +124,12 @@ export function CommandeTable({
   const [tempCustomDateRange, setTempCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >(customDateRange || { from: addDays(new Date(), -7), to: new Date() });
+
+  const command = new CommandQueries();
+  const commandData = useQuery({
+    queryKey: ["commands"],
+    queryFn: async () => command.getAll(),
+  });
 
   const statusConfig = {
     pending: {
@@ -449,12 +451,12 @@ export function CommandeTable({
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => 
-                {
-                  setSelectedOrder(item);
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedCommand(item);
                   setIsUpdateModalOpen(true);
-                }
-              }>
+                }}
+              >
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
               </DropdownMenuItem>
@@ -841,9 +843,10 @@ export function CommandeTable({
         onOpenChange={setIsUpdateModalOpen}
         commandId={selectedCommand?.id || 0}
         commandData={selectedCommand}
+        allCommands={data}
         onSuccess={() => {
           // Rafraîchir les données du tableau si nécessaire
-          // requestData.refetch();
+          commandData.refetch();
         }}
       />
 
