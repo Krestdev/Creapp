@@ -160,22 +160,16 @@ export type Category = {
 };
 
 export type CommandRequestT = {
-  id?: number;
-  providerId?: number | null;
-  justification?: string;
-  submitted?: boolean;
-  deliveryDate?: Date;
-  modality?: string;
-  totalPrice?: number;
-  reference?: string;
+  id: number;
+  deliveryDate: Date;
+  reference: string;
   updatedAt?: Date;
-  createdAt?: Date;
-  userId?: number;
-  state?: string;
+  createdAt: Date;
+  userId: number;
   dueDate: Date;
   title: string;
   requests?: number[];
-  besoins?: RequestModelT[];
+  besoins: RequestModelT[];
 };
 
 // queries response
@@ -197,3 +191,15 @@ export type RegisterResponse = {
 export type ProjectCreateResponse = {
   project: ProjectT;
 };
+
+export type Provider = {
+    rating: number;
+    taxId: string;
+    address: string;
+    email: string;
+    phone: string;
+    updatedAt?: string;
+    createdAt: string;
+    id: number;
+    name: string;
+  }

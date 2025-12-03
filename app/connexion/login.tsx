@@ -73,7 +73,7 @@ function Login() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Adresse mail</FormLabel>
+              <FormLabel>{"Adresse mail"}</FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -89,9 +89,9 @@ function Login() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Mot de passe</FormLabel>
+              <FormLabel>{"Mot de passe"}</FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <Input type="password" {...field} placeholder="*******" />
               </FormControl>
             </FormItem>
           )}

@@ -7,7 +7,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <section className="w-full">
+      <section className="flex-1">
         <div className="w-full px-6 inline-flex gap-3 items-center justity-between min-h-[60px] bg-white border-b border-gray-300">
           <div className="inline-flex gap-4 items-center">
             <SidebarTrigger />
@@ -27,7 +27,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
             <NavigationBreadcrumb />
           </div>
         </div>
-        <main className="p-6">{children}</main>
+        <main className="p-6 @container">{children}</main>
       </section>
     </SidebarProvider>
   );

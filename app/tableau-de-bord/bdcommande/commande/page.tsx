@@ -30,7 +30,7 @@ const Page = () => {
               )
           )
           .map((link, id) => {
-            const isLast = links.length > 1 ? false : id === links.length - 1;
+            const isLast = links.length > 1 ? id === links.length - 1 : false;
             return (
               <Link key={id} href={link.href}>
                 <Button size={"lg"} variant={isLast ? "accent" : "ghost"}>

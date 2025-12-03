@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -15,20 +14,19 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  Eye,
-  Trash,
-  LucideDownload,
-  LucidePen,
-  ChevronDown,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Ban,
   CalendarDays,
   CalendarIcon,
+  CheckCircle,
+  ChevronDown,
   ChevronRight,
+  Eye,
+  Hourglass,
+  LucideDownload,
+  LucideIcon,
+  LucidePen,
+  Trash
 } from "lucide-react";
+import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,20 +48,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DetailOrder } from "../modals/detail-order";
-import { CommandRequestT } from "@/types/types";
-import { format, addDays } from "date-fns";
-import { Pagination } from "../base/pagination";
-import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
-import { fr } from "date-fns/locale";
+import { CommandRequestT } from "@/types/types";
+import { VariantProps } from "class-variance-authority";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+  addDays,
+  format
+} from "date-fns";
+import { fr } from "date-fns/locale";
+import { Pagination } from "../base/pagination";
+import { DetailOrder } from "../modals/detail-order";
+import { UpdateCotationModal } from "../pages/bdcommande/UpdateCotationModal";
+import { badgeVariants } from "../ui/badge";
+import { Calendar } from "../ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -72,12 +69,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { Calendar } from "../ui/calendar";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { UpdateCotationModal } from "../pages/bdcommande/UpdateCotationModal";
-import { CommandQueries } from "@/queries/commandModule";
-import { useQuery } from "@tanstack/react-query";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -125,57 +118,21 @@ export function CommandeTable({
     { from: Date; to: Date } | undefined
   >(customDateRange || { from: addDays(new Date(), -7), to: new Date() });
 
-  const command = new CommandQueries();
-  const commandData = useQuery({
-    queryKey: ["commands"],
-    queryFn: async () => command.getAll(),
-  });
-
-  const statusConfig = {
-    pending: {
-      label: "pending",
-      icon: Clock,
-      badgeClassName:
-        "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
-      rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20",
-    },
-    validated: {
-      label: "validated",
-      icon: CheckCircle,
-      badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
-      rowClassName:
-        "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
-    },
-    rejected: {
-      label: "rejected",
-      icon: XCircle,
-      badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
-      rowClassName: "bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30",
-    },
-    "in-review": {
-      label: "in review",
-      icon: AlertCircle,
-      badgeClassName: "bg-blue-200 text-blue-500 outline outline-blue-600 ",
-      rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
-    },
-    cancel: {
-      label: "Cancel",
-      icon: Ban,
-      badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
-      rowClassName: "bg-gray-50 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
-    },
-  };
-
-  const getStatusConfig = (status: string) => {
-    const config = statusConfig[status as keyof typeof statusConfig];
-    return (
-      config || {
-        label: status,
-        icon: AlertCircle,
-        badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
-        rowClassName: "bg-gray-50 dark:bg-gray-950/20",
-      }
-    );
+  const getStatusConfig = (status: string):{label:string; icon?: LucideIcon; variant: VariantProps<typeof badgeVariants>["variant"], rowClassName?:string} => {
+    switch(status){
+      case "pending":
+        return {label: "En attente", icon: Hourglass, variant:"amber", rowClassName: "bg-amber-50/50 hover:bg-amber-50"};
+      case "validated":
+        return {label: "Validé", icon: CheckCircle, variant:"success", rowClassName: "bg-green-50/50 hover:bg-green-50"};
+      case "rejected":
+        return {label: "Rejeté",  variant:"destructive", rowClassName: "bg-red-50/50 hover:bg-red-50"};
+      case "in-review":
+        return {label: "En révision", variant:"sky", rowClassName: "bg-sky-50/50 hover:bg-sky-50"};
+      case "cancel":
+        return {label: "Annulé", variant:"default"};
+      default:
+        return {label: "Inconnu", variant: "default" }
+    }
   };
 
   // Fonction pour filtrer les données selon la période sélectionnée
@@ -285,9 +242,6 @@ export function CommandeTable({
   };
 
   const filteredData = getFilteredData;
-  const uniqueStatus = Array.from(
-    new Set(filteredData?.map((item) => item.state) || [])
-  );
 
   const getTranslatedLabel = (label: string) => {
     const translations: Record<string, string> = {
@@ -327,13 +281,13 @@ export function CommandeTable({
       accessorKey: "reference",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Référence"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown />
+          </span>
         );
       },
       cell: ({ row }) => (
@@ -346,13 +300,13 @@ export function CommandeTable({
       accessorKey: "title",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+          className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Titre"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown />
+          </span>
         );
       },
       cell: ({ row }) => (
@@ -363,13 +317,13 @@ export function CommandeTable({
       accessorKey: "createdAt",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Date de creation"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown />
+          </span>
         );
       },
       cell: ({ row }) => (
@@ -380,13 +334,13 @@ export function CommandeTable({
       accessorKey: "dueDate",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Date limite de livraison"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown />
+          </span>
         );
       },
       cell: ({ row }) => (
@@ -394,37 +348,8 @@ export function CommandeTable({
       ),
     },
     {
-      accessorKey: "state",
-      filterFn: (row, columnId, filterValue) => {
-        return String(row.getValue(columnId)) === String(filterValue);
-      },
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Statuts"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const status = row.getValue("state") as string;
-        const config = getStatusConfig(status);
-        const Icon = config.icon;
-
-        return (
-          <Badge className={cn("gap-1", config.badgeClassName)}>
-            <Icon className="h-3 w-3" />
-            {getTranslatedLabel(config.label)}
-          </Badge>
-        );
-      },
-    },
-    {
       id: "actions",
-      header: "Actions",
+      header: ()=><span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
@@ -433,10 +358,8 @@ export function CommandeTable({
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
               <Button variant="ghost">
-                <Button variant={"outline"}>
                   {"Actions"}
                   <ChevronDown />
-                </Button>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -508,117 +431,96 @@ export function CommandeTable({
   return (
     <div className="w-full">
       <div className="flex flex-wrap items-center gap-4 py-4">
-        <Input
-          placeholder="Reference, titre..."
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
+        <div className="grid gap-1.5">
+          <Label htmlFor="searchCommand">{"Rechercher"}</Label>
+          <Input
+          name="search"
+          type="search"
+          id="searchCommand"
+            placeholder="Reference, titre..."
+            value={globalFilter ?? ""}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            className="max-w-sm"
+          />
+        </div>
 
         {/* Filtre par période avec dropdown style */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="bg-transparent">
-              {getDateFilterText()}
-              <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem
-              onClick={() => clearCustomDateRange()}
-              className={cn(
-                "flex items-center justify-between",
-                !dateFilter && "bg-accent"
-              )}
-            >
-              <span>{"Toutes les périodes"}</span>
-              {!dateFilter && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => setDateFilter("today")}
-              className={cn(
-                "flex items-center justify-between",
-                dateFilter === "today" && "bg-accent"
-              )}
-            >
-              <span>{"Aujourd'hui"}</span>
-              {dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setDateFilter("week")}
-              className={cn(
-                "flex items-center justify-between",
-                dateFilter === "week" && "bg-accent"
-              )}
-            >
-              <span>{"Cette semaine"}</span>
-              {dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setDateFilter("month")}
-              className={cn(
-                "flex items-center justify-between",
-                dateFilter === "month" && "bg-accent"
-              )}
-            >
-              <span>{"Ce mois"}</span>
-              {dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setDateFilter("year")}
-              className={cn(
-                "flex items-center justify-between",
-                dateFilter === "year" && "bg-accent"
-              )}
-            >
-              <span>{"Cette année"}</span>
-              {dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleCustomDateClick}
-              className={cn(
-                "flex items-center justify-between",
-                dateFilter === "custom" && "bg-accent"
-              )}
-            >
-              <span className="flex items-center">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                {"Personnaliser"}
-              </span>
-              {dateFilter === "custom" && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Filtre par statut */}
-        <Select
-          defaultValue="all"
-          value={
-            (table.getColumn("state")?.getFilterValue() as string) ?? "all"
-          }
-          onValueChange={(value) =>
-            table
-              .getColumn("state")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrer par statut" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les statuts</SelectItem>
-            {uniqueStatus?.map((state, index) => {
-              return (
-                <SelectItem key={index} value={state!} className="capitalize">
-                  {getTranslatedLabel(state!)}
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
-
+        <div className="grid gap-1.5">
+          <Label>{"Période"}</Label>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="min-w-52">
+                {getDateFilterText()}
+                <CalendarIcon />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={() => clearCustomDateRange()}
+                className={cn(
+                  "flex items-center justify-between",
+                  !dateFilter && "bg-accent"
+                )}
+              >
+                <span>{"Toutes les périodes"}</span>
+                {!dateFilter && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setDateFilter("today")}
+                className={cn(
+                  "flex items-center justify-between",
+                  dateFilter === "today" && "bg-accent"
+                )}
+              >
+                <span>{"Aujourd'hui"}</span>
+                {dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setDateFilter("week")}
+                className={cn(
+                  "flex items-center justify-between",
+                  dateFilter === "week" && "bg-accent"
+                )}
+              >
+                <span>{"Cette semaine"}</span>
+                {dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setDateFilter("month")}
+                className={cn(
+                  "flex items-center justify-between",
+                  dateFilter === "month" && "bg-accent"
+                )}
+              >
+                <span>{"Ce mois"}</span>
+                {dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setDateFilter("year")}
+                className={cn(
+                  "flex items-center justify-between",
+                  dateFilter === "year" && "bg-accent"
+                )}
+              >
+                <span>{"Cette année"}</span>
+                {dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleCustomDateClick}
+                className={cn(
+                  "flex items-center justify-between",
+                  dateFilter === "custom" && "bg-accent"
+                )}
+              >
+                <span className="flex items-center">
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  {"Personnaliser"}
+                </span>
+                {dateFilter === "custom" && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
@@ -684,14 +586,13 @@ export function CommandeTable({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
-                const status = row.original.state;
                 const config = getStatusConfig(status!);
 
                 return (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className={cn(config.rowClassName)}
+                    className={cn(config.rowClassName ?? "")}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
@@ -733,16 +634,16 @@ export function CommandeTable({
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Sélectionner une plage de dates</DialogTitle>
+            <DialogTitle>{"Sélectionner une plage de dates"}</DialogTitle>
             <DialogDescription>
-              Choisissez la période que vous souhaitez filtrer
+              {"Choisissez la période que vous souhaitez filtrer"}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date-from">Date de début</Label>
+                <Label htmlFor="date-from">{"Date de début"}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -756,7 +657,7 @@ export function CommandeTable({
                       {tempCustomDateRange?.from ? (
                         format(tempCustomDateRange.from, "PPP", { locale: fr })
                       ) : (
-                        <span>Sélectionner une date</span>
+                        <span>{"Sélectionner une date"}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -777,7 +678,7 @@ export function CommandeTable({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date-to">Date de fin</Label>
+                <Label htmlFor="date-to">{"Date de fin"}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -791,7 +692,7 @@ export function CommandeTable({
                       {tempCustomDateRange?.to ? (
                         format(tempCustomDateRange.to, "PPP", { locale: fr })
                       ) : (
-                        <span>Sélectionner une date</span>
+                        <span>{"Sélectionner une date"}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -829,9 +730,9 @@ export function CommandeTable({
               variant="outline"
               onClick={() => setIsCustomDateModalOpen(false)}
             >
-              Annuler
+              {"Annuler"}
             </Button>
-            <Button onClick={applyCustomDateRange}>Appliquer</Button>
+            <Button onClick={applyCustomDateRange}>{"Appliquer"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

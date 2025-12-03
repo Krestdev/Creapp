@@ -62,6 +62,7 @@ import { RequestQueries } from "@/queries/requestModule";
 import { useQuery } from "@tanstack/react-query";
 import { UserQueries } from "@/queries/baseModule";
 import { Pagination } from "../base/pagination";
+import { Label } from "../ui/label";
 
 interface BesoinsTraiterTableProps {
   data: RequestModelT[];
@@ -167,39 +168,39 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
     {
       accessorKey: "label",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
+          className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Titre"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
       cell: ({ row }) => <div>{row.getValue("label")}</div>,
     },
     {
       accessorKey: "projectId",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
+          className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Projet"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
       cell: ({ row }) => <div>{getProjectName(row.getValue("projectId"))}</div>,
     },
     {
       accessorKey: "categoryId",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
+          className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Catégorie"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
       cell: ({ row }) => (
         <div>{getCategoryName(row.getValue("categoryId"))}</div>
@@ -208,32 +209,32 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
     {
       accessorKey: "userId",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
+          className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Émetteur"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
       cell: ({ row }) => <div>{getUserName(row.getValue("userId"))}</div>,
     },
     {
       accessorKey: "beneficiary",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
+          className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Bénéficiaire"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
       cell: ({ row }) => <div className="max-w-[200px] truncate">{getBeneficiaryDisplay(row.original)}</div>,
     },
     {
       id: "actions",
-      header: "Actions",
+      header: ()=><span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
@@ -356,58 +357,69 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
-        <Input
-          placeholder="Rechercher par titre, projet, catégorie, émetteur..."
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
-
-        <Select
-          value={
-            (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
-          }
-          onValueChange={(value) =>
-            table
-              .getColumn("categoryId")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrer par catégorie" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Toutes les catégories</SelectItem>
-            {uniqueCategories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={
-            (table.getColumn("projectId")?.getFilterValue() as string) ?? "all"
-          }
-          onValueChange={(value) =>
-            table
-              .getColumn("projectId")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrer par projet" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les projets</SelectItem>
-            {uniqueProjets.map((proj) => (
-              <SelectItem key={proj.id} value={proj.id}>
-                {proj.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="grid gap-1.5">
+          <Label htmlFor="searchNeed">{"Rechercher"}</Label>
+          <Input
+          id="searchNeed"
+          type="search"
+            placeholder="Rechercher par titre, projet, catégorie, émetteur..."
+            value={globalFilter ?? ""}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="categoryNeed">{"Catégorie"}</Label>
+          <Select
+          name="categoryNeed"
+            value={
+              (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
+            }
+            onValueChange={(value) =>
+              table
+                .getColumn("categoryId")
+                ?.setFilterValue(value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtrer par catégorie" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Tous"}</SelectItem>
+              {uniqueCategories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="project">{"Projet"}</Label>
+          <Select
+          name="project"
+            value={
+              (table.getColumn("projectId")?.getFilterValue() as string) ?? "all"
+            }
+            onValueChange={(value) =>
+              table
+                .getColumn("projectId")
+                ?.setFilterValue(value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtrer par projet" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Tous"}</SelectItem>
+              {uniqueProjets.map((proj) => (
+                <SelectItem key={proj.id} value={proj.id}>
+                  {proj.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
