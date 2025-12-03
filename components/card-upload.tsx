@@ -6,7 +6,7 @@ import {
   useFileUpload,
   type FileMetadata,
   type FileWithPreview,
-} from '@/hooks/use-file-upload';
+} from '@/hooks/use-card-upload';
 import { Alert, AlertContent, AlertDescription, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -201,7 +201,7 @@ export default function FileUpload({
   };
 
   return (
-    <div className={cn('w-full space-y-4', className)}>
+    <div className={cn('w-full space-y-4 @container/upload', className)}>
       {/* Upload Area */}
       <div
         className={cn(
@@ -246,7 +246,7 @@ export default function FileUpload({
       {uploadFiles.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">Files ({uploadFiles.length})</h3>
+            <h3 className="text-sm font-medium">{`Fichiers (${uploadFiles.length})`}</h3>
             <div className="flex gap-2">
               <Button onClick={(e)=>{e.preventDefault();openFileDialog()}} variant="outline" size="sm">
                 <CloudUpload />
@@ -259,7 +259,7 @@ export default function FileUpload({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 @min-[320px]/upload:grid-cols-2 @min-[440px]/upload:grid-cols-3 @min-[768px]/upload:grid-cols-4">
             {uploadFiles.map((fileItem) => (
               <div key={fileItem.id} className="relative group">
                 {/* Remove button */}

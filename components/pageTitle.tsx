@@ -20,7 +20,7 @@ const PageTitle = ({ title, subtitle, children, color }: PageTitleProps) => {
         color === "none" && "from-[#606160] to-[#242424]"
       )}
     >
-      <div className="flex justify-between">
+      <div className="flex flex-col gap-8 @min-[640px]:flex-row @min-[640px]:gap-2 justify-between ">
         <div>
           <h1 className="font-bold">{title}</h1>
           <h4 className="font-extralight tracking-wide">{subtitle}</h4>

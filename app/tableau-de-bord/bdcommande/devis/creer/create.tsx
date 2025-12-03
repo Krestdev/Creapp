@@ -1,5 +1,5 @@
 'use client'
-import FileUpload from '@/components/card-upload'
+import FilesUpload from '@/components/comp-547'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { useFetchQuery } from '@/hooks/useData'
@@ -122,7 +122,7 @@ function CreateQuotation() {
                 <FormItem>
                     <FormLabel isRequired>{"Justificatif"}</FormLabel>
                     <FormControl>
-                        <FileUpload/>
+                        <FilesUpload/>
                     </FormControl>
                     <FormMessage/>
                 </FormItem>
