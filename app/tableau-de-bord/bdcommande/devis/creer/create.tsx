@@ -122,7 +122,7 @@ function CreateQuotation() {
                 <FormItem>
                     <FormLabel isRequired>{"Justificatif"}</FormLabel>
                     <FormControl>
-                        <FilesUpload/>
+                        <FilesUpload value={field.value} onChange={field.onChange} name={field.name} acceptTypes="images" />
                     </FormControl>
                     <FormMessage/>
                 </FormItem>
