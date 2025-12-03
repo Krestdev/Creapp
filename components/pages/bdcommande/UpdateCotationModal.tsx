@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -87,7 +87,7 @@ export function UpdateCotationModal({
   });
 
   const command = new CommandQueries();
-  
+
   // Mutation pour la mise à jour
   const updateCommand = useMutation({
     mutationKey: ["update-command", commandId],
@@ -98,10 +98,16 @@ export function UpdateCotationModal({
       setSuccessOpen(true);
       onSuccess?.();
 
-      // Invalider et rafraîchir les données
+      // Invalider TOUTES les requêtes pertinentes
       queryClient.invalidateQueries({ queryKey: ["requests"] });
+      queryClient.invalidateQueries({ queryKey: ["commands"] }); // AJOUTÉ
       queryClient.invalidateQueries({ queryKey: ["requests-validation"] });
       queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
+
+      // Fermer la modal
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 100);
     },
     onError: (error) => {
       toast.error("Erreur lors de la mise à jour de la demande");
@@ -133,11 +139,12 @@ export function UpdateCotationModal({
     if (!open || !commandData || !availableRequests.length) return;
 
     // Calculer les données initiales
-    const selectedRequests = commandData.besoins?.map((b) => ({
-      id: b.id,
-      name: b.label,
-      dueDate: b.dueDate,
-    })) || [];
+    const selectedRequests =
+      commandData.besoins?.map((b) => ({
+        id: b.id,
+        name: b.label,
+        dueDate: b.dueDate,
+      })) || [];
 
     const dataSupData = commandData.besoins || [];
 
@@ -153,7 +160,6 @@ export function UpdateCotationModal({
         ? new Date(commandData.dueDate)
         : new Date(),
     });
-
   }, [open, commandData, availableRequests.length, form]);
 
   // Effet pour nettoyer les états quand la modal se ferme
