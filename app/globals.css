@@ -165,6 +165,9 @@
   .content {
     @apply grid gap-4 @min-[640px]:gap-6;
   }
+  .add-button {
+    @apply w-full h-9 inline-flex items-center justify-center gap-2 border border-input bg-white text-sm font-medium [&_svg]:size-5 rounded-md transition-colors duration-150 hover:bg-gray-50 cursor-pointer;
+  }
 }
 
 /* scroll bar edit */
