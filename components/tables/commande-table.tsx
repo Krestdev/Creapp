@@ -107,8 +107,9 @@ export function CommandeTable({
 
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
-  const [selectedCommand, setSelectedCommand] = React.useState<CommandRequestT | undefined>(undefined);
-
+  const [selectedCommand, setSelectedCommand] = React.useState<
+    CommandRequestT | undefined
+  >(undefined);
 
   // États pour le modal personnalisé
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
@@ -373,12 +374,12 @@ export function CommandeTable({
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => 
-                {
-                  setSelectedOrder(item);
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedCommand(item);
                   setIsUpdateModalOpen(true);
-                }
-              }>
+                }}
+              >
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
               </DropdownMenuItem>
@@ -743,9 +744,10 @@ export function CommandeTable({
         onOpenChange={setIsUpdateModalOpen}
         commandId={selectedCommand?.id || 0}
         commandData={selectedCommand}
+        allCommands={data}
         onSuccess={() => {
           // Rafraîchir les données du tableau si nécessaire
-          // requestData.refetch();
+          commandData.refetch();
         }}
       />
 

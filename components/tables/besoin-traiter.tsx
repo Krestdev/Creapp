@@ -65,6 +65,9 @@ export function BesoinsTraiter({
   setSelected,
   categories,
 }: BesoinsTraiterTableProps) {
+
+  console.log("Selected dans BesoinsTraiter:", selected);
+  
   const [isOpenModal, setIsModalOpen] = React.useState(false);
   const [select, setSelect] = React.useState<RequestModelT>();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -87,6 +90,11 @@ export function BesoinsTraiter({
     Record<string, boolean>
   >({});
 
+  // NE PAS utiliser reverse() directement sur data - créer une copie
+  const reversedData = React.useMemo(() => {
+    return [...(data || [])].reverse(); // Crée une copie avant de reverse
+  }, [data]);
+
   // Convertir les données RequestModelT en format Request pour la sélection
   const convertToRequest = (requestModel: RequestModelT): Request => ({
     id: requestModel.id,
@@ -94,11 +102,11 @@ export function BesoinsTraiter({
     dueDate: requestModel.dueDate ? new Date(requestModel.dueDate) : undefined,
   });
 
-  // Synchroniser la sélection externe vers l'interne
+  // Synchroniser la sélection externe vers l'interne (utiliser reversedData)
   React.useEffect(() => {
-    if (selected && setSelected) {
+    if (selected) {
       const externalSelection: Record<string, boolean> = {};
-      data.forEach((item, index) => {
+      reversedData.forEach((item, index) => {
         const isSelected = selected.some(
           (selectedItem) => selectedItem.id === item.id
         );
@@ -108,13 +116,24 @@ export function BesoinsTraiter({
       });
       setInternalRowSelection(externalSelection);
     }
-  }, [selected, data, setSelected]);
+  }, [selected, reversedData]);
 
-  // Synchroniser la sélection interne vers l'externe
-  const handleRowSelectionChange = React.useCallback(
-    (updater: any) => {
-      const newSelection =
-        typeof updater === "function" ? updater(internalRowSelection) : updater;
+  // Gérer le changement de sélection via les checkboxes
+  const handleCheckboxChange = React.useCallback(
+    (rowIndex: string, isChecked: boolean) => {
+      const rowId = parseInt(rowIndex);
+      const item = reversedData[rowId]; // Utiliser reversedData ici
+      
+      if (!item) return;
+
+      const newSelection = { ...internalRowSelection };
+      
+      if (isChecked) {
+        newSelection[rowIndex] = true;
+      } else {
+        delete newSelection[rowIndex];
+      }
+      
       setInternalRowSelection(newSelection);
 
       // Mettre à jour la sélection externe si setSelected est fourni
@@ -123,15 +142,48 @@ export function BesoinsTraiter({
           .filter((key) => newSelection[key])
           .map((key) => {
             const rowIndex = parseInt(key);
-            return data[rowIndex];
+            return reversedData[rowIndex]; // Utiliser reversedData ici
           })
           .filter(Boolean)
           .map(convertToRequest);
 
+        console.log("Nouvelle sélection envoyée à setSelected:", selectedRows);
         setSelected(selectedRows);
       }
     },
-    [internalRowSelection, data, setSelected]
+    [internalRowSelection, reversedData, setSelected]
+  );
+
+  // Gérer la sélection/désélection de toutes les lignes
+  const handleSelectAllChange = React.useCallback(
+    (isChecked: boolean) => {
+      if (isChecked) {
+        // Sélectionner toutes les lignes
+        const allSelection: Record<string, boolean> = {};
+        reversedData.forEach((_, index) => {
+          allSelection[index] = true;
+        });
+        
+        setInternalRowSelection(allSelection);
+        
+        // Mettre à jour la sélection externe
+        if (setSelected) {
+          const allRequests = reversedData.map(convertToRequest);
+          console.log("Sélection de tous les éléments:", allRequests);
+          setSelected(allRequests);
+        }
+      } else {
+        // Désélectionner toutes les lignes
+        setInternalRowSelection({});
+        
+        // Mettre à jour la sélection externe
+        if (setSelected) {
+          console.log("Désélection de tous les éléments");
+          setSelected([]);
+        }
+      }
+    },
+    [reversedData, setSelected]
   );
 
   const getCategoryName = (categoryId: string | number) => {
@@ -141,40 +193,48 @@ export function BesoinsTraiter({
   };
 
   const uniqueCategories = React.useMemo(() => {
-    if (!data.length || !categories) return [];
+    if (!reversedData.length || !categories) return [];
 
-    const categoryIds = [...new Set(data.map((req) => req.categoryId))];
+    const categoryIds = [...new Set(reversedData.map((req) => req.categoryId))];
     return categoryIds.map((categoryId) => {
       const id = typeof categoryId === 'string' ? Number(categoryId) : categoryId;
       const category = categories.find((cat) => cat.id === id);
       return {
-        id: String(categoryId), // Toujours stocker en string pour la compatibilité
+        id: String(categoryId),
         name: category?.label || `Catégorie ${categoryId}`,
       };
     });
-  }, [data, categories]);
+  }, [reversedData, categories]);
 
   const columns: ColumnDef<RequestModelT>[] = [
     {
       id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="border-gray-500"
-        />
-      ),
+      header: ({ table }) => {
+        const allSelected = reversedData.length > 0 && 
+                           Object.keys(internalRowSelection).length === reversedData.length;
+        const someSelected = Object.keys(internalRowSelection).length > 0 && 
+                            !allSelected;
+        
+        return (
+          <Checkbox
+            checked={allSelected || (someSelected && "indeterminate")}
+            onCheckedChange={(value) => handleSelectAllChange(!!value)}
+            aria-label="Select all"
+          />
+        );
+      },
+      cell: ({ row }) => {
+        const isSelected = internalRowSelection[row.id] === true;
+        
+        return (
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(value) => handleCheckboxChange(row.id, !!value)}
+            aria-label="Select row"
+            className="border-gray-500"
+          />
+        );
+      },
       enableSorting: false,
       enableHiding: false,
     },
@@ -184,7 +244,7 @@ export function BesoinsTraiter({
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="text-white hover:bg-gray-500"
+          className="bg-transparent text-black hover:bg-transparent"
         >
           {"Titre"}
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -198,7 +258,7 @@ export function BesoinsTraiter({
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="text-white hover:bg-gray-500"
+          className="bg-transparent text-black hover:bg-transparent"
         >
           {"Catégorie"}
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -208,15 +268,12 @@ export function BesoinsTraiter({
         const categoryId = row.getValue("categoryId");
         return <div>{getCategoryName(categoryId as string | number)}</div>;
       },
-      // Fonction de filtrage corrigée
       filterFn: (row, columnId, filterValue) => {
-        
         if (!filterValue || filterValue === "all" || filterValue === "") {
           return true;
         }
         
         const rowValue = row.getValue(columnId);
-        // Normaliser les deux côtés en string pour la comparaison
         const rowValueStr = String(rowValue);
         const filterValueStr = String(filterValue);
         
@@ -229,7 +286,7 @@ export function BesoinsTraiter({
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="text-white hover:bg-gray-500"
+          className="bg-transparent text-black hover:bg-transparent"
         >
           {"Date Limite"}
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -260,7 +317,7 @@ export function BesoinsTraiter({
   ];
 
   const table = useReactTable({
-    data: data.reverse() ?? [],
+    data: reversedData, 
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -269,7 +326,6 @@ export function BesoinsTraiter({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: handleRowSelectionChange,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
@@ -283,7 +339,6 @@ export function BesoinsTraiter({
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection: internalRowSelection,
       globalFilter,
     },
   });
@@ -305,7 +360,6 @@ export function BesoinsTraiter({
               "all"
             }
             onValueChange={(value) => {
-              // Définir le filtre avec la valeur sélectionnée
               table.getColumn("categoryId")?.setFilterValue(
                 value === "all" ? "" : value
               );
@@ -394,7 +448,6 @@ export function BesoinsTraiter({
                 return (
                   <TableRow
                     key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
                     className={`border-none ${
                       index % 2 === 1 ? "bg-gray-200" : ""
                     }`}
