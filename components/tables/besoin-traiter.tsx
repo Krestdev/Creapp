@@ -65,8 +65,8 @@ export function BesoinsTraiter({
   setSelected,
   categories,
 }: BesoinsTraiterTableProps) {
-
   console.log("Selected dans BesoinsTraiter:", selected);
+  console.log("Data dans BesoinsTraiter:", data);
   
   const [isOpenModal, setIsModalOpen] = React.useState(false);
   const [select, setSelect] = React.useState<RequestModelT>();
@@ -85,73 +85,63 @@ export function BesoinsTraiter({
     });
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  // Synchroniser la sélection interne avec les props externes
-  const [internalRowSelection, setInternalRowSelection] = React.useState<
-    Record<string, boolean>
-  >({});
-
-  // NE PAS utiliser reverse() directement sur data - créer une copie
-  const reversedData = React.useMemo(() => {
-    return [...(data || [])].reverse(); // Crée une copie avant de reverse
-  }, [data]);
-
   // Convertir les données RequestModelT en format Request pour la sélection
-  const convertToRequest = (requestModel: RequestModelT): Request => ({
+  const convertToRequest = React.useCallback((requestModel: RequestModelT): Request => ({
     id: requestModel.id,
     name: requestModel.label,
     dueDate: requestModel.dueDate ? new Date(requestModel.dueDate) : undefined,
-  });
+  }), []);
 
-  // Synchroniser la sélection externe vers l'interne (utiliser reversedData)
+  // Créer un mapping ID -> Request pour un accès rapide
+  const requestMap = React.useMemo(() => {
+    const map = new Map<number, RequestModelT>();
+    data.forEach((item) => {
+      map.set(item.id, item);
+    });
+    return map;
+  }, [data]);
+
+  // Synchroniser la sélection interne avec les props externes
+  const [internalSelectedIds, setInternalSelectedIds] = React.useState<Set<number>>(new Set());
+
+  // Mettre à jour internalSelectedIds quand selected change
   React.useEffect(() => {
     if (selected) {
-      const externalSelection: Record<string, boolean> = {};
-      reversedData.forEach((item, index) => {
-        const isSelected = selected.some(
-          (selectedItem) => selectedItem.id === item.id
-        );
-        if (isSelected) {
-          externalSelection[index] = true;
-        }
+      const newIds = new Set<number>();
+      selected.forEach((item) => {
+        newIds.add(item.id);
       });
-      setInternalRowSelection(externalSelection);
+      setInternalSelectedIds(newIds);
+    } else {
+      setInternalSelectedIds(new Set());
     }
-  }, [selected, reversedData]);
+  }, [selected]);
 
   // Gérer le changement de sélection via les checkboxes
   const handleCheckboxChange = React.useCallback(
-    (rowIndex: string, isChecked: boolean) => {
-      const rowId = parseInt(rowIndex);
-      const item = reversedData[rowId]; // Utiliser reversedData ici
-      
-      if (!item) return;
-
-      const newSelection = { ...internalRowSelection };
+    (requestId: number, isChecked: boolean) => {
+      const newIds = new Set(internalSelectedIds);
       
       if (isChecked) {
-        newSelection[rowIndex] = true;
+        newIds.add(requestId);
       } else {
-        delete newSelection[rowIndex];
+        newIds.delete(requestId);
       }
       
-      setInternalRowSelection(newSelection);
+      setInternalSelectedIds(newIds);
 
       // Mettre à jour la sélection externe si setSelected est fourni
       if (setSelected) {
-        const selectedRows = Object.keys(newSelection)
-          .filter((key) => newSelection[key])
-          .map((key) => {
-            const rowIndex = parseInt(key);
-            return reversedData[rowIndex]; // Utiliser reversedData ici
-          })
-          .filter(Boolean)
+        const selectedRequests = Array.from(newIds)
+          .map((id) => requestMap.get(id))
+          .filter((item): item is RequestModelT => item !== undefined)
           .map(convertToRequest);
 
-        console.log("Nouvelle sélection envoyée à setSelected:", selectedRows);
-        setSelected(selectedRows);
+        console.log("Nouvelle sélection envoyée à setSelected:", selectedRequests);
+        setSelected(selectedRequests);
       }
     },
-    [internalRowSelection, reversedData, setSelected]
+    [internalSelectedIds, requestMap, convertToRequest, setSelected]
   );
 
   // Gérer la sélection/désélection de toutes les lignes
@@ -159,22 +149,22 @@ export function BesoinsTraiter({
     (isChecked: boolean) => {
       if (isChecked) {
         // Sélectionner toutes les lignes
-        const allSelection: Record<string, boolean> = {};
-        reversedData.forEach((_, index) => {
-          allSelection[index] = true;
+        const allIds = new Set<number>();
+        data.forEach((item) => {
+          allIds.add(item.id);
         });
         
-        setInternalRowSelection(allSelection);
+        setInternalSelectedIds(allIds);
         
         // Mettre à jour la sélection externe
         if (setSelected) {
-          const allRequests = reversedData.map(convertToRequest);
+          const allRequests = data.map(convertToRequest);
           console.log("Sélection de tous les éléments:", allRequests);
           setSelected(allRequests);
         }
       } else {
         // Désélectionner toutes les lignes
-        setInternalRowSelection({});
+        setInternalSelectedIds(new Set());
         
         // Mettre à jour la sélection externe
         if (setSelected) {
@@ -183,7 +173,7 @@ export function BesoinsTraiter({
         }
       }
     },
-    [reversedData, setSelected]
+    [data, convertToRequest, setSelected]
   );
 
   const getCategoryName = (categoryId: string | number) => {
@@ -193,9 +183,9 @@ export function BesoinsTraiter({
   };
 
   const uniqueCategories = React.useMemo(() => {
-    if (!reversedData.length || !categories) return [];
+    if (!data.length || !categories) return [];
 
-    const categoryIds = [...new Set(reversedData.map((req) => req.categoryId))];
+    const categoryIds = [...new Set(data.map((req) => req.categoryId))];
     return categoryIds.map((categoryId) => {
       const id = typeof categoryId === 'string' ? Number(categoryId) : categoryId;
       const category = categories.find((cat) => cat.id === id);
@@ -204,15 +194,15 @@ export function BesoinsTraiter({
         name: category?.label || `Catégorie ${categoryId}`,
       };
     });
-  }, [reversedData, categories]);
+  }, [data, categories]);
 
   const columns: ColumnDef<RequestModelT>[] = [
     {
       id: "select",
       header: ({ table }) => {
-        const allSelected = reversedData.length > 0 && 
-                           Object.keys(internalRowSelection).length === reversedData.length;
-        const someSelected = Object.keys(internalRowSelection).length > 0 && 
+        const allSelected = data.length > 0 && 
+                           internalSelectedIds.size === data.length;
+        const someSelected = internalSelectedIds.size > 0 && 
                             !allSelected;
         
         return (
@@ -224,12 +214,13 @@ export function BesoinsTraiter({
         );
       },
       cell: ({ row }) => {
-        const isSelected = internalRowSelection[row.id] === true;
+        const requestId = row.original.id;
+        const isSelected = internalSelectedIds.has(requestId);
         
         return (
           <Checkbox
             checked={isSelected}
-            onCheckedChange={(value) => handleCheckboxChange(row.id, !!value)}
+            onCheckedChange={(value) => handleCheckboxChange(requestId, !!value)}
             aria-label="Select row"
             className="border-gray-500"
           />
@@ -317,7 +308,7 @@ export function BesoinsTraiter({
   ];
 
   const table = useReactTable({
-    data: reversedData, 
+    data: data, // NE PAS utiliser reversedData ici
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
