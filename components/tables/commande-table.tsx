@@ -71,6 +71,8 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { CommandQueries } from "@/queries/commandModule";
+import { useQuery } from "@tanstack/react-query";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -104,6 +106,14 @@ export function CommandeTable({
   const [selectedOrder, setSelectedOrder] =
     React.useState<CommandRequestT | null>(null);
   const [showOrder, setShowOrder] = React.useState(false);
+
+   const command = new CommandQueries();
+    const commandData = useQuery({
+    queryKey: ["commands"],
+    queryFn: async () => command.getAll(),
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
 
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);

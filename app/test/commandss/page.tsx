@@ -76,23 +76,18 @@ export default function TestCommandRequestPage() {
             onChange={(e) => setReference(e.target.value)}
           />
 
-          <Button
+          {/* <Button
             className="bg-green-600 text-white px-4 py-2 rounded"
             onClick={() =>
               handle(() =>
                 commandQueries.create({
-                  modality,
                   deliveryDate: new Date(deliveryDate),
-                  justification,
-                  providerId: providerId ? Number(providerId) : null,
-                  totalPrice: Number(totalPrice),
-                  reference,
                 })
               )
             }
           >
             Créer Command
-          </Button>
+          </Button> */}
         </section>
 
         {/* GET ALL */}
@@ -129,14 +124,7 @@ export default function TestCommandRequestPage() {
           <h2 className="text-xl font-semibold">Update Command</h2>
           <Button
             className="bg-orange-600 text-white px-4 py-2 rounded"
-            onClick={() =>
-              handle(() =>
-                commandQueries.update(Number(requestId), {
-                  state: "UPDATED",
-                  justification: "Nouvelle justification",
-                })
-              )
-            }
+            
           >
             Tester Update
           </Button>

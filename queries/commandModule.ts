@@ -9,7 +9,7 @@ export class CommandQueries {
   // --------------------------------------
 
   create = async (
-    data: Partial<CommandRequestT>
+    data: Omit<CommandRequestT, "id" | "createdAt" | "updatedAt" | "reference" | "besoins" >
   ): Promise<{ data: CommandRequestT }> => {
     return api.post(this.route, data).then((response) => {
       console.log(response.data);

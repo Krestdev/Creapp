@@ -99,24 +99,6 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
             </div>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="mt-1">
-              <Hash className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">{"Statut"}</p>
-              <Badge
-                variant="secondary"
-                className={
-                  statusConfig[data.state as keyof typeof statusConfig]
-                    ?.color || "bg-gray-100 text-gray-800"
-                }
-              >
-                {data.state}
-              </Badge>
-            </div>
-          </div>
-
           {/* Besoins */}
           <div className="flex items-start gap-3">
             <div className="mt-1">

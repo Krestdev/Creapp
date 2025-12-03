@@ -26,7 +26,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import MultiSelectUsers from "../base/multiSelectUsers";
 import { RequestQueries } from "@/queries/requestModule";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CommandQueries } from "@/queries/commandModule";
 import { CommandRequestT } from "@/types/types";
 import { useStore } from "@/providers/datastore";
@@ -51,6 +51,7 @@ export default function CreateCotationForm() {
   const { user } = useStore();
   const [selected, setSelected] = useState<Request[]>([]);
   const [successOpen, setSuccessOpen] = useState(false);
+  const queryCLient = useQueryClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,9 +65,19 @@ export default function CreateCotationForm() {
   const command = new CommandQueries();
   const createCommand = useMutation({
     mutationKey: ["command"],
-    mutationFn: (data: CommandRequestT) => command.create(data),
+    mutationFn: (
+      data: Omit<
+        CommandRequestT,
+        "id" | "createdAt" | "updatedAt" | "reference" | "besoins"
+      >
+    ) => command.create(data),
     onSuccess: () => {
       setSuccessOpen(true);
+      // Invalider TOUTES les requêtes pertinentes
+      form.reset();
+      queryCLient.invalidateQueries({ queryKey: ["commands"] });
+      queryCLient.invalidateQueries({ queryKey: ["requests-validation"] });
+      queryCLient.invalidateQueries({ queryKey: ["requests", user?.id] });
     },
   });
 
@@ -123,11 +134,7 @@ export default function CreateCotationForm() {
         requests: values.requests,
         dueDate: values.date_limite,
         userId: Number(user?.id),
-        totalPrice: 0,
-        modality: "",
-        state: "pending",
-        submited: false,
-        justification: "",
+        deliveryDate: new Date(),
       };
       createCommand.mutate(data);
     } catch (error) {
