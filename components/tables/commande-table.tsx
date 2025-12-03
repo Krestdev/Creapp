@@ -59,7 +59,7 @@ import { fr } from "date-fns/locale";
 import { Pagination } from "../base/pagination";
 import { DetailOrder } from "../modals/detail-order";
 import { UpdateCotationModal } from "../pages/bdcommande/UpdateCotationModal";
-import { Badge, badgeVariants } from "../ui/badge";
+import { badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
 import {
   Dialog,
@@ -71,13 +71,6 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -248,9 +241,6 @@ export function CommandeTable({
   };
 
   const filteredData = getFilteredData;
-  const uniqueStatus = Array.from(
-    new Set(filteredData?.map((item) => item.state) || [])
-  );
 
   const getTranslatedLabel = (label: string) => {
     const translations: Record<string, string> = {
@@ -355,35 +345,6 @@ export function CommandeTable({
       cell: ({ row }) => (
         <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>
       ),
-    },
-    {
-      accessorKey: "state",
-      filterFn: (row, columnId, filterValue) => {
-        return String(row.getValue(columnId)) === String(filterValue);
-      },
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Statuts"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const status = row.getValue("state") as string;
-        const config = getStatusConfig(status);
-        const Icon = config.icon;
-
-        return (
-          <Badge variant={config.variant}>
-            {Icon && <Icon />}
-            {getTranslatedLabel(config.label)}
-          </Badge>
-        );
-      },
     },
     {
       id: "actions",
@@ -559,36 +520,6 @@ export function CommandeTable({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div className="grid gap-1.5">
-          <Label>{"Statut"}</Label>
-          {/* Filtre par statut */}
-          <Select
-            defaultValue="all"
-            value={
-              (table.getColumn("state")?.getFilterValue() as string) ?? "all"
-            }
-            onValueChange={(value) =>
-              table
-                .getColumn("state")
-                ?.setFilterValue(value === "all" ? "" : value)
-            }
-          >
-            <SelectTrigger className="min-w-40">
-              <SelectValue placeholder="Filtrer par statut" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Tous"}</SelectItem>
-              {uniqueStatus?.map((state, index) => {
-                return (
-                  <SelectItem key={index} value={state!} className="capitalize">
-                    {getTranslatedLabel(state!)}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
@@ -654,7 +585,6 @@ export function CommandeTable({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
-                const status = row.original.state;
                 const config = getStatusConfig(status!);
 
                 return (
