@@ -46,7 +46,7 @@ interface CardUploadProps {
 
 export default function FileUpload({
   maxFiles = 10,
-  maxSize = 50 * 1024 * 1024, // 50MB
+  maxSize = 2 * 1024 * 1024, // 2MB
   accept = '*',
   multiple = true,
   className,
@@ -205,7 +205,7 @@ export default function FileUpload({
       {/* Upload Area */}
       <div
         className={cn(
-          'relative rounded-lg border border-dashed p-6 text-center transition-colors',
+          'relative rounded-lg border border-dashed px-4 py-2 text-center transition-colors',
           isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/50',
         )}
         onDragEnter={handleDragEnter}
@@ -215,21 +215,21 @@ export default function FileUpload({
       >
         <input {...getInputProps()} className="sr-only" />
 
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-1">
           <div
             className={cn(
-              'flex h-12 w-12 items-center justify-center rounded-full bg-muted transition-colors',
-              isDragging ? 'border-primary bg-primary/10' : 'border-muted-foreground/25',
+              'flex size-10 items-center justify-center rounded-full bg-transparent transition-colors border',
+              isDragging ? 'border-primary bg-primary/10' : 'border-gray-100',
             )}
           >
-            <Upload className="h-5 w-5 text-muted-foreground" />
+            <Upload size={16} className="text-gray-400" />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <p className="text-sm font-medium">
               {"Glissez des fichiers ou"}
               <Button size={"sm"} variant={"ghost"}
-                onClick={openFileDialog}
+                onClick={(e)=>{e.preventDefault();openFileDialog()}}
                 className='ml-1 px-0 font-sans hover:text-primary-600 hover:bg-transparent bg-transparent hover:underline underline-offset-3'
               >
                 {"parcourir"}
@@ -248,13 +248,13 @@ export default function FileUpload({
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium">Files ({uploadFiles.length})</h3>
             <div className="flex gap-2">
-              <Button onClick={openFileDialog} variant="outline" size="sm">
+              <Button onClick={(e)=>{e.preventDefault();openFileDialog()}} variant="outline" size="sm">
                 <CloudUpload />
-                Add files
+                {"Ajouter"}
               </Button>
-              <Button onClick={clearFiles} variant="outline" size="sm">
+              <Button onClick={(e)=>{e.preventDefault();clearFiles()}} variant="outline" size="sm">
                 <Trash2 />
-                Remove all
+                {"Tout supprimer"}
               </Button>
             </div>
           </div>
