@@ -167,7 +167,19 @@ export function DevisTable({
           variant: "amber",
           rowClassName: "bg-amber-50/50 hover:bg-amber-50",
         };
+        return {
+          label: "En attente",
+          icon: Hourglass,
+          variant: "amber",
+          rowClassName: "bg-amber-50/50 hover:bg-amber-50",
+        };
       case "validated":
+        return {
+          label: "Validé",
+          icon: CheckCircle,
+          variant: "success",
+          rowClassName: "bg-green-50/50 hover:bg-green-50",
+        };
         return {
           label: "Validé",
           icon: CheckCircle,
@@ -180,7 +192,17 @@ export function DevisTable({
           variant: "destructive",
           rowClassName: "bg-red-50/50 hover:bg-red-50",
         };
+        return {
+          label: "Rejeté",
+          variant: "destructive",
+          rowClassName: "bg-red-50/50 hover:bg-red-50",
+        };
       case "in-review":
+        return {
+          label: "En révision",
+          variant: "sky",
+          rowClassName: "bg-sky-50/50 hover:bg-sky-50",
+        };
         return {
           label: "En révision",
           variant: "sky",
@@ -188,7 +210,9 @@ export function DevisTable({
         };
       case "cancel":
         return { label: "Annulé", variant: "default" };
+        return { label: "Annulé", variant: "default" };
       default:
+        return { label: "Inconnu", variant: "default" };
         return { label: "Inconnu", variant: "default" };
     }
   };
@@ -427,6 +451,8 @@ export function DevisTable({
               <Button variant="ghost">
                 {"Actions"}
                 <ChevronDown />
+                {"Actions"}
+                <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -515,6 +541,8 @@ export function DevisTable({
             <DropdownMenuTrigger className="min-w-52">
               {getDateFilterText()}
               <CalendarIcon />
+              {getDateFilterText()}
+              <CalendarIcon />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
@@ -580,6 +608,9 @@ export function DevisTable({
                   <CalendarDays className="mr-2 h-4 w-4" />
                   {"Personnaliser"}
                 </span>
+                {dateFilter === "custom" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
                 {dateFilter === "custom" && (
                   <ChevronRight className="h-4 w-4" />
                 )}
