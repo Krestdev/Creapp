@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -12,11 +12,19 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, CheckCircle, XCircle, Clock, Users } from "lucide-react"
+} from "@tanstack/react-table";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  MoreHorizontal,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Users,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -25,41 +33,59 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react"
-
-export type Departement = {
-  reference: string
-  name: string
-  description: string
-  chef: string
-  nombreEmployes: number
-  statut: "actif" | "inactif" | "en-reorganisation"
-}
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+} from "lucide-react";
+import { DepartmentT, Member } from "@/types/types";
 
 interface DepartementTableProps {
-  data: Departement[]
+  data: DepartmentT[];
 }
 
 export function DepartementTable({ data }: DepartementTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [globalFilter, setGlobalFilter] = React.useState("")
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState("");
 
-  const columns = React.useMemo<ColumnDef<Departement>[]>(
+  const columns = React.useMemo<ColumnDef<DepartmentT>[]>(
     () => [
       {
         id: "select",
         header: ({ table }) => (
           <Checkbox
-            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Select all"
           />
         ),
@@ -77,96 +103,141 @@ export function DepartementTable({ data }: DepartementTableProps) {
         accessorKey: "reference",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Référence
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
-        cell: ({ row }) => <div className="font-medium">{row.getValue("reference")}</div>,
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("reference")}</div>
+        ),
       },
       {
-        accessorKey: "name",
+        accessorKey: "label",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Name
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
-        cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("label")}</div>
+        ),
       },
       {
         accessorKey: "description",
         header: "Description",
-        cell: ({ row }) => <div className="max-w-[300px] truncate">{row.getValue("description")}</div>,
-      },
-      {
-        accessorKey: "chef",
-        header: ({ column }) => {
-          return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-              Chef
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          )
-        },
-        cell: ({ row }) => <div>{row.getValue("chef")}</div>,
-      },
-      {
-        accessorKey: "nombreEmployes",
-        header: ({ column }) => {
-          return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-              {"Nombre d'employés"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          )
-        },
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{row.getValue("nombreEmployes")}</span>
+          <div className="max-w-[300px] truncate">
+            {row.getValue("description")}
           </div>
         ),
       },
       {
-        accessorKey: "statut",
+        accessorKey: "members",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Chef
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => {
+          console.log(row.getValue("members"));
+          const members = row.getValue("members") as Member[];
+          return (
+            <div>{members.find((user) => user.chief === true)?.user?.name}</div>
+          );
+        },
+      },
+      {
+        accessorKey: "employees",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Nombre d'employés"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">
+              {(row.getValue("members") as Member[]).length}
+            </span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Statut
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
         cell: ({ row }) => {
-          const statut = row.getValue("statut") as string
+          const status = row.getValue("status") as string;
           return (
             <Badge
               variant="outline"
               className={
-                statut === "actif"
+                status === "actif"
                   ? "bg-green-500 text-white border-green-600"
-                  : statut === "inactif"
-                    ? "bg-red-500 text-white border-red-600"
-                    : "bg-yellow-500 text-white border-yellow-600"
+                  : status === "inactif"
+                  ? "bg-red-500 text-white border-red-600"
+                  : "bg-yellow-500 text-white border-yellow-600"
               }
             >
-              {statut === "actif" ? (
+              {status === "actif" ? (
                 <CheckCircle className="mr-1 h-3 w-3" />
-              ) : statut === "inactif" ? (
+              ) : status === "inactif" ? (
                 <XCircle className="mr-1 h-3 w-3" />
               ) : (
                 <Clock className="mr-1 h-3 w-3" />
               )}
-              {statut === "actif" ? "Actif" : statut === "inactif" ? "Inactif" : "En réorganisation"}
+              {status === "actif"
+                ? "Actif"
+                : status === "inactif"
+                ? "Inactif"
+                : "En réorganisation"}
             </Badge>
-          )
+          );
         },
         filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id))
+          return value.includes(row.getValue(id));
         },
       },
       {
@@ -174,7 +245,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
         header: "Actions",
         enableHiding: false,
         cell: ({ row }) => {
-          const departement = row.original
+          const departement = row.original;
 
           return (
             <DropdownMenu>
@@ -189,15 +260,17 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 <DropdownMenuItem>View</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Edit</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600">
+                  Delete
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )
+          );
         },
       },
     ],
-    [],
-  )
+    []
+  );
 
   const table = useReactTable({
     data,
@@ -212,16 +285,16 @@ export function DepartementTable({ data }: DepartementTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const search = filterValue.toLowerCase()
-      const reference = row.getValue("reference") as string
-      const name = row.getValue("name") as string
-      const chef = row.getValue("chef") as string
+      const search = filterValue.toLowerCase();
+      const reference = row.getValue("reference") as string;
+      const name = row.getValue("name") as string;
+      const chef = row.getValue("chef") as string;
 
       return (
         reference.toLowerCase().includes(search) ||
         name.toLowerCase().includes(search) ||
         chef.toLowerCase().includes(search)
-      )
+      );
     },
     state: {
       sorting,
@@ -230,20 +303,20 @@ export function DepartementTable({ data }: DepartementTableProps) {
       rowSelection,
       globalFilter,
     },
-  })
+  });
 
-  const getRowClassName = (statut: string) => {
-    switch (statut) {
+  const getRowClassName = (status: string) => {
+    switch (status) {
       case "actif":
-        return "bg-green-50 hover:bg-green-100"
+        return "bg-green-50 hover:bg-green-100";
       case "inactif":
-        return "bg-red-50 hover:bg-red-100"
+        return "bg-red-50 hover:bg-red-100";
       case "en-reorganisation":
-        return "bg-yellow-50 hover:bg-yellow-100"
+        return "bg-yellow-50 hover:bg-yellow-100";
       default:
-        return ""
+        return "";
     }
-  }
+  };
 
   return (
     <div className="w-full">
@@ -255,8 +328,14 @@ export function DepartementTable({ data }: DepartementTableProps) {
           className="max-w-sm"
         />
         <Select
-          value={(table.getColumn("statut")?.getFilterValue() as string) ?? "all"}
-          onValueChange={(value) => table.getColumn("statut")?.setFilterValue(value === "all" ? "" : value)}
+          value={
+            (table.getColumn("status")?.getFilterValue() as string) ?? "all"
+          }
+          onValueChange={(value) =>
+            table
+              .getColumn("status")
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
@@ -284,11 +363,13 @@ export function DepartementTable({ data }: DepartementTableProps) {
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
-                )
+                );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -300,10 +381,20 @@ export function DepartementTable({ data }: DepartementTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header, index) => {
                   return (
-                    <TableHead key={header.id} className={index < headerGroup.headers.length - 1 ? "border-r" : ""}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    <TableHead
+                      key={header.id}
+                      className={
+                        index < headerGroup.headers.length - 1 ? "border-r" : ""
+                      }
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -314,18 +405,31 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={getRowClassName(row.original.statut)}
+                  className={getRowClassName(row.original.status)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
-                    <TableCell key={cell.id} className={index < row.getVisibleCells().length - 1 ? "border-r" : ""}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <TableCell
+                      key={cell.id}
+                      className={
+                        index < row.getVisibleCells().length - 1
+                          ? "border-r"
+                          : ""
+                      }
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -335,8 +439,8 @@ export function DepartementTable({ data }: DepartementTableProps) {
       </div>
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
-          selected.
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -355,7 +459,12 @@ export function DepartementTable({ data }: DepartementTableProps) {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
           <Button
@@ -369,5 +478,5 @@ export function DepartementTable({ data }: DepartementTableProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

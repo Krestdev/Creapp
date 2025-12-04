@@ -1,60 +1,83 @@
+"use client";
 import { DepartementTable } from "@/components/tables/departement-table";
+import { useStore } from "@/providers/datastore";
+import { DepartmentQueries } from "@/queries/departmentModule";
+import { DepartmentT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
-const departementData = [
-  {
-    reference: "DEPT-001",
-    name: "IT & Infrastructure",
-    description: "Gestion des systèmes informatiques et infrastructure réseau",
-    chef: "Jean Michel Atangana",
-    nombreEmployes: 25,
-    statut: "actif" as const,
-  },
-  {
-    reference: "DEPT-002",
-    name: "Ressources Humaines",
-    description: "Gestion du personnel et développement des talents",
-    chef: "Sophie Martin",
-    nombreEmployes: 12,
-    statut: "actif" as const,
-  },
-  {
-    reference: "DEPT-003",
-    name: "Comptabilité",
-    description: "Gestion financière et comptable de l'entreprise",
-    chef: "Pierre Dubois",
-    nombreEmployes: 8,
-    statut: "en-reorganisation" as const,
-  },
-  {
-    reference: "DEPT-004",
-    name: "Marketing",
-    description: "Stratégie marketing et communication",
-    chef: "Marie Dupont",
-    nombreEmployes: 15,
-    statut: "actif" as const,
-  },
-  {
-    reference: "DEPT-005",
-    name: "Logistique",
-    description: "Gestion des approvisionnements et distribution",
-    chef: "Thomas Bernard",
-    nombreEmployes: 20,
-    statut: "inactif" as const,
-  },
-];
+// const departementData: DepartmentT[] = [
+//   {
+//     id: 1,
+//     reference: "DEPT-001",
+//     label: "IT & Infrastructure",
+//     description: "Gestion des systèmes informatiques et infrastructure réseau",
+//     members: [],
+//     status: "actif" as const,
+//     createdAt: "Date",
+//     updatedAt: "Date",
+//   },
+//   {
+//     id: 2,
+//     reference: "DEPT-002",
+//     label: "Ressources Humaines",
+//     description: "Gestion du personnel et développement des talents",
+//     members: [],
+//     status: "actif" as const,
+//     createdAt: "Date",
+//     updatedAt: "Date",
+//   },
+//   {
+//     id: 3,
+//     reference: "DEPT-003",
+//     label: "Comptabilité",
+//     description: "Gestion financière et comptable de l'entreprise",
+//     members: [],
+//     status: "en-reorganisation" as const,
+//     createdAt: "Date",
+//     updatedAt: "Date",
+//   },
+//   {
+//     id: 4,
+//     reference: "DEPT-004",
+//     label: "Marketing",
+//     description: "Stratégie marketing et communication",
+//     members: [],
+//     status: "actif" as const,
+//     createdAt: "Date",
+//     updatedAt: "Date",
+//   },
+//   {
+//     id: 5,
+//     reference: "DEPT-005",
+//     label: "Logistique",
+//     description: "Gestion des approvisionnements et distribution",
+//     members: [],
+//     status: "inactif" as const,
+//     createdAt: "Date",
+//     updatedAt: "Date",
+//   },
+// ];
 
 const DepartementPage = () => {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col">
-        <div className="flex justify-between">
-          <h2>Departement</h2>
+  const { isHydrated } = useStore();
+  const department = new DepartmentQueries();
+  const departmentData = useQuery({
+    queryKey: ["departmentList"],
+    queryFn: () => department.getAll(),
+    enabled: isHydrated,
+  });
+  if (departmentData.data)
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
+          <div className="flex justify-between">
+            <h2>Departement</h2>
+          </div>
+          <DepartementTable data={departmentData.data.data} />
         </div>
-        <DepartementTable data={departementData} />
       </div>
-    </div>
-  );
+    );
 };
 
 export default DepartementPage;

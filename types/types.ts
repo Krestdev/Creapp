@@ -42,9 +42,12 @@ export type User = {
   projectId?: number | null;
   verificationOtp?: number | null;
   verified?: boolean;
+  status: string;
+  lastConnection: string;
   createdAt?: string;
   updatedAt?: string;
   role: Role[];
+  members: Member[];
 };
 
 export type Role = {
@@ -60,11 +63,13 @@ export interface UserTest extends User {
 
 export type DepartmentT = {
   id: number;
+  reference: string;
   label: string;
   description: string | null;
   members: Member[];
-  createdAt: Date;
-  updatedAt: Date;
+  status: string; // "actif" | "inactif" | "en-reorganisation"
+  createdAt: string;
+  updatedAt: string;
 };
 export type Member = {
   id: number;
@@ -73,9 +78,11 @@ export type Member = {
   updatedAt: Date;
   userId: number;
   departmentId: number;
+  department?: DepartmentT;
   validator: boolean;
   chief: boolean;
   finalValidator: boolean;
+  user?: User;
 };
 
 // projects
@@ -193,13 +200,13 @@ export type ProjectCreateResponse = {
 };
 
 export type Provider = {
-    rating: number;
-    taxId: string;
-    address: string;
-    email: string;
-    phone: string;
-    updatedAt?: string;
-    createdAt: string;
-    id: number;
-    name: string;
-  }
+  rating: number;
+  taxId: string;
+  address: string;
+  email: string;
+  phone: string;
+  updatedAt?: string;
+  createdAt: string;
+  id: number;
+  name: string;
+};

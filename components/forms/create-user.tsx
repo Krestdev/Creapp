@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { number, z } from "zod";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,7 @@ import {
 import { UserQueries } from "@/queries/baseModule";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ResponseT, User } from "@/types/types";
+import { DepartmentQueries } from "@/queries/departmentModule";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -36,7 +37,7 @@ const formSchema = z.object({
   phone: z.string().min(1),
   role: z.string(),
   poste: z.string().min(1),
-  Service: z.string(),
+  department: z.string(),
 });
 
 export default function CreateUserForm() {
@@ -45,8 +46,11 @@ export default function CreateUserForm() {
   });
 
   const userQueries = new UserQueries();
+  const deparmentQueries = new DepartmentQueries();
   const registerAPI = useMutation({
-    mutationFn: (data: User) => userQueries.register(data),
+    mutationFn: (
+      data: Omit<User, "status" | "lastConnection" | "role" | "members">
+    ) => userQueries.create(data),
     onSuccess: (data: ResponseT<User>) => {
       toast.success("Inscription réussie !");
       console.log("Register successful:", data);
@@ -61,20 +65,25 @@ export default function CreateUserForm() {
     queryFn: () => userQueries.getRoles(),
   });
 
+  const departmentData = useQuery({
+    queryKey: ["department"],
+    queryFn: () => deparmentQueries.getAll(),
+  });
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       console.log(values);
-      const selectedRoles = roleData.data?.data.filter(
-        (x) => x.id.toString() === values.role
-      ) || [];
+      const selectedRoles =
+        roleData.data?.data.filter((x) => x.id.toString() === values.role) ||
+        [];
       const data = {
         name: values.name,
         email: values.email,
         password: values.password,
         phone: values.phone,
-        role: selectedRoles,
-        poste: values.poste,
-        Service: values.Service,
+        role: Number(values.role),
+        post: values.poste,
+        department: Number(values.department),
       };
       registerAPI.mutate(data);
     } catch (error) {
@@ -217,20 +226,23 @@ export default function CreateUserForm() {
 
         <FormField
           control={form.control}
-          name="Service"
+          name="department"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Service</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormLabel>Department</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={"0"}>
                 <FormControl className="w-full">
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un service" />
+                    <SelectValue placeholder="Sélectionner un department" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="m@example.com">m@example.com</SelectItem>
-                  <SelectItem value="m@google.com">m@google.com</SelectItem>
-                  <SelectItem value="m@support.com">m@support.com</SelectItem>
+                  <SelectItem value={"0"}> Pas de departement</SelectItem>
+                  {departmentData.data?.data.map((department) => (
+                    <SelectItem value={department.id.toString()}>
+                      {department.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
