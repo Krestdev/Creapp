@@ -204,21 +204,23 @@ export type Provider = {
   name: string;
 };
 
+export type QuotationElement = {
+  id: number;
+  requestModelId: number;
+  title: string;
+  quantity: number;
+  unit: string;
+  priceProposed: number;
+  deviId: number;
+};
+
 export type Quotation = {
   id: number;
   commandRequestId: number;
   providerId: number;
   ref: string;
-  element: {
-    id:number;
-    requestModelId: number;
-    title: string;
-    quantity: number;
-    unit: string;
-    priceProposed: number;
-    deviId:number;
-  }[];
-  proof: (string | File);
+  element: Array<QuotationElement>;
+  proof: string | File;
   dueDate: string;
   createdAt: string;
   updatedAt?: string;

@@ -17,15 +17,26 @@ import { ProviderQueries } from '@/queries/providers'
 import { CommandRequestT, Provider, RequestModelT } from '@/types/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { SelectValue } from '@radix-ui/react-select'
-import { FolderX, Plus, X, Pencil } from 'lucide-react'
+import { FolderX, Plus, X, Pencil, CalendarIcon } from 'lucide-react'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
 import AddElement from './addElement'
+import { QuotationQueries } from '@/queries/quotation'
+import { useMutation } from '@tanstack/react-query'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
 
 const formSchema = z.object({
-  quotationId: z.number({ message: 'Requis' }),
+  commandRequestId: z.number({ message: 'Requis' }),
   providerId: z.number({ message: 'Requis' }),
+  dueDate: z
+    .string({message: "Veuillez définir une date"})
+    .refine((val)=> {
+        const d = new Date(val);
+        return !isNaN(d.getTime());
+    }, {message: "Date invalide"}),
   elements: z
     .array(
       z.object({
@@ -61,22 +72,46 @@ function CreateQuotation() {
   /**Fournisseurs */
   const providerQuery = new ProviderQueries();
   const providersData = useFetchQuery(['providers'], providerQuery.getAll, 500000);
+  /**Quotation */
+  const quotationQuery = new QuotationQueries();
+  const { mutate, isPending } = useMutation({
+  mutationFn: async (values: FormValues) =>
+    quotationQuery.create({
+      devis: {
+        commandRequestId: values.commandRequestId,
+        providerId: values.providerId,
+        proof: values.proof[0],          // File ou string
+        dueDate: values.dueDate
+      },
+      elements: values.elements.map((e) => ({
+        requestModelId: e.needId,
+        title: e.designation,
+        quantity: e.quantity,
+        unit: e.unit,
+        priceProposed: e.price
+      }))
+    })
+});
 
   /**Data states */
+  const [dueDate, setDueDate] = React.useState<boolean>(false);
   const [requests, setRequests] = React.useState<Array<CommandRequestT>>([]);
   const [providers, setProviders] = React.useState<Array<Provider>>([]);
+  const today = new Date(); //On part sur 3 jours de delai de base :)
+        today.setDate(today.getDate() + 3);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      quotationId: undefined,
+      commandRequestId: undefined,
       providerId: undefined,
       elements: [],
+      dueDate: today.toISOString().slice(0,10),
       proof: undefined
     }
   });
 
-  const quotationId = form.watch('quotationId');
+  const commandRequestId = form.watch('commandRequestId');
 
   React.useEffect(() => {
     if (requestsData.isSuccess) {
@@ -88,16 +123,17 @@ function CreateQuotation() {
   }, [requestsData.isSuccess, providersData.isSuccess]);
 
   React.useEffect(() => {
-    if (quotationId) {
-      const req = requests.find((x) => x.id === quotationId);
+    if (commandRequestId) {
+      const req = requests.find((x) => x.id === commandRequestId);
       setSelectedNeeds(req?.besoins);
     } else {
       setSelectedNeeds(undefined);
     }
-  }, [quotationId, requests]);
+  }, [commandRequestId, requests]);
 
   function onSubmit(values: FormValues) {
-    console.log(values);
+    //console.log(values);
+    mutate(values);
   }
 
   return (
@@ -109,7 +145,7 @@ function CreateQuotation() {
         {/* Demande de cotation */}
         <FormField
           control={form.control}
-          name="quotationId"
+          name="commandRequestId"
           render={({ field }) => (
             <FormItem>
               <FormLabel isRequired>{"Demande de cotation"}</FormLabel>
@@ -170,6 +206,66 @@ function CreateQuotation() {
                     )}
                   </SelectContent>
                 </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Date limite de soumission */}
+        <FormField
+          control={form.control}
+          name="dueDate"
+          render={({ field }) => (
+            <FormItem className="@min-[640px]:col-span-2">
+              <FormLabel isRequired>{"Date limite de soumission"}</FormLabel>
+              <FormControl>
+                <div className="relative flex gap-2">
+                                            <Input
+                                                id={field.name}
+                                                value={field.value}
+                                                placeholder="Sélectionner une date"
+                                                className="bg-background pr-10"
+                                                onChange={(e) => {
+                                                    field.onChange(e.target.value)
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "ArrowDown") {
+                                                    e.preventDefault()
+                                                    setDueDate(true)
+                                                    }
+                                                }}
+                                            />
+                                            <Popover open={dueDate} onOpenChange={setDueDate}>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                    id="date-picker"
+                                                    variant="ghost"
+                                                    className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                                                    >
+                                                    <CalendarIcon className="size-3.5" />
+                                                    <span className="sr-only">{"Sélectionner une date"}</span>
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent
+                                                    className="w-auto overflow-hidden p-0"
+                                                    align="end"
+                                                    alignOffset={-8}
+                                                    sideOffset={10}
+                                                >
+                                                    <Calendar
+                                                    mode="single"
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    captionLayout="dropdown"
+                                                    onSelect={(date) => {
+                                                        if (!date) return;
+                                                        const value = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+                                                        field.onChange(value);
+                                                        setDueDate(false);
+                                                    }}
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -278,7 +374,7 @@ function CreateQuotation() {
           )}
         />
 
-        <Button type="submit" disabled={false} className="w-fit">
+        <Button type="submit" disabled={isPending} isLoading={isPending} className="w-fit">
           {"Créer le devis"}
         </Button>
       </form>
