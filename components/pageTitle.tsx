@@ -30,7 +30,7 @@ const PageTitle = ({ title, subtitle, children, color }: PageTitleProps) => {
           {"Précédent"}
         </Button>
       </div>
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-wrap">
         {children}
       </div>
     </div>
