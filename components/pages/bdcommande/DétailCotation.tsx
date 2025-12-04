@@ -137,17 +137,17 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     padding: 40,
-    paddingBottom: 60,
+    paddingBottom: 120,
     paddingTop: 120,
     fontFamily: "Poppins",
     fontSize: 10,
     lineHeight: 1.4,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#fff",
   },
 
   // ===== TITRE =====
   titleContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
 
   title: {
@@ -186,14 +186,13 @@ const styles = StyleSheet.create({
 
   // ===== SECTION TITRE =====
   sectionHeader: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
 
   sectionTitle: {
     fontSize: 14,
     fontWeight: "semibold",
     color: "#000",
-    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
 
@@ -201,7 +200,7 @@ const styles = StyleSheet.create({
   table: {
     width: "100%",
     borderWidth: 1,
-    borderColor: "#000",
+    borderColor: "#DFDFDF",
     borderStyle: "solid",
     marginBottom: 24,
     display: "flex",
@@ -213,14 +212,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "stretch", // Changé de "center" à "stretch" pour étirer verticalement
     justifyContent: "space-between",
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F4F4F5",
     width: "100%",
     // Ajout des bordures supérieure et inférieure
     borderTopWidth: 1,
-    borderTopColor: "#000",
+    borderTopColor: "#DFDFDF",
     borderTopStyle: "solid",
     borderBottomWidth: 1,
-    borderBottomColor: "#000",
+    borderBottomColor: "#DFDFDF",
     borderBottomStyle: "solid",
   },
 
@@ -231,7 +230,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-start",
     borderRightWidth: 1,
-    borderRightColor: "#000",
+    borderRightColor: "#DFDFDF",
     borderRightStyle: "solid",
     display: "flex",
     flexDirection: "column",
@@ -280,7 +279,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "flex-start",
     borderRightWidth: 1,
-    borderRightColor: "#000",
+    borderRightColor: "#DFDFDF",
     borderRightStyle: "solid",
     display: "flex",
     flexDirection: "column",
@@ -323,6 +322,5 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#666",
     textAlign: "right",
-    fontStyle: "italic",
   },
 });

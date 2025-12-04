@@ -49,14 +49,14 @@ const Besoins = ({ selected, setSelected, dataSup = [] }: Props) => {
   const filteredData = React.useMemo(() => {
     const allRequests = requestData.data?.data ?? [];
     const cotation = commandData.data?.data ?? [];
-    
+
     // IDs des besoins déjà dans des commandes
-    const besoinCommandes = cotation.flatMap((item) => 
-      item.besoins?.flatMap((b) => b.id) ?? []
+    const besoinCommandes = cotation.flatMap(
+      (item) => item.besoins?.flatMap((b) => b.id) ?? []
     );
 
     // IDs des besoins dans dataSup
-    const dataSupIds = new Set(dataSup.map(d => d.id));
+    const dataSupIds = new Set(dataSup.map((d) => d.id));
 
     // Filtrer les besoins disponibles
     const availableRequests = allRequests.filter((item) => {

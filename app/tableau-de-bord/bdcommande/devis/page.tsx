@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import PageTitle from "@/components/pageTitle";
 import { DevisTable } from "@/components/tables/DevisTable";
@@ -6,30 +6,86 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import React from "react";
 
-const cmdrqt = [
+type Devis = {
+  id: number;
+  ref: string;
+  title: string;
+  quotationId: number;
+  providerId: number;
+  elements: {
+    needId: number;
+    designation: string;
+    quantity: number;
+    unit: string;
+    price: number;
+  }[];
+  documents: (string | File)[];
+  dueDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+const devis: Devis[] = [
   {
-    id: 1,
-    deliveryDate: new Date(),
-    reference: "ref-1",
-    updatedAt: new Date(),
+    id: 0,
+    quotationId: 7,
+    providerId: 0,
+    elements: [
+      {
+        needId: 1,
+        designation: "Element 1",
+        quantity: 2,
+        unit: "unite",
+        price: 10,
+      },
+      {
+        needId: 2,
+        designation: "Element 2",
+        quantity: 3,
+        unit: "unite",
+        price: 15,
+      },
+    ],
+    documents: ["document1.pdf", "document2.pdf"],
     createdAt: new Date(),
-    userId: 1,
+    updatedAt: new Date(),
     dueDate: new Date(),
-    title: "title 1",
-    requests: [1, 2],
-    besoins: [],
+    ref: "ref-123",
+    title: "Devis 1",
   },
   {
-    id: 2,
-    deliveryDate: new Date(),
-    reference: "ref-2",
-    updatedAt: new Date(),
+    id: 1,
+    quotationId: 4,
+    providerId: 0,
+    elements: [
+      {
+        needId: 3,
+        designation: "Element 3",
+        quantity: 1,
+        unit: "unite",
+        price: 20,
+      },
+      {
+        needId: 4,
+        designation: "Element 4",
+        quantity: 2,
+        unit: "unite",
+        price: 25,
+      },
+      {
+        needId: 5,
+        designation: "Element 5",
+        quantity: 3,
+        unit: "unite",
+        price: 30,
+      },
+    ],
+    documents: ["document3.pdf"],
     createdAt: new Date(),
-    userId: 1,
+    updatedAt: new Date(),
     dueDate: new Date(),
-    title: "title 2",
-    requests: [1, 2],
-    besoins: [],
+    ref: "Ref-321",
+    title: "Devis 2",
   },
 ];
 
@@ -50,7 +106,7 @@ const Page = () => {
         </Link>
       </PageTitle>
       <DevisTable
-        data={cmdrqt}
+        data={devis}
         dateFilter={dateFilter}
         setDateFilter={setDateFilter}
       />
