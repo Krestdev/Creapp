@@ -48,6 +48,7 @@ export default function CreateUserForm() {
   const userQueries = new UserQueries();
   const deparmentQueries = new DepartmentQueries();
   const registerAPI = useMutation({
+    mutationKey: ["registerNewUser"],
     mutationFn: (
       data: Omit<User, "status" | "lastConnection" | "role" | "members">
     ) => userQueries.create(data),
@@ -239,7 +240,10 @@ export default function CreateUserForm() {
                 <SelectContent>
                   <SelectItem value={"0"}> Pas de departement</SelectItem>
                   {departmentData.data?.data.map((department) => (
-                    <SelectItem value={department.id.toString()}>
+                    <SelectItem
+                      key={department.id}
+                      value={department.id.toString()}
+                    >
                       {department.label}
                     </SelectItem>
                   ))}

@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -15,23 +14,25 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
+  CheckCircle,
   ChevronDown,
-  MoreHorizontal,
-  Search,
-  ChevronsLeft,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
   ChevronsRight,
   Eye,
-  UserCheck,
-  UserX,
-  CheckCircle,
-  XCircle,
+  MoreHorizontal,
+  Search,
   Shield,
   User,
+  UserCheck,
+  UserX,
   Users,
+  XCircle,
 } from "lucide-react";
+import * as React from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -45,6 +46,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -52,18 +60,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Member, Role, User as UserT } from "@/types/types";
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { Member, Role, User as UserT } from "@/types/types";
+import { useMutation } from "@tanstack/react-query";
 
 // export type Utilisateur = {
 //   id: string;

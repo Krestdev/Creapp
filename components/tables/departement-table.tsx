@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -15,14 +14,16 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  ChevronDown,
-  MoreHorizontal,
   CheckCircle,
-  XCircle,
+  ChevronDown,
   Clock,
+  MoreHorizontal,
   Users,
+  XCircle,
 } from "lucide-react";
+import * as React from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -36,6 +37,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -43,21 +51,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DepartmentT, Member } from "@/types/types";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import {
-  ChevronsLeft,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { DepartmentT, Member } from "@/types/types";
 
 interface DepartementTableProps {
   data: DepartmentT[];

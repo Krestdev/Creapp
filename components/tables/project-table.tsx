@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -14,23 +13,25 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
+  AlertCircle,
   ArrowUpDown,
-  ChevronDown,
-  MoreHorizontal,
-  Search,
-  Eye,
   CheckCircle,
-  XCircle,
-  ChevronsLeft,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
   ChevronsRight,
   Clock,
-  PlayCircle,
+  Eye,
+  MoreHorizontal,
   PauseCircle,
-  AlertCircle,
+  PlayCircle,
+  Search,
+  XCircle,
 } from "lucide-react";
+import * as React from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -51,7 +52,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 
 export type Project = {
   reference: string;
