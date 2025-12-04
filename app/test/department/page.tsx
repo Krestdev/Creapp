@@ -64,6 +64,8 @@ export default function TestDepartmentPage() {
                 departmentQueries.create({
                   label,
                   description: description || null,
+                  status: "active",
+                  reference: "looo",
                 })
               )
             }
@@ -96,7 +98,9 @@ export default function TestDepartmentPage() {
 
           <Button
             className="bg-yellow-600 text-white"
-            onClick={() => handle(() => departmentQueries.getOne(Number(deptId)))}
+            onClick={() =>
+              handle(() => departmentQueries.getOne(Number(deptId)))
+            }
           >
             Tester getOne
           </Button>
@@ -134,9 +138,7 @@ export default function TestDepartmentPage() {
           <Button
             className="bg-indigo-600 text-white"
             onClick={() =>
-              handle(() =>
-                departmentQueries.getFinalValidators(Number(deptId))
-              )
+              handle(() => departmentQueries.getFinalValidators(Number(deptId)))
             }
           >
             Tester getFinalValidators
@@ -168,7 +170,7 @@ export default function TestDepartmentPage() {
             value={label}
             onChange={(e) => setLabel(e.target.value)}
           />
-           <input
+          <input
             placeholder="ID utilisateur ,"
             className="border p-2 rounded w-full"
             value={userId}
@@ -186,7 +188,10 @@ export default function TestDepartmentPage() {
               className="bg-green-600 text-white"
               onClick={() =>
                 handle(() =>
-                  departmentQueries.addMembers(Number(deptId), {label: label, userId: Number(userId)})
+                  departmentQueries.addMembers(Number(deptId), {
+                    label: label,
+                    userId: Number(userId),
+                  })
                 )
               }
             >
@@ -232,7 +237,10 @@ export default function TestDepartmentPage() {
               className="bg-green-600 text-white"
               onClick={() =>
                 handle(() =>
-                  departmentQueries.addValidators(Number(deptId), Number(validatorIds),)
+                  departmentQueries.addValidators(
+                    Number(deptId),
+                    Number(validatorIds)
+                  )
                 )
               }
             >
@@ -265,14 +273,13 @@ export default function TestDepartmentPage() {
             value={deptId}
             onChange={(e) => setDeptId(e.target.value)}
           />
-          
+
           <input
             placeholder="IDs final validateurs"
             className="border p-2 rounded w-full"
             value={finalValidatorIds}
             onChange={(e) => setFinalValidatorIds(e.target.value)}
           />
-
 
           <div className="flex gap-2">
             <Button
@@ -321,7 +328,9 @@ export default function TestDepartmentPage() {
             <Button
               className="bg-green-600 text-white"
               onClick={() =>
-                handle(() => departmentQueries.addChief(Number(deptId), Number(userId)))
+                handle(() =>
+                  departmentQueries.addChief(Number(deptId), Number(userId))
+                )
               }
             >
               Ajouter Chief
