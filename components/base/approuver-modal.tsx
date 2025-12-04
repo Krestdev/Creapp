@@ -2,6 +2,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -68,36 +69,15 @@ export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
     }
   }
 
-  const statusConfig = {
-    pending: {
-      label: "En attente",
-      color:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-    },
-    approved: {
-      label: "Soumis",
-      color:
-        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-    },
-    rejected: {
-      label: "Rejeté",
-      color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-    },
-    "in-review": {
-      label: "En révision",
-      color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    },
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto gap-0 overflow-x-hidden border-none">
         {/* Header with burgundy background */}
-        <DialogHeader className="bg-[#15803D] text-white p-6 m-4 rounded-lg pb-8 relative">
+        <DialogHeader variant={"success"}>
           <DialogTitle className="text-xl font-semibold text-white">
-            Soumettre un besoin
+            {"Soumettre un besoin"}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">Approbation du besoin</p>
+          <DialogDescription>{"Approbation du besoin"}</DialogDescription>
         </DialogHeader>
 
         {/* Content */}
@@ -108,9 +88,9 @@ export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
               <AlertCircle className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">Attention</p>
+              <p className="text-sm text-muted-foreground mb-1">{"Attention"}</p>
               <p className="text-sm">
-                Êtes-vous sûr de vouloir soumettre ce besoin ?
+                {"Êtes-vous sûr de vouloir soumettre ce besoin ?"}
               </p>
             </div>
           </div>
@@ -142,14 +122,14 @@ export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
                   type="submit"
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                 >
-                  Rejeter
+                  {"Rejeter"}
                 </Button>
                 <Button
                   variant="outline"
                   className="flex-1 bg-transparent"
                   onClick={() => onOpenChange(false)}
                 >
-                  Annuler
+                  {"Annuler"}
                 </Button>
               </div>
             </form>

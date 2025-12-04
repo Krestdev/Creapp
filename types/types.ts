@@ -193,13 +193,33 @@ export type ProjectCreateResponse = {
 };
 
 export type Provider = {
-    rating: number;
-    taxId: string;
-    address: string;
-    email: string;
-    phone: string;
-    updatedAt?: string;
-    createdAt: string;
-    id: number;
-    name: string;
-  }
+  rating: number;
+  taxId: string;
+  address: string;
+  email: string;
+  phone: string;
+  updatedAt?: string;
+  createdAt: string;
+  id: number;
+  name: string;
+};
+
+export type Quotation = {
+  id: number;
+  commandRequestId: number;
+  providerId: number;
+  ref: string;
+  element: {
+    id:number;
+    requestModelId: number;
+    title: string;
+    quantity: number;
+    unit: string;
+    priceProposed: number;
+    deviId:number;
+  }[];
+  proof: (string | File);
+  dueDate: string;
+  createdAt: string;
+  updatedAt?: string;
+};
