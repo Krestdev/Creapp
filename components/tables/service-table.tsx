@@ -1,6 +1,5 @@
-"use client"
+"use client";
 
-import * as React from "react"
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -12,11 +11,21 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, CheckCircle, XCircle, Clock, Users } from "lucide-react"
+} from "@tanstack/react-table";
+import {
+  ArrowUpDown,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  MoreHorizontal,
+  Users,
+  XCircle,
+} from "lucide-react";
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -25,34 +34,54 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
 export type Service = {
-  reference: string
-  name: string
-  description: string
-  chef: string
-  nombreEmployes: number
-  department: string
-  chefDepartement: string
-  statut: "actif" | "inactif" | "en-reorganisation"
-}
+  reference: string;
+  name: string;
+  description: string;
+  chef: string;
+  nombreEmployes: number;
+  department: string;
+  chefDepartement: string;
+  statut: "actif" | "inactif" | "en-reorganisation";
+};
 
 interface ServiceTableProps {
-  data: Service[]
+  data: Service[];
 }
 
 export function ServiceTable({ data }: ServiceTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [globalFilter, setGlobalFilter] = React.useState("")
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState("");
 
   const columns = React.useMemo<ColumnDef<Service>[]>(
     () => [
@@ -60,8 +89,13 @@ export function ServiceTable({ data }: ServiceTableProps) {
         id: "select",
         header: ({ table }) => (
           <Checkbox
-            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Select all"
           />
         ),
@@ -79,40 +113,63 @@ export function ServiceTable({ data }: ServiceTableProps) {
         accessorKey: "reference",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Référence
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
-        cell: ({ row }) => <div className="font-medium">{row.getValue("reference")}</div>,
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("reference")}</div>
+        ),
       },
       {
         accessorKey: "name",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Name
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
-        cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("name")}</div>
+        ),
       },
       {
         accessorKey: "description",
         header: "Description",
-        cell: ({ row }) => <div className="max-w-[250px] truncate">{row.getValue("description")}</div>,
+        cell: ({ row }) => (
+          <div className="max-w-[250px] truncate">
+            {row.getValue("description")}
+          </div>
+        ),
       },
       {
         accessorKey: "chef",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Chef
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
         cell: ({ row }) => <div>{row.getValue("chef")}</div>,
       },
@@ -120,16 +177,23 @@ export function ServiceTable({ data }: ServiceTableProps) {
         accessorKey: "nombreEmployes",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               {"Nombre d'employés"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{row.getValue("nombreEmployes")}</span>
+            <span className="font-medium">
+              {row.getValue("nombreEmployes")}
+            </span>
           </div>
         ),
       },
@@ -137,11 +201,16 @@ export function ServiceTable({ data }: ServiceTableProps) {
         accessorKey: "department",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Department
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
         cell: ({ row }) => <div>{row.getValue("department")}</div>,
       },
@@ -149,11 +218,16 @@ export function ServiceTable({ data }: ServiceTableProps) {
         accessorKey: "chefDepartement",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Chef Département
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
         cell: ({ row }) => <div>{row.getValue("chefDepartement")}</div>,
       },
@@ -161,14 +235,19 @@ export function ServiceTable({ data }: ServiceTableProps) {
         accessorKey: "statut",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Statut
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
         cell: ({ row }) => {
-          const statut = row.getValue("statut") as string
+          const statut = row.getValue("statut") as string;
           return (
             <Badge
               variant="outline"
@@ -176,8 +255,8 @@ export function ServiceTable({ data }: ServiceTableProps) {
                 statut === "actif"
                   ? "bg-green-500 text-white border-green-600"
                   : statut === "inactif"
-                    ? "bg-red-500 text-white border-red-600"
-                    : "bg-yellow-500 text-white border-yellow-600"
+                  ? "bg-red-500 text-white border-red-600"
+                  : "bg-yellow-500 text-white border-yellow-600"
               }
             >
               {statut === "actif" ? (
@@ -187,12 +266,16 @@ export function ServiceTable({ data }: ServiceTableProps) {
               ) : (
                 <Clock className="mr-1 h-3 w-3" />
               )}
-              {statut === "actif" ? "Actif" : statut === "inactif" ? "Inactif" : "En réorganisation"}
+              {statut === "actif"
+                ? "Actif"
+                : statut === "inactif"
+                ? "Inactif"
+                : "En réorganisation"}
             </Badge>
-          )
+          );
         },
         filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id))
+          return value.includes(row.getValue(id));
         },
       },
       {
@@ -200,7 +283,7 @@ export function ServiceTable({ data }: ServiceTableProps) {
         header: "Actions",
         enableHiding: false,
         cell: ({ row }) => {
-          const service = row.original
+          const service = row.original;
 
           return (
             <DropdownMenu>
@@ -215,15 +298,17 @@ export function ServiceTable({ data }: ServiceTableProps) {
                 <DropdownMenuItem>View</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Edit</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600">
+                  Delete
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )
+          );
         },
       },
     ],
-    [],
-  )
+    []
+  );
 
   const table = useReactTable({
     data,
@@ -238,18 +323,18 @@ export function ServiceTable({ data }: ServiceTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const search = filterValue.toLowerCase()
-      const reference = row.getValue("reference") as string
-      const name = row.getValue("name") as string
-      const chef = row.getValue("chef") as string
-      const department = row.getValue("department") as string
+      const search = filterValue.toLowerCase();
+      const reference = row.getValue("reference") as string;
+      const name = row.getValue("name") as string;
+      const chef = row.getValue("chef") as string;
+      const department = row.getValue("department") as string;
 
       return (
         reference.toLowerCase().includes(search) ||
         name.toLowerCase().includes(search) ||
         chef.toLowerCase().includes(search) ||
         department.toLowerCase().includes(search)
-      )
+      );
     },
     state: {
       sorting,
@@ -258,20 +343,20 @@ export function ServiceTable({ data }: ServiceTableProps) {
       rowSelection,
       globalFilter,
     },
-  })
+  });
 
   const getRowClassName = (statut: string) => {
     switch (statut) {
       case "actif":
-        return "bg-green-50 hover:bg-green-100"
+        return "bg-green-50 hover:bg-green-100";
       case "inactif":
-        return "bg-red-50 hover:bg-red-100"
+        return "bg-red-50 hover:bg-red-100";
       case "en-reorganisation":
-        return "bg-yellow-50 hover:bg-yellow-100"
+        return "bg-yellow-50 hover:bg-yellow-100";
       default:
-        return ""
+        return "";
     }
-  }
+  };
 
   return (
     <div className="w-full">
@@ -283,8 +368,14 @@ export function ServiceTable({ data }: ServiceTableProps) {
           className="max-w-sm"
         />
         <Select
-          value={(table.getColumn("statut")?.getFilterValue() as string) ?? "all"}
-          onValueChange={(value) => table.getColumn("statut")?.setFilterValue(value === "all" ? "" : value)}
+          value={
+            (table.getColumn("statut")?.getFilterValue() as string) ?? "all"
+          }
+          onValueChange={(value) =>
+            table
+              .getColumn("statut")
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
@@ -312,11 +403,13 @@ export function ServiceTable({ data }: ServiceTableProps) {
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
-                )
+                );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -328,10 +421,20 @@ export function ServiceTable({ data }: ServiceTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header, index) => {
                   return (
-                    <TableHead key={header.id} className={index < headerGroup.headers.length - 1 ? "border-r" : ""}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    <TableHead
+                      key={header.id}
+                      className={
+                        index < headerGroup.headers.length - 1 ? "border-r" : ""
+                      }
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -345,15 +448,28 @@ export function ServiceTable({ data }: ServiceTableProps) {
                   className={getRowClassName(row.original.statut)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
-                    <TableCell key={cell.id} className={index < row.getVisibleCells().length - 1 ? "border-r" : ""}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <TableCell
+                      key={cell.id}
+                      className={
+                        index < row.getVisibleCells().length - 1
+                          ? "border-r"
+                          : ""
+                      }
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -363,8 +479,8 @@ export function ServiceTable({ data }: ServiceTableProps) {
       </div>
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
-          selected.
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -383,7 +499,12 @@ export function ServiceTable({ data }: ServiceTableProps) {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
           <Button
@@ -397,5 +518,5 @@ export function ServiceTable({ data }: ServiceTableProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

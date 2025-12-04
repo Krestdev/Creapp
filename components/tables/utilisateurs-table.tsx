@@ -1,6 +1,5 @@
-"use client"
+"use client";
 
-import * as React from "react"
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -12,28 +11,30 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 import {
   ArrowUpDown,
+  CheckCircle,
   ChevronDown,
-  MoreHorizontal,
-  Search,
-  ChevronsLeft,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
   ChevronsRight,
   Eye,
-  UserCheck,
-  UserX,
-  CheckCircle,
-  XCircle,
+  MoreHorizontal,
+  Search,
   Shield,
   User,
+  UserCheck,
+  UserX,
   Users,
-} from "lucide-react"
+  XCircle,
+} from "lucide-react";
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -42,109 +43,141 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useStore } from "@/providers/datastore";
+import { UserQueries } from "@/queries/baseModule";
+import { Member, Role, User as UserT } from "@/types/types";
+import { useMutation } from "@tanstack/react-query";
 
-export type Utilisateur = {
-  id: string
-  nom: string
-  role: "admin" | "manager" | "user" | "viewer"
-  statut: "active" | "inactive" | "suspended"
-  derniereConnexion: string
-  serviceAssocie: string
-}
+// export type Utilisateur = {
+//   id: string;
+//   nom: string;
+//   role: "admin" | "manager" | "user" | "viewer";
+//   statut: "active" | "inactive" | "suspended";
+//   derniereConnexion: string;
+//   serviceAssocie: string;
+// };
 
 interface UtilisateursTableProps {
-  data: Utilisateur[]
+  data: UserT[];
 }
 
 export function UtilisateursTable({ data }: UtilisateursTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [globalFilter, setGlobalFilter] = React.useState("")
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState("");
 
   const getRoleIcon = (role: string) => {
     switch (role) {
       case "admin":
-        return <Shield className="h-3 w-3" />
+        return <Shield className="h-3 w-3" />;
       case "manager":
-        return <Users className="h-3 w-3" />
+        return <Users className="h-3 w-3" />;
       case "user":
-        return <User className="h-3 w-3" />
+        return <User className="h-3 w-3" />;
       case "viewer":
-        return <Eye className="h-3 w-3" />
+        return <Eye className="h-3 w-3" />;
       default:
-        return <User className="h-3 w-3" />
+        return <User className="h-3 w-3" />;
     }
-  }
+  };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "admin":
-        return "bg-purple-500 text-white hover:bg-purple-600"
+        return "bg-purple-500 text-white hover:bg-purple-600";
       case "manager":
-        return "bg-blue-500 text-white hover:bg-blue-600"
+        return "bg-blue-500 text-white hover:bg-blue-600";
       case "user":
-        return "bg-green-500 text-white hover:bg-green-600"
+        return "bg-green-500 text-white hover:bg-green-600";
       case "viewer":
-        return "bg-gray-500 text-white hover:bg-gray-600"
+        return "bg-gray-500 text-white hover:bg-gray-600";
       default:
-        return "bg-gray-500 text-white hover:bg-gray-600"
+        return "bg-gray-500 text-white hover:bg-gray-600";
     }
-  }
+  };
 
   const getStatutIcon = (statut: string) => {
     switch (statut) {
       case "active":
-        return <CheckCircle className="h-3 w-3" />
+        return <CheckCircle className="h-3 w-3" />;
       case "inactive":
-        return <XCircle className="h-3 w-3" />
+        return <XCircle className="h-3 w-3" />;
       case "suspended":
-        return <UserX className="h-3 w-3" />
+        return <UserX className="h-3 w-3" />;
       default:
-        return <CheckCircle className="h-3 w-3" />
+        return <CheckCircle className="h-3 w-3" />;
     }
-  }
+  };
 
   const getStatutBadgeColor = (statut: string) => {
     switch (statut) {
       case "active":
-        return "bg-green-500 text-white hover:bg-green-600"
+        return "bg-green-500 text-white hover:bg-green-600";
       case "inactive":
-        return "bg-gray-500 text-white hover:bg-gray-600"
+        return "bg-gray-500 text-white hover:bg-gray-600";
       case "suspended":
-        return "bg-red-500 text-white hover:bg-red-600"
+        return "bg-red-500 text-white hover:bg-red-600";
       default:
-        return "bg-gray-500 text-white hover:bg-gray-600"
+        return "bg-gray-500 text-white hover:bg-gray-600";
     }
-  }
+  };
 
   const getRowColor = (statut: string) => {
     switch (statut) {
       case "active":
-        return "bg-green-50"
+        return "bg-green-50";
       case "inactive":
-        return "bg-gray-50"
+        return "bg-gray-50";
       case "suspended":
-        return "bg-red-50"
+        return "bg-red-50";
       default:
-        return ""
+        return "";
     }
-  }
+  };
 
-  const columns = React.useMemo<ColumnDef<Utilisateur>[]>(
+  const { isHydrated } = useStore();
+  const user = new UserQueries();
+  const userMutationData = useMutation({
+    mutationKey: ["usersStatus"],
+    mutationFn: (data: { id: number; status: string }) =>
+      user.changeStatus(data.id, { status: data.status }),
+  });
+
+  const columns = React.useMemo<ColumnDef<UserT>[]>(
     () => [
       {
         id: "select",
         header: ({ table }) => (
           <Checkbox
-            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Select all"
           />
         ),
@@ -159,95 +192,147 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         enableHiding: false,
       },
       {
-        accessorKey: "nom",
+        accessorKey: "name",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Nom
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
-        cell: ({ row }) => <div className="font-medium">{row.getValue("nom")}</div>,
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("name")}</div>
+        ),
       },
       {
         accessorKey: "role",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Rôle
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
         cell: ({ row }) => {
-          const role = row.getValue("role") as string
+          const role = row.getValue("role") as Role[];
           return (
-            <Badge className={`${getRoleBadgeColor(role)} flex items-center gap-1 w-fit`}>
-              {getRoleIcon(role)}
-              {role.charAt(0).toUpperCase() + role.slice(1)}
-            </Badge>
-          )
+            <div className="flex flex-col">
+              {role.map((rol) => (
+                <Badge
+                  className={`${getRoleBadgeColor(
+                    rol.label
+                  )} flex items-center gap-1 w-fit`}
+                  key={rol.id}
+                >
+                  {getRoleIcon(rol.label)}
+                  {rol.label.charAt(0).toUpperCase() + rol.label.slice(1)}
+                </Badge>
+              ))}
+            </div>
+          );
         },
       },
       {
-        accessorKey: "statut",
+        accessorKey: "status",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Statut
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
         cell: ({ row }) => {
-          const statut = row.getValue("statut") as string
+          const status = row.getValue("status") as string;
           return (
-            <Badge className={`${getStatutBadgeColor(statut)} flex items-center gap-1 w-fit`}>
-              {getStatutIcon(statut)}
-              {statut.charAt(0).toUpperCase() + statut.slice(1)}
+            <Badge
+              className={`${getStatutBadgeColor(
+                status
+              )} flex items-center gap-1 w-fit`}
+            >
+              {getStatutIcon(status)}
+              {status.charAt(0).toUpperCase() + status.slice(1)}
             </Badge>
-          )
+          );
         },
       },
       {
         accessorKey: "derniereConnexion",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Dernière connexion
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
         cell: ({ row }) => {
-          const date = new Date(row.getValue("derniereConnexion"))
+          const date = new Date(row.getValue("derniereConnexion"));
           return (
             <div>
               {date.toLocaleDateString("fr-FR")}{" "}
-              {date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+              {date.toLocaleTimeString("fr-FR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </div>
-          )
+          );
         },
       },
       {
-        accessorKey: "serviceAssocie",
+        accessorKey: "members",
         header: ({ column }) => {
           return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
               Service associé
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-          )
+          );
         },
-        cell: ({ row }) => <div>{row.getValue("serviceAssocie")}</div>,
+        cell: ({ row }) => {
+          const data = row.getValue("members") as Member[];
+          return (
+            <div>
+              {data.map((mem) => {
+                return <Badge key={mem.id}>{mem.department?.label}</Badge>;
+              })}
+            </div>
+          );
+        },
       },
       {
         id: "actions",
         header: "Actions",
         enableHiding: false,
         cell: ({ row }) => {
-          const utilisateur = row.original
+          const utilisateur = row.original;
 
           return (
             <DropdownMenu>
@@ -264,22 +349,36 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   View
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    userMutationData.mutate({
+                      id: utilisateur.id ?? -1,
+                      status: "active",
+                    })
+                  }
+                >
                   <UserCheck className="mr-2 h-4 w-4" />
                   Activate
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    userMutationData.mutate({
+                      id: utilisateur.id ?? -1,
+                      status: "inactive",
+                    })
+                  }
+                >
                   <UserX className="mr-2 h-4 w-4" />
                   Suspend
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )
+          );
         },
       },
     ],
-    [],
-  )
+    []
+  );
 
   const table = useReactTable({
     data,
@@ -294,11 +393,14 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["nom", "serviceAssocie"]
+      const searchableColumns = ["nom", "serviceAssocie"];
       return searchableColumns.some((column) => {
-        const value = row.getValue(column)
-        return value?.toString().toLowerCase().includes(filterValue.toLowerCase())
-      })
+        const value = row.getValue(column);
+        return value
+          ?.toString()
+          .toLowerCase()
+          .includes(filterValue.toLowerCase());
+      });
     },
     state: {
       sorting,
@@ -307,10 +409,12 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       rowSelection,
       globalFilter,
     },
-  })
+  });
 
-  const roleFilter = (table.getColumn("role")?.getFilterValue() as string) ?? "all"
-  const statutFilter = (table.getColumn("statut")?.getFilterValue() as string) ?? "all"
+  const roleFilter =
+    (table.getColumn("role")?.getFilterValue() as string) ?? "all";
+  const statutFilter =
+    (table.getColumn("status")?.getFilterValue() as string) ?? "all";
 
   return (
     <div className="w-full">
@@ -326,7 +430,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         </div>
         <Select
           value={roleFilter}
-          onValueChange={(value) => table.getColumn("role")?.setFilterValue(value === "all" ? "" : value)}
+          onValueChange={(value) =>
+            table
+              .getColumn("role")
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by role" />
@@ -341,7 +449,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         </Select>
         <Select
           value={statutFilter}
-          onValueChange={(value) => table.getColumn("statut")?.setFilterValue(value === "all" ? "" : value)}
+          onValueChange={(value) =>
+            table
+              .getColumn("statut")
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
@@ -369,11 +481,13 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
-                )
+                );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -397,10 +511,18 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="border-r last:border-r-0">
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    <TableHead
+                      key={header.id}
+                      className="border-r last:border-r-0"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -411,18 +533,27 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={getRowColor(row.original.statut)}
+                  className={getRowColor(row.original.status)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="border-r last:border-r-0">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <TableCell
+                      key={cell.id}
+                      className="border-r last:border-r-0"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -432,8 +563,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       </div>
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
-          selected.
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -453,9 +584,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
           </span>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
           <Button
@@ -469,5 +606,5 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

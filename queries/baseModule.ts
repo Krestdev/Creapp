@@ -9,11 +9,12 @@ export class UserQueries {
   // --------------------------------------
 
   // Login
-  login = async (
-    data: { email: string; password: string }
-  ): Promise<ResponseT<LoginResponse>> => {
+  login = async (data: {
+    email: string;
+    password: string;
+  }): Promise<ResponseT<LoginResponse>> => {
     console.log(this.route);
-    
+
     return api.post(`${this.route}/login`, data).then((response) => {
       console.log(response.data);
       return response.data;
@@ -21,11 +22,35 @@ export class UserQueries {
   };
 
   // Register (sans role)
-  register = async (data: Omit<User, "role">): Promise<ResponseT<User>> => {
+  register = async (
+    data: Omit<User, "status" | "lastConnection" | "role" | "members">
+  ): Promise<ResponseT<User>> => {
     return api.post(`${this.route}/register`, data).then((response) => {
       console.log(response.data);
       return response.data;
     });
+  };
+
+  // create (sans role)
+  create = async (
+    data: Omit<User, "status" | "lastConnection" | "role" | "members">
+  ): Promise<ResponseT<User>> => {
+    return api.post(`${this.route}/create`, data).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
+  };
+
+  // Register (sans role)
+  changeStatus = async (
+    id: number,
+    data: { status: string }
+  ): Promise<ResponseT<User>> => {
+    return api
+      .put(`${this.route}/changeStatus/${id}`, data)
+      .then((response) => {
+        return response.data;
+      });
   };
 
   // Vérification OTP
@@ -85,18 +110,13 @@ export class UserQueries {
   };
 
   createRole = async (data: { label: string }): Promise<{ data: Role }> => {
-    return api
-      .post(`${this.route}/role/create`, data)
-      .then((response) => {
-        console.log(response.data);
-        return response.data;
-      });
+    return api.post(`${this.route}/role/create`, data).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
-  assignRoles = async (
-    id: number,
-    roleId: string
-  ): Promise<{ data: any }> => {
+  assignRoles = async (id: number, roleId: string): Promise<{ data: any }> => {
     return api
       .post(`${this.route}/${id}/roles`, { roleId })
       .then((response) => {
@@ -105,10 +125,7 @@ export class UserQueries {
       });
   };
 
-  removeRoles = async (
-    id: number,
-    roles: number[]
-  ): Promise<{ data: any }> => {
+  removeRoles = async (id: number, roles: number[]): Promise<{ data: any }> => {
     return api
       .delete(`${this.route}/${id}/roles`, { data: { roles } })
       .then((response) => {
@@ -122,30 +139,24 @@ export class UserQueries {
   // --------------------------------------
 
   createRolePages = async (data: any): Promise<{ data: any }> => {
-    return api
-      .post(`${this.route}/createRolePages`, data)
-      .then((response) => {
-        console.log(response.data);
-        return response.data;
-      });
+    return api.post(`${this.route}/createRolePages`, data).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
   deleteRolePages = async (data: any): Promise<{ data: any }> => {
-    return api
-      .post(`${this.route}/deleteRolePages`, data)
-      .then((response) => {
-        console.log(response.data);
-        return response.data;
-      });
+    return api.post(`${this.route}/deleteRolePages`, data).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
   addRolePages = async (data: any): Promise<{ data: any }> => {
-    return api
-      .post(`${this.route}/addRolePages`, data)
-      .then((response) => {
-        console.log(response.data);
-        return response.data;
-      });
+    return api.post(`${this.route}/addRolePages`, data).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
   removePageFromRole = async (data: any): Promise<{ data: any }> => {
@@ -158,11 +169,9 @@ export class UserQueries {
   };
 
   getRolePages = async (roleId: number): Promise<{ data: any }> => {
-    return api
-      .get(`${this.route}/rolePages/${roleId}`)
-      .then((response) => {
-        console.log(response.data);
-        return response.data;
-      });
+    return api.get(`${this.route}/rolePages/${roleId}`).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 }
