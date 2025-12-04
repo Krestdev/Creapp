@@ -1,5 +1,6 @@
 'use client'
-import FileUpload from '@/components/card-upload'
+import FilesUpload from '@/components/comp-547'
+import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { useFetchQuery } from '@/hooks/useData'
@@ -8,6 +9,7 @@ import { ProviderQueries } from '@/queries/providers'
 import { CommandRequestT, Provider } from '@/types/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { SelectValue } from '@radix-ui/react-select'
+import { FolderX, Plus } from 'lucide-react'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
@@ -23,7 +25,12 @@ const formSchema = z.object({
         price: z.number({message: "Veuillez renseigner un prix"}),
     })
     ).min(1),
-    file: z.any()
+    documents: z.array(
+        z.union([
+            z.instanceof(File, {message:"Doit être un fichier valide"}),
+            z.string().url({message: "Doit être une URL valide"})
+        ])
+    ).min(1, "Veuillez renseigner au moins 1 justificatif")
 })
 
 function CreateQuotation() {
@@ -52,7 +59,7 @@ function CreateQuotation() {
             quotationId: undefined,
             providerId: undefined,
             elements: [],
-            file: undefined,
+            documents: undefined,
         }
     });
 
@@ -110,23 +117,37 @@ function CreateQuotation() {
                 </FormItem>
             )} />
             <FormField control={form.control} name="elements" render={({field})=>(
-                <FormItem>
+                <FormItem className='h-fit'>
                     <FormLabel isRequired>{"Éléments"}</FormLabel>
                     <FormControl>
-                        <span/>
+                        <div className="grid gap-1.5">
+                            {
+                                field.value.length === 0 ?
+                                <span className="px-4 py-3 w-full text-center text-muted-foreground text-sm flex flex-col gap-2 justify-center items-center">
+                                    <span className="inline-flex size-10 rounded-full bg-muted text-muted-foreground items-center justify-center">
+                                        <FolderX/>
+                                    </span>
+                                    {"Aucun élément renseigné."}
+                                </span>
+                                :
+                                <></>
+                            }
+                            <button className="add-button">{"Ajouter un élément"}<Plus/></button>
+                        </div>
                     </FormControl>
                     <FormMessage/>
                 </FormItem>
             )} />
-            <FormField control={form.control} name="file" render={({field})=>(
+            <FormField control={form.control} name="documents" render={({field})=>(
                 <FormItem>
                     <FormLabel isRequired>{"Justificatif"}</FormLabel>
                     <FormControl>
-                        <FileUpload/>
+                        <FilesUpload value={field.value} onChange={field.onChange} name={field.name} acceptTypes="images" />
                     </FormControl>
                     <FormMessage/>
                 </FormItem>
             )} />
+            <Button type="submit" disabled={false} className='w-fit'>{"Créer le devis"}</Button>
         </form>
     </Form>
   )
