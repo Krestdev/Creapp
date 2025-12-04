@@ -210,3 +210,23 @@ export type Provider = {
   id: number;
   name: string;
 };
+
+export type Quotation = {
+  id: number;
+  commandRequestId: number;
+  providerId: number;
+  ref: string;
+  element: {
+    id: number;
+    requestModelId: number;
+    title: string;
+    quantity: number;
+    unit: string;
+    priceProposed: number;
+    deviId: number;
+  }[];
+  proof: string | File;
+  dueDate: string;
+  createdAt: string;
+  updatedAt?: string;
+};

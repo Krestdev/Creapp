@@ -152,7 +152,7 @@ export default function FilesUpload({
           </div>
           
           <div className="space-y-1 text-sm text-gray-900">
-            <p className="font-medium">
+            <p className="font-medium font-mono">
               {"Glissez-déposez vos fichiers ici"}
             </p>
             <p>
