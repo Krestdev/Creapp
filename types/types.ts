@@ -204,12 +204,7 @@ export type Provider = {
   name: string;
 };
 
-export type Quotation = {
-  id: number;
-  commandRequestId: number;
-  providerId: number;
-  ref: string;
-  element: {
+export type QuotationElement = {
     id:number;
     requestModelId: number;
     title: string;
@@ -217,7 +212,14 @@ export type Quotation = {
     unit: string;
     priceProposed: number;
     deviId:number;
-  }[];
+  }
+
+export type Quotation = {
+  id: number;
+  commandRequestId: number;
+  providerId: number;
+  ref: string;
+  element: QuotationElement[];
   proof: (string | File);
   dueDate: string;
   createdAt: string;

@@ -25,6 +25,8 @@ import {
   CalendarDays,
   CalendarIcon,
   X,
+  LucideIcon,
+  Hourglass,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -66,7 +68,7 @@ import { ProjectQueries } from "@/queries/projectModule";
 import { UserQueries } from "@/queries/baseModule";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { BesoinLastVal } from "../modals/BesoinLastVal";
-import { Badge } from "../ui/badge";
+import { Badge, badgeVariants } from "../ui/badge";
 import { format, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar } from "../ui/calendar";
@@ -84,33 +86,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../ui/popover";
-
-const statusConfig = {
-  pending: {
-    label: "En attente",
-    icon: CheckCircle,
-    badgeClassName: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    rowClassName: "bg-yellow-50 hover:bg-yellow-100",
-  },
-  validated: {
-    label: "Soumis",
-    icon: CheckCircle,
-    badgeClassName: "bg-green-100 text-green-800 border-green-200",
-    rowClassName: "bg-green-50 hover:bg-green-100",
-  },
-  rejected: {
-    label: "Rejeté",
-    icon: XCircle,
-    badgeClassName: "bg-red-100 text-red-800 border-red-200",
-    rowClassName: "bg-red-50 hover:bg-red-100",
-  },
-  "in-review": {
-    label: "En revue",
-    icon: CheckCircle,
-    badgeClassName: "bg-blue-100 text-blue-800 border-blue-200",
-    rowClassName: "bg-blue-50 hover:bg-blue-100",
-  },
-};
+import { VariantProps } from "class-variance-authority";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -295,15 +271,32 @@ export function DataValidation({
     });
   }, [tableData, categoriesData.data]);
 
+  const getStatusConfig = (status: string):{label:string; icon?: LucideIcon; variant: VariantProps<typeof badgeVariants>["variant"], rowClassName?:string} => {
+    switch(status){
+      case "pending":
+        return {label: "En attente", icon: Hourglass, variant:"amber", rowClassName: "bg-amber-50/50 hover:bg-amber-50"};
+      case "validated":
+        return {label: "Validé", icon: CheckCircle, variant:"success", rowClassName: "bg-green-50/50 hover:bg-green-50"};
+      case "rejected":
+        return {label: "Rejeté",  variant:"destructive", rowClassName: "bg-red-50/50 hover:bg-red-50"};
+      case "in-review":
+        return {label: "En révision", variant:"sky", rowClassName: "bg-sky-50/50 hover:bg-sky-50"};
+      case "cancel":
+        return {label: "Annulé", variant:"default"};
+      default:
+        return {label: "Inconnu", variant: "default" }
+    }
+  };
+
   const uniqueStatus = React.useMemo(() => {
     if (!tableData.length) return [];
     return [...new Set(tableData.map((req) => req.state))].map((state) => {
-      const status = statusConfig[state as keyof typeof statusConfig];
+      const status = getStatusConfig(state);
       return {
         id: state,
         name: status.label,
         icon: status.icon,
-        badgeClassName: status.badgeClassName,
+        variant: status.variant,
         rowClassName: status.rowClassName,
       };
     });
@@ -416,15 +409,15 @@ export function DataValidation({
         accessorKey: "label",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+            className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Titres"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -435,15 +428,15 @@ export function DataValidation({
         accessorKey: "projectId",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+            className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Projets"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -457,15 +450,15 @@ export function DataValidation({
         },
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+            className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Catégories"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -476,15 +469,15 @@ export function DataValidation({
         accessorKey: "userId",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+            className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Emetteurs"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => <div>{getUserName(row.getValue("userId"))}</div>,
@@ -496,15 +489,15 @@ export function DataValidation({
         },
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+            className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Date d'émission"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -517,15 +510,15 @@ export function DataValidation({
         accessorKey: "beneficiary",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+            className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Bénéficiaires"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -543,26 +536,25 @@ export function DataValidation({
         accessorKey: "state",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+            className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Statuts"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {
-          const state = row.getValue("state") as keyof typeof statusConfig;
-          const config = statusConfig[state];
-          const Icon = config.icon;
+          const state = getStatusConfig(row.getValue("state"));
+          const Icon = state.icon;
 
           return (
-            <Badge className={cn("gap-1", config.badgeClassName)}>
-              <Icon className="h-3 w-3" />
-              {config.label}
+            <Badge variant={state.variant}>
+             {Icon && <Icon  />}
+              {state.label}
             </Badge>
           );
         },
@@ -573,7 +565,7 @@ export function DataValidation({
     baseColumns.push({
       id: "actions",
       enableHiding: false,
-      header: "Actions",
+      header: () => <span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
 
@@ -902,10 +894,7 @@ export function DataValidation({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={cn(
-                    statusConfig[
-                      row.original.state as keyof typeof statusConfig
-                    ].rowClassName
+                  className={cn(getStatusConfig(row.original.state).rowClassName
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (

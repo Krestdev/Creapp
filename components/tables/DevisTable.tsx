@@ -70,26 +70,10 @@ import { useFetchQuery } from "@/hooks/useData";
 import { CommandQueries } from "@/queries/commandModule";
 import { useQuery } from "@tanstack/react-query";
 import { DevisModal } from "../modals/DevisModal";
-
-type Devis = {
-  quotationId: number;
-  providerId: number;
-  elements: Element[];
-  documents: (string | File)[];
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-type Element = {
-  needId: number;
-  designation: string;
-  quantity: number;
-  unit: string;
-  price: number;
-};
+import { CommandRequestT, Quotation, QuotationElement } from "@/types/types";
 
 interface DevisTableProps {
-  data: Devis[] | undefined;
+  data: Quotation[] | undefined;
   dateFilter: "today" | "week" | "month" | "year" | "custom" | undefined;
   setDateFilter: React.Dispatch<
     React.SetStateAction<
@@ -121,9 +105,12 @@ export function DevisTable({
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isDevisModalOpen, setIsDevisModalOpen] = React.useState(false);
-  const [selectedDevis, setSelectedDevis] = React.useState<Devis | undefined>(
-    undefined
-  );
+  const [selectedDevis, setSelectedDevis] = React.useState<
+    Quotation | undefined
+  >(undefined);
+  const [selectedQuotation, setSelectedQuotation] = React.useState<
+    String | undefined
+  >(undefined);
 
   // États pour le modal personnalisé
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
@@ -325,7 +312,7 @@ export function DevisTable({
     return translations[label] || label;
   };
 
-  const columns: ColumnDef<Devis>[] = [
+  const columns: ColumnDef<Quotation>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -402,8 +389,8 @@ export function DevisTable({
       cell: ({ row }) => (
         <div>
           {XAF.format(
-            (row.getValue("elements") as Element[]).reduce(
-              (total, element) => total + element.price,
+            (row.getValue("element") as QuotationElement[]).reduce(
+              (total, element) => total + element.priceProposed,
               0
             )
           )}
@@ -411,7 +398,7 @@ export function DevisTable({
       ),
     },
     {
-      accessorKey: "elements",
+      accessorKey: "element",
       header: ({ column }) => {
         return (
           <span
@@ -424,7 +411,7 @@ export function DevisTable({
         );
       },
       cell: ({ row }) => (
-        <div>{(row.getValue("elements") as Element[]).length}</div>
+        <div>{(row.getValue("element") as QuotationElement[]).length}</div>
       ),
     },
     {
@@ -447,6 +434,8 @@ export function DevisTable({
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedDevis(item);
+                  setSelectedQuotation(getQuotationTitle(item.commandRequestId));
+                  setIsDevisModalOpen(true);
                 }}
               >
                 <Eye className="mr-2 h-4 w-4" />
@@ -708,6 +697,7 @@ export function DevisTable({
         open={isDevisModalOpen}
         onOpenChange={setIsDevisModalOpen}
         data={selectedDevis}
+        quotation={selectedQuotation}
       />
 
       {/* Modal pour la plage de dates personnalisée */}

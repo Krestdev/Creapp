@@ -3,17 +3,20 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Quotation } from "@/types/types";
 
 interface DetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: any | null;
+  data: Quotation | undefined;
+  quotation: String | undefined
 }
 
-export function DevisModal({ open, onOpenChange, data }: DetailModalProps) {
+export function DevisModal({ open, onOpenChange, data, quotation }: DetailModalProps) {
   console.log(data);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -21,12 +24,17 @@ export function DevisModal({ open, onOpenChange, data }: DetailModalProps) {
         {/* Header with burgundy background */}
         <DialogHeader className="bg-linear-to-r from-[#15803D] to-[#0B411F] text-white p-6 m-4 rounded-lg pb-8 relative">
           <DialogTitle className="text-xl font-semibold text-white">
-            {``}
+            {`Devis - ${quotation}`}
           </DialogTitle>
+          <DialogDescription>
+            {"Détail du devis"}
+          </DialogDescription>
         </DialogHeader>
 
-        <div>
+        <div className="flex flex-col gap-3 py-3">
+            <div className="">
 
+            </div>
         </div>
 
         {/* Footer buttons */}
