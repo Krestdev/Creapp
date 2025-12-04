@@ -609,7 +609,7 @@ export function DataValidation({
                 }
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
-                {"Soumettre"}
+                {"Approuver"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => openValidationModal("reject", item)}
@@ -1048,7 +1048,7 @@ export function DataValidation({
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         data={selectedItem}
-        actionButton="Soumettre"
+        actionButton="Approuver"
         action={() =>
           isLastValidator
             ? (setIsModalOpen(false), setIsLastValModalOpen(true))
@@ -1064,12 +1064,12 @@ export function DataValidation({
         type={validationType}
         title={
           validationType === "approve"
-            ? "Soumettre le besoin"
+            ? "Approuver le besoin"
             : "Rejeter le besoin"
         }
         description={
           validationType === "approve"
-            ? "Êtes-vous sûr de vouloir soumettre ce besoin ?"
+            ? "Êtes-vous sûr de vouloir approuver ce besoin ?"
             : "Êtes-vous sûr de vouloir rejeter ce besoin ? Veuillez fournir un motif."
         }
         successConfirmation={{
@@ -1084,7 +1084,7 @@ export function DataValidation({
           description: "Une erreur est survenue lors de l'opération.",
         }}
         buttonTexts={{
-          approve: "Soumettre",
+          approve: "Approuver",
           reject: "Rejeter",
           cancel: "Annuler",
           close: "Fermer",
@@ -1102,8 +1102,8 @@ export function DataValidation({
         open={isLastValModalOpen}
         onOpenChange={setIsLastValModalOpen}
         data={selectedItem}
-        titre={"Soumettre le besoin"}
-        description={"Êtes-vous sûr de vouloir soumettre ce besoin ?"}
+        titre={"Approuver le besoin"}
+        description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
       />
     </div>
   );

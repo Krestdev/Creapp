@@ -95,7 +95,7 @@ export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#15803D] text-white p-6 m-4 rounded-lg pb-8 relative">
           <DialogTitle className="text-xl font-semibold text-white">
-            Soumettre un besoin
+            Approuver un besoin
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">Approbation du besoin</p>
         </DialogHeader>
@@ -110,7 +110,7 @@ export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
             <div className="flex-1">
               <p className="text-sm text-muted-foreground mb-1">Attention</p>
               <p className="text-sm">
-                Êtes-vous sûr de vouloir soumettre ce besoin ?
+                Êtes-vous sûr de vouloir approuver ce besoin ?
               </p>
             </div>
           </div>
