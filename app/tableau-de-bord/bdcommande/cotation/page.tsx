@@ -18,8 +18,8 @@ const Page = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
-        title="Demandes de quotation"
-        subtitle="Consultez et gérez vos demandes de quotation."
+        title="Demandes de cotation"
+        subtitle="Consultez et gérez vos demandes de cotation."
         color="red"
       >
         {links

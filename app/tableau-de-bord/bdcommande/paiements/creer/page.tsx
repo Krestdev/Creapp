@@ -1,4 +1,3 @@
-import CreateCotation from "@/components/pages/bdcommande/createCommande";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 
@@ -6,11 +5,10 @@ const CreerPage = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
-        title={"Créer une Demande de cotation"}
-        subtitle={"Complétez le formulaire pour créer une Demande de cotation"}
+        title={"Créer un paiement"}
+        subtitle={"Complétez le formulaire pour créer une paiement"}
         color={"blue"}
       />
-      <CreateCotation />
     </div>
   );
 };

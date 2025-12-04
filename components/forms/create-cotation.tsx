@@ -35,9 +35,6 @@ import { SuccessModal } from "../modals/success-modal";
 
 const formSchema = z.object({
   titre: z.string().min(1),
-  requests: z.array(z.number()).min(1, {
-    message: "Veuillez sélectionner au moins un besoin",
-  }),
   date_limite: z.coerce.date(),
 });
 
@@ -57,7 +54,6 @@ export default function CreateCotationForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       titre: "",
-      requests: [],
       date_limite: new Date(),
     },
   });
@@ -112,26 +108,16 @@ export default function CreateCotationForm() {
       })) ?? [];
 
   // Fonction pour gérer la sélection des besoins
-  const handleRequestsChange = (list: Request[]) => {
-    setSelected(list);
-
-    form.setValue(
-      "requests",
-      list.map((u) => u.id),
-      {
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true,
-      }
-    );
-  };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
+      if (selected.length === 0) {
+        toast.error("Veuillez choisir au moins un besoin.");
+        return;
+      }
       const data = {
         title: values.titre,
-        requests: values.requests,
+        requests: selected.map((item) => item.id),
         dueDate: values.date_limite,
         userId: Number(user?.id),
         deliveryDate: new Date(),
@@ -167,7 +153,7 @@ export default function CreateCotationForm() {
             )}
           />
 
-          <FormField
+          {/* <FormField
             control={form.control}
             name="requests"
             render={({ field }) => (
@@ -190,7 +176,7 @@ export default function CreateCotationForm() {
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
 
           <FormField
             control={form.control}

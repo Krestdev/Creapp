@@ -11,7 +11,7 @@ const Page = () => {
   const { user } = useStore();
   const links = [
     {
-      title: "Demande de quotation",
+      title: "Demande de cotation",
       href: "/tableau-de-bord/bdcommande/cotation",
     },
     { title: "Devis", href: "/tableau-de-bord/bdcommande/devis" },

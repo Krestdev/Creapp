@@ -448,7 +448,7 @@ export default function MyForm() {
 
         {/* SUBMIT */}
         <Button disabled={requestMutation.isPending} type="submit">
-          Soumettre le besoin
+          Approuver le besoin
           {requestMutation.isPending && (
             <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />
           )}

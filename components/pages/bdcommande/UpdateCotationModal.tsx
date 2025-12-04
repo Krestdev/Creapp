@@ -194,7 +194,7 @@ export function UpdateCotationModal({
     try {
       const data: Partial<CommandRequestT> = {
         title: values.titre,
-        requests: values.requests,
+        requests: selected.map((item) => item.id),
         dueDate: values.date_limite,
         updatedAt: new Date(),
       };

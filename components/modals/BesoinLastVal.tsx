@@ -352,7 +352,7 @@ export function BesoinLastVal({
                         Enregistrement...
                       </>
                     ) : (
-                      "Soumettre"
+                      "Approuver"
                     )}
                   </Button>
 
