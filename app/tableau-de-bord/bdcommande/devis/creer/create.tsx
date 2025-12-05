@@ -19,7 +19,7 @@ import { useStore } from '@/providers/datastore'
 import { CommandQueries } from '@/queries/commandModule'
 import { ProviderQueries } from '@/queries/providers'
 import { QuotationQueries } from '@/queries/quotation'
-import { CommandRequestT, Provider, RequestModelT } from '@/types/types'
+import { CommandRequestT, Provider, Quotation, RequestModelT } from '@/types/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { SelectValue } from '@radix-ui/react-select'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -55,7 +55,7 @@ const formSchema = z.object({
     .array(
       z.union([
         z.instanceof(File, { message: 'Doit être un fichier valide' }),
-        z.string().url({ message: 'Doit être une URL valide' })
+        z.string()
       ])
     )
     .min(1, 'Veuillez renseigner au moins 1 justificatif')
@@ -64,7 +64,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function CreateQuotation() {
+interface Props {
+  quotation?: Quotation;
+}
+
+function CreateQuotation({quotation}:Props) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [open, setOpen] = React.useState<boolean>(false);
@@ -80,30 +84,46 @@ function CreateQuotation() {
   const providersData = useFetchQuery(['providers'], providerQuery.getAll, 500000);
   /**Quotation */
   const quotationQuery = new QuotationQueries();
-  const { mutate, isPending } = useMutation({
-  mutationFn: async (values: FormValues) =>
-    quotationQuery.create({
-      devis: {
-        commandRequestId: values.commandRequestId,
-        providerId: values.providerId,
-        proof: values.proof[0],          // File ou string
-        dueDate: new Date(values.dueDate).toISOString(),
-        userId: user ? user.id : 0
-      },
-      elements: values.elements.map((e) => ({
-        requestModelId: e.needId,
-        title: e.designation,
-        quantity: e.quantity,
-        unit: e.unit,
-        priceProposed: e.price
-      }))
-    }),
-    onSuccess: ()=>{
-      toast.success("Votre devis a été créé avec succès");
-      queryClient.invalidateQueries({queryKey: ["quotations"], refetchType: "active"});
+ const { mutate, isPending } = useMutation({
+    mutationFn: async ({ values, id }: { values: FormValues; id?: number }) => {
+      const payload = {
+        devis: {
+          commandRequestId: values.commandRequestId,
+          providerId: values.providerId,
+          proof: values.proof[0], // File ou string
+          dueDate: new Date(values.dueDate).toISOString(),
+          userId: user ? user.id : 0,
+        },
+        elements: values.elements.map((e) => ({
+          requestModelId: e.needId,
+          title: e.designation,
+          quantity: e.quantity,
+          unit: e.unit,
+          priceProposed: e.price,
+        })),
+      };
+
+      if (!id) {
+        // CREATE
+        return quotationQuery.create(payload);
+      }
+
+      // UPDATE
+      return quotationQuery.update(id, payload);
+    },
+    onSuccess: (_data, variables) => {
+      toast.success(
+        variables?.id
+          ? "Votre devis a été modifié avec succès"
+          : "Votre devis a été créé avec succès"
+      );
+      queryClient.invalidateQueries({
+        queryKey: ["quotations"],
+        refetchType: "active",
+      });
       router.push("/tableau-de-bord/bdcommande/devis/");
-    }
-});
+    },
+  });
 
   /**Data states */
   const [dueDate, setDueDate] = React.useState<boolean>(false);
@@ -115,11 +135,13 @@ function CreateQuotation() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      commandRequestId: undefined,
-      providerId: undefined,
-      elements: [],
-      dueDate: today.toISOString().slice(0,10),
-      proof: undefined
+      commandRequestId: quotation?.commandRequestId ?? undefined,
+      providerId: quotation?.providerId ?? undefined,
+      elements: quotation?.element.map(
+        c=>({needId: c.requestModelId, designation: c.title, price: c.priceProposed, quantity: c.quantity, unit: c.unit})) 
+        ?? [],
+      dueDate: quotation ? new Date(quotation.dueDate).toISOString().slice(0,10) : today.toISOString().slice(0,10),
+      proof: quotation ? [quotation.proof] : undefined
     }
   });
 
@@ -145,7 +167,7 @@ function CreateQuotation() {
 
   function onSubmit(values: FormValues) {
     //console.log(values);
-    mutate(values);
+    mutate({ values, id: quotation?.id })
   }
 
   return (
@@ -387,7 +409,7 @@ function CreateQuotation() {
         />
 
         <Button type="submit" disabled={isPending} isLoading={isPending} className="w-fit">
-          {"Créer le devis"}
+          { !!quotation ? "Modifier le devis" : "Créer le devis"}
         </Button>
       </form>
     </Form>
