@@ -70,7 +70,7 @@ import { useFetchQuery } from "@/hooks/useData";
 import { CommandQueries } from "@/queries/commandModule";
 import { useQuery } from "@tanstack/react-query";
 import { DevisModal } from "../modals/DevisModal";
-import { CommandRequestT, Quotation, QuotationElement } from "@/types/types";
+import { Quotation, QuotationElement } from "@/types/types";
 
 interface DevisTableProps {
   data: Quotation[] | undefined;
@@ -109,7 +109,7 @@ export function DevisTable({
     Quotation | undefined
   >(undefined);
   const [selectedQuotation, setSelectedQuotation] = React.useState<
-    String | undefined
+    string | undefined
   >(undefined);
 
   // États pour le modal personnalisé
@@ -449,8 +449,6 @@ export function DevisTable({
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
               <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
                 {"Actions"}
                 <ChevronDown />
               </Button>
