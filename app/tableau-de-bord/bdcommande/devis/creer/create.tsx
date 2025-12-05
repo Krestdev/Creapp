@@ -2,6 +2,7 @@
 'use client'
 import FilesUpload from '@/components/comp-547'
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import {
   Form,
   FormControl,
@@ -10,23 +11,25 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { useFetchQuery } from '@/hooks/useData'
+import { useStore } from '@/providers/datastore'
 import { CommandQueries } from '@/queries/commandModule'
 import { ProviderQueries } from '@/queries/providers'
+import { QuotationQueries } from '@/queries/quotation'
 import { CommandRequestT, Provider, RequestModelT } from '@/types/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { SelectValue } from '@radix-ui/react-select'
-import { FolderX, Plus, X, Pencil, CalendarIcon } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { CalendarIcon, FolderX, Plus, X } from 'lucide-react'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
 import AddElement from './addElement'
-import { QuotationQueries } from '@/queries/quotation'
-import { useMutation } from '@tanstack/react-query'
-import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 const formSchema = z.object({
   commandRequestId: z.number({ message: 'Requis' }),
@@ -62,9 +65,12 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function CreateQuotation() {
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const [open, setOpen] = React.useState<boolean>(false);
   const [selectedNeeds, setSelectedNeeds] = React.useState<Array<RequestModelT>>();
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
+  const { user } = useStore();
 
   /**Demandes de cotation */
   const requestsQuery = new CommandQueries();
@@ -81,7 +87,8 @@ function CreateQuotation() {
         commandRequestId: values.commandRequestId,
         providerId: values.providerId,
         proof: values.proof[0],          // File ou string
-        dueDate: values.dueDate
+        dueDate: new Date(values.dueDate).toISOString(),
+        userId: user ? user.id : 0
       },
       elements: values.elements.map((e) => ({
         requestModelId: e.needId,
@@ -90,7 +97,12 @@ function CreateQuotation() {
         unit: e.unit,
         priceProposed: e.price
       }))
-    })
+    }),
+    onSuccess: ()=>{
+      toast.success("Votre devis a été créé avec succès");
+      queryClient.invalidateQueries({queryKey: ["quotations"], refetchType: "active"});
+      router.push("/tableau-de-bord/bdcommande/devis/");
+    }
 });
 
   /**Data states */
