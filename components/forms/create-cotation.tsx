@@ -130,7 +130,7 @@ export default function CreateCotationForm() {
   }
 
   return (
-    <div className="flex flex-row gap-4">
+    <div className="flex flex-col md:flex-row gap-4">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -153,31 +153,7 @@ export default function CreateCotationForm() {
             )}
           />
 
-          {/* <FormField
-            control={form.control}
-            name="requests"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{"Besoins"}</FormLabel>
-                <FormControl className="h-fit">
-                  <MultiSelectUsers
-                    display="request"
-                    users={requests}
-                    selected={selected}
-                    onChange={handleRequestsChange}
-                    className="max-w-[320px] w-full h-9"
-                  />
-                </FormControl>
-                <FormDescription>
-                  {selected.length > 0
-                    ? `${selected.length} besoin(s) sélectionné(s)`
-                    : "Aucun besoin sélectionné"}
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
-
+          
           <FormField
             control={form.control}
             name="date_limite"

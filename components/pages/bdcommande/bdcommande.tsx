@@ -106,22 +106,6 @@ const Bdcommande = () => {
           />
         </div>
       )}
-      {filteredData.length > 0 && (
-        <div className="flex flex-col">
-          <div className="flex justify-between">
-            <h2>{"Besoins à traiter"}</h2>
-            <Button
-              onClick={() =>
-                router.push("/tableau-de-bord/bdcommande/cotation/creer")
-              }
-            >
-              {"Créer une commande "}
-              <Plus />
-            </Button>
-          </div>
-          <BesoinsTraiterTable data={filteredData} />
-        </div>
-      )}
       {filteredData.length === 0 && cotation.length === 0 && (
         <Empty message={"Aucune donnée a afficher"} />
       )}

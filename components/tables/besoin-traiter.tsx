@@ -65,8 +65,6 @@ export function BesoinsTraiter({
   setSelected,
   categories,
 }: BesoinsTraiterTableProps) {
-  console.log("Selected dans BesoinsTraiter:", selected);
-  console.log("Data dans BesoinsTraiter:", data);
   
   const [isOpenModal, setIsModalOpen] = React.useState(false);
   const [select, setSelect] = React.useState<RequestModelT>();
@@ -136,8 +134,6 @@ export function BesoinsTraiter({
           .map((id) => requestMap.get(id))
           .filter((item): item is RequestModelT => item !== undefined)
           .map(convertToRequest);
-
-        console.log("Nouvelle sélection envoyée à setSelected:", selectedRequests);
         setSelected(selectedRequests);
       }
     },
@@ -159,7 +155,6 @@ export function BesoinsTraiter({
         // Mettre à jour la sélection externe
         if (setSelected) {
           const allRequests = data.map(convertToRequest);
-          console.log("Sélection de tous les éléments:", allRequests);
           setSelected(allRequests);
         }
       } else {
@@ -168,7 +163,6 @@ export function BesoinsTraiter({
         
         // Mettre à jour la sélection externe
         if (setSelected) {
-          console.log("Désélection de tous les éléments");
           setSelected([]);
         }
       }
@@ -336,8 +330,7 @@ export function BesoinsTraiter({
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-4 py-4">
-        <div className="w-full flex flex-row gap-1.5">
+        <div className="w-full flex flex-wrap gap-1.5 py-4">
           <Input
             placeholder="Rechercher un besoin"
             value={globalFilter ?? ""}
@@ -374,10 +367,9 @@ export function BesoinsTraiter({
               })}
             </SelectContent>
           </Select>
-        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto bg-transparent">
+            <Button variant="outline" className="md:ml-auto bg-transparent">
               {"Colonnes"}
             </Button>
           </DropdownMenuTrigger>
@@ -397,8 +389,8 @@ export function BesoinsTraiter({
                   >
                     {column.id === "label"
                       ? "Titre"
-                      : column.id === "projectId"
-                      ? "Projet"
+                      : column.id === "dueDate"
+                      ? "Date limite"
                       : column.id === "categoryId"
                       ? "Catégorie"
                       : column.id === "userId"
@@ -411,7 +403,7 @@ export function BesoinsTraiter({
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+        </div>
 
       <div className="rounded-md">
         <Table>

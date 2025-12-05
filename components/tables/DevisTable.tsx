@@ -48,8 +48,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
-import { CommandRequestT } from "@/types/types";
+import { cn, XAF } from "@/lib/utils";
 import { VariantProps } from "class-variance-authority";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -66,9 +65,15 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { ProviderQueries } from "@/queries/providers";
+import { useFetchQuery } from "@/hooks/useData";
+import { CommandQueries } from "@/queries/commandModule";
+import { useQuery } from "@tanstack/react-query";
+import { DevisModal } from "../modals/DevisModal";
+import { Quotation, QuotationElement } from "@/types/types";
 
 interface DevisTableProps {
-  data: CommandRequestT[] | undefined;
+  data: Quotation[] | undefined;
   dateFilter: "today" | "week" | "month" | "year" | "custom" | undefined;
   setDateFilter: React.Dispatch<
     React.SetStateAction<
@@ -99,8 +104,12 @@ export function DevisTable({
 
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
-  const [selectedCommand, setSelectedCommand] = React.useState<
-    CommandRequestT | undefined
+  const [isDevisModalOpen, setIsDevisModalOpen] = React.useState(false);
+  const [selectedDevis, setSelectedDevis] = React.useState<
+    Quotation | undefined
+  >(undefined);
+  const [selectedQuotation, setSelectedQuotation] = React.useState<
+    string | undefined
   >(undefined);
 
   // États pour le modal personnalisé
@@ -109,6 +118,38 @@ export function DevisTable({
   const [tempCustomDateRange, setTempCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >(customDateRange || { from: addDays(new Date(), -7), to: new Date() });
+
+  const providerQuery = new ProviderQueries();
+  const providersData = useFetchQuery(
+    ["providers"],
+    providerQuery.getAll,
+    500000
+  );
+
+  const command = new CommandQueries();
+  const commandData = useQuery({
+    queryKey: ["commands"],
+    queryFn: async () => command.getAll(),
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: 500000,
+  });
+
+  const getProviderName = (providerId: number) => {
+    if (providersData.isSuccess) {
+      const provider = providersData.data.data.find((p) => p.id === providerId);
+      return provider ? provider.name : "Inconnu";
+    }
+    return "Inconnu";
+  };
+
+  const getQuotationTitle = (quotationId: number) => {
+    if (commandData.isSuccess) {
+      const command = commandData.data.data.find((c) => c.id === quotationId);
+      return command ? command.title : "Inconnu";
+    }
+    return "Inconnu";
+  };
 
   const getStatusConfig = (
     status: string
@@ -126,7 +167,19 @@ export function DevisTable({
           variant: "amber",
           rowClassName: "bg-amber-50/50 hover:bg-amber-50",
         };
+        return {
+          label: "En attente",
+          icon: Hourglass,
+          variant: "amber",
+          rowClassName: "bg-amber-50/50 hover:bg-amber-50",
+        };
       case "validated":
+        return {
+          label: "Validé",
+          icon: CheckCircle,
+          variant: "success",
+          rowClassName: "bg-green-50/50 hover:bg-green-50",
+        };
         return {
           label: "Validé",
           icon: CheckCircle,
@@ -139,7 +192,17 @@ export function DevisTable({
           variant: "destructive",
           rowClassName: "bg-red-50/50 hover:bg-red-50",
         };
+        return {
+          label: "Rejeté",
+          variant: "destructive",
+          rowClassName: "bg-red-50/50 hover:bg-red-50",
+        };
       case "in-review":
+        return {
+          label: "En révision",
+          variant: "sky",
+          rowClassName: "bg-sky-50/50 hover:bg-sky-50",
+        };
         return {
           label: "En révision",
           variant: "sky",
@@ -147,7 +210,9 @@ export function DevisTable({
         };
       case "cancel":
         return { label: "Annulé", variant: "default" };
+        return { label: "Annulé", variant: "default" };
       default:
+        return { label: "Inconnu", variant: "default" };
         return { label: "Inconnu", variant: "default" };
     }
   };
@@ -271,7 +336,7 @@ export function DevisTable({
     return translations[label] || label;
   };
 
-  const columns: ColumnDef<CommandRequestT>[] = [
+  const columns: ColumnDef<Quotation>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -295,73 +360,82 @@ export function DevisTable({
       enableHiding: false,
     },
     {
-      accessorKey: "reference",
+      accessorKey: "quotationId",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Référence"}
+            {"Demande de quotation"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => (
         <div className="font-medium first-letter:uppercase">
-          {row.getValue("reference")}
+          {getQuotationTitle(row.getValue("quotationId"))}
         </div>
       ),
     },
     {
-      accessorKey: "title",
+      accessorKey: "providerId",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Titre"}
+            {"Fournisseur"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => (
-        <div className="first-letter:uppercase">{row.getValue("title")}</div>
+        <div className="first-letter:uppercase">
+          {getProviderName(row.getValue("providerId"))}
+        </div>
       ),
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: "montant",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Date de creation"}
+            {"Montant"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => (
-        <div>{format(row.getValue("createdAt"), "PPP", { locale: fr })}</div>
+        <div>
+          {XAF.format(
+            (row.getValue("element") as QuotationElement[]).reduce(
+              (total, element) => total + element.priceProposed,
+              0
+            )
+          )}
+        </div>
       ),
     },
     {
-      accessorKey: "dueDate",
+      accessorKey: "element",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Date limite de livraison"}
+            {"Nombre d'articles"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => (
-        <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>
+        <div>{(row.getValue("element") as QuotationElement[]).length}</div>
       ),
     },
     {
@@ -383,7 +457,9 @@ export function DevisTable({
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
-                  setSelectedCommand(item);
+                  setSelectedDevis(item);
+                  setSelectedQuotation(getQuotationTitle(item.commandRequestId));
+                  setIsDevisModalOpen(true);
                 }}
               >
                 <Eye className="mr-2 h-4 w-4" />
@@ -392,16 +468,12 @@ export function DevisTable({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  setSelectedCommand(item);
+                  setSelectedDevis(item);
                   setIsUpdateModalOpen(true);
                 }}
               >
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
-                <LucideDownload className="mr-2 h-4 w-4" />
-                {"Télécharger"}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => console.log("Reject", item)}>
                 <Trash color="red" className="mr-2 h-4 w-4" />
@@ -465,6 +537,8 @@ export function DevisTable({
           <Label>{"Période"}</Label>
           <DropdownMenu>
             <DropdownMenuTrigger className="min-w-52">
+              {getDateFilterText()}
+              <CalendarIcon />
               {getDateFilterText()}
               <CalendarIcon />
             </DropdownMenuTrigger>
@@ -532,6 +606,9 @@ export function DevisTable({
                   <CalendarDays className="mr-2 h-4 w-4" />
                   {"Personnaliser"}
                 </span>
+                {dateFilter === "custom" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
                 {dateFilter === "custom" && (
                   <ChevronRight className="h-4 w-4" />
                 )}
@@ -644,6 +721,13 @@ export function DevisTable({
       {table.getRowModel().rows?.length > 0 && (
         <Pagination table={table} pageSize={15} />
       )}
+
+      <DevisModal
+        open={isDevisModalOpen}
+        onOpenChange={setIsDevisModalOpen}
+        data={selectedDevis}
+        quotation={selectedQuotation}
+      />
 
       {/* Modal pour la plage de dates personnalisée */}
       <Dialog
