@@ -52,18 +52,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ProjectT } from "@/types/types";
 
-export type Project = {
-  reference: string;
-  project: string;
-  totalBudget: number;
-  budgetLeft: number;
-  chief: string;
-  state: "planning" | "in-progress" | "on-hold" | "completed" | "cancelled";
-};
+// export type Project = {
+//   reference: string;
+//   project: string;
+//   totalBudget: number;
+//   budgetLeft: number;
+//   chief: string;
+//   state: "planning" | "in-progress" | "on-hold" | "completed" | "cancelled";
+// };
 
 interface ProjectTableProps {
-  data: Project[];
+  data: ProjectT[];
 }
 
 export function ProjectTable({ data }: ProjectTableProps) {
@@ -76,8 +77,8 @@ export function ProjectTable({ data }: ProjectTableProps) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  const getStateIcon = (state: string) => {
-    switch (state) {
+  const getStateIcon = (status: string) => {
+    switch (status) {
       case "planning":
         return <Clock className="h-3 w-3" />;
       case "in-progress":
@@ -93,8 +94,8 @@ export function ProjectTable({ data }: ProjectTableProps) {
     }
   };
 
-  const getStateColor = (state: string) => {
-    switch (state) {
+  const getStateColor = (status: string) => {
+    switch (status) {
       case "planning":
         return "bg-blue-500 hover:bg-blue-600";
       case "in-progress":
@@ -110,8 +111,8 @@ export function ProjectTable({ data }: ProjectTableProps) {
     }
   };
 
-  const getRowColor = (state: string) => {
-    switch (state) {
+  const getRowColor = (status: string) => {
+    switch (status) {
       case "planning":
         return "bg-blue-50";
       case "in-progress":
@@ -135,7 +136,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
     }).format(amount);
   };
 
-  const columns: ColumnDef<Project>[] = React.useMemo(
+  const columns: ColumnDef<ProjectT>[] = React.useMemo(
     () => [
       {
         id: "select",
@@ -181,7 +182,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
         ),
       },
       {
-        accessorKey: "project",
+        accessorKey: "label",
         header: ({ column }) => {
           return (
             <Button
@@ -195,10 +196,10 @@ export function ProjectTable({ data }: ProjectTableProps) {
             </Button>
           );
         },
-        cell: ({ row }) => <div>{row.getValue("project")}</div>,
+        cell: ({ row }) => <div>{row.getValue("label")}</div>,
       },
       {
-        accessorKey: "totalBudget",
+        accessorKey: "budget",
         header: ({ column }) => {
           return (
             <Button
@@ -214,43 +215,43 @@ export function ProjectTable({ data }: ProjectTableProps) {
         },
         cell: ({ row }) => (
           <div className="font-medium">
-            {formatCurrency(row.getValue("totalBudget"))}
+            {formatCurrency(row.getValue("budget"))}
           </div>
         ),
       },
-      {
-        accessorKey: "budgetLeft",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Budget Left
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => {
-          const budgetLeft = row.getValue("budgetLeft") as number;
-          const totalBudget = row.original.totalBudget;
-          const percentage = (budgetLeft / totalBudget) * 100;
-          const colorClass =
-            percentage > 50
-              ? "text-green-600"
-              : percentage > 20
-              ? "text-yellow-600"
-              : "text-red-600";
+      // {
+      //   accessorKey: "budgetLeft",
+      //   header: ({ column }) => {
+      //     return (
+      //       <Button
+      //         variant="ghost"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         Budget Left
+      //         <ArrowUpDown className="ml-2 h-4 w-4" />
+      //       </Button>
+      //     );
+      //   },
+      //   cell: ({ row }) => {
+      //     const budgetLeft = row.getValue("budgetLeft") as number;
+      //     const budget = row.original.budget;
+      //     const percentage = (budgetLeft / budget) * 100;
+      //     const colorClass =
+      //       percentage > 50
+      //         ? "text-green-600"
+      //         : percentage > 20
+      //         ? "text-yellow-600"
+      //         : "text-red-600";
 
-          return (
-            <div className={`font-medium ${colorClass}`}>
-              {formatCurrency(budgetLeft)}
-            </div>
-          );
-        },
-      },
+      //     return (
+      //       <div className={`font-medium ${colorClass}`}>
+      //         {formatCurrency(budgetLeft)}
+      //       </div>
+      //     );
+      //   },
+      // },
       {
         accessorKey: "chief",
         header: ({ column }) => {
@@ -266,10 +267,13 @@ export function ProjectTable({ data }: ProjectTableProps) {
             </Button>
           );
         },
-        cell: ({ row }) => <div>{row.getValue("chief")}</div>,
+        cell: ({ row }) => {
+          const chief = row.getValue("chief") as { id: number; name: string };
+          return <div>{chief ? chief.name : "Pas de chef"}</div>;
+        },
       },
       {
-        accessorKey: "state",
+        accessorKey: "status",
         header: ({ column }) => {
           return (
             <Button
@@ -284,15 +288,16 @@ export function ProjectTable({ data }: ProjectTableProps) {
           );
         },
         cell: ({ row }) => {
-          const state = row.getValue("state") as string;
+          const status = row.getValue("status") as string;
           return (
             <Badge
               className={`${getStateColor(
-                state
+                status
               )} text-white flex items-center gap-1 w-fit`}
             >
-              {getStateIcon(state)}
-              {state.charAt(0).toUpperCase() + state.slice(1).replace("-", " ")}
+              {getStateIcon(status)}
+              {status.charAt(0).toUpperCase() +
+                status.slice(1).replace("-", " ")}
             </Badge>
           );
         },
@@ -403,27 +408,27 @@ export function ProjectTable({ data }: ProjectTableProps) {
               "on-hold",
               "completed",
               "cancelled",
-            ].map((state) => (
+            ].map((status) => (
               <DropdownMenuCheckboxItem
-                key={state}
+                key={status}
                 checked={(
-                  table.getColumn("state")?.getFilterValue() as string[]
-                )?.includes(state)}
+                  table.getColumn("status")?.getFilterValue() as string[]
+                )?.includes(status)}
                 onCheckedChange={(checked) => {
                   const currentFilter =
-                    (table.getColumn("state")?.getFilterValue() as string[]) ||
+                    (table.getColumn("status")?.getFilterValue() as string[]) ||
                     [];
                   table
-                    .getColumn("state")
+                    .getColumn("status")
                     ?.setFilterValue(
                       checked
-                        ? [...currentFilter, state]
-                        : currentFilter.filter((s) => s !== state)
+                        ? [...currentFilter, status]
+                        : currentFilter.filter((s) => s !== status)
                     );
                 }}
               >
-                {state.charAt(0).toUpperCase() +
-                  state.slice(1).replace("-", " ")}
+                {status.charAt(0).toUpperCase() +
+                  status.slice(1).replace("-", " ")}
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>
@@ -498,7 +503,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={getRowColor(row.original.state)}
+                  className={getRowColor(row.original.status)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
                     <TableCell

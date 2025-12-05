@@ -1,3 +1,4 @@
+"use client";
 import { DataTable } from "@/components/base/data-table";
 import { BesoinsTraiterTable } from "@/components/tables/besoins-traiter-table";
 import { CommandeTable } from "@/components/tables/commande-table";
@@ -5,103 +6,130 @@ import { PaiementTable } from "@/components/tables/paiement-table";
 import { ProjectTable } from "@/components/tables/project-table";
 import { TicketsTable } from "@/components/tables/tickets-table";
 import { Button } from "@/components/ui/button";
+import { useStore } from "@/providers/datastore";
+import { ProjectQueries } from "@/queries/projectModule";
+import { ProjectT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import React from "react";
 
-const projects = [
+const projects: ProjectT[] = [
   {
+    id: 1,
     reference: "PRJ-001",
-    project: "Corporate Website Redesign",
-    totalBudget: 15000000,
-    budgetLeft: 3500000,
-    chief: "Nadine Tchoua",
-    state: "in-progress" as const,
+    label: "Corporate Website Redesign",
+    budget: 15000000,
+    chief: { id: 1, name: "Jean Dupont" },
+    status: "in-progress" as const,
+    description: "Redesigning the corporate website for better UX.",
   },
   {
+    id: 2,
     reference: "PRJ-002",
-    project: "Mobile Sales Tracking App",
-    totalBudget: 22000000,
-    budgetLeft: 8000000,
-    chief: "Viche Hakim",
-    state: "planning" as const,
+    label: "Mobile Sales Tracking App",
+    budget: 22000000,
+    chief: { id: 2, name: "Marie Curie" },
+    status: "planning" as const,
+    description: "Developing a mobile app to track sales on the go.",
   },
   {
+    id: 3,
     reference: "PRJ-003",
-    project: "Inventory Management System",
-    totalBudget: 12000000,
-    budgetLeft: 0,
-    chief: "Alain Tientcheu",
-    state: "completed" as const,
+    label: "Inventory Management System",
+    budget: 12000000,
+    chief: { id: 3, name: "Alain Tientcheu" },
+    status: "completed" as const,
+    description: "Implementing a new system to manage inventory efficiently.",
   },
   {
+    id: 4,
     reference: "PRJ-004",
-    project: "HR Automation Platform",
-    totalBudget: 18000000,
-    budgetLeft: 9500000,
-    chief: "Clarisse Ngongang",
-    state: "in-progress" as const,
+    label: "HR Automation Platform",
+    budget: 18000000,
+    chief: { id: 4, name: "Clarisse Ngongang" },
+    status: "in-progress" as const,
+    description: "Creating a platform to automate HR processes.",
   },
   {
+    id: 5,
     reference: "PRJ-005",
-    project: "Digital Marketing Campaign",
-    totalBudget: 8000000,
-    budgetLeft: 2000000,
-    chief: "Prisca Ndong",
-    state: "on-hold" as const,
+    label: "Digital Marketing Campaign",
+    budget: 8000000,
+    chief: { id: 5, name: "Prisca Ndong" },
+    status: "on-hold" as const,
+    description: "Launching a new digital marketing campaign for product X.",
   },
   {
     reference: "PRJ-006",
-    project: "E-commerce Web Application",
-    totalBudget: 25000000,
-    budgetLeft: 5000000,
-    chief: "Junior Kamdem",
-    state: "in-progress" as const,
+    label: "E-commerce Web Application",
+    budget: 25000000,
+    chief: { id: 6, name: "Junior Kamdem" },
+    status: "in-progress" as const,
+    description: "Building a full-featured e-commerce web application.",
   },
   {
     reference: "PRJ-007",
-    project: "Customer Support Chatbot",
-    totalBudget: 10000000,
-    budgetLeft: 10000000,
-    chief: "Vanessa Mbappe",
-    state: "planning" as const,
+    label: "Customer Support Chatbot",
+    budget: 10000000,
+    chief: { id: 7, name: "Vanessa Mbappe" },
+    status: "planning" as const,
+    description: "Developing a chatbot to enhance customer support.",
   },
   {
     reference: "PRJ-008",
-    project: "Company ERP Integration",
-    totalBudget: 30000000,
-    budgetLeft: 4000000,
-    chief: "Liliane Fotso",
-    state: "completed" as const,
+    label: "Company ERP Integration",
+    budget: 30000000,
+    chief: { id: 8, name: "Liliane Fotso" },
+    status: "completed" as const,
+    description: "Integrating company ERP systems for streamlined operations.",
   },
   {
     reference: "PRJ-009",
-    project: "Cloud Migration Initiative",
-    totalBudget: 27000000,
-    budgetLeft: 27000000,
-    chief: "Sandrine Mvondo",
-    state: "planning" as const,
+    label: "Cloud Migration Initiative",
+    budget: 27000000,
+    chief: { id: 9, name: "Sandrine Mvondo" },
+    status: "planning" as const,
+    description: "Migrating company data and applications to the cloud.",
   },
   {
     reference: "PRJ-010",
-    project: "Social Media Management Tool",
-    totalBudget: 9000000,
-    budgetLeft: 0,
-    chief: "Rodrigue Nde",
-    state: "cancelled" as const,
+    label: "Social Media Management Tool",
+    budget: 9000000,
+    chief: { id: 9, name: "Sandrine Mvondo" },
+    status: "planning" as const,
+    description:
+      "Developing a tool to manage social media accounts effectively.",
+  },
+  {
+    reference: "PRJ-010",
+    label: "Social Media Management Tool",
+    budget: 9000000,
+    chief: { id: 10, name: "Rodrigue Nde" },
+    status: "cancelled" as const,
+    description:
+      "Developing a tool to manage social media accounts effectively.",
   },
 ];
 
 const ProjectsPage = () => {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col">
-        <div className="flex justify-between">
-          <h2>Projects</h2>
+  const { isHydrated } = useStore();
+  const project = new ProjectQueries();
+  const projectData = useQuery({
+    queryKey: ["projectsList"],
+    queryFn: () => project.getAll(),
+    enabled: isHydrated,
+  });
+  if (projectData.data)
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
+          <div className="flex justify-between">
+            <h2>Projects</h2>
+          </div>
+          <ProjectTable data={projectData.data?.data} />
         </div>
-        <ProjectTable data={projects} />
       </div>
-    </div>
-  );
+    );
 };
 
 export default ProjectsPage;
