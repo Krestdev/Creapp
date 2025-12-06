@@ -64,8 +64,6 @@ export default function TestDepartmentPage() {
                 departmentQueries.create({
                   label,
                   description: description || null,
-                  status: "active",
-                  reference: "looo",
                 })
               )
             }
