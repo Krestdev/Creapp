@@ -18,12 +18,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Form } from "../ui/form";
-import { ProjectQueries } from "@/queries/projectModule";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { ProjectCreateResponse, ProjectT, ResponseT } from "@/types/types";
+import { DepartementCreateResponse, Category, ResponseT } from "@/types/types";
 import { toast } from "sonner";
 import { UserQueries } from "@/queries/baseModule";
 import { useStore } from "@/providers/datastore";
+import { RequestQueries } from "@/queries/requestModule";
+import { Checkbox } from "../ui/checkbox";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -35,34 +36,32 @@ export interface ActionResponse<T = any> {
 }
 export const formSchema = z.object({
   label: z.string({ message: "This field is required" }),
-  description: z.string({ message: "This field is required" }).optional(),
-  chiefid: z.string().min(1, "Please select an item"),
-  budget: z.coerce.number({ message: "Please enter a valid number" }),
-  spendinginit: z.coerce.number({ message: "Please enter a valid number" }),
+  isSpecial: z.boolean({ message: "This field is required" }).optional(),
+  parentId: z.string(),
 });
 
 type Schema = z.infer<typeof formSchema>;
 
-export function ProjectCreateForm() {
+export function CategoryCreateForm() {
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
-      chiefid: "0",
+      isSpecial: false,
+      parentId: "-1",
     },
   });
 
-  const projectQueries = new ProjectQueries();
-  const userQueries = new UserQueries();
+  const categoryQueries = new RequestQueries();
   const { isHydrated } = useStore();
 
-  const projectApi = useMutation({
+  const categoryApi = useMutation({
+    mutationKey: ["createCategory"],
     mutationFn: (
-      data: Omit<
-        ProjectT,
-        "reference" | "updatedAt" | "createdAt" | "id" | "chief"
-      > & { chiefId: number }
-    ) => projectQueries.create(data),
-    onSuccess: (data: ResponseT<ProjectCreateResponse>) => {
+      data: Omit<Category, "updatedAt" | "createdAt" | "id"> & {
+        parentId?: number;
+      }
+    ) => categoryQueries.createCategory(data),
+    onSuccess: (data: ResponseT<Category>) => {
       toast.success("Inscription réussie !");
       console.log("created successful:", data);
       form.reset();
@@ -72,24 +71,26 @@ export function ProjectCreateForm() {
     },
   });
 
-  const userApi = useQuery({
-    queryKey: ["usersList"],
-    queryFn: () => userQueries.getAll(),
+  const category = new RequestQueries();
+  const categoryData = useQuery({
+    queryKey: ["categoryList"],
+    queryFn: () => category.getCategories(),
     enabled: isHydrated,
   });
 
   const onsubmit = (values: z.infer<typeof formSchema>) => {
-    const data: Omit<
-      ProjectT,
-      "reference" | "updatedAt" | "createdAt" | "id" | "chief"
-    > & { chiefId: number } = {
+    let parentId = parseInt(values.parentId, 10);
+    parentId = isNaN(parentId) ? -1 : parentId;
+    const data: Omit<Category, "updatedAt" | "createdAt" | "id"> & {
+      parentId?: number;
+    } = {
       label: values.label,
-      description: values.description || "",
-      budget: values.budget,
-      chiefId: parseInt(values.chiefid, 10),
-      status: "planning",
+      isSpecial: values.isSpecial || false,
     };
-    projectApi.mutate(data);
+    if (parentId !== -1) {
+      data.parentId = parentId;
+    }
+    categoryApi.mutate(data);
   };
 
   return (
@@ -104,7 +105,7 @@ export function ProjectCreateForm() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="label">Project Title *</FieldLabel>
+                <FieldLabel htmlFor="label">Category Title *</FieldLabel>
                 <Input
                   {...field}
                   id="label"
@@ -124,20 +125,19 @@ export function ProjectCreateForm() {
           />
 
           <Controller
-            name="description"
+            name="isSpecial"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="description">Description </FieldLabel>
-                <Input
-                  {...field}
-                  id="description"
-                  type="text"
-                  onChange={(e) => {
-                    field.onChange(e.target.value);
+                <FieldLabel htmlFor="isSpecial">Description</FieldLabel>
+
+                <Checkbox
+                  id="isSpecial"
+                  checked={field.value}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
                   }}
                   aria-invalid={fieldState.invalid}
-                  placeholder="project description"
                 />
 
                 {fieldState.invalid && (
@@ -148,25 +148,25 @@ export function ProjectCreateForm() {
           />
 
           <Controller
-            name="chiefid"
+            name="parentId"
             control={form.control}
             render={({ field, fieldState }) => {
-              const options = userApi.data
-                ? userApi.data.data.map((user) => ({
-                    value: user.id,
-                    label: user.name,
+              const options = categoryData.data
+                ? categoryData.data.data.map((category) => ({
+                    value: category.id,
+                    label: category.label,
                   }))
                 : [];
               return (
                 <Field data-invalid={fieldState.invalid} className="gap-1">
-                  <FieldLabel htmlFor="chiefid">Chief *</FieldLabel>
+                  <FieldLabel htmlFor="parentId">Parent</FieldLabel>
 
                   <Select
                     value={field.value.toString()}
                     onValueChange={field.onChange}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select project chief" />
+                      <SelectValue placeholder="Select category chief" />
                     </SelectTrigger>
                     <SelectContent>
                       {options.map((option) => (
@@ -187,55 +187,6 @@ export function ProjectCreateForm() {
             }}
           />
 
-          <Controller
-            name="budget"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="budget">Budget *</FieldLabel>
-                <Input
-                  {...field}
-                  id="budget"
-                  type="number"
-                  onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
-                  }}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="12000"
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="spendinginit"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="spendinginit">
-                  Initial Spending *
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="spendinginit"
-                  type="number"
-                  onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
-                  }}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="20000"
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
           <div className="flex justify-end items-center w-full pt-3">
             <Button className="rounded-lg" size="sm">
               Submit

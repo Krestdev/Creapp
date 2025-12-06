@@ -162,8 +162,8 @@ export type Review = {
 export type Category = {
   id: number;
   label: string;
-  description: string | null;
-  parentId: number | null;
+  parentId?: number | null;
+  isSpecial: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -199,6 +199,10 @@ export type RegisterResponse = {
 
 export type ProjectCreateResponse = {
   project: ProjectT;
+};
+
+export type DepartementCreateResponse = {
+  data: DepartmentT;
 };
 
 export type Provider = {

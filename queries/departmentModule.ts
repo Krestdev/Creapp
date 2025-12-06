@@ -8,8 +8,11 @@ export class DepartmentQueries {
 
   // Créer un département
   create = async (
-    data: Omit<DepartmentT, "id" | "createdAt" | "updatedAt" | "members">
-  ): Promise<{ data: DepartmentT }> => {
+    data: Omit<
+      DepartmentT,
+      "id" | "createdAt" | "updatedAt" | "members" | "status" | "reference"
+    >
+  ): Promise<{ message: string; data: DepartmentT }> => {
     return api.post(this.route, data).then((response) => {
       console.log(response.data);
       return response.data;
@@ -69,7 +72,7 @@ export class DepartmentQueries {
     return api
       .post(`${this.route}/${id}/members`, {
         label: data.label,
-        userId: data.userId, 
+        userId: data.userId,
       })
       .then((response) => {
         console.log(response.data);

@@ -13,20 +13,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  AlertCircle,
   ArrowUpDown,
   CheckCircle,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Clock,
-  Eye,
   MoreHorizontal,
-  PauseCircle,
-  PlayCircle,
-  Search,
+  Users,
   XCircle,
 } from "lucide-react";
 import * as React from "react";
@@ -45,6 +37,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -52,25 +51,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ProjectT } from "@/types/types";
-import { useStore } from "@/providers/datastore";
-import { ProjectQueries } from "@/queries/projectModule";
+import { Category, DepartmentT, Member } from "@/types/types";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+import { RequestQueries } from "@/queries/requestModule";
 import { useMutation } from "@tanstack/react-query";
 
-// export type Project = {
-//   reference: string;
-//   project: string;
-//   totalBudget: number;
-//   budgetLeft: number;
-//   chief: string;
-//   state: "planning" | "in-progress" | "on-hold" | "completed" | "cancelled";
-// };
-
-interface ProjectTableProps {
-  data: ProjectT[];
+interface CategoriesTableProps {
+  data: Category[];
 }
 
-export function ProjectTable({ data }: ProjectTableProps) {
+export function CategoriesTable({ data }: CategoriesTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -80,73 +75,14 @@ export function ProjectTable({ data }: ProjectTableProps) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  const getStateIcon = (status: string) => {
-    switch (status) {
-      case "planning":
-        return <Clock className="h-3 w-3" />;
-      case "in-progress":
-        return <PlayCircle className="h-3 w-3" />;
-      case "on-hold":
-        return <PauseCircle className="h-3 w-3" />;
-      case "completed":
-        return <CheckCircle className="h-3 w-3" />;
-      case "cancelled":
-        return <XCircle className="h-3 w-3" />;
-      default:
-        return <AlertCircle className="h-3 w-3" />;
-    }
-  };
+  const categoryQueries = new RequestQueries();
 
-  const getStateColor = (status: string) => {
-    switch (status) {
-      case "planning":
-        return "bg-blue-500 hover:bg-blue-600";
-      case "in-progress":
-        return "bg-green-500 hover:bg-green-600";
-      case "on-hold":
-        return "bg-yellow-500 hover:bg-yellow-600";
-      case "completed":
-        return "bg-emerald-500 hover:bg-emerald-600";
-      case "cancelled":
-        return "bg-red-500 hover:bg-red-600";
-      default:
-        return "bg-gray-500 hover:bg-gray-600";
-    }
-  };
-
-  const getRowColor = (status: string) => {
-    switch (status) {
-      case "planning":
-        return "bg-blue-50";
-      case "in-progress":
-        return "bg-green-50";
-      case "on-hold":
-        return "bg-yellow-50";
-      case "completed":
-        return "bg-emerald-50";
-      case "cancelled":
-        return "bg-red-50";
-      default:
-        return "";
-    }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "XAF",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const { isHydrated } = useStore();
-  const project = new ProjectQueries();
-  const projectMutationData = useMutation({
-    mutationKey: ["projectsStatus"],
-    mutationFn: (data: { id: number; status: string }) =>
-      project.update(data.id, { status: data.status }),
+  const categoryData = useMutation({
+    mutationKey: ["deleteCategory"],
+    mutationFn: (id: number) => categoryQueries.deleteCategory(id),
   });
-  const columns: ColumnDef<ProjectT>[] = React.useMemo(
+
+  const columns = React.useMemo<ColumnDef<Category>[]>(
     () => [
       {
         id: "select",
@@ -172,25 +108,25 @@ export function ProjectTable({ data }: ProjectTableProps) {
         enableSorting: false,
         enableHiding: false,
       },
-      {
-        accessorKey: "reference",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Référence
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("reference")}</div>
-        ),
-      },
+      // {
+      //   accessorKey: "reference",
+      //   header: ({ column }) => {
+      //     return (
+      //       <Button
+      //         variant="ghost"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         Référence
+      //         <ArrowUpDown className="ml-2 h-4 w-4" />
+      //       </Button>
+      //     );
+      //   },
+      //   cell: ({ row }) => (
+      //     <div className="font-medium">{row.getValue("reference")}</div>
+      //   ),
+      // },
       {
         accessorKey: "label",
         header: ({ column }) => {
@@ -201,15 +137,26 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Project
+              Name
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
         },
-        cell: ({ row }) => <div>{row.getValue("label")}</div>,
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("label")}</div>
+        ),
       },
+      // {
+      //   accessorKey: "description",
+      //   header: "Description",
+      //   cell: ({ row }) => (
+      //     <div className="max-w-[300px] truncate">
+      //       {row.getValue("description")}
+      //     </div>
+      //   ),
+      // },
       {
-        accessorKey: "budget",
+        accessorKey: "parentId",
         header: ({ column }) => {
           return (
             <Button
@@ -218,19 +165,21 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Total Budget
+              Parent
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
         },
-        cell: ({ row }) => (
-          <div className="font-medium">
-            {formatCurrency(row.getValue("budget"))}
-          </div>
-        ),
+        cell: ({ row }) => {
+          console.log(row.getValue("parentId"));
+          const parent = data.find(
+            (dept) => dept.id === row.getValue("parentId")
+          );
+          return <div>{parent?.label}</div>;
+        },
       },
       // {
-      //   accessorKey: "budgetLeft",
+      //   accessorKey: "createdAt",
       //   header: ({ column }) => {
       //     return (
       //       <Button
@@ -239,88 +188,56 @@ export function ProjectTable({ data }: ProjectTableProps) {
       //           column.toggleSorting(column.getIsSorted() === "asc")
       //         }
       //       >
-      //         Budget Left
+      //         {"Date de création"}
+      //         <ArrowUpDown className="ml-2 h-4 w-4" />
+      //       </Button>
+      //     );
+      //   },
+      //   cell: ({ row }) => (
+      //     <div className="flex items-center gap-2">
+      //       <Users className="h-4 w-4 text-muted-foreground" />
+      //       <span className="font-medium">
+      //         {new Date(row.getValue("createdAt")).toLocaleDateString()}
+      //       </span>
+      //     </div>
+      //   ),
+      // },
+      // {
+      //   accessorKey: "updatedAt",
+      //   header: ({ column }) => {
+      //     return (
+      //       <Button
+      //         variant="ghost"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         Date de mise à jour
       //         <ArrowUpDown className="ml-2 h-4 w-4" />
       //       </Button>
       //     );
       //   },
       //   cell: ({ row }) => {
-      //     const budgetLeft = row.getValue("budgetLeft") as number;
-      //     const budget = row.original.budget;
-      //     const percentage = (budgetLeft / budget) * 100;
-      //     const colorClass =
-      //       percentage > 50
-      //         ? "text-green-600"
-      //         : percentage > 20
-      //         ? "text-yellow-600"
-      //         : "text-red-600";
-
+      //     const status = row.getValue("status") as string;
       //     return (
-      //       <div className={`font-medium ${colorClass}`}>
-      //         {formatCurrency(budgetLeft)}
+      //       <div className="flex items-center gap-2">
+      //         <Clock className="h-4 w-4 text-muted-foreground" />
+      //         <span className="font-medium">
+      //           {new Date(row.getValue("updatedAt")).toLocaleDateString()}
+      //         </span>
       //       </div>
       //     );
       //   },
+      //   filterFn: (row, id, value) => {
+      //     return value.includes(row.getValue(id));
+      //   },
       // },
-      {
-        accessorKey: "chief",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Chief
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => {
-          const chief = row.getValue("chief") as { id: number; name: string };
-          return <div>{chief ? chief.name : "Pas de chef"}</div>;
-        },
-      },
-      {
-        accessorKey: "status",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              State
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => {
-          const status = row.getValue("status") as string;
-          return (
-            <Badge
-              className={`${getStateColor(
-                status
-              )} text-white flex items-center gap-1 w-fit`}
-            >
-              {getStateIcon(status)}
-              {status.charAt(0).toUpperCase() +
-                status.slice(1).replace("-", " ")}
-            </Badge>
-          );
-        },
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id));
-        },
-      },
       {
         id: "actions",
         header: "Actions",
         enableHiding: false,
         cell: ({ row }) => {
-          const project = row.original;
+          const categories = row.original;
 
           return (
             <DropdownMenu>
@@ -332,44 +249,14 @@ export function ProjectTable({ data }: ProjectTableProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>
-                  <Eye className="mr-2 h-4 w-4" />
-                  View
-                </DropdownMenuItem>
+                {/* <DropdownMenuItem>View</DropdownMenuItem> */}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() =>
-                    projectMutationData.mutate({
-                      id: project.id ?? -1,
-                      status: "Completed",
-                    })
-                  }
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Complete
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    projectMutationData.mutate({
-                      id: project.id ?? -1,
-                      status: "on-hold",
-                    })
-                  }
-                >
-                  <PauseCircle className="mr-2 h-4 w-4" />
-                  Put on Hold
-                </DropdownMenuItem>
+                <DropdownMenuItem>Edit</DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600"
-                  onClick={() =>
-                    projectMutationData.mutate({
-                      id: project.id ?? -1,
-                      status: "cancelled",
-                    })
-                  }
+                  onClick={() => categoryData.mutate(categories.id)}
                 >
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Cancel
+                  Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -395,13 +282,13 @@ export function ProjectTable({ data }: ProjectTableProps) {
     globalFilterFn: (row, columnId, filterValue) => {
       const search = filterValue.toLowerCase();
       const reference = row.getValue("reference") as string;
-      const project = row.getValue("project") as string;
-      const chief = row.getValue("chief") as string;
+      const name = row.getValue("name") as string;
+      const chef = row.getValue("chef") as string;
 
       return (
         reference.toLowerCase().includes(search) ||
-        project.toLowerCase().includes(search) ||
-        chief.toLowerCase().includes(search)
+        name.toLowerCase().includes(search) ||
+        chef.toLowerCase().includes(search)
       );
     },
     state: {
@@ -413,61 +300,51 @@ export function ProjectTable({ data }: ProjectTableProps) {
     },
   });
 
-  const selectedRows = table.getFilteredSelectedRowModel().rows;
+  const getRowClassName = (status: string) => {
+    switch (status) {
+      case "actif":
+        return "bg-green-50 hover:bg-green-100";
+      case "inactif":
+        return "bg-red-50 hover:bg-red-100";
+      case "en-reorganisation":
+        return "bg-yellow-50 hover:bg-yellow-100";
+      default:
+        return "";
+    }
+  };
 
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by reference, project, or chief..."
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-8 max-w-sm"
-          />
-        </div>
+        <Input
+          placeholder="Search by reference, name, or chef..."
+          value={globalFilter ?? ""}
+          onChange={(event) => setGlobalFilter(event.target.value)}
+          className="max-w-sm"
+        />
+        <Select
+          value={
+            (table.getColumn("status")?.getFilterValue() as string) ?? "all"
+          }
+          onValueChange={(value) =>
+            table
+              .getColumn("status")
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="actif">Actif</SelectItem>
+            <SelectItem value="inactif">Inactif</SelectItem>
+            <SelectItem value="en-reorganisation">En réorganisation</SelectItem>
+          </SelectContent>
+        </Select>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              State <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {[
-              "planning",
-              "in-progress",
-              "on-hold",
-              "completed",
-              "cancelled",
-            ].map((status) => (
-              <DropdownMenuCheckboxItem
-                key={status}
-                checked={(
-                  table.getColumn("status")?.getFilterValue() as string[]
-                )?.includes(status)}
-                onCheckedChange={(checked) => {
-                  const currentFilter =
-                    (table.getColumn("status")?.getFilterValue() as string[]) ||
-                    [];
-                  table
-                    .getColumn("status")
-                    ?.setFilterValue(
-                      checked
-                        ? [...currentFilter, status]
-                        : currentFilter.filter((s) => s !== status)
-                    );
-                }}
-              >
-                {status.charAt(0).toUpperCase() +
-                  status.slice(1).replace("-", " ")}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
+            <Button variant="outline" className="ml-auto bg-transparent">
               Columns <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -492,18 +369,6 @@ export function ProjectTable({ data }: ProjectTableProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      {selectedRows.length > 0 && (
-        <div className="flex items-center gap-2 py-2">
-          <span className="text-sm text-muted-foreground">
-            {selectedRows.length} row(s) selected
-          </span>
-          <Button variant="outline" size="sm">
-            Bulk Action
-          </Button>
-        </div>
-      )}
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -535,7 +400,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={getRowColor(row.original.status)}
+                  // className={getRowClassName(row.original.status)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
                     <TableCell
@@ -567,7 +432,6 @@ export function ProjectTable({ data }: ProjectTableProps) {
           </TableBody>
         </Table>
       </div>
-
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
@@ -590,10 +454,6 @@ export function ProjectTable({ data }: ProjectTableProps) {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="text-sm">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
-          </span>
           <Button
             variant="outline"
             size="sm"

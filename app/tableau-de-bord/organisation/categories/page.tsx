@@ -1,4 +1,4 @@
-import ServicesPage from "@/components/pages/organisation/services";
+import CategoriesPage from "@/components/pages/organisation/categories";
 import UserListPage from "@/components/pages/utilisateurs/liste";
 import PageTitle from "@/components/pageTitle";
 
@@ -7,11 +7,11 @@ function Page() {
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Services"
-        subtitle="Consultez la liste des services."
+        title="Categories"
+        subtitle="Consultez la liste des categories."
         color="red"
       />
-      <ServicesPage />
+      <CategoriesPage />
     </div>
   );
 }

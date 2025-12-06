@@ -5,7 +5,14 @@ import { ProjectT, User } from "@/types/types";
 export class ProjectQueries {
   route = "/project/management";
 
-  create = async (data: ProjectT) => {
+  create = async (
+    data: Omit<
+      ProjectT,
+      "reference" | "updatedAt" | "createdAt" | "id" | "chief"
+    > & {
+      chiefId: number;
+    }
+  ) => {
     return api.post(this.route, data).then((response) => {
       console.log(response.data);
       return response.data;

@@ -1,14 +1,5 @@
 import api from "@/providers/axios";
-import { RequestModelT } from "@/types/types";
-
-export type CategoryT = {
-  id: number;
-  label: string;
-  description: string | null;
-  parentId?: number | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import { Category, RequestModelT } from "@/types/types";
 
 export class RequestQueries {
   route = "/request/object";
@@ -60,15 +51,15 @@ export class RequestQueries {
   // Revoir (review)
   review = async (
     id: number,
-    data: {validated: boolean, userId: number, decision?: string}
+    data: { validated: boolean; userId: number; decision?: string }
   ): Promise<{ data: RequestModelT }> => {
-    return api.put(`${this.route}/review/${id}`, 
-      {
+    return api
+      .put(`${this.route}/review/${id}`, {
         validated: data.validated,
         userId: data.userId,
-        decision: data.decision
-      }
-    ).then((res) => res.data);
+        decision: data.decision,
+      })
+      .then((res) => res.data);
   };
 
   // Rejeter
@@ -96,43 +87,46 @@ export class RequestQueries {
   // ============================
 
   // GET /request/object/category
-  getCategories = async (): Promise<{ data: CategoryT[] }> => {
+  getCategories = async (): Promise<{ data: Category[] }> => {
     return api.get(`${this.route}/category`).then((res) => res.data);
   };
 
   // POST /request/object/category
   createCategory = async (
-    data: Omit<CategoryT, "id" | "createdAt" | "updatedAt">
-  ): Promise<{ data: CategoryT }> => {
+    data: Omit<Category, "id" | "createdAt" | "updatedAt">
+  ): Promise<{ message: string; data: Category }> => {
     return api.post(`${this.route}/category`, data).then((res) => res.data);
   };
 
   // GET /request/object/category/{id}
-  getCategory = async (id: number): Promise<{ data: CategoryT }> => {
+  getCategory = async (id: number): Promise<{ data: Category }> => {
     return api.get(`${this.route}/category/${id}`).then((res) => res.data);
   };
 
   // PUT /request/object/category/{id}
   updateCategory = async (
     id: number,
-    data: Partial<CategoryT>
-  ): Promise<{ data: CategoryT }> => {
-    return api.put(`${this.route}/category/${id}`, data).then((res) => res.data);
+    data: Partial<Category>
+  ): Promise<{ data: Category }> => {
+    return api
+      .put(`${this.route}/category/${id}`, data)
+      .then((res) => res.data);
   };
 
   // GET /request/object/category/{id}/children
-  getCategoryChildren = async (
-    id: number
-  ): Promise<{ data: CategoryT[] }> => {
+  getCategoryChildren = async (id: number): Promise<{ data: Category[] }> => {
     return api
       .get(`${this.route}/category/${id}/children`)
       .then((res) => res.data);
   };
 
   // GET /request/object/category/special
-  getSpecialCategories = async (): Promise<{ data: CategoryT[] }> => {
-    return api
-      .get(`${this.route}/category/special`)
-      .then((res) => res.data);
+  getSpecialCategories = async (): Promise<{ data: Category[] }> => {
+    return api.get(`${this.route}/category/special`).then((res) => res.data);
+  };
+
+  // GET /request/object/category/{id}
+  deleteCategory = async (id: number): Promise<{ data: Category }> => {
+    return api.delete(`${this.route}/category/${id}`).then((res) => res.data);
   };
 }
