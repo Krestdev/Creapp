@@ -224,7 +224,7 @@ export default function FilesUpload({
                     {fileType.startsWith('image/') ? (
                       <div className="size-12 shrink-0 overflow-hidden rounded border">
                         <img
-                          src={previewUrl}
+                          src={previewUrl?.includes("http") ? previewUrl : `${process.env.NEXT_PUBLIC_API_BASE_URL}${previewUrl}`}
                           alt={fileName}
                           className="size-full object-cover"
                           onError={(e) => {

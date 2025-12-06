@@ -48,7 +48,7 @@ export function Pagination<TData>({
             disabled={!table.getCanPreviousPage()}
             aria-label="Première page"
           >
-            <ChevronsLeft className="h-4 w-4" />
+            <ChevronsLeft />
           </Button>
           <Button
             variant="outline"
@@ -57,13 +57,12 @@ export function Pagination<TData>({
             disabled={!table.getCanPreviousPage()}
             aria-label="Page précédente"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft />
           </Button>
           {/* Info de page */}
           {showPageInfo && (
             <div className="flex items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} sur{" "}
-              {table.getPageCount()}
+              {`Page ${table.getState().pagination.pageIndex + 1}/${table.getPageCount()}`}
             </div>
           )}
           <Button
@@ -73,7 +72,7 @@ export function Pagination<TData>({
             disabled={!table.getCanNextPage()}
             aria-label="Page suivante"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight />
           </Button>
           <Button
             variant="outline"
@@ -82,7 +81,7 @@ export function Pagination<TData>({
             disabled={!table.getCanNextPage()}
             aria-label="Dernière page"
           >
-            <ChevronsRight className="h-4 w-4" />
+            <ChevronsRight />
           </Button>
         </div>
       </div>
