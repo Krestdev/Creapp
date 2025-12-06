@@ -67,6 +67,7 @@ export default function TestProjectPage() {
                   description: description || null,
                   chiefId: Number(chiefId),
                   budget: Number(budget),
+                  status: "active",
                 })
               )
             }
@@ -131,7 +132,7 @@ export default function TestProjectPage() {
                 projectQueries.update(Number(projectId), {
                   label: "Updated Project",
                   description: "Updated description",
-                  chiefId: Number(chiefId),
+                  // chief: Number(chiefId),
                 })
               )
             }
