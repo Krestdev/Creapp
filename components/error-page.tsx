@@ -1,14 +1,14 @@
-import React from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { AlertCircle, Home, RefreshCw } from 'lucide-react'
+import React from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, Home, RefreshCw } from "lucide-react";
 
 interface ErrorProps {
-  error?: Error
-  resetErrorBoundary?: () => void
-  statusCode?: number
-  title?: string
-  message?: string
+  error?: Error;
+  resetErrorBoundary?: () => void;
+  statusCode?: number;
+  title?: string;
+  message?: string;
 }
 
 function ErrorPage({
@@ -16,31 +16,32 @@ function ErrorPage({
   resetErrorBoundary,
   statusCode = 500,
   title = "Quelque chose s'est mal passé",
-  message = "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
+  message = "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
 }: ErrorProps) {
-  
   // Messages d'erreur par statut
   const errorMessages: Record<number, { title: string; message: string }> = {
     404: {
       title: "Page non trouvée",
-      message: "La page que vous recherchez n'existe pas ou a été déplacée."
+      message: "La page que vous recherchez n'existe pas ou a été déplacée.",
     },
     401: {
       title: "Non autorisé",
-      message: "Vous devez être connecté pour accéder à cette page."
+      message: "Vous devez être connecté pour accéder à cette page.",
     },
     403: {
       title: "Accès refusé",
-      message: "Vous n'avez pas les permissions nécessaires pour accéder à cette ressource."
+      message:
+        "Vous n'avez pas les permissions nécessaires pour accéder à cette ressource.",
     },
     500: {
       title: "Erreur serveur",
-      message: "Le serveur a rencontré une erreur interne. Veuillez réessayer plus tard."
-    }
-  }
+      message:
+        "Le serveur a rencontré une erreur interne. Veuillez réessayer plus tard.",
+    },
+  };
 
   // Utiliser le message d'erreur spécifique au statut si disponible
-  const errorInfo = errorMessages[statusCode] || { title, message }
+  const errorInfo = errorMessages[statusCode] || { title, message };
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -70,7 +71,7 @@ function ErrorPage({
         </div>
 
         {/* Détails de l'erreur (en développement) */}
-        {process.env.NODE_ENV === 'development' && error && (
+        {process.env.NODE_ENV === "development" && error && (
           <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-left">
             <details className="cursor-pointer">
               <summary className="font-medium text-gray-700 dark:text-gray-300">
@@ -107,10 +108,7 @@ function ErrorPage({
           )}
 
           <Link href="/" passHref>
-            <Button
-              variant="outline"
-              className="flex items-center gap-2"
-            >
+            <Button variant="outline" className="flex items-center gap-2">
               <Home />
               {"Retour à l'accueil"}
             </Button>
@@ -123,12 +121,12 @@ function ErrorPage({
             {"Si le problème persiste, contactez le support technique."}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-            {`Référence : ${Date.now().toString(36).toUpperCase()}`}
+            {`Référence : ${new Date().getTime().toString(36).toUpperCase()}`}
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default ErrorPage
+export default ErrorPage;
