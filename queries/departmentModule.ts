@@ -1,15 +1,18 @@
 import api from "@/providers/axios";
-import { DepartmentT, Member } from "@/types/types";
+import { DepartmentT, DepartmentUpdateInput, Member } from "@/types/types";
 
 export class DepartmentQueries {
-  route = "/base/Department";
+  route = "/base/department";
 
   // -------------------- CRUD DEPARTMENT --------------------
 
   // Créer un département
   create = async (
-    data: Omit<DepartmentT, "id" | "createdAt" | "updatedAt" | "members">
-  ): Promise<{ data: DepartmentT }> => {
+    data: Omit<
+      DepartmentT,
+      "id" | "createdAt" | "updatedAt" | "members" | "status" | "reference"
+    >
+  ): Promise<{ message: string; data: DepartmentT }> => {
     return api.post(this.route, data).then((response) => {
       console.log(response.data);
       return response.data;
@@ -35,7 +38,7 @@ export class DepartmentQueries {
   // Modifier un département
   update = async (
     id: number,
-    data: Partial<DepartmentT>
+    data: Partial<DepartmentUpdateInput>
   ): Promise<{ data: DepartmentT }> => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
       console.log(response.data);
@@ -69,7 +72,7 @@ export class DepartmentQueries {
     return api
       .post(`${this.route}/${id}/members`, {
         label: data.label,
-        userId: data.userId, 
+        userId: data.userId,
       })
       .then((response) => {
         console.log(response.data);

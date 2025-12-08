@@ -361,14 +361,14 @@ function AppSidebar() {
         },
         {
           pageId: "PG-09-03",
-          title: "les Services",
-          href: "/tableau-de-bord/organisation/services",
+          title: "les Categories",
+          href: "/tableau-de-bord/organisation/categories",
           authorized: ["ADMIN"],
         },
         {
           pageId: "PG-09-04",
-          title: "Creer un service",
-          href: "/tableau-de-bord/organisation/createservice",
+          title: "Creer un categorie",
+          href: "/tableau-de-bord/organisation/createcategorie",
           authorized: ["ADMIN"],
         },
         {

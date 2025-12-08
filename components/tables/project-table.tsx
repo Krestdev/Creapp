@@ -53,6 +53,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ProjectT } from "@/types/types";
+import { useStore } from "@/providers/datastore";
+import { ProjectQueries } from "@/queries/projectModule";
+import { useMutation } from "@tanstack/react-query";
 
 // export type Project = {
 //   reference: string;
@@ -136,6 +139,13 @@ export function ProjectTable({ data }: ProjectTableProps) {
     }).format(amount);
   };
 
+  const { isHydrated } = useStore();
+  const project = new ProjectQueries();
+  const projectMutationData = useMutation({
+    mutationKey: ["projectsStatus"],
+    mutationFn: (data: { id: number; status: string }) =>
+      project.update(data.id, { status: data.status }),
+  });
   const columns: ColumnDef<ProjectT>[] = React.useMemo(
     () => [
       {
@@ -327,15 +337,37 @@ export function ProjectTable({ data }: ProjectTableProps) {
                   View
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    projectMutationData.mutate({
+                      id: project.id ?? -1,
+                      status: "Completed",
+                    })
+                  }
+                >
                   <CheckCircle className="mr-2 h-4 w-4" />
                   Complete
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    projectMutationData.mutate({
+                      id: project.id ?? -1,
+                      status: "on-hold",
+                    })
+                  }
+                >
                   <PauseCircle className="mr-2 h-4 w-4" />
                   Put on Hold
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() =>
+                    projectMutationData.mutate({
+                      id: project.id ?? -1,
+                      status: "cancelled",
+                    })
+                  }
+                >
                   <XCircle className="mr-2 h-4 w-4" />
                   Cancel
                 </DropdownMenuItem>

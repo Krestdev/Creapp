@@ -71,6 +71,23 @@ export type DepartmentT = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type DepartmentUpdateInput = Partial<{
+  label: string;
+  description: string | null;
+  status: string;
+  members: MemberInput[];
+}>;
+
+type MemberInput = {
+  id?: number; // optional for new members
+  label: string;
+  userId: number;
+  validator: boolean;
+  chief: boolean;
+  finalValidator: boolean;
+};
+
 export type Member = {
   id: number;
   label: string;
@@ -162,8 +179,8 @@ export type Review = {
 export type Category = {
   id: number;
   label: string;
-  description: string | null;
-  parentId: number | null;
+  parentId?: number | null;
+  isSpecial: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -201,6 +218,10 @@ export type ProjectCreateResponse = {
   project: ProjectT;
 };
 
+export type DepartementCreateResponse = {
+  data: DepartmentT;
+};
+
 export type Provider = {
   rating: number;
   taxId: string;
@@ -233,5 +254,5 @@ export type Quotation = {
   dueDate: string;
   createdAt: string;
   updatedAt?: string;
-  userId:number;
+  userId: number;
 };

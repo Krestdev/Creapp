@@ -23,7 +23,7 @@ export class UserQueries {
 
   // Register (sans role)
   register = async (
-    data: Omit<User, "status" | "lastConnection" | "role" | "members">
+    data: Omit<User, "status" | "lastConnection" | "role" | "members" | "id">
   ): Promise<ResponseT<User>> => {
     return api.post(`${this.route}/register`, data).then((response) => {
       console.log(response.data);
@@ -33,7 +33,7 @@ export class UserQueries {
 
   // create (sans role)
   create = async (
-    data: Omit<User, "status" | "lastConnection" | "role" | "members">
+    data: Omit<User, "status" | "lastConnection" | "role" | "members" | "id">
   ): Promise<ResponseT<User>> => {
     return api.post(`${this.route}/create`, data).then((response) => {
       console.log(response.data);

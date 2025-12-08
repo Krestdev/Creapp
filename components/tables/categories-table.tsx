@@ -52,23 +52,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DepartmentT, DepartmentUpdateInput, Member } from "@/types/types";
+import { Category, DepartmentT, Member } from "@/types/types";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import UpdateDepartment from "../pages/organisation/UpdateDeprtment";
-import { DepartmentQueries } from "@/queries/departmentModule";
+import { RequestQueries } from "@/queries/requestModule";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+import UpdateCategory from "../pages/organisation/UpdateCategory";
 
-interface DepartementTableProps {
-  data: DepartmentT[];
+interface CategoriesTableProps {
+  data: Category[];
 }
 
-export function DepartementTable({ data }: DepartementTableProps) {
+export function CategoriesTable({ data }: CategoriesTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -78,27 +77,17 @@ export function DepartementTable({ data }: DepartementTableProps) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  const [selectedItem, setSelectedItem] = React.useState<DepartmentT | null>(
-    null
-  );
+  const [selectedItem, setSelectedItem] = React.useState<Category | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
 
-  const departmentQueries = new DepartmentQueries();
-  const departmentMutation = useMutation({
-    mutationKey: ["departmentUpdate"],
-    mutationFn: async (data: number) => departmentQueries.delete(Number(data)),
+  const categoryQueries = new RequestQueries();
 
-    onSuccess: () => {
-      toast.success("Besoin modifié avec succès !");
-    },
-
-    onError: (e) => {
-      console.error(e);
-      toast.error("Une erreur est survenue lors de la suppression.");
-    },
+  const categoryData = useMutation({
+    mutationKey: ["deleteCategory"],
+    mutationFn: (id: number) => categoryQueries.deleteCategory(id),
   });
 
-  const columns = React.useMemo<ColumnDef<DepartmentT>[]>(
+  const columns = React.useMemo<ColumnDef<Category>[]>(
     () => [
       {
         id: "select",
@@ -124,25 +113,25 @@ export function DepartementTable({ data }: DepartementTableProps) {
         enableSorting: false,
         enableHiding: false,
       },
-      {
-        accessorKey: "reference",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Référence
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("reference")}</div>
-        ),
-      },
+      // {
+      //   accessorKey: "reference",
+      //   header: ({ column }) => {
+      //     return (
+      //       <Button
+      //         variant="ghost"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         Référence
+      //         <ArrowUpDown className="ml-2 h-4 w-4" />
+      //       </Button>
+      //     );
+      //   },
+      //   cell: ({ row }) => (
+      //     <div className="font-medium">{row.getValue("reference")}</div>
+      //   ),
+      // },
       {
         accessorKey: "label",
         header: ({ column }) => {
@@ -162,17 +151,17 @@ export function DepartementTable({ data }: DepartementTableProps) {
           <div className="font-medium">{row.getValue("label")}</div>
         ),
       },
+      // {
+      //   accessorKey: "description",
+      //   header: "Description",
+      //   cell: ({ row }) => (
+      //     <div className="max-w-[300px] truncate">
+      //       {row.getValue("description")}
+      //     </div>
+      //   ),
+      // },
       {
-        accessorKey: "description",
-        header: "Description",
-        cell: ({ row }) => (
-          <div className="max-w-[300px] truncate">
-            {row.getValue("description")}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "members",
+        accessorKey: "parentId",
         header: ({ column }) => {
           return (
             <Button
@@ -181,21 +170,21 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Chef
+              Parent
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
         },
         cell: ({ row }) => {
-          console.log(row.getValue("members"));
-          const members = row.getValue("members") as Member[];
-          return (
-            <div>{members.find((user) => user.chief === true)?.user?.name}</div>
+          console.log(row.getValue("parentId"));
+          const parent = data.find(
+            (dept) => dept.id === row.getValue("parentId")
           );
+          return <div>{parent?.label}</div>;
         },
       },
       {
-        accessorKey: "employees",
+        accessorKey: "isSpecial",
         header: ({ column }) => {
           return (
             <Button
@@ -204,7 +193,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Nombre d'employés"}
+              {"Special"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
@@ -213,64 +202,47 @@ export function DepartementTable({ data }: DepartementTableProps) {
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">
-              {(row.getValue("members") as Member[]).length}
+              {row.getValue("isSpecial") ? "Oui" : "Non"}
             </span>
           </div>
         ),
       },
-      {
-        accessorKey: "status",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Statut
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => {
-          const status = row.getValue("status") as string;
-          return (
-            <Badge
-              variant="outline"
-              className={
-                status === "actif"
-                  ? "bg-green-500 text-white border-green-600"
-                  : status === "inactif"
-                  ? "bg-red-500 text-white border-red-600"
-                  : "bg-yellow-500 text-white border-yellow-600"
-              }
-            >
-              {status === "actif" ? (
-                <CheckCircle className="mr-1 h-3 w-3" />
-              ) : status === "inactif" ? (
-                <XCircle className="mr-1 h-3 w-3" />
-              ) : (
-                <Clock className="mr-1 h-3 w-3" />
-              )}
-              {status === "actif"
-                ? "Actif"
-                : status === "inactif"
-                ? "Inactif"
-                : "En réorganisation"}
-            </Badge>
-          );
-        },
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id));
-        },
-      },
+      // {
+      //   accessorKey: "updatedAt",
+      //   header: ({ column }) => {
+      //     return (
+      //       <Button
+      //         variant="ghost"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         Date de mise à jour
+      //         <ArrowUpDown className="ml-2 h-4 w-4" />
+      //       </Button>
+      //     );
+      //   },
+      //   cell: ({ row }) => {
+      //     const status = row.getValue("status") as string;
+      //     return (
+      //       <div className="flex items-center gap-2">
+      //         <Clock className="h-4 w-4 text-muted-foreground" />
+      //         <span className="font-medium">
+      //           {new Date(row.getValue("updatedAt")).toLocaleDateString()}
+      //         </span>
+      //       </div>
+      //     );
+      //   },
+      //   filterFn: (row, id, value) => {
+      //     return value.includes(row.getValue(id));
+      //   },
+      // },
       {
         id: "actions",
         header: "Actions",
         enableHiding: false,
         cell: ({ row }) => {
-          const departement = row.original;
+          const categories = row.original;
 
           return (
             <DropdownMenu>
@@ -282,11 +254,11 @@ export function DepartementTable({ data }: DepartementTableProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>View</DropdownMenuItem>
+                {/* <DropdownMenuItem>View</DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
-                    setSelectedItem(departement);
+                    setSelectedItem(categories);
                     setIsUpdateModalOpen(true);
                   }}
                 >
@@ -295,7 +267,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600"
-                  onClick={() => departmentMutation.mutate(departement.id)}
+                  onClick={() => categoryData.mutate(categories.id)}
                 >
                   Supprimer
                 </DropdownMenuItem>
@@ -441,7 +413,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={getRowClassName(row.original.status)}
+                  // className={getRowClassName(row.original.status)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
                     <TableCell
@@ -513,10 +485,11 @@ export function DepartementTable({ data }: DepartementTableProps) {
           </Button>
         </div>
       </div>
-      <UpdateDepartment
+
+      <UpdateCategory
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
-        departmentData={selectedItem}
+        categoryData={selectedItem}
       />
     </div>
   );
