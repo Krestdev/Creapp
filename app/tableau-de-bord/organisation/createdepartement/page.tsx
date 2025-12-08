@@ -1,6 +1,4 @@
 import { DepartmentCreateForm } from "@/components/forms/create-department";
-import CreateUserForm from "@/components/forms/create-user";
-import CreateProject from "@/components/pages/projets/createProject";
 import PageTitle from "@/components/pageTitle";
 
 const Page = () => {

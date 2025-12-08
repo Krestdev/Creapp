@@ -17,6 +17,7 @@ import {
   CheckCircle,
   ChevronDown,
   Clock,
+  LucidePen,
   MoreHorizontal,
   Users,
   XCircle,
@@ -60,6 +61,7 @@ import {
 } from "lucide-react";
 import { RequestQueries } from "@/queries/requestModule";
 import { useMutation } from "@tanstack/react-query";
+import UpdateCategory from "../pages/organisation/UpdateCategory";
 
 interface CategoriesTableProps {
   data: Category[];
@@ -74,6 +76,9 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+
+  const [selectedItem, setSelectedItem] = React.useState<Category | null>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
 
   const categoryQueries = new RequestQueries();
 
@@ -178,30 +183,30 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
           return <div>{parent?.label}</div>;
         },
       },
-      // {
-      //   accessorKey: "createdAt",
-      //   header: ({ column }) => {
-      //     return (
-      //       <Button
-      //         variant="ghost"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         {"Date de création"}
-      //         <ArrowUpDown className="ml-2 h-4 w-4" />
-      //       </Button>
-      //     );
-      //   },
-      //   cell: ({ row }) => (
-      //     <div className="flex items-center gap-2">
-      //       <Users className="h-4 w-4 text-muted-foreground" />
-      //       <span className="font-medium">
-      //         {new Date(row.getValue("createdAt")).toLocaleDateString()}
-      //       </span>
-      //     </div>
-      //   ),
-      // },
+      {
+        accessorKey: "isSpecial",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Special"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">
+              {row.getValue("isSpecial") ? "Oui" : "Non"}
+            </span>
+          </div>
+        ),
+      },
       // {
       //   accessorKey: "updatedAt",
       //   header: ({ column }) => {
@@ -251,12 +256,20 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 {/* <DropdownMenuItem>View</DropdownMenuItem> */}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Edit</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(categories);
+                    setIsUpdateModalOpen(true);
+                  }}
+                >
+                  <LucidePen className="mr-2 h-4 w-4" />
+                  {"Modifier"}
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600"
                   onClick={() => categoryData.mutate(categories.id)}
                 >
-                  Delete
+                  Supprimer
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -472,6 +485,12 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
           </Button>
         </div>
       </div>
+
+      <UpdateCategory
+        open={isUpdateModalOpen}
+        setOpen={setIsUpdateModalOpen}
+        categoryData={selectedItem}
+      />
     </div>
   );
 }

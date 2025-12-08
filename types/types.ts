@@ -71,6 +71,23 @@ export type DepartmentT = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type DepartmentUpdateInput = Partial<{
+  label: string;
+  description: string | null;
+  status: string;
+  members: MemberInput[];
+}>;
+
+type MemberInput = {
+  id?: number; // optional for new members
+  label: string;
+  userId: number;
+  validator: boolean;
+  chief: boolean;
+  finalValidator: boolean;
+};
+
 export type Member = {
   id: number;
   label: string;
@@ -237,5 +254,5 @@ export type Quotation = {
   dueDate: string;
   createdAt: string;
   updatedAt?: string;
-  userId:number;
+  userId: number;
 };

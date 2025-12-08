@@ -18,7 +18,6 @@ function NavigationItem(item: NavigationItemProps) {
   const { user } = useStore();
   const roles = user?.role.map((r) => r.label) || ["USER"];
 
-  // const [openSections, setOpenSections] = useState<string[]>(["Analytics"]);
   const [openSections, setOpenSections] = useState<string[]>([
     pathname.includes(item.href) ? item.title : "",
   ]);

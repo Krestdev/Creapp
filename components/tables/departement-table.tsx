@@ -17,6 +17,7 @@ import {
   CheckCircle,
   ChevronDown,
   Clock,
+  LucidePen,
   MoreHorizontal,
   Users,
   XCircle,
@@ -51,13 +52,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DepartmentT, Member } from "@/types/types";
+import { DepartmentT, DepartmentUpdateInput, Member } from "@/types/types";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import UpdateDepartment from "../pages/organisation/UpdateDeprtment";
+import { DepartmentQueries } from "@/queries/departmentModule";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface DepartementTableProps {
   data: DepartmentT[];
@@ -72,6 +77,26 @@ export function DepartementTable({ data }: DepartementTableProps) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+
+  const [selectedItem, setSelectedItem] = React.useState<DepartmentT | null>(
+    null
+  );
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+
+  const departmentQueries = new DepartmentQueries();
+  const departmentMutation = useMutation({
+    mutationKey: ["departmentUpdate"],
+    mutationFn: async (data: number) => departmentQueries.delete(Number(data)),
+
+    onSuccess: () => {
+      toast.success("Besoin modifié avec succès !");
+    },
+
+    onError: (e) => {
+      console.error(e);
+      toast.error("Une erreur est survenue lors de la suppression.");
+    },
+  });
 
   const columns = React.useMemo<ColumnDef<DepartmentT>[]>(
     () => [
@@ -259,9 +284,20 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem>View</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Edit</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">
-                  Delete
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(departement);
+                    setIsUpdateModalOpen(true);
+                  }}
+                >
+                  <LucidePen className="mr-2 h-4 w-4" />
+                  {"Modifier"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => departmentMutation.mutate(departement.id)}
+                >
+                  Supprimer
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -477,6 +513,11 @@ export function DepartementTable({ data }: DepartementTableProps) {
           </Button>
         </div>
       </div>
+      <UpdateDepartment
+        open={isUpdateModalOpen}
+        setOpen={setIsUpdateModalOpen}
+        departmentData={selectedItem}
+      />
     </div>
   );
 }

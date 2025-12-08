@@ -2,9 +2,7 @@
 import { DepartementTable } from "@/components/tables/departement-table";
 import { useStore } from "@/providers/datastore";
 import { DepartmentQueries } from "@/queries/departmentModule";
-import { DepartmentT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
 
 // const departementData: DepartmentT[] = [
 //   {

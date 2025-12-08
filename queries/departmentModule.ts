@@ -1,8 +1,8 @@
 import api from "@/providers/axios";
-import { DepartmentT, Member } from "@/types/types";
+import { DepartmentT, DepartmentUpdateInput, Member } from "@/types/types";
 
 export class DepartmentQueries {
-  route = "/base/Department";
+  route = "/base/department";
 
   // -------------------- CRUD DEPARTMENT --------------------
 
@@ -38,7 +38,7 @@ export class DepartmentQueries {
   // Modifier un département
   update = async (
     id: number,
-    data: Partial<DepartmentT>
+    data: Partial<DepartmentUpdateInput>
   ): Promise<{ data: DepartmentT }> => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
       console.log(response.data);
