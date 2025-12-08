@@ -44,7 +44,7 @@ const CommandeBd = () => {
         <div className="flex justify-between">
           <h2>{"Commandes"}</h2>
         </div>
-        <BonsCommandeTable data={bonsCommandePaiementData} />
+        {/* <BonsCommandeTable data={bonsCommandePaiementData} /> */}
       </div>
     </div>
   );

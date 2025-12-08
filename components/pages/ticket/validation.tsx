@@ -1,5 +1,8 @@
 import React from "react";
-import { BonsCommandePaiementData, BonsCommandePaiementTable } from "@/components/tables/bons-commande-paiement-table";
+import {
+  BonsCommandePaiementData,
+  BonsCommandePaiementTable,
+} from "@/components/tables/bons-commande-paiement-table";
 import { BonCommandePaiement } from "@/components/modals/detail-bc";
 
 const bonsCommandePaiementData: BonCommandePaiement[] = [
@@ -40,12 +43,7 @@ const bonsCommandePaiementData: BonCommandePaiement[] = [
 const ValidationBC = () => {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col">
-        <div className="flex justify-between">
-          <h2>Tickets</h2>
-        </div>
-        <BonsCommandePaiementTable data={bonsCommandePaiementData} />
-      </div>
+      <BonsCommandePaiementTable data={bonsCommandePaiementData} />
     </div>
   );
 };
