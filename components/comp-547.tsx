@@ -12,7 +12,7 @@ import {
 
 interface Props {
   value?: (File | string)[] | File | string | null;
-  onChange: (files: File[] | null) => void;
+  onChange: (files: (File | string)[] | null) => void;
   name: string;
   maxSizeMB?: number;
   maxFiles?: number;
@@ -36,21 +36,54 @@ const getAcceptString = (acceptTypes?: Props['acceptTypes'], customAccept?: stri
   }
 };
 
+const getMimeTypeFromFilename = (filename: string): string => {
+  const ext = filename.split('.').pop()?.toLowerCase() || '';
+  switch (ext) {
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'png':
+      return 'image/png';
+    case 'gif':
+      return 'image/gif';
+    case 'pdf':
+      return 'application/pdf';
+    default:
+      return 'application/octet-stream';
+  }
+};
+
+// Fonction pour obtenir l'URL d'affichage correcte
+const getDisplayUrl = (url: string): string => {
+  if (!url || typeof url !== 'string') return url;
+  
+  // Si c'est déjà une URL complète ou blob
+  if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) {
+    return url;
+  }
+  
+  // Si c'est juste un nom de fichier
+  const apiUrl = process.env.NEXT_PUBLIC_API || '';
+
+  return `${apiUrl}/uploads/${url}`;
+};
+
 const valueToInitialFiles = (value: Props['value']): FileMetadata[] => {
   if (!value) return [];
   
   const convertItem = (item: File | string, index: number): FileMetadata => {
     if (typeof item === 'string') {
-      // URL string → FileMetadata
+      const filename = item.split('/').pop() || `file-${index}`;
+      const displayUrl = getDisplayUrl(item);
+      
       return {
         id: `existing-${index}-${Date.now()}`,
-        name: `file-${index}.${item.split('.').pop() || 'jpg'}`,
+        name: filename,
         size: 0,
-        type: 'image/jpeg', // Par défaut, devrait être déterminé par l'extension
-        url: item,
+        type: getMimeTypeFromFilename(filename),
+        url: displayUrl,
       };
     } else {
-      // File object → FileMetadata
       return {
         id: `file-${index}-${Date.now()}`,
         name: item.name,
@@ -81,8 +114,9 @@ export default function FilesUpload({
   const maxSize = maxSizeMB * 1024 * 1024;
   const acceptString = accept || getAcceptString(acceptTypes);
   
-  // Convertir la valeur initiale en FileMetadata[]
-  const initialFiles = useMemo(() => valueToInitialFiles(value), [value]);
+  const initialFiles = useMemo(() => {
+    return valueToInitialFiles(value);
+  }, [value]);
 
   const [
     { files, isDragging, errors },
@@ -104,20 +138,37 @@ export default function FilesUpload({
     multiple,
   });
 
-  // Extraire les objets File pour les passer au parent
   useEffect(() => {
-    const extractedFiles = files
-      .map(item => item.file)
-      .filter(file => file instanceof File) as File[];
-    
-    if (extractedFiles.length === 0) {
+    if (files.length === 0) {
       onChange(null);
+      return;
+    }
+
+    const extractedItems = files.map(item => {
+      if (item.file instanceof File) {
+        return item.file;
+      }
+      if (typeof item.file === 'object' && 'url' in item.file) {
+        // Retourner le nom de fichier original, pas l'URL complète
+        const fileMetadata = item.file as FileMetadata;
+        const fullUrl = fileMetadata.url;
+        
+        // Extraire juste le nom de fichier de l'URL
+        if (fullUrl.includes('/uploads/')) {
+          return fullUrl.split('/uploads/').pop() || fullUrl;
+        }
+        return fullUrl.split('/').pop() || fullUrl;
+      }
+      return null;
+    }).filter(Boolean) as (File | string)[];
+    
+    if (multiple) {
+      onChange(extractedItems);
     } else {
-      onChange(multiple ? extractedFiles : [extractedFiles[0]]);
+      onChange(extractedItems.length > 0 ? [extractedItems[0]] : null);
     }
   }, [files, onChange, multiple]);
 
-  // Nettoyage des URLs blob
   useEffect(() => {
     return () => {
       files.forEach(item => {
@@ -180,7 +231,6 @@ export default function FilesUpload({
         </div>
       </div>
 
-      {/* Erreurs */}
       {errors.length > 0 && (
         <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3">
           <div className="flex items-center gap-2 text-destructive">
@@ -190,7 +240,6 @@ export default function FilesUpload({
         </div>
       )}
 
-      {/* Liste des fichiers */}
       {files.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -224,9 +273,10 @@ export default function FilesUpload({
                     {fileType.startsWith('image/') ? (
                       <div className="size-12 shrink-0 overflow-hidden rounded border">
                         <img
-                          src={previewUrl?.includes("http") ? previewUrl : `${process.env.NEXT_PUBLIC_API_BASE_URL}${previewUrl}`}
+                          src={previewUrl}
                           alt={fileName}
                           className="size-full object-cover"
+                          crossOrigin="anonymous" // Ajouter cet attribut pour CORS
                           onError={(e) => {
                             e.currentTarget.src = `data:image/svg+xml;base64,${btoa(
                               `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`

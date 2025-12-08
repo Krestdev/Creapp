@@ -5,6 +5,10 @@ interface CreateQuotation {
   devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt">;
   elements: Array<Omit<QuotationElement, "id" | "deviId">>;
 }
+interface UpdateQuotation {
+  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt">;
+  elements: Array<{id?: number} & Omit<QuotationElement, "deviId" | "id">>;
+}
 
 export class QuotationQueries {
   route = "/request/devi";
@@ -39,7 +43,7 @@ export class QuotationQueries {
   // UPDATE — PUT multipart
   update = async (
     id: number,
-    { devis, elements }: CreateQuotation
+    { devis, elements }: UpdateQuotation
   ): Promise<{ data: Quotation }> => {
     const formData = new FormData();
 
@@ -60,4 +64,7 @@ export class QuotationQueries {
       })
       .then((response) => response.data);
   };
+  cancel = async (id:number):Promise<{data: Quotation}> => {
+    return api.delete(`${this.route}/${id}`).then((response) => response.data);
+  }
 }

@@ -69,6 +69,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import EditQuotation from "@/app/tableau-de-bord/bdcommande/devis/edit";
+import CancelQuotation from "@/app/tableau-de-bord/bdcommande/devis/cancel";
 
 interface DevisTableProps {
   data: Quotation[] | undefined;
@@ -111,6 +112,7 @@ export function DevisTable({
 
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const [toCancel, setToCancel] = React.useState(false);
   const [isDevisModalOpen, setIsDevisModalOpen] = React.useState(false);
   const [selectedDevis, setSelectedDevis] = React.useState<
     Quotation | undefined
@@ -449,7 +451,10 @@ export function DevisTable({
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
+              <DropdownMenuItem variant="destructive" onClick={() =>{
+                setSelectedDevis(item);
+                setToCancel(true);
+              }}>
                 <Trash color="red" className="mr-2 h-4 w-4" />
                 {"Annuler"}
               </DropdownMenuItem>
@@ -888,6 +893,7 @@ export function DevisTable({
         </DialogContent>
       </Dialog>
       { selectedDevis && <EditQuotation open={isUpdateModalOpen} openChange={setIsUpdateModalOpen} quotation={selectedDevis}/>}
+      { selectedDevis && <CancelQuotation open={toCancel} openChange={setToCancel} quotation={selectedDevis}/>}
     </div>
   );
 }

@@ -18,7 +18,7 @@ function EditQuotation({ open, openChange, quotation }: Props) {
             <DialogTitle>{"Modifier le Devis"}</DialogTitle>
             <DialogDescription>{`Modifiez les informations du devis ${quotation.ref}`}</DialogDescription>
         </DialogHeader>
-            <CreateQuotation quotation={quotation} />
+            <CreateQuotation quotation={quotation} openChange={openChange} />
     </DialogContent>
   </Dialog>;
 }
