@@ -32,10 +32,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RequestModelT } from "@/types/types";
+import { Category, RequestModelT } from "@/types/types";
 import { Pagination } from "../base/pagination";
 import { ModalDestockage } from "../modals/modal-Destockage";
-import { CategoryT } from "@/queries/requestModule";
 import {
   Select,
   SelectContent,
@@ -56,7 +55,7 @@ interface BesoinsTraiterTableProps {
   data: RequestModelT[];
   selected?: Request[];
   setSelected?: React.Dispatch<React.SetStateAction<Request[]>>;
-  categories: CategoryT[];
+  categories: Category[];
 }
 
 export function BesoinsTraiter({
@@ -65,7 +64,6 @@ export function BesoinsTraiter({
   setSelected,
   categories,
 }: BesoinsTraiterTableProps) {
-  
   const [isOpenModal, setIsModalOpen] = React.useState(false);
   const [select, setSelect] = React.useState<RequestModelT>();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -84,11 +82,16 @@ export function BesoinsTraiter({
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   // Convertir les données RequestModelT en format Request pour la sélection
-  const convertToRequest = React.useCallback((requestModel: RequestModelT): Request => ({
-    id: requestModel.id,
-    name: requestModel.label,
-    dueDate: requestModel.dueDate ? new Date(requestModel.dueDate) : undefined,
-  }), []);
+  const convertToRequest = React.useCallback(
+    (requestModel: RequestModelT): Request => ({
+      id: requestModel.id,
+      name: requestModel.label,
+      dueDate: requestModel.dueDate
+        ? new Date(requestModel.dueDate)
+        : undefined,
+    }),
+    []
+  );
 
   // Créer un mapping ID -> Request pour un accès rapide
   const requestMap = React.useMemo(() => {
@@ -100,7 +103,9 @@ export function BesoinsTraiter({
   }, [data]);
 
   // Synchroniser la sélection interne avec les props externes
-  const [internalSelectedIds, setInternalSelectedIds] = React.useState<Set<number>>(new Set());
+  const [internalSelectedIds, setInternalSelectedIds] = React.useState<
+    Set<number>
+  >(new Set());
 
   // Mettre à jour internalSelectedIds quand selected change
   React.useEffect(() => {
@@ -119,13 +124,13 @@ export function BesoinsTraiter({
   const handleCheckboxChange = React.useCallback(
     (requestId: number, isChecked: boolean) => {
       const newIds = new Set(internalSelectedIds);
-      
+
       if (isChecked) {
         newIds.add(requestId);
       } else {
         newIds.delete(requestId);
       }
-      
+
       setInternalSelectedIds(newIds);
 
       // Mettre à jour la sélection externe si setSelected est fourni
@@ -149,9 +154,9 @@ export function BesoinsTraiter({
         data.forEach((item) => {
           allIds.add(item.id);
         });
-        
+
         setInternalSelectedIds(allIds);
-        
+
         // Mettre à jour la sélection externe
         if (setSelected) {
           const allRequests = data.map(convertToRequest);
@@ -160,7 +165,7 @@ export function BesoinsTraiter({
       } else {
         // Désélectionner toutes les lignes
         setInternalSelectedIds(new Set());
-        
+
         // Mettre à jour la sélection externe
         if (setSelected) {
           setSelected([]);
@@ -171,7 +176,7 @@ export function BesoinsTraiter({
   );
 
   const getCategoryName = (categoryId: string | number) => {
-    const id = typeof categoryId === 'string' ? Number(categoryId) : categoryId;
+    const id = typeof categoryId === "string" ? Number(categoryId) : categoryId;
     const category = categories.find((cat) => cat.id === id);
     return category?.label || String(categoryId);
   };
@@ -181,7 +186,8 @@ export function BesoinsTraiter({
 
     const categoryIds = [...new Set(data.map((req) => req.categoryId))];
     return categoryIds.map((categoryId) => {
-      const id = typeof categoryId === 'string' ? Number(categoryId) : categoryId;
+      const id =
+        typeof categoryId === "string" ? Number(categoryId) : categoryId;
       const category = categories.find((cat) => cat.id === id);
       return {
         id: String(categoryId),
@@ -194,11 +200,10 @@ export function BesoinsTraiter({
     {
       id: "select",
       header: ({ table }) => {
-        const allSelected = data.length > 0 && 
-                           internalSelectedIds.size === data.length;
-        const someSelected = internalSelectedIds.size > 0 && 
-                            !allSelected;
-        
+        const allSelected =
+          data.length > 0 && internalSelectedIds.size === data.length;
+        const someSelected = internalSelectedIds.size > 0 && !allSelected;
+
         return (
           <Checkbox
             checked={allSelected || (someSelected && "indeterminate")}
@@ -210,11 +215,13 @@ export function BesoinsTraiter({
       cell: ({ row }) => {
         const requestId = row.original.id;
         const isSelected = internalSelectedIds.has(requestId);
-        
+
         return (
           <Checkbox
             checked={isSelected}
-            onCheckedChange={(value) => handleCheckboxChange(requestId, !!value)}
+            onCheckedChange={(value) =>
+              handleCheckboxChange(requestId, !!value)
+            }
             aria-label="Select row"
             className="border-gray-500"
           />
@@ -257,11 +264,11 @@ export function BesoinsTraiter({
         if (!filterValue || filterValue === "all" || filterValue === "") {
           return true;
         }
-        
+
         const rowValue = row.getValue(columnId);
         const rowValueStr = String(rowValue);
         const filterValueStr = String(filterValue);
-        
+
         return rowValueStr === filterValueStr;
       },
     },
@@ -277,7 +284,9 @@ export function BesoinsTraiter({
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>,
+      cell: ({ row }) => (
+        <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>
+      ),
     },
     {
       id: "actions",
@@ -330,43 +339,42 @@ export function BesoinsTraiter({
 
   return (
     <div className="w-full">
-        <div className="w-full flex flex-wrap gap-1.5 py-4">
-          <Input
-            placeholder="Rechercher un besoin"
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="max-w-[320px] w-full"
-          />
-          {/* Category filter */}
-          <Select
-            value={
-              (table.getColumn("categoryId")?.getFilterValue() as string) ??
-              "all"
-            }
-            onValueChange={(value) => {
-              table.getColumn("categoryId")?.setFilterValue(
-                value === "all" ? "" : value
+      <div className="w-full flex flex-wrap gap-1.5 py-4">
+        <Input
+          placeholder="Rechercher un besoin"
+          value={globalFilter ?? ""}
+          onChange={(event) => setGlobalFilter(event.target.value)}
+          className="max-w-[320px] w-full"
+        />
+        {/* Category filter */}
+        <Select
+          value={
+            (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
+          }
+          onValueChange={(value) => {
+            table
+              .getColumn("categoryId")
+              ?.setFilterValue(value === "all" ? "" : value);
+          }}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filtrer par catégorie" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes les catégories</SelectItem>
+            {uniqueCategories?.map((category) => {
+              return (
+                <SelectItem
+                  key={category.id}
+                  value={category.id}
+                  className="capitalize"
+                >
+                  {category.name}
+                </SelectItem>
               );
-            }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filtrer par catégorie" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les catégories</SelectItem>
-              {uniqueCategories?.map((category) => {
-                return (
-                  <SelectItem
-                    key={category.id}
-                    value={category.id}
-                    className="capitalize"
-                  >
-                    {category.name}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+            })}
+          </SelectContent>
+        </Select>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="md:ml-auto bg-transparent">
@@ -403,7 +411,7 @@ export function BesoinsTraiter({
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-        </div>
+      </div>
 
       <div className="rounded-md">
         <Table>

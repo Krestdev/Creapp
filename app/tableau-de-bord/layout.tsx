@@ -1,8 +1,8 @@
 "use client";
 import DashboardLayout from "@/components/dashboard-layout";
+import LoadingPage from "@/components/loading-page";
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { useStore } from "@/providers/datastore";
-import { Loader2 } from "lucide-react";
 import React from "react";
 
 export default function Layout({
@@ -13,9 +13,7 @@ export default function Layout({
 
   if (!isHydrated) {
     return (
-      <div className="w-full h-screen grid place-items-center">
-        <Loader2 size={20} className="animate-spin" />
-      </div>
+      <LoadingPage/>
     );
   }
   return <DashboardLayout>{children}</DashboardLayout>;

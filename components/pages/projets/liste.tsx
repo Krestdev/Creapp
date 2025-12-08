@@ -1,3 +1,4 @@
+"use client";
 import { DataTable } from "@/components/base/data-table";
 import { BesoinsTraiterTable } from "@/components/tables/besoins-traiter-table";
 import { CommandeTable } from "@/components/tables/commande-table";
@@ -5,6 +6,9 @@ import { PaiementTable } from "@/components/tables/paiement-table";
 import { ProjectTable } from "@/components/tables/project-table";
 import { TicketsTable } from "@/components/tables/tickets-table";
 import { Button } from "@/components/ui/button";
+import { useStore } from "@/providers/datastore";
+import { ProjectQueries } from "@/queries/projectModule";
+import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import React from "react";
 
@@ -92,16 +96,24 @@ const projects = [
 ];
 
 const ProjectListPage = () => {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col">
-        <div className="flex justify-between">
-          <h2>Projects</h2>
+  const { isHydrated } = useStore();
+  const project = new ProjectQueries();
+  const projectData = useQuery({
+    queryKey: ["projectsList"],
+    queryFn: () => project.getAll(),
+    enabled: isHydrated,
+  });
+  if (projectData.data)
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
+          <div className="flex justify-between">
+            <h2>Projects</h2>
+          </div>
+          <ProjectTable data={projectData.data?.data} />
         </div>
-        <ProjectTable data={projects} />
       </div>
-    </div>
-  );
+    );
 };
 
 export default ProjectListPage;

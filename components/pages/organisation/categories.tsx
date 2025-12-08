@@ -1,10 +1,13 @@
 "use client";
-import { DepartementTable } from "@/components/tables/departement-table";
+import { CategoriesTable } from "@/components/tables/categories-table";
 import { useStore } from "@/providers/datastore";
 import { DepartmentQueries } from "@/queries/departmentModule";
+import { RequestQueries } from "@/queries/requestModule";
+import { DepartmentT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
+import React from "react";
 
-// const departementData: DepartmentT[] = [
+// const categoriesData: DepartmentT[] = [
 //   {
 //     id: 1,
 //     reference: "DEPT-001",
@@ -57,25 +60,25 @@ import { useQuery } from "@tanstack/react-query";
 //   },
 // ];
 
-const DepartementPage = () => {
+const CategoriesPage = () => {
   const { isHydrated } = useStore();
-  const department = new DepartmentQueries();
-  const departmentData = useQuery({
-    queryKey: ["departmentList"],
-    queryFn: () => department.getAll(),
+  const category = new RequestQueries();
+  const categoryData = useQuery({
+    queryKey: ["categoryList"],
+    queryFn: () => category.getCategories(),
     enabled: isHydrated,
   });
-  if (departmentData.data)
+  if (categoryData.data)
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
           <div className="flex justify-between">
-            <h2>Departement</h2>
+            <h2>Categories</h2>
           </div>
-          <DepartementTable data={departmentData.data.data} />
+          <CategoriesTable data={categoryData.data.data} />
         </div>
       </div>
     );
 };
 
-export default DepartementPage;
+export default CategoriesPage;

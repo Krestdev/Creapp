@@ -50,7 +50,7 @@ export default function CreateUserForm() {
   const registerAPI = useMutation({
     mutationKey: ["registerNewUser"],
     mutationFn: (
-      data: Omit<User, "status" | "lastConnection" | "role" | "members">
+      data: Omit<User, "status" | "lastConnection" | "role" | "members" | "id">
     ) => userQueries.create(data),
     onSuccess: (data: ResponseT<User>) => {
       toast.success("Inscription réussie !");

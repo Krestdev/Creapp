@@ -16,15 +16,11 @@ import {
   ArrowUpDown,
   CalendarDays,
   CalendarIcon,
-  CheckCircle,
   ChevronDown,
   ChevronRight,
   Eye,
-  Hourglass,
-  LucideDownload,
-  LucideIcon,
   LucidePen,
-  Trash,
+  Trash
 } from "lucide-react";
 import * as React from "react";
 
@@ -49,11 +45,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
-import { VariantProps } from "class-variance-authority";
+import { CommandRequestT, Provider, Quotation, QuotationElement } from "@/types/types";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Pagination } from "../base/pagination";
-import { badgeVariants } from "../ui/badge";
+import { DevisModal } from "../modals/DevisModal";
 import { Calendar } from "../ui/calendar";
 import {
   Dialog,
@@ -65,12 +61,15 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { ProviderQueries } from "@/queries/providers";
-import { useFetchQuery } from "@/hooks/useData";
-import { CommandQueries } from "@/queries/commandModule";
-import { useQuery } from "@tanstack/react-query";
-import { DevisModal } from "../modals/DevisModal";
-import { Quotation, QuotationElement } from "@/types/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import EditQuotation from "@/app/tableau-de-bord/bdcommande/devis/edit";
+import CancelQuotation from "@/app/tableau-de-bord/bdcommande/devis/cancel";
 
 interface DevisTableProps {
   data: Quotation[] | undefined;
@@ -84,6 +83,8 @@ interface DevisTableProps {
   setCustomDateRange?: React.Dispatch<
     React.SetStateAction<{ from: Date; to: Date } | undefined>
   >;
+  providers: Array<Provider>;
+  commands: Array<CommandRequestT>;
 }
 
 export function DevisTable({
@@ -92,6 +93,8 @@ export function DevisTable({
   setDateFilter,
   customDateRange,
   setCustomDateRange,
+  providers,
+  commands
 }: DevisTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -102,8 +105,14 @@ export function DevisTable({
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
+  // États pour les filtres spécifiques
+  const [providerFilter, setProviderFilter] = React.useState<string>("all");
+  const [commandFilter, setCommandFilter] = React.useState<string>("all");
+  const [montantFilter, setMontantFilter] = React.useState<"all" | "lt100000" | "100000-500000" | "gt500000">("all");
+
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const [toCancel, setToCancel] = React.useState(false);
   const [isDevisModalOpen, setIsDevisModalOpen] = React.useState(false);
   const [selectedDevis, setSelectedDevis] = React.useState<
     Quotation | undefined
@@ -119,157 +128,100 @@ export function DevisTable({
     { from: Date; to: Date } | undefined
   >(customDateRange || { from: addDays(new Date(), -7), to: new Date() });
 
-  const providerQuery = new ProviderQueries();
-  const providersData = useFetchQuery(
-    ["providers"],
-    providerQuery.getAll,
-    500000
-  );
-
-  const command = new CommandQueries();
-  const commandData = useQuery({
-    queryKey: ["commands"],
-    queryFn: async () => command.getAll(),
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    refetchInterval: 500000,
-  });
-
   const getProviderName = (providerId: number) => {
-    if (providersData.isSuccess) {
-      const provider = providersData.data.data.find((p) => p.id === providerId);
-      return provider ? provider.name : "Inconnu";
-    }
-    return "Inconnu";
+    const provider = providers.find((p) => p.id === providerId);
+    return provider ? provider.name : "Inconnu";
   };
 
-  const getQuotationTitle = (quotationId: number) => {
-    if (commandData.isSuccess) {
-      const command = commandData.data.data.find((c) => c.id === quotationId);
-      return command ? command.title : "Inconnu";
-    }
-    return "Inconnu";
+  const getQuotationTitle = (commandRequestId: number) => {
+    const command = commands.find((c) => c.id === commandRequestId);
+    return command ? command.title : "Inconnu";
   };
 
-  const getStatusConfig = (
-    status: string
-  ): {
-    label: string;
-    icon?: LucideIcon;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-    rowClassName?: string;
-  } => {
-    switch (status) {
-      case "pending":
-        return {
-          label: "En attente",
-          icon: Hourglass,
-          variant: "amber",
-          rowClassName: "bg-amber-50/50 hover:bg-amber-50",
-        };
-        return {
-          label: "En attente",
-          icon: Hourglass,
-          variant: "amber",
-          rowClassName: "bg-amber-50/50 hover:bg-amber-50",
-        };
-      case "validated":
-        return {
-          label: "Validé",
-          icon: CheckCircle,
-          variant: "success",
-          rowClassName: "bg-green-50/50 hover:bg-green-50",
-        };
-        return {
-          label: "Validé",
-          icon: CheckCircle,
-          variant: "success",
-          rowClassName: "bg-green-50/50 hover:bg-green-50",
-        };
-      case "rejected":
-        return {
-          label: "Rejeté",
-          variant: "destructive",
-          rowClassName: "bg-red-50/50 hover:bg-red-50",
-        };
-        return {
-          label: "Rejeté",
-          variant: "destructive",
-          rowClassName: "bg-red-50/50 hover:bg-red-50",
-        };
-      case "in-review":
-        return {
-          label: "En révision",
-          variant: "sky",
-          rowClassName: "bg-sky-50/50 hover:bg-sky-50",
-        };
-        return {
-          label: "En révision",
-          variant: "sky",
-          rowClassName: "bg-sky-50/50 hover:bg-sky-50",
-        };
-      case "cancel":
-        return { label: "Annulé", variant: "default" };
-        return { label: "Annulé", variant: "default" };
-      default:
-        return { label: "Inconnu", variant: "default" };
-        return { label: "Inconnu", variant: "default" };
-    }
+  const calculateTotalMontant = (elements: QuotationElement[]) => {
+    return elements?.reduce(
+      (total, element) => total + (element.priceProposed || 0),
+      0
+    ) || 0;
   };
 
-  // Fonction pour filtrer les données selon la période sélectionnée
+  // Fonction pour filtrer les données selon tous les filtres
   const getFilteredData = React.useMemo(() => {
     if (!data) {
       return data || [];
     }
 
-    // Si pas de filtre, retourner toutes les données
-    if (!dateFilter) {
-      return data;
+    let filtered = [...data];
+
+    // Filtre par date
+    if (dateFilter) {
+      const now = new Date();
+      let startDate = new Date();
+      let endDate = now;
+
+      switch (dateFilter) {
+        case "today":
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case "week":
+          startDate.setDate(
+            now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+          );
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case "month":
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case "year":
+          startDate = new Date(now.getFullYear(), 0, 1);
+          break;
+        case "custom":
+          if (customDateRange?.from && customDateRange?.to) {
+            startDate = customDateRange.from;
+            endDate = customDateRange.to;
+          }
+          break;
+      }
+
+      if (dateFilter !== "custom" || (customDateRange?.from && customDateRange?.to)) {
+        filtered = filtered.filter((item) => {
+          const itemDate = new Date(item.createdAt!);
+          return itemDate >= startDate && itemDate <= endDate;
+        });
+      }
     }
 
-    const now = new Date();
-    let startDate = new Date();
-    let endDate = now;
+    // Filtre par fournisseur
+    if (providerFilter !== "all") {
+      const providerId = parseInt(providerFilter);
+      filtered = filtered.filter((item) => item.providerId === providerId);
+    }
 
-    switch (dateFilter) {
-      case "today":
-        // Début de la journée
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      case "week":
-        // Début de la semaine (lundi)
-        startDate.setDate(
-          now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
-        );
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      case "month":
-        // Début du mois
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        break;
-      case "year":
-        // Début de l'année
-        startDate = new Date(now.getFullYear(), 0, 1);
-        break;
-      case "custom":
-        // Utiliser la plage personnalisée
-        if (customDateRange?.from && customDateRange?.to) {
-          startDate = customDateRange.from;
-          endDate = customDateRange.to;
-        } else {
-          return data;
+    // Filtre par commande
+    if (commandFilter !== "all") {
+      const commandId = parseInt(commandFilter);
+      filtered = filtered.filter((item) => item.commandRequestId === commandId);
+    }
+
+    // Filtre par montant
+    if (montantFilter !== "all") {
+      filtered = filtered.filter((item) => {
+        const total = calculateTotalMontant(item.element);
+        switch (montantFilter) {
+          case "lt100000":
+            return total < 100000;
+          case "100000-500000":
+            return total >= 100000 && total <= 500000;
+          case "gt500000":
+            return total > 500000;
+          default:
+            return true;
         }
-        break;
-      default:
-        return data;
+      });
     }
 
-    return data.filter((item) => {
-      const itemDate = new Date(item.createdAt!);
-      return itemDate >= startDate && itemDate <= endDate;
-    });
-  }, [data, dateFilter, customDateRange]);
+    return filtered;
+  }, [data, dateFilter, customDateRange, providerFilter, commandFilter, montantFilter]);
 
   // Fonction pour obtenir le texte d'affichage du filtre de date
   const getDateFilterText = () => {
@@ -297,7 +249,6 @@ export function DevisTable({
 
   // Gérer l'ouverture du modal personnalisé
   const handleCustomDateClick = () => {
-    // Initialiser avec la plage actuelle ou une plage par défaut
     setTempCustomDateRange(
       customDateRange || { from: addDays(new Date(), -7), to: new Date() }
     );
@@ -315,26 +266,19 @@ export function DevisTable({
     }
   };
 
-  // Réinitialiser le filtre personnalisé
-  const clearCustomDateRange = () => {
+  // Réinitialiser tous les filtres
+  const resetAllFilters = () => {
     setDateFilter(undefined);
     if (setCustomDateRange) {
       setCustomDateRange(undefined);
     }
+    setProviderFilter("all");
+    setCommandFilter("all");
+    setMontantFilter("all");
+    setGlobalFilter("");
   };
 
   const filteredData = getFilteredData;
-
-  const getTranslatedLabel = (label: string) => {
-    const translations: Record<string, string> = {
-      pending: "En attente",
-      validated: "Validé",
-      rejected: "Refusé",
-      "in-review": "En révision",
-      Cancel: "Annulé",
-    };
-    return translations[label] || label;
-  };
 
   const columns: ColumnDef<Quotation>[] = [
     {
@@ -360,21 +304,38 @@ export function DevisTable({
       enableHiding: false,
     },
     {
-      accessorKey: "quotationId",
+      accessorKey: "ref",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Demande de quotation"}
+            {"Référence"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("ref")}</div>
+      ),
+    },
+    {
+      accessorKey: "commandRequestId",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Demande de cotation"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => (
         <div className="font-medium first-letter:uppercase">
-          {getQuotationTitle(row.getValue("quotationId"))}
+          {getQuotationTitle(row.getValue("commandRequestId"))}
         </div>
       ),
     },
@@ -410,16 +371,11 @@ export function DevisTable({
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div>
-          {XAF.format(
-            (row.getValue("element") as QuotationElement[]).reduce(
-              (total, element) => total + element.priceProposed,
-              0
-            )
-          )}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const elements = row.getValue("element") as QuotationElement[];
+        const total = calculateTotalMontant(elements);
+        return <div>{XAF.format(total)}</div>;
+      },
     },
     {
       accessorKey: "element",
@@ -434,8 +390,28 @@ export function DevisTable({
           </span>
         );
       },
+      cell: ({ row }) => {
+        const elements = row.getValue("element") as QuotationElement[];
+        return <div>{elements?.length || 0}</div>;
+      },
+    },
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Date de création"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
       cell: ({ row }) => (
-        <div>{(row.getValue("element") as QuotationElement[]).length}</div>
+        <div>
+          {format(new Date(row.getValue("createdAt")), "dd/MM/yyyy HH:mm")}
+        </div>
       ),
     },
     {
@@ -475,7 +451,10 @@ export function DevisTable({
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
+              <DropdownMenuItem variant="destructive" onClick={() =>{
+                setSelectedDevis(item);
+                setToCancel(true);
+              }}>
                 <Trash color="red" className="mr-2 h-4 w-4" />
                 {"Annuler"}
               </DropdownMenuItem>
@@ -499,13 +478,23 @@ export function DevisTable({
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "title"];
       const searchValue = filterValue.toLowerCase();
 
-      return searchableColumns.some((column) => {
-        const value = row.getValue(column) as string;
-        return value?.toLowerCase().includes(searchValue);
-      });
+      // Recherche par titre de commande
+      const commandRequestId = row.getValue("commandRequestId") as number;
+      const commandTitle = getQuotationTitle(commandRequestId).toLowerCase();
+      if (commandTitle.includes(searchValue)) return true;
+
+      // Recherche par nom de fournisseur
+      const providerId = row.getValue("providerId") as number;
+      const providerName = getProviderName(providerId).toLowerCase();
+      if (providerName.includes(searchValue)) return true;
+
+      // Recherche par référence
+      const ref = row.getValue("ref") as string;
+      if (ref?.toLowerCase().includes(searchValue)) return true;
+
+      return false;
     },
     state: {
       sorting,
@@ -518,33 +507,90 @@ export function DevisTable({
 
   return (
     <div className="w-full">
-      <div className="flex flex-wrap items-center gap-4 py-4">
+      <div className="flex flex-wrap items-end gap-4 py-4">
         <div className="grid gap-1.5">
-          <Label htmlFor="searchCommand">{"Rechercher"}</Label>
+          <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
           <Input
             name="search"
             type="search"
             id="searchCommand"
-            placeholder="Reference, titre..."
+            placeholder="Référence, titre, fournisseur..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="max-w-sm"
           />
         </div>
 
-        {/* Filtre par période avec dropdown style */}
+        {/* Filtre par fournisseur */}
+        <div className="grid gap-1.5">
+          <Label>{"Fournisseur"}</Label>
+          <Select value={providerFilter} onValueChange={setProviderFilter}>
+            <SelectTrigger className="min-w-40">
+              <SelectValue placeholder="Tous les fournisseurs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les fournisseurs</SelectItem>
+              {providers.map((provider) => (
+                <SelectItem key={provider.id} value={provider.id.toString()}>
+                  {provider.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Filtre par demande de cotation */}
+        <div className="grid gap-1.5">
+          <Label>{"Demande de cotation"}</Label>
+          <Select value={commandFilter} onValueChange={setCommandFilter}>
+            <SelectTrigger className="min-w-40">
+              <SelectValue placeholder="Toutes les demandes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Toutes les demandes"}</SelectItem>
+              {commands.map((command) => (
+                <SelectItem key={command.id} value={command.id.toString()}>
+                  {command.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Filtre par montant */}
+        <div className="grid gap-1.5">
+          <Label>{"Montant"}</Label>
+          <Select value={montantFilter} onValueChange={(value: "all" | "lt100000" | "100000-500000" | "gt500000") => setMontantFilter(value)}>
+            <SelectTrigger className="min-w-40">
+              <SelectValue placeholder="Tous les montants" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Tous les montants"}</SelectItem>
+              <SelectItem value="lt100000">{`< 100 000 XAF`}</SelectItem>
+              <SelectItem value="100000-500000">{" 0 0000 - 500 000 XAF"}</SelectItem>
+              <SelectItem value="gt500000">{`> 500 000 XAF`}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Filtre par période */}
         <div className="grid gap-1.5">
           <Label>{"Période"}</Label>
           <DropdownMenu>
-            <DropdownMenuTrigger className="min-w-52">
-              {getDateFilterText()}
-              <CalendarIcon />
-              {getDateFilterText()}
-              <CalendarIcon />
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="min-w-52 justify-between font-normal font-sans text-base">
+                <span>{getDateFilterText()}</span>
+                <CalendarIcon />
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
-                onClick={() => clearCustomDateRange()}
+                onClick={() => {
+                  setDateFilter(undefined);
+                  if (setCustomDateRange) {
+                    setCustomDateRange(undefined);
+                  }
+                }}
                 className={cn(
                   "flex items-center justify-between",
                   !dateFilter && "bg-accent"
@@ -609,49 +655,60 @@ export function DevisTable({
                 {dateFilter === "custom" && (
                   <ChevronRight className="h-4 w-4" />
                 )}
-                {dateFilter === "custom" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto bg-transparent">
-              {"Colonnes"}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id === "reference"
-                      ? "Référence"
-                      : column.id === "title"
-                      ? "Titre"
-                      : column.id === "dueDate"
-                      ? "Date limite"
-                      : column.id === "state"
-                      ? "Statut"
-                      : column.id === "createdAt"
-                      ? "Date de création"
-                      : null}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+
+        {/* Bouton pour réinitialiser les filtres */}
+        <div className="flex items-end">
+          <Button
+            variant="outline"
+            onClick={resetAllFilters}
+            className="h-10"
+          >
+            {"Réinitialiser"}
+          </Button>
+        </div>
+
+        {/* Menu des colonnes */}
+        <div className="ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                {"Colonnes"}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  let columnName = column.id;
+                  if (column.id === "ref") columnName = "Référence";
+                  else if (column.id === "commandRequestId") columnName = "Demande de cotation";
+                  else if (column.id === "providerId") columnName = "Fournisseur";
+                  else if (column.id === "montant") columnName = "Montant";
+                  else if (column.id === "element") columnName = "Nombre d'articles";
+                  else if (column.id === "createdAt") columnName = "Date de création";
+                  
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {columnName}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Table */}
@@ -680,29 +737,24 @@ export function DevisTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                const config = getStatusConfig(status!);
-
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className={cn(config.rowClassName ?? "")}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border-r last:border-r-0"
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              })
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className="border-r last:border-r-0"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
             ) : (
               <TableRow>
                 <TableCell
@@ -719,7 +771,9 @@ export function DevisTable({
 
       {/* Pagination */}
       {table.getRowModel().rows?.length > 0 && (
-        <Pagination table={table} pageSize={15} />
+        <div className="mt-4">
+          <Pagination table={table} pageSize={15} />
+        </div>
       )}
 
       <DevisModal
@@ -838,6 +892,8 @@ export function DevisTable({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      { selectedDevis && <EditQuotation open={isUpdateModalOpen} openChange={setIsUpdateModalOpen} quotation={selectedDevis}/>}
+      { selectedDevis && <CancelQuotation open={toCancel} openChange={setToCancel} quotation={selectedDevis}/>}
     </div>
   );
 }

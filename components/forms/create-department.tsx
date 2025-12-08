@@ -18,9 +18,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Form } from "../ui/form";
-import { ProjectQueries } from "@/queries/projectModule";
+import { DepartmentQueries } from "@/queries/departmentModule";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { ProjectCreateResponse, ProjectT, ResponseT } from "@/types/types";
+import {
+  DepartementCreateResponse,
+  DepartmentT,
+  ResponseT,
+} from "@/types/types";
 import { toast } from "sonner";
 import { UserQueries } from "@/queries/baseModule";
 import { useStore } from "@/providers/datastore";
@@ -37,13 +41,11 @@ export const formSchema = z.object({
   label: z.string({ message: "This field is required" }),
   description: z.string({ message: "This field is required" }).optional(),
   chiefid: z.string().min(1, "Please select an item"),
-  budget: z.coerce.number({ message: "Please enter a valid number" }),
-  spendinginit: z.coerce.number({ message: "Please enter a valid number" }),
 });
 
 type Schema = z.infer<typeof formSchema>;
 
-export function ProjectCreateForm() {
+export function DepartmentCreateForm() {
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -51,18 +53,24 @@ export function ProjectCreateForm() {
     },
   });
 
-  const projectQueries = new ProjectQueries();
+  const departmentQueries = new DepartmentQueries();
   const userQueries = new UserQueries();
   const { isHydrated } = useStore();
 
-  const projectApi = useMutation({
+  const departmentApi = useMutation({
     mutationFn: (
       data: Omit<
-        ProjectT,
-        "reference" | "updatedAt" | "createdAt" | "id" | "chief"
+        DepartmentT,
+        | "updatedAt"
+        | "createdAt"
+        | "id"
+        | "chief"
+        | "status"
+        | "reference"
+        | "members"
       > & { chiefId: number }
-    ) => projectQueries.create(data),
-    onSuccess: (data: ResponseT<ProjectCreateResponse>) => {
+    ) => departmentQueries.create(data),
+    onSuccess: (data: ResponseT<DepartmentT>) => {
       toast.success("Inscription réussie !");
       console.log("created successful:", data);
       form.reset();
@@ -80,16 +88,20 @@ export function ProjectCreateForm() {
 
   const onsubmit = (values: z.infer<typeof formSchema>) => {
     const data: Omit<
-      ProjectT,
-      "reference" | "updatedAt" | "createdAt" | "id" | "chief"
+      DepartmentT,
+      | "reference"
+      | "updatedAt"
+      | "createdAt"
+      | "id"
+      | "chief"
+      | "status"
+      | "members"
     > & { chiefId: number } = {
       label: values.label,
       description: values.description || "",
-      budget: values.budget,
       chiefId: parseInt(values.chiefid, 10),
-      status: "planning",
     };
-    projectApi.mutate(data);
+    departmentApi.mutate(data);
   };
 
   return (
@@ -104,7 +116,7 @@ export function ProjectCreateForm() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="label">Project Title *</FieldLabel>
+                <FieldLabel htmlFor="label">Department Title *</FieldLabel>
                 <Input
                   {...field}
                   id="label"
@@ -137,7 +149,7 @@ export function ProjectCreateForm() {
                     field.onChange(e.target.value);
                   }}
                   aria-invalid={fieldState.invalid}
-                  placeholder="project description"
+                  placeholder="department description"
                 />
 
                 {fieldState.invalid && (
@@ -166,7 +178,7 @@ export function ProjectCreateForm() {
                     onValueChange={field.onChange}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select project chief" />
+                      <SelectValue placeholder="Select department chief" />
                     </SelectTrigger>
                     <SelectContent>
                       {options.map((option) => (
@@ -187,55 +199,6 @@ export function ProjectCreateForm() {
             }}
           />
 
-          <Controller
-            name="budget"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="budget">Budget *</FieldLabel>
-                <Input
-                  {...field}
-                  id="budget"
-                  type="number"
-                  onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
-                  }}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="12000"
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="spendinginit"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="spendinginit">
-                  Initial Spending *
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="spendinginit"
-                  type="number"
-                  onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
-                  }}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="20000"
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
           <div className="flex justify-end items-center w-full pt-3">
             <Button className="rounded-lg" size="sm">
               Submit
