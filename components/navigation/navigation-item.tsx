@@ -5,6 +5,7 @@ import { NavigationItemProps } from "@/types/types";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { it } from "node:test";
 import React, { useState } from "react";
 
 // { Icon, href, title, badge }
@@ -17,7 +18,10 @@ function NavigationItem(item: NavigationItemProps) {
   const { user } = useStore();
   const roles = user?.role.map((r) => r.label) || ["USER"];
 
-  const [openSections, setOpenSections] = useState<string[]>(["Analytics"]);
+  // const [openSections, setOpenSections] = useState<string[]>(["Analytics"]);
+  const [openSections, setOpenSections] = useState<string[]>([
+    pathname.includes(item.href) ? item.title : "",
+  ]);
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) =>
