@@ -9,6 +9,7 @@ import {
   FolderOpen,
   ScrollText,
   Ticket,
+  Truck,
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
@@ -336,6 +337,27 @@ function AppSidebar() {
           pageId: "PG-08-02",
           title: "Liste des utilisateurs",
           href: "/tableau-de-bord/utilisateurs/liste",
+          authorized: ["ADMIN"],
+        },
+      ],
+    },
+    {
+      pageId: "PG-08",
+      icon: Truck,
+      href: "/tableau-de-bord/provider",
+      authorized: ["ADMIN"],
+      title: "Fournisseurs",
+      items: [
+        {
+          pageId: "PG-08-01",
+          title: "Creer un fournisseur",
+          href: "/tableau-de-bord/provider/create",
+          authorized: ["ADMIN"],
+        },
+        {
+          pageId: "PG-08-02",
+          title: "Liste des fournisseurs",
+          href: "/tableau-de-bord/provider/liste",
           authorized: ["ADMIN"],
         },
       ],
