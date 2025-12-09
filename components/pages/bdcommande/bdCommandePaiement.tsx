@@ -1,4 +1,3 @@
-import { BonsCommandePaiementTable } from "@/components/tables/bons-commande-paiement-table";
 
 export const bonsCommandePaiementData = [
   {

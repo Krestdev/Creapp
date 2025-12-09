@@ -64,22 +64,26 @@ const priorityConfig = {
   low: {
     label: "Basse",
     badgeClassName: "bg-gray-500 text-white hover:bg-gray-600",
-    rowClassName: "bg-gray-50 hover:bg-gray-100 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
+    rowClassName:
+      "bg-gray-50 hover:bg-gray-100 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
   },
   medium: {
     label: "Moyenne",
     badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
-    rowClassName: "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
+    rowClassName:
+      "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
   },
   high: {
     label: "Haute",
     badgeClassName: "bg-orange-500 text-white hover:bg-orange-600",
-    rowClassName: "bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/20 dark:hover:bg-orange-950/30",
+    rowClassName:
+      "bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/20 dark:hover:bg-orange-950/30",
   },
   urgent: {
     label: "Urgente",
     badgeClassName: "bg-red-500 text-white hover:bg-red-600",
-    rowClassName: "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
+    rowClassName:
+      "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
   },
 };
 
@@ -360,10 +364,12 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
                   {"Approuver"}
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem onClick={() => {
-                  setSelectedTicket(item);
-                  setOpenPaiementModal(true);
-                }}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedTicket(item);
+                    setOpenPaiementModal(true);
+                  }}
+                >
                   <LucideDollarSign className="mr-2 h-4 w-4" />
                   {"Payer"}
                 </DropdownMenuItem>
@@ -419,7 +425,8 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
     if (selectedPriority === "all") {
       return "Toutes les priorités";
     }
-    const config = priorityConfig[selectedPriority as keyof typeof priorityConfig];
+    const config =
+      priorityConfig[selectedPriority as keyof typeof priorityConfig];
     return config?.label || selectedPriority;
   };
 
@@ -433,10 +440,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
           className="max-w-sm"
         />
 
-        <Select
-          value={selectedPriority}
-          onValueChange={setSelectedPriority}
-        >
+        <Select value={selectedPriority} onValueChange={setSelectedPriority}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder={getPriorityDisplayValue()}>
               {getPriorityDisplayValue()}
@@ -445,7 +449,8 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
           <SelectContent>
             <SelectItem value="all">Toutes les priorités</SelectItem>
             {uniquePriorities.map((priority) => {
-              const config = priorityConfig[priority as keyof typeof priorityConfig];
+              const config =
+                priorityConfig[priority as keyof typeof priorityConfig];
               return (
                 <SelectItem key={priority} value={priority}>
                   {config?.label || priority}
@@ -528,16 +533,15 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
-                const priorite = row.original.priorite as keyof typeof priorityConfig;
+                const priorite = row.original
+                  .priorite as keyof typeof priorityConfig;
                 const config = priorityConfig[priorite];
-                
+
                 return (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className={cn(
-                      config?.rowClassName || ""
-                    )}
+                    className={cn(config?.rowClassName || "")}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
@@ -577,8 +581,8 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       <ApproveTicket
         open={openValidationModal}
         onOpenChange={setOpenValidationModal}
-        data={selectedTicket}
-        title={"Valider le ticket"}
+        title={selectedTicket?.bonDeCommande!}
+        subTitle={"Valider le ticket"}
         description={"Voulez-vous valider ce ticket ?"}
         action={function (): void {
           throw new Error("Function not implemented.");
@@ -589,8 +593,8 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       <ApproveTicket
         open={openPaiementModal}
         onOpenChange={setOpenPaiementModal}
-        data={selectedTicket}
-        title={"Payer le ticket"}
+        title={selectedTicket?.bonDeCommande!}
+        subTitle={"Payer le ticket"}
         description={"Voulez-vous payer ce ticket ?"}
         action={function (): void {
           throw new Error("Function not implemented.");

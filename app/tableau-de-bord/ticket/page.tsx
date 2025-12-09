@@ -68,7 +68,7 @@ function Page() {
             subtitle="Validez les tickets de paiement des bons de commandes"
             color="green"
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 items-center gap-5">
+          <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
             <TitleValueCard
               title="Tickets en attente"
               value={pending.length.toString()}

@@ -71,34 +71,34 @@ export interface BonCommandePaiement {
 
 interface ApproveTicketProps {
   title: string;
+  subTitle: string;
   description: string;
   action: () => void;
   buttonTexts: string;
+  buttonColor?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: TicketsData | undefined;
 }
 
 export function ApproveTicket({
   title,
+  subTitle,
   description,
   action,
   buttonTexts,
+  buttonColor="bg-[#16A34A]",
   open,
   onOpenChange,
-  data,
 }: ApproveTicketProps) {
-  if (!data) return null;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[420px] w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
+      <DialogContent className="max-w-[420px]! w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
           <DialogTitle className="text-xl font-semibold text-white">
-            {data.bonDeCommande}
+            {title}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">{title}</p>
+          <p className="text-sm text-white/80 mt-1">{subTitle}</p>
         </DialogHeader>
 
         {/* Content */}
@@ -106,7 +106,7 @@ export function ApproveTicket({
 
         {/* Footer buttons */}
         <div className="flex w-full justify-end gap-3 p-6 pt-0">
-          <Button onClick={action} className="bg-[#16A34A] text-white">
+          <Button onClick={action} className={`${buttonColor} text-white`}>
             {buttonTexts}
           </Button>
           <Button
