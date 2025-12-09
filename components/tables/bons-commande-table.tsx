@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -12,7 +12,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 import {
   ArrowUpDown,
   ChevronLeft,
@@ -29,10 +29,11 @@ import {
   Pencil,
   Ban,
   Download,
-} from "lucide-react"
+  ChevronDown,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -41,26 +42,38 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import { BonCommandePaiement, DetailBC } from "../modals/detail-bc"
-
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { BonCommandePaiement, DetailBC } from "../modals/detail-bc";
 
 export type BonsCommandeData = {
-  id: string
-  reference: string
-  titre: string
-  fournisseur: string
-  priorite: "low" | "medium" | "high" | "urgent"
-  statut: "pending" | "approved" | "rejected" | "in-review"
-}
+  id: string;
+  reference: string;
+  titre: string;
+  fournisseur: string;
+  priorite: "low" | "medium" | "high" | "urgent";
+  statut: "pending" | "approved" | "rejected" | "in-review";
+};
 
 interface BonsCommandeTableProps {
-  data: BonCommandePaiement[]
+  data: BonCommandePaiement[];
 }
 
 const statusConfig = {
@@ -68,27 +81,23 @@ const statusConfig = {
     label: "En attente",
     icon: Clock,
     badgeClassName: "bg-yellow-500 text-white hover:bg-yellow-600",
-    rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30",
   },
   approved: {
     label: "Approuvé",
     icon: CheckCircle,
     badgeClassName: "bg-green-500 text-white hover:bg-green-600",
-    rowClassName: "bg-green-50 hover:bg-green-100 dark:bg-green-950/20 dark:hover:bg-green-950/30",
   },
   rejected: {
     label: "Rejeté",
     icon: XCircle,
     badgeClassName: "bg-red-500 text-white hover:bg-red-600",
-    rowClassName: "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
   },
   "in-review": {
     label: "En révision",
     icon: AlertCircle,
     badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
-    rowClassName: "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
   },
-}
+};
 
 const priorityConfig = {
   low: {
@@ -107,23 +116,31 @@ const priorityConfig = {
     label: "Urgente",
     badgeClassName: "bg-red-500 text-white hover:bg-red-600",
   },
-}
+};
 
 export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [globalFilter, setGlobalFilter] = React.useState("")
-  const [selected, setSelected] = React.useState<BonCommandePaiement | null>(null)
-  const [showDetail, setShowDetail] = React.useState(false)
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState("");
+  const [selected, setSelected] = React.useState<BonCommandePaiement | null>(
+    null
+  );
+  const [showDetail, setShowDetail] = React.useState(false);
 
   const columns: ColumnDef<BonCommandePaiement>[] = [
     {
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
@@ -142,23 +159,31 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
       accessorKey: "reference",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             Référence
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
+          </span>
+        );
       },
-      cell: ({ row }) => <div className="font-medium">{row.getValue("reference")}</div>,
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("reference")}</div>
+      ),
     },
     {
       accessorKey: "titre",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             Titre
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
+          </span>
+        );
       },
       cell: ({ row }) => <div>{row.getValue("titre")}</div>,
     },
@@ -166,11 +191,14 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
       accessorKey: "fournisseur",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             Fournisseur
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
+          </span>
+        );
       },
       cell: ({ row }) => <div>{row.getValue("fournisseur")}</div>,
     },
@@ -178,45 +206,53 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
       accessorKey: "priorite",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             Priorité
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
+          </span>
+        );
       },
       cell: ({ row }) => {
-        const priorite = row.getValue("priorite") as keyof typeof priorityConfig
-        const config = priorityConfig[priorite]
+        const priorite = row.getValue(
+          "priorite"
+        ) as keyof typeof priorityConfig;
+        const config = priorityConfig[priorite];
 
         return (
           <Badge className={cn("gap-1", config.badgeClassName)}>
             <Flag className="h-3 w-3" />
             {config.label}
           </Badge>
-        )
+        );
       },
     },
     {
       accessorKey: "statut",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             Statut
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
+          </span>
+        );
       },
       cell: ({ row }) => {
-        const status = row.getValue("statut") as keyof typeof statusConfig
-        const config = statusConfig[status]
-        const Icon = config.icon
+        const status = row.getValue("statut") as keyof typeof statusConfig;
+        const config = statusConfig[status];
+        const Icon = config.icon;
 
         return (
           <Badge className={cn("gap-1", config.badgeClassName)}>
             <Icon className="h-3 w-3" />
             {config.label}
           </Badge>
-        )
+        );
       },
     },
     {
@@ -224,22 +260,24 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
       header: "Actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const item = row.original
+        const item = row.original;
 
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost">
+                {"Actions"}
+                <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => {
-                setSelected(item)
-                setShowDetail(true)
-              }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setShowDetail(true);
+                }}
+              >
                 <Eye className="mr-2 h-4 w-4" />
                 {"View"}
               </DropdownMenuItem>
@@ -258,10 +296,10 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )
+        );
       },
     },
-  ]
+  ];
 
   const table = useReactTable({
     data,
@@ -276,13 +314,13 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "titre", "fournisseur"]
-      const searchValue = filterValue.toLowerCase()
+      const searchableColumns = ["reference", "titre", "fournisseur"];
+      const searchValue = filterValue.toLowerCase();
 
       return searchableColumns.some((column) => {
-        const value = row.getValue(column) as string
-        return value?.toLowerCase().includes(searchValue)
-      })
+        const value = row.getValue(column) as string;
+        return value?.toLowerCase().includes(searchValue);
+      });
     },
     state: {
       sorting,
@@ -291,7 +329,7 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
       rowSelection,
       globalFilter,
     },
-  })
+  });
 
   return (
     <div className="w-full">
@@ -304,8 +342,14 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
         />
 
         <Select
-          value={(table.getColumn("priorite")?.getFilterValue() as string) ?? "all"}
-          onValueChange={(value) => table.getColumn("priorite")?.setFilterValue(value === "all" ? "" : value)}
+          value={
+            (table.getColumn("priorite")?.getFilterValue() as string) ?? "all"
+          }
+          onValueChange={(value) =>
+            table
+              .getColumn("priorite")
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by priority" />
@@ -320,8 +364,14 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
         </Select>
 
         <Select
-          value={(table.getColumn("statut")?.getFilterValue() as string) ?? "all"}
-          onValueChange={(value) => table.getColumn("statut")?.setFilterValue(value === "all" ? "" : value)}
+          value={
+            (table.getColumn("statut")?.getFilterValue() as string) ?? "all"
+          }
+          onValueChange={(value) =>
+            table
+              .getColumn("statut")
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
@@ -351,11 +401,13 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
-                )
+                );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -368,10 +420,18 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="border-r last:border-r-0">
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    <TableHead
+                      key={header.id}
+                      className="border-r last:border-r-0"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -382,18 +442,26 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={cn(statusConfig[row.original.statut as keyof typeof statusConfig].rowClassName)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="border-r last:border-r-0">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <TableCell
+                      key={cell.id}
+                      className="border-r last:border-r-0"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -404,8 +472,8 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
 
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
-          selected.
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -426,10 +494,16 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
           </Button>
           <div className="flex items-center gap-1">
             <div className="text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount()}
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
           <Button
@@ -442,7 +516,11 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
           </Button>
         </div>
       </div>
-      <DetailBC data={selected} open={showDetail} onOpenChange={setShowDetail} />
+      <DetailBC
+        data={selected}
+        open={showDetail}
+        onOpenChange={setShowDetail}
+      />
     </div>
-  )
+  );
 }

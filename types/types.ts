@@ -261,3 +261,17 @@ export type Quotation = {
   userId: number;
   status: QuotationStatus;
 };
+
+export type TicketsData = {
+  id: string;
+  reference: string;
+  fournisseur: string;
+  bonDeCommande: string;
+  moyenPaiement: string;
+  comptePayeur: string;
+  montant: number;
+  priorite: "low" | "medium" | "high" | "urgent";
+  state: "pending" | "paid" | "approved";
+  createdAt: Date;
+  updatedAt: Date;
+};

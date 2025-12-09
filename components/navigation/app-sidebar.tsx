@@ -265,38 +265,38 @@ function AppSidebar() {
       href: "/tableau-de-bord/ticket",
       authorized: ["ADMIN", "ACCOUNTING"],
       title: "Tickets",
-      items: [
-        {
-          pageId: "PG-04-01",
-          title: "Validation",
-          href: "/tableau-de-bord/ticket/validation",
-          authorized: ["ADMIN", "SALES", "ACCOUNTING"],
-        },
-        {
-          pageId: "PG-04-02",
-          title: "Liste des tickets",
-          href: "/tableau-de-bord/ticket/liste",
-          authorized: ["ADMIN", "SALES", "ACCOUNTING"],
-        },
-        {
-          pageId: "PG-04-03",
-          title: "Créer un paiement",
-          href: "/tableau-de-bord/ticket/nouveaux",
-          authorized: ["ADMIN", "SALES", "ACCOUNTING"],
-        },
-        {
-          pageId: "PG-04-04",
-          title: "Paiements",
-          href: "/tableau-de-bord/ticket/paiements",
-          authorized: ["ADMIN", "SALES", "ACCOUNTING"],
-        },
-        {
-          pageId: "PG-04-5",
-          title: "Paiements reçus",
-          href: "/tableau-de-bord/ticket/paiementrecus",
-          authorized: ["ADMIN", "SALES", "ACCOUNTING"],
-        },
-      ],
+      // items: [
+      //   {
+      //     pageId: "PG-04-01",
+      //     title: "Validation",
+      //     href: "/tableau-de-bord/ticket/validation",
+      //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
+      //   },
+      //   {
+      //     pageId: "PG-04-02",
+      //     title: "Liste des tickets",
+      //     href: "/tableau-de-bord/ticket/liste",
+      //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
+      //   },
+      //   {
+      //     pageId: "PG-04-03",
+      //     title: "Créer un paiement",
+      //     href: "/tableau-de-bord/ticket/nouveaux",
+      //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
+      //   },
+      //   {
+      //     pageId: "PG-04-04",
+      //     title: "Paiements",
+      //     href: "/tableau-de-bord/ticket/paiements",
+      //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
+      //   },
+      //   {
+      //     pageId: "PG-04-5",
+      //     title: "Paiements reçus",
+      //     href: "/tableau-de-bord/ticket/paiementrecus",
+      //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
+      //   },
+      // ],
     },
     {
       pageId: "PG-05",
