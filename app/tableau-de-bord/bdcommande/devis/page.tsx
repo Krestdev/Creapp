@@ -6,6 +6,7 @@ import PageTitle from "@/components/pageTitle";
 import { DevisTable } from "@/components/tables/DevisTable";
 import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
+import { useStore } from "@/providers/datastore";
 import { CommandQueries } from "@/queries/commandModule";
 import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
@@ -14,6 +15,8 @@ import React from "react";
 
 
 const Page = () => {
+  const { user } = useStore();
+  const isManager = user?.role.some(r=>r.label === "SALES_MANAGER");
   /**Quotation fetch */
   const quotationQuery = new QuotationQueries();
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(["quotations"], quotationQuery.getAll);
@@ -41,9 +44,12 @@ if(isSuccess && providers.isSuccess && commands.isSuccess)
         subtitle="Consultez et gérez les cotations."
         color="red"
       >
-        <Link href={"devis/creer"}>
-          <Button variant={"ghost"}>{"Créer un devis"}</Button>
-        </Link>
+        {
+          !isManager && 
+          <Link href={"devis/creer"}>
+            <Button variant={"ghost"}>{"Créer un devis"}</Button>
+          </Link>
+        }
       </PageTitle>
       <DevisTable
         data={data.data}

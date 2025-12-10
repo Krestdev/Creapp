@@ -2,12 +2,12 @@ import api from "@/providers/axios";
 import { Quotation, QuotationElement } from "@/types/types";
 
 interface CreateQuotation {
-  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt">;
-  elements: Array<Omit<QuotationElement, "id" | "deviId">>;
+  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status">;
+  elements: Array<Omit<QuotationElement, "id" | "deviId" | "status">>;
 }
 interface UpdateQuotation {
-  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt">;
-  elements: Array<{id?: number} & Omit<QuotationElement, "deviId" | "id">>;
+  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status">;
+  elements: Array<{id?: number} & Omit<QuotationElement, "deviId" | "id" | "status">>;
 }
 
 export class QuotationQueries {

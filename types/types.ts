@@ -211,6 +211,9 @@ export type Provider = {
   name: string;
 };
 
+export type QuotationStatus = "submitted" | "approved" | "rejected" | "pending";
+export type QuotationElementStatus = "SELECTED" | "NOT_SELECTED";
+
 export type QuotationElement = {
   id: number;
   requestModelId: number;
@@ -219,6 +222,7 @@ export type QuotationElement = {
   unit: string;
   priceProposed: number;
   deviId: number;
+  status: QuotationElementStatus;
 };
 
 export type Quotation = {
@@ -231,6 +235,11 @@ export type Quotation = {
   dueDate: string;
   createdAt: string;
   updatedAt?: string;
+<<<<<<< HEAD
+=======
+  userId: number;
+  status: QuotationStatus;
+>>>>>>> 05efad35a22252e9b83863a4ba188f641873a3b3
 };
 
 export type TicketsData = {
