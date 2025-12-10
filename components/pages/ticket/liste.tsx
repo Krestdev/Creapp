@@ -1,13 +1,8 @@
-import { DataTable } from "@/components/base/data-table";
-import { BesoinsTraiterTable } from "@/components/tables/besoins-traiter-table";
-import { CommandeTable } from "@/components/tables/commande-table";
-import { PaiementTable } from "@/components/tables/paiement-table";
 import { TicketsTable } from "@/components/tables/tickets-table";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { TicketsData } from "@/types/types";
 import React from "react";
 
-const ticketsData = [
+const ticketsData: TicketsData[] = [
   {
     id: "1",
     reference: "TKT-001",
@@ -15,7 +10,11 @@ const ticketsData = [
     bonDeCommande: "BC-001",
     montant: 5000000,
     priorite: "high" as const,
-    resteAPayer: 2000000,
+    moyenPaiement: "",
+    comptePayeur: "",
+    state: "pending",
+    createdAt: new Date("2025-02-24"),
+    updatedAt: new Date("2025-02-24")
   },
   {
     id: "2",
@@ -24,7 +23,11 @@ const ticketsData = [
     bonDeCommande: "BC-002",
     montant: 750000,
     priorite: "medium" as const,
-    resteAPayer: 0,
+    moyenPaiement: "",
+    comptePayeur: "",
+    state: "pending",
+    createdAt: new Date("2025-02-24"),
+    updatedAt: new Date("2025-02-24")
   },
   {
     id: "3",
@@ -33,7 +36,11 @@ const ticketsData = [
     bonDeCommande: "BC-003",
     montant: 2500000,
     priorite: "urgent" as const,
-    resteAPayer: 1500000,
+    moyenPaiement: "",
+    comptePayeur: "",
+    state: "pending",
+    createdAt: new Date("2025-02-24"),
+    updatedAt: new Date("2025-02-24")
   },
 ];
 
@@ -44,7 +51,7 @@ const Liste = () => {
         <div className="flex justify-between">
           <h2>Tickets</h2>
         </div>
-        <TicketsTable data={ticketsData} />
+        <TicketsTable data={ticketsData} isAdmin={false} />
       </div>
     </div>
   );

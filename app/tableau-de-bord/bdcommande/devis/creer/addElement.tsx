@@ -35,19 +35,13 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 const formSchema = z.object({
-  needId: z.number({ message: 'Veuillez sélectionner un besoin' }),
-  designation: z
-    .string({ message: 'Veuillez renseigner une désignation' })
-    .max(240, 'Trop long')
-    .min(3, 'Trop court'),
-  quantity: z
-    .number()
-    .refine((v) => v > 0, 'Doit être supérieur à 0'),
-  unit: z.string(),
-  price: z
-    .number({ message: 'Veuillez renseigner un prix' })
-    .refine((v) => v > 0, 'Doit être supérieur à 0')
-});
+        id: z.number().optional(),
+        needId: z.number({ message: 'Veuillez sélectionner un besoin' }),
+        designation: z.string({ message: 'Veuillez renseigner une désignation' }),
+        quantity: z.number(),
+        unit: z.string(),
+        price: z.number({ message: 'Veuillez renseigner un prix' })
+      });
 
 type ElementT = z.infer<typeof formSchema>;
 
@@ -75,7 +69,8 @@ function AddElement({
   const form = useForm<ElementT>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      needId: element?.needId ?? undefined,
+      id: element?.id,
+      needId: element?.needId,
       designation: element?.designation ?? '',
       quantity: element?.quantity ?? 1,
       unit: element?.unit ?? 'piece',
@@ -87,6 +82,7 @@ function AddElement({
   React.useEffect(() => {
     if (open) {
       form.reset({
+        id: element?.id,
         needId: element?.needId ?? undefined,
         designation: element?.designation ?? '',
         quantity: element?.quantity ?? 1,
@@ -147,7 +143,7 @@ function AddElement({
               name="needId"
               render={({ field }) => (
                 <FormItem className="col-span-1 @min-[440px]/dialog:col-span-2">
-                  <FormLabel isRequired>Besoin</FormLabel>
+                  <FormLabel isRequired>{"Besoin"}</FormLabel>
                   <FormControl>
                     <Select
                       value={field.value ? String(field.value) : undefined}
@@ -181,7 +177,7 @@ function AddElement({
               name="designation"
               render={({ field }) => (
                 <FormItem className="col-span-1 @min-[440px]/dialog:col-span-2">
-                  <FormLabel isRequired>Désignation</FormLabel>
+                  <FormLabel isRequired>{"Désignation"}</FormLabel>
                   <FormControl>
                     <Textarea {...field} placeholder="Libellé du produit" />
                   </FormControl>
@@ -196,7 +192,7 @@ function AddElement({
               name="quantity"
               render={({ field }) => (
                 <FormItem className="col-span-1">
-                  <FormLabel isRequired>Quantité</FormLabel>
+                  <FormLabel isRequired>{"Quantité"}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -220,7 +216,7 @@ function AddElement({
               name="price"
               render={({ field }) => (
                 <FormItem className="col-span-1">
-                  <FormLabel isRequired>Prix unitaire</FormLabel>
+                  <FormLabel isRequired>{"Prix unitaire"}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -234,7 +230,7 @@ function AddElement({
                         className="pr-12"
                       />
                       <span className="absolute right-2 top-1/2 -translate-y-1/2 text-base uppercase">
-                        FCFA
+                        {"FCFA"}
                       </span>
                     </div>
                   </FormControl>
@@ -249,7 +245,7 @@ function AddElement({
               name="unit"
               render={({ field }) => (
                 <FormItem className="col-span-1">
-                  <FormLabel isRequired>Unité</FormLabel>
+                  <FormLabel isRequired>{"Unité"}</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
@@ -283,7 +279,7 @@ function AddElement({
                   variant="outline"
                   onClick={() => openChange(false)}
                 >
-                  Annuler
+                  {"Annuler"}
                 </Button>
               </DialogClose>
             </DialogFooter>

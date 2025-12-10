@@ -45,7 +45,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
-import { CommandRequestT, Provider, Quotation, QuotationElement } from "@/types/types";
+import { CommandRequestT, Provider, Quotation, QuotationElement, QuotationStatus } from "@/types/types";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Pagination } from "../base/pagination";
@@ -69,6 +69,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import EditQuotation from "@/app/tableau-de-bord/bdcommande/devis/edit";
+import CancelQuotation from "@/app/tableau-de-bord/bdcommande/devis/cancel";
+import { VariantProps } from "class-variance-authority";
+import { Badge, badgeVariants } from "../ui/badge";
 
 interface DevisTableProps {
   data: Quotation[] | undefined;
@@ -100,7 +103,7 @@ export function DevisTable({
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({"element":false});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
@@ -111,6 +114,7 @@ export function DevisTable({
 
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const [toCancel, setToCancel] = React.useState(false);
   const [isDevisModalOpen, setIsDevisModalOpen] = React.useState(false);
   const [selectedDevis, setSelectedDevis] = React.useState<
     Quotation | undefined
@@ -142,6 +146,20 @@ export function DevisTable({
       0
     ) || 0;
   };
+
+  const getStatusLabel = (status: QuotationStatus):{label:string; variant:VariantProps<typeof badgeVariants>["variant"]} => {
+    switch(status){
+      case "pending":
+        return {label:"En attente", variant: "amber"};
+      case "approved":
+        return {label:"Approuvé", variant: "success"};
+      case "rejected":
+        return {label:"Rejeté", variant: "destructive"};
+      case "submitted":
+        return {label:"Soumis", variant: "primary"};
+        default: return {label: "Inconnu", variant: "outline"};
+    }
+  }
 
   // Fonction pour filtrer les données selon tous les filtres
   const getFilteredData = React.useMemo(() => {
@@ -377,20 +395,36 @@ export function DevisTable({
     },
     {
       accessorKey: "element",
-      header: ({ column }) => {
+      header: () => {
         return (
           <span
             className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Nombre d'articles"}
-            <ArrowUpDown />
+            {"Éléments"}
           </span>
         );
       },
       cell: ({ row }) => {
-        const elements = row.getValue("element") as QuotationElement[];
-        return <div>{elements?.length || 0}</div>;
+        const value = row.getValue("element") as QuotationElement[];
+        return <span>{value.length}</span>;
+      },
+      
+    },
+    {
+      accessorKey: "status",
+      header: () => {
+        return (
+          <span
+            className="tablehead"
+          >
+            {"Statut"}
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.getValue("status") as QuotationStatus;
+        const { label, variant } = getStatusLabel(value);
+        return <Badge variant={variant}>{label}</Badge>; //here!
       },
     },
     {
@@ -449,7 +483,10 @@ export function DevisTable({
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
+              <DropdownMenuItem variant="destructive" onClick={() =>{
+                setSelectedDevis(item);
+                setToCancel(true);
+              }}>
                 <Trash color="red" className="mr-2 h-4 w-4" />
                 {"Annuler"}
               </DropdownMenuItem>
@@ -685,7 +722,7 @@ export function DevisTable({
                   else if (column.id === "commandRequestId") columnName = "Demande de cotation";
                   else if (column.id === "providerId") columnName = "Fournisseur";
                   else if (column.id === "montant") columnName = "Montant";
-                  else if (column.id === "element") columnName = "Nombre d'articles";
+                  else if (column.id === "status") columnName = "Statuts";
                   else if (column.id === "createdAt") columnName = "Date de création";
                   
                   return (
@@ -888,6 +925,7 @@ export function DevisTable({
         </DialogContent>
       </Dialog>
       { selectedDevis && <EditQuotation open={isUpdateModalOpen} openChange={setIsUpdateModalOpen} quotation={selectedDevis}/>}
+      { selectedDevis && <CancelQuotation open={toCancel} openChange={setToCancel} quotation={selectedDevis}/>}
     </div>
   );
 }

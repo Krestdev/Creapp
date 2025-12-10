@@ -14,18 +14,13 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
+  ChevronDown,
   Eye,
   Flag,
-  MoreHorizontal,
-  X,
+  LucideCheck,
+  LucideDollarSign,
 } from "lucide-react";
 import * as React from "react";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -55,41 +50,59 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-
-export type TicketsData = {
-  id: string;
-  reference: string;
-  fournisseur: string;
-  bonDeCommande: string;
-  montant: number;
-  priorite: "low" | "medium" | "high" | "urgent";
-  resteAPayer: number;
-};
+import { Pagination } from "../base/pagination";
+import { TicketsData } from "@/types/types";
+import { DetailTicket } from "../modals/detail-ticket";
+import { ApproveTicket } from "../modals/ApproveTicket";
 
 interface TicketsTableProps {
   data: TicketsData[];
+  isAdmin: boolean;
 }
 
 const priorityConfig = {
   low: {
     label: "Basse",
     badgeClassName: "bg-gray-500 text-white hover:bg-gray-600",
+    rowClassName:
+      "bg-gray-50 hover:bg-gray-100 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
   },
   medium: {
     label: "Moyenne",
     badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
+    rowClassName:
+      "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
   },
   high: {
     label: "Haute",
     badgeClassName: "bg-orange-500 text-white hover:bg-orange-600",
+    rowClassName:
+      "bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/20 dark:hover:bg-orange-950/30",
   },
   urgent: {
     label: "Urgente",
     badgeClassName: "bg-red-500 text-white hover:bg-red-600",
+    rowClassName:
+      "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
   },
 };
 
-export function TicketsTable({ data }: TicketsTableProps) {
+const statusConfig = {
+  pending: {
+    label: "En attente",
+    badgeClassName: "bg-[#FEF3C7] border-[#FEE685] text-[#E17100]",
+  },
+  approved: {
+    label: "Approuvé",
+    badgeClassName: "bg-[#DCFCE7] border-[#BBF7D0] text-[#16A34A]",
+  },
+  paid: {
+    label: "Payé",
+    badgeClassName: "bg-[#DCFCE7] border-[#BBF7D0] text-[#16A34A]",
+  },
+};
+
+export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -98,6 +111,75 @@ export function TicketsTable({ data }: TicketsTableProps) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [openDetailModal, setOpenDetailModal] = React.useState(false);
+  const [openValidationModal, setOpenValidationModal] = React.useState(false);
+  const [openPaiementModal, setOpenPaiementModal] = React.useState(false);
+  const [selectedTicket, setSelectedTicket] = React.useState<TicketsData>();
+
+  // Récupérer les statuts uniques présents dans les données
+  const uniqueStatuses = React.useMemo(() => {
+    const statuses = new Set<string>();
+    data.forEach((item) => {
+      if (item.state) {
+        statuses.add(item.state);
+      }
+    });
+    return Array.from(statuses);
+  }, [data]);
+
+  // Récupérer les priorités uniques présentes dans les données
+  const uniquePriorities = React.useMemo(() => {
+    const priorities = new Set<string>();
+    data.forEach((item) => {
+      if (item.priorite) {
+        priorities.add(item.priorite);
+      }
+    });
+    return Array.from(priorities);
+  }, [data]);
+
+  // Valeur par défaut du filtre de statut
+  const defaultStatusFilter = isAdmin ? "pending" : "approved";
+
+  // État pour suivre la valeur sélectionnée dans le Select
+  const [selectedStatus, setSelectedStatus] =
+    React.useState<string>(defaultStatusFilter);
+
+  // État pour suivre la priorité sélectionnée dans le Select
+  const [selectedPriority, setSelectedPriority] = React.useState<string>("all");
+
+  // Mettre à jour le filtre quand selectedStatus change
+  React.useEffect(() => {
+    const statusColumn = table.getColumn("state");
+    if (statusColumn) {
+      if (selectedStatus === "all") {
+        // Pour "Tous les statuts", on supprime le filtre
+        statusColumn.setFilterValue(undefined);
+      } else {
+        // Sinon on applique le filtre avec la valeur sélectionnée
+        statusColumn.setFilterValue(selectedStatus);
+      }
+    }
+  }, [selectedStatus]);
+
+  // Mettre à jour le filtre quand selectedPriority change
+  React.useEffect(() => {
+    const priorityColumn = table.getColumn("priorite");
+    if (priorityColumn) {
+      if (selectedPriority === "all") {
+        // Pour "Toutes les priorités", on supprime le filtre
+        priorityColumn.setFilterValue(undefined);
+      } else {
+        // Sinon on applique le filtre avec la valeur sélectionnée
+        priorityColumn.setFilterValue(selectedPriority);
+      }
+    }
+  }, [selectedPriority]);
+
+  // Initialiser le filtre de statut avec la valeur par défaut
+  React.useEffect(() => {
+    setSelectedStatus(defaultStatusFilter);
+  }, [defaultStatusFilter]);
 
   const columns: ColumnDef<TicketsData>[] = [
     {
@@ -126,13 +208,13 @@ export function TicketsTable({ data }: TicketsTableProps) {
       accessorKey: "reference",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Référence
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          </span>
         );
       },
       cell: ({ row }) => (
@@ -143,13 +225,13 @@ export function TicketsTable({ data }: TicketsTableProps) {
       accessorKey: "fournisseur",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Fournisseur
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          </span>
         );
       },
       cell: ({ row }) => <div>{row.getValue("fournisseur")}</div>,
@@ -158,13 +240,13 @@ export function TicketsTable({ data }: TicketsTableProps) {
       accessorKey: "bonDeCommande",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Bon de Commande
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          </span>
         );
       },
       cell: ({ row }) => <div>{row.getValue("bonDeCommande")}</div>,
@@ -173,13 +255,13 @@ export function TicketsTable({ data }: TicketsTableProps) {
       accessorKey: "montant",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Montant
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          </span>
         );
       },
       cell: ({ row }) => {
@@ -196,13 +278,13 @@ export function TicketsTable({ data }: TicketsTableProps) {
       accessorKey: "priorite",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Priorité
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          </span>
         );
       },
       cell: ({ row }) => {
@@ -220,58 +302,78 @@ export function TicketsTable({ data }: TicketsTableProps) {
       },
     },
     {
-      accessorKey: "resteAPayer",
+      accessorKey: "state",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <span
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Reste à payer
+            Statut
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          </span>
         );
       },
       cell: ({ row }) => {
-        const resteAPayer = Number.parseFloat(row.getValue("resteAPayer"));
-        const formatted = new Intl.NumberFormat("fr-FR", {
-          style: "currency",
-          currency: "XAF",
-        }).format(resteAPayer);
+        const statut = row.getValue("state") as keyof typeof statusConfig;
+        const config = statusConfig[statut];
 
-        return <div className="font-medium">{formatted}</div>;
+        return (
+          <Badge className={cn("gap-1", config.badgeClassName)}>
+            <Flag className="h-3 w-3" />
+            {config.label}
+          </Badge>
+        );
       },
     },
     {
       id: "actions",
-      header: "Actions",
+      header: () => <span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
+            <DropdownMenuTrigger asChild className="w-fit">
+              <Button variant="ghost">
+                {"Actions"}
+                <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => console.log("View", item)}>
+              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedTicket(item);
+                  setOpenDetailModal(true);
+                }}
+              >
                 <Eye className="mr-2 h-4 w-4" />
-                View
+                {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => console.log("Validate", item)}>
-                <Check className="mr-2 h-4 w-4" />
-                Validate
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
-                <X className="mr-2 h-4 w-4" />
-                Reject
-              </DropdownMenuItem>
+              {isAdmin ? (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedTicket(item);
+                    setOpenValidationModal(true);
+                  }}
+                >
+                  <LucideCheck className="text-[#16A34A] mr-2 h-4 w-4" />
+                  {"Approuver"}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedTicket(item);
+                    setOpenPaiementModal(true);
+                  }}
+                >
+                  <LucideDollarSign className="mr-2 h-4 w-4" />
+                  {"Payer"}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -309,6 +411,25 @@ export function TicketsTable({ data }: TicketsTableProps) {
     },
   });
 
+  // Fonction pour obtenir le libellé à afficher dans le SelectValue pour les statuts
+  const getStatusDisplayValue = () => {
+    if (selectedStatus === "all") {
+      return "Tous les statuts";
+    }
+    const config = statusConfig[selectedStatus as keyof typeof statusConfig];
+    return config?.label || selectedStatus;
+  };
+
+  // Fonction pour obtenir le libellé à afficher dans le SelectValue pour les priorités
+  const getPriorityDisplayValue = () => {
+    if (selectedPriority === "all") {
+      return "Toutes les priorités";
+    }
+    const config =
+      priorityConfig[selectedPriority as keyof typeof priorityConfig];
+    return config?.label || selectedPriority;
+  };
+
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
@@ -319,25 +440,42 @@ export function TicketsTable({ data }: TicketsTableProps) {
           className="max-w-sm"
         />
 
-        <Select
-          value={
-            (table.getColumn("priorite")?.getFilterValue() as string) ?? "all"
-          }
-          onValueChange={(value) =>
-            table
-              .getColumn("priorite")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
+        <Select value={selectedPriority} onValueChange={setSelectedPriority}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by priority" />
+            <SelectValue placeholder={getPriorityDisplayValue()}>
+              {getPriorityDisplayValue()}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Priorities</SelectItem>
-            <SelectItem value="low">Basse</SelectItem>
-            <SelectItem value="medium">Moyenne</SelectItem>
-            <SelectItem value="high">Haute</SelectItem>
-            <SelectItem value="urgent">Urgente</SelectItem>
+            <SelectItem value="all">Toutes les priorités</SelectItem>
+            {uniquePriorities.map((priority) => {
+              const config =
+                priorityConfig[priority as keyof typeof priorityConfig];
+              return (
+                <SelectItem key={priority} value={priority}>
+                  {config?.label || priority}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder={getStatusDisplayValue()}>
+              {getStatusDisplayValue()}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les statuts</SelectItem>
+            {uniqueStatuses.map((status) => {
+              const config = statusConfig[status as keyof typeof statusConfig];
+              return (
+                <SelectItem key={status} value={status}>
+                  {config?.label || status}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
 
@@ -394,24 +532,31 @@ export function TicketsTable({ data }: TicketsTableProps) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const priorite = row.original
+                  .priorite as keyof typeof priorityConfig;
+                const config = priorityConfig[priorite];
+
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn(config?.rowClassName || "")}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="border-r last:border-r-0"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell
@@ -425,53 +570,37 @@ export function TicketsTable({ data }: TicketsTableProps) {
           </TableBody>
         </Table>
       </div>
+      <Pagination table={table} />
 
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-1">
-            <div className="text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <DetailTicket
+        open={openDetailModal}
+        onOpenChange={setOpenDetailModal}
+        data={selectedTicket}
+      />
+
+      <ApproveTicket
+        open={openValidationModal}
+        onOpenChange={setOpenValidationModal}
+        title={selectedTicket?.bonDeCommande!}
+        subTitle={"Valider le ticket"}
+        description={"Voulez-vous valider ce ticket ?"}
+        action={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+        buttonTexts={"Approuver"}
+      />
+
+      <ApproveTicket
+        open={openPaiementModal}
+        onOpenChange={setOpenPaiementModal}
+        title={selectedTicket?.bonDeCommande!}
+        subTitle={"Payer le ticket"}
+        description={"Voulez-vous payer ce ticket ?"}
+        action={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+        buttonTexts={"Payer"}
+      />
     </div>
   );
 }

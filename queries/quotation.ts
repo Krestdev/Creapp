@@ -2,8 +2,12 @@ import api from "@/providers/axios";
 import { Quotation, QuotationElement } from "@/types/types";
 
 interface CreateQuotation {
-  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt">;
-  elements: Array<Omit<QuotationElement, "id" | "deviId">>;
+  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status">;
+  elements: Array<Omit<QuotationElement, "id" | "deviId" | "status">>;
+}
+interface UpdateQuotation {
+  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status">;
+  elements: Array<{id?: number} & Omit<QuotationElement, "deviId" | "id" | "status">>;
 }
 
 export class QuotationQueries {
@@ -39,7 +43,7 @@ export class QuotationQueries {
   // UPDATE — PUT multipart
   update = async (
     id: number,
-    { devis, elements }: CreateQuotation
+    { devis, elements }: UpdateQuotation
   ): Promise<{ data: Quotation }> => {
     const formData = new FormData();
 
@@ -60,4 +64,7 @@ export class QuotationQueries {
       })
       .then((response) => response.data);
   };
+  cancel = async (id:number):Promise<{data: Quotation}> => {
+    return api.delete(`${this.route}/${id}`).then((response) => response.data);
+  }
 }

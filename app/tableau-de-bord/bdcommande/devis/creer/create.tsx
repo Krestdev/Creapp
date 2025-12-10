@@ -43,6 +43,7 @@ const formSchema = z.object({
   elements: z
     .array(
       z.object({
+        id: z.number().optional(),
         needId: z.number({ message: 'Veuillez sélectionner un besoin' }),
         designation: z.string({ message: 'Veuillez renseigner une désignation' }),
         quantity: z.number(),
@@ -52,23 +53,24 @@ const formSchema = z.object({
     )
     .min(1),
   proof: z
-    .array(
-      z.union([
-        z.instanceof(File, { message: 'Doit être un fichier valide' }),
-        z.string()
-      ])
-    )
-    .min(1, 'Veuillez renseigner au moins 1 justificatif')
-    .max(1, "Pas plus d'un justificatif")
+  .array(
+    z.union([
+      z.instanceof(File, { message: 'Doit être un fichier valide' }),
+      z.string()
+    ])
+  )
+  .min(1, 'Veuillez renseigner au moins 1 justificatif')
+  .max(1, "Pas plus d'un justificatif")
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
   quotation?: Quotation;
+  openChange?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function CreateQuotation({quotation}:Props) {
+function CreateQuotation({quotation, openChange}:Props) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [open, setOpen] = React.useState<boolean>(false);
@@ -78,7 +80,7 @@ function CreateQuotation({quotation}:Props) {
 
   /**Demandes de cotation */
   const requestsQuery = new CommandQueries();
-  const requestsData = useFetchQuery(['commands'], requestsQuery.getAll);
+  const requestsData = useFetchQuery(['commands'], requestsQuery.getAll, 500000);
   /**Fournisseurs */
   const providerQuery = new ProviderQueries();
   const providersData = useFetchQuery(['providers'], providerQuery.getAll, 500000);
@@ -95,6 +97,7 @@ function CreateQuotation({quotation}:Props) {
           userId: user ? user.id : 0,
         },
         elements: values.elements.map((e) => ({
+          id: e.id,
           requestModelId: e.needId,
           title: e.designation,
           quantity: e.quantity,
@@ -121,6 +124,9 @@ function CreateQuotation({quotation}:Props) {
         queryKey: ["quotations"],
         refetchType: "active",
       });
+      if(!!openChange){
+        openChange(false);
+      }
       router.push("/tableau-de-bord/bdcommande/devis/");
     },
   });
@@ -138,7 +144,7 @@ function CreateQuotation({quotation}:Props) {
       commandRequestId: quotation?.commandRequestId ?? undefined,
       providerId: quotation?.providerId ?? undefined,
       elements: quotation?.element.map(
-        c=>({needId: c.requestModelId, designation: c.title, price: c.priceProposed, quantity: c.quantity, unit: c.unit})) 
+        c=>({id: c.id, needId: c.requestModelId, designation: c.title, price: c.priceProposed, quantity: c.quantity, unit: c.unit})) 
         ?? [],
       dueDate: quotation ? new Date(quotation.dueDate).toISOString().slice(0,10) : today.toISOString().slice(0,10),
       proof: quotation ? [quotation.proof] : undefined
@@ -401,6 +407,8 @@ function CreateQuotation({quotation}:Props) {
                   onChange={field.onChange}
                   name={field.name}
                   acceptTypes="images"
+                  multiple={false}
+                  maxFiles={1}
                 />
               </FormControl>
               <FormMessage />

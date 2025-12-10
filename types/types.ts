@@ -34,7 +34,7 @@ export type UserRole = "admin" | "user";
 // };
 
 export type User = {
-  id: number;
+  id?: number;
   email: string;
   name: string;
   phone?: string;
@@ -71,23 +71,6 @@ export type DepartmentT = {
   createdAt: string;
   updatedAt: string;
 };
-
-export type DepartmentUpdateInput = Partial<{
-  label: string;
-  description: string | null;
-  status: string;
-  members: MemberInput[];
-}>;
-
-type MemberInput = {
-  id?: number; // optional for new members
-  label: string;
-  userId: number;
-  validator: boolean;
-  chief: boolean;
-  finalValidator: boolean;
-};
-
 export type Member = {
   id: number;
   label: string;
@@ -106,14 +89,12 @@ export type Member = {
 
 export type ProjectT = {
   id?: number;
-  reference: string;
   createdAt?: Date;
   updatedAt?: Date;
   label: string;
   description: string | null;
-  chief: { id: number; name: string };
-  status: string;
-  budget: number;
+  chiefId: number | null;
+  budget: number | null;
 };
 
 // Request / Besoin
@@ -179,8 +160,8 @@ export type Review = {
 export type Category = {
   id: number;
   label: string;
-  parentId?: number | null;
-  isSpecial: boolean;
+  description: string | null;
+  parentId: number | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -218,10 +199,6 @@ export type ProjectCreateResponse = {
   project: ProjectT;
 };
 
-export type DepartementCreateResponse = {
-  data: DepartmentT;
-};
-
 export type Provider = {
   rating: number;
   taxId: string;
@@ -234,6 +211,9 @@ export type Provider = {
   name: string;
 };
 
+export type QuotationStatus = "submitted" | "approved" | "rejected" | "pending";
+export type QuotationElementStatus = "SELECTED" | "NOT_SELECTED";
+
 export type QuotationElement = {
   id: number;
   requestModelId: number;
@@ -242,6 +222,7 @@ export type QuotationElement = {
   unit: string;
   priceProposed: number;
   deviId: number;
+  status: QuotationElementStatus;
 };
 
 export type Quotation = {
@@ -254,5 +235,23 @@ export type Quotation = {
   dueDate: string;
   createdAt: string;
   updatedAt?: string;
+<<<<<<< HEAD
+=======
   userId: number;
+  status: QuotationStatus;
+>>>>>>> 05efad35a22252e9b83863a4ba188f641873a3b3
+};
+
+export type TicketsData = {
+  id: string;
+  reference: string;
+  fournisseur: string;
+  bonDeCommande: string;
+  moyenPaiement: string;
+  comptePayeur: string;
+  montant: number;
+  priorite: "low" | "medium" | "high" | "urgent";
+  state: "pending" | "paid" | "approved";
+  createdAt: Date;
+  updatedAt: Date;
 };
