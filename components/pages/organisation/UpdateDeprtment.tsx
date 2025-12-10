@@ -213,7 +213,10 @@ export default function UpdateDepartment({
                   onClick={() =>
                     append({
                       label: "",
-                      userId: users.data ? users.data.data[0].id : 0,
+                      userId:
+                        users.data && users.data.data[0].id
+                          ? users.data.data[0].id
+                          : 0,
                       validator: false,
                       chief: false,
                       finalValidator: false,

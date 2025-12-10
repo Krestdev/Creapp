@@ -61,12 +61,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserQueries } from "@/queries/baseModule";
-import { Member, Role, User as UserT } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useStore } from "@/providers/datastore";
-import UpdateUser from "../pages/organisation/UpdateUser";
+import { UserQueries } from "@/queries/baseModule";
+import { Member, Provider, Role, User as UserT } from "@/types/types";
+import { useMutation } from "@tanstack/react-query";
+import UpdateProvider from "../pages/organisation/UpdateProvider";
+import { toast } from "sonner";
+import { ProviderQueries } from "@/queries/providers";
 
 // export type Utilisateur = {
 //   id: string;
@@ -77,11 +78,11 @@ import UpdateUser from "../pages/organisation/UpdateUser";
 //   serviceAssocie: string;
 // };
 
-interface UtilisateursTableProps {
-  data: UserT[];
+interface ProvidersTableProps {
+  data: Provider[];
 }
 
-export function UtilisateursTable({ data }: UtilisateursTableProps) {
+export function ProviderTable({ data }: ProvidersTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -91,7 +92,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  const [selectedItem, setSelectedItem] = React.useState<UserT | null>(null);
+  const [selectedItem, setSelectedItem] = React.useState<Provider | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
 
   const getRoleIcon = (role: string) => {
@@ -163,30 +164,22 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     }
   };
 
-  const { isHydrated } = useStore();
-  const user = new UserQueries();
-  const userMutationData = useMutation({
-    mutationKey: ["usersStatus"],
-    mutationFn: (data: { id: number; status: string }) =>
-      user.changeStatus(data.id, { status: data.status }),
-  });
+  // const providerQueries = new ProviderQueries();
+  // const providerMutation = useMutation({
+  //   mutationKey: ["providerUpdate"],
+  //   mutationFn: async (data: number) => providerQueries.delete(Number(data)),
 
-  const userQueries = new UserQueries();
-  const userMutation = useMutation({
-    mutationKey: ["userUpdate"],
-    mutationFn: async (data: number) => userQueries.delete(Number(data)),
+  //   onSuccess: () => {
+  //     toast.success("Besoin modifié avec succès !");
+  //   },
 
-    onSuccess: () => {
-      toast.success("Besoin modifié avec succès !");
-    },
+  //   onError: (e) => {
+  //     console.error(e);
+  //     toast.error("Une erreur est survenue lors de la suppression.");
+  //   },
+  // });
 
-    onError: (e) => {
-      console.error(e);
-      toast.error("Une erreur est survenue lors de la suppression.");
-    },
-  });
-
-  const columns = React.useMemo<ColumnDef<UserT>[]>(
+  const columns = React.useMemo<ColumnDef<Provider>[]>(
     () => [
       {
         id: "select",
@@ -232,7 +225,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         ),
       },
       {
-        accessorKey: "role",
+        accessorKey: "address",
         header: ({ column }) => {
           return (
             <Button
@@ -241,32 +234,17 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Rôle
+              Address
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
         },
-        cell: ({ row }) => {
-          const role = row.getValue("role") as Role[];
-          return (
-            <div className="flex flex-col">
-              {role.map((rol) => (
-                <Badge
-                  className={`${getRoleBadgeColor(
-                    rol.label
-                  )} flex items-center gap-1 w-fit`}
-                  key={rol.id}
-                >
-                  {getRoleIcon(rol.label)}
-                  {rol.label.charAt(0).toUpperCase() + rol.label.slice(1)}
-                </Badge>
-              ))}
-            </div>
-          );
-        },
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("address")}</div>
+        ),
       },
       {
-        accessorKey: "status",
+        accessorKey: "phone",
         header: ({ column }) => {
           return (
             <Button
@@ -275,27 +253,103 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Statut
+              Telephone
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
         },
-        cell: ({ row }) => {
-          const status = row.getValue("status") as string;
-          return (
-            <Badge
-              className={`${getStatutBadgeColor(
-                status
-              )} flex items-center gap-1 w-fit`}
-            >
-              {getStatutIcon(status)}
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </Badge>
-          );
-        },
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("phone")}</div>
+        ),
       },
       {
-        accessorKey: "lastConnection",
+        accessorKey: "email",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Email
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("email")}</div>
+        ),
+      },
+      {
+        accessorKey: "taxId",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Numero de Taxe
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("taxId")}</div>
+        ),
+      },
+      {
+        accessorKey: "rating",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Evaluation
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("rating")}</div>
+        ),
+      },
+      // {
+      //   accessorKey: "status",
+      //   header: ({ column }) => {
+      //     return (
+      //       <Button
+      //         variant="ghost"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         Statut
+      //         <ArrowUpDown className="ml-2 h-4 w-4" />
+      //       </Button>
+      //     );
+      //   },
+      //   cell: ({ row }) => {
+      //     const status = row.getValue("status") as string;
+      //     return (
+      //       <Badge
+      //         className={`${getStatutBadgeColor(
+      //           status
+      //         )} flex items-center gap-1 w-fit`}
+      //       >
+      //         {getStatutIcon(status)}
+      //         {status.charAt(0).toUpperCase() + status.slice(1)}
+      //       </Badge>
+      //     );
+      //   },
+      // },
+      {
+        accessorKey: "createdAt",
         header: ({ column }) => {
           return (
             <Button
@@ -310,7 +364,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           );
         },
         cell: ({ row }) => {
-          const date = new Date(row.getValue("lastConnection"));
+          const date = new Date(row.getValue("createdAt"));
           return (
             <div>
               {date.toLocaleDateString("fr-FR")}{" "}
@@ -323,37 +377,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
       },
       {
-        accessorKey: "members",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Service associé
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => {
-          const data = row.getValue("members") as Member[];
-          return (
-            <div>
-              {data.map((mem) => {
-                return <Badge key={mem.id}>{mem.department?.label}</Badge>;
-              })}
-            </div>
-          );
-        },
-      },
-      {
         id: "actions",
         header: "Actions",
         enableHiding: false,
         cell: ({ row }) => {
-          const utilisateur = row.original;
+          const provider = row.original;
 
           return (
             <DropdownMenu>
@@ -372,41 +400,19 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
-                    setSelectedItem(utilisateur);
+                    setSelectedItem(provider);
                     setIsUpdateModalOpen(true);
                   }}
                 >
                   <LucidePen className="mr-2 h-4 w-4" />
                   {"Modifier"}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    userMutationData.mutate({
-                      id: utilisateur.id ?? -1,
-                      status: "active",
-                    })
-                  }
-                >
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  Activate
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    userMutationData.mutate({
-                      id: utilisateur.id ?? -1,
-                      status: "inactive",
-                    })
-                  }
-                >
-                  <UserX className="mr-2 h-4 w-4" />
-                  Suspend
-                </DropdownMenuItem>
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   className="text-red-600"
-                  onClick={() => userMutation.mutate(utilisateur.id ?? -1)}
+                  onClick={() => providerMutation.mutate(provider.id)}
                 >
                   Supprimer
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -569,7 +575,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={getRowColor(row.original.status)}
+                  className={getRowColor(
+                    row.original.rating >= 4 ? "active" : "inactive"
+                  )}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -641,10 +649,10 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           </Button>
         </div>
       </div>
-      <UpdateUser
+      <UpdateProvider
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
-        userData={selectedItem}
+        providerData={selectedItem}
       />
     </div>
   );

@@ -1,66 +1,83 @@
 //Quotation Form
-'use client'
-import FilesUpload from '@/components/comp-547'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
+"use client";
+import FilesUpload from "@/components/comp-547";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
-import { useFetchQuery } from '@/hooks/useData'
-import { useStore } from '@/providers/datastore'
-import { CommandQueries } from '@/queries/commandModule'
-import { ProviderQueries } from '@/queries/providers'
-import { QuotationQueries } from '@/queries/quotation'
-import { CommandRequestT, Provider, Quotation, RequestModelT } from '@/types/types'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { SelectValue } from '@radix-ui/react-select'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarIcon, FolderX, Plus, X } from 'lucide-react'
-import React from 'react'
-import { useForm } from 'react-hook-form'
-import z from 'zod'
-import AddElement from './addElement'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
+import { useFetchQuery } from "@/hooks/useData";
+import { useStore } from "@/providers/datastore";
+import { CommandQueries } from "@/queries/commandModule";
+import { ProviderQueries } from "@/queries/providers";
+import { QuotationQueries } from "@/queries/quotation";
+import {
+  CommandRequestT,
+  Provider,
+  Quotation,
+  RequestModelT,
+} from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { SelectValue } from "@radix-ui/react-select";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CalendarIcon, FolderX, Plus, X } from "lucide-react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import z from "zod";
+import AddElement from "./addElement";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  commandRequestId: z.number({ message: 'Requis' }),
-  providerId: z.number({ message: 'Requis' }),
-  dueDate: z
-    .string({message: "Veuillez définir une date"})
-    .refine((val)=> {
-        const d = new Date(val);
-        return !isNaN(d.getTime());
-    }, {message: "Date invalide"}),
+  commandRequestId: z.number({ message: "Requis" }),
+  providerId: z.number({ message: "Requis" }),
+  dueDate: z.string({ message: "Veuillez définir une date" }).refine(
+    (val) => {
+      const d = new Date(val);
+      return !isNaN(d.getTime());
+    },
+    { message: "Date invalide" }
+  ),
   elements: z
     .array(
       z.object({
         id: z.number().optional(),
-        needId: z.number({ message: 'Veuillez sélectionner un besoin' }),
-        designation: z.string({ message: 'Veuillez renseigner une désignation' }),
+        needId: z.number({ message: "Veuillez sélectionner un besoin" }),
+        designation: z.string({
+          message: "Veuillez renseigner une désignation",
+        }),
         quantity: z.number(),
         unit: z.string(),
-        price: z.number({ message: 'Veuillez renseigner un prix' })
+        price: z.number({ message: "Veuillez renseigner un prix" }),
       })
     )
     .min(1),
   proof: z
-  .array(
-    z.union([
-      z.instanceof(File, { message: 'Doit être un fichier valide' }),
-      z.string()
-    ])
-  )
-  .min(1, 'Veuillez renseigner au moins 1 justificatif')
-  .max(1, "Pas plus d'un justificatif")
+    .array(
+      z.union([
+        z.instanceof(File, { message: "Doit être un fichier valide" }),
+        z.string(),
+      ])
+    )
+    .min(1, "Veuillez renseigner au moins 1 justificatif")
+    .max(1, "Pas plus d'un justificatif"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -70,23 +87,32 @@ interface Props {
   openChange?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function CreateQuotation({quotation, openChange}:Props) {
+function CreateQuotation({ quotation, openChange }: Props) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [open, setOpen] = React.useState<boolean>(false);
-  const [selectedNeeds, setSelectedNeeds] = React.useState<Array<RequestModelT>>();
+  const [selectedNeeds, setSelectedNeeds] =
+    React.useState<Array<RequestModelT>>();
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const { user } = useStore();
 
   /**Demandes de cotation */
   const requestsQuery = new CommandQueries();
-  const requestsData = useFetchQuery(['commands'], requestsQuery.getAll, 500000);
+  const requestsData = useFetchQuery(
+    ["commands"],
+    requestsQuery.getAll,
+    500000
+  );
   /**Fournisseurs */
   const providerQuery = new ProviderQueries();
-  const providersData = useFetchQuery(['providers'], providerQuery.getAll, 500000);
+  const providersData = useFetchQuery(
+    ["providers"],
+    providerQuery.getAll,
+    500000
+  );
   /**Quotation */
   const quotationQuery = new QuotationQueries();
- const { mutate, isPending } = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: async ({ values, id }: { values: FormValues; id?: number }) => {
       const payload = {
         devis: {
@@ -124,7 +150,7 @@ function CreateQuotation({quotation, openChange}:Props) {
         queryKey: ["quotations"],
         refetchType: "active",
       });
-      if(!!openChange){
+      if (!!openChange) {
         openChange(false);
       }
       router.push("/tableau-de-bord/bdcommande/devis/");
@@ -136,22 +162,30 @@ function CreateQuotation({quotation, openChange}:Props) {
   const [requests, setRequests] = React.useState<Array<CommandRequestT>>([]);
   const [providers, setProviders] = React.useState<Array<Provider>>([]);
   const today = new Date(); //On part sur 3 jours de delai de base :)
-        today.setDate(today.getDate() + 3);
+  today.setDate(today.getDate() + 3);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       commandRequestId: quotation?.commandRequestId ?? undefined,
       providerId: quotation?.providerId ?? undefined,
-      elements: quotation?.element.map(
-        c=>({id: c.id, needId: c.requestModelId, designation: c.title, price: c.priceProposed, quantity: c.quantity, unit: c.unit})) 
-        ?? [],
-      dueDate: quotation ? new Date(quotation.dueDate).toISOString().slice(0,10) : today.toISOString().slice(0,10),
-      proof: quotation ? [quotation.proof] : undefined
-    }
+      elements:
+        quotation?.element.map((c) => ({
+          id: c.id,
+          needId: c.requestModelId,
+          designation: c.title,
+          price: c.priceProposed,
+          quantity: c.quantity,
+          unit: c.unit,
+        })) ?? [],
+      dueDate: quotation
+        ? new Date(quotation.dueDate).toISOString().slice(0, 10)
+        : today.toISOString().slice(0, 10),
+      proof: quotation ? [quotation.proof] : undefined,
+    },
   });
 
-  const commandRequestId = form.watch('commandRequestId');
+  const commandRequestId = form.watch("commandRequestId");
 
   React.useEffect(() => {
     if (requestsData.isSuccess) {
@@ -173,7 +207,7 @@ function CreateQuotation({quotation, openChange}:Props) {
 
   function onSubmit(values: FormValues) {
     //console.log(values);
-    mutate({ values, id: quotation?.id })
+    mutate({ values, id: quotation?.id });
   }
 
   return (
@@ -239,7 +273,10 @@ function CreateQuotation({quotation, openChange}:Props) {
                       </SelectItem>
                     ) : (
                       providers.map((provider) => (
-                        <SelectItem key={provider.id} value={String(provider.id)}>
+                        <SelectItem
+                          key={provider.id}
+                          value={String(provider.id)}
+                        >
                           {provider.name}
                         </SelectItem>
                       ))
@@ -260,52 +297,56 @@ function CreateQuotation({quotation, openChange}:Props) {
               <FormLabel isRequired>{"Date limite de soumission"}</FormLabel>
               <FormControl>
                 <div className="relative flex gap-2">
-                                            <Input
-                                                id={field.name}
-                                                value={field.value}
-                                                placeholder="Sélectionner une date"
-                                                className="bg-background pr-10"
-                                                onChange={(e) => {
-                                                    field.onChange(e.target.value)
-                                                }}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "ArrowDown") {
-                                                    e.preventDefault()
-                                                    setDueDate(true)
-                                                    }
-                                                }}
-                                            />
-                                            <Popover open={dueDate} onOpenChange={setDueDate}>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                    id="date-picker"
-                                                    variant="ghost"
-                                                    className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
-                                                    >
-                                                    <CalendarIcon className="size-3.5" />
-                                                    <span className="sr-only">{"Sélectionner une date"}</span>
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent
-                                                    className="w-auto overflow-hidden p-0"
-                                                    align="end"
-                                                    alignOffset={-8}
-                                                    sideOffset={10}
-                                                >
-                                                    <Calendar
-                                                    mode="single"
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    captionLayout="dropdown"
-                                                    onSelect={(date) => {
-                                                        if (!date) return;
-                                                        const value = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
-                                                        field.onChange(value);
-                                                        setDueDate(false);
-                                                    }}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
+                  <Input
+                    id={field.name}
+                    value={field.value}
+                    placeholder="Sélectionner une date"
+                    className="bg-background pr-10"
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setDueDate(true);
+                      }
+                    }}
+                  />
+                  <Popover open={dueDate} onOpenChange={setDueDate}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="date-picker"
+                        variant="ghost"
+                        className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                      >
+                        <CalendarIcon className="size-3.5" />
+                        <span className="sr-only">
+                          {"Sélectionner une date"}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto overflow-hidden p-0"
+                      align="end"
+                      alignOffset={-8}
+                      sideOffset={10}
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={
+                          field.value ? new Date(field.value) : undefined
+                        }
+                        captionLayout="dropdown"
+                        onSelect={(date) => {
+                          if (!date) return;
+                          const value = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+                          field.onChange(value);
+                          setDueDate(false);
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -344,13 +385,17 @@ function CreateQuotation({quotation, openChange}:Props) {
                             }}
                           >
                             <span className="truncate">{item.designation}</span>
-                            <span className='text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground'>{"Modifier"}</span>
+                            <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
+                              {"Modifier"}
+                            </span>
                           </button>
                           <X
                             size={20}
                             className="text-destructive cursor-pointer"
                             onClick={() =>
-                              field.onChange(field.value.filter((_, i) => i !== idx))
+                              field.onChange(
+                                field.value.filter((_, i) => i !== idx)
+                              )
                             }
                           />
                         </div>
@@ -382,7 +427,9 @@ function CreateQuotation({quotation, openChange}:Props) {
                       value={field.value}
                       onChange={field.onChange}
                       element={
-                        editingIndex !== null ? field.value[editingIndex] : undefined
+                        editingIndex !== null
+                          ? field.value[editingIndex]
+                          : undefined
                       }
                       index={editingIndex}
                     />
@@ -416,8 +463,13 @@ function CreateQuotation({quotation, openChange}:Props) {
           )}
         />
 
-        <Button type="submit" disabled={isPending} isLoading={isPending} className="w-fit">
-          { !!quotation ? "Modifier le devis" : "Créer le devis"}
+        <Button
+          type="submit"
+          disabled={isPending}
+          isLoading={isPending}
+          className="w-fit"
+        >
+          {!!quotation ? "Modifier le devis" : "Créer le devis"}
         </Button>
       </form>
     </Form>

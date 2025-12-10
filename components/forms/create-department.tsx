@@ -20,10 +20,7 @@ import {
 import { Form } from "../ui/form";
 import { DepartmentQueries } from "@/queries/departmentModule";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import {
-  DepartmentT,
-  ResponseT,
-} from "@/types/types";
+import { DepartmentT, ResponseT } from "@/types/types";
 import { toast } from "sonner";
 import { UserQueries } from "@/queries/baseModule";
 import { useStore } from "@/providers/datastore";

@@ -89,13 +89,14 @@ export type Member = {
 
 export type ProjectT = {
   id?: number;
+  reference: string;
   createdAt?: Date;
   updatedAt?: Date;
   label: string;
   description: string | null;
-  chiefId: number | null;
-  budget: number | null;
+  chief: { id: number; name: string };
   status: string;
+  budget: number;
 };
 
 // Request / Besoin

@@ -10,7 +10,7 @@ export class ProviderQueries {
 
   create = async (
     data: Omit<Provider, "id" | "createdAt">
-  ): Promise<{ data: Provider }> => {
+  ): Promise<{ message: string; data: Provider }> => {
     return api.post(this.route, data).then((response) => {
       console.log(response.data);
       return response.data;
@@ -40,7 +40,7 @@ export class ProviderQueries {
 
   update = async (
     id: number,
-    data: Omit<Provider, "id" | "createdAt">
+    data: Partial<Omit<Provider, "id" | "createdAt">>
   ): Promise<{ data: Provider }> => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
       console.log(response.data);
@@ -59,5 +59,3 @@ export class ProviderQueries {
     });
   };
 }
-
-
