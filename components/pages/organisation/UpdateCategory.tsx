@@ -134,6 +134,7 @@ export default function UpdateCategory({
     } = {
       label: values.label,
       isSpecial: values.isSpecial || false,
+      parentId: parentId,
     };
     if (parentId !== -1) {
       data.parentId = parentId;

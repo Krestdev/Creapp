@@ -95,6 +95,7 @@ export type ProjectT = {
   description: string | null;
   chiefId: number | null;
   budget: number | null;
+  status: string;
 };
 
 // Request / Besoin
@@ -160,8 +161,9 @@ export type Review = {
 export type Category = {
   id: number;
   label: string;
-  description: string | null;
-  parentId: number | null;
+  isSpecial: boolean;
+  description?: string;
+  parentId: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -235,11 +237,8 @@ export type Quotation = {
   dueDate: string;
   createdAt: string;
   updatedAt?: string;
-<<<<<<< HEAD
-=======
   userId: number;
   status: QuotationStatus;
->>>>>>> 05efad35a22252e9b83863a4ba188f641873a3b3
 };
 
 export type TicketsData = {

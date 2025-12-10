@@ -94,7 +94,7 @@ function CreateQuotation({quotation, openChange}:Props) {
           providerId: values.providerId,
           proof: values.proof[0], // File ou string
           dueDate: new Date(values.dueDate).toISOString(),
-          userId: user ? user.id : 0,
+          userId: user && user.id ? user.id : 0,
         },
         elements: values.elements.map((e) => ({
           id: e.id,

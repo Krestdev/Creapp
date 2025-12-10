@@ -21,7 +21,6 @@ import { Form } from "../ui/form";
 import { DepartmentQueries } from "@/queries/departmentModule";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import {
-  DepartementCreateResponse,
   DepartmentT,
   ResponseT,
 } from "@/types/types";
