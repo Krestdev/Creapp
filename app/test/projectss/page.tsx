@@ -67,6 +67,7 @@ export default function TestProjectPage() {
                   description: description || null,
                   chiefId: Number(chiefId),
                   budget: Number(budget),
+                  status: "planning",
                 })
               )
             }

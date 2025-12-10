@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Form } from "../ui/form";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { DepartementCreateResponse, Category, ResponseT } from "@/types/types";
+import { Category, ResponseT } from "@/types/types";
 import { toast } from "sonner";
 import { UserQueries } from "@/queries/baseModule";
 import { useStore } from "@/providers/datastore";

@@ -403,7 +403,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600"
-                  onClick={() => userMutation.mutate(utilisateur.id)}
+                  onClick={() => userMutation.mutate(utilisateur.id ?? -1)}
                 >
                   Supprimer
                 </DropdownMenuItem>

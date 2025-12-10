@@ -71,6 +71,23 @@ export type DepartmentT = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type DepartmentUpdateInput = Partial<{
+  label: string;
+  description: string | null;
+  status: string;
+  members: MemberInput[];
+}>;
+
+type MemberInput = {
+  id?: number; // optional for new members
+  label: string;
+  userId: number;
+  validator: boolean;
+  chief: boolean;
+  finalValidator: boolean;
+};
+
 export type Member = {
   id: number;
   label: string;
@@ -89,10 +106,12 @@ export type Member = {
 
 export type ProjectT = {
   id?: number;
+  reference: string;
   createdAt?: Date;
   updatedAt?: Date;
   label: string;
   description: string | null;
+  status: string;
   chiefId: number | null;
   budget: number | null;
 };
@@ -160,8 +179,9 @@ export type Review = {
 export type Category = {
   id: number;
   label: string;
-  description: string | null;
-  parentId: number | null;
+  description?: string;
+  parentId?: number;
+  isSpecial: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -235,11 +255,8 @@ export type Quotation = {
   dueDate: string;
   createdAt: string;
   updatedAt?: string;
-<<<<<<< HEAD
-=======
   userId: number;
   status: QuotationStatus;
->>>>>>> 05efad35a22252e9b83863a4ba188f641873a3b3
 };
 
 export type TicketsData = {
