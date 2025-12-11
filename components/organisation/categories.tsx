@@ -1,8 +1,8 @@
 "use client";
-import { CategoriesTable } from "@/components/tables/categories-table";
 import { useStore } from "@/providers/datastore";
 import { RequestQueries } from "@/queries/requestModule";
 import { useQuery } from "@tanstack/react-query";
+import { CategoriesTable } from "./categories-table";
 
 const CategoriesPage = () => {
   const { isHydrated } = useStore();

@@ -61,7 +61,7 @@ import {
 } from "lucide-react";
 import { RequestQueries } from "@/queries/requestModule";
 import { useMutation } from "@tanstack/react-query";
-import UpdateCategory from "../pages/organisation/UpdateCategory";
+import UpdateCategory from "./UpdateCategory";
 
 interface CategoriesTableProps {
   data: Category[];
