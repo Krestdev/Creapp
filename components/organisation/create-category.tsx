@@ -86,6 +86,7 @@ export function CategoryCreateForm() {
     } = {
       label: values.label,
       isSpecial: values.isSpecial || false,
+      parentId: parentId
     };
     if (parentId !== -1) {
       data.parentId = parentId;

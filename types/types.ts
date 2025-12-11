@@ -71,23 +71,6 @@ export type DepartmentT = {
   createdAt: string;
   updatedAt: string;
 };
-
-export type DepartmentUpdateInput = Partial<{
-  label: string;
-  description: string | null;
-  status: string;
-  members: MemberInput[];
-}>;
-
-type MemberInput = {
-  id?: number; // optional for new members
-  label: string;
-  userId: number;
-  validator: boolean;
-  chief: boolean;
-  finalValidator: boolean;
-};
-
 export type Member = {
   id: number;
   label: string;
@@ -111,9 +94,9 @@ export type ProjectT = {
   updatedAt?: Date;
   label: string;
   description: string | null;
+  chief: { id: number; name: string };
   status: string;
-  chiefId: number | null;
-  budget: number | null;
+  budget: number;
 };
 
 // Request / Besoin
@@ -179,9 +162,9 @@ export type Review = {
 export type Category = {
   id: number;
   label: string;
-  description?: string;
-  parentId?: number;
   isSpecial: boolean;
+  description?: string;
+  parentId: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -271,4 +254,20 @@ export type TicketsData = {
   state: "pending" | "paid" | "approved";
   createdAt: Date;
   updatedAt: Date;
+};
+
+export type DepartmentUpdateInput = Partial<{
+  label: string;
+  description: string | null;
+  status: string;
+  members: MemberInput[];
+}>;
+
+type MemberInput = {
+  id?: number; // optional for new members
+  label: string;
+  userId: number;
+  validator: boolean;
+  chief: boolean;
+  finalValidator: boolean;
 };

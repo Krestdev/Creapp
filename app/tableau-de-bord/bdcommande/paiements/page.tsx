@@ -11,6 +11,8 @@ export type Paiement = {
   fournisseur: string;
   montant: number;
   moyen: string;
+  user: string;
+  proof: string[];
   priorite: "urgent" | "high" | "medium" | "low";
   statut: "pending" | "completed" | "failed" | "processing";
   dueDate: Date;
@@ -32,6 +34,8 @@ const paiementsData: Paiement[] = [
     createdAt: new Date(),
     updatedAt: new Date(),
     bonDeCommande: "BC-001",
+    user: "Atangana Pierre",
+    proof: ["document.pdf"],
   },
   {
     id: "2",
@@ -46,6 +50,8 @@ const paiementsData: Paiement[] = [
     createdAt: new Date(),
     updatedAt: new Date(),
     bonDeCommande: "BC-002",
+    user: "Bondjou Paul",
+    proof: ["image.jpg"],
   },
 ];
 
