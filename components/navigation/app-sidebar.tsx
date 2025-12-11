@@ -395,8 +395,8 @@ function AppSidebar() {
         },
         {
           pageId: "PG-09-5",
-          title: "gerer les postes",
-          href: "/tableau-de-bord/organisation/postes",
+          title: "gerer les roles",
+          href: "/tableau-de-bord/organisation/roles",
           authorized: ["ADMIN"],
         },
       ],
