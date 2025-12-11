@@ -23,6 +23,7 @@ import {
   ChevronsRight,
   Clock,
   Eye,
+  LucidePen,
   MoreHorizontal,
   PauseCircle,
   PlayCircle,
@@ -55,6 +56,7 @@ import {
 import { ProjectQueries } from "@/queries/projectModule";
 import { ProjectT } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
+import UpdateProject from "./UpdateProject";
 
 // export type Project = {
 //   reference: string;
@@ -78,6 +80,9 @@ export function ProjectTable({ data }: ProjectTableProps) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+
+  const [selectedItem, setSelectedItem] = React.useState<ProjectT | null>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
 
   const getStateIcon = (status: string) => {
     switch (status) {
@@ -335,6 +340,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
                   View
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(project);
+                    setIsUpdateModalOpen(true);
+                  }}
+                >
+                  <LucidePen className="mr-2 h-4 w-4" />
+                  {"Modifier"}
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
                     projectMutationData.mutate({
@@ -610,6 +624,12 @@ export function ProjectTable({ data }: ProjectTableProps) {
           </Button>
         </div>
       </div>
+
+      <UpdateProject
+        open={isUpdateModalOpen}
+        setOpen={setIsUpdateModalOpen}
+        projectData={selectedItem}
+      />
     </div>
   );
 }

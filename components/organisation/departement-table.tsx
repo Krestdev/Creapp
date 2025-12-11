@@ -59,7 +59,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import UpdateDepartment from "../pages/organisation/UpdateDeprtment";
+import UpdateDepartment from "./UpdateDeprtment";
 import { DepartmentQueries } from "@/queries/departmentModule";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
