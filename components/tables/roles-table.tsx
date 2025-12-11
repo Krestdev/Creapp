@@ -343,13 +343,13 @@ export function RoleTable({ data }: RolesTableProps) {
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
-        <Select
+        {/* <Select
           value={
-            (table.getColumn("status")?.getFilterValue() as string) ?? "all"
+            (table.getColumn("label")?.getFilterValue() as string) ?? "all"
           }
           onValueChange={(value) =>
             table
-              .getColumn("status")
+              .getColumn("label")
               ?.setFilterValue(value === "all" ? "" : value)
           }
         >
@@ -362,7 +362,7 @@ export function RoleTable({ data }: RolesTableProps) {
             <SelectItem value="inactif">Inactif</SelectItem>
             <SelectItem value="en-reorganisation">En réorganisation</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
