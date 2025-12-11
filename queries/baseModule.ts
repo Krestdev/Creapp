@@ -109,8 +109,27 @@ export class UserQueries {
     });
   };
 
-  createRole = async (data: { label: string }): Promise<{ data: Role }> => {
+  createRole = async (data: {
+    label: string;
+  }): Promise<{ message: string; data: Role }> => {
     return api.post(`${this.route}/role/create`, data).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
+  };
+
+  updateRole = async (
+    id: number,
+    data: Partial<Role>
+  ): Promise<{ data: Role }> => {
+    return api.put(`${this.route}/role/${id}/update`, data).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
+  };
+
+  deleteRole = async (id: number): Promise<{ data: Role }> => {
+    return api.delete(`${this.route}/role/${id}`).then((response) => {
       console.log(response.data);
       return response.data;
     });
