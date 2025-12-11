@@ -1,5 +1,5 @@
-import { RoleCreateForm } from "@/components/forms/create-Role";
-import RolesPage from "@/components/pages/organisation/roles";
+import { RoleCreateForm } from "@/components/organisation/create-Role";
+import RolesPage from "@/components/organisation/roles";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {

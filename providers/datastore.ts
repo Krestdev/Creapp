@@ -13,7 +13,7 @@ interface Store {
 
 export const useStore = create<Store>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: undefined,
       isHydrated: false,
       setIsHydrated: (v: boolean) => set({ isHydrated: v }),

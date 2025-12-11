@@ -1,4 +1,4 @@
-import CreateUserForm from "@/components/forms/create-user";
+import CreateUserForm from "@/components/utilisateurs/create-user";
 import PageTitle from "@/components/pageTitle";
 
 const Page = () => {

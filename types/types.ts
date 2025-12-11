@@ -1,4 +1,4 @@
-import { LucideIcon, LucideProps } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import React from "react";
 
 export interface NavigationItemProps {
@@ -7,13 +7,13 @@ export interface NavigationItemProps {
   href: string;
   authorized: string[];
   title: string;
-  badge?: Number;
+  badge?: number;
   items?: {
     pageId: string;
     title: string;
     href: string;
     authorized: string[];
-    badge?: Number;
+    badge?: number;
   }[];
 }
 

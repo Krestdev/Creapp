@@ -2,7 +2,7 @@
 
 import TitleValueCard from "@/components/base/TitleValueCard";
 import PageTitle from "@/components/pageTitle";
-import { BonsCommandeTable } from "@/components/tables/bons-commande-table";
+import { BonsCommandeTable } from "@/components/bdcommande/bons-commande-table";
 import React from "react";
 
 export type BonsCommande = {
@@ -27,7 +27,7 @@ const bonsCommandeData: BonsCommande[] = [
     statut: "approved" as const,
     montant: 50000,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: "2",
@@ -38,7 +38,7 @@ const bonsCommandeData: BonsCommande[] = [
     statut: "pending" as const,
     montant: 50000,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: "3",
@@ -49,7 +49,7 @@ const bonsCommandeData: BonsCommande[] = [
     statut: "in-review" as const,
     montant: 50000,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: "4",
@@ -60,7 +60,7 @@ const bonsCommandeData: BonsCommande[] = [
     statut: "rejected" as const,
     montant: 50000,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
 ];
 

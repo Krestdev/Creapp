@@ -24,7 +24,7 @@ import {
   LucideDownload,
   LucideIcon,
   LucidePen,
-  Trash
+  Trash,
 } from "lucide-react";
 import * as React from "react";
 
@@ -49,16 +49,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { CommandQueries } from "@/queries/commandModule";
 import { CommandRequestT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
-import {
-  addDays,
-  format
-} from "date-fns";
+import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Pagination } from "../base/pagination";
+import { UpdateCotationModal } from "../bdcommande/UpdateCotationModal";
 import { DetailOrder } from "../modals/detail-order";
-import { UpdateCotationModal } from "../pages/bdcommande/UpdateCotationModal";
 import { badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
 import {
@@ -71,8 +70,6 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CommandQueries } from "@/queries/commandModule";
-import { useQuery } from "@tanstack/react-query";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -107,8 +104,8 @@ export function CommandeTable({
     React.useState<CommandRequestT | null>(null);
   const [showOrder, setShowOrder] = React.useState(false);
 
-   const command = new CommandQueries();
-    const commandData = useQuery({
+  const command = new CommandQueries();
+  const commandData = useQuery({
     queryKey: ["commands"],
     queryFn: async () => command.getAll(),
     refetchOnMount: true,
@@ -128,20 +125,45 @@ export function CommandeTable({
     { from: Date; to: Date } | undefined
   >(customDateRange || { from: addDays(new Date(), -7), to: new Date() });
 
-  const getStatusConfig = (status: string):{label:string; icon?: LucideIcon; variant: VariantProps<typeof badgeVariants>["variant"], rowClassName?:string} => {
-    switch(status){
+  const getStatusConfig = (
+    status: string
+  ): {
+    label: string;
+    icon?: LucideIcon;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+    rowClassName?: string;
+  } => {
+    switch (status) {
       case "pending":
-        return {label: "En attente", icon: Hourglass, variant:"amber", rowClassName: "bg-amber-50/50 hover:bg-amber-50"};
+        return {
+          label: "En attente",
+          icon: Hourglass,
+          variant: "amber",
+          rowClassName: "bg-amber-50/50 hover:bg-amber-50",
+        };
       case "validated":
-        return {label: "Validé", icon: CheckCircle, variant:"success", rowClassName: "bg-green-50/50 hover:bg-green-50"};
+        return {
+          label: "Validé",
+          icon: CheckCircle,
+          variant: "success",
+          rowClassName: "bg-green-50/50 hover:bg-green-50",
+        };
       case "rejected":
-        return {label: "Rejeté",  variant:"destructive", rowClassName: "bg-red-50/50 hover:bg-red-50"};
+        return {
+          label: "Rejeté",
+          variant: "destructive",
+          rowClassName: "bg-red-50/50 hover:bg-red-50",
+        };
       case "in-review":
-        return {label: "En révision", variant:"sky", rowClassName: "bg-sky-50/50 hover:bg-sky-50"};
+        return {
+          label: "En révision",
+          variant: "sky",
+          rowClassName: "bg-sky-50/50 hover:bg-sky-50",
+        };
       case "cancel":
-        return {label: "Annulé", variant:"default"};
+        return { label: "Annulé", variant: "default" };
       default:
-        return {label: "Inconnu", variant: "default" }
+        return { label: "Inconnu", variant: "default" };
     }
   };
 
@@ -253,16 +275,16 @@ export function CommandeTable({
 
   const filteredData = getFilteredData;
 
-  const getTranslatedLabel = (label: string) => {
-    const translations: Record<string, string> = {
-      pending: "En attente",
-      validated: "Validé",
-      rejected: "Refusé",
-      "in-review": "En révision",
-      Cancel: "Annulé",
-    };
-    return translations[label] || label;
-  };
+  // const getTranslatedLabel = (label: string) => {
+  //   const translations: Record<string, string> = {
+  //     pending: "En attente",
+  //     validated: "Validé",
+  //     rejected: "Refusé",
+  //     "in-review": "En révision",
+  //     Cancel: "Annulé",
+  //   };
+  //   return translations[label] || label;
+  // };
 
   const columns: ColumnDef<CommandRequestT>[] = [
     {
@@ -311,7 +333,7 @@ export function CommandeTable({
       header: ({ column }) => {
         return (
           <span
-          className="tablehead"
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Titre"}
@@ -359,7 +381,7 @@ export function CommandeTable({
     },
     {
       id: "actions",
-      header: ()=><span className="tablehead">{"Actions"}</span>,
+      header: () => <span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
@@ -368,8 +390,8 @@ export function CommandeTable({
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
               <Button variant="ghost">
-                  {"Actions"}
-                  <ChevronDown />
+                {"Actions"}
+                <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -444,9 +466,9 @@ export function CommandeTable({
         <div className="grid gap-1.5">
           <Label htmlFor="searchCommand">{"Rechercher"}</Label>
           <Input
-          name="search"
-          type="search"
-          id="searchCommand"
+            name="search"
+            type="search"
+            id="searchCommand"
             placeholder="Reference, titre..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
@@ -459,8 +481,8 @@ export function CommandeTable({
           <Label>{"Période"}</Label>
           <DropdownMenu>
             <DropdownMenuTrigger className="min-w-52">
-                {getDateFilterText()}
-                <CalendarIcon />
+              {getDateFilterText()}
+              <CalendarIcon />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
@@ -526,7 +548,9 @@ export function CommandeTable({
                   <CalendarDays className="mr-2 h-4 w-4" />
                   {"Personnaliser"}
                 </span>
-                {dateFilter === "custom" && <ChevronRight className="h-4 w-4" />}
+                {dateFilter === "custom" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

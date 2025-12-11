@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -15,23 +14,19 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  MoreHorizontal,
-  Eye,
-  X,
-  Check,
-  Flag,
-  Clock,
   CheckCircle,
-  XCircle,
   ChevronDown,
-  Trash,
+  Clock,
+  Eye,
+  Flag,
   LucidePen,
+  Trash,
+  XCircle,
 } from "lucide-react";
+import * as React from "react";
 
+import { Paiement } from "@/app/tableau-de-bord/bdcommande/paiements/page";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -45,6 +40,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -52,17 +54,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { cn, XAF } from "@/lib/utils";
-import { DetailBC } from "../modals/detail-bc";
-import { Paiement } from "@/app/tableau-de-bord/bdcommande/paiements/page";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
 
@@ -496,7 +488,11 @@ export function PaiementsTable({ data }: PaiementTableProps) {
       </div>
 
       <Pagination table={table} />
-      <DetailPaiement data={selected!} open={showDetail} onOpenChange={setShowDetail} />
+      <DetailPaiement
+        data={selected!}
+        open={showDetail}
+        onOpenChange={setShowDetail}
+      />
     </div>
   );
 }

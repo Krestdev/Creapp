@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -15,19 +14,18 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  Eye,
-  CheckCircle,
-  XCircle,
-  ChevronDown,
-  CheckCheck,
-  LucideBan,
-  ChevronRight,
   CalendarDays,
   CalendarIcon,
-  X,
-  LucideIcon,
+  CheckCheck,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  Eye,
   Hourglass,
+  LucideBan,
+  LucideIcon,
 } from "lucide-react";
+import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +38,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -47,30 +52,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { DetailBesoin } from "../modals/detail-besoin";
-import { ValidationModal } from "../modals/ValidationModal";
-import { RequestQueries } from "@/queries/requestModule";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useStore } from "@/providers/datastore";
-import { RequestModelT } from "@/types/types";
-import { toast } from "sonner";
-import Empty from "./empty";
-import { Pagination } from "./pagination";
-import { ProjectQueries } from "@/queries/projectModule";
 import { UserQueries } from "@/queries/baseModule";
+import { ProjectQueries } from "@/queries/projectModule";
+import { RequestQueries } from "@/queries/requestModule";
+import { RequestModelT } from "@/types/types";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
-import { BesoinLastVal } from "../modals/BesoinLastVal";
-import { Badge, badgeVariants } from "../ui/badge";
-import { format, addDays } from "date-fns";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { VariantProps } from "class-variance-authority";
+import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { toast } from "sonner";
+import { DetailBesoin } from "../besoin/detail-besoin";
+import { BesoinLastVal } from "../modals/BesoinLastVal";
+import { ValidationModal } from "../modals/ValidationModal";
+import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
 import {
   Dialog,
@@ -81,12 +78,9 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Label } from "../ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../ui/popover";
-import { VariantProps } from "class-variance-authority";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import Empty from "./empty";
+import { Pagination } from "./pagination";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -95,10 +89,14 @@ interface DataTableProps {
   type?: "pending" | "proceed";
   dateFilter?: "today" | "week" | "month" | "year" | "custom" | undefined;
   setDateFilter?: React.Dispatch<
-    React.SetStateAction<"today" | "week" | "month" | "year" | "custom" | undefined>
+    React.SetStateAction<
+      "today" | "week" | "month" | "year" | "custom" | undefined
+    >
   >;
   customDateRange?: { from: Date; to: Date } | undefined;
-  setCustomDateRange?: React.Dispatch<React.SetStateAction<{ from: Date; to: Date } | undefined>>;
+  setCustomDateRange?: React.Dispatch<
+    React.SetStateAction<{ from: Date; to: Date } | undefined>
+  >;
 }
 
 export function DataValidation({
@@ -125,10 +123,11 @@ export function DataValidation({
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   // États pour le modal personnalisé
-  const [isCustomDateModalOpen, setIsCustomDateModalOpen] = React.useState(false);
-  const [tempCustomDateRange, setTempCustomDateRange] = React.useState<{ from: Date; to: Date } | undefined>(
-    customDateRange || { from: addDays(new Date(), -7), to: new Date() }
-  );
+  const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
+    React.useState(false);
+  const [tempCustomDateRange, setTempCustomDateRange] = React.useState<
+    { from: Date; to: Date } | undefined
+  >(customDateRange || { from: addDays(new Date(), -7), to: new Date() });
 
   // Utiliser un état local pour les données du tableau
   const [tableData, setTableData] = React.useState<RequestModelT[]>(data);
@@ -194,7 +193,10 @@ export function DataValidation({
         return "Cette année";
       case "custom":
         if (customDateRange?.from && customDateRange?.to) {
-          return `${format(customDateRange.from, "dd/MM/yyyy")} - ${format(customDateRange.to, "dd/MM/yyyy")}`;
+          return `${format(customDateRange.from, "dd/MM/yyyy")} - ${format(
+            customDateRange.to,
+            "dd/MM/yyyy"
+          )}`;
         }
         return "Personnaliser";
       default:
@@ -271,20 +273,45 @@ export function DataValidation({
     });
   }, [tableData, categoriesData.data]);
 
-  const getStatusConfig = (status: string):{label:string; icon?: LucideIcon; variant: VariantProps<typeof badgeVariants>["variant"], rowClassName?:string} => {
-    switch(status){
+  const getStatusConfig = (
+    status: string
+  ): {
+    label: string;
+    icon?: LucideIcon;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+    rowClassName?: string;
+  } => {
+    switch (status) {
       case "pending":
-        return {label: "En attente", icon: Hourglass, variant:"amber", rowClassName: "bg-amber-50/50 hover:bg-amber-50"};
+        return {
+          label: "En attente",
+          icon: Hourglass,
+          variant: "amber",
+          rowClassName: "bg-amber-50/50 hover:bg-amber-50",
+        };
       case "validated":
-        return {label: "Validé", icon: CheckCircle, variant:"success", rowClassName: "bg-green-50/50 hover:bg-green-50"};
+        return {
+          label: "Validé",
+          icon: CheckCircle,
+          variant: "success",
+          rowClassName: "bg-green-50/50 hover:bg-green-50",
+        };
       case "rejected":
-        return {label: "Rejeté",  variant:"destructive", rowClassName: "bg-red-50/50 hover:bg-red-50"};
+        return {
+          label: "Rejeté",
+          variant: "destructive",
+          rowClassName: "bg-red-50/50 hover:bg-red-50",
+        };
       case "in-review":
-        return {label: "En révision", variant:"sky", rowClassName: "bg-sky-50/50 hover:bg-sky-50"};
+        return {
+          label: "En révision",
+          variant: "sky",
+          rowClassName: "bg-sky-50/50 hover:bg-sky-50",
+        };
       case "cancel":
-        return {label: "Annulé", variant:"default"};
+        return { label: "Annulé", variant: "default" };
       default:
-        return {label: "Inconnu", variant: "default" }
+        return { label: "Inconnu", variant: "default" };
     }
   };
 
@@ -386,7 +413,7 @@ export function DataValidation({
       }
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     } finally {
       setIsValidationModalOpen(false);
@@ -410,7 +437,7 @@ export function DataValidation({
         header: ({ column }) => {
           return (
             <span
-            className="tablehead"
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
@@ -429,7 +456,7 @@ export function DataValidation({
         header: ({ column }) => {
           return (
             <span
-            className="tablehead"
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
@@ -451,7 +478,7 @@ export function DataValidation({
         header: ({ column }) => {
           return (
             <span
-            className="tablehead"
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
@@ -470,7 +497,7 @@ export function DataValidation({
         header: ({ column }) => {
           return (
             <span
-            className="tablehead"
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
@@ -490,7 +517,7 @@ export function DataValidation({
         header: ({ column }) => {
           return (
             <span
-            className="tablehead"
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
@@ -511,7 +538,7 @@ export function DataValidation({
         header: ({ column }) => {
           return (
             <span
-            className="tablehead"
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
@@ -537,7 +564,7 @@ export function DataValidation({
         header: ({ column }) => {
           return (
             <span
-            className="tablehead"
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
@@ -553,7 +580,7 @@ export function DataValidation({
 
           return (
             <Badge variant={state.variant}>
-             {Icon && <Icon  />}
+              {Icon && <Icon />}
               {state.label}
             </Badge>
           );
@@ -815,7 +842,9 @@ export function DataValidation({
                   <CalendarDays className="mr-2 h-4 w-4" />
                   Personnaliser
                 </span>
-                {dateFilter === "custom" && <ChevronRight className="h-4 w-4" />}
+                {dateFilter === "custom" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -894,7 +923,8 @@ export function DataValidation({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={cn(getStatusConfig(row.original.state).rowClassName
+                  className={cn(
+                    getStatusConfig(row.original.state).rowClassName
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -923,7 +953,10 @@ export function DataValidation({
       )}
 
       {/* Modal pour la plage de dates personnalisée */}
-      <Dialog open={isCustomDateModalOpen} onOpenChange={setIsCustomDateModalOpen}>
+      <Dialog
+        open={isCustomDateModalOpen}
+        onOpenChange={setIsCustomDateModalOpen}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Sélectionner une plage de dates</DialogTitle>
@@ -931,7 +964,7 @@ export function DataValidation({
               Choisissez la période que vous souhaitez filtrer
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -968,7 +1001,7 @@ export function DataValidation({
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="date-to">Date de fin</Label>
                 <Popover>
@@ -1004,7 +1037,7 @@ export function DataValidation({
                 </Popover>
               </div>
             </div>
-            
+
             <div className="rounded-md border p-4">
               <Calendar
                 mode="range"
@@ -1017,7 +1050,7 @@ export function DataValidation({
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button
               variant="outline"
@@ -1025,9 +1058,7 @@ export function DataValidation({
             >
               Annuler
             </Button>
-            <Button onClick={applyCustomDateRange}>
-              Appliquer
-            </Button>
+            <Button onClick={applyCustomDateRange}>Appliquer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

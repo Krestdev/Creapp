@@ -1,4 +1,4 @@
-import CreateCommande from "@/components/pages/bdcommande/createCommande";
+import CreateCommande from "@/components/bdcommande/createCommande";
 import PageTitle from "@/components/pageTitle";
 
 const Page = () => {

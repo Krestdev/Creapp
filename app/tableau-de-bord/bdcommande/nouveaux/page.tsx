@@ -1,4 +1,4 @@
-import CreateBonPage from "@/components/pages/bdcommande/CreateBonPage";
+import CreateBonPage from "@/components/bdcommande/CreateBonPage";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 

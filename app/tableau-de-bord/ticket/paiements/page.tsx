@@ -1,6 +1,5 @@
-import Paiements from "@/components/pages/ticket/paiement";
+import Paiements from "@/components/ticket/paiement";
 import PageTitle from "@/components/pageTitle";
-import React from "react";
 
 const Page = () => {
   return (

@@ -1,6 +1,5 @@
-import CreateUserForm from "@/components/forms/create-user";
-import CreateProject from "@/components/pages/projets/createProject";
 import PageTitle from "@/components/pageTitle";
+import CreateProject from "@/components/projets/createProject";
 
 const Page = () => {
   return (

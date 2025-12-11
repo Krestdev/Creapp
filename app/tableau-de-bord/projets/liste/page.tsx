@@ -1,4 +1,4 @@
-import ProjectListPage from "@/components/pages/projets/liste";
+import ProjectListPage from "@/components/projets/liste";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {

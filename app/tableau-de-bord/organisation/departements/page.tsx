@@ -1,5 +1,4 @@
-import DepartementPage from "@/components/pages/organisation/departements";
-import UserListPage from "@/components/pages/utilisateurs/liste";
+import DepartementPage from "@/components/organisation/departements";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {

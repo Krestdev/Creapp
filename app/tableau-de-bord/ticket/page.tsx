@@ -1,7 +1,7 @@
 "use client";
 
 import TitleValueCard from "@/components/base/TitleValueCard";
-import Tickets from "@/components/pages/ticket/tickets";
+import Tickets from "@/components/ticket/tickets";
 import PageTitle from "@/components/pageTitle";
 import { useStore } from "@/providers/datastore";
 import { TicketsData } from "@/types/types";

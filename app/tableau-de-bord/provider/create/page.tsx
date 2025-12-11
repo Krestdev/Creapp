@@ -1,4 +1,4 @@
-import CreateUserForm from "@/components/forms/create-provider";
+import CreateUserForm from "@/components/provider/create-provider";
 import PageTitle from "@/components/pageTitle";
 
 const Page = () => {

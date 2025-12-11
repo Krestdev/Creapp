@@ -1,18 +1,16 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { CommandRequestT } from "@/types/types";
-import { RequestQueries } from "@/queries/requestModule";
-import { useQuery } from "@tanstack/react-query";
 import { UserQueries } from "@/queries/baseModule";
-import CotationPDF from "../pages/bdcommande/DétailCotation";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { DownloadButton } from "../pages/bdcommande/TéléchargeButton";
+import { RequestQueries } from "@/queries/requestModule";
+import { CommandRequestT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
+import { DownloadButton } from "../bdcommande/TéléchargeButton";
 
 interface DetailOrderProps {
   open: boolean;

@@ -1,7 +1,7 @@
 "use client";
 
 import StatsCard from "@/components/base/StatsCard";
-import RequestList from "@/components/pages/besoin/RequestListPage";
+import RequestList from "@/components/besoin/RequestListPage";
 import PageTitle from "@/components/pageTitle";
 import { useStore } from "@/providers/datastore";
 import { RequestQueries } from "@/queries/requestModule";
@@ -24,11 +24,11 @@ const Page = () => {
 
   const soumis = requestData.data?.data.length ?? 0;
   const attentes =
-  requestData.data?.data.filter((item) => item.state === "pending").length ??
-  0;
+    requestData.data?.data.filter((item) => item.state === "pending").length ??
+    0;
   const rejetes =
-  requestData.data?.data.filter((item) => item.state === "rejected").length ??
-  0;
+    requestData.data?.data.filter((item) => item.state === "rejected").length ??
+    0;
   const validés = soumis - attentes - rejetes;
   return (
     <div className="flex flex-col gap-6">

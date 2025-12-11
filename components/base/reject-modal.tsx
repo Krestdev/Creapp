@@ -1,27 +1,16 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Hash,
-  FolderOpen,
-  FileText,
-  FolderTree,
-  AlertCircle,
-  Users,
-  UserPlus,
-  Calendar,
-  X,
-} from "lucide-react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { TableData } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -31,7 +20,6 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Textarea } from "../ui/textarea";
-import { TableData } from "@/types/types";
 
 interface DetailModalProps {
   open: boolean;

@@ -1,4 +1,4 @@
-import UserListPage from "@/components/pages/utilisateurs/liste";
+import UserListPage from "@/components/utilisateurs/liste";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {

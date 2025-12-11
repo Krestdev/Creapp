@@ -1,4 +1,4 @@
-import BdCommandePaiement from "@/components/pages/bdcommande/bdCommandePaiement";
+import BdCommandePaiement from "@/components/bdcommande/bdCommandePaiement";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 

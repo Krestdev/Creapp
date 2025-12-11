@@ -1,11 +1,10 @@
 "use client";
 
-import Bdcommande from "@/components/pages/bdcommande/bdcommande";
+import Bdcommande from "@/components/bdcommande/bdcommande";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/providers/datastore";
 import Link from "next/link";
-import React from "react";
 
 const Page = () => {
   const { user } = useStore();

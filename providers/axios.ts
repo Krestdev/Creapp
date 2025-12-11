@@ -1,5 +1,5 @@
 // lib/axios.ts
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios from "axios";
 import { toast } from "sonner";
 
 const baseURL =
