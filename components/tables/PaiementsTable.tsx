@@ -135,7 +135,7 @@ export function PaiementsTable({ data }: PaiementTableProps) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [selected, setSelected] = React.useState<Paiement | null>(null);
+  const [selected, setSelected] = React.useState<Paiement | undefined>(undefined);
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
 
   const columns: ColumnDef<Paiement>[] = [
@@ -496,7 +496,7 @@ export function PaiementsTable({ data }: PaiementTableProps) {
       </div>
 
       <Pagination table={table} />
-      <DetailPaiement data={selected!} open={showDetail} onOpenChange={setShowDetail} />
+      {selected && <DetailPaiement data={selected} open={showDetail} onOpenChange={setShowDetail} />}
     </div>
   );
 }
