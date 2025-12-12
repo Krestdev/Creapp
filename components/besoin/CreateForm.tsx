@@ -36,9 +36,9 @@ import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format, Locale } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, ChevronDownIcon, LoaderIcon } from "lucide-react";
+import { CalendarIcon, LoaderIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -145,7 +145,7 @@ export default function MyForm() {
       setIsSuccessModalOpen(true);
       form.reset();
       setSelectedUsers([]);
-      
+
       // Invalider et rafraîchir toutes les requêtes liées aux besoins
       queryClient.invalidateQueries({ queryKey: ["requests"] });
       queryClient.invalidateQueries({ queryKey: ["requests-validation"] });

@@ -7,14 +7,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
 import { ResponseT, Role } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";

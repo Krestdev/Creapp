@@ -1,8 +1,8 @@
 "use client";
 
-import { useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import {
   Form,
@@ -13,27 +13,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { DepartmentT, DepartmentUpdateInput, Role } from "@/types/types";
-import { UserQueries } from "@/queries/baseModule";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { UserQueries } from "@/queries/baseModule";
+import { Role } from "@/types/types";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   label: z.string(),

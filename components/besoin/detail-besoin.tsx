@@ -263,7 +263,7 @@ export function DetailBesoin({
 
                     const isValidatorInList = data.revieweeList
                       ?.flatMap((reviewee) => reviewee.validatorId)
-                      .includes(user?.id!);
+                      .includes(user?.id ?? -1);
 
                     const isAccepted =
                       data.revieweeList?.find((r) => r.validatorId === user?.id)
@@ -336,7 +336,7 @@ export function DetailBesoin({
 
                     let statusLabel = "En attente";
                     let statusColor = "bg-yellow-200 text-yellow-700";
-                    let showMotif = false;
+                    // let showMotif = false;
 
                     if (someoneRejected) {
                       statusLabel = "Non vu";
