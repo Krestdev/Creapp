@@ -229,6 +229,11 @@ export type QuotationElement = {
 };
 
 export type Quotation = {
+  commandId: undefined;
+  isPartial: boolean;
+  amount: number;
+  payementMethod: string;
+  priority: string;
   id: number;
   commandRequestId: number;
   providerId: number;
