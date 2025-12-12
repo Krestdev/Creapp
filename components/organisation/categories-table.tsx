@@ -14,17 +14,13 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  CheckCircle,
   ChevronDown,
-  Clock,
   LucidePen,
   MoreHorizontal,
   Users,
-  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -52,15 +48,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Category, DepartmentT, Member } from "@/types/types";
+import { RequestQueries } from "@/queries/requestModule";
+import { Category } from "@/types/types";
+import { useMutation } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { RequestQueries } from "@/queries/requestModule";
-import { useMutation } from "@tanstack/react-query";
 import UpdateCategory from "./UpdateCategory";
 
 interface CategoriesTableProps {

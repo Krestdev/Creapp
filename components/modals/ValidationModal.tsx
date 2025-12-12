@@ -1,5 +1,4 @@
 "use client";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,7 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader, Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface ValidationModalProps {
   open: boolean;

@@ -148,39 +148,6 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
   // État pour suivre la priorité sélectionnée dans le Select
   const [selectedPriority, setSelectedPriority] = React.useState<string>("all");
 
-  // Mettre à jour le filtre quand selectedStatus change
-  React.useEffect(() => {
-    const statusColumn = table.getColumn("state");
-    if (statusColumn) {
-      if (selectedStatus === "all") {
-        // Pour "Tous les statuts", on supprime le filtre
-        statusColumn.setFilterValue(undefined);
-      } else {
-        // Sinon on applique le filtre avec la valeur sélectionnée
-        statusColumn.setFilterValue(selectedStatus);
-      }
-    }
-  }, [selectedStatus]);
-
-  // Mettre à jour le filtre quand selectedPriority change
-  React.useEffect(() => {
-    const priorityColumn = table.getColumn("priorite");
-    if (priorityColumn) {
-      if (selectedPriority === "all") {
-        // Pour "Toutes les priorités", on supprime le filtre
-        priorityColumn.setFilterValue(undefined);
-      } else {
-        // Sinon on applique le filtre avec la valeur sélectionnée
-        priorityColumn.setFilterValue(selectedPriority);
-      }
-    }
-  }, [selectedPriority]);
-
-  // Initialiser le filtre de statut avec la valeur par défaut
-  React.useEffect(() => {
-    setSelectedStatus(defaultStatusFilter);
-  }, [defaultStatusFilter]);
-
   const columns: ColumnDef<TicketsData>[] = [
     {
       id: "select",
@@ -430,6 +397,39 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
     return config?.label || selectedPriority;
   };
 
+  // Mettre à jour le filtre quand selectedStatus change
+  React.useEffect(() => {
+    const statusColumn = table.getColumn("state");
+    if (statusColumn) {
+      if (selectedStatus === "all") {
+        // Pour "Tous les statuts", on supprime le filtre
+        statusColumn.setFilterValue(undefined);
+      } else {
+        // Sinon on applique le filtre avec la valeur sélectionnée
+        statusColumn.setFilterValue(selectedStatus);
+      }
+    }
+  }, [selectedStatus]);
+
+  // Mettre à jour le filtre quand selectedPriority change
+  React.useEffect(() => {
+    const priorityColumn = table.getColumn("priorite");
+    if (priorityColumn) {
+      if (selectedPriority === "all") {
+        // Pour "Toutes les priorités", on supprime le filtre
+        priorityColumn.setFilterValue(undefined);
+      } else {
+        // Sinon on applique le filtre avec la valeur sélectionnée
+        priorityColumn.setFilterValue(selectedPriority);
+      }
+    }
+  }, [selectedPriority]);
+
+  // Initialiser le filtre de statut avec la valeur par défaut
+  React.useEffect(() => {
+    setSelectedStatus(defaultStatusFilter);
+  }, [defaultStatusFilter]);
+
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
@@ -581,7 +581,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       <ApproveTicket
         open={openValidationModal}
         onOpenChange={setOpenValidationModal}
-        title={selectedTicket?.bonDeCommande!}
+        title={selectedTicket?.bonDeCommande ?? ""}
         subTitle={"Valider le ticket"}
         description={"Voulez-vous valider ce ticket ?"}
         action={function (): void {
@@ -593,7 +593,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       <ApproveTicket
         open={openPaiementModal}
         onOpenChange={setOpenPaiementModal}
-        title={selectedTicket?.bonDeCommande!}
+        title={selectedTicket?.bonDeCommande ?? ""}
         subTitle={"Payer le ticket"}
         description={"Voulez-vous payer ce ticket ?"}
         action={function (): void {

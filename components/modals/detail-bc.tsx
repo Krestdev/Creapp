@@ -1,40 +1,31 @@
 "use client";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { XAF } from "@/lib/utils";
 import {
-  Hash,
-  FolderOpen,
-  FileText,
-  FolderTree,
-  AlertCircle,
-  Users,
-  UserPlus,
   Calendar,
-  X,
-  LucideScrollText,
-  UserRound,
-  CalendarFold,
   CircleDollarSign,
-  LucideWallet,
+  FileQuestion,
+  Hash,
+  LucideCalendar,
+  LucideCalendarFold,
+  LucideCheckCheck,
+  LucideFile,
   LucideFlag,
   LucideInfo,
-  LucideCheckCheck,
-  LucideX,
   LucideMapPin,
-  FileQuestion,
+  LucideScrollText,
   LucideSquareUserRound,
-  LucideFile,
   LucideUserRound,
-  LucideCalendarFold,
-  LucideCalendar,
+  LucideWallet,
+  LucideX,
 } from "lucide-react";
-import { XAF } from "@/lib/utils";
 import Link from "next/link";
 
 export type Justificatif = {
@@ -57,7 +48,7 @@ export interface BonCommandePaiement {
   montant: number;
   priorite: "low" | "high" | "medium" | "urgent";
   moyen?: string; // ex: "Espece", "Virement", etc.
-  statut?: "pending" | "approved" | "rejected" | "in-review"
+  statut?: "pending" | "approved" | "rejected" | "in-review";
   delai?: string; // date au format JJ/MM/AAAA
   lieu?: string;
   emetteur?: string;
@@ -199,7 +190,9 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <div className="flex flex-col gap-1">
                   {data.besoin?.map((bes, index) => (
                     <div key={index} className="flex flex-col gap-0.5">
-                      <p className="text-[14px] font-medium first-letter:uppercase">{bes.title}</p>
+                      <p className="text-[14px] font-medium first-letter:uppercase">
+                        {bes.title}
+                      </p>
                       <p className="text-primary text-[12px] font-medium">
                         {XAF.format(bes.prix) + " (x" + bes.qte + " Pièce)"}
                       </p>
@@ -342,7 +335,6 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="font-semibold">{data.condition}</p>
               </div>
             </div>
-
           </div>
         </div>
 

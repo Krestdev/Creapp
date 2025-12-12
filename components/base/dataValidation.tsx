@@ -376,7 +376,7 @@ export function DataValidation({
       await request.review(id, {
         validated: validated,
         decision: decision,
-        userId: user?.id!,
+        userId: user?.id ?? -1,
       });
     },
     onSuccess: () => {

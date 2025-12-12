@@ -103,7 +103,7 @@ function AppSidebar() {
             return (
               !item.revieweeList
                 ?.flatMap((x) => x.validatorId)
-                .includes(user?.id!) && item.state === "pending"
+                .includes(user?.id ?? -1) && item.state === "pending"
             );
           }
         });
