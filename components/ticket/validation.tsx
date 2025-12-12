@@ -1,4 +1,4 @@
-// import { BonCommandePaiement } from "@/components/modals/detail-bc";
+import { BonCommandePaiement } from "@/components/modals/detail-bc";
 
 // const bonsCommandePaiementData: BonCommandePaiement[] = [
 //   {
@@ -35,12 +35,13 @@
 //   },
 // ];
 
-// const ValidationBC = () => {
-//   return (
-//     <div className="flex flex-col gap-4">
-//       <BonsCommandePaiementTable data={bonsCommandePaiementData} />
-//     </div>
-//   );
-// };
+const ValidationBC = () => {
+  return (
+    <div className="flex flex-col gap-4">
+      {/* <BonsCommandePaiementTable data={bonsCommandePaiementData} /> */}
+      table
+    </div>
+  );
+};
 
-// export default ValidationBC;
+export default ValidationBC;
