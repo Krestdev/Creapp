@@ -79,6 +79,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import DetailReception from "../modals/detail-reception";
+import CompleteReception from "../modals/complete-reception";
 
 export type ReceptionData = {
   id: string;
@@ -169,7 +171,7 @@ export function ReceptionTable({
     undefined
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
-  const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
+  const [showCompleteModal, setShowCompleteModal] = React.useState<boolean>(false);
 
   // États pour le filtre de période
   const [localDateFilter, setLocalDateFilter] = React.useState<
@@ -538,7 +540,7 @@ export function ReceptionTable({
               <DropdownMenuItem
                 onClick={() => {
                   setSelected(item);
-                  setShowUpdateModal(true);
+                  setShowCompleteModal(true);
                 }}
               >
                 <Check className="mr-2 h-4 w-4" />
@@ -1083,19 +1085,24 @@ export function ReceptionTable({
       </Dialog>
 
       {/* Modales existantes */}
-      {/* {selected && (
-        <DetailPaiement
+      {selected && (
+        <DetailReception
           data={selected}
           open={showDetail}
           onOpenChange={setShowDetail}
+          action={() => {
+            setShowDetail(false);
+            setShowCompleteModal(true);
+          }}
         />
-      )} */}
-      {/* {selected && (
-        <CreatePaiement
-          paiement={selected}
-          onOpenChange={setShowUpdateModal}
+      )}
+      {selected && (
+        <CompleteReception
+          data={selected}
+          open={showCompleteModal}
+          onOpenChange={setShowCompleteModal}
         />
-      )} */}
+      )}
     </div>
   );
 }
