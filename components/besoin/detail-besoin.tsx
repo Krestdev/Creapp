@@ -116,7 +116,7 @@ export function DetailBesoin({
         "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
     },
     validated: {
-      label: "Soumis",
+      label: "Approuvé",
       color:
         "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
     },
@@ -342,7 +342,7 @@ export function DetailBesoin({
                       statusLabel = "Non vu";
                       statusColor = "bg-gray-200 text-gray-700";
                     } else if (data.state === "validated") {
-                      statusLabel = "Soumis";
+                      statusLabel = "Approuvé";
                       statusColor = "bg-green-200 text-green-700";
                     } else if (data.state === "rejected") {
                       statusLabel = "Rejeté";

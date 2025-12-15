@@ -49,7 +49,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { CommandQueries } from "@/queries/commandModule";
 import { CommandRequestT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
@@ -70,6 +69,8 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { DownloadButton } from "../bdcommande/TéléchargeButton";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -104,7 +105,7 @@ export function CommandeTable({
     React.useState<CommandRequestT | null>(null);
   const [showOrder, setShowOrder] = React.useState(false);
 
-  const command = new CommandQueries();
+  const command = new CommandRqstQueries();
   const commandData = useQuery({
     queryKey: ["commands"],
     queryFn: async () => command.getAll(),
@@ -415,9 +416,8 @@ export function CommandeTable({
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
-                <LucideDownload className="mr-2 h-4 w-4" />
-                {"Télécharger"}
+              <DropdownMenuItem>
+                <DownloadButton data={item} className="bg-transparent text-black hover:bg-transparent hover:text-black h-8 py-0 px-0 font-normal!" />
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => console.log("Reject", item)}>
                 <Trash color="red" className="mr-2 h-4 w-4" />

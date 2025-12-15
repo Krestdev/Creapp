@@ -1,7 +1,7 @@
 "use client";
 
 import { CommandeTable } from "@/components/tables/commande-table";
-import { CommandQueries } from "@/queries/commandModule";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
@@ -10,7 +10,7 @@ const Cotation = () => {
     "today" | "week" | "month" | "year" | "custom" | undefined
   >();
 
-  const command = new CommandQueries();
+  const command = new CommandRqstQueries();
   const commandData = useQuery({
     queryKey: ["commands"],
     queryFn: async () => command.getAll(),

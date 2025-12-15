@@ -54,7 +54,7 @@ const Page = () => {
           title="Total besoins soumis"
           titleColor="text-[#52525B]"
           value={String(soumis)}
-          description="Besoins soumis :"
+          description="Besoins Validé :"
           descriptionValue={String(validés)}
           descriptionColor="text-[#A1A1AA]"
           dividerColor="bg-[#DFDFDF]"

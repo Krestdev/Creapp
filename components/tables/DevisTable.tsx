@@ -156,7 +156,7 @@ export function DevisTable({
       case "rejected":
         return {label:"Rejeté", variant: "destructive"};
       case "submitted":
-        return {label:"Soumis", variant: "primary"};
+        return {label:"Approuvé", variant: "primary"};
         default: return {label: "Inconnu", variant: "outline"};
     }
   }

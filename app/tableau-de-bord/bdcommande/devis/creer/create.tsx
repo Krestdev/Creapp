@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/select";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { CommandQueries } from "@/queries/commandModule";
 import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
 import {
@@ -44,6 +43,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import AddElement from "./addElement";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { ProviderDialog } from "@/components/modals/ProviderDialog";
 
 const formSchema = z.object({
   commandRequestId: z.number({ message: "Requis" }),
@@ -91,13 +92,15 @@ function CreateQuotation({ quotation, openChange }: Props) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [open, setOpen] = React.useState<boolean>(false);
+  const [openP, setOpenP] = React.useState<boolean>(false);
+  const [openS, setOpenS] = React.useState<boolean>(false);
   const [selectedNeeds, setSelectedNeeds] =
     React.useState<Array<RequestModelT>>();
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const { user } = useStore();
 
   /**Demandes de cotation */
-  const requestsQuery = new CommandQueries();
+  const requestsQuery = new CommandRqstQueries();
   const requestsData = useFetchQuery(
     ["commands"],
     requestsQuery.getAll,
@@ -262,6 +265,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
                 <Select
                   defaultValue={field.value ? String(field.value) : undefined}
                   onValueChange={(v) => field.onChange(Number(v))}
+                  open={openS}
+                  onOpenChange={setOpenS}
                 >
                   <SelectTrigger className="min-w-60 w-full">
                     <SelectValue placeholder="Sélectionner" />
@@ -281,6 +286,16 @@ function CreateQuotation({ quotation, openChange }: Props) {
                         </SelectItem>
                       ))
                     )}
+                    <Button
+                      onClick={() => {
+                        setOpenS(false);
+                        setOpenP(true);
+                      }}
+                      variant={"outline"}
+                      className="w-full"
+                    >
+                      {"Ajouter un fournisseur"}
+                    </Button>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -472,6 +487,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
           {!!quotation ? "Modifier le devis" : "Créer le devis"}
         </Button>
       </form>
+      <ProviderDialog open={openP} onOpenChange={setOpenP} />
     </Form>
   );
 }

@@ -22,7 +22,7 @@ function Page() {
   >();
 
   const links:Array<{title: string; href: string;}> = [
-    { title: "Creer un besoin", href: "/tableau-de-bord/besoins/create" },
+    { title: "Créer un besoin", href: "/tableau-de-bord/besoins/create" },
     { title: "Mes Besoins", href: "/tableau-de-bord/besoins/mylist" },
     { title: "Approbation", href: "/tableau-de-bord/besoins/approbation" },
   ];

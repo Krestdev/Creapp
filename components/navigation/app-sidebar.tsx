@@ -151,7 +151,7 @@ function AppSidebar() {
         {
           pageId: "PG-00-01",
           authorized: ["ADMIN"],
-          title: "Creer un projet",
+          title: "Créer un projet",
           href: "/tableau-de-bord/projets/create",
         },
         {
@@ -178,7 +178,7 @@ function AppSidebar() {
       items: [
         {
           pageId: "PG-02-01",
-          title: "Creer un besoin",
+          title: "Créer un besoin",
           href: "/tableau-de-bord/besoins/create",
           authorized: ["ADMIN", "MANAGER", "USER"],
         },
@@ -329,7 +329,7 @@ function AppSidebar() {
       items: [
         {
           pageId: "PG-08-01",
-          title: "Creer un utilisateur",
+          title: "Créer un utilisateur",
           href: "/tableau-de-bord/utilisateurs/create",
           authorized: ["ADMIN"],
         },
@@ -350,7 +350,7 @@ function AppSidebar() {
       items: [
         {
           pageId: "PG-08-01",
-          title: "Creer un fournisseur",
+          title: "Créer un fournisseur",
           href: "/tableau-de-bord/provider/create",
           authorized: ["ADMIN"],
         },
@@ -377,7 +377,7 @@ function AppSidebar() {
         },
         {
           pageId: "PG-09-02",
-          title: "Creer un departement",
+          title: "Créer un departement",
           href: "/tableau-de-bord/organisation/createdepartement",
           authorized: ["ADMIN"],
         },
@@ -389,7 +389,7 @@ function AppSidebar() {
         },
         {
           pageId: "PG-09-04",
-          title: "Creer un categorie",
+          title: "Créer un categorie",
           href: "/tableau-de-bord/organisation/createcategorie",
           authorized: ["ADMIN"],
         },

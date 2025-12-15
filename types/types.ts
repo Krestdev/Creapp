@@ -203,11 +203,11 @@ export type ProjectCreateResponse = {
 };
 
 export type Provider = {
-  rating: number;
-  taxId: string;
-  address: string;
-  email: string;
-  phone: string;
+  rating?: number;
+  taxId?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
   updatedAt?: string;
   createdAt: string;
   id: number;
@@ -275,4 +275,21 @@ type MemberInput = {
   validator: boolean;
   chief: boolean;
   finalValidator: boolean;
+};
+
+export type BonsCommande = {
+  id: number;
+  deviId: number;
+  providerId: number;
+  amountBase: number;
+  priority:  "low" | "medium" | "high" | "urgent";
+  status: "approved" | "pending" | "in-review" | "rejected";
+  penaltyMode?: string;
+  hasPenalties?: boolean;
+  deliveryLocation?: string;
+  paymentMethod: string;
+  paymentTerms: string;
+  deliveryDelay: Date;
+  createdAt: Date;
+  updatedAt: Date;
 };

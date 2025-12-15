@@ -36,7 +36,7 @@ import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, min } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon, LoaderIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -48,18 +48,18 @@ import { z } from "zod";
 // VALIDATION
 // ----------------------------------------------------------------------
 const formSchema = z.object({
-  projet: z.string(),
-  categorie: z.string(),
-  souscategorie: z.string(),
-  titre: z.string().min(1),
+  projet: z.string().min(1, "Le projet est requis"),
+  categorie: z.string().min(1, "La catégorie est requise"),
+  souscategorie: z.string().min(1, "La sous-catégorie est requise"),
+  titre: z.string().min(1, "Le titre est requis"),
   description: z.string(),
-  quantity: z.string().refine((val) => !isNaN(Number(val)), {
+  quantity: z.string().min(1, "La quantité est requise").refine((val) => !isNaN(Number(val)), {
     message: "Le montant doit être un nombre valide",
   }),
-  unite: z.string().optional(),
-  datelimite: z.date().optional(),
-  beneficiaire: z.string().optional(),
-  utilisateurs: z.array(z.number()).optional(), // IDs des users
+  unite: z.string().min(1, "L'unité est requise"),
+  datelimite: z.date().min(new Date(), "La date limite doit être dans le futur"),
+  beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
+  utilisateurs: z.array(z.number()).optional(),
 });
 
 export default function MyForm() {
@@ -85,7 +85,7 @@ export default function MyForm() {
       description: "",
       quantity: "",
       unite: "",
-      datelimite: new Date(),
+      datelimite: undefined,
       beneficiaire: "",
       utilisateurs: [],
     },
@@ -206,7 +206,7 @@ export default function MyForm() {
             name="projet"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Projet concerné</FormLabel>
+                <FormLabel>Projet concerné <span className="text-red-500">*</span></FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -234,7 +234,7 @@ export default function MyForm() {
             name="categorie"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Catégorie</FormLabel>
+                <FormLabel>Catégorie <span className="text-red-500">*</span></FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
@@ -259,7 +259,7 @@ export default function MyForm() {
             name="souscategorie"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Sous-catégorie</FormLabel>
+                <FormLabel>Sous-catégorie <span className="text-red-500">*</span></FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   disabled={!selectedCategorie} // Désactivé si aucune catégorie sélectionnée
@@ -299,7 +299,7 @@ export default function MyForm() {
             name="titre"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Titre</FormLabel>
+                <FormLabel>Titre <span className="text-red-500">*</span></FormLabel>
                 <FormControl>
                   <Input placeholder="Titre du besoin" {...field} />
                 </FormControl>
@@ -327,7 +327,7 @@ export default function MyForm() {
             name="datelimite"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>{"Date limite"}</FormLabel>
+                <FormLabel>{"Date limite"}<span className="text-red-500">*</span></FormLabel>
                 <Popover>
                   <PopoverTrigger asChild className="h-10 w-full!">
                     <FormControl className="w-full">
@@ -356,7 +356,6 @@ export default function MyForm() {
                     />
                   </PopoverContent>
                 </Popover>
-                <FormMessage />
               </FormItem>
             )}
           />
@@ -367,7 +366,7 @@ export default function MyForm() {
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quantité</FormLabel>
+                <FormLabel>{"Quantité"}<span className="text-red-500">*</span></FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="ex. 10" {...field} />
                 </FormControl>
@@ -381,7 +380,7 @@ export default function MyForm() {
             name="unite"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Unité</FormLabel>
+                <FormLabel>{"Unité"}<span className="text-red-500">*</span></FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
@@ -404,7 +403,7 @@ export default function MyForm() {
             name="beneficiaire"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bénéficiaire</FormLabel>
+                <FormLabel>Bénéficiaire <span className="text-red-500">*</span></FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
@@ -427,7 +426,7 @@ export default function MyForm() {
               name="utilisateurs"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Utilisateurs</FormLabel>
+                  <FormLabel>Utilisateurs <span className="text-red-500">*</span></FormLabel>
 
                   <MultiSelectUsers
                     display="user"

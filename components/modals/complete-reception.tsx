@@ -108,7 +108,7 @@ const CompleteReception = ({ open, onOpenChange, data }: Props) => {
                 name="items"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>Demande de cotation</FormLabel>
+                    <FormLabel isRequired>{"Demande de cotation"}</FormLabel>
                     <FormControl>
                       <div className="flex flex-col gap-3">
                         {data.items.map((item) => {
@@ -160,7 +160,7 @@ const CompleteReception = ({ open, onOpenChange, data }: Props) => {
                 name="proof"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>Justificatif</FormLabel>
+                    <FormLabel isRequired>{"Justificatif"}</FormLabel>
                     <FormControl>
                       <FilesUpload
                         value={field.value}
@@ -185,7 +185,7 @@ const CompleteReception = ({ open, onOpenChange, data }: Props) => {
         <div className="shrink-0 sticky bottom-0 z-10">
           <div className="flex justify-end gap-3 p-6">
             <Button variant="primary" onClick={form.handleSubmit(onSubmit)}>
-              Enregistrer
+              {"Enregistrer"}
             </Button>
             <Button
               variant="outline"
@@ -195,7 +195,7 @@ const CompleteReception = ({ open, onOpenChange, data }: Props) => {
                 onOpenChange(false);
               }}
             >
-              Fermer
+              {"Fermer"}
             </Button>
           </div>
         </div>

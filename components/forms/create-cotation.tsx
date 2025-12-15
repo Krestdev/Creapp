@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { CommandQueries } from "@/queries/commandModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { CommandRequestT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,6 +29,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import Besoins from "../bdcommande/besoins";
 import { SuccessModal } from "../modals/success-modal";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 
 const formSchema = z.object({
   titre: z.string().min(1),
@@ -56,7 +56,7 @@ export default function CreateCotationForm() {
     },
   });
 
-  const command = new CommandQueries();
+  const command = new CommandRqstQueries();
   const createCommand = useMutation({
     mutationKey: ["command"],
     mutationFn: (

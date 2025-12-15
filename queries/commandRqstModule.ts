@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { CommandRequestT } from "@/types/types";
 
-export class CommandQueries {
+export class CommandRqstQueries {
   route = "/request/cmdrqst";
 
   // --------------------------------------

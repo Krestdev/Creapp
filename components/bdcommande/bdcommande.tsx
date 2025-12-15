@@ -2,7 +2,7 @@
 
 import Empty from "@/components/base/empty";
 import { CommandeTable } from "@/components/tables/commande-table";
-import { CommandQueries } from "@/queries/commandModule";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,7 @@ const Bdcommande = () => {
   >();
   const router = useRouter();
   const request = new RequestQueries();
-  const command = new CommandQueries();
+  const command = new CommandRqstQueries();
 
   const commandData = useQuery({
     queryKey: ["commands"],
