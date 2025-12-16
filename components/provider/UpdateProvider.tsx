@@ -108,10 +108,10 @@ export default function UpdateProvider({
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            Modifier le besoin
+            {" Modifier le fournisseur"}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            Modifiez les informations du besoin existant
+            {"Modifiez les informations du fournisseur existant"}
           </p>
         </DialogHeader>
         <Form {...form}>
@@ -125,9 +125,9 @@ export default function UpdateProvider({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Label</FormLabel>
+                  <FormLabel>{"Nom (entreprise)"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter label" {...field} />
+                    <Input placeholder="Nom de l'entreprise" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -142,7 +142,7 @@ export default function UpdateProvider({
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Optional email" {...field} />
+                    <Input placeholder="Entrer l'email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,9 +155,12 @@ export default function UpdateProvider({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>Numéro de telephone</FormLabel>
                   <FormControl>
-                    <Input placeholder="Optional phone" {...field} />
+                    <Input
+                      placeholder="Entrer le numéro de téléphone"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -165,53 +168,61 @@ export default function UpdateProvider({
             />
 
             {/* DESCRIPTION */}
-            <FormField
+            {/* <FormField
               control={form.control}
               name="rating"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Rating</FormLabel>
+                  <FormLabel>Not</FormLabel>
                   <FormControl>
                     <Input placeholder="Optional rating" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
 
             {/* TAXID */}
-            <FormField
+            {/* <FormField
               control={form.control}
               name="taxId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tax ID</FormLabel>
+                  <FormLabel>{"Tax ID"}</FormLabel>
                   <FormControl>
                     <Input placeholder="Optional tax ID" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
 
             <FormField
               control={form.control}
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>{"Addresse"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Optional address" {...field} />
+                    <Input
+                      placeholder="Entrer l'addresse de l'entreprise"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* SUBMIT */}
-            <Button type="submit" className="w-full">
-              Submit
-            </Button>
+            <div className="w-full gap-2 flex mt-4">
+              {/* SUBMIT */}
+              <Button type="submit" className="w-fit ml-auto">
+                {"Enrégistrer"}
+              </Button>
+              <Button type="button" onClick={() => setOpen(false)} variant={"outline"}>
+                {"Annuler"}
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>
