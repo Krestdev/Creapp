@@ -179,15 +179,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
         accessorKey: "reference",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Référence
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -198,15 +198,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
         accessorKey: "label",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Project
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => <div>{row.getValue("label")}</div>,
@@ -215,15 +215,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
         accessorKey: "budget",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Total Budget
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -269,15 +269,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
         accessorKey: "chief",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Chief
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {
@@ -289,15 +289,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
         accessorKey: "status",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               State
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {

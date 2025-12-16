@@ -132,15 +132,15 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         accessorKey: "label",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Name
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -160,15 +160,15 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         accessorKey: "parentId",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Parent
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {
@@ -183,15 +183,15 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         accessorKey: "isSpecial",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Special"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
