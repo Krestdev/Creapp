@@ -50,25 +50,27 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
   const { mutate: registerProvider, isPending } = useMutation({
     mutationKey: ["registerNewProvider"],
     mutationFn: (data: { name: string }) => providerQueries.create(data),
+    // Dans ProviderDialog, modifiez le onSuccess :
     onSuccess: () => {
       toast.success("Fournisseur ajouté avec succès !");
-      //Invalidate les queries pour mettre à jour la liste des fournisseurs
-      queryClient.invalidateQueries({ queryKey: ["registerNewProvider"], refetchType: "active" });
-      queryClient.invalidateQueries({ queryKey: ["providers"], refetchType: "active" });
-      // refetch les providers
+
+      queryClient.invalidateQueries({
+        queryKey: ["providers"],
+        refetchType: "active",
+      });
+
+      onOpenChange(false);
+      queryClient.invalidateQueries({
+        queryKey: ["providers"],
+      });
     },
     onError: (error: any) => {
-      toast.error("Une erreur est survenue lors de la creation du fournisseur.");
+      toast.error(
+        "Une erreur est survenue lors de la creation du fournisseur."
+      );
       console.error("Register error:", error);
     },
   });
-
-  // 🔹 Reset automatique quand le dialog se ferme
-  useEffect(() => {
-    if (!open) {
-      form.reset();
-    }
-  }, [open, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -77,7 +79,6 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
     }
-    onOpenChange(false);
   }
 
   return (

@@ -257,10 +257,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
                   open={openS}
                   onOpenChange={setOpenS}
                 >
-                  <SelectTrigger className="min-w-60 w-full">
+                  <SelectTrigger className="min-w-60 w-full uppercase">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[500px]">
                     {providersData.data?.data.length === 0 ? (
                       <SelectItem value="-" disabled>
                         {"Aucun fournisseur enregistré"}
@@ -270,6 +270,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                         <SelectItem
                           key={provider.id}
                           value={String(provider.id)}
+                          className="uppercase"
                         >
                           {provider.name}
                         </SelectItem>
@@ -281,7 +282,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                         setOpenP(true);
                       }}
                       variant={"outline"}
-                      className="w-full"
+                      className="w-full fixed bottom-0"
                     >
                       {"Ajouter un fournisseur"}
                     </Button>

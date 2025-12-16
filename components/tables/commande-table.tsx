@@ -343,7 +343,7 @@ export function CommandeTable({
         );
       },
       cell: ({ row }) => (
-        <div className="first-letter:uppercase">{row.getValue("title")}</div>
+        <div className="uppercase">{row.getValue("title")}</div>
       ),
     },
     {

@@ -1,16 +1,16 @@
-import UtilisateursPage from "@/components/utilisateurs/utilisateurs";
+import ProviderListPage from "@/components/provider/liste";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {
   return (
     <div className="flex flex-col gap-6">
-      {/* page title hier*/}
+      {/* page title */}
       <PageTitle
-        title="Utilisateurs"
-        subtitle="Consultez et gérez les utilisateurs."
+        title="Fournisseurs"
+        subtitle="Consultez la liste des fournisseurs."
         color="red"
       />
-      <UtilisateursPage />
+      <ProviderListPage />
     </div>
   );
 }

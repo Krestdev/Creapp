@@ -161,6 +161,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         return "";
     }
   };
+
+  // fonction pour traduire les Roles
+  
   const user = new UserQueries();
   const userMutationData = useMutation({
     mutationKey: ["usersStatus"],
