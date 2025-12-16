@@ -112,32 +112,20 @@ export function ProviderTable({ data }: ProvidersTableProps) {
     }
   };
 
+  const translateColumns = (columnId: string) => {
+    const translations: { [key: string]: string } = {
+      name: "Nom (Entreprise)",
+      address: "Adresse",
+      phone: "Téléphone",
+      email: "Email",
+      completionStatus: "Statut",
+      actions: "Actions",
+    };
+    return translations[columnId] || columnId;
+  };
+
   const columns = React.useMemo<ColumnDef<Provider>[]>(
     () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
       {
         accessorKey: "name",
         header: ({ column }) => {
@@ -215,25 +203,6 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         ),
       },
       {
-        accessorKey: "taxId",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Numero de Taxe
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("taxId")}</div>
-        ),
-      },
-      {
         id: "completionStatus",
         accessorFn: (row) => checkProviderInfo(row),
         header: ({ column }) => {
@@ -266,53 +235,6 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         },
       },
       {
-        accessorKey: "rating",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Evaluation
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("rating")}</div>
-        ),
-      },
-      {
-        accessorKey: "createdAt",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Dernière connexion
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const date = new Date(row.getValue("createdAt"));
-          return (
-            <div>
-              {date.toLocaleDateString("fr-FR")}{" "}
-              {date.toLocaleTimeString("fr-FR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </div>
-          );
-        },
-      },
-      {
         id: "actions",
         header: "Actions",
         enableHiding: false,
@@ -322,9 +244,9 @@ export function ProviderTable({ data }: ProvidersTableProps) {
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button variant={"outline"}>
+                  {"Actions"}
+                  <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -424,7 +346,8 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+              {"Colonnes"}
+              <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -441,7 +364,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === "completionStatus" ? "Statut" : column.id}
+                    {translateColumns(column.id)}
                   </DropdownMenuCheckboxItem>
                 );
               })}

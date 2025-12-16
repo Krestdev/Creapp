@@ -6,8 +6,8 @@ function Page() {
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Utilisateurs"
-        subtitle="Consultez la liste des utilisateurs."
+        title="Fournisseurs"
+        subtitle="Consultez la liste des fournisseurs."
         color="red"
       />
       <ProviderListPage />

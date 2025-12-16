@@ -18,7 +18,7 @@ const ProviderListPage = () => {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
           <div className="flex justify-between">
-            <h2>Providers</h2>
+            <h2>{"Fournisseurs"}</h2>
           </div>
           <ProviderTable data={providerDate.data.data} />
         </div>
