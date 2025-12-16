@@ -6,14 +6,61 @@ import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import LoadingPage from "@/components/loading-page";
 import { cn, XAF } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import type { Provider, QuotationElement, QuotationGroupStatus, QuotationGroup } from "@/types/types";
+import type { Provider, QuotationGroup, SubmissionElement } from "@/types/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+type SubmitPayload = Array<{
+  deviId: number;
+  elements: Array<{ name: string; elementIds: number[] }>;
+}>;
+
+const buildSubmitPayload = (
+  quotationGroup: QuotationGroup,
+  selected: Record<number, number>
+): SubmitPayload => {
+  // deviId -> { deviId, elements[] }
+  const byDevi = new Map<number, SubmitPayload[number]>();
+
+  for (const besoin of quotationGroup.commandRequest.besoins) {
+    const providerId = selected[besoin.id];
+    if (!providerId) continue;
+
+    const quote = quotationGroup.quotations.find((q) => q.providerId === providerId);
+    if (!quote) continue;
+
+    const elementIds = (quote.element || [])
+      .filter((el) => el.requestModelId === besoin.id)
+      .map((el) => el.id);
+
+    // Si aucun élément trouvé, on peut soit ignorer soit envoyer vide.
+    // Je choisis d'ignorer pour éviter du bruit.
+    if (elementIds.length === 0) continue;
+
+    const existing = byDevi.get(quote.id);
+    const groupItem = { name: besoin.label, elementIds };
+
+    if (existing) {
+      // éviter doublons si jamais
+      const already = existing.elements.some((e) => e.name === groupItem.name);
+      if (!already) existing.elements.push(groupItem);
+    } else {
+      byDevi.set(quote.id, { deviId: quote.id, elements: [groupItem] });
+    }
+  }
+
+  return Array.from(byDevi.values());
+};
 
 function SelectQuotation({ id }: { id: string }) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
   const quotationQuery = new QuotationQueries();
   const quotations = useFetchQuery(["quotations"], quotationQuery.getAll);
 
@@ -27,7 +74,7 @@ function SelectQuotation({ id }: { id: string }) {
   // besoinId -> providerId (radio-like)
   const [selected, setSelected] = React.useState<Record<number, number>>({});
 
-  const groups = React.useMemo(() => {
+  const groups: Array<QuotationGroup> = React.useMemo(() => {
     if (!quotations.data || !providers.data || !commands.data) return [];
     return groupQuotationsByCommandRequest(
       commands.data.data,
@@ -51,32 +98,47 @@ function SelectQuotation({ id }: { id: string }) {
     setSelected({});
   }, [id]);
 
-  if (quotations.isLoading || providers.isLoading || commands.isLoading)
-    return <LoadingPage />;
-  if (!quotationGroup) return notFound();
+  // ✅ CORRECTION ICI : Gérer le cas où quotationGroup est undefined
+  const payload = React.useMemo(() => {
+    if (!quotationGroup) return [];
+    return buildSubmitPayload(quotationGroup, selected);
+  }, [quotationGroup, selected]);
+
+  const allSelected = React.useMemo(() => {
+    if (!quotationGroup) return false;
+    return (
+      quotationGroup.commandRequest.besoins.length > 0 &&
+      quotationGroup.commandRequest.besoins.every((b) => !!selected[b.id])
+    );
+  }, [quotationGroup, selected]);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (value: SubmitPayload) => quotationQuery.validate(value),
+    onSuccess: () => {
+      toast.success(
+        "Décision enregistrée ! Les devis sélectionnés ont été mis à jour avec succès"
+      );
+      queryClient.invalidateQueries({ queryKey: ["quotations", "commands"] });
+      router.push("/tableau-de-bord/bdcommande/devis");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? "Une erreur est survenue");
+    },
+  });
+
+  const handleSubmit = async () => {
+    if (!allSelected || !quotationGroup) return;
+    mutate(payload);
+  };
 
   const toggleSelection = (besoinId: number, providerId: number) => {
     setSelected((prev) => ({ ...prev, [besoinId]: providerId }));
   };
 
-  const payload = Object.entries(selected).map(([besoinId, providerId]) => ({
-    besoinId: Number(besoinId),
-    providerId: Number(providerId),
-  }));
-
-  const allSelected =
-    quotationGroup.commandRequest.besoins.length > 0 &&
-    quotationGroup.commandRequest.besoins.every((b) => !!selected[b.id]);
-
-  const handleSubmit = async () => {
-    if (!allSelected) return;
-
-    // ✅ Backend attend ça:
-    console.log("PAYLOAD:", payload);
-
-    // TODO: appel API
-    // await quotationQuery.validateSelection(Number(id), payload)
-  };
+  // ✅ Déplacer les vérifications de chargement et de données après tous les hooks
+  if (quotations.isLoading || providers.isLoading || commands.isLoading)
+    return <LoadingPage />;
+  if (!quotationGroup) return notFound();
 
   return (
     <div className="space-y-6">
@@ -108,6 +170,11 @@ function SelectQuotation({ id }: { id: string }) {
                     role="button"
                     tabIndex={0}
                     onClick={() => toggleSelection(besoin.id, quote.providerId)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        toggleSelection(besoin.id, quote.providerId);
+                      }
+                    }}
                   >
                     <Checkbox
                       checked={checked}
@@ -143,7 +210,13 @@ function SelectQuotation({ id }: { id: string }) {
         );
       })}
 
-      <Button type="button" variant={"primary"} onClick={handleSubmit} disabled={!allSelected}>
+      <Button
+        type="button"
+        variant={"primary"}
+        onClick={handleSubmit}
+        disabled={!allSelected || isPending}
+        isLoading={isPending}
+      >
         {"Valider la sélection"}
       </Button>
     </div>

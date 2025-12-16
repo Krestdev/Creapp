@@ -14,13 +14,8 @@ const ProjectListPage = () => {
   });
   if (projectData.data)
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col">
-          <div className="flex justify-between">
-            <h2>Projects</h2>
-          </div>
-          <ProjectTable data={projectData.data?.data} />
-        </div>
+      <div className="content">
+        <ProjectTable data={projectData.data?.data} />
       </div>
     );
 };

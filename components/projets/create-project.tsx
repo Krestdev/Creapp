@@ -6,7 +6,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { Form } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -24,6 +24,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
+import { Textarea } from "../ui/textarea";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -34,12 +35,28 @@ export interface ActionResponse<T = any> {
   inputs?: T;
 }
 export const formSchema = z.object({
-  label: z.string({ message: "This field is required" }),
-  description: z.string({ message: "This field is required" }).optional(),
-  chiefid: z.string().min(1, "Please select an item"),
-  budget: z.coerce
-    .number({ message: "Please enter a valid number" })
+  label: z
+    .string({ message: "Ce champ est requis" })
+    .min(4, "Le libellé doit contenir au moins 4 caractères"),
+  
+  description: z
+    .string({ message: "Ce champ est requis" })
     .optional(),
+  
+  chiefid: z
+    .string({ message: "Veuillez définir un chef de projet" })
+    .min(1, "Veuillez sélectionner un chef de projet"),
+  
+  budget: z
+    .coerce
+    .number({
+      invalid_type_error: "Veuillez entrer un nombre valide",
+      required_error: "Veuillez entrer un nombre",
+    })
+    .positive("Le budget doit être un nombre positif")
+    .transform((val) => (val === null || isNaN(val) ? null : val))
+    .optional()
+    .nullable(),
 });
 
 type Schema = z.infer<typeof formSchema>;
@@ -48,7 +65,9 @@ export function ProjectCreateForm() {
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
-      chiefid: "0",
+      chiefid: "",
+      label: "",
+      description: "",
     },
   });
 
@@ -98,127 +117,70 @@ export function ProjectCreateForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onsubmit)}
-        className="space-y-8 max-w-3xl py-10"
+        className="max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2"
       >
-        <FieldGroup>
-          <Controller
-            name="label"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="label">Project Title *</FieldLabel>
-                <Input
-                  {...field}
-                  id="label"
-                  type="text"
-                  onChange={(e) => {
-                    field.onChange(e.target.value);
-                  }}
-                  aria-invalid={fieldState.invalid}
-                  placeholder=".ex Madiba AutoRoute"
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="description"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="description">Description </FieldLabel>
-                <Input
-                  {...field}
-                  id="description"
-                  type="text"
-                  onChange={(e) => {
-                    field.onChange(e.target.value);
-                  }}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="project description"
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="chiefid"
-            control={form.control}
-            render={({ field, fieldState }) => {
-              const options = userApi.data
+        <FormField control={form.control} name="label" render={({field})=>(
+          <FormItem>
+            <FormLabel>{"Titre du Projet"}</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="ex. Autoroute A5" />
+            </FormControl>
+            <FormMessage/>
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="chiefid" render={({field})=>{
+          const options = userApi.data
                 ? userApi.data.data.map((user) => ({
                     value: user.id,
                     label: user.name,
                   }))
                 : [];
-              return (
-                <Field data-invalid={fieldState.invalid} className="gap-1">
-                  <FieldLabel htmlFor="chiefid">Chef *</FieldLabel>
-
-                  <Select
-                    value={field.value.toString()}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select project chief" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {options.map((option) => (
-                        <SelectItem
-                          key={option.value}
-                          value={option.value ? option.value.toString() : ""}
-                        >
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              );
-            }}
-          />
-
-          <Controller
-            name="budget"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="budget">Budget</FieldLabel>
-                <Input
-                  {...field}
-                  id="budget"
-                  type="number"
-                  onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
-                  }}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="12000"
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <div className="flex justify-end items-center w-full pt-3">
-            <Button className="rounded-lg" size="sm">
-              Create Project
+          return(
+          <FormItem>
+            <FormLabel>{"Chef du Projet"}</FormLabel>
+            <FormControl>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sélectionner"/>
+                </SelectTrigger>
+                <SelectContent>
+                  {
+                    options.map((option, id)=>
+                    <SelectItem key={id} value={String(option.value)} className="capitalize">{option.label}</SelectItem>
+                  )
+                  }
+                  {
+                    options.length === 0 && <SelectItem value="-" disabled>{"Aucun utilisateur enregistré"}</SelectItem>
+                  }
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage/>
+          </FormItem>
+        )}} />
+        <FormField control={form.control} name="description" render={({field})=>(
+          <FormItem className="@min-[640px]:col-span-2">
+            <FormLabel>{"Description du Projet"}</FormLabel>
+            <FormControl>
+              <Textarea {...field} placeholder="Décrivez le projet" />
+            </FormControl>
+            <FormMessage/>
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="budget" render={({field:{value, ...props}})=>(
+          <FormItem>
+            <FormLabel>{"Budge Alloué"}</FormLabel>
+            <FormControl>
+              <Input type="number" value={String(value)} {...props} placeholder="ex. 150 000 000" />
+            </FormControl>
+            <FormMessage/>
+          </FormItem>
+        )} />
+          <div className="@min-[640px]:col-span-2">
+            <Button type="submit" variant={"primary"}>
+              {"Créer"}
             </Button>
           </div>
-        </FieldGroup>
       </form>
     </Form>
   );

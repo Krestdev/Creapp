@@ -1,15 +1,15 @@
 import PageTitle from "@/components/pageTitle";
-import CreateProject from "@/components/projets/createProject";
+import { ProjectCreateForm } from "@/components/projets/create-project";
 
 const Page = () => {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="content">
       <PageTitle
         title="Créer un Projet"
         subtitle="Formulaire de création d'un projet"
         color="blue"
       />
-      <CreateProject />
+      <ProjectCreateForm />
     </div>
   );
 };
