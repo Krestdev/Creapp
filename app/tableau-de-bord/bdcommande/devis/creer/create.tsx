@@ -293,13 +293,13 @@ function CreateQuotation({ quotation, openChange }: Props) {
             </FormItem>
           )}
         />
-        {/* Date limite de soumission */}
+        {/* Date limite de livraison */}
         <FormField
           control={form.control}
           name="dueDate"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"Date limite de soumission"}</FormLabel>
+              <FormLabel isRequired>{"Date limite de livraison"}</FormLabel>
               <FormControl>
                 <div className="relative flex gap-2">
                   <Input

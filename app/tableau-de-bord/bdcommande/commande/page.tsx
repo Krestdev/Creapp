@@ -61,6 +61,7 @@ const Page = () => {
               const isLast = links.length > 1 ? id === links.length - 1 : false;
               return (
                 <Button
+                  key={id}
                   disabled
                   size={"lg"}
                   variant={isLast ? "accent" : "ghost"}
@@ -98,7 +99,7 @@ const Page = () => {
           />
         </div>
         {/* <CommandeBd /> */}
-        <BonsCommandeTable data={data.data} />
+        {/* <BonsCommandeTable data={data.data} /> */}
       </div>
     );
 };

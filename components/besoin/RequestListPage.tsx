@@ -1,16 +1,41 @@
 "use client";
 
 import { DataTable } from "@/components/base/data-table";
+import { RequestModelT } from "@/types/types";
+import { UseQueryResult } from "@tanstack/react-query";
 import React from "react";
 
-const RequestList = () => {
-  const [dateFilter, setDateFilter] = React.useState<
-    "today" | "week" | "month" | "year" | "custom" | undefined
-  >();
-  const [customDateRange, setCustomDateRange] = React.useState<
-    { from: Date; to: Date } | undefined
-  >();
-
+interface RequestListProps {
+  dateFilter?: "today" | "week" | "month" | "year" | "custom" | undefined;
+  setDateFilter: React.Dispatch<
+    React.SetStateAction<
+      "today" | "week" | "month" | "year" | "custom" | undefined
+    >
+  >;
+  customDateRange:
+    | {
+        from: Date;
+        to: Date;
+      }
+    | undefined;
+  setCustomDateRange: React.Dispatch<
+    React.SetStateAction<
+      | {
+          from: Date;
+          to: Date;
+        }
+      | undefined
+    >
+  >;
+  requestData: RequestModelT[] | undefined
+}
+const RequestList = ({
+  dateFilter,
+  setDateFilter,
+  customDateRange,
+  setCustomDateRange,
+  requestData,
+}: RequestListProps) => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">
@@ -20,6 +45,7 @@ const RequestList = () => {
           setDateFilter={setDateFilter}
           customDateRange={customDateRange}
           setCustomDateRange={setCustomDateRange}
+          requestData={requestData}
         />
       </div>
     </div>
