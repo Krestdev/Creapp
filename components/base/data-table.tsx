@@ -347,7 +347,7 @@ export function DataTable({
   const getTranslatedLabel = (label: string) => {
     const translations: Record<string, string> = {
       Pending: "En attente",
-      Validated: "Soumis",
+      Validated: "Approuvé",
       Rejected: "Refusé",
       "In Review": "En révision",
       Cancel: "Annulé",

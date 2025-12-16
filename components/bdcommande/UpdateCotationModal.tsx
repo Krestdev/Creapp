@@ -33,13 +33,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { RequestQueries } from "@/queries/requestModule";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CommandQueries } from "@/queries/commandModule";
 import { CommandRequestT, RequestModelT } from "@/types/types";
 import { useStore } from "@/providers/datastore";
 import { toast } from "sonner";
 import { SuccessModal } from "@/components/modals/success-modal";
 import MultiSelectUsers from "@/components/base/multiSelectUsers";
 import Besoins from "./besoins";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 
 const formSchema = z.object({
   titre: z.string().min(1, "Le titre est obligatoire"),
@@ -86,7 +86,7 @@ export function UpdateCotationModal({
     },
   });
 
-  const command = new CommandQueries();
+  const command = new CommandRqstQueries();
 
   // Mutation pour la mise à jour
   const updateCommand = useMutation({
@@ -99,10 +99,10 @@ export function UpdateCotationModal({
       onSuccess?.();
 
       // Invalider TOUTES les requêtes pertinentes
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
-      queryClient.invalidateQueries({ queryKey: ["commands"] }); // AJOUTÉ
-      queryClient.invalidateQueries({ queryKey: ["requests-validation"] });
-      queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" });
+      queryClient.invalidateQueries({ queryKey: ["commands"], refetchType: "active" }); // AJOUTÉ
+      queryClient.invalidateQueries({ queryKey: ["requests-validation"], refetchType: "active" });
+      queryClient.invalidateQueries({ queryKey: ["requests", user?.id], refetchType: "active" });
 
       // Fermer la modal
       setTimeout(() => {

@@ -380,11 +380,11 @@ export function DataValidation({
       });
     },
     onSuccess: () => {
-      toast.success("Besoin soumis avec succès !");
+      toast.success("Besoin validé avec succès !");
       // Invalider et rafraîchir les données
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
-      queryClient.invalidateQueries({ queryKey: ["requests-validation"] });
-      queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" });
+      queryClient.invalidateQueries({ queryKey: ["requests-validation"], refetchType: "active" });
+      queryClient.invalidateQueries({ queryKey: ["requests", user?.id], refetchType: "active" });
       requestData.refetch();
     },
     onError: () => {
@@ -1096,7 +1096,7 @@ export function DataValidation({
           title: "Succès ✅",
           description:
             validationType === "approve"
-              ? "Le besoin a été soumis avec succès."
+              ? "Le besoin a été validé avec succès."
               : "Le besoin a été rejeté avec succès.",
         }}
         errorConfirmation={{

@@ -203,11 +203,11 @@ export type ProjectCreateResponse = {
 };
 
 export type Provider = {
-  rating: number;
-  taxId: string;
-  address: string;
-  email: string;
-  phone: string;
+  rating?: number;
+  taxId?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
   updatedAt?: string;
   createdAt: string;
   id: number;
@@ -235,16 +235,21 @@ export type QuotationElement = {
 
 export type Quotation = {
   id: number;
-  commandRequestId: number;
-  providerId: number;
-  ref: string;
   element: Array<QuotationElement>;
-  proof: string | File;
-  dueDate: string;
+  ref: string;
   createdAt: string;
   updatedAt?: string;
-  userId: number;
   status: QuotationStatus;
+  commandRequestId: number;
+  providerId: number;
+  proof: string | File;
+  dueDate: string;
+  userId: number;
+  commandId?: undefined;
+  isPartial?: boolean;
+  amount?: number;
+  payementMethod?: string;
+  priority?: string;
 };
 
 export type TicketsData = {
@@ -261,6 +266,16 @@ export type TicketsData = {
   updatedAt: Date;
 };
 
+export type QuotationGroupStatus =
+  | "NOT_PROCESSED"
+  | "IN_PROGRESS"
+  | "PROCESSED";
+export interface QuotationGroup {
+  commandRequest: CommandRequestT;
+  quotations: Array<Quotation>;
+  providers: Array<Provider>;
+  status: QuotationGroupStatus;
+}
 export type DepartmentUpdateInput = Partial<{
   label: string;
   description: string | null;
@@ -275,4 +290,21 @@ type MemberInput = {
   validator: boolean;
   chief: boolean;
   finalValidator: boolean;
+};
+
+export type BonsCommande = {
+  id: number;
+  deviId: number;
+  providerId: number;
+  amountBase: number;
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "approved" | "pending" | "in-review" | "rejected";
+  penaltyMode?: string;
+  hasPenalties?: boolean;
+  deliveryLocation?: string;
+  paymentMethod: string;
+  paymentTerms: string;
+  deliveryDelay: Date;
+  createdAt: Date;
+  updatedAt: Date;
 };

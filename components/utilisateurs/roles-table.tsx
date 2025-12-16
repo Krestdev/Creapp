@@ -114,15 +114,15 @@ export function RoleTable({ data }: RolesTableProps) {
         accessorKey: "label",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Name
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {

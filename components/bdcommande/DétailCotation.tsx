@@ -6,6 +6,7 @@ import {
   Document,
   StyleSheet,
   Font,
+  Image,
 } from "@react-pdf/renderer";
 import { CommandRequestT } from "@/types/types";
 import { format } from "date-fns";
@@ -18,7 +19,11 @@ Font.register({
     { src: "/fonts/Poppins-Regular.ttf", fontWeight: 400 },
     { src: "/fonts/Poppins-Bold.ttf", fontWeight: 700 },
     { src: "/fonts/Poppins-Italic.ttf", fontWeight: 400, fontStyle: "italic" },
-    { src: "/fonts/Poppins-BoldItalic.ttf", fontWeight: 700, fontStyle: "italic" },
+    {
+      src: "/fonts/Poppins-BoldItalic.ttf",
+      fontWeight: 700,
+      fontStyle: "italic",
+    },
   ],
 });
 
@@ -26,104 +31,109 @@ const CotationPDF = ({ data }: { data: CommandRequestT }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* --------- TITRE --------- */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>{"Demande de Cotation"}</Text>
-        </View>
+        {/* Papier entete */}
+        <Image style={styles.headerImage} src={"/images/crea.jpg"} fixed />
 
-        {/* --------- INFORMATIONS --------- */}
-        <View style={styles.infoSection}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>{"Objet :"} </Text>
-            <Text style={styles.infoValue}>{data.title}</Text>
+        <View style={styles.content}>
+          {/* --------- TITRE --------- */}
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{"Demande de Cotation"}</Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>{"Référence : "}</Text>
-            <Text style={styles.infoValue}>{data.reference}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>
-              {"Date limite de soumission : "}
-            </Text>
-            <Text style={styles.infoValue}>
-              {format(data.dueDate, "PPP", { locale: fr })}
-            </Text>
-          </View>
-
-          <View style={styles.contactSection}>
+          {/* --------- INFORMATIONS --------- */}
+          <View style={styles.infoSection}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{"Contact principal : "}</Text>
+              <Text style={styles.infoLabel}>{"Objet :"} </Text>
+              <Text style={styles.infoValue}>{data.title}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{"Référence : "}</Text>
+              <Text style={styles.infoValue}>{data.reference}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>
+                {"Date limite de soumission : "}
+              </Text>
               <Text style={styles.infoValue}>
-                {"M. Jean Phillipe (Responsable Achat)"}
+                {format(data.dueDate, "PPP", { locale: fr })}
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{"Téléphone : "}</Text>
-              <Text style={styles.infoValue}>{"+33 35 45 45"}</Text>
-            </View>
-          </View>
-        </View>
+            <View style={styles.contactSection}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{"Contact principal : "}</Text>
+                <Text style={styles.infoValue}>
+                  {"M. Jean Phillipe (Responsable Achat)"}
+                </Text>
+              </View>
 
-        {/* --------- LISTE DES ELEMENTS --------- */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{"Liste des éléments"}</Text>
-        </View>
-
-        {/* --------- TABLEAU --------- */}
-        <View style={styles.table}>
-          {/* En-tête */}
-          <View style={styles.tableHeader}>
-            <View style={[styles.headerCell, styles.headerCell1]}>
-              <Text style={styles.headerText}>{"TITRE DU BESOIN"}</Text>
-            </View>
-            <View style={[styles.headerCell, styles.headerCell2]}>
-              <Text style={styles.headerText}>
-                {"DESCRIPTION DÉTAILLÉE & SPÉCIFICATIONS"}
-              </Text>
-            </View>
-            <View style={[styles.headerCell, styles.headerCell3]}>
-              <Text style={styles.headerText}>{"UNITÉ"}</Text>
-            </View>
-            <View style={[styles.headerCell, styles.headerCell4]}>
-              <Text style={styles.headerText}>{"QUANTITÉ"}</Text>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{"Téléphone : "}</Text>
+                <Text style={styles.infoValue}>{"+33 35 45 45"}</Text>
+              </View>
             </View>
           </View>
 
-          {/* Lignes */}
-          {data.besoins.map((item, index) => (
-            <View
-              key={index}
-              style={[
-                styles.tableRow,
-                index === data.besoins.length - 1
-                  ? styles.tableRowLast
-                  : styles.tableRow,
-              ]}
-            >
-              <View style={[styles.cell, styles.cell1]}>
-                <Text style={styles.cellText}>{item.label || "-"}</Text>
+          {/* --------- LISTE DES ELEMENTS --------- */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{"Liste des éléments"}</Text>
+          </View>
+
+          {/* --------- TABLEAU --------- */}
+          <View style={styles.table}>
+            {/* En-tête */}
+            <View style={styles.tableHeader}>
+              <View style={[styles.headerCell, styles.headerCell1]}>
+                <Text style={styles.headerText}>{"TITRE DU BESOIN"}</Text>
               </View>
-              <View style={[styles.cell, styles.cell2]}>
-                <Text style={styles.cellText}>{item.description || "-"}</Text>
+              <View style={[styles.headerCell, styles.headerCell2]}>
+                <Text style={styles.headerText}>
+                  {"DESCRIPTION DÉTAILLÉE & SPÉCIFICATIONS"}
+                </Text>
               </View>
-              <View style={[styles.cell, styles.cell3]}>
-                <Text style={styles.cellText}>{item.unit || "-"}</Text>
+              <View style={[styles.headerCell, styles.headerCell3]}>
+                <Text style={styles.headerText}>{"UNITÉ"}</Text>
               </View>
-              <View style={[styles.cell, styles.cell4]}>
-                <Text style={styles.cellText}>{item.quantity || "-"}</Text>
+              <View style={[styles.headerCell, styles.headerCell4]}>
+                <Text style={styles.headerText}>{"QUANTITÉ"}</Text>
               </View>
             </View>
-          ))}
-        </View>
 
-        {/* --------- FOOTER --------- */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            {`Créé le ${format(data.createdAt, "PPP", { locale: fr })}.`}
-          </Text>
+            {/* Lignes */}
+            {data.besoins.map((item, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.tableRow,
+                  index === data.besoins.length - 1
+                    ? styles.tableRowLast
+                    : styles.tableRow,
+                ]}
+              >
+                <View style={[styles.cell, styles.cell1]}>
+                  <Text style={styles.cellText}>{item.label || "-"}</Text>
+                </View>
+                <View style={[styles.cell, styles.cell2]}>
+                  <Text style={styles.cellText}>{item.description || "-"}</Text>
+                </View>
+                <View style={[styles.cell, styles.cell3]}>
+                  <Text style={styles.cellText}>{item.unit || "-"}</Text>
+                </View>
+                <View style={[styles.cell, styles.cell4]}>
+                  <Text style={styles.cellText}>{item.quantity || "-"}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {/* --------- FOOTER --------- */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              {`Créé le ${format(data.createdAt, "PPP", { locale: fr })}.`}
+            </Text>
+          </View>
         </View>
       </Page>
     </Document>
@@ -136,13 +146,30 @@ const styles = StyleSheet.create({
   page: {
     display: "flex",
     flexDirection: "column",
-    padding: 40,
-    paddingBottom: 120,
-    paddingTop: 120,
     fontFamily: "Poppins",
     fontSize: 10,
     lineHeight: 1.4,
     backgroundColor: "#fff",
+    position: "relative",
+    height: "100%",
+    objectFit: "cover",
+  },
+
+  content: {
+    paddingLeft: 40,
+    paddingRight: 40,
+    paddingTop: 100,
+    paddingBottom: 120,
+    minHeight: "100%",
+  },
+
+  headerImage: {
+    width: "100%",
+    height: "100%",
+    zIndex: -1,
+    position: "absolute",
+    top: 0,
+    left: 0,
   },
 
   // ===== TITRE =====
@@ -155,7 +182,7 @@ const styles = StyleSheet.create({
     color: "#700032",
     fontWeight: "bold",
     letterSpacing: 1,
-    lineHeight: "150%"
+    lineHeight: "150%",
   },
 
   // ===== INFORMATIONS =====

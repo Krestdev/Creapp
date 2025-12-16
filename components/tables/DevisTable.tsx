@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Eye,
   LucidePen,
+  Settings2,
   Trash
 } from "lucide-react";
 import * as React from "react";
@@ -72,6 +73,7 @@ import EditQuotation from "@/app/tableau-de-bord/bdcommande/devis/edit";
 import CancelQuotation from "@/app/tableau-de-bord/bdcommande/devis/cancel";
 import { VariantProps } from "class-variance-authority";
 import { Badge, badgeVariants } from "../ui/badge";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
 
 interface DevisTableProps {
   data: Quotation[] | undefined;
@@ -156,7 +158,7 @@ export function DevisTable({
       case "rejected":
         return {label:"Rejeté", variant: "destructive"};
       case "submitted":
-        return {label:"Soumis", variant: "primary"};
+        return {label:"Approuvé", variant: "primary"};
         default: return {label: "Inconnu", variant: "outline"};
     }
   }
@@ -456,7 +458,7 @@ export function DevisTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
+              <Button variant="ghost" size={"sm"}>
                 {"Actions"}
                 <ChevronDown />
               </Button>
@@ -540,176 +542,188 @@ export function DevisTable({
   return (
     <div className="w-full">
       <div className="flex flex-wrap items-end gap-4 py-4">
-        <div className="grid gap-1.5">
-          <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-          <Input
-            name="search"
-            type="search"
-            id="searchCommand"
-            placeholder="Référence, titre, fournisseur..."
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="max-w-sm"
-          />
-        </div>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant={"outline"}><Settings2/>{"Filtres"}</Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>{"Configurer les fitres pour affiner les données"}</SheetDescription>
+            </SheetHeader>
+            <div className="px-5 grid gap-5">
+              <div className="grid gap-1.5">
+            <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
+            <Input
+              name="search"
+              type="search"
+              id="searchCommand"
+              placeholder="Référence, titre, fournisseur..."
+              value={globalFilter ?? ""}
+              onChange={(event) => setGlobalFilter(event.target.value)}
+              className="max-w-sm"
+            />
+          </div>
 
-        {/* Filtre par fournisseur */}
-        <div className="grid gap-1.5">
-          <Label>{"Fournisseur"}</Label>
-          <Select value={providerFilter} onValueChange={setProviderFilter}>
-            <SelectTrigger className="min-w-40">
-              <SelectValue placeholder="Tous les fournisseurs" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les fournisseurs</SelectItem>
-              {providers.map((provider) => (
-                <SelectItem key={provider.id} value={provider.id.toString()}>
-                  {provider.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          {/* Filtre par fournisseur */}
+          <div className="grid gap-1.5">
+            <Label>{"Fournisseur"}</Label>
+            <Select value={providerFilter} onValueChange={setProviderFilter}>
+              <SelectTrigger className="min-w-40 w-full">
+                <SelectValue placeholder="Tous les fournisseurs" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les fournisseurs</SelectItem>
+                {providers.map((provider) => (
+                  <SelectItem key={provider.id} value={provider.id.toString()}>
+                    {provider.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Filtre par demande de cotation */}
-        <div className="grid gap-1.5">
-          <Label>{"Demande de cotation"}</Label>
-          <Select value={commandFilter} onValueChange={setCommandFilter}>
-            <SelectTrigger className="min-w-40">
-              <SelectValue placeholder="Toutes les demandes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Toutes les demandes"}</SelectItem>
-              {commands.map((command) => (
-                <SelectItem key={command.id} value={command.id.toString()}>
-                  {command.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          {/* Filtre par demande de cotation */}
+          <div className="grid gap-1.5">
+            <Label>{"Demande de cotation"}</Label>
+            <Select value={commandFilter} onValueChange={setCommandFilter}>
+              <SelectTrigger className="min-w-40 w-full">
+                <SelectValue placeholder="Toutes les demandes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Toutes les demandes"}</SelectItem>
+                {commands.map((command) => (
+                  <SelectItem key={command.id} value={command.id.toString()}>
+                    {command.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Filtre par montant */}
-        <div className="grid gap-1.5">
-          <Label>{"Montant"}</Label>
-          <Select value={montantFilter} onValueChange={(value: "all" | "lt100000" | "100000-500000" | "gt500000") => setMontantFilter(value)}>
-            <SelectTrigger className="min-w-40">
-              <SelectValue placeholder="Tous les montants" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Tous les montants"}</SelectItem>
-              <SelectItem value="lt100000">{`< 100 000 XAF`}</SelectItem>
-              <SelectItem value="100000-500000">{" 0 0000 - 500 000 XAF"}</SelectItem>
-              <SelectItem value="gt500000">{`> 500 000 XAF`}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          {/* Filtre par montant */}
+          <div className="grid gap-1.5">
+            <Label>{"Montant"}</Label>
+            <Select value={montantFilter} onValueChange={(value: "all" | "lt100000" | "100000-500000" | "gt500000") => setMontantFilter(value)}>
+              <SelectTrigger className="min-w-40 w-full">
+                <SelectValue placeholder="Tous les montants" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Tous les montants"}</SelectItem>
+                <SelectItem value="lt100000">{`< 100 000 XAF`}</SelectItem>
+                <SelectItem value="100000-500000">{" 0 0000 - 500 000 XAF"}</SelectItem>
+                <SelectItem value="gt500000">{`> 500 000 XAF`}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Filtre par période */}
-        <div className="grid gap-1.5">
-          <Label>{"Période"}</Label>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="min-w-52 justify-between font-normal font-sans text-base">
-                <span>{getDateFilterText()}</span>
-                <CalendarIcon />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={() => {
-                  setDateFilter(undefined);
-                  if (setCustomDateRange) {
-                    setCustomDateRange(undefined);
-                  }
-                }}
-                className={cn(
-                  "flex items-center justify-between",
-                  !dateFilter && "bg-accent"
-                )}
-              >
-                <span>{"Toutes les périodes"}</span>
-                {!dateFilter && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => setDateFilter("today")}
-                className={cn(
-                  "flex items-center justify-between",
-                  dateFilter === "today" && "bg-accent"
-                )}
-              >
-                <span>{"Aujourd'hui"}</span>
-                {dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setDateFilter("week")}
-                className={cn(
-                  "flex items-center justify-between",
-                  dateFilter === "week" && "bg-accent"
-                )}
-              >
-                <span>{"Cette semaine"}</span>
-                {dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setDateFilter("month")}
-                className={cn(
-                  "flex items-center justify-between",
-                  dateFilter === "month" && "bg-accent"
-                )}
-              >
-                <span>{"Ce mois"}</span>
-                {dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setDateFilter("year")}
-                className={cn(
-                  "flex items-center justify-between",
-                  dateFilter === "year" && "bg-accent"
-                )}
-              >
-                <span>{"Cette année"}</span>
-                {dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleCustomDateClick}
-                className={cn(
-                  "flex items-center justify-between",
-                  dateFilter === "custom" && "bg-accent"
-                )}
-              >
-                <span className="flex items-center">
-                  <CalendarDays className="mr-2 h-4 w-4" />
-                  {"Personnaliser"}
-                </span>
-                {dateFilter === "custom" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+          {/* Filtre par période */}
+          <div className="grid gap-1.5">
+            <Label>{"Période"}</Label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-52 w-full justify-between font-normal font-sans text-base">
+                  <span>{getDateFilterText()}</span>
+                  <CalendarIcon />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  onClick={() => {
+                    setDateFilter(undefined);
+                    if (setCustomDateRange) {
+                      setCustomDateRange(undefined);
+                    }
+                  }}
+                  className={cn(
+                    "flex items-center justify-between",
+                    !dateFilter && "bg-accent"
+                  )}
+                >
+                  <span>{"Toutes les périodes"}</span>
+                  {!dateFilter && <ChevronRight className="h-4 w-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setDateFilter("today")}
+                  className={cn(
+                    "flex items-center justify-between",
+                    dateFilter === "today" && "bg-accent"
+                  )}
+                >
+                  <span>{"Aujourd'hui"}</span>
+                  {dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setDateFilter("week")}
+                  className={cn(
+                    "flex items-center justify-between",
+                    dateFilter === "week" && "bg-accent"
+                  )}
+                >
+                  <span>{"Cette semaine"}</span>
+                  {dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setDateFilter("month")}
+                  className={cn(
+                    "flex items-center justify-between",
+                    dateFilter === "month" && "bg-accent"
+                  )}
+                >
+                  <span>{"Ce mois"}</span>
+                  {dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setDateFilter("year")}
+                  className={cn(
+                    "flex items-center justify-between",
+                    dateFilter === "year" && "bg-accent"
+                  )}
+                >
+                  <span>{"Cette année"}</span>
+                  {dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleCustomDateClick}
+                  className={cn(
+                    "flex items-center justify-between",
+                    dateFilter === "custom" && "bg-accent"
+                  )}
+                >
+                  <span className="flex items-center">
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    {"Personnaliser"}
+                  </span>
+                  {dateFilter === "custom" && (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-        {/* Bouton pour réinitialiser les filtres */}
-        <div className="flex items-end">
-          <Button
-            variant="outline"
-            onClick={resetAllFilters}
-            className="h-10"
-          >
-            {"Réinitialiser"}
-          </Button>
-        </div>
-
+          {/* Bouton pour réinitialiser les filtres */}
+          <div className="flex items-end">
+            <Button
+              variant="outline"
+              onClick={resetAllFilters}
+              className="w-full"
+            >
+              {"Réinitialiser"}
+            </Button>
+          </div>
+            </div>
+          </SheetContent>
+        </Sheet>
         {/* Menu des colonnes */}
         <div className="ml-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
                 {"Colonnes"}
-                <ChevronDown className="ml-2 h-4 w-4" />
+                <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

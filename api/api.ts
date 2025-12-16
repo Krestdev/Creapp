@@ -1,6 +1,9 @@
+import { useStore } from "@/providers/datastore";
 import axios, { AxiosRequestConfig } from "axios";
 
 const axiosConfig = (headers?: AxiosRequestConfig["headers"]) => {
+
+  //const { logout } = useStore();
   const axiosClient = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API,
     headers: headers,
@@ -11,7 +14,7 @@ const axiosConfig = (headers?: AxiosRequestConfig["headers"]) => {
     (error) => {
       if (error.response) {
         if (error.response.status === 401) {
-          console.log("Non autorisé");
+          //logout(); I need to set the local or session storage to remove the user saved
         }
       } else {
         console.error("Erreur inconnue :", error);

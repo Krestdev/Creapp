@@ -2,7 +2,7 @@
 
 import Empty from "@/components/base/empty";
 import { BesoinsTraiter } from "@/components/besoin/besoin-traiter";
-import { CommandQueries } from "@/queries/commandModule";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
@@ -21,7 +21,7 @@ interface Props {
 }
 
 const Besoins = ({ selected, setSelected, dataSup = [] }: Props) => {
-  const command = new CommandQueries();
+  const command = new CommandRqstQueries();
   const request = new RequestQueries();
 
   const commandData = useQuery({

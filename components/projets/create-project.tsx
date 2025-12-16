@@ -69,6 +69,7 @@ export function ProjectCreateForm() {
       form.reset();
     },
     onError: (error: any) => {
+      toast.error("Une erreur est survenue lors de la creation du projet.");
       console.error("Register error:", error);
     },
   });

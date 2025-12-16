@@ -213,16 +213,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         accessorKey: "name",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
-              className="bg-transparent"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Nom
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -233,16 +232,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         accessorKey: "role",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
-              className="bg-transparent"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Rôle
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {
@@ -268,16 +266,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         accessorKey: "status",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
-              className="bg-transparent"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Statut
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {
@@ -325,16 +322,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         accessorKey: "lastConnection",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
-              className="bg-transparent"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Dernière connexion
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {
@@ -354,9 +350,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         id: "actions",
         header: ({ column }) => {
           return (
-            <Button className="bg-transparent" variant="ghost">
-              Action
-            </Button>
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Service associé
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
           );
         },
         enableHiding: false,

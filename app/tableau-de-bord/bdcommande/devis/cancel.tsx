@@ -28,7 +28,8 @@ function CancelQuotation({ open, openChange, quotation }: Props) {
             openChange(false);
         },
         onError: (error)=>{
-            toast.error(error.message);
+            console.error(error);
+            toast.error("Une erreur est survenue lors de l'annulation du devis.");
         }
     })
   return <Dialog open={open} onOpenChange={openChange}>

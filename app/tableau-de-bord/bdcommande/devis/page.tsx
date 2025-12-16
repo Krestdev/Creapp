@@ -7,16 +7,18 @@ import { DevisTable } from "@/components/tables/DevisTable";
 import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { CommandQueries } from "@/queries/commandModule";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
 import Link from "next/link";
 import React from "react";
+import { QuotationGroupTable } from "./quotation-group";
 
 
 const Page = () => {
   const { user } = useStore();
   const isManager = user?.role.some(r=>r.label === "SALES_MANAGER");
+  const isAdmin = user?.role.some(r=> r.label === "SALES_MANAGER" || r.label === "ADMIN");
   /**Quotation fetch */
   const quotationQuery = new QuotationQueries();
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(["quotations"], quotationQuery.getAll);
@@ -24,7 +26,7 @@ const Page = () => {
   const providersQuery = new ProviderQueries();
   const providers = useFetchQuery(["providers"], providersQuery.getAll, 500000);
   /**Commands fetch */
-  const commandsQuery = new CommandQueries();
+  const commandsQuery = new CommandRqstQueries();
   const commands = useFetchQuery(["commands"], commandsQuery.getAll, 30000);
 
   const [dateFilter, setDateFilter] = React.useState<
@@ -51,6 +53,10 @@ if(isSuccess && providers.isSuccess && commands.isSuccess)
           </Link>
         }
       </PageTitle>
+      {
+        isAdmin &&
+        <QuotationGroupTable providers={providers.data.data} quotations={data.data} requests={commands.data.data}/>
+      }
       <DevisTable
         data={data.data}
         dateFilter={dateFilter}

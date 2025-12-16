@@ -147,16 +147,15 @@ export function DepartementTable({ data }: DepartementTableProps) {
         accessorKey: "label",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
-              className=" bg-transparent"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Nom Département
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -167,16 +166,15 @@ export function DepartementTable({ data }: DepartementTableProps) {
         accessorKey: "description",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
-              className=" bg-transparent"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Description
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -189,16 +187,15 @@ export function DepartementTable({ data }: DepartementTableProps) {
         accessorKey: "members",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
-              className="bg-transparent"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Chef
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {
@@ -213,16 +210,15 @@ export function DepartementTable({ data }: DepartementTableProps) {
         accessorKey: "employees",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
-              className="bg-transparent"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Nombre d'employés"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -238,16 +234,15 @@ export function DepartementTable({ data }: DepartementTableProps) {
         accessorKey: "status",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
-              className="bg-transparent"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Statut
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {

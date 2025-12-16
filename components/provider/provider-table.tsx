@@ -202,15 +202,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "name",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Nom (Entreprise)
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -221,15 +221,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "address",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Address
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -240,15 +240,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "phone",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Telephone
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -259,15 +259,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "email",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Email
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -278,40 +278,40 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "taxId",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Numero de Taxe
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
           <div className="font-medium">{row.getValue("taxId")}</div>
         ),
       },
-      // {
-      //   accessorKey: "rating",
-      //   header: ({ column }) => {
-      //     return (
-      //       <Button
-      //         variant="ghost"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         Evaluation
-      //         <ArrowUpDown className="ml-2 h-4 w-4" />
-      //       </Button>
-      //     );
-      //   },
-      //   cell: ({ row }) => (
-      //     <div className="font-medium">{row.getValue("rating")}</div>
-      //   ),
-      // },
+      {
+        accessorKey: "rating",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Evaluation
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("rating")}</div>
+        ),
+      },
       // {
       //   accessorKey: "status",
       //   header: ({ column }) => {
@@ -341,34 +341,34 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       //     );
       //   },
       // },
-      // {
-      //   accessorKey: "createdAt",
-      //   header: ({ column }) => {
-      //     return (
-      //       <Button
-      //         variant="ghost"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         Dernière connexion
-      //         <ArrowUpDown className="ml-2 h-4 w-4" />
-      //       </Button>
-      //     );
-      //   },
-      //   cell: ({ row }) => {
-      //     const date = new Date(row.getValue("createdAt"));
-      //     return (
-      //       <div>
-      //         {date.toLocaleDateString("fr-FR")}{" "}
-      //         {date.toLocaleTimeString("fr-FR", {
-      //           hour: "2-digit",
-      //           minute: "2-digit",
-      //         })}
-      //       </div>
-      //     );
-      //   },
-      // },
+      {
+        accessorKey: "createdAt",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Dernière connexion
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          const date = new Date(row.getValue("createdAt"));
+          return (
+            <div>
+              {date.toLocaleDateString("fr-FR")}{" "}
+              {date.toLocaleTimeString("fr-FR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </div>
+          );
+        },
+      },
       {
         id: "actions",
         header: "Actions",
@@ -569,7 +569,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className={getRowColor(
-                    row.original.rating >= 4 ? "active" : "inactive"
+                    (row.original.rating ?? 0) >= 4 ? "active" : "inactive"
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (
