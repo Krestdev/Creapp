@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { DepartmentT, DepartmentUpdateInput } from "@/types/types";
 import { UserQueries } from "@/queries/baseModule";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DepartmentQueries } from "@/queries/departmentModule";
 import { toast } from "sonner";
 import {
@@ -35,6 +35,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useEffect } from "react";
+import { Textarea } from "../ui/textarea";
+import { Plus } from "lucide-react";
 
 const formSchema = z.object({
   label: z.string(),
@@ -76,6 +78,7 @@ export default function UpdateDepartment({
       members: [],
     },
   });
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     form.reset({
@@ -110,8 +113,9 @@ export default function UpdateDepartment({
       departmentQueries.update(Number(departmentData?.id), data),
 
     onSuccess: () => {
-      toast.success("Besoin modifié avec succès !");
+      toast.success("Département mis à jour avec succès !");
       setOpen(false);
+      queryClient.invalidateQueries({queryKey: ["departmentList"], refetchType: 'active'});
       onSuccess?.();
     },
 
@@ -136,10 +140,10 @@ export default function UpdateDepartment({
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            Modifier le besoin
+            {`Modifier le département ${departmentData?.label}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            Modifiez les informations du besoin existant
+            {"Modifiez les informations du département"}
           </p>
         </DialogHeader>
         <Form {...form}>
@@ -153,9 +157,9 @@ export default function UpdateDepartment({
               name="label"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Label</FormLabel>
+                  <FormLabel>{"Nom du Département"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter label" {...field} />
+                    <Input placeholder="Ex. Finances & Fiscalité" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -168,9 +172,9 @@ export default function UpdateDepartment({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{"Description"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Optional description" {...field} />
+                    <Textarea placeholder="Il regroupe le personnel en charge de la gestion fiscale et comptable de l'entreprise" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -183,7 +187,7 @@ export default function UpdateDepartment({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel>{"Statut"}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -194,8 +198,8 @@ export default function UpdateDepartment({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="active">{"Actif"}</SelectItem>
+                      <SelectItem value="inactive">{"Désactivé"}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -204,12 +208,12 @@ export default function UpdateDepartment({
             />
 
             {/* MEMBERS ARRAY */}
-            <div className="space-y-4 overflow-auto h-full max-h-80">
+            <div className="grid grid-cols-1 gap-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-medium">Members</h3>
+                <h3 className="font-medium">{"Effectif"}</h3>
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="outline"
                   onClick={() =>
                     append({
                       label: "",
@@ -223,7 +227,8 @@ export default function UpdateDepartment({
                     })
                   }
                 >
-                  Add Member
+                  {"Ajouter un employé"}
+                  <Plus/>
                 </Button>
               </div>
 
@@ -238,7 +243,7 @@ export default function UpdateDepartment({
                     name={`members.${index}.label`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Member Label</FormLabel>
+                        <FormLabel>{`Employé ${index +1}`}</FormLabel>
                         <FormControl>
                           <Input placeholder="Member label" {...field} />
                         </FormControl>
@@ -253,14 +258,14 @@ export default function UpdateDepartment({
                     name={`members.${index}.userId`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>User</FormLabel>
+                        <FormLabel>{"Utilisateur"}</FormLabel>
                         <Select
                           onValueChange={(v) => field.onChange(parseInt(v))}
                           defaultValue={String(field.value)}
                         >
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a user" />
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Sélectionner un utilisateur" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -291,7 +296,7 @@ export default function UpdateDepartment({
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
-                          <FormLabel>Validator</FormLabel>
+                          <FormLabel>{"Validateur"}</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -307,7 +312,7 @@ export default function UpdateDepartment({
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
-                          <FormLabel>Chief</FormLabel>
+                          <FormLabel>{"Chef de Département"}</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -323,7 +328,7 @@ export default function UpdateDepartment({
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
-                          <FormLabel>Final Validator</FormLabel>
+                          <FormLabel>{"Dernier Validateur"}</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -331,10 +336,10 @@ export default function UpdateDepartment({
 
                   <Button
                     type="button"
-                    variant="destructive"
+                    variant="delete"
                     onClick={() => remove(index)}
                   >
-                    Remove
+                    {"Supprimer"}
                   </Button>
                 </div>
               ))}
@@ -342,7 +347,7 @@ export default function UpdateDepartment({
 
             {/* SUBMIT */}
             <Button type="submit" className="w-full">
-              Submit
+              {"Enregistrer"}
             </Button>
           </form>
         </Form>
