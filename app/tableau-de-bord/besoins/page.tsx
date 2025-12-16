@@ -254,7 +254,7 @@ function Page() {
         setDateFilter={setDateFilter}
         customDateRange={customDateRange}
         setCustomDateRange={setCustomDateRange}
-        requestData={requestData.data?.data}
+        requestData={getFilteredData}
       />
     </div>
   );
