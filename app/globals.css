@@ -163,7 +163,7 @@
     @apply w-full text-base px-2 font-semibold has-[>svg]:cursor-pointer inline-flex gap-2 items-center justify-between [&_svg]:size-4;
   }
   .content {
-    @apply grid gap-4 @min-[640px]:gap-6;
+    @apply flex flex-col gap-4 @min-[640px]:gap-6;
   }
   .add-button {
     @apply w-full h-9 inline-flex items-center justify-center gap-2 border border-input bg-white text-sm font-medium [&_svg]:size-5 rounded-md transition-colors duration-150 hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed;

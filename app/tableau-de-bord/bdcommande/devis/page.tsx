@@ -12,11 +12,13 @@ import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
 import Link from "next/link";
 import React from "react";
+import { QuotationGroupTable } from "./quotation-group";
 
 
 const Page = () => {
   const { user } = useStore();
   const isManager = user?.role.some(r=>r.label === "SALES_MANAGER");
+  const isAdmin = user?.role.some(r=> r.label === "SALES_MANAGER" || r.label === "ADMIN");
   /**Quotation fetch */
   const quotationQuery = new QuotationQueries();
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(["quotations"], quotationQuery.getAll);
@@ -51,6 +53,10 @@ if(isSuccess && providers.isSuccess && commands.isSuccess)
           </Link>
         }
       </PageTitle>
+      {
+        isAdmin &&
+        <QuotationGroupTable providers={providers.data.data} quotations={data.data} requests={commands.data.data}/>
+      }
       <DevisTable
         data={data.data}
         dateFilter={dateFilter}

@@ -272,3 +272,11 @@ export type TicketsData = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type QuotationGroupStatus  = "NOT_PROCESSED" | "IN_PROGRESS" | "PROCESSED";
+export interface QuotationGroup {
+  commandRequest: CommandRequestT;
+  quotations: Array<Quotation>;
+  providers: Array<Provider>;
+  status: QuotationGroupStatus;
+}
