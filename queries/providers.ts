@@ -34,10 +34,13 @@ export class ProviderQueries {
       formData.append(key, String(value));
     });
 
-    return api.post(this.route, formData).then((response) => {
-      console.log(response.data);
-      return response.data;
-    });
+    return api
+      .post(this.route, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
   };
 
   // --------------------------------------
@@ -52,7 +55,6 @@ export class ProviderQueries {
 
   getOne = async (id: number): Promise<{ data: Provider }> => {
     return api.get(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -65,10 +67,36 @@ export class ProviderQueries {
     id: number,
     data: Partial<Omit<Provider, "id" | "createdAt">>
   ): Promise<{ data: Provider }> => {
-    return api.put(`${this.route}/${id}`, data).then((response) => {
-      console.log(response.data);
-      return response.data;
+    const formData = new FormData();
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+
+      // Multiple files
+      if (Array.isArray(value) && value[0] instanceof File) {
+        value.forEach((file) => {
+          formData.append(key, file);
+        });
+        return;
+      }
+
+      // Single file
+      if (value instanceof File) {
+        formData.append(key, value);
+        return;
+      }
+
+      // Normal fields (string, number, boolean)
+      formData.append(key, String(value));
     });
+
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
   };
 
   // --------------------------------------

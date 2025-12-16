@@ -34,7 +34,7 @@ const formSchema = z.object({
   phone: z.string().min(1),
   role: z.string(),
   poste: z.string().min(1),
-  department: z.string(),
+  department: z.string().optional(),
 });
 
 export default function CreateUserForm() {
@@ -54,7 +54,9 @@ export default function CreateUserForm() {
       console.log("Register successful:", data);
     },
     onError: (error: unknown) => {
-      toast.error("Une erreur est survenue lors de la creation de l'utilisateur.");
+      toast.error(
+        "Une erreur est survenue lors de la creation de l'utilisateur."
+      );
       console.error("Register error:", error);
     },
   });
