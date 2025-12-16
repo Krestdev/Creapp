@@ -7,6 +7,9 @@ import { CommandQueries } from "@/queries/command";
 import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "@/components/loading-page";
 import ErrorPage from "@/components/error-page";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { useStore } from "@/providers/datastore";
 
 const Page = () => {
   const commandsQuery = new CommandQueries();
@@ -15,6 +18,22 @@ const Page = () => {
     commandsQuery.getAll,
     30000
   );
+
+  const { user } = useStore();
+  const links = [
+    {
+      title: "Créer un BC",
+      href: "/tableau-de-bord/bdcommande/validation",
+    },
+    {
+      title: "Valider BC",
+      href: "/tableau-de-bord/bdcommande/validation",
+    },
+    {
+      title: "Reception",
+      href: "/tableau-de-bord/bdcommande/validation",
+    },
+  ];
 
   if (isLoading) {
     return <LoadingPage />;
@@ -26,10 +45,32 @@ const Page = () => {
     return (
       <div className="flex flex-col gap-6">
         <PageTitle
-          title="Validation"
-          subtitle="Approbation des bons de commandes"
+          title="Bons de commande"
+          subtitle="Approbation des bons de commande"
           color="green"
-        />
+        >
+          {links
+            .filter(
+              (x) =>
+                !(
+                  x.title === "Approbation" &&
+                  !user?.role.flatMap((r) => r.label).includes("MANAGER")
+                )
+            )
+            .map((link, id) => {
+              const isLast = links.length > 1 ? id === links.length - 1 : false;
+              return (
+                <Button
+                  disabled
+                  size={"lg"}
+                  variant={isLast ? "accent" : "ghost"}
+                  className="cursor-not-allowed"
+                >
+                  {link.title}
+                </Button>
+              );
+            })}
+        </PageTitle>
         <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           <TitleValueCard
             title={"Bons en attente"}
