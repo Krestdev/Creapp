@@ -208,7 +208,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Nom
+              Nom (Entreprise)
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
@@ -293,25 +293,25 @@ export function ProviderTable({ data }: ProvidersTableProps) {
           <div className="font-medium">{row.getValue("taxId")}</div>
         ),
       },
-      {
-        accessorKey: "rating",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Evaluation
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("rating")}</div>
-        ),
-      },
+      // {
+      //   accessorKey: "rating",
+      //   header: ({ column }) => {
+      //     return (
+      //       <Button
+      //         variant="ghost"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         Evaluation
+      //         <ArrowUpDown className="ml-2 h-4 w-4" />
+      //       </Button>
+      //     );
+      //   },
+      //   cell: ({ row }) => (
+      //     <div className="font-medium">{row.getValue("rating")}</div>
+      //   ),
+      // },
       // {
       //   accessorKey: "status",
       //   header: ({ column }) => {
@@ -341,34 +341,34 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       //     );
       //   },
       // },
-      {
-        accessorKey: "createdAt",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Dernière connexion
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => {
-          const date = new Date(row.getValue("createdAt"));
-          return (
-            <div>
-              {date.toLocaleDateString("fr-FR")}{" "}
-              {date.toLocaleTimeString("fr-FR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </div>
-          );
-        },
-      },
+      // {
+      //   accessorKey: "createdAt",
+      //   header: ({ column }) => {
+      //     return (
+      //       <Button
+      //         variant="ghost"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         Dernière connexion
+      //         <ArrowUpDown className="ml-2 h-4 w-4" />
+      //       </Button>
+      //     );
+      //   },
+      //   cell: ({ row }) => {
+      //     const date = new Date(row.getValue("createdAt"));
+      //     return (
+      //       <div>
+      //         {date.toLocaleDateString("fr-FR")}{" "}
+      //         {date.toLocaleTimeString("fr-FR", {
+      //           hour: "2-digit",
+      //           minute: "2-digit",
+      //         })}
+      //       </div>
+      //     );
+      //   },
+      // },
       {
         id: "actions",
         header: "Actions",

@@ -181,6 +181,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
           return (
             <Button
               variant="ghost"
+              className="bg-transparent"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
@@ -200,6 +201,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
           return (
             <Button
               variant="ghost"
+              className="bg-transparent"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
@@ -217,11 +219,12 @@ export function ProjectTable({ data }: ProjectTableProps) {
           return (
             <Button
               variant="ghost"
+              className="bg-transparent"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Total Budget
+              Budget Total
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
@@ -271,11 +274,12 @@ export function ProjectTable({ data }: ProjectTableProps) {
           return (
             <Button
               variant="ghost"
+              className="bg-transparent"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Chief
+              Chef Projet
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
@@ -291,11 +295,12 @@ export function ProjectTable({ data }: ProjectTableProps) {
           return (
             <Button
               variant="ghost"
+              className="bg-transparent"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              State
+              Statut
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
@@ -320,7 +325,13 @@ export function ProjectTable({ data }: ProjectTableProps) {
       },
       {
         id: "actions",
-        header: "Actions",
+        header: () => {
+          return (
+            <Button className="bg-transparent" variant="ghost">
+              Action
+            </Button>
+          );
+        },
         enableHiding: false,
         cell: ({ row }) => {
           const project = row.original;
@@ -433,7 +444,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by reference, project, or chief..."
+            placeholder="Rechercher par référence, projet ou chef..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="pl-8 max-w-sm"
@@ -442,7 +453,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
-              State <ChevronDown className="ml-2 h-4 w-4" />
+              Statuts <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -480,7 +491,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

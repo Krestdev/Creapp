@@ -1,5 +1,5 @@
-import { RoleCreateForm } from "@/components/organisation/create-Role";
-import RolesPage from "@/components/organisation/roles";
+import { RoleCreateForm } from "@/components/utilisateurs/create-Role";
+import RolesPage from "@/components/utilisateurs/roles";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {
@@ -7,7 +7,7 @@ function Page() {
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Roles"
+        title="Rôles"
         subtitle="Consultez la liste des rôles."
         color="red"
       />
@@ -15,7 +15,7 @@ function Page() {
         <div className="w-full">
           <RolesPage />
         </div>
-        <div className="w-full">
+        <div className={`w-full`}>
           <RoleCreateForm />
         </div>
       </div>

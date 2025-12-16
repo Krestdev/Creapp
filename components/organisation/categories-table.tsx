@@ -138,7 +138,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Name
+              Nom de la catégorie
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
@@ -166,7 +166,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Parent
+              {"catégorie Parent"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
@@ -326,7 +326,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
         <Input
-          placeholder="Search by reference, name, or chef..."
+          placeholder="Rechercher par nom de la catégorie..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
@@ -345,7 +345,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="all">tous les Statuts</SelectItem>
             <SelectItem value="actif">Actif</SelectItem>
             <SelectItem value="inactif">Inactif</SelectItem>
             <SelectItem value="en-reorganisation">En réorganisation</SelectItem>
@@ -354,7 +354,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -362,6 +362,12 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => {
+                const text =
+                  column.id == "label"
+                    ? "Nom catégorie"
+                    : column.id == "parentId"
+                    ? "catégorie Parent"
+                    : "special";
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -371,7 +377,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {text}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -442,10 +448,11 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         </Table>
       </div>
       <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+        {/* <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
+        </div> */}
+        <div>.</div>
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"

@@ -212,6 +212,11 @@ export type Provider = {
   createdAt: string;
   id: number;
   name: string;
+  carte_contribuable?: string | File;
+  acf?: string | File;
+  plan_localisation?: string | File;
+  commerce_registre?: string | File;
+  banck_attestation?: string | File;
 };
 
 export type QuotationStatus = "submitted" | "approved" | "rejected" | "pending";
