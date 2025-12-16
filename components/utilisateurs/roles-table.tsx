@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import UpdateRole from "../organisation/UpdateRole";
+import { Pagination } from "../base/pagination";
 
 interface RolesTableProps {
   data: Role[];
@@ -86,30 +87,30 @@ export function RoleTable({ data }: RolesTableProps) {
 
   const columns = React.useMemo<ColumnDef<Role>[]>(
     () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
+      // {
+      //   id: "select",
+      //   header: ({ table }) => (
+      //     <Checkbox
+      //       checked={
+      //         table.getIsAllPageRowsSelected() ||
+      //         (table.getIsSomePageRowsSelected() && "indeterminate")
+      //       }
+      //       onCheckedChange={(value) =>
+      //         table.toggleAllPageRowsSelected(!!value)
+      //       }
+      //       aria-label="Select all"
+      //     />
+      //   ),
+      //   cell: ({ row }) => (
+      //     <Checkbox
+      //       checked={row.getIsSelected()}
+      //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+      //       aria-label="Select row"
+      //     />
+      //   ),
+      //   enableSorting: false,
+      //   enableHiding: false,
+      // },
       {
         accessorKey: "label",
         header: ({ column }) => {
@@ -244,45 +245,45 @@ export function RoleTable({ data }: RolesTableProps) {
       //     return value.includes(row.getValue(id));
       //   },
       // },
-      {
-        id: "actions",
-        header: "Actions",
-        enableHiding: false,
-        cell: ({ row }) => {
-          const departement = row.original;
+      // {
+      //   id: "actions",
+      //   header: "Actions",
+      //   enableHiding: false,
+      //   cell: ({ row }) => {
+      //     const departement = row.original;
 
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>Voir</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedItem(departement);
-                    setIsUpdateModalOpen(true);
-                  }}
-                >
-                  <LucidePen className="mr-2 h-4 w-4" />
-                  {"Modifier"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-red-600"
-                  onClick={() => rolesMutation.mutate(departement.id)}
-                >
-                  Supprimer
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
-      },
+      //     return (
+      //       <DropdownMenu>
+      //         <DropdownMenuTrigger asChild>
+      //           <Button variant="ghost" className="h-8 w-8 p-0">
+      //             <span className="sr-only">Open menu</span>
+      //             <MoreHorizontal className="h-4 w-4" />
+      //           </Button>
+      //         </DropdownMenuTrigger>
+      //         <DropdownMenuContent align="end">
+      //           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+      //           <DropdownMenuItem>Voir</DropdownMenuItem>
+      //           <DropdownMenuSeparator />
+      //           <DropdownMenuItem
+      //             onClick={() => {
+      //               setSelectedItem(departement);
+      //               setIsUpdateModalOpen(true);
+      //             }}
+      //           >
+      //             <LucidePen className="mr-2 h-4 w-4" />
+      //             {"Modifier"}
+      //           </DropdownMenuItem>
+      //           <DropdownMenuItem
+      //             className="text-red-600"
+      //             onClick={() => rolesMutation.mutate(departement.id)}
+      //           >
+      //             Supprimer
+      //           </DropdownMenuItem>
+      //         </DropdownMenuContent>
+      //       </DropdownMenu>
+      //     );
+      //   },
+      // },
     ],
     []
   );
@@ -452,46 +453,7 @@ export function RoleTable({ data }: RolesTableProps) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <Pagination table={table} />
       <UpdateRole
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}

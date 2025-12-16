@@ -5,7 +5,7 @@ import SelectQuotation from './select-quotation';
 async function Page({params}:{params:Promise<{id:string}>}) {
   const id = (await params).id;
   return (
-    <div>
+    <div className='content'>
       <PageTitle title="Valider un devis" subtitle={"Sélectionnez les éléments valides pour chaque fournisseur"} color={"blue"}/>
       <SelectQuotation id={id}/>
     </div>

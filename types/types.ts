@@ -219,7 +219,7 @@ export type Provider = {
   banck_attestation?: string | File;
 };
 
-export type QuotationStatus = "submitted" | "approved" | "rejected" | "pending";
+export type QuotationStatus = "SUBMITTED" | "APPROUVED" | "REJECTED" | "PENDING";
 export type QuotationElementStatus = "SELECTED" | "NOT_SELECTED";
 
 export type QuotationElement = {
@@ -282,6 +282,14 @@ export type DepartmentUpdateInput = Partial<{
   status: string;
   members: MemberInput[];
 }>;
+
+export type SubmissionElement = {
+  deviId: number;
+  elements: Array<{
+    name: string;
+    elementIds: Array<number>
+  }>
+};
 
 type MemberInput = {
   id?: number; // optional for new members

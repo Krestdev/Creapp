@@ -14,17 +14,14 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  CheckCircle,
   ChevronDown,
-  Clock,
   LucidePen,
   MoreHorizontal,
-  Users,
-  XCircle,
+  Users
 } from "lucide-react";
 import * as React from "react";
 
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -52,17 +49,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DepartmentT, DepartmentUpdateInput, Member } from "@/types/types";
+import { DepartmentQueries } from "@/queries/departmentModule";
+import { DepartmentT, Member } from "@/types/types";
+import { useMutation } from "@tanstack/react-query";
+import { VariantProps } from "class-variance-authority";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import UpdateDepartment from "./UpdateDeprtment";
-import { DepartmentQueries } from "@/queries/departmentModule";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import UpdateDepartment from "./UpdateDeprtment";
 
 interface DepartementTableProps {
   data: DepartmentT[];
@@ -97,6 +95,17 @@ export function DepartementTable({ data }: DepartementTableProps) {
       toast.error("Une erreur est survenue lors de la suppression.");
     },
   });
+
+  const getBadge = (status:string):{label:string; variant:VariantProps<typeof badgeVariants>["variant"]} =>{
+    const value = status.toLocaleLowerCase();
+    switch(value){
+      case "actif":
+        return {label: "Actif", variant: "primary"};
+      case "inactive":
+        return {label: "Désactivé", variant: "destructive"};
+      default: return {label: value, variant: "outline"}
+    }
+  };
 
   const columns = React.useMemo<ColumnDef<DepartmentT>[]>(
     () => [
@@ -153,8 +162,8 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Nom Département
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Nom Département"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -172,8 +181,8 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Description
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Description"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -193,8 +202,8 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Chef
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Chef"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -202,7 +211,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
           console.log(row.getValue("members"));
           const members = row.getValue("members") as Member[];
           return (
-            <div>{members.find((user) => user.chief === true)?.user?.name}</div>
+            <div>{members.find((user) => user.chief === true)?.user?.name ?? "Non défini"}</div>
           );
         },
       },
@@ -217,7 +226,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
               }
             >
               {"Nombre d'employés"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown />
             </span>
           );
         },
@@ -240,36 +249,20 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Statut
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Statut"}
+              <ArrowUpDown />
             </span>
           );
         },
         cell: ({ row }) => {
           const status = row.getValue("status") as string;
+          const label = getBadge(status).label;
+          const variant = getBadge(status).variant;
           return (
             <Badge
-              variant="outline"
-              className={
-                status === "actif"
-                  ? "bg-green-500 text-white border-green-600"
-                  : status === "inactif"
-                  ? "bg-red-500 text-white border-red-600"
-                  : "bg-yellow-500 text-white border-yellow-600"
-              }
+              variant={variant}
             >
-              {status === "actif" ? (
-                <CheckCircle className="mr-1 h-3 w-3" />
-              ) : status === "inactif" ? (
-                <XCircle className="mr-1 h-3 w-3" />
-              ) : (
-                <Clock className="mr-1 h-3 w-3" />
-              )}
-              {status === "actif"
-                ? "Actif"
-                : status === "inactif"
-                ? "Inactif"
-                : "En réorganisation"}
+              {label}
             </Badge>
           );
         },
@@ -288,13 +281,13 @@ export function DepartementTable({ data }: DepartementTableProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
+                  <span className="sr-only">{"Ouvrir le menu"}</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>View</DropdownMenuItem>
+                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
+                <DropdownMenuItem>{"Voir"}</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
@@ -309,7 +302,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
                   className="text-red-600"
                   onClick={() => departmentMutation.mutate(departement.id)}
                 >
-                  Supprimer
+                  {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

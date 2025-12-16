@@ -131,10 +131,10 @@ export default function UpdateCategory({
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            Modifier le besoin
+            Modifier la catégorie
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            Modifiez les informations du besoin existant
+            Modifiez les informations de la catégorie existant
           </p>
         </DialogHeader>
 
@@ -168,7 +168,7 @@ export default function UpdateCategory({
                 )}
               />
 
-              <Controller
+              {/* <Controller
                 name="isSpecial"
                 control={form.control}
                 render={({ field, fieldState }) => (
@@ -195,7 +195,7 @@ export default function UpdateCategory({
                     )}
                   </Field>
                 )}
-              />
+              /> */}
 
               <Controller
                 name="parentId"
@@ -215,6 +215,7 @@ export default function UpdateCategory({
                         value={field.value.toString()}
                         onValueChange={field.onChange}
                       >
+
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select category chief" />
                         </SelectTrigger>

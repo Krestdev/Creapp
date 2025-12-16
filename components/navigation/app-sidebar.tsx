@@ -148,12 +148,12 @@ function AppSidebar() {
       authorized: ["ADMIN"],
       title: "Projets",
       items: [
-        {
+        /* {
           pageId: "PG-00-01",
           authorized: ["ADMIN"],
           title: "Créer un projet",
           href: "/tableau-de-bord/projets/create",
-        },
+        }, */
         {
           pageId: "PG-00-02",
           authorized: ["ADMIN"],
@@ -228,34 +228,34 @@ function AppSidebar() {
           href: "/tableau-de-bord/bdcommande/commande",
           authorized: ["ADMIN", "SALES"],
         },
-        {
-          pageId: "PG-03-04",
-          title: "Validation",
-          href: "/tableau-de-bord/bdcommande/validation",
-          authorized: ["ADMIN"],
-        },
+        // {
+        //   pageId: "PG-03-04",
+        //   title: "Validation",
+        //   href: "/tableau-de-bord/bdcommande/validation",
+        //   authorized: ["ADMIN"],
+        // },
         // {
         //   pageId: "PG-03-06",
         //   title: "Créer une cotation",
         //   href: "/tableau-de-bord/bdcommande/creercotation",
         //   authorized: ["ADMIN", "SALES"],
         // },
-        {
-          pageId: "PG-03-07",
-          title: "Nouveaux",
-          href: "/tableau-de-bord/bdcommande/nouveaux",
-          authorized: ["ADMIN"],
-        },
+        // {
+        //   pageId: "PG-03-07",
+        //   title: "Nouveaux",
+        //   href: "/tableau-de-bord/bdcommande/nouveaux",
+        //   authorized: ["ADMIN"],
+        // },
+        // {
+        //   pageId: "PG-03-07",
+        //   title: "Receptions",
+        //   href: "/tableau-de-bord/bdcommande/receptions",
+        //   authorized: ["ADMIN", "SALES"],
+        // },
         {
           pageId: "PG-03-06",
           title: "Paiements",
           href: "/tableau-de-bord/bdcommande/paiements",
-          authorized: ["ADMIN", "SALES"],
-        },
-        {
-          pageId: "PG-03-07",
-          title: "Receptions",
-          href: "/tableau-de-bord/bdcommande/receptions",
           authorized: ["ADMIN", "SALES"],
         },
       ],

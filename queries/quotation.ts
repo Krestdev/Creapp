@@ -1,5 +1,5 @@
 import api from "@/providers/axios";
-import { Quotation, QuotationElement } from "@/types/types";
+import { Quotation, QuotationElement, SubmissionElement } from "@/types/types";
 
 interface CreateQuotation {
   devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status">;
@@ -66,5 +66,8 @@ export class QuotationQueries {
   };
   cancel = async (id:number):Promise<{data: Quotation}> => {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
+  }
+  validate = async (payload:Array<SubmissionElement>):Promise<{ data: Array<Quotation> }> => {
+    return api.put(`${this.route}/validerDevis`, payload).then((response) => response.data);
   }
 }
