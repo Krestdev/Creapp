@@ -37,8 +37,9 @@ export const formSchema = z.object({
   label: z.string({ message: "This field is required" }),
   description: z.string({ message: "This field is required" }).optional(),
   chiefid: z.string().min(1, "Please select an item"),
-  budget: z.coerce.number({ message: "Please enter a valid number" }),
-  spendinginit: z.coerce.number({ message: "Please enter a valid number" }),
+  budget: z.coerce
+    .number({ message: "Please enter a valid number" })
+    .optional(),
 });
 
 type Schema = z.infer<typeof formSchema>;
@@ -68,6 +69,7 @@ export function ProjectCreateForm() {
       form.reset();
     },
     onError: (error: any) => {
+      toast.error("Une erreur est survenue lors de la creation du projet.");
       console.error("Register error:", error);
     },
   });
@@ -85,7 +87,7 @@ export function ProjectCreateForm() {
     > & { chiefId: number } = {
       label: values.label,
       description: values.description || "",
-      budget: values.budget,
+      budget: values.budget ?? 0,
       chiefId: parseInt(values.chiefid, 10),
       status: "planning",
     };
@@ -159,7 +161,7 @@ export function ProjectCreateForm() {
                 : [];
               return (
                 <Field data-invalid={fieldState.invalid} className="gap-1">
-                  <FieldLabel htmlFor="chiefid">Chief *</FieldLabel>
+                  <FieldLabel htmlFor="chiefid">Chef *</FieldLabel>
 
                   <Select
                     value={field.value.toString()}
@@ -192,7 +194,7 @@ export function ProjectCreateForm() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="budget">Budget *</FieldLabel>
+                <FieldLabel htmlFor="budget">Budget</FieldLabel>
                 <Input
                   {...field}
                   id="budget"
@@ -211,34 +213,9 @@ export function ProjectCreateForm() {
             )}
           />
 
-          <Controller
-            name="spendinginit"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="spendinginit">
-                  Initial Spending *
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="spendinginit"
-                  type="number"
-                  onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
-                  }}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="20000"
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
           <div className="flex justify-end items-center w-full pt-3">
             <Button className="rounded-lg" size="sm">
-              Submit
+              Create Project
             </Button>
           </div>
         </FieldGroup>

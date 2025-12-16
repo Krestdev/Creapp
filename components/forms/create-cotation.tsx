@@ -69,9 +69,12 @@ export default function CreateCotationForm() {
       setSuccessOpen(true);
       // Invalider TOUTES les requêtes pertinentes
       form.reset();
-      queryCLient.invalidateQueries({ queryKey: ["commands"] });
-      queryCLient.invalidateQueries({ queryKey: ["requests-validation"] });
-      queryCLient.invalidateQueries({ queryKey: ["requests", user?.id] });
+      queryCLient.invalidateQueries({ queryKey: ["commands"], refetchType: "active" });
+      queryCLient.invalidateQueries({ queryKey: ["requests-validation"], refetchType: "active" });
+      queryCLient.invalidateQueries({ queryKey: ["requests", user?.id], refetchType: "active" });
+    },
+    onError: () => {
+      toast.error("Une erreur est survenue lors de la création de la cotation.");
     },
   });
 

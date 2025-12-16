@@ -202,15 +202,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "name",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Nom
+              Nom (Entreprise)
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -221,15 +221,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "address",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Address
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -240,15 +240,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "phone",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Telephone
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -259,15 +259,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "email",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Email
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -278,15 +278,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "taxId",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Numero de Taxe
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -297,15 +297,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "rating",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Evaluation
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -345,15 +345,15 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         accessorKey: "createdAt",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Dernière connexion
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {

@@ -50,7 +50,7 @@ import {
 } from "@/components/ui/table";
 import { RequestQueries } from "@/queries/requestModule";
 import { Category } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronRight,
@@ -58,6 +58,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import UpdateCategory from "./UpdateCategory";
+import { toast } from "sonner";
 
 interface CategoriesTableProps {
   data: Category[];
@@ -77,10 +78,24 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
 
   const categoryQueries = new RequestQueries();
+  const queryClient = useQueryClient();
 
   const categoryData = useMutation({
     mutationKey: ["deleteCategory"],
     mutationFn: (id: number) => categoryQueries.deleteCategory(id),
+    onSuccess: () => {
+      // invalidate and refetch
+      queryClient.invalidateQueries({
+        queryKey: ["categories"],
+        refetchType: "active",
+      });
+    },
+    onError: (error) => {
+      toast.error(
+        "Une erreur est survenue lors de la suppression de la categorie."
+      );
+      console.error(error);
+    },
   });
 
   const columns = React.useMemo<ColumnDef<Category>[]>(
@@ -132,15 +147,15 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         accessorKey: "label",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Name
+              Nom de la catégorie
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -160,15 +175,15 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         accessorKey: "parentId",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Parent
+              {"catégorie Parent"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {
@@ -183,15 +198,15 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         accessorKey: "isSpecial",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Special"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -326,7 +341,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
         <Input
-          placeholder="Search by reference, name, or chef..."
+          placeholder="Rechercher par nom de la catégorie..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
@@ -345,7 +360,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="all">tous les Statuts</SelectItem>
             <SelectItem value="actif">Actif</SelectItem>
             <SelectItem value="inactif">Inactif</SelectItem>
             <SelectItem value="en-reorganisation">En réorganisation</SelectItem>
@@ -354,7 +369,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -362,6 +377,12 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => {
+                const text =
+                  column.id == "label"
+                    ? "Nom catégorie"
+                    : column.id == "parentId"
+                    ? "catégorie Parent"
+                    : "special";
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -371,7 +392,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {text}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -442,10 +463,11 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         </Table>
       </div>
       <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+        {/* <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
+        </div> */}
+        <div>.</div>
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"

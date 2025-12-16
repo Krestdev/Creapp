@@ -17,7 +17,7 @@ const CategoriesPage = () => {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
           <div className="flex justify-between">
-            <h2>Categories</h2>
+            <h2>Catégories</h2>
           </div>
           <CategoriesTable data={categoryData.data.data} />
         </div>

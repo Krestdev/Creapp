@@ -50,7 +50,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import UpdateRole from "./UpdateRole";
+import UpdateRole from "../organisation/UpdateRole";
 
 interface RolesTableProps {
   data: Role[];
@@ -114,20 +114,32 @@ export function RoleTable({ data }: RolesTableProps) {
         accessorKey: "label",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Name
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("label")}</div>
-        ),
+        cell: ({ row }) => {
+          let text = row.getValue("label") as string;
+          if (text === "ADMIN") {
+            text = "Administrateur";
+          } else if (text === "USER") {
+            text = "Emetteur";
+          } else if (text === "MANAGER") {
+            text = "Validateur";
+          } else if (text === "SALES") {
+            text = "Responsable Achats";
+          } else if (text === "SALES_MANAGER") {
+            text = "Donner dordres Achats";
+          }
+          return <div className="font-medium">{text}</div>;
+        },
       },
       // {
       //   accessorKey: "description",
@@ -249,7 +261,7 @@ export function RoleTable({ data }: RolesTableProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>View</DropdownMenuItem>
+                <DropdownMenuItem>Voir</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
@@ -324,12 +336,12 @@ export function RoleTable({ data }: RolesTableProps) {
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
-        <Input
-          placeholder="Search by reference, name, or chef..."
+        {/* <Input
+          placeholder="rechercher par nom..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
-        />
+        /> */}
         {/* <Select
           value={
             (table.getColumn("label")?.getFilterValue() as string) ?? "all"
@@ -353,7 +365,7 @@ export function RoleTable({ data }: RolesTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

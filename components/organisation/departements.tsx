@@ -17,7 +17,7 @@ const DepartementPage = () => {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
           <div className="flex justify-between">
-            <h2>Departement</h2>
+            <h2>{"Liste des Départements"}</h2>
           </div>
           <DepartementTable data={departmentData.data.data} />
         </div>

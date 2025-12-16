@@ -212,6 +212,11 @@ export type Provider = {
   createdAt: string;
   id: number;
   name: string;
+  carte_contribuable?: string | File;
+  acf?: string | File;
+  plan_localisation?: string | File;
+  commerce_registre?: string | File;
+  banck_attestation?: string | File;
 };
 
 export type QuotationStatus = "submitted" | "approved" | "rejected" | "pending";
@@ -261,7 +266,10 @@ export type TicketsData = {
   updatedAt: Date;
 };
 
-export type QuotationGroupStatus  = "NOT_PROCESSED" | "IN_PROGRESS" | "PROCESSED";
+export type QuotationGroupStatus =
+  | "NOT_PROCESSED"
+  | "IN_PROGRESS"
+  | "PROCESSED";
 export interface QuotationGroup {
   commandRequest: CommandRequestT;
   quotations: Array<Quotation>;
@@ -289,7 +297,7 @@ export type BonsCommande = {
   deviId: number;
   providerId: number;
   amountBase: number;
-  priority:  "low" | "medium" | "high" | "urgent";
+  priority: "low" | "medium" | "high" | "urgent";
   status: "approved" | "pending" | "in-review" | "rejected";
   penaltyMode?: string;
   hasPenalties?: boolean;

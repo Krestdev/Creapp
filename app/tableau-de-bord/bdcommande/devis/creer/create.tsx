@@ -159,6 +159,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
       }
       router.push("/tableau-de-bord/bdcommande/devis/");
     },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Une erreur est survenue lors de la création du devis.");
+    },
   });
 
   /**Data states */

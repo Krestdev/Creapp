@@ -23,17 +23,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { UserQueries } from "@/queries/baseModule";
 import { User as UserT } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import MultiSelectUsers from "../base/multiSelectUsers";
+import MultiSelectRole from "../base/multiSelectRole";
 
 const formSchema = z.object({
   email: z.string(),
   name: z.string(),
   phone: z.string(),
   password: z.string(),
-  projectId: z.number(),
-  role: z.string(),
+  role: z.string().optional(),
 });
 
 interface UpdateRequestProps {
@@ -56,7 +57,6 @@ export default function UpdateUser({
       name: "",
       phone: "",
       password: "",
-      projectId: undefined,
       role: "",
     },
   });
@@ -87,6 +87,19 @@ export default function UpdateUser({
       toast.error("Une erreur est survenue lors de la modification.");
     },
   });
+
+  const roles = new UserQueries();
+  const { data: rolesData } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => roles.getRoles(),
+  });
+
+  const ROLES =
+    rolesData?.data.map((u) => ({ id: u.id!, label: u.label })) || [];
+
+  const [selectedRole, setSelectedRole] = useState<
+    { id: number; label: string }[]
+  >([]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     userMutation.mutate({
@@ -120,9 +133,9 @@ export default function UpdateUser({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Nom</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter name" {...field} />
+                    <Input placeholder="Entrez le nom" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -135,9 +148,27 @@ export default function UpdateUser({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>E-mail</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter email" {...field} />
+                    <Input placeholder="Enter l'email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* LABEL */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mot de passe</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter le nouveaux mot de pass"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -150,10 +181,32 @@ export default function UpdateUser({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>Contact</FormLabel>
                   <FormControl>
-                    <Input placeholder="Optional phone" {...field} />
+                    <Input placeholder="Entrer le contact" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>{"Rôle"}</FormLabel>
+
+                  <MultiSelectRole
+                    display="Role"
+                    roles={ROLES}
+                    selected={selectedRole}
+                    onChange={(list) => {
+                      setSelectedRole(list);
+                      field.onChange(list.map((u) => u.id));
+                    }}
+                  />
+
                   <FormMessage />
                 </FormItem>
               )}
@@ -161,7 +214,7 @@ export default function UpdateUser({
 
             {/* SUBMIT */}
             <Button type="submit" className="w-full">
-              Submit
+              Enregistrer
             </Button>
           </form>
         </Form>

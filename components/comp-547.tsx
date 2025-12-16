@@ -21,61 +21,68 @@ interface Props {
   acceptTypes?: "images" | "documents" | "all";
 }
 
-const getAcceptString = (acceptTypes?: Props['acceptTypes'], customAccept?: string): string => {
+const getAcceptString = (
+  acceptTypes?: Props["acceptTypes"],
+  customAccept?: string
+): string => {
   if (customAccept) return customAccept;
-  
+
   switch (acceptTypes) {
-    case 'images':
-      return 'image/*';
-    case 'documents':
-      return '.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx';
-    case 'all':
-      return '*/*';
+    case "images":
+      return "image/*";
+    case "documents":
+      return ".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx";
+    case "all":
+      return "image/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx";
     default:
-      return 'image/*';
+      return "image/*";
   }
 };
 
 const getMimeTypeFromFilename = (filename: string): string => {
-  const ext = filename.split('.').pop()?.toLowerCase() || '';
+  const ext = filename.split(".").pop()?.toLowerCase() || "";
   switch (ext) {
-    case 'jpg':
-    case 'jpeg':
-      return 'image/jpeg';
-    case 'png':
-      return 'image/png';
-    case 'gif':
-      return 'image/gif';
-    case 'pdf':
-      return 'application/pdf';
+    case "jpg":
+    case "jpeg":
+      return "image/jpeg";
+    case "png":
+      return "image/png";
+    case "gif":
+      return "image/gif";
+    case "pdf":
+      return "application/pdf";
     default:
-      return 'application/octet-stream';
+      return "application/octet-stream";
   }
 };
 
 // Fonction pour obtenir l'URL d'affichage correcte
 const getDisplayUrl = (url: string): string => {
-  if (!url || typeof url !== 'string') return url;
-  
+  if (!url || typeof url !== "string") return url;
+
   // Si c'est déjà une URL complète ou blob
-  if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) {
+  if (
+    url.startsWith("http") ||
+    url.startsWith("blob:") ||
+    url.startsWith("data:")
+  ) {
     return url;
   }
-  
+
   // Si c'est juste un nom de fichier
-  const apiUrl = process.env.NEXT_PUBLIC_API || '';
+  const apiUrl = process.env.NEXT_PUBLIC_API || "";
 
   return `${apiUrl}/uploads/${url}`;
 };
 
-const valueToInitialFiles = (value: Props['value']): FileMetadata[] => {
+const valueToInitialFiles = (value: Props["value"]): FileMetadata[] => {
   if (!value) return [];
-  
+
   const convertItem = (item: File | string, index: number): FileMetadata => {
-    if (typeof item === 'string') {
-      const filename = item.split('/').pop() || `file-${index}`;
+    if (typeof item === "string") {
+      const filename = item.split("/").pop() || `file-${index}`;
       const displayUrl = getDisplayUrl(item);
-      
+
       return {
         id: `existing-${index}-${Date.now()}`,
         name: filename,
@@ -93,11 +100,11 @@ const valueToInitialFiles = (value: Props['value']): FileMetadata[] => {
       };
     }
   };
-  
+
   if (Array.isArray(value)) {
     return value.map(convertItem);
   }
-  
+
   return [convertItem(value, 0)];
 };
 
@@ -109,11 +116,11 @@ export default function FilesUpload({
   maxFiles = 2,
   accept,
   multiple = true,
-  acceptTypes = 'images',
+  acceptTypes = "images",
 }: Props) {
   const maxSize = maxSizeMB * 1024 * 1024;
   const acceptString = accept || getAcceptString(acceptTypes);
-  
+
   const initialFiles = useMemo(() => {
     return valueToInitialFiles(value);
   }, [value]);
@@ -144,24 +151,26 @@ export default function FilesUpload({
       return;
     }
 
-    const extractedItems = files.map(item => {
-      if (item.file instanceof File) {
-        return item.file;
-      }
-      if (typeof item.file === 'object' && 'url' in item.file) {
-        // Retourner le nom de fichier original, pas l'URL complète
-        const fileMetadata = item.file as FileMetadata;
-        const fullUrl = fileMetadata.url;
-        
-        // Extraire juste le nom de fichier de l'URL
-        if (fullUrl.includes('/uploads/')) {
-          return fullUrl.split('/uploads/').pop() || fullUrl;
+    const extractedItems = files
+      .map((item) => {
+        if (item.file instanceof File) {
+          return item.file;
         }
-        return fullUrl.split('/').pop() || fullUrl;
-      }
-      return null;
-    }).filter(Boolean) as (File | string)[];
-    
+        if (typeof item.file === "object" && "url" in item.file) {
+          // Retourner le nom de fichier original, pas l'URL complète
+          const fileMetadata = item.file as FileMetadata;
+          const fullUrl = fileMetadata.url;
+
+          // Extraire juste le nom de fichier de l'URL
+          if (fullUrl.includes("/uploads/")) {
+            return fullUrl.split("/uploads/").pop() || fullUrl;
+          }
+          return fullUrl.split("/").pop() || fullUrl;
+        }
+        return null;
+      })
+      .filter(Boolean) as (File | string)[];
+
     if (multiple) {
       onChange(extractedItems);
     } else {
@@ -171,8 +180,8 @@ export default function FilesUpload({
 
   useEffect(() => {
     return () => {
-      files.forEach(item => {
-        if (item.preview && item.preview.startsWith('blob:')) {
+      files.forEach((item) => {
+        if (item.preview && item.preview.startsWith("blob:")) {
           URL.revokeObjectURL(item.preview);
         }
       });
@@ -196,21 +205,19 @@ export default function FilesUpload({
           className="sr-only"
           name={name}
         />
-        
+
         <div className="flex flex-col items-center gap-1 text-center">
           <div className="rounded-full border border-gray-100 p-3">
             <UploadIcon size={16} className="text-gray-400" />
           </div>
-          
+
           <div className="space-y-1 text-sm text-gray-900">
             <p className="font-medium font-mono">
               {"Glissez-déposez vos fichiers ici"}
             </p>
-            <p>
-              {"ou"}
-            </p>
+            <p>{"ou"}</p>
           </div>
-          
+
           <Button
             onClick={(e) => {
               e.preventDefault();
@@ -221,11 +228,12 @@ export default function FilesUpload({
           >
             {"Parcourir les fichiers"}
           </Button>
-          
+
           <p className="text-xs text-gray-400">
-            {acceptTypes === 'images' && `PNG, JPG, GIF jusqu'à ${maxSizeMB}MB`}
-            {acceptTypes === 'documents' && `PDF, DOC, XLS jusqu'à ${maxSizeMB}MB`}
-            {acceptTypes === 'all' && `Tous fichiers jusqu'à ${maxSizeMB}MB`}
+            {acceptTypes === "images" && `PNG, JPG, GIF jusqu'à ${maxSizeMB}MB`}
+            {acceptTypes === "documents" &&
+              `PDF, DOC, XLS jusqu'à ${maxSizeMB}MB`}
+            {acceptTypes === "all" && `Tous fichiers jusqu'à ${maxSizeMB}MB`}
             {maxFiles > 1 && ` • Maximum ${maxFiles} fichiers`}
           </p>
         </div>
@@ -244,13 +252,9 @@ export default function FilesUpload({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium">
-              {files.length} fichier{files.length > 1 ? 's' : ''}
+              {files.length} fichier{files.length > 1 ? "s" : ""}
             </p>
-            <Button
-              onClick={clearFiles}
-              variant="delete"
-              size="sm"
-            >
+            <Button onClick={clearFiles} variant="delete" size="sm">
               {"Tout supprimer"}
             </Button>
           </div>
@@ -270,7 +274,7 @@ export default function FilesUpload({
                   className="flex items-center justify-between gap-3 rounded-lg border bg-white p-3"
                 >
                   <div className="flex items-center gap-3 overflow-hidden">
-                    {fileType.startsWith('image/') ? (
+                    {fileType.startsWith("image/") ? (
                       <div className="size-12 shrink-0 overflow-hidden rounded border">
                         <img
                           src={previewUrl}
@@ -297,7 +301,9 @@ export default function FilesUpload({
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <span>{formatBytes(fileSize)}</span>
                         <span>•</span>
-                        <span>{fileType.split('/')[1]?.toUpperCase() || 'FILE'}</span>
+                        <span>
+                          {fileType.split("/")[1]?.toUpperCase() || "FILE"}
+                        </span>
                       </div>
                     </div>
                   </div>

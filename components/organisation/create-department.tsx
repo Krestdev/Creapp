@@ -72,6 +72,7 @@ export function DepartmentCreateForm() {
       form.reset();
     },
     onError: (error: any) => {
+      toast.error("Une erreur est survenue lors de la creation du departement.");
       console.error("Register error:", error);
     },
   });

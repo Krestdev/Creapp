@@ -55,8 +55,9 @@ import {
 } from "@/components/ui/table";
 import { ProjectQueries } from "@/queries/projectModule";
 import { ProjectT } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import UpdateProject from "./UpdateProject";
+import { toast } from "sonner";
 
 // export type Project = {
 //   reference: string;
@@ -143,11 +144,24 @@ export function ProjectTable({ data }: ProjectTableProps) {
     }).format(amount);
   };
 
+  const queryClient = useQueryClient();
+
   const project = new ProjectQueries();
   const projectMutationData = useMutation({
     mutationKey: ["projectsStatus"],
     mutationFn: (data: { id: number; status: string }) =>
       project.update(data.id, { status: data.status }),
+    onSuccess: () => {
+      // invalidate and refetch
+      toast.success("Projet mis à jour avec succès !");
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+    onError: () => {
+      toast.error(
+        "Une erreur s'est produite lors de la mise à jour du projet."
+      );
+    },
   });
   const columns: ColumnDef<ProjectT>[] = React.useMemo(
     () => [
@@ -179,15 +193,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
         accessorKey: "reference",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Référence
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -198,15 +212,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
         accessorKey: "label",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               Project
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => <div>{row.getValue("label")}</div>,
@@ -215,15 +229,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
         accessorKey: "budget",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Total Budget
+              Budget Total
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => (
@@ -269,15 +283,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
         accessorKey: "chief",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Chief
+              Chef Projet
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {
@@ -289,15 +303,15 @@ export function ProjectTable({ data }: ProjectTableProps) {
         accessorKey: "status",
         header: ({ column }) => {
           return (
-            <Button
-              variant="ghost"
+            <span
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              State
+              Statut
               <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            </span>
           );
         },
         cell: ({ row }) => {
@@ -320,7 +334,13 @@ export function ProjectTable({ data }: ProjectTableProps) {
       },
       {
         id: "actions",
-        header: "Actions",
+        header: () => {
+          return (
+            <Button className="bg-transparent" variant="ghost">
+              Action
+            </Button>
+          );
+        },
         enableHiding: false,
         cell: ({ row }) => {
           const project = row.original;
@@ -433,7 +453,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by reference, project, or chief..."
+            placeholder="Rechercher par référence, projet ou chef..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="pl-8 max-w-sm"
@@ -442,7 +462,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
-              State <ChevronDown className="ml-2 h-4 w-4" />
+              Statuts <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -480,7 +500,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
