@@ -2,7 +2,7 @@
 import React from 'react'
 import { useFetchQuery } from '@/hooks/useData';
 import { groupQuotationsByCommandRequest } from '@/lib/quotation-functions';
-import { CommandQueries } from '@/queries/commandModule';
+import { CommandRqstQueries } from '@/queries/commandRqstModule';
 import { ProviderQueries } from '@/queries/providers';
 import { QuotationQueries } from '@/queries/quotation';
 import { notFound } from 'next/navigation';
@@ -15,7 +15,7 @@ function SelectQuotation({id}:{id:string}) {
     const providersQuery = new ProviderQueries();
     const providers = useFetchQuery(["providers"], providersQuery.getAll, 500000);
     /**Commands fetch */
-    const commandsQuery = new CommandQueries();
+    const commandsQuery = new CommandRqstQueries();
     const commands = useFetchQuery(["commands"], commandsQuery.getAll, 30000);
 
     const data = React.useMemo(() => {

@@ -355,12 +355,12 @@ export function QuotationGroupTable({
               )}
               {statusFilter !== "all" && (
                 <Badge variant="default" className="font-normal">
-                  Statut: {getGroupStatusLabel(statusFilter).label}
+                  {`Statut: ${getGroupStatusLabel(statusFilter).label}`}
                 </Badge>
               )}
               {globalFilter && (
                 <Badge variant="outline" className="font-normal">
-                  Recherche: "{globalFilter}"
+                  {`Recherche: "${globalFilter}"`}
                 </Badge>
               )}
             </div>
