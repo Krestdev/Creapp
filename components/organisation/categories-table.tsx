@@ -50,7 +50,7 @@ import {
 } from "@/components/ui/table";
 import { RequestQueries } from "@/queries/requestModule";
 import { Category } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronRight,
@@ -58,6 +58,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import UpdateCategory from "./UpdateCategory";
+import { toast } from "sonner";
 
 interface CategoriesTableProps {
   data: Category[];
@@ -77,10 +78,24 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
 
   const categoryQueries = new RequestQueries();
+  const queryClient = useQueryClient();
 
   const categoryData = useMutation({
     mutationKey: ["deleteCategory"],
     mutationFn: (id: number) => categoryQueries.deleteCategory(id),
+    onSuccess: () => {
+      // invalidate and refetch
+      queryClient.invalidateQueries({
+        queryKey: ["categories"],
+        refetchType: "active",
+      });
+    },
+    onError: (error) => {
+      toast.error(
+        "Une erreur est survenue lors de la suppression de la categorie."
+      );
+      console.error(error);
+    },
   });
 
   const columns = React.useMemo<ColumnDef<Category>[]>(

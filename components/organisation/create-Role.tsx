@@ -48,6 +48,7 @@ export function RoleCreateForm() {
       form.reset();
     },
     onError: (error: any) => {
+      toast.error("Une erreur est survenue lors de la creation du role.");
       console.error("Register error:", error);
     },
   });

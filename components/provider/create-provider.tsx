@@ -45,6 +45,7 @@ export default function CreateProviderForm() {
       console.log("Register successful:", data);
     },
     onError: (error: any) => {
+      toast.error("Une erreur est survenue lors de la creation du fournisseur.");
       console.error("Register error:", error);
     },
   });

@@ -55,8 +55,9 @@ import {
 } from "@/components/ui/table";
 import { ProjectQueries } from "@/queries/projectModule";
 import { ProjectT } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import UpdateProject from "./UpdateProject";
+import { toast } from "sonner";
 
 // export type Project = {
 //   reference: string;
@@ -143,11 +144,22 @@ export function ProjectTable({ data }: ProjectTableProps) {
     }).format(amount);
   };
 
+  const queryClient = useQueryClient();
+
   const project = new ProjectQueries();
   const projectMutationData = useMutation({
     mutationKey: ["projectsStatus"],
     mutationFn: (data: { id: number; status: string }) =>
       project.update(data.id, { status: data.status }),
+    onSuccess: () => {
+      // invalidate and refetch
+      toast.success("Projet mis à jour avec succès !");
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+    onError: () => {
+      toast.error("Une erreur s'est produite lors de la mise à jour du projet.");
+    },
   });
   const columns: ColumnDef<ProjectT>[] = React.useMemo(
     () => [

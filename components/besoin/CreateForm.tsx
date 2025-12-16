@@ -147,9 +147,9 @@ export default function MyForm() {
       setSelectedUsers([]);
 
       // Invalider et rafraîchir toutes les requêtes liées aux besoins
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
-      queryClient.invalidateQueries({ queryKey: ["requests-validation"] });
-      queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" });
+      queryClient.invalidateQueries({ queryKey: ["requests-validation"], refetchType: "active" });
+      queryClient.invalidateQueries({ queryKey: ["requests", user?.id], refetchType: "active" });
     },
 
     onError: () => toast.error("Une erreur est survenue."),

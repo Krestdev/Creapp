@@ -54,6 +54,7 @@ export default function CreateUserForm() {
       console.log("Register successful:", data);
     },
     onError: (error: unknown) => {
+      toast.error("Une erreur est survenue lors de la creation de l'utilisateur.");
       console.error("Register error:", error);
     },
   });

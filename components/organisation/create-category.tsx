@@ -67,6 +67,7 @@ export function CategoryCreateForm() {
       form.reset();
     },
     onError: (error: any) => {
+      toast.error("Une erreur est survenue lors de la creation de la categorie.");
       console.error("Register error:", error);
     },
   });

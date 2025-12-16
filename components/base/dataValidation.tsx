@@ -382,9 +382,9 @@ export function DataValidation({
     onSuccess: () => {
       toast.success("Besoin validé avec succès !");
       // Invalider et rafraîchir les données
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
-      queryClient.invalidateQueries({ queryKey: ["requests-validation"] });
-      queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" });
+      queryClient.invalidateQueries({ queryKey: ["requests-validation"], refetchType: "active" });
+      queryClient.invalidateQueries({ queryKey: ["requests", user?.id], refetchType: "active" });
       requestData.refetch();
     },
     onError: () => {
