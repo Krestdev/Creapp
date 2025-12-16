@@ -21,8 +21,9 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { ProviderQueries } from "@/queries/providers";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useFetchQuery } from "@/hooks/useData";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -37,6 +38,7 @@ interface DetailModalProps {
 }
 
 export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,7 +52,10 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
     mutationFn: (data: { name: string }) => providerQueries.create(data),
     onSuccess: () => {
       toast.success("Inscription réussie !");
-    //Invalidate les queries pour mettre à jour la liste des fournisseurs
+      //Invalidate les queries pour mettre à jour la liste des fournisseurs
+      queryClient.invalidateQueries({ queryKey: ["registerNewProvider"] });
+      queryClient.invalidateQueries({ queryKey: ["providers"], refetchType: "active" });
+      // refetch les providers
     },
     onError: (error: any) => {
       console.error("Register error:", error);

@@ -45,6 +45,7 @@ import z from "zod";
 import AddElement from "./addElement";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderDialog } from "@/components/modals/ProviderDialog";
+import LoadingPage from "@/components/loading-page";
 
 const formSchema = z.object({
   commandRequestId: z.number({ message: "Requis" }),
@@ -162,8 +163,6 @@ function CreateQuotation({ quotation, openChange }: Props) {
 
   /**Data states */
   const [dueDate, setDueDate] = React.useState<boolean>(false);
-  const [requests, setRequests] = React.useState<Array<CommandRequestT>>([]);
-  const [providers, setProviders] = React.useState<Array<Provider>>([]);
   const today = new Date(); //On part sur 3 jours de delai de base :)
   today.setDate(today.getDate() + 3);
 
@@ -190,23 +189,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
 
   const commandRequestId = form.watch("commandRequestId");
 
-  React.useEffect(() => {
-    if (requestsData.isSuccess) {
-      setRequests(requestsData.data.data);
-    }
-    if (providersData.isSuccess) {
-      setProviders(providersData.data.data);
-    }
-  }, [requestsData.isSuccess, providersData.isSuccess]);
-
-  React.useEffect(() => {
-    if (commandRequestId) {
-      const req = requests.find((x) => x.id === commandRequestId);
-      setSelectedNeeds(req?.besoins);
-    } else {
-      setSelectedNeeds(undefined);
-    }
-  }, [commandRequestId, requests]);
+  if (requestsData.isLoading || providersData.isLoading) {
+    return <LoadingPage />;
+  }
 
   function onSubmit(values: FormValues) {
     //console.log(values);
@@ -235,12 +220,12 @@ function CreateQuotation({ quotation, openChange }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {requests.length === 0 ? (
+                    {requestsData.data?.data.length === 0 ? (
                       <SelectItem value="-" disabled>
                         {"Aucune demande enregistrée"}
                       </SelectItem>
                     ) : (
-                      requests.map((request) => (
+                      requestsData.data?.data.map((request) => (
                         <SelectItem key={request.id} value={String(request.id)}>
                           {request.title}
                         </SelectItem>
@@ -272,12 +257,12 @@ function CreateQuotation({ quotation, openChange }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {providers.length === 0 ? (
+                    {providersData.data?.data.length === 0 ? (
                       <SelectItem value="-" disabled>
                         {"Aucun fournisseur enregistré"}
                       </SelectItem>
                     ) : (
-                      providers.map((provider) => (
+                      providersData.data?.data.map((provider) => (
                         <SelectItem
                           key={provider.id}
                           value={String(provider.id)}
