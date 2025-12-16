@@ -258,9 +258,9 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button variant={"outline"}>
+                  {"Actions"}
+                  <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -346,7 +346,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
-        <Select
+        {/* <Select
           value={
             (table.getColumn("status")?.getFilterValue() as string) ?? "all"
           }
@@ -365,7 +365,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
             <SelectItem value="inactif">Inactif</SelectItem>
             <SelectItem value="en-reorganisation">En réorganisation</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
