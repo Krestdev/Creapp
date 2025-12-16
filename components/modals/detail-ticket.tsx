@@ -1,24 +1,22 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { TicketsData } from "@/types/types";
 import {
-  Hash,
-  FolderOpen,
-  FileText,
-  FolderTree,
   AlertCircle,
   Calendar,
+  FileText,
+  FolderOpen,
+  FolderTree,
+  Hash,
 } from "lucide-react";
-import { format } from "date-fns";
-import { TicketsData } from "@/types/types";
-import { fr } from "date-fns/locale";
 
 interface DetailTicketProps {
   open: boolean;
@@ -27,7 +25,6 @@ interface DetailTicketProps {
 }
 
 export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[420px] max-h-[80vh] p-0 gap-0 border-none flex flex-col">
@@ -66,10 +63,10 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <FolderOpen className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">{"Montant"}</p>
-                <p className="font-semibold">
-                  {"750 000 FCFA"}
+                <p className="text-sm text-muted-foreground mb-1">
+                  {"Montant"}
                 </p>
+                <p className="font-semibold">{"750 000 FCFA"}</p>
               </div>
             </div>
 
@@ -95,9 +92,7 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <p className="text-sm text-muted-foreground mb-1">
                   {"Compte Payeur"}
                 </p>
-                <p className="font-semibold">
-                  {"Compte Payeur"}
-                </p>
+                <p className="font-semibold">{"Compte Payeur"}</p>
               </div>
             </div>
 
@@ -108,9 +103,7 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground mb-1">{"Statut"}</p>
-                <Badge>
-                  {"Statut"}
-                </Badge>
+                <Badge>{"Statut"}</Badge>
               </div>
             </div>
 

@@ -1,4 +1,4 @@
-import UtilisateursPage from "@/components/pages/utilisateurs/utilisateurs";
+import UtilisateursPage from "@/components/utilisateurs/utilisateurs";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {

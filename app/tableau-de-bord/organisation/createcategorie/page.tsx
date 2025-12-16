@@ -1,4 +1,4 @@
-import { CategoryCreateForm } from "@/components/forms/create-category";
+import { CategoryCreateForm } from "@/components/organisation/create-category";
 import PageTitle from "@/components/pageTitle";
 
 const Page = () => {

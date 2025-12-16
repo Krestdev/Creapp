@@ -73,7 +73,7 @@ export function BesoinLastVal({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: data?.label || "",
-      limiteDate: new Date(data?.dueDate!),
+      limiteDate: new Date(data?.dueDate ?? ""),
       priorite: data?.proprity as "medium" | "high" | "low" | "urgent",
       quantite: String(data?.quantity) || "",
       description: data?.description || "",
@@ -134,7 +134,7 @@ export function BesoinLastVal({
     if (open) {
       form.reset({
         title: data?.label || "",
-        limiteDate: new Date(data?.dueDate!),
+        limiteDate: new Date(data?.dueDate ?? ""), // Handle undefined or null dates
         priorite: data?.proprity,
         quantite: String(data?.quantity) || "",
         description: data?.description || "",

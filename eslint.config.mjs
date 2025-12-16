@@ -15,11 +15,12 @@ const eslintConfig = defineConfig([
   ]),
   {
     rules: {
-      '@next/next/no-img-element': 'off' // Désactive la règle
+      '@next/next/no-img-element': 'off', // Désactive la règle
+      '@typescript-eslint/no-explicit-any': 'off'
     }
   },
   {
-    ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"]
+    ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "components/ui/**"]
   }
 ])
 

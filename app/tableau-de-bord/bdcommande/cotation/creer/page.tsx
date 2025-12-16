@@ -1,4 +1,4 @@
-import CreateCotation from "@/components/pages/bdcommande/createCommande";
+import CreateCotation from "@/components/bdcommande/createCommande";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 

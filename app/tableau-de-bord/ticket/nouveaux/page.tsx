@@ -1,4 +1,4 @@
-import CreateTicketPage from "@/components/pages/ticket/CreateTicketPage";
+import CreateTicketPage from "@/components/ticket/CreateTicketPage";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 

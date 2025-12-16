@@ -1,4 +1,4 @@
-import UserListPage from "@/components/pages/provider/liste";
+import ProviderListPage from "@/components/provider/liste";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {
@@ -10,7 +10,7 @@ function Page() {
         subtitle="Consultez la liste des utilisateurs."
         color="red"
       />
-      <UserListPage />
+      <ProviderListPage />
     </div>
   );
 }

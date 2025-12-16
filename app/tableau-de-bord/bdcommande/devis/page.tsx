@@ -7,7 +7,7 @@ import { DevisTable } from "@/components/tables/DevisTable";
 import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { CommandQueries } from "@/queries/commandModule";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
 import Link from "next/link";
@@ -26,7 +26,7 @@ const Page = () => {
   const providersQuery = new ProviderQueries();
   const providers = useFetchQuery(["providers"], providersQuery.getAll, 500000);
   /**Commands fetch */
-  const commandsQuery = new CommandQueries();
+  const commandsQuery = new CommandRqstQueries();
   const commands = useFetchQuery(["commands"], commandsQuery.getAll, 30000);
 
   const [dateFilter, setDateFilter] = React.useState<

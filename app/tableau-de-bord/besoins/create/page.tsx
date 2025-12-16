@@ -1,4 +1,4 @@
-import CreateResquestPage from "@/components/pages/besoin/CreateResquestPage";
+import CreateResquestPage from "@/components/besoin/CreateResquestPage";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 

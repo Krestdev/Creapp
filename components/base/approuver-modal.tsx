@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -6,34 +7,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Hash,
-  FolderOpen,
-  FileText,
-  FolderTree,
-  AlertCircle,
-  Users,
-  UserPlus,
-  Calendar,
-  X,
-} from "lucide-react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { TableData } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "../ui/form";
-import { Textarea } from "../ui/textarea";
 import { Input } from "../ui/input";
-import { TableData } from "@/types/types";
 
 interface DetailModalProps {
   open: boolean;
@@ -44,7 +31,6 @@ interface DetailModalProps {
 const formSchema = z.object({
   message: z.string(),
 });
-
 
 export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -88,7 +74,9 @@ export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
               <AlertCircle className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">{"Attention"}</p>
+              <p className="text-sm text-muted-foreground mb-1">
+                {"Attention"}
+              </p>
               <p className="text-sm">
                 {"Êtes-vous sûr de vouloir soumettre ce besoin ?"}
               </p>

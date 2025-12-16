@@ -1,20 +1,13 @@
 // components/pagination.tsx
-import React from "react";
 import { Button } from "@/components/ui/button";
+import { Table } from "@tanstack/react-table";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { Table } from "@tanstack/react-table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import React from "react";
 
 interface PaginationProps<TData> {
   table: Table<TData>;
@@ -62,7 +55,9 @@ export function Pagination<TData>({
           {/* Info de page */}
           {showPageInfo && (
             <div className="flex items-center justify-center text-sm font-medium">
-              {`Page ${table.getState().pagination.pageIndex + 1}/${table.getPageCount()}`}
+              {`Page ${
+                table.getState().pagination.pageIndex + 1
+              }/${table.getPageCount()}`}
             </div>
           )}
           <Button

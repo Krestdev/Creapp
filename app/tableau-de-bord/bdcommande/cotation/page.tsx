@@ -1,6 +1,6 @@
 "use client";
 
-import Cotation from "@/components/pages/bdcommande/cotation";
+import Cotation from "@/components/bdcommande/cotation";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/providers/datastore";

@@ -1,42 +1,11 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Hash,
-  FolderOpen,
-  FileText,
-  FolderTree,
-  AlertCircle,
-  Users,
-  UserPlus,
-  Calendar,
-  X,
-  LucideScrollText,
-  UserRound,
-  CalendarFold,
-  CircleDollarSign,
-  LucideWallet,
-  LucideFlag,
-  LucideInfo,
-  LucideCheckCheck,
-  LucideX,
-  LucideMapPin,
-  FileQuestion,
-  LucideSquareUserRound,
-  LucideFile,
-  LucideUserRound,
-  LucideCalendarFold,
-  LucideCalendar,
-} from "lucide-react";
-import { XAF } from "@/lib/utils";
-import Link from "next/link";
-import { TicketsData } from "@/types/types";
 
 export type Justificatif = {
   type: "file" | "image";
@@ -86,7 +55,7 @@ export function ApproveTicket({
   description,
   action,
   buttonTexts,
-  buttonColor="bg-[#16A34A]",
+  buttonColor = "bg-[#16A34A]",
   open,
   onOpenChange,
 }: ApproveTicketProps) {

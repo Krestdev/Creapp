@@ -7,7 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { XAF } from "@/lib/utils";
 import { Quotation } from "@/types/types";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   DollarSign,
   LucideBriefcaseBusiness,
@@ -26,9 +29,6 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { XAF } from "@/lib/utils";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface DetailModalProps {
   open: boolean;
@@ -43,14 +43,15 @@ export function DevisModal({
   data,
   quotation,
 }: DetailModalProps) {
-  const totalAmount = data?.element?.reduce((acc, curr) => acc + curr.priceProposed, 0) || 0;
-  
+  const totalAmount =
+    data?.element?.reduce((acc, curr) => acc + curr.priceProposed, 0) || 0;
+
   // Récupérer les informations de l'utilisateur (à adapter selon votre structure)
-  const getUserName = (userId: string | number | undefined) => {
-    // Ici, vous devriez récupérer le nom de l'utilisateur depuis votre store ou API
-    // Pour l'instant, on retourne l'ID ou une valeur par défaut
-    return userId ? `Utilisateur ${userId}` : "Non spécifié";
-  };
+  // const getUserName = (userId: string | number | undefined) => {
+  //   // Ici, vous devriez récupérer le nom de l'utilisateur depuis votre store ou API
+  //   // Pour l'instant, on retourne l'ID ou une valeur par défaut
+  //   return userId ? `Utilisateur ${userId}` : "Non spécifié";
+  // };
 
   // Récupérer le nom du fournisseur (à adapter selon votre structure)
   const getProviderName = (providerId: number | undefined) => {
@@ -123,7 +124,9 @@ export function DevisModal({
               </div>
               <div className="flex flex-col">
                 <p className="text-[#52525B]">Montant total</p>
-                <p className="text-sm font-semibold">{XAF.format(totalAmount)}</p>
+                <p className="text-sm font-semibold">
+                  {XAF.format(totalAmount)}
+                </p>
               </div>
             </div>
 
@@ -134,7 +137,9 @@ export function DevisModal({
               </div>
               <div className="flex flex-col">
                 <p className="text-[#52525B]">Fournisseur</p>
-                <p className="text-sm font-semibold">{getProviderName(data?.providerId)}</p>
+                <p className="text-sm font-semibold">
+                  {getProviderName(data?.providerId)}
+                </p>
               </div>
             </div>
 
@@ -166,7 +171,9 @@ export function DevisModal({
                       </TableCell>
                       <TableCell>{XAF.format(el.priceProposed || 0)}</TableCell>
                       <TableCell>
-                        {XAF.format((el.quantity || 0) * (el.priceProposed || 0))}
+                        {XAF.format(
+                          (el.quantity || 0) * (el.priceProposed || 0)
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -192,7 +199,9 @@ export function DevisModal({
               </div>
               <div className="flex flex-col">
                 <p className="text-[#52525B]">Créé le</p>
-                <p className="text-sm font-semibold">{formatDate(data?.createdAt)}</p>
+                <p className="text-sm font-semibold">
+                  {formatDate(data?.createdAt)}
+                </p>
               </div>
             </div>
 
@@ -203,7 +212,9 @@ export function DevisModal({
               </div>
               <div className="flex flex-col">
                 <p className="text-[#52525B]">Date limite</p>
-                <p className="text-sm font-semibold">{formatDate(data?.dueDate)}</p>
+                <p className="text-sm font-semibold">
+                  {formatDate(data?.dueDate)}
+                </p>
               </div>
             </div>
 
@@ -217,10 +228,10 @@ export function DevisModal({
                 <div className="flex gap-1.5 items-center">
                   {data?.proof ? (
                     <>
-                      <img 
-                        src="/images/pdf.png" 
-                        alt="justificatif" 
-                        className="h-8 w-auto aspect-square" 
+                      <img
+                        src="/images/pdf.png"
+                        alt="justificatif"
+                        className="h-8 w-auto aspect-square"
                       />
                       <div>
                         {/* <p className="text-[#2F2F2F] text-[12px] font-medium">
@@ -233,7 +244,9 @@ export function DevisModal({
                           {"Document justificatif"}
                         </p>
                         <p className="text-[#A1A1AA] text-[12px]">
-                          {true ? `${(20 / 1024).toFixed(1)} ko` : "Taille inconnue"}
+                          {true
+                            ? `${(20 / 1024).toFixed(1)} ko`
+                            : "Taille inconnue"}
                         </p>
                       </div>
                     </>
@@ -251,7 +264,9 @@ export function DevisModal({
               </div>
               <div className="flex flex-col">
                 <p className="text-[#52525B]">Modifié le</p>
-                <p className="text-sm font-semibold">{formatDate(data?.updatedAt)}</p>
+                <p className="text-sm font-semibold">
+                  {formatDate(data?.updatedAt)}
+                </p>
               </div>
             </div>
           </div>
@@ -269,10 +284,7 @@ export function DevisModal({
           >
             Modifier
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fermer
           </Button>
         </div>

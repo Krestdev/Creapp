@@ -1,8 +1,5 @@
 "use client";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,15 +9,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import { LoginResponse, ResponseT, User } from "@/types/types";
-import { Loader } from "lucide-react";
-import { toast } from "sonner";
-import { UserQueries } from "@/queries/baseModule";
-import { NextResponse } from "next/server";
 import { useStore } from "@/providers/datastore";
+import { UserQueries } from "@/queries/baseModule";
+import { LoginResponse, ResponseT } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { Loader } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { NextResponse } from "next/server";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const formSchema = z.object({
   email: z.string().email("Veuillez entrer un email valide"),

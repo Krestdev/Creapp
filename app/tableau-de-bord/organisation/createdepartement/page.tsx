@@ -1,4 +1,4 @@
-import { DepartmentCreateForm } from "@/components/forms/create-department";
+import { DepartmentCreateForm } from "@/components/organisation/create-department";
 import PageTitle from "@/components/pageTitle";
 
 const Page = () => {

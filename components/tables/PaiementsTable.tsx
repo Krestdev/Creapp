@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -15,23 +14,19 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  MoreHorizontal,
-  Eye,
-  X,
-  Check,
-  Flag,
-  Clock,
   CheckCircle,
-  XCircle,
   ChevronDown,
-  Trash,
+  Clock,
+  Eye,
+  Flag,
   LucidePen,
+  Trash,
+  XCircle,
 } from "lucide-react";
+import * as React from "react";
 
+import { Paiement } from "@/app/tableau-de-bord/bdcommande/paiements/page";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -45,6 +40,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -52,19 +54,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { cn, XAF } from "@/lib/utils";
-import { DetailBC } from "../modals/detail-bc";
-import { Paiement } from "@/app/tableau-de-bord/bdcommande/paiements/page";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
+import CreatePaiement from "@/app/tableau-de-bord/bdcommande/paiements/creer/create";
 
 export type PaiementData = {
   id: string;
@@ -135,8 +128,11 @@ export function PaiementsTable({ data }: PaiementTableProps) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [selected, setSelected] = React.useState<Paiement | null>(null);
+  const [selected, setSelected] = React.useState<Paiement | undefined>(
+    undefined
+  );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
+  const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
 
   const columns: ColumnDef<Paiement>[] = [
     {
@@ -311,7 +307,12 @@ export function PaiementsTable({ data }: PaiementTableProps) {
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => console.log("Validate", item)}>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setShowUpdateModal(true);
+                }}
+              >
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
               </DropdownMenuItem>
@@ -496,7 +497,19 @@ export function PaiementsTable({ data }: PaiementTableProps) {
       </div>
 
       <Pagination table={table} />
-      <DetailPaiement data={selected!} open={showDetail} onOpenChange={setShowDetail} />
+      {selected && (
+        <DetailPaiement
+          data={selected}
+          open={showDetail}
+          onOpenChange={setShowDetail}
+        />
+      )}
+      {/* {selected && (
+        <CreatePaiement
+          paiement={selected}
+          onOpenChange={setShowUpdateModal}
+        />
+      )} */}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import ValidationBC from "@/components/pages/ticket/validation";
+import ValidationBC from "@/components/ticket/validation";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 

@@ -1,9 +1,7 @@
-
 import PageTitle from "@/components/pageTitle";
 import { PaiementsTable } from "@/components/tables/PaiementsTable";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import React from "react";
 
 export type Paiement = {
   id: string;
@@ -13,12 +11,14 @@ export type Paiement = {
   fournisseur: string;
   montant: number;
   moyen: string;
+  user: string;
+  proof: string[];
   priorite: "urgent" | "high" | "medium" | "low";
   statut: "pending" | "completed" | "failed" | "processing";
   dueDate: Date;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
 const paiementsData: Paiement[] = [
   {
@@ -33,7 +33,9 @@ const paiementsData: Paiement[] = [
     dueDate: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
-    bonDeCommande: "BC-001"
+    bonDeCommande: "BC-001",
+    user: "Atangana Pierre",
+    proof: ["document.pdf"],
   },
   {
     id: "2",
@@ -47,7 +49,9 @@ const paiementsData: Paiement[] = [
     dueDate: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
-    bonDeCommande: "BC-002"
+    bonDeCommande: "BC-002",
+    user: "Bondjou Paul",
+    proof: ["image.jpg"],
   },
 ];
 

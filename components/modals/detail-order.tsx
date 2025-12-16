@@ -1,18 +1,16 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { CommandRequestT } from "@/types/types";
-import { RequestQueries } from "@/queries/requestModule";
-import { useQuery } from "@tanstack/react-query";
 import { UserQueries } from "@/queries/baseModule";
-import CotationPDF from "../pages/bdcommande/DétailCotation";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { DownloadButton } from "../pages/bdcommande/TéléchargeButton";
+import { RequestQueries } from "@/queries/requestModule";
+import { CommandRequestT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
+import { DownloadButton } from "../bdcommande/TéléchargeButton";
 
 interface DetailOrderProps {
   open: boolean;
@@ -43,7 +41,7 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
         "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
     },
     approved: {
-      label: "Soumis",
+      label: "Approuvé",
       color:
         "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
     },
@@ -72,7 +70,7 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
         {/* <div className="m-4">
           <CotationPDF data={data} />
         </div> */}
-        <div className="w-full bg-white p-6 text-sm leading-relaxed">
+        <div className="w-full p-6 text-sm leading-relaxed">
           {/* TITRE */}
           <div className="mb-3">
             <h2 className="text-[16px] font-bold uppercase tracking-wide text-[#8A0035]">

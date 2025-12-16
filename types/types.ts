@@ -1,4 +1,4 @@
-import { LucideIcon, LucideProps } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import React from "react";
 
 export interface NavigationItemProps {
@@ -7,13 +7,13 @@ export interface NavigationItemProps {
   href: string;
   authorized: string[];
   title: string;
-  badge?: Number;
+  badge?: number;
   items?: {
     pageId: string;
     title: string;
     href: string;
     authorized: string[];
-    badge?: Number;
+    badge?: number;
   }[];
 }
 
@@ -71,23 +71,6 @@ export type DepartmentT = {
   createdAt: string;
   updatedAt: string;
 };
-
-export type DepartmentUpdateInput = Partial<{
-  label: string;
-  description: string | null;
-  status: string;
-  members: MemberInput[];
-}>;
-
-type MemberInput = {
-  id?: number; // optional for new members
-  label: string;
-  userId: number;
-  validator: boolean;
-  chief: boolean;
-  finalValidator: boolean;
-};
-
 export type Member = {
   id: number;
   label: string;
@@ -111,9 +94,9 @@ export type ProjectT = {
   updatedAt?: Date;
   label: string;
   description: string | null;
+  chief: { id: number; name: string };
   status: string;
-  chiefId: number | null;
-  budget: number | null;
+  budget: number;
 };
 
 // Request / Besoin
@@ -179,9 +162,9 @@ export type Review = {
 export type Category = {
   id: number;
   label: string;
-  description?: string;
-  parentId?: number;
   isSpecial: boolean;
+  description?: string;
+  parentId: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -220,11 +203,11 @@ export type ProjectCreateResponse = {
 };
 
 export type Provider = {
-  rating: number;
-  taxId: string;
-  address: string;
-  email: string;
-  phone: string;
+  rating?: number;
+  taxId?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
   updatedAt?: string;
   createdAt: string;
   id: number;
@@ -247,16 +230,21 @@ export type QuotationElement = {
 
 export type Quotation = {
   id: number;
-  commandRequestId: number;
-  providerId: number;
-  ref: string;
   element: Array<QuotationElement>;
-  proof: string | File;
-  dueDate: string;
+  ref: string;
   createdAt: string;
   updatedAt?: string;
-  userId: number;
   status: QuotationStatus;
+  commandRequestId: number;
+  providerId: number;
+  proof: string | File;
+  dueDate: string;
+  userId: number;
+  commandId?: undefined;
+  isPartial?: boolean;
+  amount?: number;
+  payementMethod?: string;
+  priority?: string;
 };
 
 export type TicketsData = {
@@ -280,3 +268,35 @@ export interface QuotationGroup {
   providers: Array<Provider>;
   status: QuotationGroupStatus;
 }
+export type DepartmentUpdateInput = Partial<{
+  label: string;
+  description: string | null;
+  status: string;
+  members: MemberInput[];
+}>;
+
+type MemberInput = {
+  id?: number; // optional for new members
+  label: string;
+  userId: number;
+  validator: boolean;
+  chief: boolean;
+  finalValidator: boolean;
+};
+
+export type BonsCommande = {
+  id: number;
+  deviId: number;
+  providerId: number;
+  amountBase: number;
+  priority:  "low" | "medium" | "high" | "urgent";
+  status: "approved" | "pending" | "in-review" | "rejected";
+  penaltyMode?: string;
+  hasPenalties?: boolean;
+  deliveryLocation?: string;
+  paymentMethod: string;
+  paymentTerms: string;
+  deliveryDelay: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};

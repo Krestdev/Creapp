@@ -1,37 +1,35 @@
 "use client";
-import { useState } from "react";
-import { toast } from "sonner";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon } from "lucide-react";
-import MultiSelectUsers from "../base/multiSelectUsers";
-import { RequestQueries } from "@/queries/requestModule";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CommandQueries } from "@/queries/commandModule";
-import { CommandRequestT } from "@/types/types";
+import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import Besoins from "../pages/bdcommande/besoins";
+import { RequestQueries } from "@/queries/requestModule";
+import { CommandRequestT } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import Besoins from "../bdcommande/besoins";
 import { SuccessModal } from "../modals/success-modal";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 
 const formSchema = z.object({
   titre: z.string().min(1),
@@ -58,7 +56,7 @@ export default function CreateCotationForm() {
     },
   });
 
-  const command = new CommandQueries();
+  const command = new CommandRqstQueries();
   const createCommand = useMutation({
     mutationKey: ["command"],
     mutationFn: (
@@ -153,7 +151,6 @@ export default function CreateCotationForm() {
             )}
           />
 
-          
           <FormField
             control={form.control}
             name="date_limite"

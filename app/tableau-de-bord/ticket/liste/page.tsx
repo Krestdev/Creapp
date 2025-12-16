@@ -1,4 +1,4 @@
-import Liste from "@/components/pages/ticket/liste";
+import Liste from "@/components/ticket/liste";
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 
