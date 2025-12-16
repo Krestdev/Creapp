@@ -7,7 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { QuotationQueries } from "@/queries/quotation";
+import { BonsCommande } from "@/types/types";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   Calendar,
   CircleDollarSign,
@@ -47,13 +53,13 @@ export interface BonCommandePaiement {
   titre: string;
   montant: number;
   priorite: "low" | "high" | "medium" | "urgent";
-  moyen?: string; // ex: "Espece", "Virement", etc.
+  moyen?: string;
   statut?: "pending" | "approved" | "rejected" | "in-review";
-  delai?: string; // date au format JJ/MM/AAAA
+  delai?: string;
   lieu?: string;
   emetteur?: string;
-  creeLe?: string; // date au format JJ/MM/AAAA
-  modifieLe?: string; // date au format JJ/MM/AAAA
+  creeLe?: string;
+  modifieLe?: string;
   justificatif?: Justificatif[];
   condition?: string;
   besoin?: Besoin[];
@@ -62,11 +68,19 @@ export interface BonCommandePaiement {
 interface DetailBCProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: BonCommandePaiement | null;
+  data: BonsCommande | null;
 }
 
 export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
-  if (!data) return null;
+  const cotation = new CommandRqstQueries();
+  const {
+    data: devis,
+    isSuccess,
+    isLoading,
+  } = useFetchQuery(["commandes"], cotation.getAll, 30000);
+  if (!data || !isSuccess) return null;
+
+  const devisTitle = devis?.data.find((devis) => devis.id === data.deviId)?.title;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -74,7 +88,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
           <DialogTitle className="text-xl font-semibold text-white">
-            {data.titre}
+            {devisTitle}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Informations relatives à la commande"}
@@ -95,12 +109,12 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                   variant="secondary"
                   className="bg-pink-100 text-pink-900 hover:bg-pink-100 dark:bg-pink-900 dark:text-pink-100"
                 >
-                  {data.reference}
+                  {/* {data.ref} */}
                 </Badge>
               </div>
             </div>
 
-            {/* Created date */}
+            {/* Montant */}
             <div className="flex items-start gap-3">
               <div className="mt-1">
                 <CircleDollarSign className="h-5 w-5 text-muted-foreground" />
@@ -109,7 +123,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="text-sm text-muted-foreground">
                   {"Montant total"}
                 </p>
-                <p className="font-semibold">{XAF.format(data.montant)}</p>
+                <p className="font-semibold">{XAF.format(data.amountBase)}</p>
               </div>
             </div>
 
@@ -122,7 +136,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="text-sm text-muted-foreground">
                   {"Moyen de paiement"}
                 </p>
-                <p className="font-semibold">{data.moyen}</p>
+                <p className="font-semibold">{data.paymentMethod}</p>
               </div>
             </div>
 
@@ -135,21 +149,21 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="text-sm text-muted-foreground">{"Priorité"}</p>
                 <Badge
                   className={` text-white ${
-                    data.priorite === "high"
+                    data.priority === "high"
                       ? "bg-[#ff6900]"
-                      : data.priorite === "medium"
+                      : data.priority === "medium"
                       ? "bg-[#2b7fff]"
-                      : data.priorite === "urgent"
+                      : data.priority === "urgent"
                       ? "bg-[#fb2c36]"
                       : "bg-[#6a7282]"
                   }`}
                 >
                   <LucideFlag />
-                  {data.priorite === "high"
+                  {data.priority === "high"
                     ? "Haute"
-                    : data.priorite === "medium"
+                    : data.priority === "medium"
                     ? "Moyenne"
-                    : data.priorite === "urgent"
+                    : data.priority === "urgent"
                     ? "Urgente"
                     : "Normale"}
                 </Badge>
@@ -165,17 +179,17 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="text-sm text-muted-foreground">{"Statut"}</p>
                 <Badge
                   className={` text-white ${
-                    data.statut === "approved"
+                    data.status === "approved"
                       ? "bg-[#DCFCE7] border-[#BBF7D0] text-[#16A34A]"
                       : "bg-[#FED7D7] border-[#FCA5A5] text-[#DC2626]"
                   }`}
                 >
-                  {data.statut === "approved" ? (
+                  {data.status === "approved" ? (
                     <LucideCheckCheck />
                   ) : (
                     <LucideX />
                   )}
-                  {data.statut === "approved" ? "Accepté" : "Rejetté"}
+                  {data.status === "approved" ? "Accepté" : "Rejetté"}
                 </Badge>
               </div>
             </div>
@@ -187,7 +201,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Besoins"}</p>
-                <div className="flex flex-col gap-1">
+                {/* <div className="flex flex-col gap-1">
                   {data.besoin?.map((bes, index) => (
                     <div key={index} className="flex flex-col gap-0.5">
                       <p className="text-[14px] font-medium first-letter:uppercase">
@@ -198,7 +212,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                       </p>
                     </div>
                   ))}
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -211,7 +225,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="text-sm text-muted-foreground">
                   {"Délai de livraison"}
                 </p>
-                <p className="font-semibold">{data.delai}</p>
+                {/* <p className="font-semibold">{format(data.deliveryDelay, "PPP", { locale: fr })}</p> */}
               </div>
             </div>
 
@@ -224,7 +238,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="text-sm text-muted-foreground">
                   {"Lieu de livraison"}
                 </p>
-                <p className="font-semibold">{data.lieu}</p>
+                <p className="font-semibold">{data.deliveryLocation}</p>
               </div>
             </div>
           </div>
@@ -239,7 +253,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="text-sm text-muted-foreground">
                   {"Lieu de livraison"}
                 </p>
-                <p className="font-semibold uppercase">{data.fournisseur}</p>
+                {/* <p className="font-semibold uppercase">{data.fournisseur}</p> */}
               </div>
             </div>
 
@@ -254,7 +268,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                   {"Justificatifs"}
                 </p>
 
-                <div className="flex flex-row gap-3  overflow-auto scrollbar-thin pb-1 w-full">
+                {/* <div className="flex flex-row gap-3  overflow-auto scrollbar-thin pb-1 w-full">
                   {data.justificatif?.map((just, index) => (
                     <Link
                       href={`lien-vers-le-justificatif/${just.nom}`}
@@ -278,7 +292,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                       </div>
                     </Link>
                   ))}
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -289,7 +303,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Initié par"}</p>
-                <p className="font-semibold">{data.emetteur}</p>
+                {/* <p className="font-semibold">{data.emetteur}</p> */}
               </div>
             </div>
 
@@ -300,7 +314,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Date limite"}</p>
-                <p className="font-semibold">{data.creeLe}</p>
+                <p className="font-semibold">{format(data.deliveryDelay, "PPP", { locale: fr })}</p>
               </div>
             </div>
 
@@ -311,7 +325,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Créé le"}</p>
-                <p className="font-semibold">{data.creeLe}</p>
+                <p className="font-semibold">{format(data.createdAt, "PPP", { locale: fr })}</p>
               </div>
             </div>
 
@@ -322,17 +336,18 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Modifié le"}</p>
-                <p className="font-semibold">{data.modifieLe}</p>
+                <p className="font-semibold">{format(data.updatedAt, "PPP", { locale: fr } )}</p>
               </div>
             </div>
 
+            {/* Conditions */}
             <div className="flex items-start gap-3">
               <div className="mt-1">
                 <LucideWallet className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Modifié le"}</p>
-                <p className="font-semibold">{data.condition}</p>
+                {/* <p className="font-semibold">{data.condition}</p> */}
               </div>
             </div>
           </div>

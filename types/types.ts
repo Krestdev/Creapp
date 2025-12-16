@@ -229,22 +229,22 @@ export type QuotationElement = {
 };
 
 export type Quotation = {
-  commandId: undefined;
-  isPartial: boolean;
-  amount: number;
-  payementMethod: string;
-  priority: string;
   id: number;
-  commandRequestId: number;
-  providerId: number;
-  ref: string;
   element: Array<QuotationElement>;
-  proof: string | File;
-  dueDate: string;
+  ref: string;
   createdAt: string;
   updatedAt?: string;
-  userId: number;
   status: QuotationStatus;
+  commandRequestId: number;
+  providerId: number;
+  proof: string | File;
+  dueDate: string;
+  userId: number;
+  commandId?: undefined;
+  isPartial?: boolean;
+  amount?: number;
+  payementMethod?: string;
+  priority?: string;
 };
 
 export type TicketsData = {

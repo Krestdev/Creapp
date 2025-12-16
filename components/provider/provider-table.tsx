@@ -569,7 +569,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className={getRowColor(
-                    row.original.rating >= 4 ? "active" : "inactive"
+                    (row.original.rating ?? 0) >= 4 ? "active" : "inactive"
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (
