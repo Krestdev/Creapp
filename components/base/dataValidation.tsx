@@ -291,7 +291,7 @@ export function DataValidation({
         };
       case "validated":
         return {
-          label: "Validé",
+          label: "Approuvé",
           icon: CheckCircle,
           variant: "success",
           rowClassName: "bg-green-50/50 hover:bg-green-50",
@@ -380,7 +380,7 @@ export function DataValidation({
       });
     },
     onSuccess: () => {
-      toast.success("Besoin validé avec succès !");
+      toast.success("Besoin approuvé avec succès !");
       // Invalider et rafraîchir les données
       queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" });
       queryClient.invalidateQueries({ queryKey: ["requests-validation"], refetchType: "active" });
@@ -1096,7 +1096,7 @@ export function DataValidation({
           title: "Succès ✅",
           description:
             validationType === "approve"
-              ? "Le besoin a été validé avec succès."
+              ? "Le besoin a été approuvé avec succès."
               : "Le besoin a été rejeté avec succès.",
         }}
         errorConfirmation={{

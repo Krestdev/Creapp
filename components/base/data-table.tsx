@@ -61,7 +61,12 @@ import { UserQueries } from "@/queries/baseModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  UseQueryResult,
+} from "@tanstack/react-query";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -127,6 +132,7 @@ interface Props {
   setCustomDateRange?: React.Dispatch<
     React.SetStateAction<{ from: Date; to: Date } | undefined>
   >;
+  requestData: RequestModelT[] | undefined;
 }
 
 export function DataTable({
@@ -134,6 +140,7 @@ export function DataTable({
   setDateFilter,
   customDateRange,
   setCustomDateRange,
+  requestData,
 }: Props) {
   const { user, isHydrated } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -161,6 +168,7 @@ export function DataTable({
   const [tempCustomDateRange, setTempCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >(customDateRange || { from: addDays(new Date(), -7), to: new Date() });
+  const queryClient = useQueryClient();
 
   const projects = new ProjectQueries();
   const projectsData = useQuery({
@@ -179,17 +187,6 @@ export function DataTable({
   });
 
   const request = new RequestQueries();
-  const requestData = useQuery({
-    queryKey: ["requests", user?.id],
-    queryFn: () => {
-      if (!user?.id) {
-        throw new Error("ID utilisateur non disponible");
-      }
-      return request.getMine(user.id);
-    },
-    enabled: !!user?.id && isHydrated,
-  });
-
   const categoryData = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -207,7 +204,10 @@ export function DataTable({
     onSuccess: () => {
       toast.success("Besoin annulé avec succès !");
       // Rafraîchir les données après une annulation réussie
-      requestData.refetch();
+      queryClient.invalidateQueries({
+        queryKey: ["requests", user?.id],
+        refetchType: "active",
+      });
     },
     onError: () => {
       toast.error("Une erreur est survenue.");
@@ -222,60 +222,6 @@ export function DataTable({
       return false;
     }
   };
-
-  // Fonction pour filtrer les données selon la période sélectionnée
-  const getFilteredData = React.useMemo(() => {
-    if (!requestData.data?.data) {
-      return requestData.data?.data || [];
-    }
-
-    // Si pas de filtre, retourner toutes les données
-    if (!dateFilter) {
-      return requestData.data.data;
-    }
-
-    const now = new Date();
-    let startDate = new Date();
-    let endDate = now;
-
-    switch (dateFilter) {
-      case "today":
-        // Début de la journée
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      case "week":
-        // Début de la semaine (lundi)
-        startDate.setDate(
-          now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
-        );
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      case "month":
-        // Début du mois
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        break;
-      case "year":
-        // Début de l'année
-        startDate = new Date(now.getFullYear(), 0, 1);
-        break;
-      case "custom":
-        // Utiliser la plage personnalisée
-        if (customDateRange?.from && customDateRange?.to) {
-          startDate = customDateRange.from;
-          endDate = customDateRange.to;
-        } else {
-          return requestData.data.data;
-        }
-        break;
-      default:
-        return requestData.data.data;
-    }
-
-    return requestData.data.data.filter((item) => {
-      const itemDate = new Date(item.createdAt);
-      return itemDate >= startDate && itemDate <= endDate;
-    });
-  }, [requestData.data?.data, dateFilter, customDateRange]);
 
   // Fonction pour obtenir le texte d'affichage du filtre de date
   const getDateFilterText = () => {
@@ -356,10 +302,10 @@ export function DataTable({
   };
 
   const uniqueCategories = React.useMemo(() => {
-    if (!getFilteredData || !categoryData.data?.data) return [];
+    if (!requestData || !categoryData.data?.data) return [];
 
     const categoryIds = [
-      ...new Set(getFilteredData.map((req) => req.categoryId)),
+      ...new Set(requestData.map((req) => req.categoryId)),
     ];
 
     return categoryIds.map((categoryId) => {
@@ -371,12 +317,12 @@ export function DataTable({
         name: category?.label || `Catégorie ${categoryId}`,
       };
     });
-  }, [getFilteredData, categoryData.data]);
+  }, [requestData, categoryData.data]);
 
   const uniqueStatuses = React.useMemo(() => {
-    if (!getFilteredData) return [];
+    if (!requestData) return [];
 
-    const statuses = [...new Set(getFilteredData.map((req) => req.state))];
+    const statuses = [...new Set(requestData.map((req) => req.state))];
 
     return statuses.map((status) => {
       const config = getStatusConfig(status);
@@ -388,7 +334,7 @@ export function DataTable({
         rowClassName: config.rowClassName,
       };
     });
-  }, [getFilteredData]);
+  }, [requestData]);
 
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
@@ -594,7 +540,7 @@ export function DataTable({
   };
 
   const table = useReactTable<RequestModelT>({
-    data: getFilteredData?.reverse() || [],
+    data: requestData?.reverse() || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
