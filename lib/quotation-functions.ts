@@ -13,12 +13,12 @@ export const computeQuotationGroupStatus = (
   if (!quotations.length) return "NOT_PROCESSED";
 
   const allInitial = quotations.every(
-    (q) => q.status === "pending" || q.status === "submitted"
+    (q) => q.status === "PENDING" || q.status === "SUBMITTED"
   );
   if (allInitial) return "NOT_PROCESSED";
 
   const allFinal = quotations.every(
-    (q) => q.status === "approved" || q.status === "rejected"
+    (q) => q.status === "APPROUVED" || q.status === "REJECTED"
   );
   if (allFinal) return "PROCESSED";
 

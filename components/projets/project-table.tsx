@@ -23,6 +23,7 @@ import {
   ChevronsRight,
   Clock,
   Eye,
+  LucideIcon,
   LucidePen,
   MoreHorizontal,
   PauseCircle,
@@ -32,7 +33,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -58,6 +59,7 @@ import { ProjectT } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import UpdateProject from "./UpdateProject";
 import { toast } from "sonner";
+import { VariantProps } from "class-variance-authority";
 
 // export type Project = {
 //   reference: string;
@@ -85,50 +87,34 @@ export function ProjectTable({ data }: ProjectTableProps) {
   const [selectedItem, setSelectedItem] = React.useState<ProjectT | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
 
-  const getStateIcon = (status: string) => {
+  const getBadge = (status: string):{label:string; icon?: LucideIcon;variant: VariantProps<typeof badgeVariants>["variant"]} => {
     switch (status) {
       case "planning":
-        return <Clock className="h-3 w-3" />;
+        return {label:"Planification", variant: "amber"};
       case "in-progress":
-        return <PlayCircle className="h-3 w-3" />;
+        return {label:"En cours", icon:PlayCircle, variant: "blue"};
       case "on-hold":
-        return <PauseCircle className="h-3 w-3" />;
+        return {label:"En pause", icon:PauseCircle, variant: "default"};
       case "completed":
-        return <CheckCircle className="h-3 w-3" />;
+        return {label:"Terminé", icon:CheckCircle, variant: "success"};
       case "cancelled":
-        return <XCircle className="h-3 w-3" />;
+        return {label:"Annulé", icon:XCircle, variant:"dark"};
+      case "ongoing":
+        return {label:"En cours", variant: "secondary"};
       default:
-        return <AlertCircle className="h-3 w-3" />;
+        return {label: status, variant: "outline"};
     }
   };
-
-  const getStateColor = (status: string) => {
-    switch (status) {
-      case "planning":
-        return "bg-blue-500 hover:bg-blue-600";
-      case "in-progress":
-        return "bg-green-500 hover:bg-green-600";
-      case "on-hold":
-        return "bg-yellow-500 hover:bg-yellow-600";
-      case "completed":
-        return "bg-emerald-500 hover:bg-emerald-600";
-      case "cancelled":
-        return "bg-red-500 hover:bg-red-600";
-      default:
-        return "bg-gray-500 hover:bg-gray-600";
-    }
-  };
-
   const getRowColor = (status: string) => {
     switch (status) {
       case "planning":
-        return "bg-blue-50";
+        return "bg-amber-50";
       case "in-progress":
-        return "bg-green-50";
+        return "bg-blue-50";
       case "on-hold":
-        return "bg-yellow-50";
+        return "bg-gray-50";
       case "completed":
-        return "bg-emerald-50";
+        return "bg-green-50";
       case "cancelled":
         return "bg-red-50";
       default:
@@ -199,7 +185,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Référence
+              {"Référence"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -218,7 +204,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Project
+              {"Projet"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -235,7 +221,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Budget Total
+              {"Budget Total"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -289,7 +275,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Chef Projet
+              {"Chef Projet"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -309,22 +295,22 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Statut
+              {"Statut"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
         },
         cell: ({ row }) => {
           const status = row.getValue("status") as string;
+          const Icon = getBadge(status).icon;
+          const variant = getBadge(status).variant;
+          const label = getBadge(status).label;
           return (
             <Badge
-              className={`${getStateColor(
-                status
-              )} text-white flex items-center gap-1 w-fit`}
+            variant={variant}
             >
-              {getStateIcon(status)}
-              {status.charAt(0).toUpperCase() +
-                status.slice(1).replace("-", " ")}
+              {Icon && <Icon />}
+              {label}
             </Badge>
           );
         },
@@ -336,9 +322,9 @@ export function ProjectTable({ data }: ProjectTableProps) {
         id: "actions",
         header: () => {
           return (
-            <Button className="bg-transparent" variant="ghost">
-              Action
-            </Button>
+            <span className="tablehead">
+              {"Actions"}
+            </span>
           );
         },
         enableHiding: false,
@@ -348,16 +334,16 @@ export function ProjectTable({ data }: ProjectTableProps) {
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button variant="ghost">
+                  {"Actions"}
+                  <ChevronDown/>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem>
-                  <Eye className="mr-2 h-4 w-4" />
-                  View
+                  <Eye />
+                  {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -366,7 +352,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                     setIsUpdateModalOpen(true);
                   }}
                 >
-                  <LucidePen className="mr-2 h-4 w-4" />
+                  <LucidePen />
                   {"Modifier"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -377,8 +363,8 @@ export function ProjectTable({ data }: ProjectTableProps) {
                     })
                   }
                 >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Complete
+                  <CheckCircle />
+                  {"Compléter"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
@@ -388,8 +374,8 @@ export function ProjectTable({ data }: ProjectTableProps) {
                     })
                   }
                 >
-                  <PauseCircle className="mr-2 h-4 w-4" />
-                  Put on Hold
+                  <PauseCircle />
+                  {"Mettre en pause"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600"
@@ -400,8 +386,8 @@ export function ProjectTable({ data }: ProjectTableProps) {
                     })
                   }
                 >
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Cancel
+                  <XCircle />
+                  {"Annuler"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -148,12 +148,12 @@ function AppSidebar() {
       authorized: ["ADMIN"],
       title: "Projets",
       items: [
-        {
+        /* {
           pageId: "PG-00-01",
           authorized: ["ADMIN"],
           title: "Créer un projet",
           href: "/tableau-de-bord/projets/create",
-        },
+        }, */
         {
           pageId: "PG-00-02",
           authorized: ["ADMIN"],

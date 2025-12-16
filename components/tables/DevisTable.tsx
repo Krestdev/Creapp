@@ -151,13 +151,13 @@ export function DevisTable({
 
   const getStatusLabel = (status: QuotationStatus):{label:string; variant:VariantProps<typeof badgeVariants>["variant"]} => {
     switch(status){
-      case "pending":
+      case "PENDING":
         return {label:"En attente", variant: "amber"};
-      case "approved":
+      case "APPROUVED":
         return {label:"Approuvé", variant: "success"};
-      case "rejected":
+      case "REJECTED":
         return {label:"Rejeté", variant: "destructive"};
-      case "submitted":
+      case "SUBMITTED":
         return {label:"Approuvé", variant: "primary"};
         default: return {label: "Inconnu", variant: "outline"};
     }
