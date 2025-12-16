@@ -295,6 +295,33 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
       },
       {
+        accessorKey: "members",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              className="bg-transparent"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Département associé
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => {
+          const data = row.getValue("members") as Member[];
+          return (
+            <div>
+              {data.map((mem) => {
+                return <Badge key={mem.id}>{mem.department?.label}</Badge>;
+              })}
+            </div>
+          );
+        },
+      },
+      {
         accessorKey: "lastConnection",
         header: ({ column }) => {
           return (
@@ -323,7 +350,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
       },
       {
-        accessorKey: "members",
+        id: "actions",
         header: ({ column }) => {
           return (
             <span
@@ -337,20 +364,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             </span>
           );
         },
-        cell: ({ row }) => {
-          const data = row.getValue("members") as Member[];
-          return (
-            <div>
-              {data.map((mem) => {
-                return <Badge key={mem.id}>{mem.department?.label}</Badge>;
-              })}
-            </div>
-          );
-        },
-      },
-      {
-        id: "actions",
-        header: "Actions",
         enableHiding: false,
         cell: ({ row }) => {
           const utilisateur = row.original;
@@ -367,7 +380,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem>
                   <Eye className="mr-2 h-4 w-4" />
-                  View
+                  Voir
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -388,7 +401,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   }
                 >
                   <UserCheck className="mr-2 h-4 w-4" />
-                  Activate
+                  Activer
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
@@ -399,7 +412,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   }
                 >
                   <UserX className="mr-2 h-4 w-4" />
-                  Suspend
+                  Suspendre
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600"
@@ -458,7 +471,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name or service..."
+            placeholder="Rechercher par nom ou département..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="pl-8 max-w-sm"
@@ -476,11 +489,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             <SelectValue placeholder="Filter by role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="manager">Manager</SelectItem>
-            <SelectItem value="user">User</SelectItem>
-            <SelectItem value="viewer">Viewer</SelectItem>
+            <SelectItem value="all">Tout les Roles</SelectItem>
+            <SelectItem value="ADMIN">Admin</SelectItem>
+            <SelectItem value="MANAGER">Validateur</SelectItem>
+            <SelectItem value="USER">User</SelectItem>
+            <SelectItem value="SALES">Responsable Achat</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -495,16 +508,16 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="all">Tous les Status</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
+            <SelectItem value="suspended">Suspendu</SelectItem>
           </SelectContent>
         </Select>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -512,6 +525,22 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => {
+                let text = column.id;
+                if (column.id === "select") {
+                  text = "Selectionner";
+                } else if (column.id === "actions") {
+                  text = "Actions";
+                } else if (column.id === "name") {
+                  text = "Nom";
+                } else if (column.id === "role") {
+                  text = "Rôle";
+                } else if (column.id === "status") {
+                  text = "Statut";
+                } else if (column.id === "lastConnection") {
+                  text = "Dernière connexion";
+                } else if (column.id === "members") {
+                  text = "Département associé";
+                }
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -521,7 +550,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {text}
                   </DropdownMenuCheckboxItem>
                 );
               })}

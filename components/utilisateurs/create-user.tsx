@@ -98,7 +98,7 @@ export default function CreateUserForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>name</FormLabel>
+              <FormLabel>Nom</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="ex. John Doe" type="" {...field} />
               </FormControl>
@@ -112,9 +112,9 @@ export default function CreateUserForm() {
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>phone</FormLabel>
+              <FormLabel>Contact</FormLabel>
               <FormControl className="w-full">
-                <Input placeholder="ex. John Doe" type="" {...field} />
+                <Input placeholder="ex. 237657897434" type="" {...field} />
               </FormControl>
 
               <FormMessage />
@@ -127,7 +127,7 @@ export default function CreateUserForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Adresse email</FormLabel>
+              <FormLabel>Adresse E-mail</FormLabel>
               <FormControl className="w-full">
                 <Input
                   placeholder="ex. johndoe@gemail.com"
@@ -161,7 +161,7 @@ export default function CreateUserForm() {
           name="cpassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>cpassword</FormLabel>
+              <FormLabel>Confirmer le mot de passe</FormLabel>
               <FormControl className="w-full">
                 <PasswordInput
                   placeholder="Confirmer le mot de passe"
@@ -179,7 +179,7 @@ export default function CreateUserForm() {
           name="role"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Role</FormLabel>
+              <FormLabel>{"Rôle"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl className="w-full">
                   <SelectTrigger>
@@ -205,7 +205,7 @@ export default function CreateUserForm() {
           name="poste"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Intitulé du Poste</FormLabel>
+              <FormLabel>Poste</FormLabel>
               <FormControl className="w-full">
                 <Input
                   placeholder="ex. Attaché de direction"
@@ -224,11 +224,11 @@ export default function CreateUserForm() {
           name="department"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Department</FormLabel>
+              <FormLabel>Département</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={"0"}>
                 <FormControl className="w-full">
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un department" />
+                    <SelectValue placeholder="Sélectionner un département" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

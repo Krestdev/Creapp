@@ -124,25 +124,25 @@ export function DepartementTable({ data }: DepartementTableProps) {
         enableSorting: false,
         enableHiding: false,
       },
-      {
-        accessorKey: "reference",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Référence
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("reference")}</div>
-        ),
-      },
+      // {
+      //   accessorKey: "reference",
+      //   header: ({ column }) => {
+      //     return (
+      //       <Button
+      //         variant="ghost"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         Référence
+      //         <ArrowUpDown className="ml-2 h-4 w-4" />
+      //       </Button>
+      //     );
+      //   },
+      //   cell: ({ row }) => (
+      //     <div className="font-medium">{row.getValue("reference")}</div>
+      //   ),
+      // },
       {
         accessorKey: "label",
         header: ({ column }) => {
@@ -153,7 +153,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Name
+              Nom Département
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -164,7 +164,19 @@ export function DepartementTable({ data }: DepartementTableProps) {
       },
       {
         accessorKey: "description",
-        header: "Description",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Description
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
         cell: ({ row }) => (
           <div className="max-w-[300px] truncate">
             {row.getValue("description")}
@@ -358,7 +370,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
         <Input
-          placeholder="Search by reference, name, or chef..."
+          placeholder="rechercher par nom de département..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
@@ -377,7 +389,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="all">Tous les Statuts</SelectItem>
             <SelectItem value="actif">Actif</SelectItem>
             <SelectItem value="inactif">Inactif</SelectItem>
             <SelectItem value="en-reorganisation">En réorganisation</SelectItem>
@@ -386,7 +398,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -394,6 +406,18 @@ export function DepartementTable({ data }: DepartementTableProps) {
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => {
+                let text = column.id;
+                if (column.id === "label") {
+                  text = "Nom Département";
+                } else if (column.id === "description") {
+                  text = "Description";
+                } else if (column.id === "members") {
+                  text = "Chef";
+                } else if (column.id === "employees") {
+                  text = "Nombre d'employés";
+                } else if (column.id === "status") {
+                  text = "Statut";
+                }
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -403,7 +427,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {text}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -475,8 +499,9 @@ export function DepartementTable({ data }: DepartementTableProps) {
       </div>
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {/* {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected. */}
+          .
         </div>
         <div className="flex items-center space-x-2">
           <Button

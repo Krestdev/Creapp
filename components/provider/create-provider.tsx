@@ -16,6 +16,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import FilesUpload from "../comp-547";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -24,6 +25,50 @@ const formSchema = z.object({
   address: z.string(),
   taxId: z.string().min(1),
   rating: z.string().min(1),
+  carte_contribuable: z
+    .array(
+      z.union([
+        z.instanceof(File, { message: "Doit être un fichier valide" }),
+        z.string(),
+      ])
+    )
+    .max(1, "Pas plus d'un document"),
+  acf: z
+    .array(
+      z.union([
+        z.instanceof(File, { message: "Doit être un fichier valide" }),
+        z.string(),
+      ])
+    )
+    .min(0, "")
+    .max(1, "Pas plus d'un document"),
+  plan_localisation: z
+    .array(
+      z.union([
+        z.instanceof(File, { message: "Doit être un fichier valide" }),
+        z.string(),
+      ])
+    )
+    .min(0, "")
+    .max(1, "Pas plus d'un document"),
+  commerce_registre: z
+    .array(
+      z.union([
+        z.instanceof(File, { message: "Doit être un fichier valide" }),
+        z.string(),
+      ])
+    )
+    .min(0, "")
+    .max(1, "Pas plus d'un document"),
+  banck_attestation: z
+    .array(
+      z.union([
+        z.instanceof(File, { message: "Doit être un fichier valide" }),
+        z.string(),
+      ])
+    )
+    .min(0, "")
+    .max(1, "Pas plus d'un document"),
 });
 
 export default function CreateProviderForm() {
@@ -59,6 +104,11 @@ export default function CreateProviderForm() {
         address: values.address,
         taxId: values.taxId,
         rating: Number(values.rating),
+        carte_contribuable: values.carte_contribuable[0],
+        acf: values.acf[0],
+        plan_localisation: values.plan_localisation[0],
+        commerce_registre: values.commerce_registre[0],
+        banck_attestation: values.banck_attestation[0],
       };
       registerAPI.mutate(data);
     } catch (error) {
@@ -78,7 +128,7 @@ export default function CreateProviderForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>name</FormLabel>
+              <FormLabel>Nom (Entreprise)</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="ex. John Doe" type="" {...field} />
               </FormControl>
@@ -92,7 +142,7 @@ export default function CreateProviderForm() {
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>phone</FormLabel>
+              <FormLabel>Contact</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="ex. John Doe" type="" {...field} />
               </FormControl>
@@ -107,7 +157,7 @@ export default function CreateProviderForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Adresse email</FormLabel>
+              <FormLabel>E - mail</FormLabel>
               <FormControl className="w-full">
                 <Input
                   placeholder="ex. johndoe@gemail.com"
@@ -131,6 +181,116 @@ export default function CreateProviderForm() {
                 <Input placeholder="ex. 123 Rue de la Paix" {...field} />
               </FormControl>
 
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Justificatif */}
+        <FormField
+          control={form.control}
+          name="carte_contribuable"
+          render={({ field }) => (
+            <FormItem className="@min-[640px]:col-span-2">
+              <FormLabel isRequired>{"carte contribuable"}</FormLabel>
+              <FormControl>
+                <FilesUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  name={field.name}
+                  acceptTypes="all"
+                  multiple={false}
+                  maxFiles={1}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Justificatif */}
+        <FormField
+          control={form.control}
+          name="acf"
+          render={({ field }) => (
+            <FormItem className="@min-[640px]:col-span-2">
+              <FormLabel isRequired>{"ACF"}</FormLabel>
+              <FormControl>
+                <FilesUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  name={field.name}
+                  acceptTypes="all"
+                  multiple={false}
+                  maxFiles={1}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Justificatif */}
+        <FormField
+          control={form.control}
+          name="plan_localisation"
+          render={({ field }) => (
+            <FormItem className="@min-[640px]:col-span-2">
+              <FormLabel isRequired>{"Plan de localisation"}</FormLabel>
+              <FormControl>
+                <FilesUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  name={field.name}
+                  acceptTypes="all"
+                  multiple={false}
+                  maxFiles={1}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Justificatif */}
+        <FormField
+          control={form.control}
+          name="commerce_registre"
+          render={({ field }) => (
+            <FormItem className="@min-[640px]:col-span-2">
+              <FormLabel isRequired>{"registre de commerce"}</FormLabel>
+              <FormControl>
+                <FilesUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  name={field.name}
+                  acceptTypes="all"
+                  multiple={false}
+                  maxFiles={1}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Justificatif */}
+        <FormField
+          control={form.control}
+          name="banck_attestation"
+          render={({ field }) => (
+            <FormItem className="@min-[640px]:col-span-2">
+              <FormLabel isRequired>{"Attestation bancaire"}</FormLabel>
+              <FormControl>
+                <FilesUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  name={field.name}
+                  acceptTypes="all"
+                  multiple={false}
+                  maxFiles={1}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
