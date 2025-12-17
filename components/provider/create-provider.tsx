@@ -18,6 +18,16 @@ import { toast } from "sonner";
 import { z } from "zod";
 import FilesUpload from "../comp-547";
 
+const SingleFileArray = z
+  .array(
+    z.union([
+      z.instanceof(File, { message: "Doit être un fichier valide" }),
+      z.string(),
+    ])
+  )
+  .max(1, "Pas plus d'un document")
+  .nullable();
+
 const formSchema = z.object({
   name: z.string().min(1),
   phone: z.string().min(1),
@@ -25,55 +35,23 @@ const formSchema = z.object({
   address: z.string(),
   taxId: z.string().min(1),
   rating: z.string().min(1),
-  carte_contribuable: z
-    .array(
-      z.union([
-        z.instanceof(File, { message: "Doit être un fichier valide" }),
-        z.string(),
-      ])
-    )
-    .max(1, "Pas plus d'un document"),
-  acf: z
-    .array(
-      z.union([
-        z.instanceof(File, { message: "Doit être un fichier valide" }),
-        z.string(),
-      ])
-    )
-    .min(0, "")
-    .max(1, "Pas plus d'un document"),
-  plan_localisation: z
-    .array(
-      z.union([
-        z.instanceof(File, { message: "Doit être un fichier valide" }),
-        z.string(),
-      ])
-    )
-    .min(0, "")
-    .max(1, "Pas plus d'un document"),
-  commerce_registre: z
-    .array(
-      z.union([
-        z.instanceof(File, { message: "Doit être un fichier valide" }),
-        z.string(),
-      ])
-    )
-    .min(0, "")
-    .max(1, "Pas plus d'un document"),
-  banck_attestation: z
-    .array(
-      z.union([
-        z.instanceof(File, { message: "Doit être un fichier valide" }),
-        z.string(),
-      ])
-    )
-    .min(0, "")
-    .max(1, "Pas plus d'un document"),
+  carte_contribuable: SingleFileArray,
+  acf: SingleFileArray,
+  plan_localisation: SingleFileArray,
+  commerce_registre: SingleFileArray,
+  banck_attestation: SingleFileArray,
 });
 
 export default function CreateProviderForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      carte_contribuable: [],
+      acf: [],
+      plan_localisation: [],
+      commerce_registre: [],
+      banck_attestation: [],
+    },
   });
 
   const providerQueries = new ProviderQueries();
@@ -90,7 +68,9 @@ export default function CreateProviderForm() {
       console.log("Register successful:", data);
     },
     onError: (error: any) => {
-      toast.error("Une erreur est survenue lors de la creation du fournisseur.");
+      toast.error(
+        "Une erreur est survenue lors de la creation du fournisseur."
+      );
       console.error("Register error:", error);
     },
   });
@@ -104,11 +84,11 @@ export default function CreateProviderForm() {
         address: values.address,
         taxId: values.taxId,
         rating: Number(values.rating),
-        carte_contribuable: values.carte_contribuable[0],
-        acf: values.acf[0],
-        plan_localisation: values.plan_localisation[0],
-        commerce_registre: values.commerce_registre[0],
-        banck_attestation: values.banck_attestation[0],
+        carte_contribuable: values.carte_contribuable?.[0],
+        acf: values.acf?.[0],
+        plan_localisation: values.plan_localisation?.[0],
+        commerce_registre: values.commerce_registre?.[0],
+        banck_attestation: values.banck_attestation?.[0],
       };
       registerAPI.mutate(data);
     } catch (error) {

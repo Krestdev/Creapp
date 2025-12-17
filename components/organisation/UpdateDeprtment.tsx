@@ -115,7 +115,10 @@ export default function UpdateDepartment({
     onSuccess: () => {
       toast.success("Département mis à jour avec succès !");
       setOpen(false);
-      queryClient.invalidateQueries({queryKey: ["departmentList"], refetchType: 'active'});
+      queryClient.invalidateQueries({
+        queryKey: ["departmentList"],
+        refetchType: "active",
+      });
       onSuccess?.();
     },
 
@@ -149,7 +152,7 @@ export default function UpdateDepartment({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6 p-6"
+            className="flex-1 overflow-y-auto px-6 pb-6"
           >
             {/* LABEL */}
             <FormField
@@ -174,7 +177,10 @@ export default function UpdateDepartment({
                 <FormItem>
                   <FormLabel>{"Description"}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Il regroupe le personnel en charge de la gestion fiscale et comptable de l'entreprise" {...field} />
+                    <Textarea
+                      placeholder="Il regroupe le personnel en charge de la gestion fiscale et comptable de l'entreprise"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -228,7 +234,7 @@ export default function UpdateDepartment({
                   }
                 >
                   {"Ajouter un employé"}
-                  <Plus/>
+                  <Plus />
                 </Button>
               </div>
 
@@ -243,7 +249,7 @@ export default function UpdateDepartment({
                     name={`members.${index}.label`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{`Employé ${index +1}`}</FormLabel>
+                        <FormLabel>{`Employé ${index + 1}`}</FormLabel>
                         <FormControl>
                           <Input placeholder="Member label" {...field} />
                         </FormControl>
@@ -344,12 +350,21 @@ export default function UpdateDepartment({
                 </div>
               ))}
             </div>
-
+          </form>
+          <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
             {/* SUBMIT */}
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-fit" onClick={form.handleSubmit(onSubmit)}>
               {"Enregistrer"}
             </Button>
-          </form>
+            <Button
+              type="button"
+              className="w-fit"
+              onClick={() => setOpen(false)}
+              variant={"outline"}
+            >
+              {"Annuler"}
+            </Button>
+          </div>
         </Form>
       </DialogContent>
     </Dialog>
