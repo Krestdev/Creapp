@@ -14,24 +14,17 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  ChevronDown,
-  LucidePen,
-  MoreHorizontal,
+  ChevronDown
 } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -43,15 +36,9 @@ import {
 import { UserQueries } from "@/queries/baseModule";
 import { Role } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
 import { toast } from "sonner";
-import UpdateRole from "../organisation/UpdateRole";
 import { Pagination } from "../base/pagination";
+import UpdateRole from "../organisation/UpdateRole";
 
 interface RolesTableProps {
   data: Role[];

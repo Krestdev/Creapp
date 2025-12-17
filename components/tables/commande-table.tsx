@@ -21,10 +21,9 @@ import {
   ChevronRight,
   Eye,
   Hourglass,
-  LucideDownload,
   LucideIcon,
   LucidePen,
-  Trash,
+  Trash
 } from "lucide-react";
 import * as React from "react";
 
@@ -49,12 +48,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { CommandRequestT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Pagination } from "../base/pagination";
+import { DownloadButton } from "../bdcommande/TéléchargeButton";
 import { UpdateCotationModal } from "../bdcommande/UpdateCotationModal";
 import { DetailOrder } from "../modals/detail-order";
 import { badgeVariants } from "../ui/badge";
@@ -69,8 +70,6 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { DownloadButton } from "../bdcommande/TéléchargeButton";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;

@@ -24,15 +24,23 @@ import {
   Clock,
   Eye,
   Flag,
-  LucidePen,
-  Trash,
-  XCircle,
+  XCircle
 } from "lucide-react";
 import * as React from "react";
 
+import { Reception } from "@/app/tableau-de-bord/commande/receptions/page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -43,6 +51,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -58,29 +72,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
-import { Pagination } from "../base/pagination";
-import DetailPaiement from "../modals/detail-paiement";
-import { Reception } from "@/app/tableau-de-bord/bdcommande/receptions/page";
+import { cn } from "@/lib/utils";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import DetailReception from "../modals/detail-reception";
+import { Pagination } from "../base/pagination";
 import CompleteReception from "../modals/complete-reception";
+import DetailReception from "../modals/detail-reception";
 
 export type ReceptionData = {
   id: string;

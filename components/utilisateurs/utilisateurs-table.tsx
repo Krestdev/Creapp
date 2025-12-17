@@ -16,10 +16,6 @@ import {
   ArrowUpDown,
   CheckCircle,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Eye,
   LucidePen,
   MoreHorizontal,
@@ -29,13 +25,12 @@ import {
   UserCheck,
   UserX,
   Users,
-  XCircle,
+  XCircle
 } from "lucide-react";
 import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -65,8 +60,8 @@ import { UserQueries } from "@/queries/baseModule";
 import { Member, Role, User as UserT } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import UpdateUser from "./UpdateUser";
 import { Pagination } from "../base/pagination";
+import UpdateUser from "./UpdateUser";
 
 // export type Utilisateur = {
 //   id: string;

@@ -1,12 +1,13 @@
-import { Paiement } from "@/app/tableau-de-bord/bdcommande/paiements/page";
-import React from "react";
+import { Reception } from "@/app/tableau-de-bord/commande/receptions/page";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   Calendar,
   CalendarFold,
@@ -20,11 +21,9 @@ import {
   SquareUserRound,
   UserCircle,
 } from "lucide-react";
+import React from "react";
 import { Badge } from "../ui/badge";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-import { Reception } from "@/app/tableau-de-bord/bdcommande/receptions/page";
+import { Button } from "../ui/button";
 
 interface Props {
   open: boolean;

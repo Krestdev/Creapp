@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,8 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ProviderQueries } from "@/queries/providers";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import {
   Form,
@@ -20,10 +22,6 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
-import { ProviderQueries } from "@/queries/providers";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { useFetchQuery } from "@/hooks/useData";
 
 const formSchema = z.object({
   name: z.string().min(2, {

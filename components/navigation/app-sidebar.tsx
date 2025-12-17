@@ -1,19 +1,21 @@
+import useAuthGuard from "@/hooks/useAuthGuard";
+import { useStore } from "@/providers/datastore";
+import { DepartmentQueries } from "@/queries/departmentModule";
+import { RequestQueries } from "@/queries/requestModule";
+import { RequestModelT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Bell,
-  BookText,
   BriefcaseBusiness,
   Building,
-  Clipboard,
   ClipboardList,
   EllipsisVertical,
-  FolderOpen,
   ScrollText,
   Ticket,
   Truck,
-  UsersRound,
+  UsersRound
 } from "lucide-react";
 import Link from "next/link";
-import { Button } from "../ui/button";
+import React from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,13 +29,6 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
-import { useStore } from "@/providers/datastore";
-import useAuthGuard from "@/hooks/useAuthGuard";
-import React from "react";
-import { RequestQueries } from "@/queries/requestModule";
-import { useQuery } from "@tanstack/react-query";
-import { DepartmentQueries } from "@/queries/departmentModule";
-import { RequestModelT } from "@/types/types";
 
 type ItemSide = {
   pageId: string;
@@ -200,62 +195,62 @@ function AppSidebar() {
     {
       pageId: "PG-03",
       icon: ClipboardList,
-      href: "/tableau-de-bord/bdcommande",
+      href: "/tableau-de-bord/commande",
       authorized: ["ADMIN", "SALES"],
       title: "Commande",
       items: [
         {
           pageId: "PG-03-01",
           title: "Demande de cotation",
-          href: "/tableau-de-bord/bdcommande/cotation",
+          href: "/tableau-de-bord/commande/cotation",
           authorized: ["ADMIN", "SALES"],
         },
         {
           pageId: "PG-03-02",
           title: "Devis",
-          href: "/tableau-de-bord/bdcommande/devis",
+          href: "/tableau-de-bord/commande/devis",
           authorized: ["ADMIN", "SALES"],
         },
         // {
         //   pageId: "PG-03-03",
         //   title: "Besoins",
-        //   href: "/tableau-de-bord/bdcommande/besoins",
+        //   href: "/tableau-de-bord/commande/besoins",
         //   authorized: ["ADMIN", "SALES"],
         // },
         {
           pageId: "PG-03-5",
           title: "Bons de commande",
-          href: "/tableau-de-bord/bdcommande/commande",
+          href: "/tableau-de-bord/commande/bon-de-commande",
           authorized: ["ADMIN", "SALES"],
         },
         // {
         //   pageId: "PG-03-04",
         //   title: "Validation",
-        //   href: "/tableau-de-bord/bdcommande/validation",
+        //   href: "/tableau-de-bord/commande/validation",
         //   authorized: ["ADMIN"],
         // },
         // {
         //   pageId: "PG-03-06",
         //   title: "Créer une cotation",
-        //   href: "/tableau-de-bord/bdcommande/creercotation",
+        //   href: "/tableau-de-bord/commande/creercotation",
         //   authorized: ["ADMIN", "SALES"],
         // },
         // {
         //   pageId: "PG-03-07",
         //   title: "Nouveaux",
-        //   href: "/tableau-de-bord/bdcommande/nouveaux",
+        //   href: "/tableau-de-bord/commande/nouveaux",
         //   authorized: ["ADMIN"],
         // },
         // {
         //   pageId: "PG-03-07",
         //   title: "Receptions",
-        //   href: "/tableau-de-bord/bdcommande/receptions",
+        //   href: "/tableau-de-bord/commande/receptions",
         //   authorized: ["ADMIN", "SALES"],
         // },
         {
           pageId: "PG-03-06",
           title: "Paiements",
-          href: "/tableau-de-bord/bdcommande/paiements",
+          href: "/tableau-de-bord/commande/paiements",
           authorized: ["ADMIN", "SALES"],
         },
       ],
@@ -414,19 +409,16 @@ function AppSidebar() {
           <NavigationItem key={navLink.href} {...navLink} />
         ))}
       </SidebarContent>
-      <SidebarFooter>
-        <div className="flex items-center gap-2 justify-between">
-          <div className="flex flex-col gap-01">
-            <span className="text-xs text-gray-500">{"Employé"}</span>
-            <span className="text-sm font-medium text-gray-900">
-              {user?.name || "Utilisateur"}
-            </span>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant={"ghost"} size={"icon"}>
-                <EllipsisVertical size={16} />
-              </Button>
+      <SidebarFooter className="px-0">
+        <DropdownMenu>
+          <DropdownMenuTrigger className="w-full h-auto border-none shadow-none p-2 flex items-center gap-2 justify-between cursor-pointer hover:shadow-sm transition-all duration-300 ease-out">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs leading-[120%] text-gray-500">{"Employé"}</span>
+              <span className="text-sm font-medium leading-[120%] text-gray-900 capitalize">
+                {user?.name || "Utilisateur"}
+              </span>
+            </div>
+            <EllipsisVertical size={16} className="text-gray-900!" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={logout}>
@@ -434,7 +426,6 @@ function AppSidebar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
       </SidebarFooter>
     </Sidebar>
   );

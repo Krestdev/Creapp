@@ -10,7 +10,6 @@ import {
 import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { QuotationQueries } from "@/queries/quotation";
 import { BonsCommande } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -32,7 +31,6 @@ import {
   LucideWallet,
   LucideX,
 } from "lucide-react";
-import Link from "next/link";
 
 export type Justificatif = {
   type: "file" | "image";
