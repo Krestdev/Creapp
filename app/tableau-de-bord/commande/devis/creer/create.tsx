@@ -156,7 +156,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
       if (!!openChange) {
         openChange(false);
       }
-      router.push("./devis/");
+      router.push("./");
     },
     onError: (error) => {
       console.error(error);
