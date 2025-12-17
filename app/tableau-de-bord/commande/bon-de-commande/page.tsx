@@ -22,16 +22,16 @@ const Page = () => {
   const { user } = useStore();
   const links = [
     {
-      title: "Créer un BC",
-      href: "/tableau-de-bord/bdcommande/validation",
+      title: "Créer un bon",
+      href: "./bon-de-commande/creer",
     },
     {
-      title: "Valider BC",
-      href: "/tableau-de-bord/bdcommande/validation",
+      title: "Approbation",
+      href: "./bon-de-commande/approbation",
     },
     {
-      title: "Reception",
-      href: "/tableau-de-bord/bdcommande/validation",
+      title: "Receptions",
+      href: "./bon-de-commande/receptions",
     },
   ];
 
@@ -50,27 +50,16 @@ const Page = () => {
           color="green"
         >
           {links
-            .filter(
-              (x) =>
-                !(
-                  x.title === "Approbation" &&
-                  !user?.role.flatMap((r) => r.label).includes("MANAGER")
-                )
-            )
-            .map((link, id) => {
-              const isLast = links.length > 1 ? id === links.length - 1 : false;
-              return (
-                <Button
-                  key={id}
-                  disabled
-                  size={"lg"}
-                  variant={isLast ? "accent" : "ghost"}
-                  className="cursor-not-allowed"
-                >
+          .map((link, id) => {
+            const isLast = links.length > 1 ? id === links.length - 1 : false;
+            return (
+              <Link key={id} href={link.href}>
+                <Button size={"lg"} variant={isLast ? "accent" : "ghost"}>
                   {link.title}
                 </Button>
-              );
-            })}
+              </Link>
+            );
+          })}
         </PageTitle>
         <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           <TitleValueCard
