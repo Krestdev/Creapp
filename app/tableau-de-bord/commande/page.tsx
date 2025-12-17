@@ -11,12 +11,12 @@ const Page = () => {
   const links = [
     {
       title: "Demande de cotation",
-      href: "/tableau-de-bord/bdcommande/cotation",
+      href: "./commande/cotation",
     },
-    { title: "Devis", href: "/tableau-de-bord/bdcommande/devis" },
+    { title: "Devis", href: "./commande/devis" },
     {
       title: "Bons de commande",
-      href: "/tableau-de-bor/bdcommande/commande",
+      href: "./commande/bon-de-commande",
     },
     { title: "Paiements", href: "/tableau-de-bord/bdcommande/paiements" },
   ];

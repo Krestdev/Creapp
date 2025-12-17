@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Switch } from "../ui/switch";
+import { useRef } from "react";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -44,6 +45,7 @@ export const formSchema = z.object({
 type Schema = z.infer<typeof formSchema>;
 
 export function CategoryCreateForm() {
+  const intentRef = useRef<"save" | "saveAndCreate">("save");
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -176,8 +178,9 @@ export function CategoryCreateForm() {
             </FormItem>
           )}
         />
-        <div className="@min-[540px]:col-span-2">
-          <Button variant={"primary"}>{"Enregistrer"}</Button>
+        <div className="@min-[540px]:col-span-2 flex gap-2">
+          <Button variant={"primary"} disabled={categoryApi.isPending} isLoading={categoryApi.isPending && intentRef.current === "save"} onClick={()=>{intentRef.current="save"}}>{"Enregistrer"}</Button>
+          <Button disabled={categoryApi.isPending} isLoading={categoryApi.isPending && intentRef.current === "saveAndCreate"} onClick={()=>{intentRef.current="saveAndCreate"}}>{"Enregistrer et Créer"}</Button>
         </div>
       </form>
     </Form>
