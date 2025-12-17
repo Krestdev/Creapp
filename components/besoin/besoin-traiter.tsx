@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -14,6 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
+import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,6 +33,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Category, RequestModelT } from "@/types/types";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Pagination } from "../base/pagination";
 import { ModalDestockage } from "../modals/modal-Destockage";
 import {
@@ -42,8 +44,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface Request {
   id: number;
@@ -199,7 +199,7 @@ export function BesoinsTraiter({
   const columns: ColumnDef<RequestModelT>[] = [
     {
       id: "select",
-      header: ({ table }) => {
+      header: () => {
         const allSelected =
           data.length > 0 && internalSelectedIds.size === data.length;
         const someSelected = internalSelectedIds.size > 0 && !allSelected;

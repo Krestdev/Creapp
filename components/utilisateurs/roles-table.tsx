@@ -12,10 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -23,7 +20,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Table,
@@ -33,12 +30,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserQueries } from "@/queries/baseModule";
 import { Role } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
-import UpdateRole from "../organisation/UpdateRole";
 
 interface RolesTableProps {
   data: Role[];
@@ -54,23 +47,23 @@ export function RoleTable({ data }: RolesTableProps) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  const [selectedItem, setSelectedItem] = React.useState<Role | null>(null);
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  // const [selectedItem, setSelectedItem] = React.useState<Role | null>(null);
+  // const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
 
-  const userQueries = new UserQueries();
-  const rolesMutation = useMutation({
-    mutationKey: ["rolesUpdate"],
-    mutationFn: async (data: number) => userQueries.deleteRole(Number(data)),
+  // const userQueries = new UserQueries();
+  // const rolesMutation = useMutation({
+  //   mutationKey: ["rolesUpdate"],
+  //   mutationFn: async (data: number) => userQueries.deleteRole(Number(data)),
 
-    onSuccess: () => {
-      toast.success("Besoin modifié avec succès !");
-    },
+  //   onSuccess: () => {
+  //     toast.success("Besoin modifié avec succès !");
+  //   },
 
-    onError: (e) => {
-      console.error(e);
-      toast.error("Une erreur est survenue lors de la suppression.");
-    },
-  });
+  //   onError: (e) => {
+  //     console.error(e);
+  //     toast.error("Une erreur est survenue lors de la suppression.");
+  //   },
+  // });
 
   const columns = React.useMemo<ColumnDef<Role>[]>(
     () => [
@@ -441,11 +434,11 @@ export function RoleTable({ data }: RolesTableProps) {
         </Table>
       </div>
       <Pagination table={table} />
-      <UpdateRole
+      {/* <UpdateRole
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
         departmentData={selectedItem}
-      />
+      /> */}
     </div>
   );
 }

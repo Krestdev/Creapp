@@ -99,10 +99,22 @@ export function UpdateCotationModal({
       onSuccess?.();
 
       // Invalider TOUTES les requêtes pertinentes
-      queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" });
-      queryClient.invalidateQueries({ queryKey: ["commands"], refetchType: "active" }); // AJOUTÉ
-      queryClient.invalidateQueries({ queryKey: ["requests-validation"], refetchType: "active" });
-      queryClient.invalidateQueries({ queryKey: ["requests", user?.id], refetchType: "active" });
+      queryClient.invalidateQueries({
+        queryKey: ["requests"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["commands"],
+        refetchType: "active",
+      }); // AJOUTÉ
+      queryClient.invalidateQueries({
+        queryKey: ["requests-validation"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["requests", user?.id],
+        refetchType: "active",
+      });
 
       // Fermer la modal
       setTimeout(() => {
@@ -251,7 +263,7 @@ export function UpdateCotationModal({
                   <FormField
                     control={form.control}
                     name="requests"
-                    render={({ field }) => (
+                    render={() => (
                       <FormItem>
                         <FormLabel>{"Besoins"}</FormLabel>
                         <FormControl className="h-fit">

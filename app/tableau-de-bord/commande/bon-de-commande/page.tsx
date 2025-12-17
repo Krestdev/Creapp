@@ -1,19 +1,17 @@
 "use client";
 
 import TitleValueCard from "@/components/base/TitleValueCard";
-import PageTitle from "@/components/pageTitle";
-import { BonsCommandeTable } from "@/components/bdcommande/bons-commande-table";
-import { CommandQueries } from "@/queries/command";
-import { useFetchQuery } from "@/hooks/useData";
-import LoadingPage from "@/components/loading-page";
 import ErrorPage from "@/components/error-page";
-import Link from "next/link";
+import LoadingPage from "@/components/loading-page";
+import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
+import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
+import { CommandQueries } from "@/queries/command";
 
 const Page = () => {
   const commandsQuery = new CommandQueries();
-  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
+  const { isSuccess, isError, error, isLoading } = useFetchQuery(
     ["commandes"],
     commandsQuery.getAll,
     30000

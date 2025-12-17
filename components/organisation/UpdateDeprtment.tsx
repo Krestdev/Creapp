@@ -87,7 +87,7 @@ export default function UpdateDepartment({
       status: departmentData?.status || "active",
       members: departmentData?.members || [],
     });
-  }, [departmentData]);
+  }, [form, departmentData]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,

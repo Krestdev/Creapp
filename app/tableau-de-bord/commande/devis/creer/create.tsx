@@ -3,6 +3,8 @@
 import FilesUpload from "@/components/comp-547";
 import LoadingPage from "@/components/loading-page";
 import { ProviderDialog } from "@/components/modals/ProviderDialog";
+import LoadingPage from "@/components/loading-page";
+import { ProviderDialog } from "@/components/modals/ProviderDialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -27,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
@@ -189,7 +192,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
     },
   });
 
-  const commandRequestId = form.watch("commandRequestId");
+  // const commandRequestId = form.watch("commandRequestId");
 
   if (requestsData.isLoading || providersData.isLoading) {
     return <LoadingPage />;

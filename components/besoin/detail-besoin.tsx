@@ -1,37 +1,37 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useStore } from "@/providers/datastore";
+import { UserQueries } from "@/queries/baseModule";
+import { CategoryQueries } from "@/queries/categoryModule";
+import { DepartmentQueries } from "@/queries/departmentModule";
+import { ProjectQueries } from "@/queries/projectModule";
+import { RequestModelT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
-  Hash,
-  FolderOpen,
-  FileText,
-  FolderTree,
   AlertCircle,
-  Users,
-  UserPlus,
   Calendar,
-  X,
-  LucidePieChart,
-  UserCheck,
   Check,
   Clock,
+  FileText,
+  FolderOpen,
+  FolderTree,
+  Hash,
+  LucidePieChart,
+  UserCheck,
+  UserPlus,
+  Users,
+  X,
 } from "lucide-react";
-import { useStore } from "@/providers/datastore";
-import { format } from "date-fns";
-import { UserQueries } from "@/queries/baseModule";
-import { useQuery } from "@tanstack/react-query";
-import { RequestModelT } from "@/types/types";
-import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
-import { fr } from "date-fns/locale";
-import { DepartmentQueries } from "@/queries/departmentModule";
 import { Card } from "../ui/card";
 
 interface DetailModalProps {
@@ -53,7 +53,7 @@ export function DetailBesoin({
 
   const users = new UserQueries();
   const projects = new ProjectQueries();
-  const request = new RequestQueries();
+  const category = new CategoryQueries();
   const department = new DepartmentQueries();
 
   // Récupération des données
@@ -69,7 +69,7 @@ export function DetailBesoin({
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => request.getCategories(),
+    queryFn: async () => category.getCategories(),
   });
 
   const departmentData = useQuery({

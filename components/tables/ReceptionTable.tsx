@@ -23,8 +23,7 @@ import {
   ChevronRight,
   Clock,
   Eye,
-  Flag,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
@@ -103,28 +102,28 @@ interface ReceptionTableProps {
   >;
 }
 
-const priorityConfig = {
-  low: {
-    label: "Basse",
-    badgeClassName: "bg-gray-500 text-white hover:bg-gray-600",
-    icon: Flag,
-  },
-  medium: {
-    label: "Moyenne",
-    badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
-    icon: Flag,
-  },
-  high: {
-    label: "Haute",
-    badgeClassName: "bg-orange-500 text-white hover:bg-orange-600",
-    icon: Flag,
-  },
-  urgent: {
-    label: "Urgente",
-    badgeClassName: "bg-red-500 text-white hover:bg-red-600",
-    icon: Flag,
-  },
-};
+// const priorityConfig = {
+//   low: {
+//     label: "Basse",
+//     badgeClassName: "bg-gray-500 text-white hover:bg-gray-600",
+//     icon: Flag,
+//   },
+//   medium: {
+//     label: "Moyenne",
+//     badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
+//     icon: Flag,
+//   },
+//   high: {
+//     label: "Haute",
+//     badgeClassName: "bg-orange-500 text-white hover:bg-orange-600",
+//     icon: Flag,
+//   },
+//   urgent: {
+//     label: "Urgente",
+//     badgeClassName: "bg-red-500 text-white hover:bg-red-600",
+//     icon: Flag,
+//   },
+// };
 
 const statusConfig = {
   pending: {
@@ -168,7 +167,8 @@ export function ReceptionTable({
     undefined
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
-  const [showCompleteModal, setShowCompleteModal] = React.useState<boolean>(false);
+  const [showCompleteModal, setShowCompleteModal] =
+    React.useState<boolean>(false);
 
   // États pour le filtre de période
   const [localDateFilter, setLocalDateFilter] = React.useState<
@@ -326,7 +326,7 @@ export function ReceptionTable({
     }
 
     const uniqueProviders = new Set<string>();
-    const providerMap = new Map<string, string>(); // Pour stocker les noms complets
+    // const providerMap = new Map<string, string>(); // Pour stocker les noms complets
 
     filteredData.forEach((item) => {
       if (item.provider) {

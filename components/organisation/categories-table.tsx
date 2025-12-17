@@ -12,13 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  LucidePen,
-  MoreHorizontal,
-  Users,
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, LucidePen, Users } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -33,13 +27,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -57,8 +44,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import UpdateCategory from "./UpdateCategory";
 import { toast } from "sonner";
+import UpdateCategory from "./UpdateCategory";
 
 interface CategoriesTableProps {
   data: Category[];

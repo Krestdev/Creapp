@@ -12,7 +12,7 @@ import {
   ScrollText,
   Ticket,
   Truck,
-  UsersRound
+  UsersRound,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -413,19 +413,21 @@ function AppSidebar() {
         <DropdownMenu>
           <DropdownMenuTrigger className="w-full h-auto border-none shadow-none p-2 flex items-center gap-2 justify-between cursor-pointer hover:shadow-sm transition-all duration-300 ease-out">
             <div className="flex flex-col gap-1">
-              <span className="text-xs leading-[120%] text-gray-500">{"Employé"}</span>
+              <span className="text-xs leading-[120%] text-gray-500">
+                {"Employé"}
+              </span>
               <span className="text-sm font-medium leading-[120%] text-gray-900 capitalize">
                 {user?.name || "Utilisateur"}
               </span>
             </div>
             <EllipsisVertical size={16} className="text-gray-900!" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={logout}>
-                {"Déconnexion"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={logout}>
+              {"Déconnexion"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
   );

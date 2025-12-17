@@ -1,8 +1,4 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,7 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -27,16 +22,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDownIcon, Loader2 } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Calendar } from "../ui/calendar";
-import { format, set } from "date-fns";
-import { fr } from "date-fns/locale";
-import { RequestQueries } from "@/queries/requestModule";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { RequestModelT } from "@/types/types";
-import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
+import { RequestQueries } from "@/queries/requestModule";
+import { RequestModelT } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { ChevronDownIcon, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Calendar } from "../ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 // Validation Zod
 const formSchema = z.object({
@@ -154,7 +154,7 @@ export function BesoinLastVal({
         quantity: Number(values.quantite),
         dueDate: values.limiteDate,
       });
-    } catch (error) {
+    } catch {
       toast.error("Une erreur est survenue");
     }
   };

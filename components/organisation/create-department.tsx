@@ -1,14 +1,11 @@
 "use client";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import {
   Field,
+  FieldError,
   FieldGroup,
   FieldLabel,
-  FieldError,
 } from "@/components/ui/field";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -17,13 +14,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Form } from "../ui/form";
-import { DepartmentQueries } from "@/queries/departmentModule";
-import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { DepartmentT, ResponseT } from "@/types/types";
-import { toast } from "sonner";
-import { UserQueries } from "@/queries/baseModule";
 import { useStore } from "@/providers/datastore";
+import { UserQueries } from "@/queries/baseModule";
+import { DepartmentQueries } from "@/queries/departmentModule";
+import { DepartmentT, ResponseT } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { Form } from "../ui/form";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -72,7 +72,9 @@ export function DepartmentCreateForm() {
       form.reset();
     },
     onError: (error: any) => {
-      toast.error("Une erreur est survenue lors de la creation du departement.");
+      toast.error(
+        "Une erreur est survenue lors de la creation du departement."
+      );
       console.error("Register error:", error);
     },
   });

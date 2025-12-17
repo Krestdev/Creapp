@@ -57,7 +57,6 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
-import CreatePaiement from "@/app/tableau-de-bord/commande/paiements/creer/create";
 
 export type PaiementData = {
   id: string;
@@ -132,7 +131,7 @@ export function PaiementsTable({ data }: PaiementTableProps) {
     undefined
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
-  const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
+  // const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
 
   const columns: ColumnDef<Paiement>[] = [
     {
@@ -310,7 +309,7 @@ export function PaiementsTable({ data }: PaiementTableProps) {
               <DropdownMenuItem
                 onClick={() => {
                   setSelected(item);
-                  setShowUpdateModal(true);
+                  // setShowUpdateModal(true);
                 }}
               >
                 <LucidePen className="mr-2 h-4 w-4" />
