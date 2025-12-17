@@ -19,6 +19,13 @@ const Page = () => {
   const { user } = useStore();
   const isManager = user?.role.some(r=>r.label === "SALES_MANAGER");
   const isAdmin = user?.role.some(r=> r.label === "SALES_MANAGER" || r.label === "ADMIN");
+
+  const links = [
+    {
+      title: "Créer un devis",
+      href: "./devis/creer",
+    },
+  ];
   /**Quotation fetch */
   const quotationQuery = new QuotationQueries();
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(["quotations"], quotationQuery.getAll);
@@ -46,12 +53,17 @@ if(isSuccess && providers.isSuccess && commands.isSuccess)
         subtitle="Consultez et gérez les cotations."
         color="red"
       >
-        {
-          !isManager && 
-          <Link href={"devis/creer"}>
-            <Button variant={"ghost"}>{"Créer un devis"}</Button>
-          </Link>
-        }
+        {links
+          .map((link, id) => {
+            const isLast = links.length > 1 ? id === links.length - 1 : false;
+            return (
+              <Link key={id} href={link.href}>
+                <Button size={"lg"} variant={isLast ? "accent" : "ghost"}>
+                  {link.title}
+                </Button>
+              </Link>
+            );
+          })}
       </PageTitle>
       {
         isAdmin &&

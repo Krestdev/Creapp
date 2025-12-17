@@ -193,6 +193,9 @@ const Approbation = ({
   );
   const proceedData = useProceedData(filteredData, user, isLastValidator);
 
+  console.log(pendingData);
+  
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">

@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
-import { Paiement } from "@/app/tableau-de-bord/bdcommande/paiements/page";
+import { Paiement } from "@/app/tableau-de-bord/commande/paiements/page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -57,6 +57,7 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
+import CreatePaiement from "@/app/tableau-de-bord/commande/paiements/creer/create";
 
 export type PaiementData = {
   id: string;

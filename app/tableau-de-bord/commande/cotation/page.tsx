@@ -12,7 +12,7 @@ const Page = () => {
   const links = [
     {
       title: "Créer une Demande",
-      href: "/tableau-de-bord/bdcommande/cotation/creer",
+      href: "./cotation/creer",
     },
   ];
   return (
