@@ -195,6 +195,13 @@ function AppSidebar() {
           authorized: ["ADMIN", "MANAGER"],
           badge: data?.length > 0 ? data?.length : undefined,
         },
+        {
+          pageId: "PG-02-03",
+          title: "Approbation catégories",
+          href: "/tableau-de-bord/besoins/validation",
+          authorized: ["ADMIN", "MANAGER"],
+          badge: data?.length > 0 ? data?.length : undefined,
+        },
       ],
     },
     {

@@ -101,7 +101,7 @@ interface DataTableProps {
   >;
 }
 
-export function DataValidation({
+export function DataVal({
   data,
   isLastValidator,
   empty,
