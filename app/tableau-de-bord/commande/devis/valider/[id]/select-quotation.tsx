@@ -121,7 +121,7 @@ function SelectQuotation({ id }: { id: string }) {
         "Décision enregistrée ! Les devis sélectionnés ont été mis à jour avec succès"
       );
       queryClient.invalidateQueries({ queryKey: ["quotations", "commands"] });
-      router.push("/tableau-de-bord/bdcommande/devis");
+      router.push("../");
     },
     onError: (error: Error) => {
       toast.error(error.message ?? "Une erreur est survenue");
