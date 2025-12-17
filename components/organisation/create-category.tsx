@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Form } from "../ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import { Category, ResponseT } from "@/types/types";
 import { toast } from "sonner";
@@ -25,6 +25,7 @@ import { UserQueries } from "@/queries/baseModule";
 import { useStore } from "@/providers/datastore";
 import { RequestQueries } from "@/queries/requestModule";
 import { Checkbox } from "../ui/checkbox";
+import { Switch } from "../ui/switch";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -47,7 +48,7 @@ export function CategoryCreateForm() {
     resolver: zodResolver(formSchema as any),
     defaultValues: {
       isSpecial: false,
-      parentId: "-1",
+      parentId: "",
     },
   });
 
@@ -99,102 +100,63 @@ export function CategoryCreateForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onsubmit)}
-        className="space-y-8 max-w-3xl py-10"
+        className="grid grid-cols-1 gap-4 @min-[540px]:grid-cols-2 max-w-3xl"
       >
-        <FieldGroup>
-          <Controller
-            name="label"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="label">Category Title *</FieldLabel>
-                <Input
-                  {...field}
-                  id="label"
-                  type="text"
-                  onChange={(e) => {
-                    field.onChange(e.target.value);
-                  }}
-                  aria-invalid={fieldState.invalid}
-                  placeholder=".ex Madiba AutoRoute"
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="isSpecial"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="isSpecial">Description</FieldLabel>
-
-                <Checkbox
-                  id="isSpecial"
-                  checked={field.value}
-                  onCheckedChange={(checked) => {
-                    field.onChange(checked);
-                  }}
-                  aria-invalid={fieldState.invalid}
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="parentId"
-            control={form.control}
-            render={({ field, fieldState }) => {
-              const options = categoryData.data
+        <FormField control={form.control} name="label" render={({field})=>(
+          <FormItem>
+            <FormLabel>{"Titre de la catégorie"}</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g. Madiba AutoRoute" {...field} />
+            </FormControl>
+            <FormMessage/>
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="parentId" render={({field})=>{
+          const options = categoryData.data
                 ? categoryData.data.data.map((category) => ({
                     value: category.id,
                     label: category.label,
                   }))
                 : [];
-              return (
-                <Field data-invalid={fieldState.invalid} className="gap-1">
-                  <FieldLabel htmlFor="parentId">Parent</FieldLabel>
-
-                  <Select
-                    value={field.value.toString()}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select category chief" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {options.map((option) => (
-                        <SelectItem
-                          key={option.value}
-                          value={option.value ? option.value.toString() : ""}
-                        >
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              );
-            }}
-          />
-
-          <div className="flex justify-end items-center w-full pt-3">
-            <Button className="rounded-lg" size="sm">
-              Submit
+          return(
+          <FormItem>
+            <FormLabel>{"Catégorie Principale"}</FormLabel>
+            <FormControl>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner une catégorie"/></SelectTrigger>
+                <SelectContent>
+                  {options.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value.toString()}
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                  {options.length === 0 && <SelectItem value={"-1"} disabled>{"Aucune catégorie disponible"}</SelectItem>}
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage/>
+          </FormItem>
+        )}} />
+        <FormField control={form.control} name="isSpecial" render={({field})=>(
+          <FormItem>
+                <FormLabel>{"Catégorie Spéciale"}</FormLabel>
+            <FormControl>
+              <div className="flex gap-2 items-center">
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                <span>{field.value ? "Oui" : "Non"}</span>
+              </div>
+            </FormControl>
+            <FormMessage/>
+          </FormItem>
+        )} />
+        <div className="@min-[540px]:col-span-2">
+            <Button variant={"primary"}>
+              {"Enregistrer"}
             </Button>
           </div>
-        </FieldGroup>
       </form>
     </Form>
   );
