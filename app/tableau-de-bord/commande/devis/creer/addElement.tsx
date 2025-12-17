@@ -155,12 +155,7 @@ function AddElement({
                       <SelectContent>
                         {needs.map((need) => (
                           <SelectItem key={need.id} value={String(need.id)}>
-                            <div className="grid">
-                              <span>{need.label}</span>
-                              <span className="text-xs text-gray-600">
-                                {need.ref}
-                              </span>
-                            </div>
+                            {need.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
