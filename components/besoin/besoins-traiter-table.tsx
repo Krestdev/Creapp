@@ -43,15 +43,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserQueries } from "@/queries/baseModule";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { Pagination } from "../base/pagination";
 import { ModalDestockage } from "../modals/modal-Destockage";
 import { Label } from "../ui/label";
 import { DetailBesoin } from "./detail-besoin";
-import { CategoryQueries } from "@/queries/categoryModule";
 
 interface BesoinsTraiterTableProps {
   data: RequestModelT[];
@@ -128,9 +127,9 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
     return "Aucun bénéficiaire";
   };
 
-  const getSelectedRequestIds = () => {
-    return table.getSelectedRowModel().rows.map((row) => row.original.id);
-  };
+  // const getSelectedRequestIds = () => {
+  //   return table.getSelectedRowModel().rows.map((row) => row.original.id);
+  // };
 
   const columns: ColumnDef<RequestModelT>[] = [
     {

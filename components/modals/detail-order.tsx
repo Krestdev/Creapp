@@ -6,10 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { UserQueries } from "@/queries/baseModule";
-import { RequestQueries } from "@/queries/requestModule";
 import { CommandRequestT } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
 import { DownloadButton } from "../bdcommande/TéléchargeButton";
 
 interface DetailOrderProps {
@@ -19,8 +16,8 @@ interface DetailOrderProps {
 }
 
 export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
-  const request = new RequestQueries();
-  const user = new UserQueries();
+  // const request = new RequestQueries();
+  // const user = new UserQueries();
 
   // const userData = useQuery({
   //   queryKey: ["users"],

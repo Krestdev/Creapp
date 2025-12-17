@@ -186,7 +186,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
     },
   });
 
-  const commandRequestId = form.watch("commandRequestId");
+  // const commandRequestId = form.watch("commandRequestId");
 
   if (requestsData.isLoading || providersData.isLoading) {
     return <LoadingPage />;

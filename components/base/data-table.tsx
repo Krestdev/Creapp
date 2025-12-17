@@ -57,7 +57,6 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
 import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
@@ -174,13 +173,13 @@ export function DataTable({
     },
   });
 
-  const users = new UserQueries();
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      return users.getAll();
-    },
-  });
+  // const users = new UserQueries();
+  // const usersData = useQuery({
+  //   queryKey: ["users"],
+  //   queryFn: async () => {
+  //     return users.getAll();
+  //   },
+  // });
 
   const category = new CategoryQueries();
   const categoryData = useQuery({
@@ -215,7 +214,7 @@ export function DataTable({
     try {
       await requestMutation.mutateAsync({ state: "cancel" });
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   };

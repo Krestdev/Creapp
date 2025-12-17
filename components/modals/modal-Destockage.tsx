@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { UserQueries } from "@/queries/baseModule";
 import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar, CalendarFold, Hash, UserRound } from "lucide-react";
@@ -27,7 +26,6 @@ export function ModalDestockage({
 }: DetailOrderProps) {
   const users = new UserQueries();
   const projects = new ProjectQueries();
-  const request = new RequestQueries();
 
   // Récupération des données
   const usersData = useQuery({

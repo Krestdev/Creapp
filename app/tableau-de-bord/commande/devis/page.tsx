@@ -14,11 +14,12 @@ import Link from "next/link";
 import React from "react";
 import { QuotationGroupTable } from "./quotation-group";
 
-
 const Page = () => {
   const { user } = useStore();
-  const isManager = user?.role.some(r=>r.label === "SALES_MANAGER");
-  const isAdmin = user?.role.some(r=> r.label === "SALES_MANAGER" || r.label === "ADMIN");
+  // const isManager = user?.role.some(r=>r.label === "SALES_MANAGER");
+  const isAdmin = user?.role.some(
+    (r) => r.label === "SALES_MANAGER" || r.label === "ADMIN"
+  );
 
   const links = [
     {
@@ -28,7 +29,10 @@ const Page = () => {
   ];
   /**Quotation fetch */
   const quotationQuery = new QuotationQueries();
-  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(["quotations"], quotationQuery.getAll);
+  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
+    ["quotations"],
+    quotationQuery.getAll
+  );
   /**Providers fetch */
   const providersQuery = new ProviderQueries();
   const providers = useFetchQuery(["providers"], providersQuery.getAll, 500000);
@@ -39,22 +43,25 @@ const Page = () => {
   const [dateFilter, setDateFilter] = React.useState<
     "today" | "week" | "month" | "year" | "custom" | undefined
   >();
-if(isLoading || providers.isLoading || commands.isLoading){
-  return <LoadingPage/>
-}
-if(isError || providers.isError || commands.isError){
-  return <ErrorPage error={error ?? providers.error ?? commands.error ?? undefined}/>
-}
-if(isSuccess && providers.isSuccess && commands.isSuccess)
-  return (
-    <div className="content">
-      <PageTitle
-        title="Devis"
-        subtitle="Consultez et gérez les cotations."
-        color="red"
-      >
-        {links
-          .map((link, id) => {
+  if (isLoading || providers.isLoading || commands.isLoading) {
+    return <LoadingPage />;
+  }
+  if (isError || providers.isError || commands.isError) {
+    return (
+      <ErrorPage
+        error={error ?? providers.error ?? commands.error ?? undefined}
+      />
+    );
+  }
+  if (isSuccess && providers.isSuccess && commands.isSuccess)
+    return (
+      <div className="content">
+        <PageTitle
+          title="Devis"
+          subtitle="Consultez et gérez les cotations."
+          color="red"
+        >
+          {links.map((link, id) => {
             const isLast = links.length > 1 ? id === links.length - 1 : false;
             return (
               <Link key={id} href={link.href}>
@@ -64,20 +71,23 @@ if(isSuccess && providers.isSuccess && commands.isSuccess)
               </Link>
             );
           })}
-      </PageTitle>
-      {
-        isAdmin &&
-        <QuotationGroupTable providers={providers.data.data} quotations={data.data} requests={commands.data.data}/>
-      }
-      <DevisTable
-        data={data.data}
-        dateFilter={dateFilter}
-        setDateFilter={setDateFilter}
-        commands={commands.data.data}
-        providers={providers.data.data}
-      />
-    </div>
-  );
+        </PageTitle>
+        {isAdmin && (
+          <QuotationGroupTable
+            providers={providers.data.data}
+            quotations={data.data}
+            requests={commands.data.data}
+          />
+        )}
+        <DevisTable
+          data={data.data}
+          dateFilter={dateFilter}
+          setDateFilter={setDateFilter}
+          commands={commands.data.data}
+          providers={providers.data.data}
+        />
+      </div>
+    );
 };
 
 export default Page;

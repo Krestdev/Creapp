@@ -154,7 +154,7 @@ export function BesoinLastVal({
         quantity: Number(values.quantite),
         dueDate: values.limiteDate,
       });
-    } catch (error) {
+    } catch {
       toast.error("Une erreur est survenue");
     }
   };
