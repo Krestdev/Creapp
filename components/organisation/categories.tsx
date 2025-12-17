@@ -1,12 +1,12 @@
 "use client";
 import { useStore } from "@/providers/datastore";
-import { RequestQueries } from "@/queries/requestModule";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { useQuery } from "@tanstack/react-query";
 import { CategoriesTable } from "./categories-table";
 
 const CategoriesPage = () => {
   const { isHydrated } = useStore();
-  const category = new RequestQueries();
+  const category = new CategoryQueries();
   const categoryData = useQuery({
     queryKey: ["categoryList"],
     queryFn: () => category.getCategories(),

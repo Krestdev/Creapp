@@ -30,13 +30,14 @@ import { cn } from "@/lib/utils";
 
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
 
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format, min } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon, LoaderIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -53,11 +54,16 @@ const formSchema = z.object({
   souscategorie: z.string().min(1, "La sous-catégorie est requise"),
   titre: z.string().min(1, "Le titre est requis"),
   description: z.string(),
-  quantity: z.string().min(1, "La quantité est requise").refine((val) => !isNaN(Number(val)), {
-    message: "Le montant doit être un nombre valide",
-  }),
+  quantity: z
+    .string()
+    .min(1, "La quantité est requise")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Le montant doit être un nombre valide",
+    }),
   unite: z.string().min(1, "L'unité est requise"),
-  datelimite: z.date().min(new Date(), "La date limite doit être dans le futur"),
+  datelimite: z
+    .date()
+    .min(new Date(), "La date limite doit être dans le futur"),
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
   utilisateurs: z.array(z.number()).optional(),
 });
@@ -134,6 +140,7 @@ export default function MyForm() {
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
   const request = new RequestQueries();
+  const category = new CategoryQueries();
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (
@@ -147,9 +154,18 @@ export default function MyForm() {
       setSelectedUsers([]);
 
       // Invalider et rafraîchir toutes les requêtes liées aux besoins
-      queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" });
-      queryClient.invalidateQueries({ queryKey: ["requests-validation"], refetchType: "active" });
-      queryClient.invalidateQueries({ queryKey: ["requests", user?.id], refetchType: "active" });
+      queryClient.invalidateQueries({
+        queryKey: ["requests"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["requests-validation"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["requests", user?.id],
+        refetchType: "active",
+      });
     },
 
     onError: () => toast.error("Une erreur est survenue."),
@@ -157,7 +173,7 @@ export default function MyForm() {
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => request.getCategories(),
+    queryFn: async () => category.getCategories(),
   });
 
   // Filtrer les catégories parentes (parentId === null)
@@ -206,7 +222,9 @@ export default function MyForm() {
             name="projet"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Projet concerné <span className="text-red-500">*</span></FormLabel>
+                <FormLabel>
+                  Projet concerné <span className="text-red-500">*</span>
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -234,7 +252,9 @@ export default function MyForm() {
             name="categorie"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Catégorie <span className="text-red-500">*</span></FormLabel>
+                <FormLabel>
+                  Catégorie <span className="text-red-500">*</span>
+                </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
@@ -259,7 +279,9 @@ export default function MyForm() {
             name="souscategorie"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Sous-catégorie <span className="text-red-500">*</span></FormLabel>
+                <FormLabel>
+                  Sous-catégorie <span className="text-red-500">*</span>
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   disabled={!selectedCategorie} // Désactivé si aucune catégorie sélectionnée
@@ -299,7 +321,9 @@ export default function MyForm() {
             name="titre"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Titre <span className="text-red-500">*</span></FormLabel>
+                <FormLabel>
+                  Titre <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input placeholder="Titre du besoin" {...field} />
                 </FormControl>
@@ -327,7 +351,10 @@ export default function MyForm() {
             name="datelimite"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>{"Date limite"}<span className="text-red-500">*</span></FormLabel>
+                <FormLabel>
+                  {"Date limite"}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
                 <Popover>
                   <PopoverTrigger asChild className="h-10 w-full!">
                     <FormControl className="w-full">
@@ -366,7 +393,10 @@ export default function MyForm() {
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{"Quantité"}<span className="text-red-500">*</span></FormLabel>
+                <FormLabel>
+                  {"Quantité"}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="ex. 10" {...field} />
                 </FormControl>
@@ -380,7 +410,10 @@ export default function MyForm() {
             name="unite"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{"Unité"}<span className="text-red-500">*</span></FormLabel>
+                <FormLabel>
+                  {"Unité"}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
@@ -403,7 +436,9 @@ export default function MyForm() {
             name="beneficiaire"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bénéficiaire <span className="text-red-500">*</span></FormLabel>
+                <FormLabel>
+                  Bénéficiaire <span className="text-red-500">*</span>
+                </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
@@ -426,7 +461,9 @@ export default function MyForm() {
               name="utilisateurs"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Utilisateurs <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>
+                    Utilisateurs <span className="text-red-500">*</span>
+                  </FormLabel>
 
                   <MultiSelectUsers
                     display="user"

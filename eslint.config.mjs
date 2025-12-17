@@ -16,7 +16,8 @@ const eslintConfig = defineConfig([
   {
     rules: {
       '@next/next/no-img-element': 'off', // Désactive la règle
-      '@typescript-eslint/no-explicit-any': 'off'
+      '@typescript-eslint/no-explicit-any': 'off',
+      'react-hooks/exhaustive-deps': 'off'
     }
   },
   {

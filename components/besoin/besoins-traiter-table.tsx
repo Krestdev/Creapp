@@ -51,6 +51,7 @@ import { Pagination } from "../base/pagination";
 import { ModalDestockage } from "../modals/modal-Destockage";
 import { Label } from "../ui/label";
 import { DetailBesoin } from "./detail-besoin";
+import { CategoryQueries } from "@/queries/categoryModule";
 
 interface BesoinsTraiterTableProps {
   data: RequestModelT[];
@@ -79,7 +80,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
   const [modalDestockage, setModalDestockage] = React.useState(false);
 
   const projects = new ProjectQueries();
-  const request = new RequestQueries();
+  const category = new CategoryQueries();
   const users = new UserQueries();
 
   const usersData = useQuery({
@@ -94,7 +95,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => request.getCategories(),
+    queryFn: async () => category.getCategories(),
   });
 
   const getProjectName = (projectId: string) => {

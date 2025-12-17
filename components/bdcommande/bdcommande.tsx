@@ -12,7 +12,7 @@ const Bdcommande = () => {
   const [dateFilter, setDateFilter] = React.useState<
     "today" | "week" | "month" | "year" | "custom" | undefined
   >();
-  const router = useRouter();
+  // const router = useRouter();
   const request = new RequestQueries();
   const command = new CommandRqstQueries();
 

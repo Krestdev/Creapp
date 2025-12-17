@@ -1,18 +1,18 @@
 "use client";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Hash, Calendar, UserRound, CalendarFold } from "lucide-react";
-import { RequestModelT } from "@/types/types";
 import { UserQueries } from "@/queries/baseModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
+import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
+import { Calendar, CalendarFold, Hash, UserRound } from "lucide-react";
 
 interface DetailOrderProps {
   open: boolean;
@@ -40,10 +40,10 @@ export function ModalDestockage({
     queryFn: async () => projects.getAll(),
   });
 
-  const categories = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => request.getCategories(),
-  });
+  // const categories = useQuery({
+  //   queryKey: ["categories"],
+  //   queryFn: async () => request.getCategories(),
+  // });
 
   const emetteur = usersData.data?.data.find(
     (u) => u.id === data?.userId

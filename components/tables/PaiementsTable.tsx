@@ -57,7 +57,6 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
-import CreatePaiement from "@/app/tableau-de-bord/bdcommande/paiements/creer/create";
 
 export type PaiementData = {
   id: string;

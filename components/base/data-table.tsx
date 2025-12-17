@@ -58,15 +58,11 @@ import {
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  UseQueryResult,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -142,7 +138,7 @@ export function DataTable({
   setCustomDateRange,
   requestData,
 }: Props) {
-  const { user, isHydrated } = useStore();
+  const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -186,14 +182,15 @@ export function DataTable({
     },
   });
 
-  const request = new RequestQueries();
+  const category = new CategoryQueries();
   const categoryData = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
-      return request.getCategories();
+      return category.getCategories();
     },
   });
 
+  const request = new RequestQueries();
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (data: Partial<RequestModelT>) => {
@@ -304,9 +301,7 @@ export function DataTable({
   const uniqueCategories = React.useMemo(() => {
     if (!requestData || !categoryData.data?.data) return [];
 
-    const categoryIds = [
-      ...new Set(requestData.map((req) => req.categoryId)),
-    ];
+    const categoryIds = [...new Set(requestData.map((req) => req.categoryId))];
 
     return categoryIds.map((categoryId) => {
       const category = categoryData.data.data.find(

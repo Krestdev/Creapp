@@ -2,6 +2,7 @@
 
 import Empty from "@/components/base/empty";
 import { BesoinsTraiter } from "@/components/besoin/besoin-traiter";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
@@ -23,6 +24,7 @@ interface Props {
 const Besoins = ({ selected, setSelected, dataSup = [] }: Props) => {
   const command = new CommandRqstQueries();
   const request = new RequestQueries();
+  const category = new CategoryQueries();
 
   const commandData = useQuery({
     queryKey: ["commands"],
@@ -40,7 +42,7 @@ const Besoins = ({ selected, setSelected, dataSup = [] }: Props) => {
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => request.getCategories(),
+    queryFn: async () => category.getCategories(),
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });

@@ -1,14 +1,11 @@
 "use client";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import {
   Field,
+  FieldError,
   FieldGroup,
   FieldLabel,
-  FieldError,
 } from "@/components/ui/field";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -17,14 +14,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Form } from "../ui/form";
-import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { Category, ResponseT } from "@/types/types";
-import { toast } from "sonner";
-import { UserQueries } from "@/queries/baseModule";
 import { useStore } from "@/providers/datastore";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { RequestQueries } from "@/queries/requestModule";
+import { Category, ResponseT } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 import { Checkbox } from "../ui/checkbox";
+import { Form } from "../ui/form";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -51,7 +51,7 @@ export function CategoryCreateForm() {
     },
   });
 
-  const categoryQueries = new RequestQueries();
+  const categoryQueries = new CategoryQueries();
   const { isHydrated } = useStore();
 
   const categoryApi = useMutation({
@@ -67,7 +67,9 @@ export function CategoryCreateForm() {
       form.reset();
     },
     onError: (error: any) => {
-      toast.error("Une erreur est survenue lors de la creation de la categorie.");
+      toast.error(
+        "Une erreur est survenue lors de la creation de la categorie."
+      );
       console.error("Register error:", error);
     },
   });
@@ -87,7 +89,7 @@ export function CategoryCreateForm() {
     } = {
       label: values.label,
       isSpecial: values.isSpecial || false,
-      parentId: parentId
+      parentId: parentId,
     };
     if (parentId !== -1) {
       data.parentId = parentId;

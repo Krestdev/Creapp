@@ -1,18 +1,21 @@
+import useAuthGuard from "@/hooks/useAuthGuard";
+import { useStore } from "@/providers/datastore";
+import { DepartmentQueries } from "@/queries/departmentModule";
+import { RequestQueries } from "@/queries/requestModule";
+import { RequestModelT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Bell,
-  BookText,
   BriefcaseBusiness,
   Building,
-  Clipboard,
   ClipboardList,
   EllipsisVertical,
-  FolderOpen,
   ScrollText,
   Ticket,
   Truck,
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
+import React from "react";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -27,13 +30,6 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
-import { useStore } from "@/providers/datastore";
-import useAuthGuard from "@/hooks/useAuthGuard";
-import React from "react";
-import { RequestQueries } from "@/queries/requestModule";
-import { useQuery } from "@tanstack/react-query";
-import { DepartmentQueries } from "@/queries/departmentModule";
-import { RequestModelT } from "@/types/types";
 
 type ItemSide = {
   pageId: string;

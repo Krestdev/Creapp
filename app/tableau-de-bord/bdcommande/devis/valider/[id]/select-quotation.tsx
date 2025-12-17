@@ -1,18 +1,18 @@
 "use client";
 
-import React from "react";
+import LoadingPage from "@/components/loading-page";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useFetchQuery } from "@/hooks/useData";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
+import { cn, XAF } from "@/lib/utils";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
-import { notFound, useRouter } from "next/navigation";
-import LoadingPage from "@/components/loading-page";
-import { cn, XAF } from "@/lib/utils";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import type { Provider, QuotationGroup, SubmissionElement } from "@/types/types";
+import type { Provider, QuotationGroup } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notFound, useRouter } from "next/navigation";
+import React from "react";
 import { toast } from "sonner";
 
 type SubmitPayload = Array<{
@@ -31,7 +31,9 @@ const buildSubmitPayload = (
     const providerId = selected[besoin.id];
     if (!providerId) continue;
 
-    const quote = quotationGroup.quotations.find((q) => q.providerId === providerId);
+    const quote = quotationGroup.quotations.find(
+      (q) => q.providerId === providerId
+    );
     if (!quote) continue;
 
     const elementIds = (quote.element || [])

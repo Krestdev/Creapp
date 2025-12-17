@@ -1,17 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { LucidePlus, LucideX, X } from "lucide-react";
-import { Button } from "../ui/button";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Role } from "@/types/types";
+import { LucidePlus, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "../ui/button";
 
-type User = {
-  id: number;
-  label: string;
-  dueDate?: Date;
-};
+// type User = {
+//   id: number;
+//   label: string;
+//   dueDate?: Date;
+// };
 
 type Props = {
   roles: Role[];

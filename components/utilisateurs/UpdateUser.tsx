@@ -26,7 +26,6 @@ import { User as UserT } from "@/types/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import MultiSelectUsers from "../base/multiSelectUsers";
 import MultiSelectRole from "../base/multiSelectRole";
 
 const formSchema = z.object({
@@ -68,7 +67,7 @@ export default function UpdateUser({
       phone: userData?.phone,
       password: userData?.password,
     });
-  }, [userData]);
+  }, [userData, form]);
 
   const userQueries = new UserQueries();
   const userMutation = useMutation({

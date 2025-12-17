@@ -55,7 +55,7 @@ export default function UpdateRole({
     form.reset({
       label: departmentData?.label || "",
     });
-  }, [departmentData]);
+  }, [departmentData, form]);
 
   const userQueries = new UserQueries();
   const departmentMutation = useMutation({

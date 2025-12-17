@@ -13,7 +13,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  AlertCircle,
   ArrowUpDown,
   CheckCircle,
   ChevronDown,
@@ -21,11 +20,9 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Clock,
   Eye,
   LucideIcon,
   LucidePen,
-  MoreHorizontal,
   PauseCircle,
   PlayCircle,
   Search,
@@ -57,9 +54,9 @@ import {
 import { ProjectQueries } from "@/queries/projectModule";
 import { ProjectT } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import UpdateProject from "./UpdateProject";
-import { toast } from "sonner";
 import { VariantProps } from "class-variance-authority";
+import { toast } from "sonner";
+import UpdateProject from "./UpdateProject";
 
 // export type Project = {
 //   reference: string;
@@ -87,22 +84,28 @@ export function ProjectTable({ data }: ProjectTableProps) {
   const [selectedItem, setSelectedItem] = React.useState<ProjectT | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
 
-  const getBadge = (status: string):{label:string; icon?: LucideIcon;variant: VariantProps<typeof badgeVariants>["variant"]} => {
+  const getBadge = (
+    status: string
+  ): {
+    label: string;
+    icon?: LucideIcon;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+  } => {
     switch (status) {
       case "planning":
-        return {label:"Planification", variant: "amber"};
+        return { label: "Planification", variant: "amber" };
       case "in-progress":
-        return {label:"En cours", icon:PlayCircle, variant: "blue"};
+        return { label: "En cours", icon: PlayCircle, variant: "blue" };
       case "on-hold":
-        return {label:"En pause", icon:PauseCircle, variant: "default"};
+        return { label: "En pause", icon: PauseCircle, variant: "default" };
       case "completed":
-        return {label:"Terminé", icon:CheckCircle, variant: "success"};
+        return { label: "Terminé", icon: CheckCircle, variant: "success" };
       case "cancelled":
-        return {label:"Annulé", icon:XCircle, variant:"dark"};
+        return { label: "Annulé", icon: XCircle, variant: "dark" };
       case "ongoing":
-        return {label:"En cours", variant: "secondary"};
+        return { label: "En cours", variant: "secondary" };
       default:
-        return {label: status, variant: "outline"};
+        return { label: status, variant: "outline" };
     }
   };
   const getRowColor = (status: string) => {
@@ -306,9 +309,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
           const variant = getBadge(status).variant;
           const label = getBadge(status).label;
           return (
-            <Badge
-            variant={variant}
-            >
+            <Badge variant={variant}>
               {Icon && <Icon />}
               {label}
             </Badge>
@@ -321,11 +322,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
       {
         id: "actions",
         header: () => {
-          return (
-            <span className="tablehead">
-              {"Actions"}
-            </span>
-          );
+          return <span className="tablehead">{"Actions"}</span>;
         },
         enableHiding: false,
         cell: ({ row }) => {
@@ -336,7 +333,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost">
                   {"Actions"}
-                  <ChevronDown/>
+                  <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

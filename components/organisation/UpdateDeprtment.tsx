@@ -87,7 +87,7 @@ export default function UpdateDepartment({
       status: departmentData?.status || "active",
       members: departmentData?.members || [],
     });
-  }, [departmentData]);
+  }, [form, departmentData]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -115,7 +115,10 @@ export default function UpdateDepartment({
     onSuccess: () => {
       toast.success("Département mis à jour avec succès !");
       setOpen(false);
-      queryClient.invalidateQueries({queryKey: ["departmentList"], refetchType: 'active'});
+      queryClient.invalidateQueries({
+        queryKey: ["departmentList"],
+        refetchType: "active",
+      });
       onSuccess?.();
     },
 
@@ -174,7 +177,10 @@ export default function UpdateDepartment({
                 <FormItem>
                   <FormLabel>{"Description"}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Il regroupe le personnel en charge de la gestion fiscale et comptable de l'entreprise" {...field} />
+                    <Textarea
+                      placeholder="Il regroupe le personnel en charge de la gestion fiscale et comptable de l'entreprise"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -228,7 +234,7 @@ export default function UpdateDepartment({
                   }
                 >
                   {"Ajouter un employé"}
-                  <Plus/>
+                  <Plus />
                 </Button>
               </div>
 
@@ -243,7 +249,7 @@ export default function UpdateDepartment({
                     name={`members.${index}.label`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{`Employé ${index +1}`}</FormLabel>
+                        <FormLabel>{`Employé ${index + 1}`}</FormLabel>
                         <FormControl>
                           <Input placeholder="Member label" {...field} />
                         </FormControl>

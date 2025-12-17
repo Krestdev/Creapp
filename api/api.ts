@@ -1,8 +1,6 @@
-import { useStore } from "@/providers/datastore";
 import axios, { AxiosRequestConfig } from "axios";
 
 const axiosConfig = (headers?: AxiosRequestConfig["headers"]) => {
-
   //const { logout } = useStore();
   const axiosClient = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API,

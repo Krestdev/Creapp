@@ -2,7 +2,6 @@
 
 import { DataTable } from "@/components/base/data-table";
 import { RequestModelT } from "@/types/types";
-import { UseQueryResult } from "@tanstack/react-query";
 import React from "react";
 
 interface RequestListProps {
@@ -27,7 +26,7 @@ interface RequestListProps {
       | undefined
     >
   >;
-  requestData: RequestModelT[] | undefined
+  requestData: RequestModelT[] | undefined;
 }
 const RequestList = ({
   dateFilter,
