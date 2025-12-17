@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { CommandQueries } from "@/queries/command";
+import Link from "next/link";
 
 const Page = () => {
   const commandsQuery = new CommandQueries();
