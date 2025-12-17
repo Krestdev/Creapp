@@ -55,6 +55,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
@@ -168,6 +169,7 @@ export function DataValidation({
   });
 
   const request = new RequestQueries();
+  const category = new CategoryQueries();
 
   // Ajouter le refetch automatique pour les données de validation
   const requestData = useQuery({
@@ -179,7 +181,7 @@ export function DataValidation({
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => request.getCategories(),
+    queryFn: async () => category.getCategories(),
   });
 
   // Fonction pour obtenir le texte d'affichage du filtre de date

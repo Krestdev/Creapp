@@ -20,13 +20,13 @@ import {
 import { useStore } from "@/providers/datastore";
 import { RequestQueries } from "@/queries/requestModule";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { Category } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -99,7 +99,7 @@ export default function UpdateCategory({
 
   const { isHydrated } = useStore();
 
-  const category = new RequestQueries();
+  const category = new CategoryQueries();
   const categoriesData = useQuery({
     queryKey: ["categoryList"],
     queryFn: () => category.getCategories(),
@@ -215,7 +215,6 @@ export default function UpdateCategory({
                         value={field.value.toString()}
                         onValueChange={field.onChange}
                       >
-
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select category chief" />
                         </SelectTrigger>

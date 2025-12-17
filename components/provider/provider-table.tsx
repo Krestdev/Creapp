@@ -16,26 +16,14 @@ import {
   AlertTriangle,
   ArrowUpDown,
   Check,
-  CheckCircle,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Eye,
   LucidePen,
-  MoreHorizontal,
   Search,
-  Shield,
-  User,
-  UserX,
-  Users,
-  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -47,13 +35,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -62,9 +43,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Provider } from "@/types/types";
-import UpdateProvider from "./UpdateProvider";
-import { Badge } from "../ui/badge";
 import { Pagination } from "../base/pagination";
+import { Badge } from "../ui/badge";
+import UpdateProvider from "./UpdateProvider";
 
 interface ProvidersTableProps {
   data: Provider[];

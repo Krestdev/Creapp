@@ -1,13 +1,4 @@
 "use client";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-  FieldError,
-} from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,14 +8,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { Category, ResponseT } from "@/types/types";
-import { toast } from "sonner";
-import { UserQueries } from "@/queries/baseModule";
 import { useStore } from "@/providers/datastore";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { RequestQueries } from "@/queries/requestModule";
-import { Checkbox } from "../ui/checkbox";
+import { Category, ResponseT } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
 import { Switch } from "../ui/switch";
 
 export interface ActionResponse<T = any> {
@@ -52,7 +52,7 @@ export function CategoryCreateForm() {
     },
   });
 
-  const categoryQueries = new RequestQueries();
+  const categoryQueries = new CategoryQueries();
   const { isHydrated } = useStore();
 
   const categoryApi = useMutation({
@@ -68,7 +68,9 @@ export function CategoryCreateForm() {
       form.reset();
     },
     onError: (error: any) => {
-      toast.error("Une erreur est survenue lors de la creation de la categorie.");
+      toast.error(
+        "Une erreur est survenue lors de la creation de la categorie."
+      );
       console.error("Register error:", error);
     },
   });
@@ -88,7 +90,7 @@ export function CategoryCreateForm() {
     } = {
       label: values.label,
       isSpecial: values.isSpecial || false,
-      parentId: parentId
+      parentId: parentId,
     };
     if (parentId !== -1) {
       data.parentId = parentId;
@@ -102,61 +104,81 @@ export function CategoryCreateForm() {
         onSubmit={form.handleSubmit(onsubmit)}
         className="grid grid-cols-1 gap-4 @min-[540px]:grid-cols-2 max-w-3xl"
       >
-        <FormField control={form.control} name="label" render={({field})=>(
-          <FormItem>
-            <FormLabel>{"Titre de la catégorie"}</FormLabel>
-            <FormControl>
-              <Input placeholder="e.g. Madiba AutoRoute" {...field} />
-            </FormControl>
-            <FormMessage/>
-          </FormItem>
-        )} />
-        <FormField control={form.control} name="parentId" render={({field})=>{
-          const options = categoryData.data
-                ? categoryData.data.data.map((category) => ({
-                    value: category.id,
-                    label: category.label,
-                  }))
-                : [];
-          return(
-          <FormItem>
-            <FormLabel>{"Catégorie Principale"}</FormLabel>
-            <FormControl>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner une catégorie"/></SelectTrigger>
-                <SelectContent>
-                  {options.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value.toString()}
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                  {options.length === 0 && <SelectItem value={"-1"} disabled>{"Aucune catégorie disponible"}</SelectItem>}
-                </SelectContent>
-              </Select>
-            </FormControl>
-            <FormMessage/>
-          </FormItem>
-        )}} />
-        <FormField control={form.control} name="isSpecial" render={({field})=>(
-          <FormItem>
-                <FormLabel>{"Catégorie Spéciale"}</FormLabel>
-            <FormControl>
-              <div className="flex gap-2 items-center">
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-                <span>{field.value ? "Oui" : "Non"}</span>
-              </div>
-            </FormControl>
-            <FormMessage/>
-          </FormItem>
-        )} />
+        <FormField
+          control={form.control}
+          name="label"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Titre de la catégorie"}</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. Madiba AutoRoute" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="parentId"
+          render={({ field }) => {
+            const options = categoryData.data
+              ? categoryData.data.data.map((category) => ({
+                  value: category.id,
+                  label: category.label,
+                }))
+              : [];
+            return (
+              <FormItem>
+                <FormLabel>{"Catégorie Principale"}</FormLabel>
+                <FormControl>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((option) => (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value.toString()}
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                      {options.length === 0 && (
+                        <SelectItem value={"-1"} disabled>
+                          {"Aucune catégorie disponible"}
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+        <FormField
+          control={form.control}
+          name="isSpecial"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Catégorie Spéciale"}</FormLabel>
+              <FormControl>
+                <div className="flex gap-2 items-center">
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  <span>{field.value ? "Oui" : "Non"}</span>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="@min-[540px]:col-span-2">
-            <Button variant={"primary"}>
-              {"Enregistrer"}
-            </Button>
-          </div>
+          <Button variant={"primary"}>{"Enregistrer"}</Button>
+        </div>
       </form>
     </Form>
   );

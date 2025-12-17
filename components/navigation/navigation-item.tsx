@@ -5,8 +5,7 @@ import { NavigationItemProps } from "@/types/types";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { it } from "node:test";
-import React, { useState } from "react";
+import { useState } from "react";
 
 // { Icon, href, title, badge }
 

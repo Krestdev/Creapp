@@ -1,12 +1,13 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -21,7 +22,7 @@ import { ProjectQueries } from "@/queries/projectModule";
 import { ProjectCreateResponse, ProjectT, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { Textarea } from "../ui/textarea";
@@ -38,17 +39,14 @@ export const formSchema = z.object({
   label: z
     .string({ message: "Ce champ est requis" })
     .min(4, "Le libellé doit contenir au moins 4 caractères"),
-  
-  description: z
-    .string({ message: "Ce champ est requis" })
-    .optional(),
-  
+
+  description: z.string({ message: "Ce champ est requis" }).optional(),
+
   chiefid: z
     .string({ message: "Veuillez définir un chef de projet" })
     .min(1, "Veuillez sélectionner un chef de projet"),
-  
-  budget: z
-    .coerce
+
+  budget: z.coerce
     .number({
       invalid_type_error: "Veuillez entrer un nombre valide",
       required_error: "Veuillez entrer un nombre",
@@ -119,68 +117,96 @@ export function ProjectCreateForm() {
         onSubmit={form.handleSubmit(onsubmit)}
         className="max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2"
       >
-        <FormField control={form.control} name="label" render={({field})=>(
-          <FormItem>
-            <FormLabel>{"Titre du Projet"}</FormLabel>
-            <FormControl>
-              <Input {...field} placeholder="ex. Autoroute A5" />
-            </FormControl>
-            <FormMessage/>
-          </FormItem>
-        )} />
-        <FormField control={form.control} name="chiefid" render={({field})=>{
-          const options = userApi.data
-                ? userApi.data.data.map((user) => ({
-                    value: user.id,
-                    label: user.name,
-                  }))
-                : [];
-          return(
-          <FormItem>
-            <FormLabel>{"Chef du Projet"}</FormLabel>
-            <FormControl>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sélectionner"/>
-                </SelectTrigger>
-                <SelectContent>
-                  {
-                    options.map((option, id)=>
-                    <SelectItem key={id} value={String(option.value)} className="capitalize">{option.label}</SelectItem>
-                  )
-                  }
-                  {
-                    options.length === 0 && <SelectItem value="-" disabled>{"Aucun utilisateur enregistré"}</SelectItem>
-                  }
-                </SelectContent>
-              </Select>
-            </FormControl>
-            <FormMessage/>
-          </FormItem>
-        )}} />
-        <FormField control={form.control} name="description" render={({field})=>(
-          <FormItem className="@min-[640px]:col-span-2">
-            <FormLabel>{"Description du Projet"}</FormLabel>
-            <FormControl>
-              <Textarea {...field} placeholder="Décrivez le projet" />
-            </FormControl>
-            <FormMessage/>
-          </FormItem>
-        )} />
-        <FormField control={form.control} name="budget" render={({field:{value, ...props}})=>(
-          <FormItem>
-            <FormLabel>{"Budge Alloué"}</FormLabel>
-            <FormControl>
-              <Input type="number" value={String(value)} {...props} placeholder="ex. 150 000 000" />
-            </FormControl>
-            <FormMessage/>
-          </FormItem>
-        )} />
-          <div className="@min-[640px]:col-span-2">
-            <Button type="submit" variant={"primary"}>
-              {"Créer"}
-            </Button>
-          </div>
+        <FormField
+          control={form.control}
+          name="label"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Titre du Projet"}</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="ex. Autoroute A5" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="chiefid"
+          render={({ field }) => {
+            const options = userApi.data
+              ? userApi.data.data.map((user) => ({
+                  value: user.id,
+                  label: user.name,
+                }))
+              : [];
+            return (
+              <FormItem>
+                <FormLabel>{"Chef du Projet"}</FormLabel>
+                <FormControl>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((option, id) => (
+                        <SelectItem
+                          key={id}
+                          value={String(option.value)}
+                          className="capitalize"
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                      {options.length === 0 && (
+                        <SelectItem value="-" disabled>
+                          {"Aucun utilisateur enregistré"}
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem className="@min-[640px]:col-span-2">
+              <FormLabel>{"Description du Projet"}</FormLabel>
+              <FormControl>
+                <Textarea {...field} placeholder="Décrivez le projet" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="budget"
+          render={({ field: { value, ...props } }) => (
+            <FormItem>
+              <FormLabel>{"Budge Alloué"}</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  value={String(value)}
+                  {...props}
+                  placeholder="ex. 150 000 000"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="@min-[640px]:col-span-2">
+          <Button type="submit" variant={"primary"}>
+            {"Créer"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

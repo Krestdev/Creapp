@@ -23,16 +23,23 @@ import {
   ChevronRight,
   Clock,
   Eye,
-  Flag,
-  LucidePen,
-  Trash,
   XCircle,
 } from "lucide-react";
 import * as React from "react";
 
+import { Reception } from "@/app/tableau-de-bord/commande/receptions/page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -43,6 +50,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -58,29 +71,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
-import { Pagination } from "../base/pagination";
-import DetailPaiement from "../modals/detail-paiement";
-import { Reception } from "@/app/tableau-de-bord/bdcommande/receptions/page";
+import { cn } from "@/lib/utils";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import DetailReception from "../modals/detail-reception";
+import { Pagination } from "../base/pagination";
 import CompleteReception from "../modals/complete-reception";
+import DetailReception from "../modals/detail-reception";
 
 export type ReceptionData = {
   id: string;
@@ -106,28 +102,28 @@ interface ReceptionTableProps {
   >;
 }
 
-const priorityConfig = {
-  low: {
-    label: "Basse",
-    badgeClassName: "bg-gray-500 text-white hover:bg-gray-600",
-    icon: Flag,
-  },
-  medium: {
-    label: "Moyenne",
-    badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
-    icon: Flag,
-  },
-  high: {
-    label: "Haute",
-    badgeClassName: "bg-orange-500 text-white hover:bg-orange-600",
-    icon: Flag,
-  },
-  urgent: {
-    label: "Urgente",
-    badgeClassName: "bg-red-500 text-white hover:bg-red-600",
-    icon: Flag,
-  },
-};
+// const priorityConfig = {
+//   low: {
+//     label: "Basse",
+//     badgeClassName: "bg-gray-500 text-white hover:bg-gray-600",
+//     icon: Flag,
+//   },
+//   medium: {
+//     label: "Moyenne",
+//     badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
+//     icon: Flag,
+//   },
+//   high: {
+//     label: "Haute",
+//     badgeClassName: "bg-orange-500 text-white hover:bg-orange-600",
+//     icon: Flag,
+//   },
+//   urgent: {
+//     label: "Urgente",
+//     badgeClassName: "bg-red-500 text-white hover:bg-red-600",
+//     icon: Flag,
+//   },
+// };
 
 const statusConfig = {
   pending: {
@@ -171,7 +167,8 @@ export function ReceptionTable({
     undefined
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
-  const [showCompleteModal, setShowCompleteModal] = React.useState<boolean>(false);
+  const [showCompleteModal, setShowCompleteModal] =
+    React.useState<boolean>(false);
 
   // États pour le filtre de période
   const [localDateFilter, setLocalDateFilter] = React.useState<
@@ -329,7 +326,7 @@ export function ReceptionTable({
     }
 
     const uniqueProviders = new Set<string>();
-    const providerMap = new Map<string, string>(); // Pour stocker les noms complets
+    // const providerMap = new Map<string, string>(); // Pour stocker les noms complets
 
     filteredData.forEach((item) => {
       if (item.provider) {

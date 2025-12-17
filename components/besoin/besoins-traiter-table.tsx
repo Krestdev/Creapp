@@ -43,8 +43,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserQueries } from "@/queries/baseModule";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { Pagination } from "../base/pagination";
@@ -79,7 +79,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
   const [modalDestockage, setModalDestockage] = React.useState(false);
 
   const projects = new ProjectQueries();
-  const request = new RequestQueries();
+  const category = new CategoryQueries();
   const users = new UserQueries();
 
   const usersData = useQuery({
@@ -94,7 +94,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => request.getCategories(),
+    queryFn: async () => category.getCategories(),
   });
 
   const getProjectName = (projectId: string) => {
@@ -127,9 +127,9 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
     return "Aucun bénéficiaire";
   };
 
-  const getSelectedRequestIds = () => {
-    return table.getSelectedRowModel().rows.map((row) => row.original.id);
-  };
+  // const getSelectedRequestIds = () => {
+  //   return table.getSelectedRowModel().rows.map((row) => row.original.id);
+  // };
 
   const columns: ColumnDef<RequestModelT>[] = [
     {

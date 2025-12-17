@@ -5,14 +5,13 @@ import { CommandeTable } from "@/components/tables/commande-table";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import React from "react";
 
 const Bdcommande = () => {
   const [dateFilter, setDateFilter] = React.useState<
     "today" | "week" | "month" | "year" | "custom" | undefined
   >();
-  const router = useRouter();
+  // const router = useRouter();
   const request = new RequestQueries();
   const command = new CommandRqstQueries();
 

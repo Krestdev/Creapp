@@ -25,7 +25,7 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CommandRequestT, Provider, Quotation } from "@/types/types";
+import { CommandRequestT, Provider } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { CalendarIcon } from "lucide-react";
@@ -70,7 +70,6 @@ function CreatePaiement({ paiement, openChange }: Props) {
   /**Data states */
   const [dueDate, setDueDate] = React.useState<boolean>(false);
   const [requests, setRequests] = React.useState<Array<CommandRequestT>>([]);
-  const [providers, setProviders] = React.useState<Array<Provider>>([]);
   const today = new Date(); //On part sur 3 jours de delai de base :)
   today.setDate(today.getDate() + 3);
 

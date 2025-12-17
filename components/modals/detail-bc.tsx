@@ -10,7 +10,6 @@ import {
 import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { QuotationQueries } from "@/queries/quotation";
 import { BonsCommande } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -32,7 +31,6 @@ import {
   LucideWallet,
   LucideX,
 } from "lucide-react";
-import Link from "next/link";
 
 export type Justificatif = {
   type: "file" | "image";
@@ -76,11 +74,13 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
   const {
     data: devis,
     isSuccess,
-    isLoading,
+    // isLoading,
   } = useFetchQuery(["commandes"], cotation.getAll, 30000);
   if (!data || !isSuccess) return null;
 
-  const devisTitle = devis?.data.find((devis) => devis.id === data.deviId)?.title;
+  const devisTitle = devis?.data.find(
+    (devis) => devis.id === data.deviId
+  )?.title;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -314,7 +314,9 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Date limite"}</p>
-                <p className="font-semibold">{format(data.deliveryDelay, "PPP", { locale: fr })}</p>
+                <p className="font-semibold">
+                  {format(data.deliveryDelay, "PPP", { locale: fr })}
+                </p>
               </div>
             </div>
 
@@ -325,7 +327,9 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Créé le"}</p>
-                <p className="font-semibold">{format(data.createdAt, "PPP", { locale: fr })}</p>
+                <p className="font-semibold">
+                  {format(data.createdAt, "PPP", { locale: fr })}
+                </p>
               </div>
             </div>
 
@@ -336,7 +340,9 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Modifié le"}</p>
-                <p className="font-semibold">{format(data.updatedAt, "PPP", { locale: fr } )}</p>
+                <p className="font-semibold">
+                  {format(data.updatedAt, "PPP", { locale: fr })}
+                </p>
               </div>
             </div>
 

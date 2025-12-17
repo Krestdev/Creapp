@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -62,13 +61,13 @@ const formSchema = z.object({
 });
 
 export default function CreateBonForm() {
-  const [files, setFiles] = useState<File[] | null>(null);
+  // const [files, setFiles] = useState<File[] | null>(null);
 
-  const dropZoneConfig = {
-    maxFiles: 5,
-    maxSize: 1024 * 1024 * 4,
-    multiple: true,
-  };
+  // const dropZoneConfig = {
+  //   maxFiles: 5,
+  //   maxSize: 1024 * 1024 * 4,
+  //   multiple: true,
+  // };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {

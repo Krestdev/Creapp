@@ -1,5 +1,3 @@
-import { BonCommandePaiement } from "@/components/modals/detail-bc";
-
 // const bonsCommandePaiementData: BonCommandePaiement[] = [
 //   {
 //     id: "1",
