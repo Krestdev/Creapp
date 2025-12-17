@@ -204,7 +204,31 @@ function AddElement({
                 </FormItem>
               )}
             />
-
+            {/* Unité */}
+            <FormField
+              control={form.control}
+              name="unit"
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel isRequired>{"Unité"}</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {units.map((unit) => (
+                          <SelectItem key={unit.value} value={unit.value}>
+                            {unit.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             {/* Prix unitaire */}
             <FormField
               control={form.control}
@@ -228,32 +252,6 @@ function AddElement({
                         {"FCFA"}
                       </span>
                     </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Unité */}
-            <FormField
-              control={form.control}
-              name="unit"
-              render={({ field }) => (
-                <FormItem className="col-span-1">
-                  <FormLabel isRequired>{"Unité"}</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {units.map((unit) => (
-                          <SelectItem key={unit.value} value={unit.value}>
-                            {unit.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
