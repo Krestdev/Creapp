@@ -156,7 +156,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
       if (!!openChange) {
         openChange(false);
       }
-      router.push("/tableau-de-bord/bdcommande/devis/");
+      router.push("./devis/");
     },
     onError: (error) => {
       console.error(error);
