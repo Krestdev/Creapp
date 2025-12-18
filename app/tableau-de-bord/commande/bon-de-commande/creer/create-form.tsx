@@ -26,6 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { paymentMethods } from "@/data/payment-methods";
 import { useFetchQuery } from "@/hooks/useData";
+import { ProviderQueries } from "@/queries/providers";
 import { CreatePurchasePayload, PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
 import { PENALITY_MODE, PURCHASE_ORDER_PRIORITIES } from "@/types/types";
@@ -89,9 +90,11 @@ export const formSchema = z
 function CreateForm() {
   const [selectDate, setSelectDate] = React.useState(false); //Popover select Date
   const quotationQuery = new QuotationQueries();
+  const providerQuery = new ProviderQueries();
   const purchaseOrderQuery = new PurchaseOrder();
 
   const getQuotations = useFetchQuery(["quotations"],quotationQuery.getAll);
+  const getProviders = useFetchQuery(["providers"],providerQuery.getAll);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -181,7 +184,7 @@ const penalty = form.watch("hasPenalties");
                   <SelectContent>
                     {getQuotations.data && getQuotations.data.data.filter(c=>c.status ==="APPROVED").map((quote)=>(
                       <SelectItem key={quote.id} value={String(quote.id)} >
-                      {quote.commandRequest.title ?? "Undefined"}
+                      {`${quote.commandRequest.title} - ${getProviders.data?.data.find(p=> p.id === quote.providerId)?.name ?? "Undefined"}`}
                     </SelectItem>
                     ))}
                     {
