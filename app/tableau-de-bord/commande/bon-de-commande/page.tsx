@@ -18,6 +18,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
+import { cn } from "@/lib/utils";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -61,6 +62,12 @@ const Page = () => {
     {
       title: "Créer un bon",
       href: "./bon-de-commande/creer",
+    },
+    {
+      title: "Statistiques",
+      href: "./bon-de-commande/statistiques",
+      disabled: true
+
     },
     {
       title: "Approbation",
@@ -113,13 +120,13 @@ const Page = () => {
         >
           {links.map((link, id) => {
             const isLast = links.length > 1 ? id === links.length - 1 : false;
-            return (
-              <Link key={id} href={link.href}>
-                <Button size={"lg"} variant={isLast ? "accent" : "ghost"}>
-                  {link.title}
-                </Button>
-              </Link>
-            );
+              return (
+                <Link key={id} href={link.href} onClick={(e)=>{link.disabled && e.preventDefault();}} className={cn(link.disabled && "cursor-not-allowed")}>
+                  <Button size={"lg"} variant={isLast ? "accent" : "ghost"} disabled={link.disabled}>
+                    {link.title}
+                  </Button>
+                </Link>
+              );
           })}
         </PageTitle>
         <div className="flex flex-wrap items-end gap-3">

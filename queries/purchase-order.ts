@@ -2,7 +2,7 @@ import api from "@/providers/axios"
 import { BonsCommande } from "@/types/types"
 
 export type CreatePurchasePayload = {
-    command: Omit<BonsCommande, "id" | "createdAt" | "updatedAt" | "status" | "devi" | "reference">;
+    command: Omit<BonsCommande, "id" | "createdAt" | "updatedAt" | "status" | "devi" | "reference"| "provider">;
     ids:Array<number>};
 
 export class PurchaseOrder {

@@ -9,7 +9,7 @@ function Providers({children}:{children : React.ReactNode}) {
     defaultOptions: {
     queries: {
       refetchOnWindowFocus: false, // default: true
-      staleTime: 60000
+      staleTime: 30000
     },
   },
   });

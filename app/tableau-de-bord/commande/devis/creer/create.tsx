@@ -107,7 +107,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
   const providersData = useFetchQuery(
     ["providers"],
     providerQuery.getAll,
-    500000
+    15000
   );
 
   /**Data states */
