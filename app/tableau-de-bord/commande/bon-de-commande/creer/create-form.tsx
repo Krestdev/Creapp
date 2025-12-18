@@ -111,7 +111,7 @@ function CreateForm() {
   });
 
   const {mutate, isPending} = useMutation({
-    mutationFn: async(payload:CreatePurchasePayload)=>purchaseOrderQuery.create(payload),
+    mutationFn: (payload:CreatePurchasePayload)=>purchaseOrderQuery.create(payload),
     onSuccess: ()=>{
       toast.success("Votre Bon de Commande a été créé avec succès !");
       form.reset({
@@ -126,6 +126,9 @@ function CreateForm() {
       paymentMethod: "",
     });
       
+    },
+    onError: (error:Error)=>{
+      toast.error(error.message ?? "Une erreur est survenue");
     }
   })
 

@@ -20,7 +20,7 @@ export interface NavigationItemProps {
 export interface PageTitleProps {
   title: string;
   subtitle: string;
-  color: "red" | "blue" | "green" | "none";
+  color?: "red" | "blue" | "green" | "none";
   children?: React.ReactNode;
 }
 
@@ -319,6 +319,8 @@ export const PURCHASE_ORDER_PRIORITIES = [
 
 export type BonsCommande = {
   id: number;
+  reference: string;
+  devi: Quotation;
   deviId: number;
   providerId: number;
   amountBase: number;
