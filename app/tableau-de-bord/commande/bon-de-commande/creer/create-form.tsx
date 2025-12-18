@@ -25,19 +25,28 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { paymentMethods } from "@/data/payment-methods";
-import { PurchaseOrder } from "@/queries/purchase-order";
+import { useFetchQuery } from "@/hooks/useData";
+import { CreatePurchasePayload, PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
+import { PENALITY_MODE, PURCHASE_ORDER_PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
+
+const PRIORITIES = PURCHASE_ORDER_PRIORITIES.map(s => s.value) as [
+  (typeof PURCHASE_ORDER_PRIORITIES)[number]["value"],
+  ...(typeof PURCHASE_ORDER_PRIORITIES)[number]["value"][]
+];
 
 export const formSchema = z
   .object({
-    devisId: z.coerce.number({ message: "Veuillez définir un devis" }),
-
-    deliveryDueDate: z
+    deviId: z.coerce.number({ message: "Veuillez définir un devis" }),
+    deliveryDelay: z
     .string({ message: "Veuillez définir une date" })
     .refine(
       (val) => {
@@ -47,30 +56,30 @@ export const formSchema = z
       },
       { message: "Date invalide" }
     ),
-    terms: z.string().min(1, "Ce champ est requis"),
+    paymentTerms: z.string().min(1, "Ce champ est requis"),
     paymentMethod: z.string().min(1, "Ce champ est requis"),
-    priority: z.string().min(1, "Ce champ est requis"),
+    priority: z.enum(PRIORITIES),
     deliveryLocation: z.string().min(1, "Ce champ est requis"),
 
-    penalities: z.boolean(),
-    amountPenalities: z.coerce.number().optional(),
+    hasPenalties: z.boolean(),
+    amountBase: z.coerce.number().optional(),
     penaltyMode: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.penalities) {
+    if (data.hasPenalties) {
       if (
-        data.amountPenalities == null ||
-        Number.isNaN(data.amountPenalities)
+        data.amountBase == null ||
+        Number.isNaN(data.amountBase)
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["amountPenalities"],
+          path: ["amountBase"],
           message: "Veuillez renseigner le montant des pénalités",
         });
-      } else if (data.amountPenalities <= 0) {
+      } else if (data.amountBase <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["amountPenalities"],
+          path: ["amountBase"],
           message: "Le montant des pénalités doit être supérieur à 0",
         });
       }
@@ -81,20 +90,66 @@ function CreateForm() {
   const [selectDate, setSelectDate] = React.useState(false); //Popover select Date
   const quotationQuery = new QuotationQueries();
   const purchaseOrderQuery = new PurchaseOrder();
+
+  const getQuotations = useFetchQuery(["quotations"],quotationQuery.getAll);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      priority: "",
-      terms: "",
-      deliveryDueDate: new Date().toISOString().slice(0, 10),
+      priority: "medium",
+      paymentTerms: "",
+      deliveryDelay: format(new Date(), "yyyy-MM-dd"),
       deliveryLocation: "",
-      amountPenalities: 0,
+      amountBase: 0,
+      hasPenalties: false,
+      penaltyMode: "",
+      paymentMethod: "",
     },
   });
 
+  const {mutate, isPending} = useMutation({
+    mutationFn: async(payload:CreatePurchasePayload)=>purchaseOrderQuery.create(payload),
+    onSuccess: ()=>{
+      toast.success("Votre Bon de Commande a été créé avec succès !");
+      form.reset({
+      priority: "medium",
+      paymentTerms: "",
+      deliveryDelay: format(new Date(), "yyyy-MM-dd"),
+      deliveryLocation: "",
+      amountBase: 0,
+      hasPenalties: false,
+      penaltyMode: "",
+      paymentMethod: "",
+    });
+      
+    }
+  })
+
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(`Values: ${values}`);
+  const quotation = getQuotations.data?.data.find(
+    (q) => q.id === values.deviId
+  );
+
+  if (!quotation) {
+    toast.error("Devis introuvable");
+    return;
   }
+
+  const payload: CreatePurchasePayload = {
+    deviId: values.deviId,
+    providerId: quotation.providerId,
+    amountBase: values.amountBase ?? 0,
+    priority: values.priority,
+    paymentMethod: values.paymentMethod,
+    paymentTerms: values.paymentTerms,
+    deliveryDelay: new Date(values.deliveryDelay),
+    deliveryLocation: values.deliveryLocation,
+    hasPenalties: values.hasPenalties,
+    penaltyMode: values.penaltyMode,
+  };
+
+  mutate(payload);
+}
   return (
     <Form {...form}>
       <form
@@ -103,7 +158,7 @@ function CreateForm() {
       >
         <FormField
           control={form.control}
-          name="devisId"
+          name="deviId"
           render={({ field }) => (
             <FormItem>
               <FormLabel isRequired>{"Devis"}</FormLabel>
@@ -116,10 +171,17 @@ function CreateForm() {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {}
-                    <SelectItem value="-" disabled>
-                      {"Aucun devis disponible"}
+                    {getQuotations.data && getQuotations.data.data.map((quote)=>(
+                      <SelectItem key={quote.id} value={String(quote.id)} >
+                      {quote.commandRequestId}
                     </SelectItem>
+                    ))}
+                    {
+                      getQuotations.data && getQuotations.data.data.length === 0 &&
+                      <SelectItem value="-" disabled>
+                        {"Aucun devis disponible"}
+                      </SelectItem>
+                    }
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -164,7 +226,7 @@ function CreateForm() {
         />
         <FormField
           control={form.control}
-          name="deliveryDueDate"
+          name="deliveryDelay"
           render={({ field }) => (
             <FormItem>
               <FormLabel isRequired>{"Date limite de livraison"}</FormLabel>
@@ -227,7 +289,7 @@ function CreateForm() {
         />
         <FormField
           control={form.control}
-          name="terms"
+          name="paymentTerms"
           render={({ field }) => (
             <FormItem className="@min-[560px]:col-span-2">
               <FormLabel isRequired>{"Conditions de paiement"}</FormLabel>
@@ -240,7 +302,29 @@ function CreateForm() {
         />
         <FormField
           control={form.control}
-          name="penalities"
+          name="priority"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Priorité"}</FormLabel>
+              <FormControl>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
+                  <SelectContent>
+                    {
+                      PURCHASE_ORDER_PRIORITIES.map((priority)=>
+                        <SelectItem key={priority.value} value={priority.value}>{priority.name}</SelectItem>
+                      )
+                    }
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="hasPenalties"
           render={({ field }) => (
             <FormItem>
               <FormLabel isRequired>{"Pénalités"}</FormLabel>
@@ -256,10 +340,32 @@ function CreateForm() {
         />
         <FormField
           control={form.control}
-          name="amountPenalities"
+          name="penaltyMode"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Montant des pénalités"}</FormLabel>
+              <FormLabel>{"Mode de pénalité"}</FormLabel>
+              <FormControl>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
+                  <SelectContent>
+                    {
+                      PENALITY_MODE.map((penalty)=>
+                        <SelectItem key={penalty.value} value={penalty.value}>{penalty.name}</SelectItem>
+                      )
+                    }
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="amountBase"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Montant des pénalités"}</FormLabel>
               <FormControl>
                 <Input type="number" {...field} placeholder="Ex. 150 000" />
               </FormControl>
@@ -267,7 +373,7 @@ function CreateForm() {
           )}
         />
         <div className="@min-[560px]:col-span-2">
-          <Button type="submit" variant={"primary"}>{"Créer le bon de commande"}</Button>
+          <Button type="submit" variant={"primary"} disabled={isPending} isLoading={isPending}>{"Créer le bon de commande"}</Button>
         </div>
       </form>
     </Form>

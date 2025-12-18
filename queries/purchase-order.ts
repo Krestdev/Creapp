@@ -1,6 +1,7 @@
 import api from "@/providers/axios"
 import { BonsCommande } from "@/types/types"
 
+export type CreatePurchasePayload = Omit<BonsCommande, "id" | "createdAt" | "updatedAt" | "status">;
 
 export class PurchaseOrder {
     route = "/request/command"
@@ -11,7 +12,7 @@ export class PurchaseOrder {
         })
     };
 
-    create = async (payload:Omit<BonsCommande, "id" | "createdAt" | "updatedAt" | "status">):Promise<{data: BonsCommande}> => {
+    create = async (payload:CreatePurchasePayload):Promise<{data: BonsCommande}> => {
         return api.post(this.route, payload).then((response)=>{
             return response.data;
         })

@@ -58,9 +58,6 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
       });
 
       onOpenChange(false);
-      queryClient.invalidateQueries({
-        queryKey: ["providers"],
-      });
     },
     onError: (error: any) => {
       toast.error(
