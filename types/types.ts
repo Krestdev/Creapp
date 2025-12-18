@@ -162,9 +162,8 @@ export type Review = {
 export type Category = {
   id: number;
   label: string;
-  isSpecial: boolean;
   description?: string;
-  parentId: number;
+  validators: { userId: number; rank: number }[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -219,7 +218,11 @@ export type Provider = {
   banck_attestation?: string | File;
 };
 
-export type QuotationStatus = "SUBMITTED" | "APPROUVED" | "REJECTED" | "PENDING";
+export type QuotationStatus =
+  | "SUBMITTED"
+  | "APPROUVED"
+  | "REJECTED"
+  | "PENDING";
 export type QuotationElementStatus = "SELECTED" | "NOT_SELECTED";
 
 export type QuotationElement = {
@@ -287,8 +290,8 @@ export type SubmissionElement = {
   deviId: number;
   elements: Array<{
     name: string;
-    elementIds: Array<number>
-  }>
+    elementIds: Array<number>;
+  }>;
 };
 
 type MemberInput = {

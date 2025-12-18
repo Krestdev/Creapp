@@ -75,12 +75,12 @@ export default function UpdateProject({
       > & { chiefId: number }
     ) => projectQueries.update(projectData?.id || 0, data),
     onSuccess: (data: ResponseT<ProjectT>) => {
-      toast.success("Inscription réussie !");
+      toast.success("Projet mis à jour avec succès !");
       console.log("created successful:", data);
       form.reset();
     },
     onError: (error: any) => {
-      toast.error("Une erreur est survenue lors de la creation du projet.");
+      toast.error("Une erreur est survenue lors de la mise à jour du projet.");
       console.error("Register error:", error);
     },
   });

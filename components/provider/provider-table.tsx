@@ -46,6 +46,7 @@ import { Provider } from "@/types/types";
 import { Pagination } from "../base/pagination";
 import { Badge } from "../ui/badge";
 import UpdateProvider from "./UpdateProvider";
+import { ShowProvider } from "./show-provider";
 
 interface ProvidersTableProps {
   data: Provider[];
@@ -63,6 +64,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
 
   const [selectedItem, setSelectedItem] = React.useState<Provider | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const [openUpdate, setOpenUpdate] = React.useState(false);
 
   // Cette fonction vérifie si les informations d'un fournisseur sont complètes
   const checkProviderInfo = (provider: Provider) => {
@@ -232,7 +234,12 @@ export function ProviderTable({ data }: ProvidersTableProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(provider);
+                    setOpenUpdate(true)
+                  }}
+                >
                   <Eye className="mr-2 h-4 w-4" />
                   View
                 </DropdownMenuItem>
@@ -417,6 +424,11 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
         providerData={selectedItem}
+      />
+      <ShowProvider
+        open={openUpdate}
+        onOpenChange={setOpenUpdate}
+        data={selectedItem}
       />
     </div>
   );

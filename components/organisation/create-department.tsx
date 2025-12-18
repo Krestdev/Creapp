@@ -24,6 +24,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { Form } from "../ui/form";
+import { Textarea } from "../ui/textarea";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -67,7 +68,7 @@ export function DepartmentCreateForm() {
       > & { chiefId: number }
     ) => departmentQueries.create(data),
     onSuccess: (data: ResponseT<DepartmentT>) => {
-      toast.success("Inscription réussie !");
+      toast.success("Département créé avec succès !");
       console.log("created successful:", data);
       form.reset();
     },
@@ -115,7 +116,7 @@ export function DepartmentCreateForm() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="label">Department Title *</FieldLabel>
+                <FieldLabel htmlFor="label">{"Nom du département"} <span className="text-red-400">*</span></FieldLabel>
                 <Input
                   {...field}
                   id="label"
@@ -139,11 +140,11 @@ export function DepartmentCreateForm() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="description">Description </FieldLabel>
-                <Input
+                <FieldLabel htmlFor="description">{"Description"} </FieldLabel>
+                <Textarea
                   {...field}
+                  rows={3}
                   id="description"
-                  type="text"
                   onChange={(e) => {
                     field.onChange(e.target.value);
                   }}
@@ -170,7 +171,7 @@ export function DepartmentCreateForm() {
                 : [];
               return (
                 <Field data-invalid={fieldState.invalid} className="gap-1">
-                  <FieldLabel htmlFor="chiefid">Chief *</FieldLabel>
+                  <FieldLabel htmlFor="chiefid">{"Chef du département"} <span className="text-red-400">*</span></FieldLabel>
 
                   <Select
                     value={field.value.toString()}
@@ -200,7 +201,7 @@ export function DepartmentCreateForm() {
 
           <div className="flex justify-end items-center w-full pt-3">
             <Button className="rounded-lg" size="sm">
-              Submit
+              {"Enrégistrer"}
             </Button>
           </div>
         </FieldGroup>

@@ -1,13 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,236 +9,505 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { useStore } from "@/providers/datastore";
-import { RequestQueries } from "@/queries/requestModule";
-
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
 import { CategoryQueries } from "@/queries/categoryModule";
-import { Category } from "@/types/types";
+import { Category, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
+import { Trash2, Plus, ChevronUp, ChevronDown } from "lucide-react";
+import { useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { UserQueries } from "@/queries/baseModule";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-// ----------------------------------------------------------------------
-// VALIDATION
-// ----------------------------------------------------------------------
-const formSchema = z.object({
-  label: z.string(),
-  parentId: z.string(),
-  isSpecial: z.boolean(),
+export interface ActionResponse<T = any> {
+  success: boolean;
+  message: string;
+  errors?: {
+    [K in keyof T]?: string[];
+  };
+  inputs?: T;
+}
+
+export const formSchema = z.object({
+  label: z.string({ message: "This field is required" }),
+  validators: z.array(
+    z.object({
+      id: z.number().optional(), // ID existant pour les validateurs
+      userId: z.number().min(1, "Sélectionnez un utilisateur"),
+      rank: z.number().min(1).max(3),
+    })
+  ).max(3, "Maximum 3 validateurs autorisés").optional().default([]),
+  description: z.string().optional(),
 });
 
-interface UpdateRequestProps {
+type Schema = z.infer<typeof formSchema>;
+
+interface UpdateCategoryProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   categoryData: Category | null;
   onSuccess?: () => void;
 }
 
-export default function UpdateCategory({
-  open,
-  setOpen,
-  categoryData,
-  onSuccess,
-}: UpdateRequestProps) {
-  // ----------------------------------------------------------------------
-  // FORM INITIALISATION
-  // ----------------------------------------------------------------------
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+export function UpdateCategory({ 
+  open, 
+  setOpen, 
+  categoryData, 
+  onSuccess 
+}: UpdateCategoryProps) {
+  const form = useForm<Schema>({
+    resolver: zodResolver(formSchema as any),
     defaultValues: {
       label: "",
-      isSpecial: false,
-      parentId: "-1",
+      description: "",
+      validators: [],
     },
   });
 
-  useEffect(() => {
-    form.reset({
-      label: categoryData?.label || "",
-      isSpecial: categoryData?.isSpecial || false,
-      parentId: categoryData?.parentId ? String(categoryData.parentId) : "-1",
-    });
-  }, [categoryData, form]);
-
-  // ----------------------------------------------------------------------
-  // REQUEST MUTATION
-  // ----------------------------------------------------------------------
-  const categoryQuery = new RequestQueries();
-  const categoryMutation = useMutation({
-    mutationKey: ["requests", "update"],
-    mutationFn: async (data: Partial<Category>) => {
-      return categoryQuery.updateCategory(Number(categoryData?.id), data);
-    },
-
-    onSuccess: () => {
-      toast.success("Category modifié avec succès !");
-      setOpen(false);
-      onSuccess?.();
-    },
-
-    onError: () =>
-      toast.error("Une erreur est survenue lors de la modification."),
+  // Field array pour gérer les validateurs
+  const { fields, append, remove, move } = useFieldArray({
+    control: form.control,
+    name: "validators",
   });
 
+  const categoryQueries = new CategoryQueries();
   const { isHydrated } = useStore();
+  const queryClient = useQueryClient();
 
-  const category = new CategoryQueries();
-  const categoriesData = useQuery({
-    queryKey: ["categoryList"],
-    queryFn: () => category.getCategories(),
+  // Récupérer la liste des utilisateurs
+  const userQueries = new UserQueries();
+  const usersData = useQuery({
+    queryKey: ["users-list"],
+    queryFn: () => userQueries.getAll(),
     enabled: isHydrated,
   });
 
-  const onsubmit = (values: z.infer<typeof formSchema>) => {
-    let parentId = parseInt(values.parentId, 10);
-    parentId = isNaN(parentId) ? -1 : parentId;
-    const data: Omit<Category, "updatedAt" | "createdAt" | "id"> & {
-      parentId?: number;
-    } = {
-      label: values.label,
-      isSpecial: values.isSpecial || false,
-      parentId: parentId,
-    };
-    if (parentId !== -1) {
-      data.parentId = parentId;
+  // Réinitialiser le formulaire quand les données changent
+  useEffect(() => {
+    if (categoryData) {
+      form.reset({
+        label: categoryData.label || "",
+        description: categoryData.description || "",
+        validators: categoryData.validators?.map(validator => ({
+          userId: validator.userId,
+          rank: validator.rank,
+        })) || [],
+      });
     }
-    categoryMutation.mutate(data);
+  }, [categoryData, form]);
+
+  console.log(categoryData?.validators?.map(validator => ({
+          userId: validator.userId,
+          rank: validator.rank,
+        })) || [])
+  
+
+  const categoryApi = useMutation({
+    mutationKey: ["updateCategory"],
+    mutationFn: async (data: Partial<Category>) => {
+      const response = await categoryQueries.updateCategory(categoryData?.id!, data);
+      return {
+        message: "Category updated successfully",
+        data: response.data,
+      } as ResponseT<Category>;
+    },
+    onSuccess: (data: ResponseT<Category>) => {
+      toast.success("Catégorie mise à jour avec succès !");
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["categoryList"] });
+      setOpen(false);
+      onSuccess?.();
+    },
+    onError: (error: any) => {
+      toast.error(
+        "Une erreur est survenue lors de la mise à jour de la catégorie."
+      );
+      console.error("Update error:", error);
+    },
+  });
+
+  // Fonction pour ajouter un validateur
+  const addValidator = () => {
+    if (fields.length >= 3) {
+      toast.error("Maximum 3 validateurs autorisés");
+      return;
+    }
+
+    const users = usersData.data?.data || [];
+    if (users.length === 0) {
+      toast.error("Aucun utilisateur disponible");
+      return;
+    }
+
+    // Trouver un utilisateur qui n'est pas déjà sélectionné
+    const existingUserIds = fields.map(field => field.userId);
+    const availableUser = users.find(user => !existingUserIds.includes(user.id!));
+
+    if (!availableUser) {
+      toast.error("Tous les utilisateurs sont déjà sélectionnés");
+      return;
+    }
+
+    append({
+      userId: availableUser.id!,
+      rank: fields.length + 1, 
+    });
   };
 
-  // ----------------------------------------------------------------------
-  // RENDER
-  // ----------------------------------------------------------------------
+  // Fonction pour déplacer un validateur vers le haut
+  const moveUp = (index: number) => {
+    if (index > 0) {
+      move(index, index - 1);
+      // Mettre à jour les rangs après le déplacement
+      const validators = form.getValues("validators") || [];
+      validators.forEach((validator, idx) => {
+        form.setValue(`validators.${idx}.rank`, idx + 1);
+      });
+    }
+  };
+
+  // Fonction pour déplacer un validateur vers le bas
+  const moveDown = (index: number) => {
+    if (index < fields.length - 1) {
+      move(index, index + 1);
+      // Mettre à jour les rangs après le déplacement
+      const validators = form.getValues("validators") || [];
+      validators.forEach((validator, idx) => {
+        form.setValue(`validators.${idx}.rank`, idx + 1);
+      });
+    }
+  };
+
+  // Fonction pour obtenir le nom d'un utilisateur par son ID
+  const getUserName = (userId: number) => {
+    const users = usersData.data?.data || [];
+    const user = users.find(u => u.id === userId);
+    return user?.name || `Utilisateur #${userId}`;
+  };
+
+  // Fonction pour obtenir les utilisateurs disponibles (non sélectionnés)
+  const getAvailableUsers = (currentIndex?: number) => {
+    const users = usersData.data?.data || [];
+    const existingUserIds = fields
+      .map((field, index) => {
+        // Si on est en train d'éditer un champ, exclure son propre userId
+        if (currentIndex !== undefined && index === currentIndex) {
+          return null;
+        }
+        return field.userId;
+      })
+      .filter(id => id !== null);
+
+    return users.filter(user => !existingUserIds.includes(user.id!));
+  };
+
+  const onsubmit = (values: z.infer<typeof formSchema>) => {
+    if (!categoryData?.id) {
+      toast.error("ID de catégorie manquant");
+      return;
+    }
+
+    // Préparer les validateurs avec les rangs mis à jour
+    const validators = values.validators?.map((validator, index) => ({
+      id: validator.id, // Garder l'ID existant si disponible
+      userId: validator.userId,
+      rank: index + 1, 
+    })) || [];
+
+    const data: Partial<Category> & {
+      validators?: { id?: number; userId: number; rank: number }[];
+    } = {
+      label: values.label,
+      description: values.description || undefined,
+    };
+    
+    if (validators.length > 0) {
+      data.validators = validators;
+    } else {
+      // Si aucun validateur, on peut envoyer un tableau vide pour supprimer tous les validateurs
+      data.validators = [];
+    }
+
+    categoryApi.mutate(data);
+  };
+
+  // Mettre à jour automatiquement les rangs quand le nombre de validateurs change
+  useEffect(() => {
+    const validators = form.getValues("validators") || [];
+    validators.forEach((validator, index) => {
+      form.setValue(`validators.${index}.rank`, index + 1);
+    });
+  }, [fields.length, form]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            Modifier la catégorie
+            {`Modifier la catégorie ${categoryData?.label}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            Modifiez les informations de la catégorie existant
+            Modifiez les informations de la catégorie
           </p>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onsubmit)}
-            className="space-y-8 max-w-3xl px-6 py-10 w-full"
+            className="flex-1 overflow-y-auto px-6 pb-6 space-y-6"
           >
-            <FieldGroup>
-              <Controller
+            {/* Informations de base */}
+            <div className="flex flex-col gap-2">
+              <FormField
+                control={form.control}
                 name="label"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-1">
-                    <FieldLabel htmlFor="label">Category Title *</FieldLabel>
-                    <Input
-                      {...field}
-                      id="label"
-                      type="text"
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                      }}
-                      aria-invalid={fieldState.invalid}
-                      placeholder=".ex Madiba AutoRoute"
-                    />
-
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Titre de la catégorie *"}</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Madiba AutoRoute" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
-
-              {/* <Controller
-                name="isSpecial"
+              <FormField
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field
-                    data-invalid={fieldState.invalid}
-                    className="gap-4 flex-row items-center"
-                  >
-                    <FieldLabel htmlFor="isSpecial" className="w-fit!">
-                      Special
-                    </FieldLabel>
-
-                    <Checkbox
-                      className="w-6!"
-                      id="isSpecial"
-                      checked={field.value}
-                      onCheckedChange={(checked) => {
-                        field.onChange(checked);
-                      }}
-                      aria-invalid={fieldState.invalid}
-                    />
-
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Description de la catégorie" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              /> */}
-
-              <Controller
-                name="parentId"
-                control={form.control}
-                render={({ field, fieldState }) => {
-                  const options = categoriesData.data
-                    ? categoriesData.data.data.map((category) => ({
-                        value: category.id,
-                        label: category.label,
-                      }))
-                    : [];
-                  return (
-                    <Field data-invalid={fieldState.invalid} className="gap-1">
-                      <FieldLabel htmlFor="parentId">Parent</FieldLabel>
-
-                      <Select
-                        value={field.value.toString()}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select category chief" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {options.map((option) => (
-                            <SelectItem
-                              key={option.value}
-                              value={
-                                option.value ? option.value.toString() : ""
-                              }
-                            >
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </Field>
-                  );
-                }}
               />
+            </div>
 
-              <div className="flex justify-end items-center w-full pt-3">
-                <Button className="rounded-lg" size="sm">
-                  Modifier
+            {/* Section des validateurs */}
+            <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <FormLabel className="text-lg font-semibold">
+                    {"Définissez les ascendants"}
+                  </FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Ajoutez jusqu'à 3 validateurs dans l'ordre de validation
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addValidator}
+                  disabled={fields.length >= 3}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter un validateur
                 </Button>
               </div>
-            </FieldGroup>
+
+              {/* Liste des validateurs */}
+              {fields.length > 0 ? (
+                <div className="space-y-3">
+                  {fields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="border rounded-lg p-4 bg-white space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Badge className="bg-primary text-primary-foreground">
+                            Position {index + 1}
+                            {index === fields.length - 1 && (
+                              <span className="ml-1">(Dernier)</span>
+                            )}
+                          </Badge>
+                          {index === 0 && (
+                            <Badge variant="outline">Premier validateur</Badge>
+                          )}
+                          {field.id && (
+                            <Badge variant="outline" className="text-xs">
+                              ID: {field.id}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => moveUp(index)}
+                            disabled={index === 0}
+                            title="Déplacer vers le haut"
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => moveDown(index)}
+                            disabled={index === fields.length - 1}
+                            title="Déplacer vers le bas"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => remove(index)}
+                            className="text-red-500 hover:text-red-700"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name={`validators.${index}.userId`}
+                        render={({ field }) => {
+                          const availableUsers = getAvailableUsers(index);
+                          return (
+                            <FormItem>
+                              <FormLabel>Utilisateur validateur *</FormLabel>
+                              <Select
+                                value={field.value?.toString() || ""}
+                                onValueChange={(value) =>
+                                  field.onChange(parseInt(value))
+                                }
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionner un utilisateur">
+                                      {field.value
+                                        ? getUserName(field.value)
+                                        : "Sélectionner un utilisateur"}
+                                    </SelectValue>
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {availableUsers.length > 0 ? (
+                                    availableUsers.map((user) => (
+                                      <SelectItem
+                                        key={user.id}
+                                        value={user.id!.toString()}
+                                      >
+                                        {user.name} ({user.email})
+                                      </SelectItem>
+                                    ))
+                                  ) : (
+                                    <SelectItem value="" disabled>
+                                      Aucun utilisateur disponible
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+
+                      {/* Champ caché pour le rang et l'ID */}
+                      <FormField
+                        control={form.control}
+                        name={`validators.${index}.rank`}
+                        render={({ field }) => (
+                          <input type="hidden" {...field} />
+                        )}
+                      />
+                      {field.id && (
+                        <FormField
+                          control={form.control}
+                          name={`validators.${index}.id`}
+                          render={({ field }) => (
+                            <input type="hidden" {...field} />
+                          )}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 border rounded-lg bg-muted/10">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                      <Plus className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground">
+                      Aucun validateur configuré
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Cliquez sur "Ajouter un validateur" pour configurer la chaîne de validation
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Indicateur de progression */}
+              {fields.length > 0 && (
+                <div className="pt-4 border-t">
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Premier validateur</span>
+                    <span className="text-muted-foreground">Dernier validateur</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all duration-300"
+                      style={{ width: `${(fields.length / 3) * 100}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Position 1</span>
+                    <span>Position {fields.length}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </form>
+
+          {/* Footer avec boutons */}
+          <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
+            <Button 
+              type="submit" 
+              className="w-fit" 
+              onClick={form.handleSubmit(onsubmit)}
+              disabled={categoryApi.isPending}
+            >
+              {categoryApi.isPending ? "Mise à jour..." : "Enregistrer"}
+            </Button>
+            <Button
+              type="button"
+              className="w-fit"
+              onClick={() => setOpen(false)}
+              variant={"outline"}
+            >
+              Annuler
+            </Button>
+          </div>
         </Form>
       </DialogContent>
     </Dialog>

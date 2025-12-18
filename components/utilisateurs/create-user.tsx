@@ -50,7 +50,7 @@ export default function CreateUserForm() {
       data: Omit<User, "status" | "lastConnection" | "role" | "members" | "id">
     ) => userQueries.create(data),
     onSuccess: (data: ResponseT<User>) => {
-      toast.success("Inscription réussie !");
+      toast.success("Utilisateur créé avec succès.");
       console.log("Register successful:", data);
     },
     onError: (error: unknown) => {

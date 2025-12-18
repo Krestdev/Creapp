@@ -64,7 +64,7 @@ export default function CreateProviderForm() {
       >
     ) => providerQueries.create(data),
     onSuccess: (data: ResponseT<Provider>) => {
-      toast.success("Inscription réussie !");
+      toast.success("Fournisseur créé avec succès.");
       console.log("Register successful:", data);
     },
     onError: (error: any) => {

@@ -43,7 +43,7 @@ export function RoleCreateForm() {
   const roleApi = useMutation({
     mutationFn: (data: Omit<Role, "id">) => roleQueries.createRole(data),
     onSuccess: (data: ResponseT<Role>) => {
-      toast.success("Inscription réussie !");
+      toast.success("Role créé avec succès.");
       console.log("created successful:", data);
       form.reset();
     },
