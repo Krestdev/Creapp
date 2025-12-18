@@ -17,6 +17,13 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import FilesUpload from "../comp-547";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const SingleFileArray = z
   .array(
@@ -33,13 +40,14 @@ const formSchema = z.object({
   phone: z.string().min(1),
   email: z.string().min(1),
   address: z.string(),
-  taxId: z.string().min(1),
-  rating: z.string().min(1),
   carte_contribuable: SingleFileArray,
   acf: SingleFileArray,
   plan_localisation: SingleFileArray,
   commerce_registre: SingleFileArray,
   banck_attestation: SingleFileArray,
+  RCCM: z.string().optional(),
+  NIU: z.string().optional(),
+  regem: z.string().optional(),
 });
 
 export default function CreateProviderForm() {
@@ -80,10 +88,11 @@ export default function CreateProviderForm() {
       const data = {
         name: values.name,
         email: values.email,
+        RCCM: values.RCCM,
+        NIU: values.NIU,
+        regem: values.regem,
         phone: values.phone,
         address: values.address,
-        taxId: values.taxId,
-        rating: Number(values.rating),
         carte_contribuable: values.carte_contribuable?.[0],
         acf: values.acf?.[0],
         plan_localisation: values.plan_localisation?.[0],
@@ -162,6 +171,65 @@ export default function CreateProviderForm() {
               </FormControl>
 
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="RCCM"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>RCCM</FormLabel>
+              <FormControl className="w-full">
+                <Input placeholder="RC/234/456/..." {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="NIU"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>NIU</FormLabel>
+              <FormControl className="w-full">
+                <Input placeholder="QA123..." {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="regem"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Régime <span className="text-red-500">*</span>
+              </FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
+                    <SelectValue placeholder="Sélectionner un Régime" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {[
+                    { id: 1, value: "Réel" },
+                    { id: 2, value: "Simplifié" },
+                  ].map((p) => (
+                    <SelectItem key={p.id} value={p.value}>
+                      {p.value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </FormItem>
           )}
         />
@@ -271,36 +339,6 @@ export default function CreateProviderForm() {
                   maxFiles={1}
                 />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="taxId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Numéro de taxe</FormLabel>
-              <FormControl className="w-full">
-                <Input placeholder="ex. 123456789" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="rating"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Évaluation</FormLabel>
-              <FormControl className="w-full">
-                <Input placeholder="ex. 4.5" type="number" {...field} />
-              </FormControl>
-
               <FormMessage />
             </FormItem>
           )}

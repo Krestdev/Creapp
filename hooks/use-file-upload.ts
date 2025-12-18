@@ -188,7 +188,7 @@ export const useFileUpload = (
         maxFiles !== Number.POSITIVE_INFINITY &&
         state.files.length + newFilesArray.length > maxFiles
       ) {
-        errors.push(`You can only upload a maximum of ${maxFiles} files.`);
+        errors.push(`Vous ne pouvez ajouter qu'au maximum ${maxFiles} fichiers.`);
         setState((prev) => ({ ...prev, errors }));
         return;
       }
@@ -211,8 +211,8 @@ export const useFileUpload = (
         if (file.size > maxSize) {
           errors.push(
             multiple
-              ? `Some files exceed the maximum size of ${formatBytes(maxSize)}.`
-              : `File exceeds the maximum size of ${formatBytes(maxSize)}.`,
+              ? `Certains fichiers ont excédé la taille de ${formatBytes(maxSize)}.`
+              : `Le fichier dépasse la taille maximale de ${formatBytes(maxSize)}.`,
           );
           continue;
         }

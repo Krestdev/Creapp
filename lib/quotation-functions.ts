@@ -18,7 +18,7 @@ export const computeQuotationGroupStatus = (
   if (allInitial) return "NOT_PROCESSED";
 
   const allFinal = quotations.every(
-    (q) => q.status === "APPROUVED" || q.status === "REJECTED"
+    (q) => q.status === "APPROVED" || q.status === "REJECTED"
   );
   if (allFinal) return "PROCESSED";
 

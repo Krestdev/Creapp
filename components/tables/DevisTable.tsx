@@ -153,7 +153,7 @@ export function DevisTable({
     switch(status){
       case "PENDING":
         return {label:"En attente", variant: "amber"};
-      case "APPROUVED":
+      case "APPROVED":
         return {label:"Approuvé", variant: "success"};
       case "REJECTED":
         return {label:"Rejeté", variant: "destructive"};

@@ -189,7 +189,7 @@ export function QuotationGroupTable({
     },
     {
       accessorKey: "status",
-      header: () => <span className="tablehead">Statut</span>,
+      header: () => <span className="tablehead">{"Statut"}</span>,
       cell: ({ row }) => {
         const value = row.getValue("status") as QuotationGroupStatus;
         const { label, variant } = getGroupStatusLabel(value);
@@ -213,7 +213,7 @@ export function QuotationGroupTable({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions du groupe"}</DropdownMenuLabel>
-              <DropdownMenuItem
+              <DropdownMenuItem disabled={group.status === "PROCESSED"}
                 onClick={() => router.push(`./devis/valider/${group.commandRequest.id}`)}
                 className="cursor-pointer"
               >

@@ -27,6 +27,13 @@ import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import FilesUpload from "../comp-547";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const SingleFileArray = z
   .array(
@@ -43,13 +50,14 @@ const formSchema = z.object({
   phone: z.string(),
   email: z.string(),
   address: z.string(),
-  taxId: z.string(),
-  rating: z.string(),
   carte_contribuable: SingleFileArray,
   acf: SingleFileArray,
   plan_localisation: SingleFileArray,
   commerce_registre: SingleFileArray,
   banck_attestation: SingleFileArray,
+  RCCM: z.string().optional(),
+  NIU: z.string().optional(),
+  regem: z.string().optional(),
 });
 
 interface UpdateRequestProps {
@@ -72,8 +80,9 @@ export default function UpdateProvider({
       phone: "",
       email: "",
       address: "",
-      taxId: "",
-      rating: "",
+      RCCM: "",
+      NIU: "",
+      regem: "",
       carte_contribuable: [],
       acf: [],
       plan_localisation: [],
@@ -88,8 +97,9 @@ export default function UpdateProvider({
       phone: providerData?.phone || "",
       email: providerData?.email || "",
       address: providerData?.address || "",
-      taxId: providerData?.taxId || "",
-      rating: providerData?.rating ? String(providerData.rating) : "",
+      RCCM: providerData?.RCCM || "",
+      NIU: providerData?.NIU || "",
+      regem: providerData?.regem || "",
       // Add other fields as necessary
     });
   }, [providerData, form]);
@@ -118,8 +128,14 @@ export default function UpdateProvider({
       phone: values.phone,
       email: values.email,
       address: values.address,
-      taxId: values.taxId,
-      rating: values.rating ? Number(values.rating) : undefined,
+      RCCM: values.RCCM,
+      NIU: values.NIU,
+      regem: values.regem,
+      carte_contribuable: values.carte_contribuable?.[0],
+      acf: values.acf?.[0],
+      plan_localisation: values.plan_localisation?.[0],
+      commerce_registre: values.commerce_registre?.[0],
+      banck_attestation: values.banck_attestation?.[0],
     });
   }
 
@@ -188,35 +204,67 @@ export default function UpdateProvider({
               )}
             />
 
-            {/* DESCRIPTION */}
-            {/* <FormField
+            <FormField
               control={form.control}
-              name="rating"
+              name="RCCM"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Not</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Optional rating" {...field} />
+                  <FormLabel>RCCM</FormLabel>
+                  <FormControl className="w-full">
+                    <Input placeholder="RC/234/456/..." {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> */}
 
-            {/* TAXID */}
-            {/* <FormField
-              control={form.control}
-              name="taxId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Tax ID"}</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Optional tax ID" {...field} />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-            /> */}
+            />
+
+            <FormField
+              control={form.control}
+              name="NIU"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>NIU</FormLabel>
+                  <FormControl className="w-full">
+                    <Input placeholder="QA123..." {...field} />
+                  </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="regem"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Régime <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
+                        <SelectValue placeholder="Sélectionner un Régime" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {[
+                        { id: 1, value: "Réel" },
+                        { id: 2, value: "Simplifié" },
+                      ].map((p) => (
+                        <SelectItem key={p.id} value={p.value}>
+                          {p.value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
 
             {/* Justificatif */}
             <FormField

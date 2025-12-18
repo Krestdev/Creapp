@@ -8,16 +8,22 @@ import { Button } from "./ui/button";
 
 const PageTitle = ({ title, subtitle, children, color }: PageTitleProps) => {
   const router = useRouter();
-
-
+  const getBackground = (color:PageTitleProps["color"]):HTMLDivElement["className"] =>{
+    switch(color){
+      case "blue":
+        return "from-[#0F5499] to-[#002244]";
+      case "green":
+        return "from-[#15803D] to-[#0B411F]";
+      case "none":
+        return "from-slate-600 to-slate-700";
+      default: return "from-primary-600 to-primary-700";
+    }
+  }
   return (
     <div
       className={cn(
         "bg-linear-to-r rounded-[12px] px-6 py-5 gap-4 flex flex-col text-white",
-        color === "red" && "from-[#9E1349] to-[#700032]",
-        color === "blue" && "from-[#0F5499] to-[#002244]",
-        color === "green" && "from-[#15803D] to-[#0B411F]",
-        color === "none" && "from-[#606160] to-[#242424]"
+        getBackground(color)
       )}
     >
       <div className="flex flex-col gap-8 @min-[640px]:flex-row @min-[640px]:gap-2 justify-between ">

@@ -1,12 +1,14 @@
 import api from "@/providers/axios"
 import { BonsCommande } from "@/types/types"
 
-export type CreatePurchasePayload = Omit<BonsCommande, "id" | "createdAt" | "updatedAt" | "status">;
+export type CreatePurchasePayload = {
+    command: Omit<BonsCommande, "id" | "createdAt" | "updatedAt" | "status" | "devi" | "reference">;
+    ids:Array<number>};
 
 export class PurchaseOrder {
     route = "/request/command"
 
-    get = async ():Promise<{data: Array<BonsCommande>}> => {
+    getAll = async ():Promise<{data: Array<BonsCommande>}> => {
         return api.get(this.route).then((response)=>{
             return response.data;
         })

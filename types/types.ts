@@ -20,7 +20,7 @@ export interface NavigationItemProps {
 export interface PageTitleProps {
   title: string;
   subtitle: string;
-  color: "red" | "blue" | "green" | "none";
+  color?: "red" | "blue" | "green" | "none";
   children?: React.ReactNode;
 }
 
@@ -202,8 +202,9 @@ export type ProjectCreateResponse = {
 };
 
 export type Provider = {
-  rating?: number;
-  taxId?: string;
+  RCCM?: string;
+  NIU?: string;
+  regem?: string;
   address?: string;
   email?: string;
   phone?: string;
@@ -218,11 +219,7 @@ export type Provider = {
   banck_attestation?: string | File;
 };
 
-export type QuotationStatus =
-  | "SUBMITTED"
-  | "APPROUVED"
-  | "REJECTED"
-  | "PENDING";
+export type QuotationStatus = "SUBMITTED" | "APPROVED" | "REJECTED" | "PENDING";
 export type QuotationElementStatus = "SELECTED" | "NOT_SELECTED";
 
 export type QuotationElement = {
@@ -253,6 +250,7 @@ export type Quotation = {
   amount?: number;
   payementMethod?: string;
   priority?: string;
+  commandRequest: CommandRequestT;
 };
 
 export type TicketsData = {
@@ -303,19 +301,31 @@ type MemberInput = {
   finalValidator: boolean;
 };
 
-export const PENALITY_MODE = [{value: "day",name: "Forfaitaire"}]
+export const PENALITY_MODE = [{ value: "day", name: "Forfaitaire" }];
 
-export const PURCHASE_ORDER_STATUS = [{value:"APPROVED", name:"Approuvé"}, {value:"PENDING", name: "En attente"}, {value:"IN-REVIEW", name: "En révision"}, {value:"REJECTED", name:"Rejeté"}] as const;
+export const PURCHASE_ORDER_STATUS = [
+  { value: "APPROVED", name: "Approuvé" },
+  { value: "PENDING", name: "En attente" },
+  { value: "IN-REVIEW", name: "En révision" },
+  { value: "REJECTED", name: "Rejeté" },
+] as const;
 
-export const PURCHASE_ORDER_PRIORITIES = [{value:"low", name:"Basse"}, {value:"medium", name:"Normal"}, {value:"high", name:"Élevée"}, {value:"urgent", name:"Urgent"}] as const;
+export const PURCHASE_ORDER_PRIORITIES = [
+  { value: "low", name: "Basse" },
+  { value: "medium", name: "Normal" },
+  { value: "high", name: "Élevée" },
+  { value: "urgent", name: "Urgent" },
+] as const;
 
 export type BonsCommande = {
   id: number;
+  reference: string;
+  devi: Quotation;
   deviId: number;
   providerId: number;
   amountBase: number;
-  priority: typeof PURCHASE_ORDER_PRIORITIES[number]["value"];
-  status: typeof PURCHASE_ORDER_STATUS[number]["value"];
+  priority: (typeof PURCHASE_ORDER_PRIORITIES)[number]["value"];
+  status: (typeof PURCHASE_ORDER_STATUS)[number]["value"];
   penaltyMode?: string;
   hasPenalties?: boolean;
   deliveryLocation?: string;
