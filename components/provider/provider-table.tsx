@@ -72,9 +72,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       !provider.name ||
       !provider.email ||
       !provider.address ||
-      !provider.phone ||
-      !provider.taxId ||
-      !provider.rating
+      !provider.phone
     ) {
       return "incomplet";
     } else {
@@ -389,9 +387,6 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={getRowColor(
-                    (row.original.rating ?? 0) >= 4 ? "active" : "inactive"
-                  )}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
