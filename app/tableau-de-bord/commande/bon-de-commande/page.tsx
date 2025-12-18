@@ -1,24 +1,62 @@
 "use client";
 
-import TitleValueCard from "@/components/base/TitleValueCard";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
+import { DateRangePicker } from "@/components/dateRangePicker";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { CommandQueries } from "@/queries/command";
+import { PurchaseOrder } from "@/queries/purchase-order";
+import { BonsCommande } from "@/types/types";
 import Link from "next/link";
+import { useMemo, useState } from "react";
+import { DateRange } from "react-day-picker";
+import { PurchaseTable } from "./PurchaseTable";
 
 const Page = () => {
-  const commandsQuery = new CommandQueries();
-  const { isSuccess, isError, error, isLoading } = useFetchQuery(
-    ["commandes"],
-    commandsQuery.getAll,
-    30000
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
+
+  const purchaseOrderQuery = new PurchaseOrder();
+  const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
+    ["purchaseOrders"],
+    purchaseOrderQuery.getAll
   );
 
   const { user } = useStore();
+
+  const filteredData: Array<BonsCommande> = useMemo(() => {
+    const list = data?.data ?? [];
+    if (!dateRange) return list;
+
+    const from = dateRange?.from;
+    const to = dateRange?.to;
+
+    return list.filter((item) => {
+      let matchDate = true; //Date filter
+
+      const start = new Date(item.createdAt);
+      console.log(start)
+      if (from && !to) {
+        matchDate = start >= from;
+      } else if (!from && to) {
+        matchDate = start <= to;
+      } else if (from && to) {
+        matchDate = start >= from && start <= to;
+      }
+
+      return matchDate;
+    });
+  }, [data?.data, dateRange]);
+
   const links = [
     {
       title: "Créer un bon",
@@ -34,6 +72,32 @@ const Page = () => {
     },
   ];
 
+  const Statistics: Array<StatisticProps> = [
+    {
+      title: "Total Bons de commande",
+      value: filteredData.length,
+      variant: "primary",
+      more: {
+        title: "Montant Total",
+        value: filteredData.reduce((total, item)=> total + item.amountBase, 0),
+      },
+    },
+    {
+      title: "En attente",
+      value: filteredData.filter((c) => c.status === "PENDING" || c.status === "IN-REVIEW").length,
+      variant: "secondary",
+      more: {
+        title: "Rejetés",
+        value: filteredData.filter((c) => c.status === "REJECTED").length
+      }
+    },
+    {
+      title: "Validés",
+      value: filteredData.filter((c) => c.status === "APPROVED").length,
+      variant: "success", //Ajouter les livrés plus tard
+    },
+  ];
+
   if (isLoading) {
     return <LoadingPage />;
   }
@@ -42,14 +106,12 @@ const Page = () => {
   }
   if (isSuccess)
     return (
-      <div className="flex flex-col gap-6">
+      <div className="content">
         <PageTitle
           title="Bons de commande"
           subtitle="Approbation des bons de commande"
-          color="green"
         >
-          {links
-          .map((link, id) => {
+          {links.map((link, id) => {
             const isLast = links.length > 1 ? id === links.length - 1 : false;
             return (
               <Link key={id} href={link.href}>
@@ -60,34 +122,24 @@ const Page = () => {
             );
           })}
         </PageTitle>
-        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
-          <TitleValueCard
-            title={"Bons en attente"}
-            value={"13"}
-            className={"border border-[#2262A2] bg-[#013E7B] text-[#E4E4E7]"}
-            valColor={"text-white"}
-          />
-          <TitleValueCard
-            title={"Bons rejetés"}
-            value={"4"}
-            className={"border border-[#EB88B4] bg-[#9E1351] text-[#E4E4E7]"}
-            valColor={"text-white"}
-          />
-          <TitleValueCard
-            title={"Bons validés"}
-            value={"62"}
-            className={"border border-[#BBF7D0] bg-[#15803D] text-[#E4E4E7]"}
-            valColor={"text-white"}
-          />
-          <TitleValueCard
-            title={"Bons de commande"}
-            value={"79"}
-            className={"border border-[#DFDFDF] bg-[#FFFFFF] text-[#52525B]"}
-            valColor={"text-[#52525B]"}
-          />
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="grid gap-2">
+            <Label htmlFor="date">{"Période"}</Label>
+            <DateRangePicker
+              date={dateRange}
+              onChange={setDateRange}
+              className="min-w-40"
+            />
+          </div>
+          <Button variant={"outline"} onClick={()=>setDateRange(undefined)}>{"Réinitialiser"}</Button>
         </div>
-        {/* <CommandeBd /> */}
-        {/* <BonsCommandeTable data={data.data} /> */}
+
+        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
+          {Statistics.map((data, id) => (
+            <StatisticCard key={id} {...data} className="h-full" />
+          ))}
+        </div>
+        <PurchaseTable data={filteredData}/>
       </div>
     );
 };
