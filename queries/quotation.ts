@@ -2,11 +2,11 @@ import api from "@/providers/axios";
 import { Quotation, QuotationElement, SubmissionElement } from "@/types/types";
 
 interface CreateQuotation {
-  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status">;
+  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status" | "commandRequest">;
   elements: Array<Omit<QuotationElement, "id" | "deviId" | "status">>;
 }
 interface UpdateQuotation {
-  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status">;
+  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status" | "commandRequest">;
   elements: Array<{id?: number} & Omit<QuotationElement, "deviId" | "id" | "status">>;
 }
 

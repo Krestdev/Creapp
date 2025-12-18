@@ -113,6 +113,7 @@ function CreateForm() {
       toast.success("Votre Bon de Commande a été créé avec succès !");
       form.reset({
       priority: "medium",
+      deviId: -1,
       paymentTerms: "",
       deliveryDelay: format(new Date(), "yyyy-MM-dd"),
       deliveryLocation: "",
@@ -129,27 +130,34 @@ function CreateForm() {
   const quotation = getQuotations.data?.data.find(
     (q) => q.id === values.deviId
   );
-
+  
   if (!quotation) {
     toast.error("Devis introuvable");
     return;
   }
 
+  const ids = quotation?.commandRequest.besoins.map(b=> b.id);
+
   const payload: CreatePurchasePayload = {
-    deviId: values.deviId,
-    providerId: quotation.providerId,
-    amountBase: values.amountBase ?? 0,
-    priority: values.priority,
-    paymentMethod: values.paymentMethod,
-    paymentTerms: values.paymentTerms,
-    deliveryDelay: new Date(values.deliveryDelay),
-    deliveryLocation: values.deliveryLocation,
-    hasPenalties: values.hasPenalties,
-    penaltyMode: values.penaltyMode,
+    command: {
+      deviId: values.deviId,
+      providerId: quotation.providerId,
+      amountBase: values.amountBase ?? 0,
+      priority: values.priority,
+      paymentMethod: values.paymentMethod,
+      paymentTerms: values.paymentTerms,
+      deliveryDelay: new Date(values.deliveryDelay),
+      deliveryLocation: values.deliveryLocation,
+      hasPenalties: values.hasPenalties,
+      penaltyMode: values.penaltyMode,
+    },
+    ids: ids
   };
 
   mutate(payload);
 }
+
+const penalty = form.watch("hasPenalties");
   return (
     <Form {...form}>
       <form
@@ -171,9 +179,9 @@ function CreateForm() {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getQuotations.data && getQuotations.data.data.map((quote)=>(
+                    {getQuotations.data && getQuotations.data.data.filter(c=>c.status ==="APPROVED").map((quote)=>(
                       <SelectItem key={quote.id} value={String(quote.id)} >
-                      {quote.commandRequestId}
+                      {quote.commandRequest.title ?? "Undefined"}
                     </SelectItem>
                     ))}
                     {
@@ -327,10 +335,10 @@ function CreateForm() {
           name="hasPenalties"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Pénalités"}</FormLabel>
+              <FormLabel>{"Pénalités"}</FormLabel>
               <FormControl>
                 <div className="flex items-center gap-2">
-                  <Switch checked={field.value} onChange={field.onChange} />
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                   <span>{field.value ? "Oui" : "Non"}</span>
                 </div>
               </FormControl>
@@ -345,7 +353,7 @@ function CreateForm() {
             <FormItem>
               <FormLabel>{"Mode de pénalité"}</FormLabel>
               <FormControl>
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select value={field.value} onValueChange={field.onChange} disabled={!penalty}>
                   <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
                   <SelectContent>
                     {
@@ -367,7 +375,7 @@ function CreateForm() {
             <FormItem>
               <FormLabel>{"Montant des pénalités"}</FormLabel>
               <FormControl>
-                <Input type="number" {...field} placeholder="Ex. 150 000" />
+                <Input type="number" {...field} placeholder="Ex. 150 000" disabled={!penalty}/>
               </FormControl>
             </FormItem>
           )}

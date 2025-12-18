@@ -1,7 +1,9 @@
 import api from "@/providers/axios"
 import { BonsCommande } from "@/types/types"
 
-export type CreatePurchasePayload = Omit<BonsCommande, "id" | "createdAt" | "updatedAt" | "status">;
+export type CreatePurchasePayload = {
+    command: Omit<BonsCommande, "id" | "createdAt" | "updatedAt" | "status">;
+    ids:Array<number>};
 
 export class PurchaseOrder {
     route = "/request/command"

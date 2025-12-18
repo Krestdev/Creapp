@@ -220,7 +220,7 @@ export type Provider = {
 
 export type QuotationStatus =
   | "SUBMITTED"
-  | "APPROUVED"
+  | "APPROVED"
   | "REJECTED"
   | "PENDING";
 export type QuotationElementStatus = "SELECTED" | "NOT_SELECTED";
@@ -253,6 +253,7 @@ export type Quotation = {
   amount?: number;
   payementMethod?: string;
   priority?: string;
+  commandRequest: CommandRequestT;
 };
 
 export type TicketsData = {
