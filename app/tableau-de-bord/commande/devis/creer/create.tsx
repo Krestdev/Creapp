@@ -77,8 +77,6 @@ const formSchema = z.object({
         z.string(),
       ])
     )
-    .min(1, "Veuillez renseigner au moins 1 justificatif")
-    .max(1, "Pas plus d'un justificatif"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -91,6 +89,7 @@ interface Props {
 function CreateQuotation({ quotation, openChange }: Props) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const intentRef = React.useRef<"save" | "saveAndCreate">("save");
   const [open, setOpen] = React.useState<boolean>(false);
   const [openP, setOpenP] = React.useState<boolean>(false);
   const [openS, setOpenS] = React.useState<boolean>(false);
@@ -113,6 +112,30 @@ function CreateQuotation({ quotation, openChange }: Props) {
     providerQuery.getAll,
     500000
   );
+
+  /**Data states */
+  const [dueDate, setDueDate] = React.useState<boolean>(false);
+  const today = new Date(); //On part sur 3 jours de delai de base :)
+  today.setDate(today.getDate() + 3);
+
+  const defaultValues = {
+      commandRequestId: quotation?.commandRequestId ?? undefined,
+      providerId: quotation?.providerId ?? undefined,
+      elements:
+        quotation?.element.map((c) => ({
+          id: c.id,
+          needId: c.requestModelId,
+          designation: c.title,
+          price: c.priceProposed,
+          quantity: c.quantity,
+          unit: c.unit,
+        })) ?? [],
+      dueDate: quotation
+        ? format(new Date(quotation.dueDate), "yyyy-MM-dd")
+        : format(today, "yyyy-MM-dd"),
+      proof: quotation ? [quotation.proof] : undefined,
+    }
+
   /**Quotation */
   const quotationQuery = new QuotationQueries();
   const { mutate, isPending } = useMutation({
@@ -144,6 +167,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
       return quotationQuery.update(id, payload);
     },
     onSuccess: (_data, variables) => {
+      const intent = intentRef.current;
       toast.success(
         variables?.id
           ? "Votre devis a été modifié avec succès"
@@ -156,7 +180,13 @@ function CreateQuotation({ quotation, openChange }: Props) {
       if (!!openChange) {
         openChange(false);
       }
-      router.push("./");
+      if(intent === "save"){
+        router.push("./");
+      }else {
+        form.reset(defaultValues);
+        form.resetField("commandRequestId");
+        form.resetField("providerId");
+      }
     },
     onError: (error) => {
       console.error(error);
@@ -164,30 +194,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
     },
   });
 
-  /**Data states */
-  const [dueDate, setDueDate] = React.useState<boolean>(false);
-  const today = new Date(); //On part sur 3 jours de delai de base :)
-  today.setDate(today.getDate() + 3);
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      commandRequestId: quotation?.commandRequestId ?? undefined,
-      providerId: quotation?.providerId ?? undefined,
-      elements:
-        quotation?.element.map((c) => ({
-          id: c.id,
-          needId: c.requestModelId,
-          designation: c.title,
-          price: c.priceProposed,
-          quantity: c.quantity,
-          unit: c.unit,
-        })) ?? [],
-      dueDate: quotation
-        ? new Date(quotation.dueDate).toISOString().slice(0, 10)
-        : today.toISOString().slice(0, 10),
-      proof: quotation ? [quotation.proof] : undefined,
-    },
+    defaultValues: defaultValues,
   });
 
   React.useEffect(()=>{
@@ -470,15 +479,28 @@ function CreateQuotation({ quotation, openChange }: Props) {
             </FormItem>
           )}
         />
-
-        <Button
-          type="submit"
-          disabled={isPending}
-          isLoading={isPending}
-          className="w-fit"
-        >
-          {!!quotation ? "Modifier le devis" : "Créer le devis"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            type="submit"
+            disabled={isPending}
+            isLoading={isPending}
+            className="w-fit"
+            variant={"primary"}
+            onClick={() => (intentRef.current = "save")}
+          >
+            {!!quotation ? "Modifier le devis" : "Enregistrer"}
+          </Button>
+          { !quotation && 
+          <Button
+            type="submit"
+            disabled={isPending}
+            isLoading={isPending}
+            className="w-fit"
+            onClick={() => (intentRef.current = "saveAndCreate")}
+          >
+            {"Enregistrer et créer"}
+          </Button>}
+        </div>
       </form>
       <ProviderDialog open={openP} onOpenChange={setOpenP} />
     </Form>

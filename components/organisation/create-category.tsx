@@ -29,6 +29,7 @@ import { Trash2, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { UserQueries } from "@/queries/baseModule";
+import { useRef } from "react";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -53,6 +54,7 @@ export const formSchema = z.object({
 type Schema = z.infer<typeof formSchema>;
 
 export function CategoryCreateForm() {
+  const intentRef = useRef<"save" | "saveAndCreate">("save");
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
