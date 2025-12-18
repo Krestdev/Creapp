@@ -2,7 +2,7 @@ import useAuthGuard from "@/hooks/useAuthGuard";
 import { useStore } from "@/providers/datastore";
 import { DepartmentQueries } from "@/queries/departmentModule";
 import { RequestQueries } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { Category, RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
@@ -29,6 +29,8 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
+import { CategoryQueries } from "@/queries/categoryModule";
+import { UserQueries } from "@/queries/baseModule";
 
 type ItemSide = {
   pageId: string;
@@ -48,18 +50,31 @@ type Sidebar = {
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
-  const [data, setData] = React.useState<RequestModelT[]>([]);
+ const [data, setData] = React.useState<RequestModelT[]>([]);
 
   const request = new RequestQueries();
-  const department = new DepartmentQueries();
+  const category = new CategoryQueries();
+  const userQueries = new UserQueries();
 
-  const departmentData = useQuery({
-    queryKey: ["departments"],
+  // Récupérer toutes les catégories avec leurs validateurs
+  const categoriesData = useQuery({
+    queryKey: ["categories-with-validators"],
     queryFn: async () => {
-      return department.getAll();
+      return category.getCategories();
     },
+    enabled: isHydrated,
   });
-  // Récupérer tous les besoins en attente de validation (pour les validateurs)
+
+  // Récupérer tous les utilisateurs
+  const usersData = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      return userQueries.getAll();
+    },
+    enabled: isHydrated,
+  });
+
+  // Récupérer tous les besoins
   const requestData = useQuery({
     queryKey: ["requests-validation"],
     queryFn: () => {
@@ -68,49 +83,103 @@ function AppSidebar() {
     enabled: isHydrated,
   });
 
-  // Utilisation du hook pour la protection globale
+  // Fonction pour obtenir la position d'un utilisateur dans une catégorie
+  const getUserValidatorPosition = (
+    category: Category | undefined,
+    userId: number
+  ): number | null => {
+    if (!category || !category.validators || !userId) return null;
+    
+    const validator = category.validators.find(v => v.userId === userId);
+    return validator?.rank || null;
+  };
+
+  // Fonction pour vérifier si un utilisateur est le dernier validateur d'une catégorie
+  const isUserLastValidatorForCategory = (category: Category | undefined, userId: number): boolean => {
+    if (!category || !category.validators || !userId) return false;
+    
+    // Trouver le validateur avec la position la plus élevée
+    const maxPosition = Math.max(...category.validators.map(v => v.rank));
+    const lastValidator = category.validators.find(v => v.rank === maxPosition);
+    
+    return lastValidator?.userId === userId;
+  };
+
+  // Fonction pour vérifier si tous les validateurs précédents ont validé
+  const havePreviousValidatorsApproved = (
+    request: RequestModelT,
+    category: Category | undefined,
+    userPosition: number
+  ): boolean => {
+    if (!category || !category.validators || userPosition <= 1) return true;
+    
+    // Récupérer les IDs des validateurs précédents
+    const previousPositions = Array.from(
+      { length: userPosition - 1 },
+      (_, i) => i + 1
+    );
+    
+    const previousValidatorIds = category.validators
+      .filter(v => previousPositions.includes(v.rank))
+      .map(v => v.userId);
+
+    // Vérifier si tous les validateurs précédents ont validé
+    const validatedPreviousIds = request.revieweeList
+      ?.map(r => r.validatorId)
+      .filter(id => previousValidatorIds.includes(id)) || [];
+
+    return previousValidatorIds.length > 0 && 
+           previousValidatorIds.length === validatedPreviousIds.length;
+  };
+
+  // Filtrer les besoins en fonction de la nouvelle logique
+  React.useEffect(() => {
+    if (requestData.data?.data && user && categoriesData.data?.data) {
+      const pendingRequests = requestData.data.data.filter((request) => {
+        // 1. Filtrer seulement les besoins en attente
+        if (request.state !== "pending") return false;
+
+        // 2. Trouver la catégorie du besoin
+        const category = categoriesData.data.data.find(
+          cat => cat.id === request.categoryId
+        );
+
+        // 3. Vérifier si l'utilisateur est un validateur pour cette catégorie
+        if (!category || !category.validators) return false;
+        
+        const userPosition = getUserValidatorPosition(category, user.id!);
+        if (userPosition === null) return false;
+
+        // 4. Vérifier si l'utilisateur a déjà validé ce besoin
+        const hasUserAlreadyValidated = request.revieweeList?.some(
+          r => r.validatorId === user.id
+        );
+        if (hasUserAlreadyValidated) return false;
+
+        // 5. Pour les validateurs autres que le premier, vérifier que tous les précédents ont validé
+        if (userPosition > 1) {
+          return havePreviousValidatorsApproved(request, category, userPosition);
+        }
+
+        // 6. Pour le premier validateur, vérifier qu'aucune validation n'a été faite
+        if (userPosition === 1) {
+          return !request.revieweeList || request.revieweeList.length === 0;
+        }
+
+        return false;
+      });
+
+      setData(pendingRequests);
+    } else {
+      setData([]);
+    }
+  }, [requestData.data?.data, user, categoriesData.data?.data]);
+
+   // Utilisation du hook pour la protection globale
   const { hasAccess, isChecking, userRoles } = useAuthGuard({
     requireAuth: true,
     authorizedRoles: [],
   });
-
-  const isLastValidator =
-    departmentData.data?.data
-      .flatMap((mem) => mem.members)
-      .find((mem) => mem.userId === user?.id)?.finalValidator === true;
-
-  React.useEffect(() => {
-    if (requestData.data?.data && user) {
-      const show = requestData.data?.data
-        .filter((x) => x.state === "pending")
-        .filter((item) => {
-          // Récupérer la liste des IDs des validateurs pour ce departement
-          const validatorIds = departmentData.data?.data
-            .flatMap((x) => x.members)
-            .filter((x) => x.validator === true)
-            .map((x) => x.userId);
-
-          if (isLastValidator) {
-            return validatorIds?.every((id) =>
-              item.revieweeList?.flatMap((x) => x.validatorId).includes(id)
-            );
-          } else {
-            return (
-              !item.revieweeList
-                ?.flatMap((x) => x.validatorId)
-                .includes(user?.id ?? -1) && item.state === "pending"
-            );
-          }
-        });
-      setData(show);
-    }
-  }, [
-    requestData.data?.data,
-    user,
-    isLastValidator,
-    departmentData.data?.data,
-  ]);
-
   // Si en cours de vérification, afficher un loader
   if (isChecking) {
     return (

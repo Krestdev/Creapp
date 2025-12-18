@@ -5,12 +5,22 @@ import RequestList from "@/components/besoin/RequestListPage";
 import PageTitle from "@/components/pageTitle";
 import { useStore } from "@/providers/datastore";
 import { RequestQueries } from "@/queries/requestModule";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
 const Page = () => {
   const { user, isHydrated } = useStore();
   const request = new RequestQueries();
+  
+  const [dateFilter, setDateFilter] = React.useState<
+    "today" | "week" | "month" | "year" | "custom" | undefined
+  >();
+  const [customDateRange, setCustomDateRange] = React.useState<
+    { from: Date; to: Date } | undefined
+  >();
+
+  // Récupérer les besoins de l'utilisateur
   const requestData = useQuery({
     queryKey: ["requests", user?.id],
     queryFn: () => {
@@ -22,12 +32,13 @@ const Page = () => {
     enabled: !!user?.id && isHydrated,
   });
 
-  const [dateFilter, setDateFilter] = React.useState<
-    "today" | "week" | "month" | "year" | "custom" | undefined
-  >();
-  const [customDateRange, setCustomDateRange] = React.useState<
-    { from: Date; to: Date } | undefined
-  >();
+  // Récupérer les catégories (pour le nouveau système de validation)
+  const category = new CategoryQueries();
+  const categoriesData = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => category.getCategories(),
+    enabled: isHydrated,
+  });
 
   // Fonction pour filtrer les données selon la période sélectionnée
   const getFilteredData = React.useMemo(() => {
@@ -46,26 +57,21 @@ const Page = () => {
 
     switch (dateFilter) {
       case "today":
-        // Début de la journée
         startDate.setHours(0, 0, 0, 0);
         break;
       case "week":
-        // Début de la semaine (lundi)
         startDate.setDate(
           now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
         );
         startDate.setHours(0, 0, 0, 0);
         break;
       case "month":
-        // Début du mois
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
       case "year":
-        // Début de l'année
         startDate = new Date(now.getFullYear(), 0, 1);
         break;
       case "custom":
-        // Utiliser la plage personnalisée
         if (customDateRange?.from && customDateRange?.to) {
           startDate = customDateRange.from;
           endDate = customDateRange.to;
@@ -89,6 +95,15 @@ const Page = () => {
   const rejetes =
     getFilteredData.filter((item) => item.state === "rejected").length ?? 0;
   const validés = soumis - attentes - rejetes;
+
+  // Passer les données des catégories à RequestList pour le nouveau système
+  const requestListProps = {
+    setDateFilter,
+    customDateRange,
+    setCustomDateRange,
+    requestData: getFilteredData,
+    categoriesData: categoriesData.data?.data || [], // Nouveau prop pour le système catégories
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,12 +138,7 @@ const Page = () => {
         />
       </div>
       {/* Page table */}
-      <RequestList
-        setDateFilter={setDateFilter}
-        customDateRange={customDateRange}
-        setCustomDateRange={setCustomDateRange}
-        requestData={getFilteredData}
-      />
+      <RequestList {...requestListProps} />
     </div>
   );
 };

@@ -20,10 +20,13 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronRight,
+  Clock,
   Eye,
   Hourglass,
   LucideBan,
   LucideIcon,
+  Users,
+  UserCheck,
 } from "lucide-react";
 import * as React from "react";
 
@@ -55,6 +58,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
@@ -86,7 +90,6 @@ import { Checkbox } from "../ui/checkbox";
 
 interface DataTableProps {
   data: RequestModelT[];
-  isLastValidator: boolean;
   empty: string;
   type?: "pending" | "proceed";
   dateFilter?: "today" | "week" | "month" | "year" | "custom" | undefined;
@@ -99,17 +102,23 @@ interface DataTableProps {
   setCustomDateRange?: React.Dispatch<
     React.SetStateAction<{ from: Date; to: Date } | undefined>
   >;
+  customProps?: {
+    userPosition?: number | null;
+    categoryName?: string;
+    totalValidators?: number;
+    validatedCount?: number;
+  };
 }
 
 export function DataVal({
   data,
-  isLastValidator,
   empty,
   type = "pending",
   dateFilter,
   setDateFilter,
   customDateRange,
   setCustomDateRange,
+  customProps,
 }: DataTableProps) {
   const { user } = useStore();
   const queryClient = useQueryClient();
@@ -168,6 +177,7 @@ export function DataVal({
   });
 
   const request = new RequestQueries();
+  const categoryQueries = new CategoryQueries();
 
   // Ajouter le refetch automatique pour les données de validation
   const requestData = useQuery({
@@ -179,8 +189,40 @@ export function DataVal({
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => request.getCategories(),
+    queryFn: async () => categoryQueries.getCategories(),
   });
+
+  // Fonction pour obtenir la position de l'utilisateur pour un besoin donné
+  const getUserPositionForRequest = (request: RequestModelT) => {
+    if (!request.categoryId || !user?.id || !categoriesData.data?.data) return null;
+    
+    const category = categoriesData.data.data.find(cat => cat.id === request.categoryId);
+    if (!category || !category.validators) return null;
+    
+    const validator = category.validators.find(v => v.userId === user.id);
+    return validator?.rank || null;
+  };
+
+  // Fonction pour vérifier si l'utilisateur est le dernier validateur pour un besoin
+  const isUserLastValidatorForRequest = (request: RequestModelT) => {
+    if (!request.categoryId || !user?.id || !categoriesData.data?.data) return false;
+    
+    const category = categoriesData.data.data.find(cat => cat.id === request.categoryId);
+    if (!category || !category.validators || category.validators.length === 0) {
+      return false;
+    }
+
+    // Trouver le validateur avec la position la plus élevée
+    const maxPosition = Math.max(...category.validators.map(v => v.rank));
+    const lastValidator = category.validators.find(v => v.rank === maxPosition);
+    
+    return lastValidator?.userId === user.id;
+  };
+
+  // Fonction pour vérifier si l'utilisateur a déjà validé un besoin
+  const hasUserAlreadyValidated = (request: RequestModelT) => {
+    return request.revieweeList?.some(r => r.validatorId === user?.id) || false;
+  };
 
   // Fonction pour obtenir le texte d'affichage du filtre de date
   const getDateFilterText = () => {
@@ -412,7 +454,11 @@ export function DataVal({
       });
     },
     onSuccess: () => {
-      toast.success("Besoin approuvé avec succès !");
+      toast.success(
+        validationType === "approve" 
+          ? "Besoin approuvé avec succès !" 
+          : "Besoin rejeté avec succès !"
+      );
       // Invalider et rafraîchir les données
       queryClient.invalidateQueries({
         queryKey: ["requests"],
@@ -470,7 +516,33 @@ export function DataVal({
     setIsValidationModalOpen(true);
   };
 
-  // Define columns - Seulement les champs demandés
+  // Fonction pour obtenir l'info de validation pour un besoin
+  const getValidationInfo = (request: RequestModelT) => {
+    const userPosition = getUserPositionForRequest(request);
+    const isLastValidator = isUserLastValidatorForRequest(request);
+    const categoryName = getCategoryName(String(request.categoryId));
+    
+    // Trouver la catégorie pour obtenir le nombre total de validateurs
+    const category = categoriesData.data?.data?.find(
+      cat => cat.id === request.categoryId
+    );
+    const totalValidators = category?.validators?.length || 0;
+    const validatedCount = request.revieweeList?.length || 0;
+
+    return {
+      userPosition,
+      isLastValidator,
+      categoryName,
+      totalValidators,
+      validatedCount,
+      progress: totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
+      canValidate: !hasUserAlreadyValidated(request) && 
+                   request.state === "pending" && 
+                   userPosition !== null,
+    };
+  };
+
+  // Define columns
   const columns: ColumnDef<RequestModelT>[] = React.useMemo(() => {
     const baseColumns: ColumnDef<RequestModelT>[] = [
       // Checkbox
@@ -512,7 +584,9 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="max-w-[200px] truncate">{row.getValue("label")}</div>
+          <div className="max-w-[200px] truncate font-medium">
+            {row.getValue("label")}
+          </div>
         ),
       },
       {
@@ -531,7 +605,7 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div>{getProjectName(row.getValue("projectId"))}</div>
+          <div className="text-sm">{getProjectName(row.getValue("projectId"))}</div>
         ),
       },
       {
@@ -552,14 +626,30 @@ export function DataVal({
             </span>
           );
         },
-        cell: ({ row }) => (
-          <div>{getCategoryName(row.getValue("categoryId"))}</div>
-        ),
+        cell: ({ row }) => {
+          const categoryName = getCategoryName(row.getValue("categoryId"));
+          const validationInfo = getValidationInfo(row.original);
+          
+          return (
+            <div>
+              <div className="font-medium text-sm">{categoryName}</div>
+              {validationInfo.userPosition && (
+                <div className="flex items-center gap-1 mt-1">
+                  <UserCheck className="h-3 w-3 text-gray-500" />
+                  <span className="text-xs text-gray-600">
+                    Position {validationInfo.userPosition}
+                    {validationInfo.isLastValidator && " (Final)"}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "userId",
         filterFn: (row, columnId, filterValue) => {
-          if (!filterValue) return true; // pour "all"
+          if (!filterValue) return true;
           return String(row.getValue(columnId)) === String(filterValue);
         },
         header: ({ column }) => {
@@ -575,9 +665,10 @@ export function DataVal({
             </span>
           );
         },
-        cell: ({ row }) => <div>{getUserName(row.getValue("userId"))}</div>,
+        cell: ({ row }) => (
+          <div className="text-sm">{getUserName(row.getValue("userId"))}</div>
+        ),
       },
-
       {
         accessorKey: "createdAt",
         filterFn: (row, columnId, filterValue) => {
@@ -597,8 +688,8 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="max-w-[200px] truncate first-letter:uppercase">
-            {format(new Date(row.getValue("createdAt")), "PP", { locale: fr })}
+          <div className="text-sm">
+            {format(new Date(row.getValue("createdAt")), "dd/MM/yyyy", { locale: fr })}
           </div>
         ),
       },
@@ -618,17 +709,50 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="max-w-[200px] truncate">
+          <div className="text-sm max-w-[200px] truncate">
             {getBeneficiaryDisplay(row.original)}
           </div>
         ),
       },
+      // Nouvelle colonne : Progression de validation (uniquement pour type pending)
+      ...(type === "pending" ? [{
+        id: "validationProgress",
+        header: () => <span className="tablehead">{"Progression"}</span>,
+        cell: ({ row }: { row: ReturnType<typeof table.getRowModel>['rows'][number] }) => {
+          const validationInfo = getValidationInfo(row.original);
+          
+          if (!validationInfo.totalValidators) return null;
+          
+          return (
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                    style={{ width: `${validationInfo.progress}%` }}
+                  />
+                </div>
+                <div className="text-xs text-gray-500 text-center mt-1">
+                  {validationInfo.validatedCount}/{validationInfo.totalValidators}
+                </div>
+              </div>
+              {validationInfo.userPosition && (
+                <Badge 
+                  variant={validationInfo.isLastValidator ? "destructive" : "outline"}
+                  className="text-xs"
+                >
+                  {validationInfo.isLastValidator ? "Final" : `P${validationInfo.userPosition}`}
+                </Badge>
+              )}
+            </div>
+          );
+        },
+      }] : []),
     ];
 
     // Ajouter la colonne Statut seulement si type === "proceed"
     if (type === "proceed") {
-      baseColumns.splice(2, 0, {
-        // Insérer après la 2ème colonne
+      baseColumns.splice(3, 0, {
         accessorKey: "state",
         header: ({ column }) => {
           return (
@@ -648,8 +772,8 @@ export function DataVal({
           const Icon = state.icon;
 
           return (
-            <Badge variant={state.variant}>
-              {Icon && <Icon />}
+            <Badge variant={state.variant} className="text-xs">
+              {Icon && <Icon className="h-3 w-3 mr-1" />}
               {state.label}
             </Badge>
           );
@@ -664,17 +788,25 @@ export function DataVal({
       header: () => <span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
-
+        const validationInfo = getValidationInfo(item);
+        const userHasValidated = hasUserAlreadyValidated(item);
+        
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant={"outline"}>
+              <Button variant={"outline"} size="sm">
                 {"Actions"}
-                <ChevronDown />
+                <ChevronDown className="ml-2 h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel className="font-normal text-xs text-gray-500">
+                {validationInfo.categoryName}
+                {validationInfo.userPosition && (
+                  <span className="block">Position {validationInfo.userPosition}</span>
+                )}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedItem(item);
@@ -682,32 +814,38 @@ export function DataVal({
                 }}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                {"Voir"}
+                {"Voir les détails"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() =>
-                  isLastValidator
+                  validationInfo.isLastValidator
                     ? (setSelectedItem(item), setIsLastValModalOpen(true))
                     : openValidationModal("approve", item)
                 }
                 disabled={
-                  item.state !== "pending" ||
-                  item.revieweeList?.some((x) => x.validatorId === user?.id)
+                  !validationInfo.canValidate || 
+                  item.state !== "pending" || 
+                  userHasValidated
                 }
+                className={!validationInfo.canValidate ? "opacity-50 cursor-not-allowed" : ""}
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
                 {"Approuver"}
+                {validationInfo.isLastValidator && " (Final)"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => openValidationModal("reject", item)}
                 disabled={
-                  item.state !== "pending" ||
-                  item.revieweeList?.some((x) => x.validatorId === user?.id)
+                  !validationInfo.canValidate || 
+                  item.state !== "pending" || 
+                  userHasValidated
                 }
+                className={!validationInfo.canValidate ? "opacity-50 cursor-not-allowed" : ""}
               >
                 <LucideBan className="text-red-500 mr-2 h-4 w-4" />
                 {"Rejeter"}
+                {validationInfo.isLastValidator && " (Final)"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -716,7 +854,7 @@ export function DataVal({
     });
 
     return baseColumns;
-  }, [type, isLastValidator, user?.id]);
+  }, [type, user?.id, categoriesData.data]);
 
   const table = useReactTable({
     data: tableData.reverse() || [],
@@ -733,8 +871,13 @@ export function DataVal({
     globalFilterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
 
-      // Recherche dans toutes les colonnes principales avec conversion des IDs en noms
-      const searchableColumns = ["label"];
+      const searchableColumns = [
+        "label", 
+        "projectId", 
+        "categoryId", 
+        "userId", 
+        "beneficiary"
+      ];
 
       return searchableColumns.some((columnId) => {
         const rawValue = row.getValue(columnId);
@@ -765,16 +908,16 @@ export function DataVal({
 
   return (
     <div className="w-full">
-      <div className="flex flex-wrap items-center gap-4 py-4">
+      <div className="flex flex-wrap items-center gap-3 py-4">
         {/* Global search */}
         <Input
-          placeholder="Rechercher par titre..."
+          placeholder="Rechercher par titre, catégorie, projet..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
 
-        {/* Status filter */}
+        {/* Status filter - seulement pour proceed */}
         {type === "proceed" && (
           <Select
             defaultValue="all"
@@ -787,8 +930,8 @@ export function DataVal({
                 ?.setFilterValue(value === "all" ? "" : value)
             }
           >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filtrer par statu" />
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Statut" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{"Tous les statuts"}</SelectItem>
@@ -817,8 +960,8 @@ export function DataVal({
               .getColumn("categoryId")
               ?.setFilterValue(value === "all" ? "" : value)
           }
-          placeholder="Filtrer par catégorie"
-          allLabel="Toutes les catégories"
+          placeholder="Catégorie"
+          allLabel="Toutes"
           options={uniqueCategories.map((c) => ({
             value: String(c.id),
             label: c.name,
@@ -835,8 +978,8 @@ export function DataVal({
               .getColumn("projectId")
               ?.setFilterValue(value === "all" ? "" : value)
           }
-          placeholder="Filtrer par projet"
-          allLabel="Tous les projets"
+          placeholder="Projet"
+          allLabel="Tous"
           options={uniqueProjects.map((p) => ({
             value: String(p.id),
             label: p.name,
@@ -853,8 +996,8 @@ export function DataVal({
               .getColumn("userId")
               ?.setFilterValue(value === "all" ? "" : value)
           }
-          placeholder="Filtrer par émetteur"
-          allLabel="Tous les émetteurs"
+          placeholder="Émetteur"
+          allLabel="Tous"
           options={uniqueUsers.map((u) => ({
             value: String(u.id),
             label: u.name,
@@ -972,11 +1115,13 @@ export function DataVal({
                       : column.id === "userId"
                       ? "Emetteurs"
                       : column.id === "beneficiary"
-                      ? "Beneficiaires"
+                      ? "Bénéficiaires"
                       : column.id === "createdAt"
                       ? "Date d'émission"
                       : column.id === "state"
                       ? "Statuts"
+                      : column.id === "validationProgress"
+                      ? "Progression"
                       : column.id}
                   </DropdownMenuCheckboxItem>
                 );
@@ -987,16 +1132,16 @@ export function DataVal({
 
       {/* Table */}
       {table.getRowModel().rows?.length > 0 ? (
-        <div className="rounded-md border">
+        <div className="rounded-md border overflow-hidden">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow key={headerGroup.id} className="bg-gray-50">
                   {headerGroup.headers.map((header) => {
                     return (
                       <TableHead
                         key={header.id}
-                        className="border-r last:border-r-0"
+                        className="border-r last:border-r-0 py-3"
                       >
                         {header.isPlaceholder
                           ? null
@@ -1011,27 +1156,38 @@ export function DataVal({
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className={cn(
-                    getStatusConfig(row.original.state).rowClassName
-                  )}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+              {table.getRowModel().rows.map((row) => {
+                const validationInfo = getValidationInfo(row.original);
+                const statusConfig = getStatusConfig(row.original.state);
+                
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn(
+                      "hover:bg-gray-50",
+                      statusConfig.rowClassName,
+                      validationInfo.userPosition && "border-l-4",
+                      validationInfo.userPosition === 1 && "border-l-blue-400",
+                      validationInfo.userPosition === 2 && "border-l-green-400",
+                      validationInfo.userPosition === 3 && "border-l-red-400",
+                      validationInfo.isLastValidator && "border-l-red-400"
+                    )}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="border-r last:border-r-0 py-3"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
@@ -1161,12 +1317,18 @@ export function DataVal({
         onOpenChange={setIsModalOpen}
         data={selectedItem}
         actionButton="Approuver"
-        action={() =>
-          isLastValidator
-            ? (setIsModalOpen(false), setIsLastValModalOpen(true))
-            : (setIsModalOpen(false),
-              openValidationModal("approve", selectedItem!))
-        }
+        action={() => {
+          if (!selectedItem) return;
+          
+          const validationInfo = getValidationInfo(selectedItem);
+          if (validationInfo.isLastValidator) {
+            setIsModalOpen(false);
+            setIsLastValModalOpen(true);
+          } else {
+            setIsModalOpen(false);
+            openValidationModal("approve", selectedItem);
+          }
+        }}
       />
 
       <ValidationModal
@@ -1210,6 +1372,7 @@ export function DataVal({
         }}
         onSubmit={(motif) => handleValidation(motif)}
       />
+      
       <BesoinLastVal
         open={isLastValModalOpen}
         onOpenChange={setIsLastValModalOpen}
