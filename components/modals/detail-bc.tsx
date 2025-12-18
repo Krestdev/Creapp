@@ -179,17 +179,17 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="text-sm text-muted-foreground">{"Statut"}</p>
                 <Badge
                   className={` text-white ${
-                    data.status === "approved"
+                    data.status === "APPROVED"
                       ? "bg-[#DCFCE7] border-[#BBF7D0] text-[#16A34A]"
                       : "bg-[#FED7D7] border-[#FCA5A5] text-[#DC2626]"
                   }`}
                 >
-                  {data.status === "approved" ? (
+                  {data.status === "APPROVED" ? (
                     <LucideCheckCheck />
                   ) : (
                     <LucideX />
                   )}
-                  {data.status === "approved" ? "Accepté" : "Rejetté"}
+                  {data.status === "APPROVED" ? "Accepté" : "Rejetté"}
                 </Badge>
               </div>
             </div>
