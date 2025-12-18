@@ -11,6 +11,7 @@ import {
 } from "../ui/breadcrumb";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { HomeIcon } from "lucide-react";
 
 function NavigationBreadcrumb() {
   const pathname = usePathname();
@@ -38,7 +39,7 @@ function NavigationBreadcrumb() {
                   </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <Link href={href}>{formattedSegment}</Link>
+                    <Link href={href}>{formattedSegment.toLocaleLowerCase() === "tableau de bord" ? <HomeIcon size={16}/> : formattedSegment}</Link>
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>

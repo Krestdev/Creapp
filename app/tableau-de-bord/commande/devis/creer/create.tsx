@@ -30,7 +30,10 @@ import { useStore } from "@/providers/datastore";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
-import { Quotation, RequestModelT } from "@/types/types";
+import {
+  Quotation,
+  RequestModelT
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +44,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import AddElement from "./addElement";
+import { format } from "date-fns";
 
 const formSchema = z.object({
   commandRequestId: z.number({ message: "Requis" }),
@@ -152,7 +156,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
       if (!!openChange) {
         openChange(false);
       }
-      router.push("/tableau-de-bord/bdcommande/devis/");
+      router.push("./");
     },
     onError: (error) => {
       console.error(error);
@@ -185,6 +189,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
       proof: quotation ? [quotation.proof] : undefined,
     },
   });
+
+  React.useEffect(()=>{
+    if(form.watch("commandRequestId")) setSelectedNeeds(requestsData.data?.data.find(c=> c.id === form.watch("commandRequestId"))?.besoins) 
+  },[form.watch("commandRequestId")])
 
   // const commandRequestId = form.watch("commandRequestId");
 
@@ -339,7 +347,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                         captionLayout="dropdown"
                         onSelect={(date) => {
                           if (!date) return;
-                          const value = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+                          const value = format(date, "yyyy-MM-dd")
                           field.onChange(value);
                           setDueDate(false);
                         }}
