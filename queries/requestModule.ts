@@ -44,8 +44,8 @@ export class RequestQueries {
   };
 
   // Valider
-  validate = async (id: number): Promise<{ data: RequestModelT }> => {
-    return api.put(`${this.route}/validate/${id}`).then((res) => res.data);
+  validate = async (id: number, userId: number): Promise<{ data: RequestModelT }> => {
+    return api.put(`${this.route}/validate/${id}`, { userId }).then((res) => res.data);
   };
 
   // Revoir (review)

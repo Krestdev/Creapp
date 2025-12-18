@@ -67,7 +67,7 @@ export function BesoinLastVal({
   description,
 }: ValidationModalProps) {
   const [openD, setOpenD] = useState(false);
-  const { isHydrated } = useStore();
+  const { isHydrated, user } = useStore();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -93,7 +93,7 @@ export function BesoinLastVal({
   const validateRequest = useMutation({
     mutationKey: ["requests-validation"],
     mutationFn: async ({ id }: { id: number }) => {
-      await request.validate(id);
+      await request.validate(id, user?.id!);
     },
     onSuccess: () => {
       toast.success("Besoin soulis avec succès !");
