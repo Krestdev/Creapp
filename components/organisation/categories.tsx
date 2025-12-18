@@ -12,13 +12,11 @@ const CategoriesPage = () => {
     queryFn: () => category.getCategories(),
     enabled: isHydrated,
   });
+  
   if (categoryData.data)
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
-          <div className="flex justify-between">
-            <h2>Catégories</h2>
-          </div>
           <CategoriesTable data={categoryData.data.data} />
         </div>
       </div>

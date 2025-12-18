@@ -22,19 +22,34 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { UserQueries } from "@/queries/baseModule";
-import { User as UserT } from "@/types/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { Role, User as UserT } from "@/types/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import MultiSelectRole from "../base/multiSelectRole";
 
-const formSchema = z.object({
-  email: z.string(),
-  name: z.string(),
-  phone: z.string(),
-  password: z.string(),
-  role: z.string().optional(),
-});
+/* =========================
+   SCHEMA ZOD
+========================= */
+const formSchema = z
+  .object({
+    email: z.string().email("Email invalide"),
+    name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+    phone: z.string().optional(),
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
+    role: z.array(z.number()).optional(),
+  })
+  .refine(
+    (data) => {
+      if (!data.password || data.password.trim() === "") return true;
+      return data.password === data.confirmPassword;
+    },
+    {
+      message: "Les mots de passe ne correspondent pas",
+      path: ["confirmPassword"],
+    }
+  );
 
 interface UpdateRequestProps {
   open: boolean;
@@ -49,6 +64,12 @@ export default function UpdateUser({
   userData,
   onSuccess,
 }: UpdateRequestProps) {
+  const queryClient = useQueryClient();
+
+  const [selectedRole, setSelectedRole] = useState<
+    { id: number; label: string }[]
+  >([]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -56,116 +77,154 @@ export default function UpdateUser({
       name: "",
       phone: "",
       password: "",
-      role: "",
+      confirmPassword: "",
+      role: [],
     },
   });
 
+  /* =========================
+     INIT FORM
+  ========================= */
   useEffect(() => {
-    form.reset({
-      email: userData?.email || "",
-      name: userData?.name || "",
-      phone: userData?.phone,
-      password: userData?.password,
-    });
-  }, [userData, form]);
+    if (userData && open) {
+      const roles = userData.role || [];
+      setSelectedRole(
+        roles.map((r) => ({ id: r.id!, label: r.label }))
+      );
 
+      form.reset({
+        email: userData.email || "",
+        name: userData.name || "",
+        phone: userData.phone || "",
+        password: "",
+        confirmPassword: "",
+        role: roles.map((r) => r.id!),
+      });
+    }
+  }, [userData, open, form]);
+
+  /* =========================
+     MUTATION
+  ========================= */
   const userQueries = new UserQueries();
   const userMutation = useMutation({
-    mutationKey: ["userUpdate"],
-    mutationFn: async (data: Partial<UserT>) =>
-      userQueries.update(Number(userData?.id), data),
+    mutationFn: async (data: any) => {
+      const { roleIds, ...payload } = data;
 
+      if (roleIds?.length) {
+        return userQueries.update(Number(payload.id), {
+          ...payload,
+          role: roleIds,
+        });
+      }
+
+      return userQueries.update(Number(payload.id), payload);
+    },
     onSuccess: () => {
-      toast.success("Besoin modifié avec succès !");
+      toast.success("Utilisateur modifié avec succès !");
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       setOpen(false);
       onSuccess?.();
     },
-
-    onError: (e) => {
-      console.error(e);
-      toast.error("Une erreur est survenue lors de la modification.");
+    onError: () => {
+      toast.error("Erreur lors de la modification");
     },
   });
 
-  const roles = new UserQueries();
+  /* =========================
+     ROLES
+  ========================= */
+  const rolesQuery = new UserQueries();
   const { data: rolesData } = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => roles.getRoles(),
+    queryKey: ["roles"],
+    queryFn: async () => rolesQuery.getRoles(),
   });
 
   const ROLES =
-    rolesData?.data.map((u) => ({ id: u.id!, label: u.label })) || [];
+    rolesData?.data?.map((r: Role) => ({
+      id: r.id!,
+      label: r.label,
+    })) || [];
 
-  const [selectedRole, setSelectedRole] = useState<
-    { id: number; label: string }[]
-  >([]);
-
+  /* =========================
+     SUBMIT
+  ========================= */
   function onSubmit(values: z.infer<typeof formSchema>) {
-    userMutation.mutate({
+    if (!userData?.id) return;
+
+    const payload: any = {
+      id: userData.id,
       email: values.email,
       name: values.name,
-      phone: values.phone,
-      password: values.password,
-    });
+      phone: values.phone || undefined,
+    };
+
+    if (values.password && values.password.trim() !== "") {
+      payload.password = values.password;
+    }
+
+    if (selectedRole.length) {
+      payload.roleIds = selectedRole.map((r) => r.id);
+    }
+
+    userMutation.mutate(payload);
   }
 
+  /* =========================
+     RENDER
+  ========================= */
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
-        {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
-            Modifier le besoin
+      <DialogContent className="sm:max-w-[760px] p-0 flex flex-col">
+        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg">
+          <DialogTitle className="text-xl font-semibold">
+            Modifier l’utilisateur {userData?.name ?? ""}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
-            Modifiez les informations du besoin existant
-          </p>
         </DialogHeader>
+
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6 p-6"
+            className="flex-1 overflow-y-auto px-6 pb-6 space-y-4"
           >
-            {/* LABEL */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom</FormLabel>
+                  <FormLabel>Nom *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Entrez le nom" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* LABEL */}
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>E-mail</FormLabel>
+                  <FormLabel>Email *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter l'email" {...field} />
+                    <Input type="email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* LABEL */}
             <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mot de passe</FormLabel>
+                  <FormLabel>Nouveau mot de passe</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter le nouveaux mot de pass"
+                      type="password"
+                      placeholder="Laisser vide pour ne pas modifier"
                       {...field}
                     />
                   </FormControl>
@@ -174,15 +233,14 @@ export default function UpdateUser({
               )}
             />
 
-            {/* DESCRIPTION */}
             <FormField
               control={form.control}
-              name="phone"
+              name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contact</FormLabel>
+                  <FormLabel>Confirmer le mot de passe</FormLabel>
                   <FormControl>
-                    <Input placeholder="Entrer le contact" {...field} />
+                    <Input type="password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -191,31 +249,42 @@ export default function UpdateUser({
 
             <FormField
               control={form.control}
-              name="role"
+              name="phone"
               render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>{"Rôle"}</FormLabel>
-
-                  <MultiSelectRole
-                    display="Role"
-                    roles={ROLES}
-                    selected={selectedRole}
-                    onChange={(list) => {
-                      setSelectedRole(list);
-                      field.onChange(list.map((u) => u.id));
-                    }}
-                  />
-
-                  <FormMessage />
+                <FormItem>
+                  <FormLabel>Téléphone</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
                 </FormItem>
               )}
             />
 
-            {/* SUBMIT */}
-            <Button type="submit" className="w-full">
-              Enregistrer
-            </Button>
+            <div className="space-y-2">
+              <FormLabel>Rôles *</FormLabel>
+              <MultiSelectRole
+                display="Role"
+                roles={ROLES}
+                selected={selectedRole}
+                onChange={(selected) => {
+                  setSelectedRole(selected);
+                  form.setValue(
+                    "role",
+                    selected.map((r) => r.id)
+                  );
+                }}
+              />
+            </div>
           </form>
+
+          <div className="flex justify-end gap-3 p-6 pt-0">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={form.handleSubmit(onSubmit)} type="submit" disabled={userMutation.isPending}>
+              {userMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+            </Button>
+          </div>
         </Form>
       </DialogContent>
     </Dialog>

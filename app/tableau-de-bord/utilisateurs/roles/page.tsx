@@ -10,7 +10,7 @@ function Page() {
         subtitle="Consultez la liste des rôles."
         color="red"
       />
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start max-w-1/2">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className="w-full">
           <RolesPage />
         </div>

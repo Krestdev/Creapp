@@ -201,7 +201,8 @@ export default function MyForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Projet concerné <span className="text-red-500">*</span>
+                  {"Projet concerné"}
+                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -214,7 +215,12 @@ export default function MyForm() {
                   </FormControl>
                   <SelectContent>
                     {projectsData.data?.data.map((p) => (
-                      <SelectItem key={p.id} value={p.id!.toString()}>
+                      <SelectItem
+                        disabled={p.status === "cancelled"}
+                        key={p.id}
+                        value={p.id!.toString()}
+                        className={`${p.status === "cancelled" && "opacity-50 cursor-not-allowed"}`}
+                      >
                         {p.label}
                       </SelectItem>
                     ))}
@@ -231,7 +237,8 @@ export default function MyForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Catégorie <span className="text-red-500">*</span>
+                  {"Catégorie"}
+                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
@@ -258,7 +265,8 @@ export default function MyForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Titre <span className="text-red-500">*</span>
+                  {"Titre"}
+                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="Titre du besoin" {...field} />
@@ -273,52 +281,10 @@ export default function MyForm() {
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{"Description"}</FormLabel>
                 <FormControl>
                   <Textarea className="resize-none" {...field} />
                 </FormControl>
-              </FormItem>
-            )}
-          />
-
-          {/* DATE LIMITE */}
-          <FormField
-            control={form.control}
-            name="datelimite"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>
-                  {"Date limite"}
-                  <span className="text-red-500">*</span>
-                </FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild className="h-10 w-full!">
-                    <FormControl className="w-full">
-                      <Button
-                        type="button"
-                        variant={"outline"}
-                        className={cn(
-                          "w-[320px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP", { locale: fr })
-                        ) : (
-                          <span>Choisir une date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                    />
-                  </PopoverContent>
-                </Popover>
               </FormItem>
             )}
           />
@@ -357,11 +323,53 @@ export default function MyForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="KG">KG</SelectItem>
-                    <SelectItem value="L">Litre</SelectItem>
-                    <SelectItem value="FCFA">FCFA</SelectItem>
+                    <SelectItem value="KG">{"KG"}</SelectItem>
+                    <SelectItem value="L">{"Litre"}</SelectItem>
+                    <SelectItem value="FCFA">{"FCFA"}</SelectItem>
                   </SelectContent>
                 </Select>
+              </FormItem>
+            )}
+          />
+
+          {/* DATE LIMITE */}
+          <FormField
+            control={form.control}
+            name="datelimite"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>
+                  {"Date limite"}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild className="h-10 w-full!">
+                    <FormControl className="w-full">
+                      <Button
+                        type="button"
+                        variant={"outline"}
+                        className={cn(
+                          "w-[320px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP", { locale: fr })
+                        ) : (
+                          <span>{"Choisir une date"}</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                    />
+                  </PopoverContent>
+                </Popover>
               </FormItem>
             )}
           />
@@ -373,7 +381,7 @@ export default function MyForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Bénéficiaire <span className="text-red-500">*</span>
+                  {"Bénéficiaire"} <span className="text-red-500">*</span>
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
@@ -382,8 +390,8 @@ export default function MyForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="me">Soi-même</SelectItem>
-                    <SelectItem value="groupe">Groupe</SelectItem>
+                    <SelectItem value="me">{"Soi-même"}</SelectItem>
+                    <SelectItem value="groupe">{"Groupe"}</SelectItem>
                   </SelectContent>
                 </Select>
               </FormItem>
@@ -398,7 +406,8 @@ export default function MyForm() {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Utilisateurs <span className="text-red-500">*</span>
+                    {"Utilisateurs"}
+                    <span className="text-red-500">*</span>
                   </FormLabel>
 
                   <MultiSelectUsers

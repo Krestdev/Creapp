@@ -66,7 +66,7 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
     groupedByPosition: {},
   });
 
-  // Calculer les statistiques des validateurs
+  // Calculer les statistiques des ascendants
   useEffect(() => {
     if (data?.validators) {
       const positions: Record<number, number> = {};
@@ -119,24 +119,19 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
           <DialogTitle className="text-xl font-semibold text-white flex items-center gap-2">
             <Tag className="h-5 w-5" />
-            {`Catégorie: ${data?.label || "Non spécifiée"}`}
+            {`Catégorie ${data?.label || "Non spécifiée"}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            Informations détaillées de la catégorie
+            {"Informations détaillées de la catégorie"}
           </p>
         </DialogHeader>
 
         {/* Contenu */}
-        <div className="flex-1 overflow-y-auto px-6 pb-4">
+        <div className="flex-1 overflow-y-auto px-6">
           {/* Informations générales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col gap-6">
             {/* Colonne gauche - Informations de base */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <LucideInfo className="h-5 w-5" />
-                Informations générales
-              </h3>
-
               {/* Nom de la catégorie */}
               <div className="flex items-start gap-3">
                 <div className="mt-1">
@@ -155,23 +150,25 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
                   <FileText className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Description</p>
-                  <p className="font-semibold">
+                  <p className="text-sm text-muted-foreground">
+                    {"Description"}
+                  </p>
+                  <p className="first-letter:uppercase">
                     {data?.description ? data.description : "-"}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Colonne droite - Statistiques des validateurs */}
+            {/* Colonne droite - Statistiques des ascendants */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
+              {/* <h3 className="font-semibold text-lg flex items-center gap-2">
                 <LucideCheckCircle className="h-5 w-5" />
-                Chaîne de validation
-              </h3>
+                {"Chaîne d'approbation"}
+              </h3> */}
 
-              {/* Total des validateurs */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              {/* Total des ascendants */}
+              {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="bg-blue-100 p-2 rounded-full">
@@ -179,7 +176,7 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">
-                        Total des validateurs
+                        {"Total des ascendants"}
                       </p>
                       <p className="text-2xl font-bold">
                         {validatorStats.total}
@@ -187,88 +184,89 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
             {/* Résumé des positions */}
-            {validatorStats.total > 0 ? (
-              <div className="space-y-3 col-span-2">
-                <h4 className="font-medium text-sm text-muted-foreground">
-                  Configuration de validation
-                </h4>
+          </div>
 
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(validatorStats.groupedByPosition)
-                    // convertir la clé en number
-                    .map(([positionStr, validators]) => {
-                      const position = Number(positionStr);
+          {validatorStats.total > 0 ? (
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm text-muted-foreground">
+                {"Chaine d'approbation"}
+              </h4>
 
-                      if (!validators || validators.length === 0) return null;
+              <div className="grid grid-cols-3 gap-2">
+                {Object.entries(validatorStats.groupedByPosition)
+                  // convertir la clé en number
+                  .map(([positionStr, validators]) => {
+                    const position = Number(positionStr);
 
-                      const isActive = position <= validatorStats.maxPosition;
-                      const isLast = position === validatorStats.maxPosition;
+                    if (!validators || validators.length === 0) return null;
 
-                      const firstValidatorName =
-                        usersData.data?.data?.find(
-                          (u) => u.id === validators[0].userId
-                        )?.name ?? "Inconnu";
+                    const isActive = position <= validatorStats.maxPosition;
+                    const isLast = position === validatorStats.maxPosition;
 
-                      return (
+                    const firstValidatorName =
+                      usersData.data?.data?.find(
+                        (u) => u.id === validators[0].userId
+                      )?.name ?? "Inconnu";
+
+                    return (
+                      <div
+                        key={position}
+                        className={`flex flex-col items-center p-3 rounded-lg border ${
+                          isActive
+                            ? isLast
+                              ? "bg-red-50 border-red-200"
+                              : "bg-green-50 border-green-200"
+                            : "bg-gray-50 border-gray-200"
+                        }`}
+                      >
+                        {/* Cercle position */}
                         <div
-                          key={position}
-                          className={`flex flex-col items-center p-3 rounded-lg border ${
+                          className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold ${
                             isActive
                               ? isLast
-                                ? "bg-red-50 border-red-200"
-                                : "bg-green-50 border-green-200"
-                              : "bg-gray-50 border-gray-200"
+                                ? "bg-red-100 text-red-600"
+                                : "bg-green-100 text-green-600"
+                              : "bg-gray-100 text-gray-400"
                           }`}
                         >
-                          {/* Cercle position */}
-                          <div
-                            className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold ${
-                              isActive
-                                ? isLast
-                                  ? "bg-red-100 text-red-600"
-                                  : "bg-green-100 text-green-600"
-                                : "bg-gray-100 text-gray-400"
-                            }`}
-                          >
-                            {position}
-                          </div>
-
-                          {/* Label */}
-                          <span className="text-xs mt-2 text-center">
-                            {isLast ? "Dernier" : `Position ${position}`}
-                          </span>
-
-                          {/* Validateur(s) */}
-                          <span className="text-xs text-muted-foreground text-center">
-                            {validators.length === 1 && firstValidatorName}
-
-                            {validators.length > 1 && (
-                              <>
-                                {firstValidatorName}{" "}
-                                <span className="italic">
-                                  +{validators.length - 1}
-                                </span>
-                              </>
-                            )}
-                          </span>
+                          {position}
                         </div>
-                      );
-                    })}
-                </div>
+
+                        {/* Label */}
+                        <span className="text-xs mt-2 text-center">
+                          {isLast ? "Dernier" : `Position ${position}`}
+                        </span>
+
+                        {/* Ascendant(s) */}
+                        <span className="text-xs text-muted-foreground text-center uppercase">
+                          {validators.length === 1 && firstValidatorName}
+
+                          {validators.length > 1 && (
+                            <>
+                              {firstValidatorName}{" "}
+                              <span className="italic">
+                                +{validators.length - 1}
+                              </span>
+                            </>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
               </div>
-            ) : (
-              <div className="text-center py-6 border rounded-lg bg-gray-50 col-span-2">
-                <AlertCircle className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-500">Aucun validateur configuré</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  Les besoins de cette catégorie ne pourront pas être validés
-                </p>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="text-center py-6 border rounded-lg bg-gray-50">
+              <AlertCircle className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500">{"Aucun ascendant configuré"}</p>
+              <p className="text-sm text-gray-400 mt-1">
+                {"Les besoins de cette catégorie ne pourront pas être validés"}
+              </p>
+            </div>
+          )}
         </div>
         {/* Footer */}
         <div className="w-full flex gap-3 p-6 pt-0 shrink-0">
@@ -277,7 +275,7 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
             className="bg-transparent ml-auto"
             onClick={() => onOpenChange(false)}
           >
-            Fermer
+            {"Fermer"}
           </Button>
         </div>
       </DialogContent>

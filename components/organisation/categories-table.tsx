@@ -54,6 +54,7 @@ import {
 import { toast } from "sonner";
 import { ShowCategory } from "./show-category";
 import { UpdateCategory } from "./UpdateCategory";
+import { CategoryQueries } from "@/queries/categoryModule";
 
 interface CategoriesTableProps {
   data: Category[];
@@ -73,7 +74,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [showDetail, setShowDetail] = React.useState(false);
 
-  const categoryQueries = new RequestQueries();
+  const categoryQueries = new CategoryQueries();
   const queryClient = useQueryClient();
 
   const categoryData = useMutation({
@@ -82,7 +83,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
     onSuccess: () => {
       // invalidate and refetch
       queryClient.invalidateQueries({
-        queryKey: ["categories"],
+        queryKey: ["categoryList"],
         refetchType: "active",
       });
     },
@@ -313,14 +314,10 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
       const search = filterValue.toLowerCase();
-      const reference = row.getValue("reference") as string;
-      const name = row.getValue("name") as string;
-      const chef = row.getValue("chef") as string;
+      const name = row.getValue("label") as string;
 
       return (
-        reference.toLowerCase().includes(search) ||
-        name.toLowerCase().includes(search) ||
-        chef.toLowerCase().includes(search)
+        name.toLowerCase().includes(search)
       );
     },
     state: {

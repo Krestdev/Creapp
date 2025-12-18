@@ -16,9 +16,6 @@ const RolesPage = () => {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
-          <div className="flex justify-between">
-            <h2>{"Rôles"}</h2>
-          </div>
           <RoleTable data={rolesData.data.data} />
         </div>
       </div>

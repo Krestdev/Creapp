@@ -21,11 +21,12 @@ import {
   MoreHorizontal,
   Search,
   Shield,
+  Trash2,
   User,
   UserCheck,
   UserX,
   Users,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
@@ -58,19 +59,10 @@ import {
 } from "@/components/ui/table";
 import { UserQueries } from "@/queries/baseModule";
 import { Member, Role, User as UserT } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import UpdateUser from "./UpdateUser";
-
-// export type Utilisateur = {
-//   id: string;
-//   nom: string;
-//   role: "admin" | "manager" | "user" | "viewer";
-//   statut: "active" | "inactive" | "suspended";
-//   derniereConnexion: string;
-//   serviceAssocie: string;
-// };
 
 interface UtilisateursTableProps {
   data: UserT[];
@@ -88,6 +80,37 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
   const [selectedItem, setSelectedItem] = React.useState<UserT | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+
+  // Récupérer les rôles uniques des utilisateurs pour les options du filtre
+  const uniqueRoles = React.useMemo(() => {
+    const allRoles: string[] = [];
+
+    data.forEach((user) => {
+      if (user.role && Array.isArray(user.role)) {
+        user.role.forEach((role) => {
+          if (role.label && !allRoles.includes(role.label)) {
+            allRoles.push(role.label);
+          }
+        });
+      }
+    });
+
+    // Trier les rôles par ordre alphabétique
+    return allRoles.sort((a, b) => a.localeCompare(b));
+  }, [data]);
+
+  // Récupérer les statuts uniques pour les options du filtre
+  const uniqueStatuses = React.useMemo(() => {
+    const allStatuses: string[] = [];
+
+    data.forEach((user) => {
+      if (user.status && !allStatuses.includes(user.status)) {
+        allStatuses.push(user.status);
+      }
+    });
+
+    return allStatuses.sort((a, b) => a.localeCompare(b));
+  }, [data]);
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -158,13 +181,32 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     }
   };
 
-  // fonction pour traduire les Roles
+  const TranslateStatus = (statut: string) => {
+    switch (statut) {
+      case "active":
+        return "Actif";
+      case "inactive":
+        return "Inactif";
+      case "suspended":
+        return "Suspendu";
+      default:
+        return "Inconnu";
+    }
+  };
 
+  const queryClient = useQueryClient();
   const user = new UserQueries();
   const userMutationData = useMutation({
     mutationKey: ["usersStatus"],
     mutationFn: (data: { id: number; status: string }) =>
       user.changeStatus(data.id, { status: data.status }),
+    onSuccess: () => {
+      toast.success("Statut mis à jour avec succès !");
+      queryClient.invalidateQueries({
+        queryKey: ["usersList"],
+        refetchType: "active",
+      });
+    }
   });
 
   const userQueries = new UserQueries();
@@ -173,7 +215,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     mutationFn: async (data: number) => userQueries.delete(Number(data)),
 
     onSuccess: () => {
-      toast.success("Besoin modifié avec succès !");
+      toast.success("Utilisateur supprimé avec succès !");
+      queryClient.invalidateQueries({
+        queryKey: ["usersList"],
+        refetchType: "active",
+      });
     },
 
     onError: (e) => {
@@ -221,8 +267,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         cell: ({ row }) => {
           const role = row.getValue("role") as Role[];
           return (
-            <div className="flex flex-col">
-              {role.map((rol) => (
+            <div className="flex flex-wrap max-w-[300px] gap-1">
+              {role.map((rol) => {
+                return(
                 <Badge
                   className={`${getRoleBadgeColor(
                     rol.label
@@ -230,10 +277,18 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   key={rol.id}
                 >
                   {getRoleIcon(rol.label)}
-                  {rol.label.charAt(0).toUpperCase() + rol.label.slice(1)}
+                  {TranslateRole(rol.label.charAt(0).toUpperCase() + rol.label.slice(1))}
                 </Badge>
-              ))}
+              )})}
             </div>
+          );
+        },
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue || filterValue === "all") return true;
+
+          const roles = row.getValue(columnId) as Role[];
+          return roles.some((role) =>
+            role.label.toLowerCase().includes(filterValue.toLowerCase())
           );
         },
       },
@@ -261,9 +316,14 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               )} flex items-center gap-1 w-fit`}
             >
               {getStatutIcon(status)}
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {TranslateStatus(status.charAt(0) + status.slice(1))}
             </Badge>
           );
+        },
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue || filterValue === "all") return true;
+          const status = row.getValue(columnId) as string;
+          return status.toLowerCase().includes(filterValue.toLowerCase());
         },
       },
       {
@@ -272,7 +332,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           return (
             <Button
               variant="ghost"
-              className="bg-transparent"
+              className="bg-transparent max-w-[200px]"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
@@ -285,10 +345,12 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         cell: ({ row }) => {
           const data = row.getValue("members") as Member[];
           return (
-            <div>
-              {data.map((mem) => {
-                return <Badge key={mem.id}>{mem.department?.label}</Badge>;
-              })}
+            <div className="flex flex-wrap max-w-[150px] gap-1">
+              {data.map((mem) => (
+                <Badge key={mem.id} variant="outline">
+                  {mem.department?.label}
+                </Badge>
+              ))}
             </div>
           );
         },
@@ -323,19 +385,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       },
       {
         id: "actions",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Action"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
+        header: () => <span className="tablehead">Action</span>,
         enableHiding: false,
         cell: ({ row }) => {
           const utilisateur = row.original;
@@ -343,9 +393,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button variant={"outline"}>
+                  Actions
+                  <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -362,7 +412,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   }}
                 >
                   <LucidePen className="mr-2 h-4 w-4" />
-                  {"Modifier"}
+                  Modifier
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
@@ -371,9 +421,10 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                       status: "active",
                     })
                   }
+                  disabled={utilisateur.status === "active"}
                 >
                   <UserCheck className="mr-2 h-4 w-4" />
-                  Activer
+                  {"Activer"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
@@ -382,15 +433,17 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                       status: "inactive",
                     })
                   }
+                  disabled={utilisateur.status === "inactive"}
                 >
                   <UserX className="mr-2 h-4 w-4" />
-                  Suspendre
+                  {"Suspendre"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600"
                   onClick={() => userMutation.mutate(utilisateur.id ?? -1)}
                 >
-                  Supprimer
+                  <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                  {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -414,14 +467,23 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["nom", "serviceAssocie"];
-      return searchableColumns.some((column) => {
-        const value = row.getValue(column);
-        return value
-          ?.toString()
-          .toLowerCase()
-          .includes(filterValue.toLowerCase());
-      });
+      if (!filterValue) return true;
+
+      const searchValue = filterValue.toLowerCase();
+      const name = row.getValue("name") as string;
+      const members = row.getValue("members") as Member[];
+
+      // Recherche dans le nom
+      if (name?.toLowerCase().includes(searchValue)) return true;
+      // Recherche dans les départements
+      if (
+        members?.some((member) =>
+          member.department?.label?.toLowerCase().includes(searchValue)
+        )
+      )
+        return true;
+
+      return false;
     },
     state: {
       sorting,
@@ -437,13 +499,30 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const statutFilter =
     (table.getColumn("status")?.getFilterValue() as string) ?? "all";
 
+  const TranslateRole = (role: string) => {
+    switch (role) {
+      case "USER":
+        return "Emetteur";
+      case "MANAGER":
+        return "Manager";
+      case "SALES":
+        return "Responsable d'achat";
+      case "SALES_MANAGER":
+        return "Donneur d'ordre d'achat";
+      case "ADMIN":
+        return "Administrateur";
+      default:
+        return role;
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher par nom ou département..."
+            placeholder="Rechercher par nom et département..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="pl-8 max-w-sm"
@@ -458,32 +537,35 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           }
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by role" />
+            <SelectValue placeholder="Filtrer par rôle" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous les Rôles</SelectItem>
-            <SelectItem value="ADMIN">Admin</SelectItem>
-            <SelectItem value="MANAGER">Validateur</SelectItem>
-            <SelectItem value="USER">User</SelectItem>
-            <SelectItem value="SALES">Responsable Achat</SelectItem>
+            {uniqueRoles.map((role) => (
+              <SelectItem key={role} value={role.toLowerCase()}>
+                {TranslateRole(role.charAt(0).toUpperCase() + role.slice(1))}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select
           value={statutFilter}
           onValueChange={(value) =>
             table
-              .getColumn("statut")
+              .getColumn("status")
               ?.setFilterValue(value === "all" ? "" : value)
           }
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder="Filtrer par statut" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous les Statuts</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="suspended">Suspendu</SelectItem>
+            {uniqueStatuses.map((status) => (
+              <SelectItem key={status} value={status.toLowerCase()}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <DropdownMenu>
@@ -498,21 +580,12 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               .filter((column) => column.getCanHide())
               .map((column) => {
                 let text = column.id;
-                if (column.id === "select") {
-                  text = "Selectionner";
-                } else if (column.id === "actions") {
-                  text = "Actions";
-                } else if (column.id === "name") {
-                  text = "Nom";
-                } else if (column.id === "role") {
-                  text = "Rôle";
-                } else if (column.id === "status") {
-                  text = "Statut";
-                } else if (column.id === "lastConnection") {
+                if (column.id === "name") text = "Nom";
+                else if (column.id === "role") text = "Rôle";
+                else if (column.id === "status") text = "Statut";
+                else if (column.id === "lastConnection")
                   text = "Dernière connexion";
-                } else if (column.id === "members") {
-                  text = "Département associé";
-                }
+                else if (column.id === "members") text = "Département associé";
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -533,10 +606,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         {table.getFilteredSelectedRowModel().rows.length > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              {table.getFilteredSelectedRowModel().rows.length} row(s) selected
+              {table.getFilteredSelectedRowModel().rows.length} ligne(s)
+              sélectionnée(s)
             </span>
             <Button variant="outline" size="sm">
-              Bulk Actions
+              Actions groupées
             </Button>
           </div>
         )}
@@ -591,7 +665,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Aucun résultat trouvé.
                 </TableCell>
               </TableRow>
             )}

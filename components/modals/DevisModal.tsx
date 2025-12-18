@@ -29,6 +29,10 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { UserQueries } from "@/queries/baseModule";
+import { useQuery } from "@tanstack/react-query";
+import { ProviderQueries } from "@/queries/providers";
+import { RequestQueries } from "@/queries/requestModule";
 
 interface DetailModalProps {
   open: boolean;
@@ -46,6 +50,24 @@ export function DevisModal({
   const totalAmount =
     data?.element?.reduce((acc, curr) => acc + curr.priceProposed, 0) || 0;
 
+    const users = new UserQueries()
+    const usersData = useQuery({
+      queryKey: ["usersList"],
+      queryFn: () => users.getAll(),
+    })
+
+    const providers = new ProviderQueries()
+    const providersData = useQuery({
+      queryKey: ["providersList"],
+      queryFn: () => providers.getAll(),
+    })
+
+    const request = new RequestQueries()
+    const requestsData = useQuery({
+      queryKey: ["requestsList"],
+      queryFn: () => request.getAll(),
+    })
+
   // Récupérer les informations de l'utilisateur (à adapter selon votre structure)
   // const getUserName = (userId: string | number | undefined) => {
   //   // Ici, vous devriez récupérer le nom de l'utilisateur depuis votre store ou API
@@ -55,17 +77,16 @@ export function DevisModal({
 
   // Récupérer le nom du fournisseur (à adapter selon votre structure)
   const getProviderName = (providerId: number | undefined) => {
-    // Ici, vous devriez récupérer le nom du fournisseur depuis votre store ou API
-    // Pour l'instant, on retourne une valeur par défaut
-    return providerId ? `Fournisseur ${providerId}` : "Non spécifié";
+    return providersData.data?.data?.find((p) => p.id === providerId)?.name || "Non spécifié";
   };
 
-  // Récupérer les projets associés (à adapter selon votre structure)
-  // const getAssociatedProjects = () => {
-  //   // Ici, vous devriez récupérer les projets depuis votre store ou API
-  //   // Pour l'instant, on retourne une valeur par défaut
-  //   return data?.projectNames || "Créaconsult, Médiatech";
-  // };
+  const getUserName = (userId: number | undefined) => {
+    return usersData.data?.data?.find((u) => u.id === userId)?.name || "Non spécifique";
+  };
+
+  const getRequestTitle = (requestId: number | undefined) => {
+    return requestsData.data?.data?.find((r) => r.id === requestId)?.label || "Non spécifié";
+  }
 
   // Formater les dates
   const formatDate = (dateString: string | undefined) => {
@@ -79,41 +100,30 @@ export function DevisModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[640px]! max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
+      <DialogContent className="max-w-[940px]! max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header */}
         <DialogHeader className="bg-linear-to-r from-[#9E1351] to-[#700032] text-white p-6 m-4 rounded-lg pb-8 relative">
           <DialogTitle className="text-xl font-semibold text-white">
             {`Devis - ${quotation || "Sans titre"}`}
           </DialogTitle>
           <DialogDescription className="text-sm text-[#FAFAFA]">
-            Détail du devis
+            {"Détail du devis"}
           </DialogDescription>
         </DialogHeader>
 
         {/* Infos générales */}
         <div className="flex gap-3 p-4">
-          <div className="w-full grid grid-cols-2 gap-3 py-3">
+          <div className="w-full grid grid-cols-3 gap-3 py-3">
             {/* Référence */}
             <div className="w-full flex flex-row items-center gap-2">
               <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
                 <LucideHash size={24} />
               </div>
               <div className="flex flex-col">
-                <p className="text-[#52525B]">Référence</p>
+                <p className="text-[#52525B]">{"Référence"}</p>
                 <div className="w-fit bg-[#F2CFDE] flex items-center justify-center px-1.5 rounded">
                   <p className="text-[#9E1351] text-sm">{data?.ref || "N/A"}</p>
                 </div>
-              </div>
-            </div>
-
-            {/* Projet */}
-            <div className="w-full flex flex-row items-center gap-2">
-              <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                <LucideBriefcaseBusiness size={24} />
-              </div>
-              <div className="flex flex-col">
-                <p className="text-[#52525B]">Projets associés</p>
-                {/* <p className="text-sm font-semibold">{getAssociatedProjects()}</p> */}
               </div>
             </div>
 
@@ -143,44 +153,7 @@ export function DevisModal({
               </div>
             </div>
 
-            {/* TABLEAU QUI PREND 2 COLONNES */}
-            <div className="col-span-2 w-full overflow-x-auto">
-              <Table className="w-full border rounded-lg bg-white">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{"Besoin"}</TableHead>
-                    <TableHead>{"Désignation"}</TableHead>
-                    <TableHead>{"Quantité"}</TableHead>
-                    <TableHead>{"Prix Unitaire"}</TableHead>
-                    <TableHead>{"Total"}</TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {data?.element?.map((el, index) => (
-                    <TableRow
-                      key={index}
-                      className={`${index % 2 === 0 ? "bg-[#FAFAFA]" : ""}`}
-                    >
-                      <TableCell className="font-medium">
-                        {el.requestModelId || "N/A"}
-                      </TableCell>
-                      <TableCell>{el.title || "N/A"}</TableCell>
-                      <TableCell>
-                        {el.quantity || 0} {el.unit || "unité"}
-                      </TableCell>
-                      <TableCell>{XAF.format(el.priceProposed || 0)}</TableCell>
-                      <TableCell>
-                        {XAF.format(
-                          (el.quantity || 0) * (el.priceProposed || 0)
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
+            
             {/* Initié par */}
             <div className="w-full flex flex-row items-center gap-2">
               <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
@@ -188,7 +161,7 @@ export function DevisModal({
               </div>
               <div className="flex flex-col">
                 <p className="text-[#52525B]">Initié par</p>
-                {/* <p className="text-sm font-semibold">{getUserName(data?.userId)}</p> */}
+                <p className="text-sm font-semibold uppercase">{getUserName(data?.userId)}</p>
               </div>
             </div>
 
@@ -269,21 +242,49 @@ export function DevisModal({
                 </p>
               </div>
             </div>
+
+            {/* TABLEAU QUI PREND 2 COLONNES */}
+            <div className="col-span-3 w-full overflow-x-auto">
+              <Table className="w-full border rounded-lg bg-white">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{"Besoin"}</TableHead>
+                    <TableHead>{"Élément"}</TableHead>
+                    <TableHead>{"Quantité"}</TableHead>
+                    <TableHead>{"Prix Unitaire"}</TableHead>
+                    <TableHead>{"Total"}</TableHead>
+                  </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                  {data?.element?.map((el, index) => (
+                    <TableRow
+                      key={index}
+                      className={`${index % 2 === 0 ? "bg-[#FAFAFA]" : ""}`}
+                    >
+                      <TableCell className="font-medium">
+                        {getRequestTitle(el.requestModelId) || "N/A"}
+                      </TableCell>
+                      <TableCell>{el.title || "N/A"}</TableCell>
+                      <TableCell>
+                        {el.quantity || 0} {el.unit || "unité"}
+                      </TableCell>
+                      <TableCell>{XAF.format(el.priceProposed || 0)}</TableCell>
+                      <TableCell>
+                        {XAF.format(
+                          (el.quantity || 0) * (el.priceProposed || 0)
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex justify-end gap-3 p-6 pt-0">
-          <Button
-            variant="primary"
-            onClick={() => {
-              // Logique pour modifier le devis
-              console.log("Modifier le devis:", data);
-              onOpenChange(false);
-            }}
-          >
-            Modifier
-          </Button>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fermer
           </Button>

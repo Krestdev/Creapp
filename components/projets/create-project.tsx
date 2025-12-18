@@ -26,6 +26,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { Textarea } from "../ui/textarea";
+import { SearchableSelect } from "../base/searchableSelect";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -40,7 +41,7 @@ export const formSchema = z.object({
     .string({ message: "Ce champ est requis" })
     .min(4, "Le libellé doit contenir au moins 4 caractères"),
 
-  description: z.string({ message: "Ce champ est requis" }).optional(),
+  description: z.string().min(1, { message: "Ce champ est requis" }).optional(),
 
   chiefid: z
     .string({ message: "Veuillez définir un chef de projet" })
@@ -122,7 +123,10 @@ export function ProjectCreateForm() {
           name="label"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{"Titre du Projet"}</FormLabel>
+              <FormLabel>
+                {"Titre du Projet"}
+                <span className="text-destructive">*</span>
+              </FormLabel>
               <FormControl>
                 <Input {...field} placeholder="ex. Autoroute A5" />
               </FormControl>
@@ -142,9 +146,12 @@ export function ProjectCreateForm() {
               : [];
             return (
               <FormItem>
-                <FormLabel>{"Chef du Projet"}</FormLabel>
+                <FormLabel>
+                  {"Chef du Projet"}
+                  <span className="text-destructive">*</span>
+                </FormLabel>
                 <FormControl>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  {/* <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Sélectionner" />
                     </SelectTrigger>
@@ -164,7 +171,19 @@ export function ProjectCreateForm() {
                         </SelectItem>
                       )}
                     </SelectContent>
-                  </Select>
+                  </Select> */}
+                  <SearchableSelect
+                    width="w-full"
+                    allLabel=""
+                    options={
+                      userApi.data?.data.map((user) => ({
+                        value: String(user.id),
+                        label: user.name,
+                      })) || []
+                    }
+                    {...field}
+                    placeholder="Sélectionner"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -188,23 +207,26 @@ export function ProjectCreateForm() {
           control={form.control}
           name="budget"
           render={({ field: { value, ...props } }) => (
-            <FormItem>
-              <FormLabel>{"Budge Alloué"}</FormLabel>
+            <FormItem className="col-span-2">
+              <FormLabel>{"Budget prévisionnel"}</FormLabel>
               <FormControl>
+                <div className="relative">
                 <Input
                   type="number"
                   value={String(value)}
                   {...props}
                   placeholder="ex. 150 000 000"
-                />
+                  />
+                  <div className="absolute right-0 top-[1%] bg-gray-100 p-2 ">{"FCFA"}</div>
+                  </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="@min-[640px]:col-span-2">
+        <div className="@min-[640px]:col-span-2 ml-auto">
           <Button type="submit" variant={"primary"}>
-            {"Créer"}
+            {"Enrégistrer"}
           </Button>
         </div>
       </form>

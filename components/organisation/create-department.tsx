@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { Form } from "../ui/form";
 import { Textarea } from "../ui/textarea";
+import { SearchableSelect } from "../base/searchableSelect";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -116,7 +117,9 @@ export function DepartmentCreateForm() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid} className="gap-1">
-                <FieldLabel htmlFor="label">{"Nom du département"} <span className="text-red-400">*</span></FieldLabel>
+                <FieldLabel htmlFor="label">
+                  {"Nom du département"} <span className="text-red-400">*</span>
+                </FieldLabel>
                 <Input
                   {...field}
                   id="label"
@@ -171,9 +174,12 @@ export function DepartmentCreateForm() {
                 : [];
               return (
                 <Field data-invalid={fieldState.invalid} className="gap-1">
-                  <FieldLabel htmlFor="chiefid">{"Chef du département"} <span className="text-red-400">*</span></FieldLabel>
+                  <FieldLabel htmlFor="chiefid">
+                    {"Chef du département"}{" "}
+                    <span className="text-red-400">*</span>
+                  </FieldLabel>
 
-                  <Select
+                  {/* <Select
                     value={field.value.toString()}
                     onValueChange={field.onChange}
                   >
@@ -190,7 +196,19 @@ export function DepartmentCreateForm() {
                         </SelectItem>
                       ))}
                     </SelectContent>
-                  </Select>
+                  </Select> */}
+                  <SearchableSelect
+                    width="w-full"
+                    allLabel=""
+                    options={
+                      userApi.data?.data.map((user) => ({
+                        value: String(user.id),
+                        label: user.name,
+                      })) || []
+                    }
+                    {...field}
+                    placeholder="Sélectionner"
+                  />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}

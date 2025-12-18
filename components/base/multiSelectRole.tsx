@@ -56,6 +56,23 @@ export default function MultiSelectRole({
     onChange(selected.filter((u) => u.id !== id));
   };
 
+  const TranslateRole = (role: string) => {
+    switch (role) {
+      case "USER":
+        return "Emetteur";
+      case "MANAGER":
+        return "Manager";
+      case "SALES":
+        return "Responsable d'achat";
+      case "SALES_MANAGER":
+        return "Donneur d'ordre d'achat";
+      case "ADMIN":
+        return "Administrateur";
+      default:
+        return role;
+    }
+  };
+
   return (
     <div
       className={`${className} w-full flex flex-col gap-2`}
@@ -74,7 +91,7 @@ export default function MultiSelectRole({
                 key={role.id}
                 className="bg-[#8B0E4E] text-white px-3 py-1 rounded-md flex items-center gap-2"
               >
-                {role.label}
+                {TranslateRole(role.label)}
                 <X
                   size={14}
                   className="cursor-pointer"
@@ -144,7 +161,7 @@ export default function MultiSelectRole({
                   onClick={() => addRole(role)}
                   className="p-2 cursor-pointer hover:bg-gray-100 transition-colors"
                 >
-                  {role.label}
+                  {TranslateRole(role.label)}
                 </div>
               ))
             )}

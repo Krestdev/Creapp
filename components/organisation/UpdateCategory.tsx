@@ -35,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "../ui/textarea";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -47,13 +48,17 @@ export interface ActionResponse<T = any> {
 
 export const formSchema = z.object({
   label: z.string({ message: "This field is required" }),
-  validators: z.array(
-    z.object({
-      id: z.number().optional(), // ID existant pour les validateurs
-      userId: z.number().min(1, "Sélectionnez un utilisateur"),
-      rank: z.number().min(1).max(3),
-    })
-  ).max(3, "Maximum 3 validateurs autorisés").optional().default([]),
+  validators: z
+    .array(
+      z.object({
+        id: z.number().optional(), // ID existant pour les ascendants
+        userId: z.number().min(1, "Sélectionnez un utilisateur"),
+        rank: z.number().min(1).max(3),
+      })
+    )
+    .max(3, "Maximum 3 ascendants autorisés")
+    .optional()
+    .default([]),
   description: z.string().optional(),
 });
 
@@ -66,11 +71,11 @@ interface UpdateCategoryProps {
   onSuccess?: () => void;
 }
 
-export function UpdateCategory({ 
-  open, 
-  setOpen, 
-  categoryData, 
-  onSuccess 
+export function UpdateCategory({
+  open,
+  setOpen,
+  categoryData,
+  onSuccess,
 }: UpdateCategoryProps) {
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
@@ -81,7 +86,7 @@ export function UpdateCategory({
     },
   });
 
-  // Field array pour gérer les validateurs
+  // Field array pour gérer les ascendants
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: "validators",
@@ -105,24 +110,29 @@ export function UpdateCategory({
       form.reset({
         label: categoryData.label || "",
         description: categoryData.description || "",
-        validators: categoryData.validators?.map(validator => ({
-          userId: validator.userId,
-          rank: validator.rank,
-        })) || [],
+        validators:
+          categoryData.validators?.map((validator) => ({
+            userId: validator.userId,
+            rank: validator.rank,
+          })) || [],
       });
     }
   }, [categoryData, form]);
 
-  console.log(categoryData?.validators?.map(validator => ({
-          userId: validator.userId,
-          rank: validator.rank,
-        })) || [])
-  
+  console.log(
+    categoryData?.validators?.map((validator) => ({
+      userId: validator.userId,
+      rank: validator.rank,
+    })) || []
+  );
 
   const categoryApi = useMutation({
     mutationKey: ["updateCategory"],
     mutationFn: async (data: Partial<Category>) => {
-      const response = await categoryQueries.updateCategory(categoryData?.id!, data);
+      const response = await categoryQueries.updateCategory(
+        categoryData?.id!,
+        data
+      );
       return {
         message: "Category updated successfully",
         data: response.data,
@@ -143,10 +153,10 @@ export function UpdateCategory({
     },
   });
 
-  // Fonction pour ajouter un validateur
+  // Fonction pour ajouter un ascendant
   const addValidator = () => {
     if (fields.length >= 3) {
-      toast.error("Maximum 3 validateurs autorisés");
+      toast.error("Maximum 3 ascendants autorisés");
       return;
     }
 
@@ -157,8 +167,10 @@ export function UpdateCategory({
     }
 
     // Trouver un utilisateur qui n'est pas déjà sélectionné
-    const existingUserIds = fields.map(field => field.userId);
-    const availableUser = users.find(user => !existingUserIds.includes(user.id!));
+    const existingUserIds = fields.map((field) => field.userId);
+    const availableUser = users.find(
+      (user) => !existingUserIds.includes(user.id!)
+    );
 
     if (!availableUser) {
       toast.error("Tous les utilisateurs sont déjà sélectionnés");
@@ -167,11 +179,11 @@ export function UpdateCategory({
 
     append({
       userId: availableUser.id!,
-      rank: fields.length + 1, 
+      rank: fields.length + 1,
     });
   };
 
-  // Fonction pour déplacer un validateur vers le haut
+  // Fonction pour déplacer un ascendant vers le haut
   const moveUp = (index: number) => {
     if (index > 0) {
       move(index, index - 1);
@@ -183,7 +195,7 @@ export function UpdateCategory({
     }
   };
 
-  // Fonction pour déplacer un validateur vers le bas
+  // Fonction pour déplacer un ascendant vers le bas
   const moveDown = (index: number) => {
     if (index < fields.length - 1) {
       move(index, index + 1);
@@ -198,7 +210,7 @@ export function UpdateCategory({
   // Fonction pour obtenir le nom d'un utilisateur par son ID
   const getUserName = (userId: number) => {
     const users = usersData.data?.data || [];
-    const user = users.find(u => u.id === userId);
+    const user = users.find((u) => u.id === userId);
     return user?.name || `Utilisateur #${userId}`;
   };
 
@@ -213,9 +225,9 @@ export function UpdateCategory({
         }
         return field.userId;
       })
-      .filter(id => id !== null);
+      .filter((id) => id !== null);
 
-    return users.filter(user => !existingUserIds.includes(user.id!));
+    return users.filter((user) => !existingUserIds.includes(user.id!));
   };
 
   const onsubmit = (values: z.infer<typeof formSchema>) => {
@@ -224,12 +236,13 @@ export function UpdateCategory({
       return;
     }
 
-    // Préparer les validateurs avec les rangs mis à jour
-    const validators = values.validators?.map((validator, index) => ({
-      id: validator.id, // Garder l'ID existant si disponible
-      userId: validator.userId,
-      rank: index + 1, 
-    })) || [];
+    // Préparer les ascendants avec les rangs mis à jour
+    const validators =
+      values.validators?.map((validator, index) => ({
+        id: validator.id, // Garder l'ID existant si disponible
+        userId: validator.userId,
+        rank: index + 1,
+      })) || [];
 
     const data: Partial<Category> & {
       validators?: { id?: number; userId: number; rank: number }[];
@@ -237,18 +250,18 @@ export function UpdateCategory({
       label: values.label,
       description: values.description || undefined,
     };
-    
+
     if (validators.length > 0) {
       data.validators = validators;
     } else {
-      // Si aucun validateur, on peut envoyer un tableau vide pour supprimer tous les validateurs
+      // Si aucun ascendant, on peut envoyer un tableau vide pour supprimer tous les ascendants
       data.validators = [];
     }
 
     categoryApi.mutate(data);
   };
 
-  // Mettre à jour automatiquement les rangs quand le nombre de validateurs change
+  // Mettre à jour automatiquement les rangs quand le nombre de ascendants change
   useEffect(() => {
     const validators = form.getValues("validators") || [];
     validators.forEach((validator, index) => {
@@ -296,7 +309,10 @@ export function UpdateCategory({
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="Description de la catégorie" {...field} />
+                      <Textarea
+                        placeholder="Description de la catégorie"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -304,7 +320,7 @@ export function UpdateCategory({
               />
             </div>
 
-            {/* Section des validateurs */}
+            {/* Section des ascendants */}
             <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
               <div className="flex items-center justify-between">
                 <div>
@@ -312,21 +328,21 @@ export function UpdateCategory({
                     {"Définissez les ascendants"}
                   </FormLabel>
                   <p className="text-sm text-muted-foreground">
-                    Ajoutez jusqu'à 3 validateurs dans l'ordre de validation
+                    {`Ajoutez jusqu'à 3 ascendants dans l'ordre d'approbation souhaité`}
                   </p>
                 </div>
-                <Button
+                {/* <Button
                   type="button"
                   variant="outline"
                   onClick={addValidator}
                   disabled={fields.length >= 3}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un validateur
-                </Button>
+                  Ajouter un ascendant
+                </Button> */}
               </div>
 
-              {/* Liste des validateurs */}
+              {/* Liste des ascendants */}
               {fields.length > 0 ? (
                 <div className="space-y-3">
                   {fields.map((field, index) => (
@@ -342,14 +358,6 @@ export function UpdateCategory({
                               <span className="ml-1">(Dernier)</span>
                             )}
                           </Badge>
-                          {index === 0 && (
-                            <Badge variant="outline">Premier validateur</Badge>
-                          )}
-                          {field.id && (
-                            <Badge variant="outline" className="text-xs">
-                              ID: {field.id}
-                            </Badge>
-                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           <Button
@@ -392,7 +400,7 @@ export function UpdateCategory({
                           const availableUsers = getAvailableUsers(index);
                           return (
                             <FormItem>
-                              <FormLabel>Utilisateur validateur *</FormLabel>
+                              <FormLabel>{"Nom de l'ascendant *"}</FormLabel>
                               <Select
                                 value={field.value?.toString() || ""}
                                 onValueChange={(value) =>
@@ -415,7 +423,7 @@ export function UpdateCategory({
                                         key={user.id}
                                         value={user.id!.toString()}
                                       >
-                                        {user.name} ({user.email})
+                                        {user.name}
                                       </SelectItem>
                                     ))
                                   ) : (
@@ -450,39 +458,40 @@ export function UpdateCategory({
                       )}
                     </div>
                   ))}
+                  {/* Je vérifie qu'il y'a encore des utilisateurs disponible  */}
+                  {getAvailableUsers(fields.length - 1).length > 0 && (
+                    <div className="flex flex-col items-center justify-center mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addValidator}
+                        disabled={fields.length >= 3}
+                        className="h-12 w-12 rounded-full bg-muted flex items-center justify-center"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      {"Ajouter un ascendant"}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-6 border rounded-lg bg-muted/10">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                      <Plus className="h-6 w-6 text-muted-foreground" />
-                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addValidator}
+                      disabled={fields.length >= 3}
+                      className="h-12 w-12 rounded-full bg-muted flex items-center justify-center"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
                     <p className="text-muted-foreground">
-                      Aucun validateur configuré
+                      {"Aucun ascendant configuré"}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Cliquez sur "Ajouter un validateur" pour configurer la chaîne de validation
+                      {`Cliquez sur "Ajouter un ascendant" pour configurer la chaîne d'approbation`}
                     </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Indicateur de progression */}
-              {fields.length > 0 && (
-                <div className="pt-4 border-t">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Premier validateur</span>
-                    <span className="text-muted-foreground">Dernier validateur</span>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full transition-all duration-300"
-                      style={{ width: `${(fields.length / 3) * 100}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                    <span>Position 1</span>
-                    <span>Position {fields.length}</span>
                   </div>
                 </div>
               )}
@@ -491,9 +500,9 @@ export function UpdateCategory({
 
           {/* Footer avec boutons */}
           <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
-            <Button 
-              type="submit" 
-              className="w-fit" 
+            <Button
+              type="submit"
+              className="w-fit"
               onClick={form.handleSubmit(onsubmit)}
               disabled={categoryApi.isPending}
             >

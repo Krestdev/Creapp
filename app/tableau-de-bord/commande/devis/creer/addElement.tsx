@@ -1,6 +1,7 @@
 // Element Form
-'use client'
-import { Button } from '@/components/ui/button';
+"use client";
+import { SearchableSelect } from "@/components/base/searchableSelect";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -8,40 +9,40 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { units } from '@/data/unit';
-import { RequestModelT } from '@/types/types';
-import { zodResolver } from '@hookform/resolvers/zod';
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import z from 'zod';
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { units } from "@/data/unit";
+import { RequestModelT } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
+import { useForm } from "react-hook-form";
+import z from "zod";
 
 const formSchema = z.object({
-        id: z.number().optional(),
-        needId: z.number({ message: 'Veuillez sélectionner un besoin' }),
-        designation: z.string({ message: 'Veuillez renseigner une désignation' }),
-        quantity: z.number(),
-        unit: z.string(),
-        price: z.number({ message: 'Veuillez renseigner un prix' })
-      });
+  id: z.number().optional(),
+  needId: z.number({ message: "Veuillez sélectionner un besoin" }),
+  designation: z.string({ message: "Veuillez renseigner une désignation" }),
+  quantity: z.number(),
+  unit: z.string(),
+  price: z.number({ message: "Veuillez renseigner un prix" }),
+});
 
 type ElementT = z.infer<typeof formSchema>;
 
@@ -51,8 +52,8 @@ interface Props {
   needs: Array<RequestModelT>;
   value?: ElementT[];
   onChange: (value: ElementT[]) => void;
-  element?: ElementT;           // élément en cours d’édition
-  index?: number | null;        // index de l’élément à modifier
+  element?: ElementT; // élément en cours d’édition
+  index?: number | null; // index de l’élément à modifier
 }
 
 function AddElement({
@@ -62,7 +63,7 @@ function AddElement({
   value,
   onChange,
   element,
-  index
+  index,
 }: Props) {
   const isEdit = index !== undefined && index !== null;
 
@@ -71,11 +72,11 @@ function AddElement({
     defaultValues: {
       id: element?.id,
       needId: element?.needId,
-      designation: element?.designation ?? '',
+      designation: element?.designation ?? "",
       quantity: element?.quantity ?? 1,
-      unit: element?.unit ?? 'piece',
-      price: element?.price ?? 1000
-    }
+      unit: element?.unit ?? "piece",
+      price: element?.price ?? 1000,
+    },
   });
 
   // Important : reset le form quand on ouvre avec un nouvel élément
@@ -84,10 +85,10 @@ function AddElement({
       form.reset({
         id: element?.id,
         needId: element?.needId ?? undefined,
-        designation: element?.designation ?? '',
+        designation: element?.designation ?? "",
         quantity: element?.quantity ?? 1,
-        unit: element?.unit ?? 'piece',
-        price: element?.price ?? 1000
+        unit: element?.unit ?? "piece",
+        price: element?.price ?? 1000,
       });
     }
   }, [element, open, form]);
@@ -124,15 +125,17 @@ function AddElement({
         openChange(state);
       }}
     >
-      <DialogContent>
+      <DialogContent className="max-h-[70vh] h-full overflow-y-auto dialog:w-full @min-[440px]/dialog:w-[450px] @min-[600px]/dialog:w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? 'Modifier un élément du devis' : 'Ajouter un élément du devis'}
+          <DialogTitle className="h-fit!">
+            {isEdit
+              ? "Modifier un élément du devis"
+              : "Ajouter un élément du devis"}
           </DialogTitle>
           <DialogDescription>
             {isEdit
-              ? 'Mettez à jour les informations de cet élément du devis.'
-              : 'Complétez les informations de l’élément du devis.'}
+              ? "Mettez à jour les informations de cet élément du devis."
+              : "Complétez les informations de l’élément du devis."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -145,7 +148,7 @@ function AddElement({
                 <FormItem className="col-span-1 @min-[440px]/dialog:col-span-2">
                   <FormLabel isRequired>{"Besoin"}</FormLabel>
                   <FormControl>
-                    <Select
+                    {/* <Select
                       value={field.value ? String(field.value) : undefined}
                       onValueChange={(v) => field.onChange(Number(v))}
                     >
@@ -159,7 +162,20 @@ function AddElement({
                           </SelectItem>
                         ))}
                       </SelectContent>
-                    </Select>
+                    </Select> */}
+                    <SearchableSelect
+                      width="w-full"
+                      allLabel=""
+                      options={
+                        needs.map((need) => ({
+                          label: need.label,
+                          value: need.id.toString(),
+                        })) || []
+                      }
+                      value={field.value?.toString() || ""}
+                      onChange={(value) => field.onChange(parseInt(value))}
+                      placeholder="Sélectionnez un besoin"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -191,10 +207,12 @@ function AddElement({
                   <FormControl>
                     <Input
                       type="number"
-                      value={field.value ?? ''}
+                      value={field.value ?? ""}
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value === '' ? undefined : Number(e.target.value)
+                          e.target.value === ""
+                            ? undefined
+                            : Number(e.target.value)
                         )
                       }
                       placeholder="ex. 10"
@@ -240,10 +258,12 @@ function AddElement({
                     <div className="relative">
                       <Input
                         type="number"
-                        value={field.value ?? ''}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === '' ? undefined : Number(e.target.value)
+                            e.target.value === ""
+                              ? undefined
+                              : Number(e.target.value)
                           )
                         }
                         className="pr-12"
@@ -264,7 +284,7 @@ function AddElement({
                 variant="primary"
                 onClick={form.handleSubmit(onSubmit)}
               >
-                {isEdit ? 'Modifier' : 'Ajouter'}
+                {isEdit ? "Modifier" : "Ajouter"}
               </Button>
               <DialogClose asChild>
                 <Button

@@ -38,7 +38,6 @@ const RequestList = ({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">
-        <h2 className="text-black">Mes besoins recents</h2>
         <DataTable
           dateFilter={dateFilter}
           setDateFilter={setDateFilter}

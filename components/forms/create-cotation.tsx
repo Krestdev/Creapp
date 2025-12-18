@@ -159,7 +159,7 @@ export default function CreateCotationForm() {
             name="date_limite"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>{"Date limite de livraison"}</FormLabel>
+                <FormLabel>{"Date limite de soumission"}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl className="w-full">

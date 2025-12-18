@@ -30,6 +30,8 @@ import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { UserQueries } from "@/queries/baseModule";
 import { useRef } from "react";
+import { Textarea } from "../ui/textarea";
+import { SearchableSelect } from "../base/searchableSelect";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -41,14 +43,19 @@ export interface ActionResponse<T = any> {
 }
 
 export const formSchema = z.object({
-  label: z.string({ message: "This field is required" }),
-  validators: z.array(
-    z.object({
-      userId: z.number().min(1, "Sélectionnez un utilisateur"),
-      rank: z.number().min(1).max(3),
-    })
-  ).max(3, "Maximum 3 validateurs autorisés").optional().default([]),
-  description: z.string().optional(),
+  label: z.string().min(1, { message: "Ce champ est obligatoire" }),
+  validators: z
+    .array(
+      z.object({
+        userId: z.number().min(1, "Sélectionnez un utilisateur"),
+        rank: z.number().min(1).max(3),
+      })
+    )
+    .min(1, "Sélectionnez au moins un utilisateur")
+    .max(3, "Maximum 3 ascendants autorisés")
+    .optional()
+    .default([]),
+  description: z.string().min(1, { message: "Ce champ est obligatoire" }),
 });
 
 type Schema = z.infer<typeof formSchema>;
@@ -64,7 +71,7 @@ export function CategoryCreateForm() {
     },
   });
 
-  // Field array pour gérer les validateurs
+  // Field array pour gérer les ascendants
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: "validators",
@@ -103,10 +110,10 @@ export function CategoryCreateForm() {
     },
   });
 
-  // Fonction pour ajouter un validateur
+  // Fonction pour ajouter un ascendant
   const addValidator = () => {
     if (fields.length >= 3) {
-      toast.error("Maximum 3 validateurs autorisés");
+      toast.error("Maximum 3 ascendants autorisés");
       return;
     }
 
@@ -117,8 +124,10 @@ export function CategoryCreateForm() {
     }
 
     // Trouver un utilisateur qui n'est pas déjà sélectionné
-    const existingUserIds = fields.map(field => field.userId);
-    const availableUser = users.find(user => !existingUserIds.includes(user.id!));
+    const existingUserIds = fields.map((field) => field.userId);
+    const availableUser = users.find(
+      (user) => !existingUserIds.includes(user.id!)
+    );
 
     if (!availableUser) {
       toast.error("Tous les utilisateurs sont déjà sélectionnés");
@@ -127,11 +136,11 @@ export function CategoryCreateForm() {
 
     append({
       userId: availableUser.id!,
-      rank: fields.length + 1, 
+      rank: fields.length + 1,
     });
   };
 
-  // Fonction pour déplacer un validateur vers le haut
+  // Fonction pour déplacer un ascendant vers le haut
   const moveUp = (index: number) => {
     if (index > 0) {
       move(index, index - 1);
@@ -143,7 +152,7 @@ export function CategoryCreateForm() {
     }
   };
 
-  // Fonction pour déplacer un validateur vers le bas
+  // Fonction pour déplacer un ascendant vers le bas
   const moveDown = (index: number) => {
     if (index < fields.length - 1) {
       move(index, index + 1);
@@ -158,7 +167,7 @@ export function CategoryCreateForm() {
   // Fonction pour obtenir le nom d'un utilisateur par son ID
   const getUserName = (userId: number) => {
     const users = usersData.data?.data || [];
-    const user = users.find(u => u.id === userId);
+    const user = users.find((u) => u.id === userId);
     return user?.name || `Utilisateur #${userId}`;
   };
 
@@ -173,18 +182,18 @@ export function CategoryCreateForm() {
         }
         return field.userId;
       })
-      .filter(id => id !== null);
+      .filter((id) => id !== null);
 
-    return users.filter(user => !existingUserIds.includes(user.id!));
+    return users.filter((user) => !existingUserIds.includes(user.id!));
   };
 
   const onsubmit = (values: z.infer<typeof formSchema>) => {
-    
-// Préparer les validateurs avec les rangs mis à jour
-    const validators = values.validators?.map((validator, index) => ({
-      userId: validator.userId,
-      rank: index + 1, 
-    })) || [];
+    // Préparer les ascendants avec les rangs mis à jour
+    const validators =
+      values.validators?.map((validator, index) => ({
+        userId: validator.userId,
+        rank: index + 1,
+      })) || [];
 
     const data: Omit<Category, "updatedAt" | "createdAt" | "id"> & {
       parentId?: number;
@@ -193,14 +202,14 @@ export function CategoryCreateForm() {
       label: values.label,
       validators: validators,
     };
-    
+
     if (values.description) {
       data.description = values.description;
     }
     categoryApi.mutate(data);
   };
 
-  // Mettre à jour automatiquement les rangs quand le nombre de validateurs change
+  // Mettre à jour automatiquement les rangs quand le nombre de ascendants change
   useEffect(() => {
     const validators = form.getValues("validators") || [];
     validators.forEach((validator, index) => {
@@ -212,7 +221,7 @@ export function CategoryCreateForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onsubmit)}
-        className="grid grid-cols-1 gap-6"
+        className="grid grid-cols-3 gap-6 max-w-[1000px]"
       >
         {/* Informations de base */}
         <div className="flex flex-col gap-2">
@@ -236,7 +245,10 @@ export function CategoryCreateForm() {
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Input placeholder="Description de la catégorie" {...field} />
+                  <Textarea
+                    placeholder="Description de la catégorie"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -244,29 +256,31 @@ export function CategoryCreateForm() {
           />
         </div>
 
-        {/* Section des validateurs */}
-        <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+        {/* Section des ascendants */}
+        <div className="space-y-4 border rounded-lg p-4 bg-muted/20 col-span-2">
           <div className="flex items-center justify-between">
             <div>
               <FormLabel className="text-lg font-semibold">
-                Chaîne de validation
+                {"Définissez les ascendants"}
               </FormLabel>
               <p className="text-sm text-muted-foreground">
-                Ajoutez jusqu'à 3 validateurs dans l'ordre de validation
+                {
+                  "Ajoutez jusqu'à 3 ascendants dans l'ordre d'approbation souhaité"
+                }
               </p>
             </div>
-            <Button
+            {/* <Button
               type="button"
               variant="outline"
               onClick={addValidator}
               disabled={fields.length >= 3}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Ajouter un validateur
-            </Button>
+              Ajouter un ascendant
+            </Button> */}
           </div>
 
-          {/* Liste des validateurs */}
+          {/* Liste des ascendants */}
           {fields.length > 0 ? (
             <div className="space-y-3">
               {fields.map((field, index) => (
@@ -276,15 +290,12 @@ export function CategoryCreateForm() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Badge className="bg-primary text-primary-foreground">
+                      <Badge className="bg-primary text-primary-foreground text-[16px] p-2">
                         Position {index + 1}
                         {index === fields.length - 1 && (
                           <span className="ml-1">(Dernier)</span>
                         )}
                       </Badge>
-                      {index === 0 && (
-                        <Badge variant="outline">Premier validateur</Badge>
-                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -327,15 +338,15 @@ export function CategoryCreateForm() {
                       const availableUsers = getAvailableUsers(index);
                       return (
                         <FormItem>
-                          <FormLabel>Utilisateur validateur *</FormLabel>
-                          <Select
+                          <FormLabel>{"Nom de l'ascendant *"}</FormLabel>
+                          {/* <Select
                             value={field.value?.toString() || ""}
                             onValueChange={(value) =>
                               field.onChange(parseInt(value))
                             }
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Sélectionner un utilisateur">
                                   {field.value
                                     ? getUserName(field.value)
@@ -350,7 +361,7 @@ export function CategoryCreateForm() {
                                     key={user.id}
                                     value={user.id!.toString()}
                                   >
-                                    {user.name} ({user.email})
+                                    {user.name}
                                   </SelectItem>
                                 ))
                               ) : (
@@ -359,7 +370,22 @@ export function CategoryCreateForm() {
                                 </SelectItem>
                               )}
                             </SelectContent>
-                          </Select>
+                          </Select> */}
+                          <SearchableSelect
+                            width="w-full"
+                            allLabel=""
+                            options={
+                              availableUsers.length > 0
+                                ? availableUsers.map((user) => ({
+                                    value: user.id!.toString(),
+                                    label: user.name,
+                                  }))
+                                : []
+                            }
+                            value={field.value?.toString() || ""}
+                            onChange={(value) => field.onChange(parseInt(value))}
+                            placeholder="Sélectionner"
+                          />
                           <FormMessage />
                         </FormItem>
                       );
@@ -370,45 +396,44 @@ export function CategoryCreateForm() {
                   <FormField
                     control={form.control}
                     name={`validators.${index}.rank`}
-                    render={({ field }) => (
-                      <input type="hidden" {...field} />
-                    )}
+                    render={({ field }) => <input type="hidden" {...field} />}
                   />
                 </div>
               ))}
+              {/* Je vérifie qu'il y'a encore des utilisateurs disponible  */}
+              {getAvailableUsers(fields.length - 1).length > 0 && (
+                <div className="flex flex-col items-center justify-center mt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addValidator}
+                    disabled={fields.length >= 3}
+                    className="h-12 w-12 rounded-full bg-muted flex items-center justify-center"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  {"Ajouter un ascendant"}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-6 border rounded-lg bg-muted/10">
               <div className="flex flex-col items-center gap-2">
-                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                  <Plus className="h-6 w-6 text-muted-foreground" />
-                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addValidator}
+                  disabled={fields.length >= 3}
+                  className="h-12 w-12 rounded-full bg-muted flex items-center justify-center"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
                 <p className="text-muted-foreground">
-                  Aucun validateur configuré
+                  Aucun ascendant configuré
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Cliquez sur "Ajouter un validateur" pour configurer la chaîne de validation
+                  {`Cliquez sur "+" pour configurer la chaîne d'approbation`}
                 </p>
-              </div>
-            </div>
-          )}
-
-          {/* Indicateur de progression */}
-          {fields.length > 0 && (
-            <div className="pt-4 border-t">
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-muted-foreground">Premier validateur</span>
-                <span className="text-muted-foreground">Dernier validateur</span>
-              </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full transition-all duration-300"
-                  style={{ width: `${(fields.length / 3) * 100}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>Position 1</span>
-                <span>Position {fields.length}</span>
               </div>
             </div>
           )}
@@ -422,9 +447,9 @@ export function CategoryCreateForm() {
         </div>
 
         {/* Bouton de soumission */}
-        <div className="@min-[540px]:col-span-2">
-          <Button 
-            type="submit" 
+        <div className="@min-[540px]:col-span-3 ml-auto">
+          <Button
+            type="submit"
             variant={"primary"}
             disabled={categoryApi.isPending}
           >

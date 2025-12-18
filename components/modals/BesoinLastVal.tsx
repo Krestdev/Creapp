@@ -46,7 +46,7 @@ const formSchema = z.object({
     required_error: "La priorité est obligatoire",
   }),
   quantite: z.string().min(1, "La quantité est obligatoire"),
-  description: z.string().min(1, "La description est obligatoire"),
+  description: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;

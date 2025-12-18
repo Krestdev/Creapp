@@ -91,9 +91,6 @@ const Bdcommande = () => {
       </div> */}
       {cotation.length > 0 && (
         <div className="flex flex-col">
-          <div className="flex justify-between">
-            <h2>{"Demandes de cotation"}</h2>
-          </div>
           <CommandeTable
             data={commandData.data?.data}
             dateFilter={dateFilter}

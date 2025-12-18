@@ -58,15 +58,6 @@ import { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
 import UpdateProject from "./UpdateProject";
 
-// export type Project = {
-//   reference: string;
-//   project: string;
-//   totalBudget: number;
-//   budgetLeft: number;
-//   chief: string;
-//   state: "planning" | "in-progress" | "on-hold" | "completed" | "cancelled";
-// };
-
 interface ProjectTableProps {
   data: ProjectT[];
 }
@@ -224,7 +215,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Budget Total"}
+              {"Budget prévisionnel"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -370,9 +361,10 @@ export function ProjectTable({ data }: ProjectTableProps) {
                       status: "on-hold",
                     })
                   }
+                  disabled={project.status === "cancelled"}
                 >
                   <PauseCircle />
-                  {"Mettre en pause"}
+                  {"Suspendre"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600"
@@ -383,7 +375,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                     })
                   }
                 >
-                  <XCircle />
+                  <XCircle className="text-red-600" />
                   {"Annuler"}
                 </DropdownMenuItem>
               </DropdownMenuContent>

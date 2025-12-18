@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown } from "lucide-react";
+import { ArrowUpDown, ChevronDown, Eye } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -30,7 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Role } from "@/types/types";
+import { Member, Role, User } from "@/types/types";
 import { Pagination } from "../base/pagination";
 
 interface RolesTableProps {
@@ -47,50 +49,25 @@ export function RoleTable({ data }: RolesTableProps) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  // const [selectedItem, setSelectedItem] = React.useState<Role | null>(null);
-  // const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
-
-  // const userQueries = new UserQueries();
-  // const rolesMutation = useMutation({
-  //   mutationKey: ["rolesUpdate"],
-  //   mutationFn: async (data: number) => userQueries.deleteRole(Number(data)),
-
-  //   onSuccess: () => {
-  //     toast.success("Besoin modifié avec succès !");
-  //   },
-
-  //   onError: (e) => {
-  //     console.error(e);
-  //     toast.error("Une erreur est survenue lors de la suppression.");
-  //   },
-  // });
+  const TranslateRole = (role: string) => {
+    switch (role) {
+      case "USER":
+        return "Emetteur";
+      case "MANAGER":
+        return "Manager";
+      case "SALES":
+        return "Responsable d'achat";
+      case "SALES_MANAGER":
+        return "Donneur d'ordre d'achat";
+      case "ADMIN":
+        return "Administrateur";
+      default:
+        return role;
+    }
+  };
 
   const columns = React.useMemo<ColumnDef<Role>[]>(
     () => [
-      // {
-      //   id: "select",
-      //   header: ({ table }) => (
-      //     <Checkbox
-      //       checked={
-      //         table.getIsAllPageRowsSelected() ||
-      //         (table.getIsSomePageRowsSelected() && "indeterminate")
-      //       }
-      //       onCheckedChange={(value) =>
-      //         table.toggleAllPageRowsSelected(!!value)
-      //       }
-      //       aria-label="Select all"
-      //     />
-      //   ),
-      //   cell: ({ row }) => (
-      //     <Checkbox
-      //       checked={row.getIsSelected()}
-      //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-      //       aria-label="Select row"
-      //     />
-      //   ),
-      //   enableSorting: false,
-      //   enableHiding: false,
-      // },
       {
         accessorKey: "label",
         header: ({ column }) => {
@@ -107,163 +84,64 @@ export function RoleTable({ data }: RolesTableProps) {
           );
         },
         cell: ({ row }) => {
-          let text = row.getValue("label") as string;
-          if (text === "ADMIN") {
-            text = "Administrateur";
-          } else if (text === "USER") {
-            text = "Emetteur";
-          } else if (text === "MANAGER") {
-            text = "Validateur";
-          } else if (text === "SALES") {
-            text = "Responsable Achats";
-          } else if (text === "SALES_MANAGER") {
-            text = "Donner dordres Achats";
-          }
+          const text = TranslateRole(row.getValue("label"));
           return <div className="font-medium">{text}</div>;
         },
       },
-      // {
-      //   accessorKey: "description",
-      //   header: "Description",
-      //   cell: ({ row }) => (
-      //     <div className="max-w-[300px] truncate">
-      //       {row.getValue("description")}
-      //     </div>
-      //   ),
-      // },
-      // {
-      //   accessorKey: "members",
-      //   header: ({ column }) => {
-      //     return (
-      //       <Button
-      //         variant="ghost"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         Chef
-      //         <ArrowUpDown className="ml-2 h-4 w-4" />
-      //       </Button>
-      //     );
-      //   },
-      //   cell: ({ row }) => {
-      //     console.log(row.getValue("members"));
-      //     const members = row.getValue("members") as Member[];
-      //     return (
-      //       <div>{members.find((user) => user.chief === true)?.user?.name}</div>
-      //     );
-      //   },
-      // },
-      // {
-      //   accessorKey: "employees",
-      //   header: ({ column }) => {
-      //     return (
-      //       <Button
-      //         variant="ghost"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         {"Nombre d'employés"}
-      //         <ArrowUpDown className="ml-2 h-4 w-4" />
-      //       </Button>
-      //     );
-      //   },
-      //   cell: ({ row }) => (
-      //     <div className="flex items-center gap-2">
-      //       <Users className="h-4 w-4 text-muted-foreground" />
-      //       <span className="font-medium">
-      //         {(row.getValue("members") as Member[]).length}
-      //       </span>
-      //     </div>
-      //   ),
-      // },
-      // {
-      //   accessorKey: "status",
-      //   header: ({ column }) => {
-      //     return (
-      //       <Button
-      //         variant="ghost"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         Statut
-      //         <ArrowUpDown className="ml-2 h-4 w-4" />
-      //       </Button>
-      //     );
-      //   },
-      //   cell: ({ row }) => {
-      //     const status = row.getValue("status") as string;
-      //     return (
-      //       <Badge
-      //         variant="outline"
-      //         className={
-      //           status === "actif"
-      //             ? "bg-green-500 text-white border-green-600"
-      //             : status === "inactif"
-      //             ? "bg-red-500 text-white border-red-600"
-      //             : "bg-yellow-500 text-white border-yellow-600"
-      //         }
-      //       >
-      //         {status === "actif" ? (
-      //           <CheckCircle className="mr-1 h-3 w-3" />
-      //         ) : status === "inactif" ? (
-      //           <XCircle className="mr-1 h-3 w-3" />
-      //         ) : (
-      //           <Clock className="mr-1 h-3 w-3" />
-      //         )}
-      //         {status === "actif"
-      //           ? "Actif"
-      //           : status === "inactif"
-      //           ? "Inactif"
-      //           : "En réorganisation"}
-      //       </Badge>
-      //     );
-      //   },
-      //   filterFn: (row, id, value) => {
-      //     return value.includes(row.getValue(id));
-      //   },
-      // },
-      // {
-      //   id: "actions",
-      //   header: "Actions",
-      //   enableHiding: false,
-      //   cell: ({ row }) => {
-      //     const departement = row.original;
+      {
+        accessorKey: "users",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Membres"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          return (
+            <div>
+              {(row.getValue("users") as User[])
+                .map((user) => user.name)
+                .splice(0, 3)
+                .join(", ")}
+            </div>
+          );
+        },
+      },
+      // Actions
+      {
+        accessorKey: "actions",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Action"}
+            </span>
+          );
+        },
+        id: "actions",
+        enableHiding: false,
+        cell: ({ row }) => {
+          const role = row.original;
 
-      //     return (
-      //       <DropdownMenu>
-      //         <DropdownMenuTrigger asChild>
-      //           <Button variant="ghost" className="h-8 w-8 p-0">
-      //             <span className="sr-only">Open menu</span>
-      //             <MoreHorizontal className="h-4 w-4" />
-      //           </Button>
-      //         </DropdownMenuTrigger>
-      //         <DropdownMenuContent align="end">
-      //           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-      //           <DropdownMenuItem>Voir</DropdownMenuItem>
-      //           <DropdownMenuSeparator />
-      //           <DropdownMenuItem
-      //             onClick={() => {
-      //               setSelectedItem(departement);
-      //               setIsUpdateModalOpen(true);
-      //             }}
-      //           >
-      //             <LucidePen className="mr-2 h-4 w-4" />
-      //             {"Modifier"}
-      //           </DropdownMenuItem>
-      //           <DropdownMenuItem
-      //             className="text-red-600"
-      //             onClick={() => rolesMutation.mutate(departement.id)}
-      //           >
-      //             Supprimer
-      //           </DropdownMenuItem>
-      //         </DropdownMenuContent>
-      //       </DropdownMenu>
-      //     );
-      //   },
-      // },
+          return (
+            <Button variant="outline" size="sm">
+              <Eye className="ml-2 h-4 w-4" />
+              {"Voir"}
+            </Button>
+          );
+        },
+      },
     ],
     []
   );
@@ -317,32 +195,6 @@ export function RoleTable({ data }: RolesTableProps) {
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
-        {/* <Input
-          placeholder="rechercher par nom..."
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        /> */}
-        {/* <Select
-          value={
-            (table.getColumn("label")?.getFilterValue() as string) ?? "all"
-          }
-          onValueChange={(value) =>
-            table
-              .getColumn("label")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="actif">Actif</SelectItem>
-            <SelectItem value="inactif">Inactif</SelectItem>
-            <SelectItem value="en-reorganisation">En réorganisation</SelectItem>
-          </SelectContent>
-        </Select> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">

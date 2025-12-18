@@ -1,4 +1,3 @@
-//Quotation Form
 "use client";
 import FilesUpload from "@/components/comp-547";
 import LoadingPage from "@/components/loading-page";
@@ -30,10 +29,7 @@ import { useStore } from "@/providers/datastore";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
-import {
-  Quotation,
-  RequestModelT
-} from "@/types/types";
+import { Quotation, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -45,6 +41,8 @@ import { toast } from "sonner";
 import z from "zod";
 import AddElement from "./addElement";
 import { format } from "date-fns";
+import { SearchableSelect } from "@/components/base/searchableSelect";
+import { XAF } from "@/lib/utils";
 
 const formSchema = z.object({
   commandRequestId: z.number({ message: "Requis" }),
@@ -70,13 +68,12 @@ const formSchema = z.object({
       })
     )
     .min(1),
-  proof: z
-    .array(
-      z.union([
-        z.instanceof(File, { message: "Doit être un fichier valide" }),
-        z.string(),
-      ])
-    )
+  proof: z.array(
+    z.union([
+      z.instanceof(File, { message: "Doit être un fichier valide" }),
+      z.string(),
+    ])
+  ),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -119,22 +116,22 @@ function CreateQuotation({ quotation, openChange }: Props) {
   today.setDate(today.getDate() + 3);
 
   const defaultValues = {
-      commandRequestId: quotation?.commandRequestId ?? undefined,
-      providerId: quotation?.providerId ?? undefined,
-      elements:
-        quotation?.element.map((c) => ({
-          id: c.id,
-          needId: c.requestModelId,
-          designation: c.title,
-          price: c.priceProposed,
-          quantity: c.quantity,
-          unit: c.unit,
-        })) ?? [],
-      dueDate: quotation
-        ? format(new Date(quotation.dueDate), "yyyy-MM-dd")
-        : format(today, "yyyy-MM-dd"),
-      proof: quotation ? [quotation.proof] : undefined,
-    }
+    commandRequestId: quotation?.commandRequestId ?? undefined,
+    providerId: quotation?.providerId ?? undefined,
+    elements:
+      quotation?.element.map((c) => ({
+        id: c.id,
+        needId: c.requestModelId,
+        designation: c.title,
+        price: c.priceProposed,
+        quantity: c.quantity,
+        unit: c.unit,
+      })) ?? [],
+    dueDate: quotation
+      ? format(new Date(quotation.dueDate), "yyyy-MM-dd")
+      : format(today, "yyyy-MM-dd"),
+    proof: quotation ? [quotation.proof] : undefined,
+  };
 
   /**Quotation */
   const quotationQuery = new QuotationQueries();
@@ -180,9 +177,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
       if (!!openChange) {
         openChange(false);
       }
-      if(intent === "save"){
+      if (intent === "save") {
         router.push("./");
-      }else {
+      } else {
         form.reset(defaultValues);
         form.resetField("commandRequestId");
         form.resetField("providerId");
@@ -199,18 +196,47 @@ function CreateQuotation({ quotation, openChange }: Props) {
     defaultValues: defaultValues,
   });
 
-  React.useEffect(()=>{
-    if(form.watch("commandRequestId")) setSelectedNeeds(requestsData.data?.data.find(c=> c.id === form.watch("commandRequestId"))?.besoins) 
-  },[form.watch("commandRequestId")])
+  React.useEffect(() => {
+    if (form.watch("commandRequestId"))
+      setSelectedNeeds(
+        requestsData.data?.data.find(
+          (c) => c.id === form.watch("commandRequestId")
+        )?.besoins
+      );
+  }, [form.watch("commandRequestId")]);
 
-  // const commandRequestId = form.watch("commandRequestId");
+  // Fonction pour trouver l'index global d'un élément
+  const findGlobalIndex = (needId: number, elementIndex: number) => {
+    const elements = form.getValues("elements");
+    let currentIndex = 0;
+    let foundCount = 0;
+    
+    for (let i = 0; i < elements.length; i++) {
+      if (elements[i].needId === needId) {
+        if (foundCount === elementIndex) {
+          return i;
+        }
+        foundCount++;
+      }
+    }
+    return -1;
+  };
+
+  // Fonction pour supprimer un élément
+  const removeElement = (needId: number, elementIndex: number) => {
+    const globalIndex = findGlobalIndex(needId, elementIndex);
+    if (globalIndex === -1) return;
+    
+    const currentElements = [...form.getValues("elements")];
+    currentElements.splice(globalIndex, 1);
+    form.setValue("elements", currentElements);
+  };
 
   if (requestsData.isLoading || providersData.isLoading) {
     return <LoadingPage />;
   }
 
   function onSubmit(values: FormValues) {
-    //console.log(values);
     mutate({ values, id: quotation?.id });
   }
 
@@ -228,27 +254,19 @@ function CreateQuotation({ quotation, openChange }: Props) {
             <FormItem>
               <FormLabel isRequired>{"Demande de cotation"}</FormLabel>
               <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={(v) => field.onChange(Number(v))}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {requestsData.data?.data.length === 0 ? (
-                      <SelectItem value="-" disabled>
-                        {"Aucune demande enregistrée"}
-                      </SelectItem>
-                    ) : (
-                      requestsData.data?.data.map((request) => (
-                        <SelectItem key={request.id} value={String(request.id)}>
-                          {request.title}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  width="w-full"
+                  allLabel=""
+                  options={
+                    requestsData.data?.data.map((request) => ({
+                      label: request.title,
+                      value: request.id.toString(),
+                    })) ?? []
+                  }
+                  value={field.value?.toString() || ""}
+                  onChange={(value) => field.onChange(parseInt(value))}
+                  placeholder="Sélectionner"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -356,7 +374,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                         captionLayout="dropdown"
                         onSelect={(date) => {
                           if (!date) return;
-                          const value = format(date, "yyyy-MM-dd")
+                          const value = format(date, "yyyy-MM-dd");
                           field.onChange(value);
                           setDueDate(false);
                         }}
@@ -387,37 +405,63 @@ function CreateQuotation({ quotation, openChange }: Props) {
                       {"Aucun élément renseigné."}
                     </span>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {field.value.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="w-full bg-gray-50 rounded-sm border border-gray-200 px-2 h-9 inline-flex justify-between gap-2 items-center text-sm"
-                        >
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-1.5 w-full justify-between text-left truncate cursor-pointer"
-                            onClick={() => {
-                              setEditingIndex(idx);
-                              setOpen(true);
-                            }}
-                          >
-                            <span className="truncate">{item.designation}</span>
-                            <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
-                              {"Modifier"}
-                            </span>
-                          </button>
-                          <X
-                            size={20}
-                            className="text-destructive cursor-pointer"
-                            onClick={() =>
-                              field.onChange(
-                                field.value.filter((_, i) => i !== idx)
-                              )
-                            }
-                          />
-                        </div>
-                      ))}
-                    </div>
+                    (() => {
+                      const groupedElements = field.value.reduce(
+                        (acc, item, globalIndex) => {
+                          const need = item.needId;
+                          if (!acc[need]) {
+                            acc[need] = [];
+                          }
+                          acc[need].push({ ...item, globalIndex });
+                          return acc;
+                        },
+                        {} as Record<string, Array<any & { globalIndex: number }>>
+                      );
+
+                      return Object.entries(groupedElements).map(
+                        ([need, elements]) => (
+                          <div key={need} className="border p-3 rounded-lg bg-gray-50">
+                            <h3 className="font-semibold mb-2">
+                              {selectedNeeds?.find(n => n.id === Number(need))?.label}
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                              {elements.map((item, localIndex) => (
+                                <div
+                                  key={localIndex}
+                                  className="w-full bg-gray-50 rounded-sm border border-gray-200 px-2 h-9 inline-flex justify-between gap-2 items-center text-sm"
+                                >
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center gap-1.5 w-full justify-between text-left truncate cursor-pointer"
+                                    onClick={() => {
+                                      setEditingIndex(item.globalIndex);
+                                      setOpen(true);
+                                    }}
+                                  >
+                                    <span className="truncate">
+                                      {`${item.designation} - ${item.quantity} ${item.unit} - ${XAF.format(item.price)}`}
+                                    </span>
+                                    <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
+                                      {"Modifier"}
+                                    </span>
+                                  </button>
+                                  <X
+                                    size={20}
+                                    className="text-destructive cursor-pointer"
+                                    onClick={() => {
+                                      // Trouver et supprimer l'élément correct
+                                      const currentElements = [...field.value];
+                                      currentElements.splice(item.globalIndex, 1);
+                                      field.onChange(currentElements);
+                                    }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      );
+                    })()
                   )}
 
                   <button
@@ -490,16 +534,17 @@ function CreateQuotation({ quotation, openChange }: Props) {
           >
             {!!quotation ? "Modifier le devis" : "Enregistrer"}
           </Button>
-          { !quotation && 
-          <Button
-            type="submit"
-            disabled={isPending}
-            isLoading={isPending}
-            className="w-fit"
-            onClick={() => (intentRef.current = "saveAndCreate")}
-          >
-            {"Enregistrer et créer"}
-          </Button>}
+          {!quotation && (
+            <Button
+              type="submit"
+              disabled={isPending}
+              isLoading={isPending}
+              className="w-fit"
+              onClick={() => (intentRef.current = "saveAndCreate")}
+            >
+              {"Enregistrer et créer"}
+            </Button>
+          )}
         </div>
       </form>
       <ProviderDialog open={openP} onOpenChange={setOpenP} />
