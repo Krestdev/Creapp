@@ -12,7 +12,14 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, LucidePen, Users } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  LucideEye,
+  LucidePen,
+  LucideTrash2,
+  Users,
+} from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -45,7 +52,8 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import UpdateCategory from "./UpdateCategory";
+import { ShowCategory } from "./show-category";
+import { UpdateCategory } from "./UpdateCategory";
 
 interface CategoriesTableProps {
   data: Category[];
@@ -63,6 +71,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
 
   const [selectedItem, setSelectedItem] = React.useState<Category | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const [showDetail, setShowDetail] = React.useState(false);
 
   const categoryQueries = new RequestQueries();
   const queryClient = useQueryClient();
@@ -87,30 +96,30 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
 
   const columns = React.useMemo<ColumnDef<Category>[]>(
     () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
+      // {
+      //   id: "select",
+      //   header: ({ table }) => (
+      //     <Checkbox
+      //       checked={
+      //         table.getIsAllPageRowsSelected() ||
+      //         (table.getIsSomePageRowsSelected() && "indeterminate")
+      //       }
+      //       onCheckedChange={(value) =>
+      //         table.toggleAllPageRowsSelected(!!value)
+      //       }
+      //       aria-label="Select all"
+      //     />
+      //   ),
+      //   cell: ({ row }) => (
+      //     <Checkbox
+      //       checked={row.getIsSelected()}
+      //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+      //       aria-label="Select row"
+      //     />
+      //   ),
+      //   enableSorting: false,
+      //   enableHiding: false,
+      // },
       // {
       //   accessorKey: "reference",
       //   header: ({ column }) => {
@@ -140,7 +149,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Nom de la catégorie
+              {"Nom de la catégorie"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -159,7 +168,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
       //   ),
       // },
       {
-        accessorKey: "parentId",
+        accessorKey: "description",
         header: ({ column }) => {
           return (
             <span
@@ -168,43 +177,45 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"catégorie Parent"}
+              {"Description"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
         },
         cell: ({ row }) => {
-          console.log(row.getValue("parentId"));
-          const parent = data.find(
-            (dept) => dept.id === row.getValue("parentId")
-          );
-          return <div>{parent?.label}</div>;
-        },
-      },
-      {
-        accessorKey: "isSpecial",
-        header: ({ column }) => {
           return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Special"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
+            <div className={`${row.getValue("description") ? "" : "italic"}`}>
+              {row.getValue("description")
+                ? row.getValue("description")
+                : "aucune description"}
+            </div>
           );
         },
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">
-              {row.getValue("isSpecial") ? "Oui" : "Non"}
-            </span>
-          </div>
-        ),
       },
+      // {
+      //   accessorKey: "isSpecial",
+      //   header: ({ column }) => {
+      //     return (
+      //       <span
+      //         className="tablehead"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         {"Special"}
+      //         <ArrowUpDown className="ml-2 h-4 w-4" />
+      //       </span>
+      //     );
+      //   },
+      //   cell: ({ row }) => (
+      //     <div className="flex items-center gap-2">
+      //       <Users className="h-4 w-4 text-muted-foreground" />
+      //       <span className="font-medium">
+      //         {row.getValue("isSpecial") ? "Oui" : "Non"}
+      //       </span>
+      //     </div>
+      //   ),
+      // },
       // {
       //   accessorKey: "updatedAt",
       //   header: ({ column }) => {
@@ -251,9 +262,18 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 {/* <DropdownMenuItem>View</DropdownMenuItem> */}
                 <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(categories);
+                    setShowDetail(true);
+                  }}
+                >
+                  <LucideEye className="mr-2 h-4 w-4" />
+                  {"Voir"}
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedItem(categories);
@@ -267,7 +287,8 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                   className="text-red-600"
                   onClick={() => categoryData.mutate(categories.id)}
                 >
-                  Supprimer
+                  <LucideTrash2 className="mr-2 h-4 w-4 text-red-400" />
+                  {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -311,19 +332,6 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
     },
   });
 
-  const getRowClassName = (status: string) => {
-    switch (status) {
-      case "actif":
-        return "bg-green-50 hover:bg-green-100";
-      case "inactif":
-        return "bg-red-50 hover:bg-red-100";
-      case "en-reorganisation":
-        return "bg-yellow-50 hover:bg-yellow-100";
-      default:
-        return "";
-    }
-  };
-
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
@@ -356,7 +364,8 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
+              {"Colonnes"}
+              <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -367,9 +376,9 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 const text =
                   column.id == "label"
                     ? "Nom catégorie"
-                    : column.id == "parentId"
-                    ? "catégorie Parent"
-                    : "special";
+                    : column.id == "description"
+                    ? "Description"
+                    : "";
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -495,6 +504,12 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
         categoryData={selectedItem}
+      />
+
+      <ShowCategory
+        open={showDetail}
+        onOpenChange={setShowDetail}
+        data={selectedItem}
       />
     </div>
   );

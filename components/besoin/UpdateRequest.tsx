@@ -40,7 +40,7 @@ import { RequestQueries } from "@/queries/requestModule";
 import { CategoryQueries } from "@/queries/categoryModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ChevronDownIcon, LoaderIcon } from "lucide-react";
@@ -55,7 +55,6 @@ import { z } from "zod";
 const formSchema = z.object({
   projet: z.string(),
   categorie: z.string(),
-  souscategorie: z.string(),
   titre: z.string().min(1),
   description: z.string(),
   quantity: z.string().refine((val) => !isNaN(Number(val)), {
@@ -122,7 +121,6 @@ export default function UpdateRequest({
     defaultValues: {
       projet: "",
       categorie: "",
-      souscategorie: "",
       titre: "",
       description: "",
       quantity: "",
@@ -144,13 +142,6 @@ export default function UpdateRequest({
     }
   }, [beneficiaire]);
 
-  // Réinitialiser la sous-catégorie quand la catégorie change
-  useEffect(() => {
-    if (selectedCategorie) {
-      form.setValue("souscategorie", "");
-    }
-  }, [selectedCategorie, form]);
-
   // ----------------------------------------------------------------------
   // INITIALISATION DES DONNEES DU BESOIN
   // ----------------------------------------------------------------------
@@ -158,26 +149,7 @@ export default function UpdateRequest({
     if (requestData && open && categoriesData.data) {
       // Attendre que les catégories soient chargées
       const initializeForm = async () => {
-        // Trouver la catégorie parente si c'est une sous-catégorie
-        const categoryId = requestData.category;
-        let categorieValue = "";
-        let sousCategorieValue = "";
-
-        const category = categoriesData.data.data.find(
-          (cat) => cat.id === Number(categoryId)
-        );
-
-        if (category) {
-          if (category.parentId === null) {
-            // C'est une catégorie parente
-            categorieValue = category.id!.toString();
-          } else {
-            // C'est une sous-catégorie
-            sousCategorieValue = category.id!.toString();
-            categorieValue = category.parentId!.toString();
-          }
-        }
-
+        
         // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
         const usersSelection: { id: number; name: string }[] = [];
         if (requestData.beneficiary === "groupe" && requestData.benef) {
@@ -190,29 +162,21 @@ export default function UpdateRequest({
           });
           setSelectedUsers(usersSelection);
         }
-
+        
         // Réinitialiser le formulaire avec les valeurs
-        form.reset({
-          projet: requestData.projectId?.toString(),
-          categorie: categorieValue,
-          souscategorie: sousCategorieValue,
-          titre: requestData.label || "",
-          description: requestData.description || "",
-          quantity: requestData.quantity?.toString() || "",
-          unite: requestData.unit || "",
-          datelimite: requestData.dueDate
-            ? new Date(requestData.dueDate)
-            : new Date(),
-          beneficiaire: requestData.beneficiary || "me",
-          utilisateurs: usersSelection.map((u) => u.id),
-        });
-
-        // Forcer la mise à jour de la sous-catégorie après un court délai
-        if (sousCategorieValue) {
-          setTimeout(() => {
-            form.setValue("souscategorie", sousCategorieValue);
-          }, 50);
-        }
+                form.reset({
+                  projet: requestData.projectId?.toString(),
+                  categorie: requestData.categoryId?.toString() || "",
+                  titre: requestData.label || "",
+                  description: requestData.description || "",
+                  quantity: requestData.quantity?.toString() || "",
+                  unite: requestData.unit || "",
+                  datelimite: requestData.dueDate
+                    ? new Date(requestData.dueDate)
+                    : new Date(),
+                  beneficiaire: requestData.beneficiary || "me",
+                  utilisateurs: usersSelection.map((u) => u.id),
+                });
       };
 
       initializeForm();
@@ -227,26 +191,7 @@ export default function UpdateRequest({
   useEffect(() => {
     if (requestData && open && categoriesData.data && USERS.length > 0) {
       const initializeForm = async () => {
-        // Trouver la catégorie parente si c'est une sous-catégorie
-        const categoryId = requestData.categoryId;
-        let categorieValue = "";
-        let sousCategorieValue = "";
-
-        const category = categoriesData.data.data.find(
-          (cat) => cat.id === Number(categoryId)
-        );
-
-        if (category) {
-          if (category.parentId === null) {
-            // C'est une catégorie parente
-            categorieValue = category.id!.toString();
-          } else {
-            // C'est une sous-catégorie
-            sousCategorieValue = category.id!.toString();
-            categorieValue = category.parentId!.toString();
-          }
-        }
-
+        
         // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
         const usersSelection: { id: number; name: string }[] = [];
         if (
@@ -268,8 +213,7 @@ export default function UpdateRequest({
         // Réinitialiser le formulaire avec les valeurs
         form.reset({
           projet: requestData.projectId?.toString() || "",
-          categorie: categorieValue,
-          souscategorie: sousCategorieValue,
+          categorie: requestData.categoryId?.toString() || "",
           titre: requestData.label || "",
           description: requestData.description || "",
           quantity: requestData.quantity?.toString() || "",
@@ -280,18 +224,6 @@ export default function UpdateRequest({
           beneficiaire: requestData.beneficiary || "me",
           utilisateurs: usersSelection.map((u) => u.id),
         });
-
-        // Forcer la mise à jour de la sous-catégorie après un court délai
-        if (sousCategorieValue) {
-          setTimeout(() => {
-            form.setValue("souscategorie", sousCategorieValue, {
-              shouldValidate: true,
-              shouldDirty: false,
-              shouldTouch: false,
-            });
-          }, 100);
-        }
-
         setIsFormInitialized(true);
       };
 
@@ -304,6 +236,7 @@ export default function UpdateRequest({
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
+  const queryClient = useQueryClient();
   const request = new RequestQueries();
   const category = new CategoryQueries();
   const requestMutation = useMutation({
@@ -317,24 +250,13 @@ export default function UpdateRequest({
       toast.success("Besoin modifié avec succès !");
       setOpen(false);
       onSuccess?.();
+      queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
     },
 
     onError: () =>
       toast.error("Une erreur est survenue lors de la modification."),
   });
 
-  // Filtrer les catégories parentes (parentId === null)
-  const categories =
-    categoriesData.data?.data.filter((cat) => cat.parentId === null) || [];
-
-  // Filtrer les sous-catégories en fonction de la catégorie sélectionnée
-  const souscategories = selectedCategorie
-    ? categoriesData.data?.data.filter(
-        (cat) =>
-          cat.parentId !== null &&
-          cat.parentId?.toString() === selectedCategorie
-      ) || []
-    : [];
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (!requestData?.id) {
@@ -345,7 +267,7 @@ export default function UpdateRequest({
     requestMutation.mutate({
       label: values.titre,
       description: values.description || null,
-      categoryId: Number(values.souscategorie || values.categorie),
+      categoryId: Number(values.categorie),
       quantity: Number(values.quantity),
       unit: values.unite!,
       beneficiary: values.beneficiaire!,
@@ -429,53 +351,11 @@ export default function UpdateRequest({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {categories?.map((c) => (
+                            {categoriesData.data?.data?.map((c) => (
                               <SelectItem key={c.id} value={c.id!.toString()}>
                                 {c.label}
                               </SelectItem>
                             ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* SOUS-CATEGORIE */}
-                  <FormField
-                    control={form.control}
-                    name="souscategorie"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sous-catégorie</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          disabled={!selectedCategorie}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                              <SelectValue
-                                placeholder={
-                                  !selectedCategorie
-                                    ? "Sélectionnez d'abord une catégorie"
-                                    : "Sélectionner une sous-catégorie"
-                                }
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {souscategories.length > 0 ? (
-                              souscategories.map((c) => (
-                                <SelectItem key={c.id} value={c.id!.toString()}>
-                                  {c.label}
-                                </SelectItem>
-                              ))
-                            ) : (
-                              <SelectItem value="no-subcategory" disabled>
-                                {"Aucune sous-catégorie disponible"}
-                              </SelectItem>
-                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />

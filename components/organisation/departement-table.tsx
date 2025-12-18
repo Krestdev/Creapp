@@ -15,9 +15,11 @@ import {
 import {
   ArrowUpDown,
   ChevronDown,
+  LucideEye,
   LucidePen,
+  LucideTrash2,
   MoreHorizontal,
-  Users
+  Users,
 } from "lucide-react";
 import * as React from "react";
 
@@ -61,6 +63,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import UpdateDepartment from "./UpdateDeprtment";
+import { ShowDepartment } from "./show-department";
 
 interface DepartementTableProps {
   data: DepartmentT[];
@@ -80,6 +83,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
     null
   );
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const [isShowModalOpen, setIsShowModalOpen] = React.useState(false);
 
   const departmentQueries = new DepartmentQueries();
   const departmentMutation = useMutation({
@@ -96,14 +100,20 @@ export function DepartementTable({ data }: DepartementTableProps) {
     },
   });
 
-  const getBadge = (status:string):{label:string; variant:VariantProps<typeof badgeVariants>["variant"]} =>{
+  const getBadge = (
+    status: string
+  ): {
+    label: string;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+  } => {
     const value = status.toLocaleLowerCase();
-    switch(value){
+    switch (value) {
       case "actif":
-        return {label: "Actif", variant: "primary"};
+        return { label: "Actif", variant: "primary" };
       case "inactive":
-        return {label: "Désactivé", variant: "destructive"};
-      default: return {label: value, variant: "outline"}
+        return { label: "Désactivé", variant: "destructive" };
+      default:
+        return { label: value, variant: "outline" };
     }
   };
 
@@ -211,7 +221,10 @@ export function DepartementTable({ data }: DepartementTableProps) {
           console.log(row.getValue("members"));
           const members = row.getValue("members") as Member[];
           return (
-            <div>{members.find((user) => user.chief === true)?.user?.name ?? "Non défini"}</div>
+            <div>
+              {members.find((user) => user.chief === true)?.user?.name ??
+                "Non défini"}
+            </div>
           );
         },
       },
@@ -239,37 +252,37 @@ export function DepartementTable({ data }: DepartementTableProps) {
           </div>
         ),
       },
-      {
-        accessorKey: "status",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Statut"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const status = row.getValue("status") as string;
-          const label = getBadge(status).label;
-          const variant = getBadge(status).variant;
-          return (
-            <Badge
-              variant={variant}
-            >
-              {label}
-            </Badge>
-          );
-        },
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id));
-        },
-      },
+      // {
+      //   accessorKey: "status",
+      //   header: ({ column }) => {
+      //     return (
+      //       <span
+      //         className="tablehead"
+      //         onClick={() =>
+      //           column.toggleSorting(column.getIsSorted() === "asc")
+      //         }
+      //       >
+      //         {"Statut"}
+      //         <ArrowUpDown />
+      //       </span>
+      //     );
+      //   },
+      //   cell: ({ row }) => {
+      //     const status = row.getValue("status") as string;
+      //     const label = getBadge(status).label;
+      //     const variant = getBadge(status).variant;
+      //     return (
+      //       <Badge
+      //         variant={variant}
+      //       >
+      //         {label}
+      //       </Badge>
+      //     );
+      //   },
+      //   filterFn: (row, id, value) => {
+      //     return value.includes(row.getValue(id));
+      //   },
+      // },
       {
         id: "actions",
         header: "Actions",
@@ -280,14 +293,22 @@ export function DepartementTable({ data }: DepartementTableProps) {
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">{"Ouvrir le menu"}</span>
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button variant={"outline"}>
+                  {"Actions"}
+                  <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-                <DropdownMenuItem>{"Voir"}</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(departement);
+                    setIsShowModalOpen(true);
+                  }}
+                >
+                  <LucideEye className="mr-2 h-4 w-4" />
+                  {"Voir"}
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
@@ -302,6 +323,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
                   className="text-red-600"
                   onClick={() => departmentMutation.mutate(departement.id)}
                 >
+                  <LucideTrash2 className="mr-2 h-4 w-4 text-red-600" />
                   {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -368,7 +390,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
-        <Select
+        {/* <Select
           value={
             (table.getColumn("status")?.getFilterValue() as string) ?? "all"
           }
@@ -387,7 +409,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
             <SelectItem value="inactif">Inactif</SelectItem>
             <SelectItem value="en-reorganisation">En réorganisation</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
@@ -535,6 +557,11 @@ export function DepartementTable({ data }: DepartementTableProps) {
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
         departmentData={selectedItem}
+      />
+      <ShowDepartment
+        open={isShowModalOpen}
+        onOpenChange={setIsShowModalOpen}
+        data={selectedItem}
       />
     </div>
   );

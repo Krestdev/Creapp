@@ -3,8 +3,8 @@
 import { useStore } from "@/providers/datastore";
 import { DepartmentQueries } from "@/queries/departmentModule";
 import { RequestQueries } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import { DepartmentT, RequestModelT, User } from "@/types/types";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import React from "react";
 import { DataVal } from "../base/dataVal";
 
@@ -22,7 +22,15 @@ interface Props {
 }
 
 // Hook personnalisé pour isLastValidator
-const useIsLastValidator = (departmentData: any, user: any) => {
+const useIsLastValidator = (
+  departmentData: UseQueryResult<
+    {
+      data: DepartmentT[];
+    },
+    Error
+  >,
+  user: User
+) => {
   return React.useMemo(() => {
     const data = departmentData?.data?.data;
     const userId = user?.id;
@@ -30,18 +38,22 @@ const useIsLastValidator = (departmentData: any, user: any) => {
     if (!data || !userId) return false;
 
     return (
-      data
-        .flatMap((mem: any) => mem.members)
-        .find((mem: any) => mem.userId === userId)?.finalValidator === true
+      data.flatMap((mem) => mem.members).find((mem) => mem.userId === userId)
+        ?.finalValidator === true
     );
   }, [departmentData?.data?.data, user?.id]);
 };
 
 // Hook personnalisé pour filtrer les données
 const useFilteredRequests = (
-  requestData: any,
-  dateFilter: any,
-  customDateRange: any
+  requestData: UseQueryResult<
+    {
+      data: RequestModelT[];
+    },
+    Error
+  >,
+  dateFilter: "today" | "week" | "month" | "year" | "custom" | undefined,
+  customDateRange: { from: Date; to: Date } | undefined
 ) => {
   return React.useMemo(() => {
     const data = requestData?.data?.data;
@@ -96,9 +108,14 @@ const useFilteredRequests = (
 // Hook personnalisé pour pendingData
 const usePendingData = (
   filteredData: RequestModelT[],
-  user: any,
+  user: User,
   isLastValidator: boolean,
-  departmentData: any
+  departmentData: UseQueryResult<
+    {
+      data: DepartmentT[];
+    },
+    Error
+  >
 ) => {
   return React.useMemo(() => {
     const userId = user?.id;
@@ -110,9 +127,9 @@ const usePendingData = (
       .filter((x) => x.state === "pending")
       .filter((item) => {
         const validatorIds = deptData
-          .flatMap((x: any) => x.members)
-          .filter((x: any) => x.validator === true)
-          .map((x: any) => x.userId);
+          .flatMap((x) => x.members)
+          .filter((x) => x.validator === true)
+          .map((x) => x.userId);
 
         if (isLastValidator) {
           return validatorIds?.every((id: number) =>
@@ -132,7 +149,7 @@ const usePendingData = (
 // Hook personnalisé pour proceedData
 const useProceedData = (
   filteredData: RequestModelT[],
-  user: any,
+  user: User,
   isLastValidator: boolean
 ) => {
   return React.useMemo(() => {
@@ -179,7 +196,7 @@ const Approb = ({
   });
 
   // Utiliser les hooks personnalisés
-  const isLastValidator = useIsLastValidator(departmentData, user);
+  const isLastValidator = useIsLastValidator(departmentData, user!);
   const filteredData = useFilteredRequests(
     requestData,
     dateFilter,
@@ -187,14 +204,13 @@ const Approb = ({
   );
   const pendingData = usePendingData(
     filteredData,
-    user,
+    user!,
     isLastValidator,
     departmentData
   );
-  const proceedData = useProceedData(filteredData, user, isLastValidator);
+  const proceedData = useProceedData(filteredData, user!, isLastValidator);
 
   console.log(pendingData);
-  
 
   return (
     <div className="flex flex-col gap-4">

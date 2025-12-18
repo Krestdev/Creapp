@@ -51,7 +51,6 @@ import { z } from "zod";
 const formSchema = z.object({
   projet: z.string().min(1, "Le projet est requis"),
   categorie: z.string().min(1, "La catégorie est requise"),
-  souscategorie: z.string().min(1, "La sous-catégorie est requise"),
   titre: z.string().min(1, "Le titre est requis"),
   description: z.string(),
   quantity: z
@@ -86,7 +85,6 @@ export default function MyForm() {
     defaultValues: {
       projet: "",
       categorie: "",
-      souscategorie: "",
       titre: "",
       description: "",
       quantity: "",
@@ -107,13 +105,6 @@ export default function MyForm() {
       form.setValue("utilisateurs", []);
     }
   }, [beneficiaire]);
-
-  // Réinitialiser la sous-catégorie quand la catégorie change
-  useEffect(() => {
-    if (selectedCategorie) {
-      form.setValue("souscategorie", "");
-    }
-  }, [selectedCategorie, form]);
 
   // ----------------------------------------------------------------------
   // QUERY PROJECTS
@@ -176,24 +167,11 @@ export default function MyForm() {
     queryFn: async () => category.getCategories(),
   });
 
-  // Filtrer les catégories parentes (parentId === null)
-  const categories =
-    categoriesData.data?.data.filter((cat) => cat.parentId === null) || [];
-
-  // Filtrer les sous-catégories en fonction de la catégorie sélectionnée
-  const souscategories = selectedCategorie
-    ? categoriesData.data?.data.filter(
-        (cat) =>
-          cat.parentId !== null &&
-          cat.parentId?.toString() === selectedCategorie
-      ) || []
-    : [];
-
   function onSubmit(values: z.infer<typeof formSchema>) {
     requestMutation.mutate({
       label: values.titre,
       description: values.description || null,
-      categoryId: Number(values.souscategorie || values.categorie),
+      categoryId: Number(values.categorie),
       quantity: Number(values.quantity),
       unit: values.unite!,
       beneficiary: values.beneficiaire!,
@@ -262,53 +240,11 @@ export default function MyForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {categories?.map((c) => (
+                    {categoriesData.data?.data?.map((c) => (
                       <SelectItem key={c.id} value={c.id!.toString()}>
                         {c.label}
                       </SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          {/* SOUS-CATEGORIE */}
-          <FormField
-            control={form.control}
-            name="souscategorie"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Sous-catégorie <span className="text-red-500">*</span>
-                </FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  disabled={!selectedCategorie} // Désactivé si aucune catégorie sélectionnée
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                      <SelectValue
-                        placeholder={
-                          !selectedCategorie
-                            ? "Sélectionnez d'abord une catégorie"
-                            : "Sélectionner une sous-catégorie"
-                        }
-                      />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {souscategories.length > 0 ? (
-                      souscategories.map((c) => (
-                        <SelectItem key={c.id} value={c.id!.toString()}>
-                          {c.label}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="no-subcategory" disabled>
-                        Aucune sous-catégorie disponible
-                      </SelectItem>
-                    )}
                   </SelectContent>
                 </Select>
               </FormItem>

@@ -81,7 +81,7 @@ export function ProjectCreateForm() {
       > & { chiefId: number }
     ) => projectQueries.create(data),
     onSuccess: (data: ResponseT<ProjectCreateResponse>) => {
-      toast.success("Inscription réussie !");
+      toast.success("Projet créé avec succès !");
       console.log("created successful:", data);
       form.reset();
     },
