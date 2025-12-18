@@ -214,7 +214,7 @@ export function QuotationGroupTable({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions du groupe"}</DropdownMenuLabel>
               <DropdownMenuItem disabled={group.status === "PROCESSED"}
-                onClick={() => router.push(`./devis/valider/${group.commandRequest.id}`)}
+                onClick={() => router.push(`./valider/${group.commandRequest.id}`)}
                 className="cursor-pointer"
               >
                 <Check />

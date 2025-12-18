@@ -36,3 +36,18 @@ export const parseFrenchDate = (dateString: string): Date | undefined => {
 
   return date;
 };
+
+export const formatToShortName = (fullName: string | undefined | null): string => {
+  if (!fullName) return "Undefined";
+
+  const parts = fullName.trim().split(/\s+/); // Gère les doubles espaces
+  
+  if (parts.length <= 1) {
+    return parts[0];
+  }
+
+  const firstName = parts[0];
+  const secondInitial = parts[1].charAt(0).toUpperCase();
+
+  return `${firstName} ${secondInitial}.`;
+};

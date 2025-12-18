@@ -12,7 +12,6 @@ import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
 import Link from "next/link";
 import React from "react";
-import { QuotationGroupTable } from "./quotation-group";
 
 const Page = () => {
   const { user } = useStore();
@@ -25,6 +24,10 @@ const Page = () => {
     {
       title: "Créer un devis",
       href: "./devis/creer",
+    },
+    {
+      title: "Approbation",
+      href: "./devis/approbation",
     },
   ];
   /**Quotation fetch */
@@ -61,7 +64,7 @@ const Page = () => {
           subtitle="Consultez et gérez les cotations."
           color="red"
         >
-          {links.map((link, id) => {
+          {links.filter(p=> isAdmin ? true : p.href !== "./devis/approbation").map((link, id) => {
             const isLast = links.length > 1 ? id === links.length - 1 : false;
             return (
               <Link key={id} href={link.href}>
@@ -72,13 +75,6 @@ const Page = () => {
             );
           })}
         </PageTitle>
-        {isAdmin && (
-          <QuotationGroupTable
-            providers={providers.data.data}
-            quotations={data.data}
-            requests={commands.data.data}
-          />
-        )}
         <DevisTable
           data={data.data}
           dateFilter={dateFilter}

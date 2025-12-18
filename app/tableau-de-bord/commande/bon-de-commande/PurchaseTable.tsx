@@ -50,7 +50,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Pagination } from "@/components/base/pagination";
 
 import { BonsCommande, PURCHASE_ORDER_PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
-import { XAF } from "@/lib/utils";
+import { formatToShortName, XAF } from "@/lib/utils";
 import { format } from "date-fns";
 
 interface BonsCommandeTableProps {
@@ -86,7 +86,7 @@ const getPriorityLabel = (
     case "medium":
       return { label: "Normal", variant: "default" };
     case "high":
-      return { label: "Élevée", variant: "amber" };
+      return { label: "Élevée", variant: "primary" };
     case "urgent":
       return { label: "Urgent", variant: "destructive" };
     default:
@@ -154,45 +154,49 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
     },
 
     {
-      accessorKey: "id",
+      accessorKey: "reference",
       header: ({ column }) => (
         <span
           className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          {"#"}
-          <ArrowUpDown className="h-4 w-4" />
+          {"Référence"}
+          <ArrowUpDown />
         </span>
       ),
-      cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
+      cell: ({ row }) => <div className="font-medium uppercase">{row.getValue("reference")}</div>,
     },
 
     {
-      accessorKey: "deviId",
+      accessorKey: "devi",
       header: ({ column }) => (
         <span
           className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Devis"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
-      cell: ({ row }) => <div className="font-medium">#{row.getValue("deviId")}</div>,
+      cell: ({ row }) =>{ 
+        const name:BonsCommande["devi"] = row.getValue("devi")
+      return <div className="font-medium">{name.commandRequest.title}</div>},
     },
 
     {
-      accessorKey: "providerId",
+      accessorKey: "provider",
       header: ({ column }) => (
         <span
           className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Fournisseur"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
-      cell: ({ row }) => <div className="font-medium">#{row.getValue("providerId")}</div>,
+      cell: ({ row }) =>{ 
+        const provider:BonsCommande["provider"]= row.getValue("provider");
+      return <div className="font-medium">{formatToShortName(provider.name)}</div>},
     },
 
     {

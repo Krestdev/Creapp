@@ -316,6 +316,7 @@ export type BonsCommande = {
   devi: Quotation;
   deviId: number;
   providerId: number;
+  provider: Provider;
   amountBase: number;
   priority: typeof PURCHASE_ORDER_PRIORITIES[number]["value"];
   status: typeof PURCHASE_ORDER_STATUS[number]["value"];

@@ -26,6 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { paymentMethods } from "@/data/payment-methods";
 import { useFetchQuery } from "@/hooks/useData";
+import { formatToShortName } from "@/lib/utils";
 import { ProviderQueries } from "@/queries/providers";
 import { CreatePurchasePayload, PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
@@ -186,8 +187,8 @@ const penalty = form.watch("hasPenalties");
                   </SelectTrigger>
                   <SelectContent>
                     {getQuotations.data && getQuotations.data.data.filter(c=>c.status ==="APPROVED").map((quote)=>(
-                      <SelectItem key={quote.id} value={String(quote.id)} >
-                      {`${quote.commandRequest.title} - ${getProviders.data?.data.find(p=> p.id === quote.providerId)?.name ?? "Undefined"}`}
+                      <SelectItem key={quote.id} value={String(quote.id)} className="line-clamp-1" >
+                      {`${quote.commandRequest.title} - ${formatToShortName(getProviders.data?.data.find(p=> p.id === quote.providerId)?.name)}`}
                     </SelectItem>
                     ))}
                     {
