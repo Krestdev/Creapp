@@ -2,12 +2,11 @@
 
 import {
   type ColumnDef,
-  type ColumnFiltersState,
+  Row,
   type SortingState,
   type VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -20,13 +19,12 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronRight,
-  Clock,
   Eye,
   Hourglass,
   LucideBan,
   LucideIcon,
-  Users,
   UserCheck,
+  X,
 } from "lucide-react";
 import * as React from "react";
 
@@ -123,15 +121,18 @@ export function DataVal({
   const { user } = useStore();
   const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
       createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
+
+  // États pour les filtres
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
+  const [projectFilter, setProjectFilter] = React.useState<string>("all");
+  const [userFilter, setUserFilter] = React.useState<string>("all");
 
   // États pour le modal personnalisé
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
@@ -139,14 +140,6 @@ export function DataVal({
   const [tempCustomDateRange, setTempCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >(customDateRange || { from: addDays(new Date(), -7), to: new Date() });
-
-  // Utiliser un état local pour les données du tableau
-  const [tableData, setTableData] = React.useState<RequestModelT[]>(data);
-
-  // Mettre à jour les données du tableau quand les props changent
-  React.useEffect(() => {
-    setTableData(data);
-  }, [data]);
 
   // Modal states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
@@ -301,10 +294,59 @@ export function DataVal({
     return user?.name || userId;
   };
 
-  const uniqueCategories = React.useMemo(() => {
-    if (!tableData.length || !categoriesData.data?.data) return [];
+  // Fonction pour filtrer les données manuellement
+  const filteredData = React.useMemo(() => {
+    let filtered = [...data];
 
-    const categoryIds = [...new Set(tableData.map((req) => req.categoryId))];
+    // Filtrer par statut (seulement pour type proceed)
+    if (type === "proceed" && statusFilter && statusFilter !== "all") {
+      filtered = filtered.filter(item => item.state === statusFilter);
+    }
+
+    // Filtrer par catégorie
+    if (categoryFilter && categoryFilter !== "all") {
+      filtered = filtered.filter(item => 
+        String(item.categoryId) === String(categoryFilter)
+      );
+    }
+
+    // Filtrer par projet
+    if (projectFilter && projectFilter !== "all") {
+      filtered = filtered.filter(item => 
+        String(item.projectId) === String(projectFilter)
+      );
+    }
+
+    // Filtrer par utilisateur
+    if (userFilter && userFilter !== "all") {
+      filtered = filtered.filter(item => 
+        String(item.userId) === String(userFilter)
+      );
+    }
+
+    // Filtrer par recherche globale
+    if (globalFilter) {
+      const searchValue = globalFilter.toLowerCase();
+      filtered = filtered.filter(item => {
+        const searchText = [
+          item.label || "",
+          getProjectName(String(item.projectId)) || "",
+          getCategoryName(String(item.categoryId)) || "",
+          getUserName(String(item.userId)) || "",
+          getBeneficiaryDisplay(item) || ""
+        ].join(" ").toLowerCase();
+        
+        return searchText.includes(searchValue);
+      });
+    }
+
+    return filtered;
+  }, [data, globalFilter, statusFilter, categoryFilter, projectFilter, userFilter, type]);
+
+  const uniqueCategories = React.useMemo(() => {
+    if (!data.length || !categoriesData.data?.data) return [];
+
+    const categoryIds = [...new Set(data.map((req) => req.categoryId))];
 
     return categoryIds.map((categoryId) => {
       const category = categoriesData.data.data.find(
@@ -315,12 +357,12 @@ export function DataVal({
         name: category?.label || `Catégorie ${categoryId}`,
       };
     });
-  }, [tableData, categoriesData.data]);
+  }, [data, categoriesData.data]);
 
   const uniqueProjects = React.useMemo(() => {
-    if (!tableData.length || !projectsData.data?.data) return [];
+    if (!data.length || !projectsData.data?.data) return [];
 
-    const projectIds = [...new Set(tableData.map((req) => req.projectId))];
+    const projectIds = [...new Set(data.map((req) => req.projectId))];
 
     return projectIds.map((projectId) => {
       const project = projectsData.data.data.find(
@@ -331,12 +373,12 @@ export function DataVal({
         name: project?.label || `Projet ${projectId}`,
       };
     });
-  }, [tableData, projectsData.data]);
+  }, [data, projectsData.data]);
 
   const uniqueUsers = React.useMemo(() => {
-    if (!tableData.length || !usersData.data?.data) return [];
+    if (!data.length || !usersData.data?.data) return [];
 
-    const userIds = [...new Set(tableData.map((req) => req.userId))];
+    const userIds = [...new Set(data.map((req) => req.userId))];
 
     return userIds.map((userId) => {
       const user = usersData.data.data.find((u) => u.id === Number(userId));
@@ -345,7 +387,7 @@ export function DataVal({
         name: user?.name || `Utilisateur ${userId}`,
       };
     });
-  }, [tableData, usersData.data]);
+  }, [data, usersData.data]);
 
   const getStatusConfig = (
     status: string
@@ -390,8 +432,8 @@ export function DataVal({
   };
 
   const uniqueStatus = React.useMemo(() => {
-    if (!tableData.length) return [];
-    return [...new Set(tableData.map((req) => req.state))].map((state) => {
+    if (!data.length) return [];
+    return [...new Set(data.map((req) => req.state))].map((state) => {
       const status = getStatusConfig(state);
       return {
         id: state,
@@ -401,7 +443,7 @@ export function DataVal({
         rowClassName: status.rowClassName,
       };
     });
-  }, [tableData]);
+  }, [data]);
 
   const getBeneficiaryDisplay = (request: RequestModelT) => {
     if (request.beneficiary === "me") {
@@ -459,19 +501,7 @@ export function DataVal({
           ? "Besoin approuvé avec succès !" 
           : "Besoin rejeté avec succès !"
       );
-      // Invalider et rafraîchir les données
-      queryClient.invalidateQueries({
-        queryKey: ["requests"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["requests-validation"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["requests", user?.id],
-        refetchType: "active",
-      });
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
       requestData.refetch();
     },
     onError: () => {
@@ -552,7 +582,7 @@ export function DataVal({
           <Checkbox
             checked={
               table.getIsAllPageRowsSelected() ||
-              (table.getIsSomeRowsSelected() && "indeterminate")
+              (table.getIsSomePageRowsSelected() && "indeterminate")
             }
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Sélectionner toutes les lignes"
@@ -573,12 +603,12 @@ export function DataVal({
         header: ({ column }) => {
           return (
             <span
-              className="tablehead"
+              className="tablehead cursor-pointer flex items-center"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Titres"}
+              Titres
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -594,12 +624,12 @@ export function DataVal({
         header: ({ column }) => {
           return (
             <span
-              className="tablehead"
+              className="tablehead cursor-pointer flex items-center"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Projets"}
+              Projets
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -610,18 +640,15 @@ export function DataVal({
       },
       {
         accessorKey: "categoryId",
-        filterFn: (row, columnId, filterValue) => {
-          return String(row.getValue(columnId)) === String(filterValue);
-        },
         header: ({ column }) => {
           return (
             <span
-              className="tablehead"
+              className="tablehead cursor-pointer flex items-center"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Catégories"}
+              Catégories
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -633,34 +660,21 @@ export function DataVal({
           return (
             <div>
               <div className="font-medium text-sm">{categoryName}</div>
-              {validationInfo.userPosition && (
-                <div className="flex items-center gap-1 mt-1">
-                  <UserCheck className="h-3 w-3 text-gray-500" />
-                  <span className="text-xs text-gray-600">
-                    Position {validationInfo.userPosition}
-                    {validationInfo.isLastValidator && " (Final)"}
-                  </span>
-                </div>
-              )}
             </div>
           );
         },
       },
       {
         accessorKey: "userId",
-        filterFn: (row, columnId, filterValue) => {
-          if (!filterValue) return true;
-          return String(row.getValue(columnId)) === String(filterValue);
-        },
         header: ({ column }) => {
           return (
             <span
-              className="tablehead"
+              className="tablehead cursor-pointer flex items-center"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Emetteurs"}
+              Émetteurs
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -671,18 +685,15 @@ export function DataVal({
       },
       {
         accessorKey: "createdAt",
-        filterFn: (row, columnId, filterValue) => {
-          return String(row.getValue(columnId)) === String(filterValue);
-        },
         header: ({ column }) => {
           return (
             <span
-              className="tablehead"
+              className="tablehead cursor-pointer flex items-center"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Date d'émission"}
+              Date d'émission
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -698,12 +709,12 @@ export function DataVal({
         header: ({ column }) => {
           return (
             <span
-              className="tablehead"
+              className="tablehead cursor-pointer flex items-center"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Bénéficiaires"}
+              Bénéficiaires
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -714,11 +725,11 @@ export function DataVal({
           </div>
         ),
       },
-      // Nouvelle colonne : Progression de validation (uniquement pour type pending)
+      // Nouvelle colonne : Validation de validation (uniquement pour type pending)
       ...(type === "pending" ? [{
         id: "validationProgress",
-        header: () => <span className="tablehead">{"Progression"}</span>,
-        cell: ({ row }: { row: ReturnType<typeof table.getRowModel>['rows'][number] }) => {
+        header: () => <span className="tablehead">Validation</span>,
+        cell: ({ row }: { row: Row<RequestModelT> }) => {
           const validationInfo = getValidationInfo(row.original);
           
           if (!validationInfo.totalValidators) return null;
@@ -736,14 +747,6 @@ export function DataVal({
                   {validationInfo.validatedCount}/{validationInfo.totalValidators}
                 </div>
               </div>
-              {validationInfo.userPosition && (
-                <Badge 
-                  variant={validationInfo.isLastValidator ? "destructive" : "outline"}
-                  className="text-xs"
-                >
-                  {validationInfo.isLastValidator ? "Final" : `P${validationInfo.userPosition}`}
-                </Badge>
-              )}
             </div>
           );
         },
@@ -757,12 +760,12 @@ export function DataVal({
         header: ({ column }) => {
           return (
             <span
-              className="tablehead"
+              className="tablehead cursor-pointer flex items-center"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Statuts"}
+              Statuts
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -785,7 +788,7 @@ export function DataVal({
     baseColumns.push({
       id: "actions",
       enableHiding: false,
-      header: () => <span className="tablehead">{"Actions"}</span>,
+      header: () => <span className="tablehead">Actions</span>,
       cell: ({ row }) => {
         const item = row.original;
         const validationInfo = getValidationInfo(item);
@@ -794,18 +797,12 @@ export function DataVal({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant={"outline"} size="sm">
-                {"Actions"}
+              <Button variant="ghost" size="sm">
+                Actions
                 <ChevronDown className="ml-2 h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel className="font-normal text-xs text-gray-500">
-                {validationInfo.categoryName}
-                {validationInfo.userPosition && (
-                  <span className="block">Position {validationInfo.userPosition}</span>
-                )}
-              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
@@ -814,7 +811,7 @@ export function DataVal({
                 }}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                {"Voir les détails"}
+                Voir les détails
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -831,7 +828,7 @@ export function DataVal({
                 className={!validationInfo.canValidate ? "opacity-50 cursor-not-allowed" : ""}
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
-                {"Approuver"}
+                Approuver
                 {validationInfo.isLastValidator && " (Final)"}
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -844,7 +841,7 @@ export function DataVal({
                 className={!validationInfo.canValidate ? "opacity-50 cursor-not-allowed" : ""}
               >
                 <LucideBan className="text-red-500 mr-2 h-4 w-4" />
-                {"Rejeter"}
+                Rejeter
                 {validationInfo.isLastValidator && " (Final)"}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -856,55 +853,30 @@ export function DataVal({
     return baseColumns;
   }, [type, user?.id, categoriesData.data]);
 
+  // Table configuration
   const table = useReactTable({
-    data: tableData.reverse() || [],
+    data: filteredData,
     columns,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const searchValue = filterValue.toLowerCase();
-
-      const searchableColumns = [
-        "label", 
-        "projectId", 
-        "categoryId", 
-        "userId", 
-        "beneficiary"
-      ];
-
-      return searchableColumns.some((columnId) => {
-        const rawValue = row.getValue(columnId);
-        let displayValue = rawValue;
-
-        // Convertir les IDs en noms pour la recherche
-        if (columnId === "projectId") {
-          displayValue = getProjectName(String(rawValue));
-        } else if (columnId === "categoryId") {
-          displayValue = getCategoryName(String(rawValue));
-        } else if (columnId === "userId") {
-          displayValue = getUserName(String(rawValue));
-        } else if (columnId === "beneficiary") {
-          displayValue = getBeneficiaryDisplay(row.original);
-        }
-
-        return String(displayValue).toLowerCase().includes(searchValue);
-      });
-    },
     state: {
       sorting,
-      columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter,
     },
   });
+
+  // Vérifier si des filtres sont actifs
+  const hasActiveFilters = 
+    globalFilter || 
+    statusFilter !== "all" || 
+    categoryFilter !== "all" || 
+    projectFilter !== "all" || 
+    userFilter !== "all";
 
   return (
     <div className="w-full">
@@ -912,7 +884,7 @@ export function DataVal({
         {/* Global search */}
         <Input
           placeholder="Rechercher par titre, catégorie, projet..."
-          value={globalFilter ?? ""}
+          value={globalFilter}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
@@ -920,21 +892,14 @@ export function DataVal({
         {/* Status filter - seulement pour proceed */}
         {type === "proceed" && (
           <Select
-            defaultValue="all"
-            value={
-              (table.getColumn("state")?.getFilterValue() as string) ?? "all"
-            }
-            onValueChange={(value) =>
-              table
-                .getColumn("state")
-                ?.setFilterValue(value === "all" ? "" : value)
-            }
+            value={statusFilter}
+            onValueChange={setStatusFilter}
           >
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Statut" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{"Tous les statuts"}</SelectItem>
+              <SelectItem value="all">Tous les statuts</SelectItem>
               {uniqueStatus?.map((state) => {
                 return (
                   <SelectItem
@@ -952,14 +917,8 @@ export function DataVal({
 
         {/* Category filter */}
         <SearchableSelect
-          value={
-            (table.getColumn("categoryId")?.getFilterValue() as string) ?? "all"
-          }
-          onChange={(value) =>
-            table
-              .getColumn("categoryId")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
+          value={categoryFilter}
+          onChange={setCategoryFilter}
           placeholder="Catégorie"
           allLabel="Toutes"
           options={uniqueCategories.map((c) => ({
@@ -970,14 +929,8 @@ export function DataVal({
 
         {/* Project filter */}
         <SearchableSelect
-          value={
-            (table.getColumn("projectId")?.getFilterValue() as string) ?? "all"
-          }
-          onChange={(value) =>
-            table
-              .getColumn("projectId")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
+          value={projectFilter}
+          onChange={setProjectFilter}
           placeholder="Projet"
           allLabel="Tous"
           options={uniqueProjects.map((p) => ({
@@ -988,14 +941,8 @@ export function DataVal({
 
         {/* Users filter */}
         <SearchableSelect
-          value={
-            (table.getColumn("userId")?.getFilterValue() as string) ?? "all"
-          }
-          onChange={(value) =>
-            table
-              .getColumn("userId")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
+          value={userFilter}
+          onChange={setUserFilter}
           placeholder="Émetteur"
           allLabel="Tous"
           options={uniqueUsers.map((u) => ({
@@ -1021,7 +968,7 @@ export function DataVal({
                   !dateFilter && "bg-accent"
                 )}
               >
-                <span>{"Toutes les périodes"}</span>
+                <span>Toutes les périodes</span>
                 {!dateFilter && <ChevronRight className="h-4 w-4" />}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -1032,7 +979,7 @@ export function DataVal({
                   dateFilter === "today" && "bg-accent"
                 )}
               >
-                <span>{"Aujourd'hui"}</span>
+                <span>Aujourd'hui</span>
                 {dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -1042,7 +989,7 @@ export function DataVal({
                   dateFilter === "week" && "bg-accent"
                 )}
               >
-                <span>{"Cette semaine"}</span>
+                <span>Cette semaine</span>
                 {dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -1052,7 +999,7 @@ export function DataVal({
                   dateFilter === "month" && "bg-accent"
                 )}
               >
-                <span>{"Ce mois"}</span>
+                <span>Ce mois</span>
                 {dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -1062,7 +1009,7 @@ export function DataVal({
                   dateFilter === "year" && "bg-accent"
                 )}
               >
-                <span>{"Cette année"}</span>
+                <span>Cette année</span>
                 {dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -1075,7 +1022,7 @@ export function DataVal({
               >
                 <span className="flex items-center">
                   <CalendarDays className="mr-2 h-4 w-4" />
-                  {"Personnaliser"}
+                  Personnaliser
                 </span>
                 {dateFilter === "custom" && (
                   <ChevronRight className="h-4 w-4" />
@@ -1089,7 +1036,7 @@ export function DataVal({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              {"Colonnes"}
+              Colonnes
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -1113,7 +1060,7 @@ export function DataVal({
                       : column.id === "categoryId"
                       ? "Catégories"
                       : column.id === "userId"
-                      ? "Emetteurs"
+                      ? "Émetteurs"
                       : column.id === "beneficiary"
                       ? "Bénéficiaires"
                       : column.id === "createdAt"
@@ -1121,7 +1068,7 @@ export function DataVal({
                       : column.id === "state"
                       ? "Statuts"
                       : column.id === "validationProgress"
-                      ? "Progression"
+                      ? "Validation"
                       : column.id}
                   </DropdownMenuCheckboxItem>
                 );
@@ -1131,7 +1078,7 @@ export function DataVal({
       </div>
 
       {/* Table */}
-      {table.getRowModel().rows?.length > 0 ? (
+      {filteredData.length > 0 ? (
         <div className="rounded-md border overflow-hidden">
           <Table>
             <TableHeader>
@@ -1196,7 +1143,7 @@ export function DataVal({
       )}
 
       {/* Pagination */}
-      {table.getRowModel().rows?.length > 0 && (
+      {filteredData.length > 0 && (
         <Pagination table={table} pageSize={15} />
       )}
 
@@ -1207,16 +1154,16 @@ export function DataVal({
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{"Sélectionner une plage de dates"}</DialogTitle>
+            <DialogTitle>Sélectionner une plage de dates</DialogTitle>
             <DialogDescription>
-              {"Choisissez la période que vous souhaitez filtrer"}
+              Choisissez la période que vous souhaitez filtrer
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date-from">{"Date de début"}</Label>
+                <Label htmlFor="date-from">Date de début</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -1230,7 +1177,7 @@ export function DataVal({
                       {tempCustomDateRange?.from ? (
                         format(tempCustomDateRange.from, "PPP", { locale: fr })
                       ) : (
-                        <span>{"Sélectionner une date"}</span>
+                        <span>Sélectionner une date</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -1251,7 +1198,7 @@ export function DataVal({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date-to">{"Date de fin"}</Label>
+                <Label htmlFor="date-to">Date de fin</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -1265,7 +1212,7 @@ export function DataVal({
                       {tempCustomDateRange?.to ? (
                         format(tempCustomDateRange.to, "PPP", { locale: fr })
                       ) : (
-                        <span>{"Sélectionner une date"}</span>
+                        <span>Sélectionner une date</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -1304,9 +1251,9 @@ export function DataVal({
               variant="outline"
               onClick={() => setIsCustomDateModalOpen(false)}
             >
-              {"Annuler"}
+              Annuler
             </Button>
-            <Button onClick={applyCustomDateRange}>{"Appliquer"}</Button>
+            <Button onClick={applyCustomDateRange}>Appliquer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

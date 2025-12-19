@@ -15,7 +15,7 @@ const ProjectListPage = () => {
   if (projectData.data)
     return (
       <div className="content">
-        <ProjectTable data={projectData.data?.data} />
+        <ProjectTable data={projectData.data?.data.filter((x) => x.status !== "cancelled")} />
       </div>
     );
 };

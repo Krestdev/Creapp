@@ -1,6 +1,6 @@
 "use client";
 
-import { DataTable } from "@/components/base/data-table";
+import { DataTable, TableFilters } from "@/components/base/data-table";
 import { RequestModelT } from "@/types/types";
 import React from "react";
 
@@ -27,13 +27,20 @@ interface RequestListProps {
     >
   >;
   requestData: RequestModelT[] | undefined;
+  
+  // Nouveaux props pour tous les filtres
+  filters?: TableFilters;
+  setFilters?: React.Dispatch<React.SetStateAction<TableFilters>>;
 }
+
 const RequestList = ({
   dateFilter,
   setDateFilter,
   customDateRange,
   setCustomDateRange,
   requestData,
+  filters,
+  setFilters,
 }: RequestListProps) => {
   return (
     <div className="flex flex-col gap-4">
@@ -44,6 +51,8 @@ const RequestList = ({
           customDateRange={customDateRange}
           setCustomDateRange={setCustomDateRange}
           requestData={requestData}
+          filters={filters}
+          setFilters={setFilters}
         />
       </div>
     </div>

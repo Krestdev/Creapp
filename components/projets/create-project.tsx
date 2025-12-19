@@ -39,7 +39,7 @@ export interface ActionResponse<T = any> {
 export const formSchema = z.object({
   label: z
     .string({ message: "Ce champ est requis" })
-    .min(4, "Le libellé doit contenir au moins 4 caractères"),
+    .min(2, "Le libellé doit contenir au moins 2 caractères"),
 
   description: z.string().min(1, { message: "Ce champ est requis" }).optional(),
 

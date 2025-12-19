@@ -421,7 +421,7 @@ const Approb = ({
                 <div>
                   <h3 className="font-semibold text-lg">Aucun besoin en attente</h3>
                   <p className="text-gray-500 text-sm mt-1">
-                    Tous les besoins nécessitant votre approbation sont traités
+                    Tous les besoins nécessitant votre validation sont traités
                   </p>
                 </div>
               </div>
@@ -431,7 +431,7 @@ const Approb = ({
         
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-semibold">Historique des approbations</h2>
+            <h2 className="text-xl font-semibold">Historique des validations</h2>
           </div>
           
           <DataVal

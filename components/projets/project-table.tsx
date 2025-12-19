@@ -26,6 +26,7 @@ import {
   PauseCircle,
   PlayCircle,
   Search,
+  Trash2,
   XCircle,
 } from "lucide-react";
 import * as React from "react";
@@ -57,12 +58,33 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
 import UpdateProject from "./UpdateProject";
+import { Pagination } from "../base/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Interface pour tous les filtres
+export interface ProjectFilters {
+  globalFilter: string;
+  statusFilter: string | string[];
+  chiefFilter: string;
+  budgetOperator: "eq" | "lt" | "gt" | "lte" | "gte" | "none";
+  budgetValue: string;
+}
 
 interface ProjectTableProps {
   data: ProjectT[];
+
+  // Props pour les filtres (optionnelles pour compatibilité)
+  filters?: ProjectFilters;
+  setFilters?: React.Dispatch<React.SetStateAction<ProjectFilters>>;
 }
 
-export function ProjectTable({ data }: ProjectTableProps) {
+export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -70,10 +92,53 @@ export function ProjectTable({ data }: ProjectTableProps) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState("");
+
+  // État local pour les filtres si les props ne sont pas fournies
+  const [localFilters, setLocalFilters] = React.useState<ProjectFilters>({
+    globalFilter: "",
+    statusFilter: "all",
+    chiefFilter: "all",
+    budgetOperator: "none",
+    budgetValue: "",
+  });
+
+  // Utiliser les filtres externes s'ils sont fournis, sinon utiliser les filtres locaux
+  const effectiveFilters = filters || localFilters;
+  const setEffectiveFilters = setFilters || setLocalFilters;
 
   const [selectedItem, setSelectedItem] = React.useState<ProjectT | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+
+  // Obtenir la liste unique des chefs de projet
+  const uniqueChiefs = React.useMemo(() => {
+    const chiefs = data
+      .map((project) => project.chief)
+      .filter((chief) => chief && chief.name)
+      .map((chief) => chief!.name);
+
+    return [...new Set(chiefs)].sort();
+  }, [data]);
+
+  // Obtenir les budgets min et max pour les limites
+  const budgetRange = React.useMemo(() => {
+    if (!data.length) return { min: 0, max: 0 };
+
+    const budgets = data.map((project) => project.budget || 0);
+    return {
+      min: Math.min(...budgets),
+      max: Math.max(...budgets),
+      avg: budgets.reduce((a, b) => a + b, 0) / budgets.length,
+    };
+  }, [data]);
+
+  // Obtenir les statuts uniques qui existent dans les données actuelles
+  const uniqueStatuses = React.useMemo(() => {
+    const statuses = data
+      .map((project) => project.status)
+      .filter(Boolean); // Filtrer les valeurs nulles/indéfinies
+
+    return [...new Set(statuses)].sort();
+  }, [data]);
 
   const getBadge = (
     status: string
@@ -86,19 +151,20 @@ export function ProjectTable({ data }: ProjectTableProps) {
       case "planning":
         return { label: "Planification", variant: "amber" };
       case "in-progress":
-        return { label: "En cours", icon: PlayCircle, variant: "blue" };
+        return { label: "En cours", icon: PlayCircle, variant: "amber" };
       case "on-hold":
-        return { label: "En pause", icon: PauseCircle, variant: "default" };
-      case "completed":
+        return { label: "Suspendu", icon: PauseCircle, variant: "destructive" };
+      case "Completed":
         return { label: "Terminé", icon: CheckCircle, variant: "success" };
       case "cancelled":
-        return { label: "Annulé", icon: XCircle, variant: "dark" };
+        return { label: "Supprimé", icon: XCircle, variant: "destructive" };
       case "ongoing":
-        return { label: "En cours", variant: "secondary" };
+        return { label: "En cours", variant: "amber" };
       default:
         return { label: status, variant: "outline" };
     }
   };
+
   const getRowColor = (status: string) => {
     switch (status) {
       case "planning":
@@ -106,8 +172,8 @@ export function ProjectTable({ data }: ProjectTableProps) {
       case "in-progress":
         return "bg-blue-50";
       case "on-hold":
-        return "bg-gray-50";
-      case "completed":
+        return "bg-red-50";
+      case "Completed":
         return "bg-green-50";
       case "cancelled":
         return "bg-red-50";
@@ -134,7 +200,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
     onSuccess: () => {
       // invalidate and refetch
       toast.success("Projet mis à jour avec succès !");
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      queryClient.invalidateQueries({ queryKey: ["projectsList"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
     onError: () => {
@@ -143,6 +209,110 @@ export function ProjectTable({ data }: ProjectTableProps) {
       );
     },
   });
+
+  // Fonction pour mettre à jour un filtre
+  const updateFilter = (filterName: keyof ProjectFilters, value: any) => {
+    setEffectiveFilters((prev) => ({
+      ...prev,
+      [filterName]: value,
+    }));
+  };
+
+  // Fonction pour normaliser le texte (ignorer accents)
+  const normalizeText = (value: unknown) =>
+    String(value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+  // Fonction pour filtrer les données avec TOUS les filtres
+  const filteredData = React.useMemo(() => {
+    let filtered = [...data];
+
+    // Filtrer par recherche globale (insensible aux accents)
+    if (effectiveFilters.globalFilter) {
+      const searchValue = normalizeText(effectiveFilters.globalFilter);
+      filtered = filtered.filter((project) => {
+        const searchText = [
+          project.reference || "",
+          project.label || "",
+          project.chief?.name || "",
+        ]
+          .map(text => normalizeText(text))
+          .join(" ");
+
+        return searchText.includes(searchValue);
+      });
+    }
+
+    // Filtrer par statut
+    if (
+      effectiveFilters.statusFilter &&
+      effectiveFilters.statusFilter !== "all"
+    ) {
+      if (Array.isArray(effectiveFilters.statusFilter)) {
+        filtered = filtered.filter((project) =>
+          effectiveFilters.statusFilter.includes(project.status)
+        );
+      } else {
+        filtered = filtered.filter(
+          (project) => project.status === effectiveFilters.statusFilter
+        );
+      }
+    }
+
+    // Filtrer par chef de projet
+    if (
+      effectiveFilters.chiefFilter &&
+      effectiveFilters.chiefFilter !== "all"
+    ) {
+      filtered = filtered.filter(
+        (project) => project.chief?.name === effectiveFilters.chiefFilter
+      );
+    }
+
+    // Filtrer par budget avec opérateur
+    if (
+      effectiveFilters.budgetOperator !== "none" &&
+      effectiveFilters.budgetValue
+    ) {
+      const budgetValue = Number(effectiveFilters.budgetValue);
+
+      if (!isNaN(budgetValue)) {
+        switch (effectiveFilters.budgetOperator) {
+          case "eq": // Égal à
+            filtered = filtered.filter(
+              (project) => (project.budget || 0) === budgetValue
+            );
+            break;
+          case "lt": // Inférieur à
+            filtered = filtered.filter(
+              (project) => (project.budget || 0) < budgetValue
+            );
+            break;
+          case "gt": // Supérieur à
+            filtered = filtered.filter(
+              (project) => (project.budget || 0) > budgetValue
+            );
+            break;
+          case "lte": // Inférieur ou égal à
+            filtered = filtered.filter(
+              (project) => (project.budget || 0) <= budgetValue
+            );
+            break;
+          case "gte": // Supérieur ou égal à
+            filtered = filtered.filter(
+              (project) => (project.budget || 0) >= budgetValue
+            );
+            break;
+        }
+      }
+    }
+
+    return filtered;
+  }, [data, effectiveFilters]);
+
   const columns: ColumnDef<ProjectT>[] = React.useMemo(
     () => [
       {
@@ -220,45 +390,21 @@ export function ProjectTable({ data }: ProjectTableProps) {
             </span>
           );
         },
-        cell: ({ row }) => (
-          <div className="font-medium">
-            {formatCurrency(row.getValue("budget"))}
-          </div>
-        ),
-      },
-      // {
-      //   accessorKey: "budgetLeft",
-      //   header: ({ column }) => {
-      //     return (
-      //       <Button
-      //         variant="ghost"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         Budget Left
-      //         <ArrowUpDown className="ml-2 h-4 w-4" />
-      //       </Button>
-      //     );
-      //   },
-      //   cell: ({ row }) => {
-      //     const budgetLeft = row.getValue("budgetLeft") as number;
-      //     const budget = row.original.budget;
-      //     const percentage = (budgetLeft / budget) * 100;
-      //     const colorClass =
-      //       percentage > 50
-      //         ? "text-green-600"
-      //         : percentage > 20
-      //         ? "text-yellow-600"
-      //         : "text-red-600";
+        cell: ({ row }) => {
+          const budget = row.getValue("budget") as number;
+          const projectBudget = row.original.budget || 0;
+          const budgetRangeInfo = budgetRange;
+          let colorClass = "font-medium";
 
-      //     return (
-      //       <div className={`font-medium ${colorClass}`}>
-      //         {formatCurrency(budgetLeft)}
-      //       </div>
-      //     );
-      //   },
-      // },
+          if (projectBudget < budgetRangeInfo.avg! * 0.5) {
+            colorClass = "font-medium text-green-600";
+          } else if (projectBudget > budgetRangeInfo.avg! * 1.5) {
+            colorClass = "font-medium text-red-600";
+          }
+
+          return <div className={colorClass}>{formatCurrency(budget)}</div>;
+        },
+      },
       {
         accessorKey: "chief",
         header: ({ column }) => {
@@ -318,6 +464,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
         enableHiding: false,
         cell: ({ row }) => {
           const project = row.original;
+          const isSuspended = project.status === "on-hold";
 
           return (
             <DropdownMenu>
@@ -328,7 +475,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuItem>
                   <Eye />
                   {"Voir"}
@@ -339,6 +486,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                     setSelectedItem(project);
                     setIsUpdateModalOpen(true);
                   }}
+                  disabled={project.status === "Completed"}
                 >
                   <LucidePen />
                   {"Modifier"}
@@ -350,22 +498,43 @@ export function ProjectTable({ data }: ProjectTableProps) {
                       status: "Completed",
                     })
                   }
+                  disabled={project.status === "Completed"}
                 >
                   <CheckCircle />
-                  {"Compléter"}
+                  {"Terminer"}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    projectMutationData.mutate({
-                      id: project.id ?? -1,
-                      status: "on-hold",
-                    })
-                  }
-                  disabled={project.status === "cancelled"}
-                >
-                  <PauseCircle />
-                  {"Suspendre"}
-                </DropdownMenuItem>
+                
+                {/* Bouton "Suspendre" ou "Reprendre" selon l'état */}
+                {isSuspended ? (
+                  <DropdownMenuItem
+                    onClick={() =>
+                      projectMutationData.mutate({
+                        id: project.id ?? -1,
+                        status: "in-progress", // Remettre en cours
+                      })
+                    }
+                  >
+                    <PlayCircle />
+                    {"Reprendre"}
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={() =>
+                      projectMutationData.mutate({
+                        id: project.id ?? -1,
+                        status: "on-hold",
+                      })
+                    }
+                    disabled={
+                      project.status === "Completed" || 
+                      project.status === "cancelled"
+                    }
+                  >
+                    <PauseCircle />
+                    {"Suspendre"}
+                  </DropdownMenuItem>
+                )}
+                
                 <DropdownMenuItem
                   className="text-red-600"
                   onClick={() =>
@@ -374,9 +543,13 @@ export function ProjectTable({ data }: ProjectTableProps) {
                       status: "cancelled",
                     })
                   }
+                  disabled={
+                    project.status === "cancelled" ||
+                    project.status === "Completed"
+                  }
                 >
-                  <XCircle className="text-red-600" />
-                  {"Annuler"}
+                  <Trash2 className="text-red-600" />
+                  {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -388,7 +561,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
   );
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -398,25 +571,24 @@ export function ProjectTable({ data }: ProjectTableProps) {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: (value) => updateFilter("globalFilter", value),
     globalFilterFn: (row, columnId, filterValue) => {
-      const search = filterValue.toLowerCase();
-      const reference = row.getValue("reference") as string;
-      const project = row.getValue("project") as string;
-      const chief = row.getValue("chief") as string;
-
-      return (
-        reference.toLowerCase().includes(search) ||
-        project.toLowerCase().includes(search) ||
-        chief.toLowerCase().includes(search)
-      );
+      const search = normalizeText(filterValue);
+      
+      if (!search) return true;
+      
+      // Pour chercher dans toutes les cellules de la ligne
+      return row.getAllCells().some(cell => {
+        const cellValue = cell.getValue();
+        return normalizeText(cellValue).includes(search);
+      });
     },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter,
+      globalFilter: effectiveFilters.globalFilter,
     },
   });
 
@@ -424,92 +596,109 @@ export function ProjectTable({ data }: ProjectTableProps) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-4 py-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher par référence, projet ou chef..."
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-8 max-w-sm"
-          />
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              Statuts <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {[
-              "planning",
-              "in-progress",
-              "on-hold",
-              "completed",
-              "cancelled",
-            ].map((status) => (
-              <DropdownMenuCheckboxItem
-                key={status}
-                checked={(
-                  table.getColumn("status")?.getFilterValue() as string[]
-                )?.includes(status)}
-                onCheckedChange={(checked) => {
-                  const currentFilter =
-                    (table.getColumn("status")?.getFilterValue() as string[]) ||
-                    [];
-                  table
-                    .getColumn("status")
-                    ?.setFilterValue(
-                      checked
-                        ? [...currentFilter, status]
-                        : currentFilter.filter((s) => s !== status)
-                    );
-                }}
-              >
-                {status.charAt(0).toUpperCase() +
-                  status.slice(1).replace("-", " ")}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
+      <div className="flex flex-col gap-4 py-4">
+        {/* Barre de recherche */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher par projet..."
+              value={effectiveFilters.globalFilter ?? ""}
+              onChange={(event) =>
+                updateFilter("globalFilter", event.target.value)
+              }
+              className="pl-8 max-w-lg w-full!"
+            />
+          </div>
+          
+          {/* Sélecteur de statut - affiche uniquement les statuts existants */}
+          <Select
+            value={
+              typeof effectiveFilters.statusFilter === "string"
+                ? effectiveFilters.statusFilter
+                : "multiple"
+            }
+            onValueChange={(value) =>
+              updateFilter("statusFilter", value === "all" ? "all" : value)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tous les statuts" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              {uniqueStatuses.map((status) => {
+                const badgeInfo = getBadge(status);
                 return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
+                  <SelectItem key={status} value={status}>
+                    <div className="flex items-center gap-2">
+                      {badgeInfo.icon && (
+                        <badgeInfo.icon className="h-4 w-4" />
+                      )}
+                      {badgeInfo.label}
+                    </div>
+                  </SelectItem>
                 );
               })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {selectedRows.length > 0 && (
-        <div className="flex items-center gap-2 py-2">
-          <span className="text-sm text-muted-foreground">
-            {selectedRows.length} row(s) selected
-          </span>
-          <Button variant="outline" size="sm">
-            Bulk Action
-          </Button>
+            </SelectContent>
+          </Select>
+          
+          <Select
+            value={effectiveFilters.chiefFilter}
+            onValueChange={(value) => updateFilter("chiefFilter", value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tous les chefs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les chefs</SelectItem>
+              {uniqueChiefs.map((chief) => (
+                <SelectItem key={chief} value={chief}>
+                  {chief}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild className="ml-auto">
+              <Button variant="outline">
+                {"Colonnes"}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id === "reference"
+                        ? "Référence"
+                        : column.id === "label"
+                        ? "Projet"
+                        : column.id === "chief"
+                        ? "Chef Projet"
+                        : column.id === "budget"
+                        ? "Budget prévisionnel"
+                        : column.id === "status"
+                        ? "Statut"
+                        : column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      )}
+      </div>
 
       <div className="rounded-md border">
         <Table>
@@ -567,7 +756,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Aucun résultat trouvé avec les filtres actuels.
                 </TableCell>
               </TableRow>
             )}
@@ -575,51 +764,7 @@ export function ProjectTable({ data }: ProjectTableProps) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
+      <Pagination table={table} />
       <UpdateProject
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}

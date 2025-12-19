@@ -116,6 +116,17 @@ const statusConfig = {
   },
 };
 
+// Interface pour tous les filtres
+export interface TableFilters {
+  globalFilter: string;
+  statusFilter: string;
+  categoryFilter: string;
+  projectFilter: string;
+  userFilter: string;
+  dateFilter?: "today" | "week" | "month" | "year" | "custom" | undefined;
+  customDateRange?: { from: Date; to: Date } | undefined;
+}
+
 interface Props {
   dateFilter: "today" | "week" | "month" | "year" | "custom" | undefined;
   setDateFilter: React.Dispatch<
@@ -128,6 +139,10 @@ interface Props {
     React.SetStateAction<{ from: Date; to: Date } | undefined>
   >;
   requestData: RequestModelT[] | undefined;
+
+  // Nouvelles props optionnelles pour tous les filtres
+  filters?: TableFilters;
+  setFilters?: React.Dispatch<React.SetStateAction<TableFilters>>;
 }
 
 export function DataTable({
@@ -136,6 +151,8 @@ export function DataTable({
   customDateRange,
   setCustomDateRange,
   requestData,
+  filters,
+  setFilters,
 }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -147,7 +164,15 @@ export function DataTable({
       createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState("");
+
+  // État local pour les filtres autres que la date
+  const [localFilters, setLocalFilters] = React.useState({
+    globalFilter: "",
+    statusFilter: "all",
+    categoryFilter: "all",
+    projectFilter: "all",
+    userFilter: "all",
+  });
 
   // modal specific states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
@@ -172,14 +197,6 @@ export function DataTable({
       return projects.getAll();
     },
   });
-
-  // const users = new UserQueries();
-  // const usersData = useQuery({
-  //   queryKey: ["users"],
-  //   queryFn: async () => {
-  //     return users.getAll();
-  //   },
-  // });
 
   const category = new CategoryQueries();
   const categoryData = useQuery({
@@ -216,6 +233,27 @@ export function DataTable({
       return true;
     } catch {
       return false;
+    }
+  };
+
+  // Fonction pour mettre à jour un filtre local
+  const updateLocalFilter = (
+    filterName: keyof typeof localFilters,
+    value: any
+  ) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      [filterName]: value,
+    }));
+
+    // Notifier le parent si les filtres complets sont fournis
+    if (setFilters) {
+      setFilters((prev) => ({
+        ...prev,
+        [filterName]: value,
+        dateFilter,
+        customDateRange,
+      }));
     }
   };
 
@@ -313,6 +351,22 @@ export function DataTable({
     });
   }, [requestData, categoryData.data]);
 
+  const uniqueProjects = React.useMemo(() => {
+    if (!requestData || !projectsData.data?.data) return [];
+
+    const projectIds = [...new Set(requestData.map((req) => req.projectId))];
+
+    return projectIds.map((projectId) => {
+      const project = projectsData.data?.data.find(
+        (proj) => proj.id === Number(projectId)
+      );
+      return {
+        id: projectId,
+        label: project?.label || `Projet ${projectId}`,
+      };
+    });
+  }, [requestData, projectsData.data]);
+
   const uniqueStatuses = React.useMemo(() => {
     if (!requestData) return [];
 
@@ -329,6 +383,52 @@ export function DataTable({
       };
     });
   }, [requestData]);
+
+  // Fonction pour filtrer les données avec TOUS les filtres
+  const filteredData = React.useMemo(() => {
+    if (!requestData) return [];
+
+    let filtered = [...requestData];
+
+    // Filtrer par statut local
+    if (localFilters.statusFilter && localFilters.statusFilter !== "all") {
+      filtered = filtered.filter(
+        (item) => item.state === localFilters.statusFilter
+      );
+    }
+
+    // Filtrer par catégorie locale
+    if (localFilters.categoryFilter && localFilters.categoryFilter !== "all") {
+      filtered = filtered.filter(
+        (item) =>
+          String(item.categoryId) === String(localFilters.categoryFilter)
+      );
+    }
+
+    // Filtrer par recherche globale locale
+    if (localFilters.globalFilter) {
+      const searchValue = localFilters.globalFilter.toLowerCase();
+      filtered = filtered.filter((item) => {
+        const searchText = [
+          item.label || "",
+          item.ref || "",
+          getProjectName(String(item.projectId)) || "",
+        ]
+          .join(" ")
+          .toLowerCase();
+        return searchText.includes(searchValue);
+      });
+    }
+
+    // Filtre par projet local
+    if (localFilters.projectFilter && localFilters.projectFilter !== "all") {
+      filtered = filtered.filter(
+        (item) => String(item.projectId) === String(localFilters.projectFilter)
+      );
+    }
+
+    return filtered;
+  }, [requestData, localFilters]);
 
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
@@ -395,9 +495,6 @@ export function DataTable({
     },
     {
       accessorKey: "categoryId",
-      filterFn: (row, columnId, filterValue) => {
-        return String(row.getValue(columnId)) === String(filterValue);
-      },
       header: ({ column }) => {
         return (
           <span
@@ -423,9 +520,6 @@ export function DataTable({
     },
     {
       accessorKey: "createdAt",
-      filterFn: (row, columnId, filterValue) => {
-        return String(row.getValue(columnId)) === String(filterValue);
-      },
       header: ({ column }) => {
         return (
           <span
@@ -445,9 +539,6 @@ export function DataTable({
     },
     {
       accessorKey: "state",
-      filterFn: (row, columnId, filterValue) => {
-        return String(row.getValue(columnId)) === String(filterValue);
-      },
       header: ({ column }) => {
         return (
           <span
@@ -534,7 +625,7 @@ export function DataTable({
   };
 
   const table = useReactTable<RequestModelT>({
-    data: requestData?.reverse() || [],
+    data: filteredData?.reverse() || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -544,29 +635,13 @@ export function DataTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const searchValue = filterValue.toLowerCase();
-
-      const searchableColumns = ["label", "projectId", "ref"];
-
-      return searchableColumns.some((columnId) => {
-        const rawValue = row.getValue(columnId);
-        let displayValue = rawValue;
-
-        if (columnId === "projectId") {
-          displayValue = getProjectName(String(rawValue));
-        }
-
-        return String(displayValue).toLowerCase().includes(searchValue);
-      });
-    },
+    onGlobalFilterChange: (value) => updateLocalFilter("globalFilter", value),
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter,
+      globalFilter: localFilters.globalFilter,
     },
   });
 
@@ -580,24 +655,22 @@ export function DataTable({
             placeholder="Rechercher par titre, référence, ou projet..."
             name="search"
             type="search"
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
+            value={localFilters.globalFilter ?? ""}
+            onChange={(event) =>
+              updateLocalFilter("globalFilter", event.target.value)
+            }
             className="max-w-sm"
           />
         </div>
+
         {/* Category filter */}
         <div className="grid gap-1.5">
           <Label htmlFor="category">{"Catégorie"}</Label>
           <Select
             name="category"
-            value={
-              (table.getColumn("categoryId")?.getFilterValue() as string) ??
-              "all"
-            }
+            value={localFilters.categoryFilter}
             onValueChange={(value) =>
-              table
-                .getColumn("categoryId")
-                ?.setFilterValue(value === "all" ? "" : value)
+              updateLocalFilter("categoryFilter", value)
             }
           >
             <SelectTrigger className="min-w-48">
@@ -613,19 +686,36 @@ export function DataTable({
             </SelectContent>
           </Select>
         </div>
+
+        {/* Project filter */}
+        <div className="grid gap-1.5">
+          <Label htmlFor="project">{"Projet"}</Label>
+          <Select
+            name="project"
+            value={localFilters.projectFilter}
+            onValueChange={(value) => updateLocalFilter("projectFilter", value)}
+          >
+            <SelectTrigger className="min-w-48">
+              <SelectValue placeholder="Filter by project" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Tous les projets"}</SelectItem>
+              {uniqueProjects.map((project) => (
+                <SelectItem key={project.id} value={String(project.id)}>
+                  {project.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Status filter */}
         <div className="grid gap-1.5">
           <Label htmlFor="status">{"Statut"}</Label>
           <Select
             name="status"
-            value={
-              (table.getColumn("state")?.getFilterValue() as string) ?? "all"
-            }
-            onValueChange={(value) =>
-              table
-                .getColumn("state")
-                ?.setFilterValue(value === "all" ? "" : value)
-            }
+            value={localFilters.statusFilter}
+            onValueChange={(value) => updateLocalFilter("statusFilter", value)}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
@@ -640,6 +730,7 @@ export function DataTable({
             </SelectContent>
           </Select>
         </div>
+
         {/* Date filter avec option personnalisée */}
         <div className="grid gap-1.5">
           <Label>{"Période"}</Label>

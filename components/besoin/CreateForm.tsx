@@ -214,16 +214,24 @@ export default function MyForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {projectsData.data?.data.map((p) => (
-                      <SelectItem
-                        disabled={p.status === "cancelled"}
-                        key={p.id}
-                        value={p.id!.toString()}
-                        className={`${p.status === "cancelled" && "opacity-50 cursor-not-allowed"}`}
-                      >
-                        {p.label}
-                      </SelectItem>
-                    ))}
+                    {projectsData.data?.data
+                      .filter(
+                        (p) =>
+                          p.status !== "cancelled" && p.status !== "Completed"
+                      )
+                      .map((p) => (
+                        <SelectItem
+                          disabled={p.status === "cancelled"}
+                          key={p.id}
+                          value={p.id!.toString()}
+                          className={`${
+                            p.status === "cancelled" &&
+                            "opacity-50 cursor-not-allowed"
+                          }`}
+                        >
+                          {p.label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </FormItem>
