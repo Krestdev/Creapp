@@ -50,7 +50,7 @@ type Sidebar = {
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
- const [data, setData] = React.useState<RequestModelT[]>([]);
+  const [data, setData] = React.useState<RequestModelT[]>([]);
 
   const request = new RequestQueries();
   const category = new CategoryQueries();
@@ -89,19 +89,24 @@ function AppSidebar() {
     userId: number
   ): number | null => {
     if (!category || !category.validators || !userId) return null;
-    
-    const validator = category.validators.find(v => v.userId === userId);
+
+    const validator = category.validators.find((v) => v.userId === userId);
     return validator?.rank || null;
   };
 
   // Fonction pour vérifier si un utilisateur est le dernier validateur d'une catégorie
-  const isUserLastValidatorForCategory = (category: Category | undefined, userId: number): boolean => {
+  const isUserLastValidatorForCategory = (
+    category: Category | undefined,
+    userId: number
+  ): boolean => {
     if (!category || !category.validators || !userId) return false;
-    
+
     // Trouver le validateur avec la position la plus élevée
-    const maxPosition = Math.max(...category.validators.map(v => v.rank));
-    const lastValidator = category.validators.find(v => v.rank === maxPosition);
-    
+    const maxPosition = Math.max(...category.validators.map((v) => v.rank));
+    const lastValidator = category.validators.find(
+      (v) => v.rank === maxPosition
+    );
+
     return lastValidator?.userId === userId;
   };
 
@@ -112,24 +117,27 @@ function AppSidebar() {
     userPosition: number
   ): boolean => {
     if (!category || !category.validators || userPosition <= 1) return true;
-    
+
     // Récupérer les IDs des validateurs précédents
     const previousPositions = Array.from(
       { length: userPosition - 1 },
       (_, i) => i + 1
     );
-    
+
     const previousValidatorIds = category.validators
-      .filter(v => previousPositions.includes(v.rank))
-      .map(v => v.userId);
+      .filter((v) => previousPositions.includes(v.rank))
+      .map((v) => v.userId);
 
     // Vérifier si tous les validateurs précédents ont validé
-    const validatedPreviousIds = request.revieweeList
-      ?.map(r => r.validatorId)
-      .filter(id => previousValidatorIds.includes(id)) || [];
+    const validatedPreviousIds =
+      request.revieweeList
+        ?.map((r) => r.validatorId)
+        .filter((id) => previousValidatorIds.includes(id)) || [];
 
-    return previousValidatorIds.length > 0 && 
-           previousValidatorIds.length === validatedPreviousIds.length;
+    return (
+      previousValidatorIds.length > 0 &&
+      previousValidatorIds.length === validatedPreviousIds.length
+    );
   };
 
   // Filtrer les besoins en fonction de la nouvelle logique
@@ -141,24 +149,28 @@ function AppSidebar() {
 
         // 2. Trouver la catégorie du besoin
         const category = categoriesData.data.data.find(
-          cat => cat.id === request.categoryId
+          (cat) => cat.id === request.categoryId
         );
 
         // 3. Vérifier si l'utilisateur est un validateur pour cette catégorie
         if (!category || !category.validators) return false;
-        
+
         const userPosition = getUserValidatorPosition(category, user.id!);
         if (userPosition === null) return false;
 
         // 4. Vérifier si l'utilisateur a déjà validé ce besoin
         const hasUserAlreadyValidated = request.revieweeList?.some(
-          r => r.validatorId === user.id
+          (r) => r.validatorId === user.id
         );
         if (hasUserAlreadyValidated) return false;
 
         // 5. Pour les validateurs autres que le premier, vérifier que tous les précédents ont validé
         if (userPosition > 1) {
-          return havePreviousValidatorsApproved(request, category, userPosition);
+          return havePreviousValidatorsApproved(
+            request,
+            category,
+            userPosition
+          );
         }
 
         // 6. Pour le premier validateur, vérifier qu'aucune validation n'a été faite
@@ -175,7 +187,7 @@ function AppSidebar() {
     }
   }, [requestData.data?.data, user, categoriesData.data?.data]);
 
-   // Utilisation du hook pour la protection globale
+  // Utilisation du hook pour la protection globale
   const { hasAccess, isChecking, userRoles } = useAuthGuard({
     requireAuth: true,
     authorizedRoles: [],
@@ -252,19 +264,25 @@ function AppSidebar() {
           href: "/tableau-de-bord/besoins/mylist",
           authorized: ["ADMIN", "MANAGER", "USER"],
         },
+        // {
+        //   pageId: "PG-02-03",
+        //   title: "Approbation",
+        //   href: "/tableau-de-bord/besoins/approbation",
+        //   authorized: ["ADMIN", "MANAGER"],
+        //   badge: data?.length > 0 ? data?.length : undefined,
+        // },
         {
           pageId: "PG-02-03",
           title: "Approbation",
-          href: "/tableau-de-bord/besoins/approbation",
+          href: "/tableau-de-bord/besoins/validation",
           authorized: ["ADMIN", "MANAGER"],
           badge: data?.length > 0 ? data?.length : undefined,
         },
         {
-          pageId: "PG-02-03",
-          title: "Approbation catégories",
-          href: "/tableau-de-bord/besoins/validation",
-          authorized: ["ADMIN", "MANAGER"],
-          badge: data?.length > 0 ? data?.length : undefined,
+          pageId: "PG-09-03",
+          title: "Catégories",
+          href: "/tableau-de-bord/organisation/categories",
+          authorized: ["ADMIN"],
         },
       ],
     },
@@ -433,39 +451,33 @@ function AppSidebar() {
         },
       ],
     },
-    {
-      pageId: "PG-09",
-      icon: Building,
-      href: "/tableau-de-bord/organisation",
-      authorized: ["ADMIN"],
-      title: "Organisation",
-      items: [
-        {
-          pageId: "PG-09-01",
-          title: "Departements",
-          href: "/tableau-de-bord/organisation/departements",
-          authorized: ["ADMIN"],
-        },
-        // {
-        //   pageId: "PG-09-02",
-        //   title: "Creer un departement",
-        //   href: "/tableau-de-bord/organisation/createdepartement",
-        //   authorized: ["ADMIN"],
-        // },
-        {
-          pageId: "PG-09-03",
-          title: "Catégories",
-          href: "/tableau-de-bord/organisation/categories",
-          authorized: ["ADMIN"],
-        },
-        // {
-        //   pageId: "PG-09-04",
-        //   title: "Creer un categorie",
-        //   href: "/tableau-de-bord/organisation/createcategorie",
-        //   authorized: ["ADMIN"],
-        // },
-      ],
-    },
+    // {
+    //   pageId: "PG-09",
+    //   icon: Building,
+    //   href: "/tableau-de-bord/organisation",
+    //   authorized: ["ADMIN"],
+    //   title: "Organisation",
+    //   items: [
+    //     {
+    //       pageId: "PG-09-01",
+    //       title: "Departements",
+    //       href: "/tableau-de-bord/organisation/departements",
+    //       authorized: ["ADMIN"],
+    //     },
+    //     {
+    //       pageId: "PG-09-02",
+    //       title: "Creer un departement",
+    //       href: "/tableau-de-bord/organisation/createdepartement",
+    //       authorized: ["ADMIN"],
+    //     },
+    //     {
+    //       pageId: "PG-09-04",
+    //       title: "Creer un categorie",
+    //       href: "/tableau-de-bord/organisation/createcategorie",
+    //       authorized: ["ADMIN"],
+    //     },
+    //   ],
+    // },
   ];
 
   // Filtrer les liens de navigation selon les rôles de l'utilisateur
