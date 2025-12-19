@@ -76,7 +76,7 @@ const Page = () => {
     {
       title: "Approbation",
       href: "./bon-de-commande/approbation",
-      disabled: true,
+      disabled: !isAdmin,
       hide: !isAdmin
     },
     {
