@@ -9,7 +9,7 @@ interface Props {
   purchaseOrder: BonsCommande;
 }
 
-function ViewPurchase({open, openChange, purchaseOrder}:Props) {
+function ViewPurchase({open, openChange}:Props) {
   return (
     <Dialog open={open} onOpenChange={openChange}>
         <DialogContent className='sm:max-w-3xl'>

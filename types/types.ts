@@ -342,4 +342,5 @@ export interface NavLink {
   title: string;
   href:string;
   disabled?:boolean;
+  hide?:boolean;
 }

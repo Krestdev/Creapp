@@ -33,6 +33,9 @@ const Page = () => {
   );
 
   const { user } = useStore();
+  const isAdmin = user?.role.some(
+    (r) => r.label === "SALES_MANAGER" || r.label === "ADMIN"
+  );
 
   const filteredData: Array<BonsCommande> = useMemo(() => {
     const list = data?.data ?? [];
@@ -62,6 +65,7 @@ const Page = () => {
     {
       title: "Créer un bon",
       href: "./bon-de-commande/creer",
+      hide: isAdmin
     },
     {
       title: "Statistiques",
@@ -72,7 +76,8 @@ const Page = () => {
     {
       title: "Approbation",
       href: "./bon-de-commande/approbation",
-      disabled: true
+      disabled: true,
+      hide: !isAdmin
     },
     {
       title: "Receptions",
@@ -120,7 +125,7 @@ const Page = () => {
           title="Bons de commande"
           subtitle="Approbation des bons de commande"
         >
-          {links.map((link, id) => {
+          {links.filter(x=>x.hide === true).map((link, id) => {
             const isLast = links.length > 1 ? id === links.length - 1 : false;
               return (
                 <Link key={id} href={link.href} onClick={(e)=>{link.disabled && e.preventDefault();}} className={cn(link.disabled && "cursor-not-allowed")}>
