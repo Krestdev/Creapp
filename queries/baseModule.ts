@@ -57,12 +57,15 @@ export class UserQueries {
   getVerificationOtp = async (
     otp: number,
     email: string
-  ): Promise<ResponseT<User>> => {
+  ): Promise<{ message: string}> => {
     return api
       .get(`${this.route}/verify/${otp}?email=${encodeURI(email)}`)
       .then((response) => {
         console.log(response.data);
         return response.data;
+      }).catch((error) => {
+        console.log(error);
+        return error.response.data;
       });
   };
 

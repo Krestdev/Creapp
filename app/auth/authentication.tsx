@@ -23,6 +23,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
+import { AxiosError } from "axios";
 
 function maskEmail(email: string) {
   const [name, domain] = email.split("@");
@@ -51,15 +52,16 @@ export default function VerifyEmailClient() {
       userQuery.getVerificationOtp(otp, email),
     onSuccess: (data) => {
       toast.success(
-        `${formatToShortName(data.data.name)}, votre adresse email a été vérifiée ✅`
+        `Votre adresse email a été vérifiée ✅`
       );
       router.push("/connexion");
       router.refresh();
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError) => {
       toast.error(
         `Échec de la vérification : ${error?.message ?? "Erreur inconnue"}`
       );
+      console.error(error);
     },
   });
 
