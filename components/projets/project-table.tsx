@@ -170,7 +170,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
       case "planning":
         return "bg-amber-50";
       case "in-progress":
-        return "bg-blue-50";
+        return "bg-yellow-50";
       case "on-hold":
         return "bg-red-50";
       case "Completed":
