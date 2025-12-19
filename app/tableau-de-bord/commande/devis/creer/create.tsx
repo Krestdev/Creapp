@@ -206,7 +206,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
   }, [form.watch("commandRequestId")]);
 
   // Fonction pour trouver l'index global d'un élément
-  const findGlobalIndex = (needId: number, elementIndex: number) => {
+  /* const findGlobalIndex = (needId: number, elementIndex: number) => {
     const elements = form.getValues("elements");
     let currentIndex = 0;
     let foundCount = 0;
@@ -220,17 +220,17 @@ function CreateQuotation({ quotation, openChange }: Props) {
       }
     }
     return -1;
-  };
+  }; */
 
   // Fonction pour supprimer un élément
-  const removeElement = (needId: number, elementIndex: number) => {
+  /* const removeElement = (needId: number, elementIndex: number) => {
     const globalIndex = findGlobalIndex(needId, elementIndex);
     if (globalIndex === -1) return;
     
     const currentElements = [...form.getValues("elements")];
     currentElements.splice(globalIndex, 1);
     form.setValue("elements", currentElements);
-  };
+  }; */
 
   if (requestsData.isLoading || providersData.isLoading) {
     return <LoadingPage />;

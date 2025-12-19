@@ -59,7 +59,7 @@ export class UserQueries {
     email: string
   ): Promise<ResponseT<User>> => {
     return api
-      .get(`${this.route}/verify/${otp}?email=${email}`)
+      .get(`${this.route}/verify/${otp}?email=${encodeURI(email)}`)
       .then((response) => {
         console.log(response.data);
         return response.data;
