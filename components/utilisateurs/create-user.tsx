@@ -89,6 +89,23 @@ export default function CreateUserForm() {
     }
   }
 
+  const TranslateRole = (role: string) => {
+    switch (role) {
+      case "USER":
+        return "Emetteur";
+      case "MANAGER":
+        return "Manager";
+      case "SALES":
+        return "Responsable d'achat";
+      case "SALES_MANAGER":
+        return "Donneur d'ordre d'achat";
+      case "ADMIN":
+        return "Administrateur";
+      default:
+        return role;
+    }
+  };
+
   return (
     <Form {...form}>
       <form
@@ -191,7 +208,7 @@ export default function CreateUserForm() {
                 <SelectContent>
                   {roleData.data?.data.map((role) => (
                     <SelectItem key={role.id} value={role.id.toString()}>
-                      {role.label}
+                      {TranslateRole(role.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
