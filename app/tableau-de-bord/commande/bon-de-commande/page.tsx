@@ -125,7 +125,7 @@ const Page = () => {
           title="Bons de commande"
           subtitle="Approbation des bons de commande"
         >
-          {links.filter(x=>x.hide === true).map((link, id) => {
+          {links.filter(x=> !x.hide ? true : x.hide === true && false).map((link, id) => {
             const isLast = links.length > 1 ? id === links.length - 1 : false;
               return (
                 <Link key={id} href={link.href} onClick={(e)=>{link.disabled && e.preventDefault();}} className={cn(link.disabled && "cursor-not-allowed")}>
