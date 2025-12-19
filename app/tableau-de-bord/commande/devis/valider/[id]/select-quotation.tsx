@@ -1,6 +1,8 @@
 "use client";
 
+import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFetchQuery } from "@/hooks/useData";
@@ -8,6 +10,7 @@ import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { cn, XAF } from "@/lib/utils";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderQueries } from "@/queries/providers";
+import { PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
 import type { Provider, QuotationGroup } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,7 +27,6 @@ const buildSubmitPayload = (
   quotationGroup: QuotationGroup,
   selected: Record<number, number>
 ): SubmitPayload => {
-  // deviId -> { deviId, elements[] }
   const byDevi = new Map<number, SubmitPayload[number]>();
 
   for (const besoin of quotationGroup.commandRequest.besoins) {
@@ -40,15 +42,12 @@ const buildSubmitPayload = (
       .filter((el) => el.requestModelId === besoin.id)
       .map((el) => el.id);
 
-    // Si aucun élément trouvé, on peut soit ignorer soit envoyer vide.
-    // Je choisis d'ignorer pour éviter du bruit.
     if (elementIds.length === 0) continue;
 
     const existing = byDevi.get(quote.id);
     const groupItem = { name: besoin.label, elementIds };
 
     if (existing) {
-      // éviter doublons si jamais
       const already = existing.elements.some((e) => e.name === groupItem.name);
       if (!already) existing.elements.push(groupItem);
     } else {
@@ -57,6 +56,28 @@ const buildSubmitPayload = (
   }
 
   return Array.from(byDevi.values());
+};
+
+/**
+ * ✅ Preload:
+ * besoinId -> providerId, basé sur element.status === "SELECTED"
+ */
+const computePreselected = (quotationGroup: QuotationGroup) => {
+  const pre: Record<number, number> = {};
+
+  for (const besoin of quotationGroup.commandRequest.besoins) {
+    const quoteSelected = quotationGroup.quotations.find((q) =>
+      (q.element || []).some(
+        (el) => el.requestModelId === besoin.id && el.status === "SELECTED"
+      )
+    );
+
+    if (quoteSelected) {
+      pre[besoin.id] = quoteSelected.providerId;
+    }
+  }
+
+  return pre;
 };
 
 function SelectQuotation({ id }: { id: string }) {
@@ -72,8 +93,13 @@ function SelectQuotation({ id }: { id: string }) {
   const commandsQuery = new CommandRqstQueries();
   const commands = useFetchQuery(["commands"], commandsQuery.getAll, 30000);
 
-  // ✅ State déclaré AVANT les returns
-  // besoinId -> providerId (radio-like)
+  const purchaseOrderQuery = new PurchaseOrder();
+    const purchaseOrder = useFetchQuery(
+      ["purchaseOrders"],
+      purchaseOrderQuery.getAll
+    );
+
+  // besoinId -> providerId
   const [selected, setSelected] = React.useState<Record<number, number>>({});
 
   const groups: Array<QuotationGroup> = React.useMemo(() => {
@@ -89,38 +115,40 @@ function SelectQuotation({ id }: { id: string }) {
     return groups.find((x) => x.commandRequest.id === Number(id));
   }, [groups, id]);
 
-  // Map providers pour lookup rapide
   const providerMap = React.useMemo(() => {
     const list = providers.data?.data ?? [];
     return new Map<number, Provider>(list.map((p) => [p.id, p]));
   }, [providers.data]);
 
-  // reset sélection quand on change de commande
+  /**
+   * ✅ IMPORTANT:
+   * on preload la sélection existante (validation déjà faite)
+   * et on évite de reset à {} (sinon tu perds le preload)
+   */
   React.useEffect(() => {
-    setSelected({});
-  }, [id]);
+    if (!quotationGroup) return;
+    setSelected(computePreselected(quotationGroup));
+  }, [quotationGroup?.commandRequest?.id]); // basé sur la demande
 
-  // ✅ CORRECTION ICI : Gérer le cas où quotationGroup est undefined
   const payload = React.useMemo(() => {
     if (!quotationGroup) return [];
     return buildSubmitPayload(quotationGroup, selected);
   }, [quotationGroup, selected]);
 
-  const allSelected = React.useMemo(() => {
-    if (!quotationGroup) return false;
-    return (
-      quotationGroup.commandRequest.besoins.length > 0 &&
-      quotationGroup.commandRequest.besoins.every((b) => !!selected[b.id])
-    );
-  }, [quotationGroup, selected]);
+  /**
+   * ✅ Validation partielle:
+   * on autorise la soumission si au moins 1 besoin est sélectionné
+   */
+  const hasAtLeastOneSelection = React.useMemo(() => {
+    return Object.keys(selected).length > 0;
+  }, [selected]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (value: SubmitPayload) => quotationQuery.validate(value),
     onSuccess: () => {
-      toast.success(
-        "Décision enregistrée ! Les devis sélectionnés ont été mis à jour avec succès"
-      );
-      queryClient.invalidateQueries({ queryKey: ["quotations", "commands"] });
+      toast.success("Décision enregistrée !");
+      queryClient.invalidateQueries({ queryKey: ["quotations"] });
+      queryClient.invalidateQueries({ queryKey: ["commands"] });
       router.push("../");
     },
     onError: (error: Error) => {
@@ -128,18 +156,35 @@ function SelectQuotation({ id }: { id: string }) {
     },
   });
 
-  const handleSubmit = async () => {
-    if (!allSelected || !quotationGroup) return;
+  const handleSubmit = () => {
+    if (!quotationGroup) return;
+
+    if (payload.length === 0) {
+      toast.error("Sélectionnez au moins un besoin à valider.");
+      return;
+    }
+
     mutate(payload);
   };
 
   const toggleSelection = (besoinId: number, providerId: number) => {
-    setSelected((prev) => ({ ...prev, [besoinId]: providerId }));
-  };
+  setSelected((prev) => {
+    // si on clique sur le même provider déjà choisi => déselection
+    if (prev[besoinId] === providerId) {
+      const next = { ...prev };
+      delete next[besoinId];
+      return next;
+    }
+    // sinon, on sélectionne / remplace
+    return { ...prev, [besoinId]: providerId };
+  });
+};
 
-  // ✅ Déplacer les vérifications de chargement et de données après tous les hooks
-  if (quotations.isLoading || providers.isLoading || commands.isLoading)
+
+  if (quotations.isLoading || providers.isLoading || commands.isLoading || purchaseOrder.isLoading)
     return <LoadingPage />;
+  if(quotations.isError || providers.isError || commands.isError || purchaseOrder.isError) return <ErrorPage/>
+  if(purchaseOrder.data && quotationGroup && purchaseOrder.data.data.find(x=> quotationGroup.quotations.some(y=> y.id === x.deviId))) return <ErrorPage statusCode={401} message="Un bon de commande a déjà été crée avec un devis appartenant à ce groupe"/>
   if (!quotationGroup) return notFound();
 
   return (
@@ -151,16 +196,16 @@ function SelectQuotation({ id }: { id: string }) {
 
             <div className="grid gap-3 grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-3 @min-[1280px]:grid-cols-4 @min-[1600px]:grid-cols-5">
               {quotationGroup.quotations.map((quote) => {
-                // ✅ ne prendre que les éléments de CE besoin
                 const elements = (quote.element || []).filter(
                   (el) => el.requestModelId === besoin.id
                 );
-
-                // Option: si un fournisseur ne propose rien pour ce besoin, on n'affiche pas sa carte
                 if (elements.length === 0) return null;
 
                 const provider = providerMap.get(quote.providerId);
                 const checked = selected[besoin.id] === quote.providerId;
+
+                // ✅ indique si ce fournisseur est déjà validé pour ce besoin
+                const alreadyValidated = elements.some((e) => e.status === "SELECTED");
 
                 return (
                   <div
@@ -186,10 +231,16 @@ function SelectQuotation({ id }: { id: string }) {
                     />
 
                     <div className="grid gap-3">
-                      <span className="font-semibold uppercase">
-                        {provider?.name ?? "Introuvable"}
-                      </span>
-
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold uppercase">
+                          {provider?.name ?? "Introuvable"}
+                        </span>
+                        {alreadyValidated && (
+                          <Badge variant={"primary"}>
+                            {"Déjà validé"}
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex flex-col gap-2">
                         {elements.map((element) => (
                           <div
@@ -216,7 +267,7 @@ function SelectQuotation({ id }: { id: string }) {
         type="button"
         variant={"primary"}
         onClick={handleSubmit}
-        disabled={!allSelected || isPending}
+        disabled={!hasAtLeastOneSelection || isPending}
         isLoading={isPending}
       >
         {"Valider la sélection"}
