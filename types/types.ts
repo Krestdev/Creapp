@@ -1,5 +1,6 @@
 import { LucideIcon } from "lucide-react";
 import React from "react";
+import { boolean } from "zod";
 
 export interface NavigationItemProps {
   pageId: string;
@@ -336,3 +337,9 @@ export type BonsCommande = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export interface NavLink {
+  title: string;
+  href:string;
+  disabled?:boolean;
+}

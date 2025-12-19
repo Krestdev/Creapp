@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { PurchaseOrder } from "@/queries/purchase-order";
-import { BonsCommande } from "@/types/types";
+import { BonsCommande, NavLink } from "@/types/types";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
@@ -58,7 +58,7 @@ const Page = () => {
     });
   }, [data?.data, dateRange]);
 
-  const links = [
+  const links:Array<NavLink> = [
     {
       title: "Créer un bon",
       href: "./bon-de-commande/creer",
@@ -72,10 +72,12 @@ const Page = () => {
     {
       title: "Approbation",
       href: "./bon-de-commande/approbation",
+      disabled: true
     },
     {
       title: "Receptions",
       href: "./bon-de-commande/receptions",
+      disabled: true
     },
   ];
 

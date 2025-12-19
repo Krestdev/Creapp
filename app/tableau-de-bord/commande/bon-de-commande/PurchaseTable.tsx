@@ -174,7 +174,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
           className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          {"Devis"}
+          {"Titre"}
           <ArrowUpDown />
         </span>
       ),
