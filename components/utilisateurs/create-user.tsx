@@ -29,7 +29,7 @@ import { z } from "zod";
 const formSchema = z.object({
   name: z.string().min(1),
   email: z.string().min(1),
-  password: z.string(),
+  password: z.string().min(6, {message: "Le mot de passe doit contenir au moins 6 caractères"}),
   cpassword: z.string(),
   phone: z.string().min(1),
   role: z.string(),
