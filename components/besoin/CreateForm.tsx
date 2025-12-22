@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { units } from "@/data/unit";
 import { cn } from "@/lib/utils";
 
 import { useStore } from "@/providers/datastore";
@@ -331,9 +332,13 @@ export default function MyForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="KG">{"KG"}</SelectItem>
-                    <SelectItem value="L">{"Litre"}</SelectItem>
-                    <SelectItem value="FCFA">{"FCFA"}</SelectItem>
+                    {
+                      units.map((unit, id)=>
+                        <SelectItem key={unit.value} value={unit.value}>
+                          {unit.name}
+                        </SelectItem>
+                      )
+                    }
                   </SelectContent>
                 </Select>
               </FormItem>
