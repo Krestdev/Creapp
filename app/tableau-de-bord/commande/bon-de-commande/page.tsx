@@ -65,7 +65,7 @@ const Page = () => {
     {
       title: "Créer un bon",
       href: "./bon-de-commande/creer",
-      hide: isAdmin
+      hide: false
     },
     {
       title: "Statistiques",
