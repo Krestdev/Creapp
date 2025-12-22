@@ -82,6 +82,7 @@ import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
+import { ModalWarning } from "../modals/modal-warning";
 
 const statusConfig = {
   pending: {
@@ -605,7 +606,10 @@ export function DataTable({
                   setSelectedItem(item);
                   setIsCancelModalOpen(true);
                 }}
-                disabled={item.state !== "pending"}
+                disabled={
+                  item.state !== "pending" ||
+                  (item.revieweeList?.length ?? 0) > 0
+                }
               >
                 <LucideBan className="mr-2 h-4 w-4 text-red-500" />
                 {"Annuler"}
@@ -1044,34 +1048,16 @@ export function DataTable({
         setOpen={setIsUpdateModalOpen}
         requestData={selectedItem}
       />
-      <ValidationModal
+      <ModalWarning
         open={isCancelModalOpen}
         onOpenChange={setIsCancelModalOpen}
-        type="reject"
         title="Annuler le besoin"
         description="Êtes-vous sûr de vouloir annuler ce besoin ?"
-        successConfirmation={{
-          title: "Succès ✅",
-          description: "Le besoin a été annulé avec succès.",
-        }}
-        errorConfirmation={{
-          title: "Erreur ❌",
-          description: "Une erreur est survenue lors de l'annulation.",
-        }}
-        buttonTexts={{
-          approve: "Annuler",
-          reject: "Rejeter",
-          cancel: "Annuler",
-          close: "Fermer",
-          retry: "Réessayer",
-          processing: "Traitement...",
-        }}
-        labels={{
-          rejectionReason: "Motif de l'annulation",
-          rejectionPlaceholder: "Expliquez la raison de l'annulation...",
-          rejectionError: "Veuillez fournir un motif",
-        }}
-        onSubmit={() => handleCancel()}
+        actionText="Annuler"
+        onAction={() => handleCancel()
+        }
+        name={selectedItem?.label}
+        variant="error"
       />
     </div>
   );

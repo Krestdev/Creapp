@@ -16,42 +16,8 @@ interface DetailOrderProps {
 }
 
 export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
-  // const request = new RequestQueries();
-  // const user = new UserQueries();
-
-  // const userData = useQuery({
-  //   queryKey: ["users"],
-  //   queryFn: async () => user.getAll(),
-  // });
-
-  // const requestData = useQuery({
-  //   queryKey: ["requests"],
-  //   queryFn: async () => request.getAll(),
-  // });
 
   if (!data) return null;
-
-  // const statusConfig = {
-  //   pending: {
-  //     label: "En attente",
-  //     color:
-  //       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  //   },
-  //   approved: {
-  //     label: "Approuvé",
-  //     color:
-  //       "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  //   },
-  //   rejected: {
-  //     label: "Rejeté",
-  //     color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  //   },
-  //   "in-review": {
-  //     label: "En révision",
-  //     color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  //   },
-  // };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[750px] overflow-y-auto p-0 gap-0 overflow-x-hidden border-none flex flex-col">
@@ -71,7 +37,7 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
           {/* TITRE */}
           <div className="mb-3">
             <h2 className="text-[16px] font-bold uppercase tracking-wide text-[#8A0035]">
-              Demande de Cotation
+              {"Demande de Cotation"}
             </h2>
           </div>
 
@@ -79,21 +45,21 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
           <div className="flex flex-col mb-6 space-y-2">
             <div className="flex gap-2">
               <p className="w-fit font-semibold underline text-[10px]">
-                Objet :
+                {"Objet :"}
               </p>
               <p className="flex-1 text-[10px]">{data.title}</p>
             </div>
 
             <div className="flex gap-2">
               <p className="w-fit font-semibold underline text-[10px]">
-                Référence :
+                {"Référence :"}
               </p>
               <p className="flex-1 text-[10px]">{data.reference}</p>
             </div>
 
             <div className="flex gap-2">
               <p className="w-fit font-semibold underline text-[10px]">
-                Date limite :
+                {"Date limite :"}
               </p>
               <p className="flex-1 text-[10px]">
                 {data.dueDate
@@ -110,18 +76,18 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
             <div className="flex flex-col mt-4 space-y-1">
               <div className="flex gap-2">
                 <p className="w-fit font-semibold underline text-[10px]">
-                  Contact principal :
+                  {"Contact principal :"}
                 </p>
                 <p className="flex-1 text-[10px]">
-                  M. Jean Phillipe (Responsable Achat)
+                  {data.name}
                 </p>
               </div>
 
               <div className="flex gap-2">
                 <p className="w-fit font-semibold underline text-[10px]">
-                  Téléphone :
+                  {"Téléphone :"}
                 </p>
-                <p className="flex-1 text-[10px]">+33 35 45 45</p>
+                <p className="flex-1 text-[10px]">{data.phone}</p>
               </div>
             </div>
           </div>
@@ -129,7 +95,7 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
           {/* TITRE SECTION */}
           <div className="mb-3">
             <h3 className="text-[14px] font-semibold uppercase tracking-wide">
-              Liste des éléments
+              {"Liste des éléments"}
             </h3>
           </div>
 
@@ -138,15 +104,15 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
           <div className="border border-blacK mb-6">
             {/* HEADER */}
             <div className="flex bg-gray-100 border-b border-black text-[12px] leading-tight font-bold uppercase">
-              <div className="border-black p-2 w-[31%]">TITRE DU BESOIN</div>
+              <div className="border-black p-2 w-[31%]">{"TITRE DU BESOIN"}</div>
 
               <div className="border-black p-2 w-[39%]">
-                DESCRIPTION DÉTAILLÉE & SPÉCIFICATIONS
+                {"DESCRIPTION DÉTAILLÉE & SPÉCIFICATIONS"}
               </div>
 
-              <div className="border-black p-2 w-[13%]">UNITE</div>
+              <div className="border-black p-2 w-[13%]">{"UNITE"}</div>
 
-              <div className="p-2 w-[13%]">QUANTITÉ</div>
+              <div className="p-2 w-[13%]">{"QUANTITÉ"}</div>
             </div>
 
             {/* ROWS */}
@@ -188,11 +154,6 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
         {/* Footer buttons */}
         <div className="flex w-full justify-end gap-3 p-6 pt-0">
           <DownloadButton data={data} />
-
-          <Button className="bg-primary hover:bg-primary/80 text-white">
-            {"Modifier"}
-          </Button>
-
           <Button
             variant="outline"
             className="bg-transparent"

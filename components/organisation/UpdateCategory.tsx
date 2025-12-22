@@ -239,7 +239,6 @@ export function UpdateCategory({
     // Préparer les ascendants avec les rangs mis à jour
     const validators =
       values.validators?.map((validator, index) => ({
-        id: validator.id, // Garder l'ID existant si disponible
         userId: validator.userId,
         rank: index + 1,
       })) || [];
@@ -251,12 +250,12 @@ export function UpdateCategory({
       description: values.description || undefined,
     };
 
-    if (validators.length > 0) {
-      data.validators = validators;
-    } else {
-      // Si aucun ascendant, on peut envoyer un tableau vide pour supprimer tous les ascendants
-      data.validators = [];
-    }
+    // Toujours inclure les validators, même si le tableau est vide
+    // Conversion explicite pour résoudre l'erreur TypeScript
+    data.validators = validators.map((v) => ({
+      userId: v.userId,
+      rank: v.rank,
+    }));
 
     categoryApi.mutate(data);
   };
@@ -288,7 +287,7 @@ export function UpdateCategory({
             className="flex-1 overflow-y-auto px-6 pb-6 space-y-6"
           >
             {/* Informations de base */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-4">
               <FormField
                 control={form.control}
                 name="label"

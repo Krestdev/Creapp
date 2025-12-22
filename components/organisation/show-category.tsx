@@ -127,7 +127,7 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
         </DialogHeader>
 
         {/* Contenu */}
-        <div className="flex-1 overflow-y-auto px-6">
+        <div className="flex-1 overflow-y-auto px-6 pb-4">
           {/* Informations générales */}
           <div className="flex flex-col gap-6">
             {/* Colonne gauche - Informations de base */}
@@ -159,34 +159,6 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
                 </div>
               </div>
             </div>
-
-            {/* Colonne droite - Statistiques des ascendants */}
-            <div className="space-y-4">
-              {/* <h3 className="font-semibold text-lg flex items-center gap-2">
-                <LucideCheckCircle className="h-5 w-5" />
-                {"Chaîne d'approbation"}
-              </h3> */}
-
-              {/* Total des ascendants */}
-              {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-blue-100 p-2 rounded-full">
-                      <Users className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        {"Total des ascendants"}
-                      </p>
-                      <p className="text-2xl font-bold">
-                        {validatorStats.total}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div> */}
-            </div>
-            {/* Résumé des positions */}
           </div>
 
           {validatorStats.total > 0 ? (

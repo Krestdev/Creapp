@@ -23,7 +23,7 @@ import {
   Hourglass,
   LucideIcon,
   LucidePen,
-  Trash
+  Trash,
 } from "lucide-react";
 import * as React from "react";
 
@@ -70,6 +70,8 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { QuotationQueries } from "@/queries/quotation";
+import { useFetchQuery } from "@/hooks/useData";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -111,6 +113,9 @@ export function CommandeTable({
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
+
+  const quotationQuery = new QuotationQueries();
+  const { data: devis } = useFetchQuery(["quotations"], quotationQuery.getAll);
 
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
@@ -275,17 +280,6 @@ export function CommandeTable({
 
   const filteredData = getFilteredData;
 
-  // const getTranslatedLabel = (label: string) => {
-  //   const translations: Record<string, string> = {
-  //     pending: "En attente",
-  //     validated: "Validé",
-  //     rejected: "Refusé",
-  //     "in-review": "En révision",
-  //     Cancel: "Annulé",
-  //   };
-  //   return translations[label] || label;
-  // };
-
   const columns: ColumnDef<CommandRequestT>[] = [
     {
       id: "select",
@@ -380,6 +374,26 @@ export function CommandeTable({
       ),
     },
     {
+      accessorKey: "devis",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Devis associés"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const devisAssocies = devis?.data.filter(
+          (x) => x.commandRequestId === row.original.id
+        );
+        return <div>{devisAssocies?.length}</div>;
+      },
+    },
+    {
       id: "actions",
       header: () => <span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
@@ -416,7 +430,10 @@ export function CommandeTable({
                 {"Modifier"}
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <DownloadButton data={item} className="bg-transparent text-black hover:bg-transparent hover:text-black h-8 py-0 px-0 font-normal!" />
+                <DownloadButton
+                  data={item}
+                  className="bg-transparent text-black hover:bg-transparent hover:text-black h-8 py-0 px-0 font-normal!"
+                />
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => console.log("Reject", item)}>
                 <Trash color="red" className="mr-2 h-4 w-4" />
@@ -779,7 +796,6 @@ export function CommandeTable({
         commandData={selectedCommand}
         allCommands={data}
         onSuccess={() => {
-          // Rafraîchir les données du tableau si nécessaire
           commandData.refetch();
         }}
       />

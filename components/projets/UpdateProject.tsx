@@ -29,6 +29,8 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Field, FieldError, FieldGroup, FieldLabel } from "../ui/field";
+import { Textarea } from "../ui/textarea";
+import { Loader } from "lucide-react";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -38,7 +40,6 @@ export const formSchema = z.object({
   description: z.string({ message: "This field is required" }).optional(),
   chiefid: z.string().min(1, "Please select an item"),
   budget: z.coerce.number({ message: "Please enter a valid number" }),
-  spendinginit: z.coerce.number({ message: "Please enter a valid number" }),
 });
 
 interface UpdateRequestProps {
@@ -78,6 +79,7 @@ export default function UpdateProject({
       toast.success("Projet mis à jour avec succès !");
       console.log("created successful:", data);
       form.reset();
+      setOpen(false);
     },
     onError: (error: any) => {
       toast.error("Une erreur est survenue lors de la mise à jour du projet.");
@@ -123,10 +125,10 @@ export default function UpdateProject({
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            Modifier le besoin
+            {`Modifier le projet  ${projectData?.label}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            Modifiez les informations du besoin existant
+            {"Modifiez les informations du projet existant"}
           </p>
         </DialogHeader>
 
@@ -141,7 +143,9 @@ export default function UpdateProject({
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-1">
-                    <FieldLabel htmlFor="label">Project Title *</FieldLabel>
+                    <FieldLabel htmlFor="label">
+                      {"Titre du projet *"}
+                    </FieldLabel>
                     <Input
                       {...field}
                       id="label"
@@ -165,11 +169,12 @@ export default function UpdateProject({
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-1">
-                    <FieldLabel htmlFor="description">Description </FieldLabel>
-                    <Input
+                    <FieldLabel htmlFor="description">
+                      {"Description"}{" "}
+                    </FieldLabel>
+                    <Textarea
                       {...field}
                       id="description"
-                      type="text"
                       onChange={(e) => {
                         field.onChange(e.target.value);
                       }}
@@ -196,7 +201,9 @@ export default function UpdateProject({
                     : [];
                   return (
                     <Field data-invalid={fieldState.invalid} className="gap-1">
-                      <FieldLabel htmlFor="chiefid">Chief *</FieldLabel>
+                      <FieldLabel htmlFor="chiefid">
+                        {"Chef de projet *"}
+                      </FieldLabel>
 
                       <Select
                         value={field.value.toString()}
@@ -231,7 +238,7 @@ export default function UpdateProject({
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-1">
-                    <FieldLabel htmlFor="budget">Budget *</FieldLabel>
+                    <FieldLabel htmlFor="budget">{"Budget *"}</FieldLabel>
                     <Input
                       {...field}
                       id="budget"
@@ -249,9 +256,18 @@ export default function UpdateProject({
                   </Field>
                 )}
               />
-              <div className="flex justify-end items-center w-full pt-3">
-                <Button className="rounded-lg" size="sm">
-                  Submit
+              <div className="flex justify-end items-center w-full">
+                <Button
+                  disabled={projectApi.isPending}
+                  type="submit"
+                  variant={"primary"}
+                  className="rounded-lg"
+                  size="sm"
+                >
+                  {projectApi.isPending && (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {"Enregistrer"}
                 </Button>
               </div>
             </FieldGroup>
@@ -260,4 +276,6 @@ export default function UpdateProject({
       </DialogContent>
     </Dialog>
   );
+}
+{
 }

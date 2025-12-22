@@ -193,60 +193,6 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
           );
         },
       },
-      // {
-      //   accessorKey: "isSpecial",
-      //   header: ({ column }) => {
-      //     return (
-      //       <span
-      //         className="tablehead"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         {"Special"}
-      //         <ArrowUpDown className="ml-2 h-4 w-4" />
-      //       </span>
-      //     );
-      //   },
-      //   cell: ({ row }) => (
-      //     <div className="flex items-center gap-2">
-      //       <Users className="h-4 w-4 text-muted-foreground" />
-      //       <span className="font-medium">
-      //         {row.getValue("isSpecial") ? "Oui" : "Non"}
-      //       </span>
-      //     </div>
-      //   ),
-      // },
-      // {
-      //   accessorKey: "updatedAt",
-      //   header: ({ column }) => {
-      //     return (
-      //       <Button
-      //         variant="ghost"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         Date de mise à jour
-      //         <ArrowUpDown className="ml-2 h-4 w-4" />
-      //       </Button>
-      //     );
-      //   },
-      //   cell: ({ row }) => {
-      //     const status = row.getValue("status") as string;
-      //     return (
-      //       <div className="flex items-center gap-2">
-      //         <Clock className="h-4 w-4 text-muted-foreground" />
-      //         <span className="font-medium">
-      //           {new Date(row.getValue("updatedAt")).toLocaleDateString()}
-      //         </span>
-      //       </div>
-      //     );
-      //   },
-      //   filterFn: (row, id, value) => {
-      //     return value.includes(row.getValue(id));
-      //   },
-      // },
       {
         id: "actions",
         header: "Actions",
@@ -338,26 +284,6 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
-        {/* <Select
-          value={
-            (table.getColumn("status")?.getFilterValue() as string) ?? "all"
-          }
-          onValueChange={(value) =>
-            table
-              .getColumn("status")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">tous les Statuts</SelectItem>
-            <SelectItem value="actif">Actif</SelectItem>
-            <SelectItem value="inactif">Inactif</SelectItem>
-            <SelectItem value="en-reorganisation">En réorganisation</SelectItem>
-          </SelectContent>
-        </Select> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">

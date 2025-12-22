@@ -2,8 +2,8 @@ import useAuthGuard from "@/hooks/useAuthGuard";
 import { useStore } from "@/providers/datastore";
 import { DepartmentQueries } from "@/queries/departmentModule";
 import { RequestQueries } from "@/queries/requestModule";
-import { Category, RequestModelT } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import { Category, RequestModelT, User } from "@/types/types";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
   Building,
@@ -50,7 +50,6 @@ type Sidebar = {
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
-  const [data, setData] = React.useState<RequestModelT[]>([]);
 
   const request = new RequestQueries();
   const category = new CategoryQueries();
@@ -76,117 +75,112 @@ function AppSidebar() {
 
   // Récupérer tous les besoins
   const requestData = useQuery({
-    queryKey: ["requests-validation"],
+    queryKey: ["requests"],
     queryFn: () => {
       return request.getAll();
     },
     enabled: isHydrated,
   });
 
-  // Fonction pour obtenir la position d'un utilisateur dans une catégorie
-  const getUserValidatorPosition = (
-    category: Category | undefined,
-    userId: number
-  ): number | null => {
-    if (!category || !category.validators || !userId) return null;
+  const useHasUserAlreadyValidated = (
+    categoryData: UseQueryResult<{ data: Category[] }, Error>
+  ) => {
+    return React.useCallback(
+      (request: RequestModelT, userId: number) => {
+        const categories = categoryData.data?.data;
+        if (!categories || !request.categoryId) return false;
 
-    const validator = category.validators.find((v) => v.userId === userId);
-    return validator?.rank || null;
-  };
+        const validatorId = categories
+          .find((c) => c.id === request.categoryId)
+          ?.validators.find((v) => v.userId === userId)?.id;
 
-  // Fonction pour vérifier si un utilisateur est le dernier validateur d'une catégorie
-  const isUserLastValidatorForCategory = (
-    category: Category | undefined,
-    userId: number
-  ): boolean => {
-    if (!category || !category.validators || !userId) return false;
+        if (!validatorId) return false;
 
-    // Trouver le validateur avec la position la plus élevée
-    const maxPosition = Math.max(...category.validators.map((v) => v.rank));
-    const lastValidator = category.validators.find(
-      (v) => v.rank === maxPosition
-    );
-
-    return lastValidator?.userId === userId;
-  };
-
-  // Fonction pour vérifier si tous les validateurs précédents ont validé
-  const havePreviousValidatorsApproved = (
-    request: RequestModelT,
-    category: Category | undefined,
-    userPosition: number
-  ): boolean => {
-    if (!category || !category.validators || userPosition <= 1) return true;
-
-    // Récupérer les IDs des validateurs précédents
-    const previousPositions = Array.from(
-      { length: userPosition - 1 },
-      (_, i) => i + 1
-    );
-
-    const previousValidatorIds = category.validators
-      .filter((v) => previousPositions.includes(v.rank))
-      .map((v) => v.userId);
-
-    // Vérifier si tous les validateurs précédents ont validé
-    const validatedPreviousIds =
-      request.revieweeList
-        ?.map((r) => r.validatorId)
-        .filter((id) => previousValidatorIds.includes(id)) || [];
-
-    return (
-      previousValidatorIds.length > 0 &&
-      previousValidatorIds.length === validatedPreviousIds.length
-    );
-  };
-
-  // Filtrer les besoins en fonction de la nouvelle logique
-  React.useEffect(() => {
-    if (requestData.data?.data && user && categoriesData.data?.data) {
-      const pendingRequests = requestData.data.data.filter((request) => {
-        // 1. Filtrer seulement les besoins en attente
-        if (request.state !== "pending") return false;
-
-        // 2. Trouver la catégorie du besoin
-        const category = categoriesData.data.data.find(
-          (cat) => cat.id === request.categoryId
+        return (
+          request.revieweeList?.some((r) => r.validatorId === validatorId) ??
+          false
         );
+      },
+      [categoryData.data?.data]
+    );
+  };
 
-        // 3. Vérifier si l'utilisateur est un validateur pour cette catégorie
-        if (!category || !category.validators) return false;
-
-        const userPosition = getUserValidatorPosition(category, user.id!);
-        if (userPosition === null) return false;
-
-        // 4. Vérifier si l'utilisateur a déjà validé ce besoin
-        const hasUserAlreadyValidated = request.revieweeList?.some(
-          (r) => r.validatorId === user.id
+  const usePendingData = (
+    filteredData: RequestModelT[],
+    user: User,
+    categoryData: UseQueryResult<{ data: Category[] }, Error>
+  ) => {
+    const hasUserAlreadyValidated = useHasUserAlreadyValidated(categoryData);
+  
+    return React.useMemo(() => {
+      const categories = categoryData.data?.data;
+      if (!categories) return [];
+  
+      return filteredData.filter((item) => {
+        // 1️⃣ Seulement les besoins en attente
+        if (item.state !== "pending") return false;
+  
+        const category = categories.find(
+          (c) => c.id === item.categoryId
         );
-        if (hasUserAlreadyValidated) return false;
-
-        // 5. Pour les validateurs autres que le premier, vérifier que tous les précédents ont validé
-        if (userPosition > 1) {
-          return havePreviousValidatorsApproved(
-            request,
-            category,
-            userPosition
-          );
-        }
-
-        // 6. Pour le premier validateur, vérifier qu'aucune validation n'a été faite
-        if (userPosition === 1) {
-          return !request.revieweeList || request.revieweeList.length === 0;
-        }
-
-        return false;
+        if (!category || !category.validators?.length) return false;
+  
+        // 2️⃣ Vérifier que l'utilisateur est validateur
+        const currentValidator = category.validators.find(
+          (v) => v.userId === user?.id
+        );
+        if (!currentValidator) return false;
+  
+        // 3️⃣ S'il a déjà validé → ne plus afficher
+        if (hasUserAlreadyValidated(item, user?.id!)) return false;
+  
+        // 4️⃣ Trouver les validateurs précédents (rank inférieur)
+        const previousValidators = category.validators.filter(
+          (v) => v.rank < currentValidator.rank
+        );
+  
+        // 5️⃣ Aucun validateur avant lui → OK (rank 1)
+        if (previousValidators.length === 0) return true;
+  
+        // 6️⃣ IDs des validateurs précédents
+        const previousValidatorIds = previousValidators.map((v) => v.id);
+  
+        // 7️⃣ Vérifier qu'ils ont TOUS validé
+        const validatedIds =
+          item.revieweeList?.map((r) => r.validatorId) ?? [];
+  
+        const allPreviousValidated = previousValidatorIds.every((id) =>
+          validatedIds.includes(id!)
+        );
+  
+        return allPreviousValidated;
       });
+    }, [
+      filteredData,
+      user?.id,
+      categoryData.data?.data,
+      hasUserAlreadyValidated,
+    ]);
+  };
 
-      setData(pendingRequests);
-    } else {
-      setData([]);
-    }
-  }, [requestData.data?.data, user, categoriesData.data?.data]);
+  const useFilteredRequests = (
+    requestData: UseQueryResult<{ data: RequestModelT[] }, Error>
+  ) => {
+    return React.useMemo(() => {
+      const data = requestData.data?.data ?? [];
+      let start = new Date(0);
+      let end = new Date();
 
+      return data.filter((item) => {
+        const d = new Date(item.createdAt);
+        return d >= start && d <= end;
+      });
+    }, [requestData.data?.data]);
+  };
+
+  const filteredData = useFilteredRequests(requestData);
+
+  const pendingData = usePendingData(filteredData, user!, categoriesData);
   // Utilisation du hook pour la protection globale
   const { hasAccess, isChecking, userRoles } = useAuthGuard({
     requireAuth: true,
@@ -276,7 +270,7 @@ function AppSidebar() {
           title: "Approbation",
           href: "/tableau-de-bord/besoins/validation",
           authorized: ["ADMIN", "MANAGER"],
-          badge: data?.length > 0 ? data?.length : undefined,
+          badge: pendingData?.length > 0 ? pendingData?.length : undefined,
         },
         {
           pageId: "PG-09-03",

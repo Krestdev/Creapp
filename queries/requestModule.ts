@@ -56,7 +56,7 @@ export class RequestQueries {
   // Revoir (review)
   review = async (
     id: number,
-    data: { validated: boolean; userId: number; decision?: string }
+    data: { validated: boolean; userId: number; decision?: string; }
   ): Promise<{ data: RequestModelT }> => {
     return api
       .put(`${this.route}/review/${id}`, {

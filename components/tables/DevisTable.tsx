@@ -142,6 +142,11 @@ export function DevisTable({
     return command ? command.title : "Inconnu";
   };
 
+  const getQuotationRef = (commandRequestId: number) => {
+    const command = commands.find((c) => c.id === commandRequestId);
+    return command ? command.reference : "Inconnu";
+  };
+
   const calculateTotalMontant = (elements: QuotationElement[]) => {
     return elements?.reduce(
       (total, element) => total + (element.priceProposed || 0),
@@ -299,28 +304,28 @@ export function DevisTable({
   const filteredData = getFilteredData;
 
   const columns: ColumnDef<Quotation>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    // {
+    //   id: "select",
+    //   header: ({ table }) => (
+    //     <Checkbox
+    //       checked={
+    //         table.getIsAllPageRowsSelected() ||
+    //         (table.getIsSomePageRowsSelected() && "indeterminate")
+    //       }
+    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //       aria-label="Select all"
+    //     />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Checkbox
+    //       checked={row.getIsSelected()}
+    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //       aria-label="Select row"
+    //     />
+    //   ),
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
     {
       accessorKey: "ref",
       header: ({ column }) => {
@@ -353,7 +358,8 @@ export function DevisTable({
       },
       cell: ({ row }) => (
         <div className="font-medium first-letter:uppercase">
-          {getQuotationTitle(row.getValue("commandRequestId"))}
+          {`${getQuotationTitle(row.getValue("commandRequestId"))} - `}
+        <span className="text-destructive text-[12px]">{`${getQuotationRef(row.getValue("commandRequestId"))}`}</span>
         </div>
       ),
     },

@@ -21,6 +21,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Eye,
+  LucideClock,
   LucideIcon,
   LucidePen,
   PauseCircle,
@@ -66,6 +67,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DetailProject } from "./detail-project";
+import { ModalWarning } from "../modals/modal-warning";
 
 // Interface pour tous les filtres
 export interface ProjectFilters {
@@ -108,6 +111,10 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
 
   const [selectedItem, setSelectedItem] = React.useState<ProjectT | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
+  const [isWarningModalOpen, setIsWarningModalOpen] = React.useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isSuspendedModalOpen, setIsSuspendedModalOpen] = React.useState(false);
 
   // Obtenir la liste unique des chefs de projet
   const uniqueChiefs = React.useMemo(() => {
@@ -133,9 +140,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
 
   // Obtenir les statuts uniques qui existent dans les données actuelles
   const uniqueStatuses = React.useMemo(() => {
-    const statuses = data
-      .map((project) => project.status)
-      .filter(Boolean); // Filtrer les valeurs nulles/indéfinies
+    const statuses = data.map((project) => project.status).filter(Boolean); // Filtrer les valeurs nulles/indéfinies
 
     return [...new Set(statuses)].sort();
   }, [data]);
@@ -159,7 +164,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
       case "cancelled":
         return { label: "Supprimé", icon: XCircle, variant: "destructive" };
       case "ongoing":
-        return { label: "En cours", variant: "amber" };
+        return { label: "En cours", icon: LucideClock, variant: "amber" };
       default:
         return { label: status, variant: "outline" };
     }
@@ -239,7 +244,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
           project.label || "",
           project.chief?.name || "",
         ]
-          .map(text => normalizeText(text))
+          .map((text) => normalizeText(text))
           .join(" ");
 
         return searchText.includes(searchValue);
@@ -315,30 +320,6 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
 
   const columns: ColumnDef<ProjectT>[] = React.useMemo(
     () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
       {
         accessorKey: "reference",
         header: ({ column }) => {
@@ -476,7 +457,12 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(project);
+                    setIsDetailModalOpen(true);
+                  }}
+                >
                   <Eye />
                   {"Voir"}
                 </DropdownMenuItem>
@@ -503,30 +489,26 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
                   <CheckCircle />
                   {"Terminer"}
                 </DropdownMenuItem>
-                
+
                 {/* Bouton "Suspendre" ou "Reprendre" selon l'état */}
                 {isSuspended ? (
                   <DropdownMenuItem
-                    onClick={() =>
-                      projectMutationData.mutate({
-                        id: project.id ?? -1,
-                        status: "in-progress", // Remettre en cours
-                      })
-                    }
+                    onClick={() => {
+                      setSelectedItem(project);
+                      setIsWarningModalOpen(true);
+                    }}
                   >
                     <PlayCircle />
                     {"Reprendre"}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
-                    onClick={() =>
-                      projectMutationData.mutate({
-                        id: project.id ?? -1,
-                        status: "on-hold",
-                      })
-                    }
+                    onClick={() => {
+                      setSelectedItem(project);
+                      setIsSuspendedModalOpen(true);
+                    }}
                     disabled={
-                      project.status === "Completed" || 
+                      project.status === "Completed" ||
                       project.status === "cancelled"
                     }
                   >
@@ -534,15 +516,13 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
                     {"Suspendre"}
                   </DropdownMenuItem>
                 )}
-                
+
                 <DropdownMenuItem
                   className="text-red-600"
-                  onClick={() =>
-                    projectMutationData.mutate({
-                      id: project.id ?? -1,
-                      status: "cancelled",
-                    })
-                  }
+                  onClick={() => {
+                    setSelectedItem(project);
+                    setIsDeleteModalOpen(true);
+                  }}
                   disabled={
                     project.status === "cancelled" ||
                     project.status === "Completed"
@@ -574,11 +554,11 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
     onGlobalFilterChange: (value) => updateFilter("globalFilter", value),
     globalFilterFn: (row, columnId, filterValue) => {
       const search = normalizeText(filterValue);
-      
+
       if (!search) return true;
-      
+
       // Pour chercher dans toutes les cellules de la ligne
-      return row.getAllCells().some(cell => {
+      return row.getAllCells().some((cell) => {
         const cellValue = cell.getValue();
         return normalizeText(cellValue).includes(search);
       });
@@ -610,7 +590,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
               className="pl-8 max-w-lg w-full!"
             />
           </div>
-          
+
           {/* Sélecteur de statut - affiche uniquement les statuts existants */}
           <Select
             value={
@@ -632,9 +612,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
                 return (
                   <SelectItem key={status} value={status}>
                     <div className="flex items-center gap-2">
-                      {badgeInfo.icon && (
-                        <badgeInfo.icon className="h-4 w-4" />
-                      )}
+                      {badgeInfo.icon && <badgeInfo.icon className="h-4 w-4" />}
                       {badgeInfo.label}
                     </div>
                   </SelectItem>
@@ -642,7 +620,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
               })}
             </SelectContent>
           </Select>
-          
+
           <Select
             value={effectiveFilters.chiefFilter}
             onValueChange={(value) => updateFilter("chiefFilter", value)}
@@ -659,7 +637,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
               ))}
             </SelectContent>
           </Select>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="ml-auto">
               <Button variant="outline">
@@ -769,6 +747,56 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
         projectData={selectedItem}
+      />
+      <DetailProject
+        open={isDetailModalOpen}
+        onOpenChange={setIsDetailModalOpen}
+        data={selectedItem}
+      />
+      <ModalWarning
+        open={isWarningModalOpen}
+        onOpenChange={setIsWarningModalOpen}
+        title="Reprendre le projet"
+        message="Êtes-vous sûr de vouloir reprendre ce projet ?"
+        actionText="Reprendre"
+        onAction={() =>
+          projectMutationData.mutate({
+            id: selectedItem?.id ?? -1,
+            status: "in-progress",
+          })
+        }
+        name={selectedItem?.label}
+        variant="warning"
+      />
+      <ModalWarning
+        open={isSuspendedModalOpen}
+        onOpenChange={setIsSuspendedModalOpen}
+        title="Suspendre le projet"
+        message="Êtes-vous sûr de vouloir suspendre ce projet ?"
+        actionText="Suspendre"
+        onAction={() =>
+          projectMutationData.mutate({
+            id: selectedItem?.id ?? -1,
+            status: "on-hold",
+          })
+        }
+        name={selectedItem?.label}
+        variant="warning"
+      />
+      <ModalWarning
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        title="Supprimer le projet"
+        message="Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible."
+        actionText="Supprimer"
+        onAction={() =>
+          projectMutationData.mutate({
+            id: selectedItem?.id ?? -1,
+            status: "cancelled",
+          })
+        }
+        name={selectedItem?.label}
+        variant="error"
       />
     </div>
   );

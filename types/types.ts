@@ -164,7 +164,7 @@ export type Category = {
   id: number;
   label: string;
   description?: string;
-  validators: { userId: number; rank: number }[];
+  validators: { id?: number; userId: number; rank: number }[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -180,6 +180,8 @@ export type CommandRequestT = {
   title: string;
   requests?: number[];
   besoins: RequestModelT[];
+  name?: string;
+  phone?: string;
 };
 
 // queries response

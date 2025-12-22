@@ -1,6 +1,5 @@
 "use client";
 
-import MultiSelectUsers from "@/components/base/multiSelectUsers";
 import { SuccessModal } from "@/components/modals/success-modal";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -44,6 +43,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { SearchableSelect } from "../base/searchableSelect";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -64,18 +64,14 @@ const formSchema = z.object({
     .date()
     .min(new Date(), "La date limite doit être dans le futur"),
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
-  utilisateurs: z.array(z.number()).optional(),
+  beneficiaireId: z.string().optional(), // Nouveau champ pour sélectionner un seul utilisateur
 });
 
 export default function MyForm() {
   const { user } = useStore();
-  const queryClient = useQueryClient(); // Ajout du QueryClient
+  const queryClient = useQueryClient();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-
-  const [selectedUsers, setSelectedUsers] = useState<
-    { id: number; name: string }[]
-  >([]);
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -91,20 +87,18 @@ export default function MyForm() {
       unite: "",
       datelimite: undefined,
       beneficiaire: "",
-      utilisateurs: [],
+      beneficiaireId: "",
     },
   });
 
   const beneficiaire = form.watch("beneficiaire");
-  const selectedCategorie = form.watch("categorie");
 
-  // si on repasse à "me", on vide les utilisateurs
+  // Si on change le bénéficiaire, on réinitialise le champ bénéficiaireId
   useEffect(() => {
-    if (beneficiaire !== "groupe") {
-      setSelectedUsers([]);
-      form.setValue("utilisateurs", []);
+    if (beneficiaire !== "autre") {
+      form.setValue("beneficiaireId", "");
     }
-  }, [beneficiaire]);
+  }, [beneficiaire, form]);
 
   // ----------------------------------------------------------------------
   // QUERY PROJECTS
@@ -128,10 +122,18 @@ export default function MyForm() {
     usersData.data?.data.map((u) => ({ id: u.id!, name: u.name })) || [];
 
   // ----------------------------------------------------------------------
+  // QUERY CATEGORIES
+  // ----------------------------------------------------------------------
+  const category = new CategoryQueries();
+  const categoriesData = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => category.getCategories(),
+  });
+
+  // ----------------------------------------------------------------------
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
   const request = new RequestQueries();
-  const category = new CategoryQueries();
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (
@@ -142,7 +144,6 @@ export default function MyForm() {
       toast.success("Besoin soumis avec succès !");
       setIsSuccessModalOpen(true);
       form.reset();
-      setSelectedUsers([]);
 
       // Invalider et rafraîchir toutes les requêtes liées aux besoins
       queryClient.invalidateQueries({
@@ -159,29 +160,37 @@ export default function MyForm() {
       });
     },
 
-    onError: () => toast.error("Une erreur est survenue."),
-  });
-
-  const categoriesData = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => category.getCategories(),
+    onError: (error: any) => {
+      console.error("Erreur lors de la soumission:", error);
+      toast.error("Une erreur est survenue lors de la soumission.");
+    },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    requestMutation.mutate({
+    // Préparation des données
+    const requestData: Omit<
+      RequestModelT,
+      "id" | "createdAt" | "updatedAt" | "ref"
+    > = {
       label: values.titre,
       description: values.description || null,
       categoryId: Number(values.categorie),
       quantity: Number(values.quantity),
-      unit: values.unite!,
-      beneficiary: values.beneficiaire!,
-      benef: values.beneficiaire === "groupe" ? values.utilisateurs! : null,
+      unit: values.unite,
+      beneficiary: values.beneficiaire,
+      benef:
+        values.beneficiaire === "autre" && values.beneficiaireId
+          ? [Number(values.beneficiaireId)]
+          : null,
       userId: Number(user?.id),
-      dueDate: values.datelimite!,
+      dueDate: values.datelimite,
       projectId: Number(values.projet),
       state: "pending",
       proprity: "medium",
-    });
+    };
+
+    console.log("Données soumises:", requestData);
+    requestMutation.mutate(requestData);
   }
 
   // ----------------------------------------------------------------------
@@ -204,36 +213,26 @@ export default function MyForm() {
                   {"Projet concerné"}
                   <span className="text-red-500">*</span>
                 </FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                      <SelectValue placeholder="Sélectionner un projet" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {projectsData.data?.data
-                      .filter(
+                <SearchableSelect
+                  onChange={field.onChange}
+                  options={
+                    projectsData.data?.data
+                      ?.filter(
                         (p) =>
-                          p.status !== "cancelled" && p.status !== "Completed"
+                          p.status !== "cancelled" &&
+                          p.status !== "Completed" &&
+                          p.status !== "on-hold"
                       )
-                      .map((p) => (
-                        <SelectItem
-                          disabled={p.status === "cancelled"}
-                          key={p.id}
-                          value={p.id!.toString()}
-                          className={`${
-                            p.status === "cancelled" &&
-                            "opacity-50 cursor-not-allowed"
-                          }`}
-                        >
-                          {p.label}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                      .map((p) => ({
+                        value: p.id!.toString(),
+                        label: p.label,
+                      })) ?? []
+                  }
+                  value={field.value?.toString() || ""}
+                  width="w-full"
+                  allLabel=""
+                />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -248,20 +247,20 @@ export default function MyForm() {
                   {"Catégorie"}
                   <span className="text-red-500">*</span>
                 </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                      <SelectValue placeholder="Sélectionner une catégorie" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categoriesData.data?.data?.map((c) => (
-                      <SelectItem key={c.id} value={c.id!.toString()}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  width="w-full"
+                  allLabel=""
+                  options={
+                    categoriesData.data?.data?.map((c) => ({
+                      value: c.id!.toString(),
+                      label: c.label,
+                    })) ?? []
+                  }
+                  value={field.value?.toString() || ""}
+                  onChange={(value) => field.onChange(value)}
+                  placeholder="Sélectionner"
+                />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -279,6 +278,7 @@ export default function MyForm() {
                 <FormControl>
                   <Input placeholder="Titre du besoin" {...field} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -291,8 +291,13 @@ export default function MyForm() {
               <FormItem>
                 <FormLabel>{"Description"}</FormLabel>
                 <FormControl>
-                  <Textarea className="resize-none" {...field} />
+                  <Textarea
+                    placeholder="Description"
+                    className="resize-none"
+                    {...field}
+                  />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -310,6 +315,7 @@ export default function MyForm() {
                 <FormControl>
                   <Input type="number" placeholder="ex. 10" {...field} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -336,6 +342,7 @@ export default function MyForm() {
                     <SelectItem value="FCFA">{"FCFA"}</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -378,6 +385,7 @@ export default function MyForm() {
                     />
                   </PopoverContent>
                 </Popover>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -398,36 +406,39 @@ export default function MyForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="me">{"Soi-même"}</SelectItem>
-                    <SelectItem value="groupe">{"Groupe"}</SelectItem>
+                    <SelectItem value="me">{"Moi-même"}</SelectItem>
+                    <SelectItem value="autre">{"Autre"}</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* MULTISELECT CONDITIONNEL */}
-          {beneficiaire === "groupe" && (
+          {/* SELECTION DU BENEFICIAIRE SI "AUTRE" */}
+          {beneficiaire === "autre" && (
             <FormField
               control={form.control}
-              name="utilisateurs"
+              name="beneficiaireId"
               render={({ field }) => (
-                <FormItem className="w-full">
+                <FormItem>
                   <FormLabel>
-                    {"Utilisateurs"}
+                    Sélectionner le bénéficiaire{" "}
                     <span className="text-red-500">*</span>
                   </FormLabel>
-
-                  <MultiSelectUsers
-                    display="user"
-                    users={USERS}
-                    selected={selectedUsers}
-                    onChange={(list) => {
-                      setSelectedUsers(list);
-                      field.onChange(list.map((u) => u.id));
-                    }}
+                  <SearchableSelect
+                    width="w-full"
+                    allLabel=""
+                    options={
+                      USERS.filter((u) => u.id !== user?.id).map((user) => ({
+                        value: user.id.toString(),
+                        label: user.name,
+                      })) ?? []
+                    }
+                    value={field.value?.toString() || ""}
+                    onChange={(value) => field.onChange(value)}
+                    placeholder="Sélectionner"
                   />
-
                   <FormMessage />
                 </FormItem>
               )}
@@ -436,17 +447,29 @@ export default function MyForm() {
         </div>
 
         {/* SUBMIT */}
-        <Button disabled={requestMutation.isPending} type="submit">
-          {"Soumettre le besoin"}
-          {requestMutation.isPending && (
-            <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />
-          )}
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            variant={"primary"}
+            disabled={requestMutation.isPending}
+            type="submit"
+            className="min-w-[200px]"
+          >
+            {requestMutation.isPending ? (
+              <>
+                <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+                {"Soumission en cours..."}
+              </>
+            ) : (
+              "Soumettre le besoin"
+            )}
+          </Button>
+        </div>
       </form>
 
       <SuccessModal
         open={isSuccessModalOpen}
         onOpenChange={setIsSuccessModalOpen}
+        message="Votre besoin a été soumis avec succès. Il sera traité par notre équipe."
       />
     </Form>
   );

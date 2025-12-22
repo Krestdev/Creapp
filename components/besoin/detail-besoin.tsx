@@ -46,13 +46,7 @@ interface DetailModalProps {
   actionButton: string;
 }
 
-export function DetailBesoin({
-  open,
-  onOpenChange,
-  data,
-  action,
-  actionButton,
-}: DetailModalProps) {
+export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   const { user } = useStore();
 
   const users = new UserQueries();
@@ -127,6 +121,10 @@ export function DetailBesoin({
       label: "Rejeté",
       color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
     },
+    cancel: {
+      label: "Annulé",
+      color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+    },
     "in-review": {
       label: "En révision",
       color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
@@ -157,7 +155,7 @@ export function DetailBesoin({
       );
 
       const review = data.revieweeList?.find(
-        (r) => r.validatorId === validator.userId
+        (r) => r.validatorId === validator.id
       );
 
       let status = "pending";
@@ -242,6 +240,7 @@ export function DetailBesoin({
   };
 
   const validationHistory = getValidationHistory();
+console.log(data.state);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -350,50 +349,56 @@ export function DetailBesoin({
                 <div className="mt-1">
                   <UserCheck className="h-5 w-5 text-muted-foreground" />
                 </div>
-
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground mb-3">
                     {"Historique de validation"}
                   </p>
 
-                  <div className="grid grid-cols-3 gap-3">
-                    {validationHistory.length === 0 ? (
-                      <div className="text-center py-4 border rounded-lg bg-gray-50">
-                        <AlertCircle className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-600">
-                          Aucun validateur configuré pour cette catégorie
-                        </p>
-                      </div>
-                    ) : (
-                      validationHistory.map((item) => {
-                        return (
-                          <div
-                            key={item.step}
-                            className={`border rounded-lg p-3 ${item.bgColor}`}
-                          >
-                            {/* Nom du validateur - Style similaire à l'image */}
-                            <div className="m">
-                              <div className="text-[10px] text-gray-500 tracking-wide">
-                                {item.status === "approved"
-                                  ? `Étape ${item.step} : Approuvé par`
-                                  : item.status === "rejected"
-                                  ? `Étape ${item.step} : Rejeté par`
-                                  :  `Étape ${item.step} : En attente de validation de`
-                                }
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <div className="flex-1">
-                                  <p className="font-semibold text-lg">
-                                    {item.validatorName}
-                                  </p>
+                  {data.state !== "cancel" ? (
+                    <div className="flex flex-col gap-3">
+                      {validationHistory.length === 0 ? (
+                        <div className="text-center py-4 border rounded-lg bg-gray-50">
+                          <AlertCircle className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600">
+                            Aucun validateur configuré pour cette catégorie
+                          </p>
+                        </div>
+                      ) : (
+                        validationHistory.map((item) => {
+                          return (
+                            <div
+                              key={item.step}
+                              className={`border rounded-lg p-2 ${item.bgColor}`}
+                            >
+                              {/* Nom du validateur - Style similaire à l'image */}
+                              <div>
+                                <div className="text-[10px] text-gray-500 tracking-wide">
+                                  {item.status === "approved"
+                                    ? `Étape ${item.step} : Approuvé par`
+                                    : item.status === "rejected"
+                                    ? `Étape ${item.step} : Rejeté par`
+                                    : `Étape ${item.step} : En attente de l'approbation de`}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-[16px]">
+                                      {item.validatorName}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 border rounded-lg bg-gray-50 max-w-[300px]">
+                      {
+                        "Historique de validation non disponible car vous avez annulé le besoin"
+                      }
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -476,7 +481,7 @@ export function DetailBesoin({
                             <p
                               key={ben.id}
                               className="font-semibold capitalize"
-                            >{`• ${beneficiary?.name || ben.id}`}</p>
+                            >{`${beneficiary?.name || ben.id}`}</p>
                           );
                         })}
                       </div>
@@ -565,10 +570,7 @@ export function DetailBesoin({
 
         {/* Boutons du footer - FIXE */}
         <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             {"Fermer"}
           </Button>
         </div>

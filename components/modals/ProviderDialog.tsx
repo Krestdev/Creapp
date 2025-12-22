@@ -114,7 +114,7 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
         <div className="flex justify-end gap-3 p-6 pt-0">
           <Button
             type="button"
-            variant="default"
+            variant="primary"
             onClick={form.handleSubmit(onSubmit)}
             disabled={isPending}
           >

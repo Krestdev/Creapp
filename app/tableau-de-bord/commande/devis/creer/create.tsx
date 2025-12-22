@@ -279,10 +279,11 @@ function CreateQuotation({ quotation, openChange }: Props) {
           name="providerId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Fournisseur"}</FormLabel>
+              <FormLabel isRequired>Fournisseur</FormLabel>
+
               <FormControl>
                 <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
+                  value={field.value ? String(field.value) : undefined}
                   onValueChange={(v) => field.onChange(Number(v))}
                   open={openS}
                   onOpenChange={setOpenS}
@@ -290,39 +291,54 @@ function CreateQuotation({ quotation, openChange }: Props) {
                   <SelectTrigger className="min-w-60 w-full uppercase">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-[500px]">
-                    {providersData.data?.data.length === 0 ? (
-                      <SelectItem value="-" disabled>
-                        {"Aucun fournisseur enregistré"}
-                      </SelectItem>
-                    ) : (
-                      providersData.data?.data.map((provider) => (
-                        <SelectItem
-                          key={provider.id}
-                          value={String(provider.id)}
-                          className="uppercase"
-                        >
-                          {provider.name}
+
+                  {/* CONTENU DU SELECT */}
+                  <SelectContent className="max-h-[500px] p-0">
+                    {/* LISTE SCROLLABLE */}
+                    <div className="max-h-[430px] overflow-y-auto">
+                      {providersData.data?.data.length === 0 ? (
+                        <SelectItem value="-" disabled>
+                          Aucun fournisseur enregistré
                         </SelectItem>
-                      ))
-                    )}
-                    <Button
-                      onClick={() => {
-                        setOpenS(false);
-                        setOpenP(true);
-                      }}
-                      variant={"outline"}
-                      className="w-full fixed bottom-0"
+                      ) : (
+                        providersData.data?.data.map((provider) => (
+                          <SelectItem
+                            key={provider.id}
+                            value={String(provider.id)}
+                            className="uppercase"
+                          >
+                            {provider.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </div>
+
+                    {/* FOOTER FIXÉ EN BAS DU SELECT */}
+                    <div
+                      className="sticky bottom-0 bg-background border-t p-2"
+                      onMouseDown={(e) => e.preventDefault()} 
                     >
-                      {"Ajouter un fournisseur"}
-                    </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          setOpenS(false);
+                          setOpenP(true);
+                        }}
+                      >
+                        Ajouter un fournisseur
+                      </Button>
+                    </div>
                   </SelectContent>
                 </Select>
               </FormControl>
+
               <FormMessage />
             </FormItem>
           )}
         />
+
         {/* Date limite de livraison */}
         <FormField
           control={form.control}
@@ -415,14 +431,24 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           acc[need].push({ ...item, globalIndex });
                           return acc;
                         },
-                        {} as Record<string, Array<any & { globalIndex: number }>>
+                        {} as Record<
+                          string,
+                          Array<any & { globalIndex: number }>
+                        >
                       );
 
                       return Object.entries(groupedElements).map(
                         ([need, elements]) => (
-                          <div key={need} className="border p-3 rounded-lg bg-gray-50">
+                          <div
+                            key={need}
+                            className="border p-3 rounded-lg bg-gray-50"
+                          >
                             <h3 className="font-semibold mb-2">
-                              {selectedNeeds?.find(n => n.id === Number(need))?.label}
+                              {
+                                selectedNeeds?.find(
+                                  (n) => n.id === Number(need)
+                                )?.label
+                              }
                             </h3>
                             <div className="flex flex-wrap gap-2">
                               {elements.map((item, localIndex) => (
@@ -439,7 +465,11 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                     }}
                                   >
                                     <span className="truncate">
-                                      {`${item.designation} - ${item.quantity} ${item.unit} - ${XAF.format(item.price)}`}
+                                      {`${item.designation} - ${
+                                        item.quantity
+                                      } ${item.unit} - ${XAF.format(
+                                        item.price
+                                      )}`}
                                     </span>
                                     <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
                                       {"Modifier"}
@@ -451,7 +481,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                     onClick={() => {
                                       // Trouver et supprimer l'élément correct
                                       const currentElements = [...field.value];
-                                      currentElements.splice(item.globalIndex, 1);
+                                      currentElements.splice(
+                                        item.globalIndex,
+                                        1
+                                      );
                                       field.onChange(currentElements);
                                     }}
                                   />
@@ -523,7 +556,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
             </FormItem>
           )}
         />
-        <div className="flex gap-2">
+        <div className="flex justify-end col-span-3 w-full gap-2">
           <Button
             type="submit"
             disabled={isPending}

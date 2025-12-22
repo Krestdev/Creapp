@@ -187,34 +187,44 @@ export function DataVal({
 
   // Fonction pour obtenir la position de l'utilisateur pour un besoin donné
   const getUserPositionForRequest = (request: RequestModelT) => {
-    if (!request.categoryId || !user?.id || !categoriesData.data?.data) return null;
-    
-    const category = categoriesData.data.data.find(cat => cat.id === request.categoryId);
+    if (!request.categoryId || !user?.id || !categoriesData.data?.data)
+      return null;
+
+    const category = categoriesData.data.data.find(
+      (cat) => cat.id === request.categoryId
+    );
     if (!category || !category.validators) return null;
-    
-    const validator = category.validators.find(v => v.userId === user.id);
+
+    const validator = category.validators.find((v) => v.userId === user.id);
     return validator?.rank || null;
   };
 
   // Fonction pour vérifier si l'utilisateur est le dernier validateur pour un besoin
   const isUserLastValidatorForRequest = (request: RequestModelT) => {
-    if (!request.categoryId || !user?.id || !categoriesData.data?.data) return false;
-    
-    const category = categoriesData.data.data.find(cat => cat.id === request.categoryId);
+    if (!request.categoryId || !user?.id || !categoriesData.data?.data)
+      return false;
+
+    const category = categoriesData.data.data.find(
+      (cat) => cat.id === request.categoryId
+    );
     if (!category || !category.validators || category.validators.length === 0) {
       return false;
     }
 
     // Trouver le validateur avec la position la plus élevée
-    const maxPosition = Math.max(...category.validators.map(v => v.rank));
-    const lastValidator = category.validators.find(v => v.rank === maxPosition);
-    
+    const maxPosition = Math.max(...category.validators.map((v) => v.rank));
+    const lastValidator = category.validators.find(
+      (v) => v.rank === maxPosition
+    );
+
     return lastValidator?.userId === user.id;
   };
 
   // Fonction pour vérifier si l'utilisateur a déjà validé un besoin
   const hasUserAlreadyValidated = (request: RequestModelT) => {
-    return request.revieweeList?.some(r => r.validatorId === user?.id) || false;
+    return (
+      request.revieweeList?.some((r) => r.validatorId === user?.id) || false
+    );
   };
 
   // Fonction pour obtenir le texte d'affichage du filtre de date
@@ -300,48 +310,57 @@ export function DataVal({
 
     // Filtrer par statut (seulement pour type proceed)
     if (type === "proceed" && statusFilter && statusFilter !== "all") {
-      filtered = filtered.filter(item => item.state === statusFilter);
+      filtered = filtered.filter((item) => item.state === statusFilter);
     }
 
     // Filtrer par catégorie
     if (categoryFilter && categoryFilter !== "all") {
-      filtered = filtered.filter(item => 
-        String(item.categoryId) === String(categoryFilter)
+      filtered = filtered.filter(
+        (item) => String(item.categoryId) === String(categoryFilter)
       );
     }
 
     // Filtrer par projet
     if (projectFilter && projectFilter !== "all") {
-      filtered = filtered.filter(item => 
-        String(item.projectId) === String(projectFilter)
+      filtered = filtered.filter(
+        (item) => String(item.projectId) === String(projectFilter)
       );
     }
 
     // Filtrer par utilisateur
     if (userFilter && userFilter !== "all") {
-      filtered = filtered.filter(item => 
-        String(item.userId) === String(userFilter)
+      filtered = filtered.filter(
+        (item) => String(item.userId) === String(userFilter)
       );
     }
 
     // Filtrer par recherche globale
     if (globalFilter) {
       const searchValue = globalFilter.toLowerCase();
-      filtered = filtered.filter(item => {
+      filtered = filtered.filter((item) => {
         const searchText = [
           item.label || "",
           getProjectName(String(item.projectId)) || "",
           getCategoryName(String(item.categoryId)) || "",
           getUserName(String(item.userId)) || "",
-          getBeneficiaryDisplay(item) || ""
-        ].join(" ").toLowerCase();
-        
+        ]
+          .join(" ")
+          .toLowerCase();
+
         return searchText.includes(searchValue);
       });
     }
 
     return filtered;
-  }, [data, globalFilter, statusFilter, categoryFilter, projectFilter, userFilter, type]);
+  }, [
+    data,
+    globalFilter,
+    statusFilter,
+    categoryFilter,
+    projectFilter,
+    userFilter,
+    type,
+  ]);
 
   const uniqueCategories = React.useMemo(() => {
     if (!data.length || !categoriesData.data?.data) return [];
@@ -484,21 +503,23 @@ export function DataVal({
       id,
       validated,
       decision,
+      validatorId,
     }: {
       id: number;
       validated: boolean;
       decision?: string;
+      validatorId?: number;
     }) => {
       await request.review(id, {
         validated: validated,
         decision: decision,
-        userId: user?.id ?? -1,
+        userId: validatorId ?? -1,
       });
     },
     onSuccess: () => {
       toast.success(
-        validationType === "approve" 
-          ? "Besoin approuvé avec succès !" 
+        validationType === "approve"
+          ? "Besoin approuvé avec succès !"
           : "Besoin rejeté avec succès !"
       );
       queryClient.invalidateQueries({ queryKey: ["requests"] });
@@ -510,6 +531,12 @@ export function DataVal({
   });
 
   const handleValidation = async (motif?: string): Promise<boolean> => {
+    const validatorId = categoriesData.data?.data
+      ?.find((cat) => cat.id === selectedItem?.categoryId)
+      ?.validators?.find((v) => v.userId === user?.id)?.id;
+
+    console.log(validatorId);
+
     try {
       if (!selectedItem) {
         setIsValidationModalOpen(false);
@@ -520,12 +547,14 @@ export function DataVal({
         await reviewRequest.mutateAsync({
           id: Number(selectedItem.id),
           validated: true,
+          validatorId: validatorId,
         });
       } else if (validationType === "reject") {
         await reviewRequest.mutateAsync({
           id: Number(selectedItem.id),
           validated: false,
           decision: motif,
+          validatorId: validatorId,
         });
       }
 
@@ -551,10 +580,10 @@ export function DataVal({
     const userPosition = getUserPositionForRequest(request);
     const isLastValidator = isUserLastValidatorForRequest(request);
     const categoryName = getCategoryName(String(request.categoryId));
-    
+
     // Trouver la catégorie pour obtenir le nombre total de validateurs
     const category = categoriesData.data?.data?.find(
-      cat => cat.id === request.categoryId
+      (cat) => cat.id === request.categoryId
     );
     const totalValidators = category?.validators?.length || 0;
     const validatedCount = request.revieweeList?.length || 0;
@@ -565,10 +594,12 @@ export function DataVal({
       categoryName,
       totalValidators,
       validatedCount,
-      progress: totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
-      canValidate: !hasUserAlreadyValidated(request) && 
-                   request.state === "pending" && 
-                   userPosition !== null,
+      progress:
+        totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
+      canValidate:
+        !hasUserAlreadyValidated(request) &&
+        request.state === "pending" &&
+        userPosition !== null,
     };
   };
 
@@ -584,7 +615,9 @@ export function DataVal({
               table.getIsAllPageRowsSelected() ||
               (table.getIsSomePageRowsSelected() && "indeterminate")
             }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Sélectionner toutes les lignes"
           />
         ),
@@ -635,7 +668,9 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="text-sm">{getProjectName(row.getValue("projectId"))}</div>
+          <div className="text-sm">
+            {getProjectName(row.getValue("projectId"))}
+          </div>
         ),
       },
       {
@@ -656,7 +691,7 @@ export function DataVal({
         cell: ({ row }) => {
           const categoryName = getCategoryName(row.getValue("categoryId"));
           const validationInfo = getValidationInfo(row.original);
-          
+
           return (
             <div>
               <div className="font-medium text-sm">{categoryName}</div>
@@ -700,7 +735,9 @@ export function DataVal({
         },
         cell: ({ row }) => (
           <div className="text-sm">
-            {format(new Date(row.getValue("createdAt")), "dd/MM/yyyy", { locale: fr })}
+            {format(new Date(row.getValue("createdAt")), "dd/MM/yyyy", {
+              locale: fr,
+            })}
           </div>
         ),
       },
@@ -726,31 +763,36 @@ export function DataVal({
         ),
       },
       // Nouvelle colonne : Validation de validation (uniquement pour type pending)
-      ...(type === "pending" ? [{
-        id: "validationProgress",
-        header: () => <span className="tablehead">Validation</span>,
-        cell: ({ row }: { row: Row<RequestModelT> }) => {
-          const validationInfo = getValidationInfo(row.original);
-          
-          if (!validationInfo.totalValidators) return null;
-          
-          return (
-            <div className="flex items-center gap-2">
-              <div className="flex-1">
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                    style={{ width: `${validationInfo.progress}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-500 text-center mt-1">
-                  {validationInfo.validatedCount}/{validationInfo.totalValidators}
-                </div>
-              </div>
-            </div>
-          );
-        },
-      }] : []),
+      ...(type === "pending"
+        ? [
+            {
+              id: "validationProgress",
+              header: () => <span className="tablehead">Validation</span>,
+              cell: ({ row }: { row: Row<RequestModelT> }) => {
+                const validationInfo = getValidationInfo(row.original);
+
+                if (!validationInfo.totalValidators) return null;
+
+                return (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                          style={{ width: `${validationInfo.progress}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-500 text-center mt-1">
+                        {validationInfo.validatedCount}/
+                        {validationInfo.totalValidators}
+                      </div>
+                    </div>
+                  </div>
+                );
+              },
+            },
+          ]
+        : []),
     ];
 
     // Ajouter la colonne Statut seulement si type === "proceed"
@@ -793,7 +835,7 @@ export function DataVal({
         const item = row.original;
         const validationInfo = getValidationInfo(item);
         const userHasValidated = hasUserAlreadyValidated(item);
-        
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -821,11 +863,15 @@ export function DataVal({
                     : openValidationModal("approve", item)
                 }
                 disabled={
-                  !validationInfo.canValidate || 
-                  item.state !== "pending" || 
+                  !validationInfo.canValidate ||
+                  item.state !== "pending" ||
                   userHasValidated
                 }
-                className={!validationInfo.canValidate ? "opacity-50 cursor-not-allowed" : ""}
+                className={
+                  !validationInfo.canValidate
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
                 Approuver
@@ -834,11 +880,15 @@ export function DataVal({
               <DropdownMenuItem
                 onClick={() => openValidationModal("reject", item)}
                 disabled={
-                  !validationInfo.canValidate || 
-                  item.state !== "pending" || 
+                  !validationInfo.canValidate ||
+                  item.state !== "pending" ||
                   userHasValidated
                 }
-                className={!validationInfo.canValidate ? "opacity-50 cursor-not-allowed" : ""}
+                className={
+                  !validationInfo.canValidate
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }
               >
                 <LucideBan className="text-red-500 mr-2 h-4 w-4" />
                 Rejeter
@@ -871,11 +921,11 @@ export function DataVal({
   });
 
   // Vérifier si des filtres sont actifs
-  const hasActiveFilters = 
-    globalFilter || 
-    statusFilter !== "all" || 
-    categoryFilter !== "all" || 
-    projectFilter !== "all" || 
+  const hasActiveFilters =
+    globalFilter ||
+    statusFilter !== "all" ||
+    categoryFilter !== "all" ||
+    projectFilter !== "all" ||
     userFilter !== "all";
 
   return (
@@ -891,10 +941,7 @@ export function DataVal({
 
         {/* Status filter - seulement pour proceed */}
         {type === "proceed" && (
-          <Select
-            value={statusFilter}
-            onValueChange={setStatusFilter}
-          >
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Statut" />
             </SelectTrigger>
@@ -1106,7 +1153,7 @@ export function DataVal({
               {table.getRowModel().rows.map((row) => {
                 const validationInfo = getValidationInfo(row.original);
                 const statusConfig = getStatusConfig(row.original.state);
-                
+
                 return (
                   <TableRow
                     key={row.id}
@@ -1143,9 +1190,7 @@ export function DataVal({
       )}
 
       {/* Pagination */}
-      {filteredData.length > 0 && (
-        <Pagination table={table} pageSize={15} />
-      )}
+      {filteredData.length > 0 && <Pagination table={table} pageSize={15} />}
 
       {/* Modal pour la plage de dates personnalisée */}
       <Dialog
@@ -1266,7 +1311,7 @@ export function DataVal({
         actionButton="Approuver"
         action={() => {
           if (!selectedItem) return;
-          
+
           const validationInfo = getValidationInfo(selectedItem);
           if (validationInfo.isLastValidator) {
             setIsModalOpen(false);
@@ -1319,7 +1364,7 @@ export function DataVal({
         }}
         onSubmit={(motif) => handleValidation(motif)}
       />
-      
+
       <BesoinLastVal
         open={isLastValModalOpen}
         onOpenChange={setIsLastValModalOpen}
