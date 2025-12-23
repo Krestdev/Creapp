@@ -35,6 +35,7 @@ import { ProviderQueries } from "@/queries/providers";
 import { RequestQueries } from "@/queries/requestModule";
 import React from "react";
 import ShowFile from "../base/show-file";
+import { DownloadFile } from "../base/downLoadFile";
 
 interface DetailModalProps {
   open: boolean;
@@ -121,7 +122,9 @@ export function DevisModal({
             {`Devis - ${quotation || "Sans titre"}`}
           </DialogTitle>
           <DialogDescription className="text-sm text-[#FAFAFA]">
-            {"Détail du devis"}
+            {page === 1
+              ? "Détail du devis"
+              : `Justificatif du devis ${quotation}`}
           </DialogDescription>
         </DialogHeader>
 
@@ -302,11 +305,16 @@ export function DevisModal({
             </div>
           </div>
         ) : (
-          <ShowFile file={file} setPage={setPage} title="Justificatif" />
+          <ShowFile
+            file={file}
+            setPage={setPage}
+            title={`Justificatif du devis ${quotation}`}
+          />
         )}
 
         {/* Footer */}
         <div className="flex justify-end gap-3 p-6 pt-0">
+          {page === 2 && <DownloadFile file={file} />}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {"Fermer"}
           </Button>

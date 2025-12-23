@@ -18,7 +18,6 @@ import {
   ChevronDown,
   Eye,
   LucidePen,
-  MoreHorizontal,
   Search,
   Shield,
   Trash2,
@@ -488,7 +487,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       case "USER":
         return "Emetteur";
       case "MANAGER":
-        return "Manager";
+        return "Validateur";
       case "SALES":
         return "Responsable d'achat";
       case "SALES_MANAGER":

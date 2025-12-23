@@ -61,7 +61,7 @@ export default function MultiSelectRole({
       case "USER":
         return "Emetteur";
       case "MANAGER":
-        return "Manager";
+        return "Validateur";
       case "SALES":
         return "Responsable d'achat";
       case "SALES_MANAGER":
@@ -87,17 +87,29 @@ export default function MultiSelectRole({
         {display === "Role" &&
           (selected.length > 0 ? (
             selected.map((role) => (
-              <span
-                key={role.id}
-                className="bg-[#8B0E4E] text-white px-3 py-1 rounded-md flex items-center gap-2"
-              >
-                {TranslateRole(role.label)}
-                <X
-                  size={14}
-                  className="cursor-pointer"
-                  onClick={() => removeRole(role.id)}
-                />
-              </span>
+              <div className="relative bg-[#8B0E4E] hover:bg-[#8B0E4E]/90 text-white px-3 py-1 rounded-md flex items-center gap-2 pr-8">
+                <Button
+                  className="bg-transparent hover:bg-transparent px-0"
+                  type="button"
+                  key={role.id}
+                  disabled={role.label === "MANAGER"}
+                >
+                  {TranslateRole(role.label)}
+                </Button>
+                {role.label === "MANAGER" ? (
+                  <X
+                    size={20}
+                    className="cursor-pointer z-10 absolute top-3 right-2 opacity-40"
+                    // onClick={() => removeRole(role.id)}
+                  />
+                ) : (
+                  <X
+                    size={20}
+                    className="cursor-pointer z-10 absolute top-3 right-2"
+                    onClick={() => removeRole(role.id)}
+                  />
+                )}
+              </div>
             ))
           ) : (
             <span className="text-gray-500">{"Aucun Rôle sélectionné"}</span>
@@ -116,35 +128,6 @@ export default function MultiSelectRole({
             className={`${open && "rotate-45"} transition-all ease-in-out`}
           />
         </Button>
-
-        {/* Display selected items if display is request */}
-        {/* {display === "request" && (
-          <div className="flex flex-col gap-1.5 w-full">
-            {selected.map((item, index) => (
-              <div
-                key={index}
-                className="w-full flex flex-row items-center justify-between h-12 bg-[#FAFAFA] border border-[#E4E4E7] pl-2 gap-2 rounded-[6px]"
-              >
-                <div className="flex flex-col">
-                  <p className="text-[#2F2F2F] text-sm ">{item.name}</p>
-                  <p className="text-[12px] text-[#B0B0B0]">{`avant le ${format(
-                    item.dueDate!,
-                    "PPP",
-                    { locale: fr }
-                  )}`}</p>
-                </div>
-                <Button
-                  type="button"
-                  onClick={() => removeUser(item.id)}
-                  variant={"outline"}
-                  className="h-full"
-                >
-                  <LucideX size={16} color="red" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )} */}
 
         {open && (
           <div className="absolute right-0 top-full w-full bg-white shadow-md rounded-lg border z-20 transition-all ease-in-out max-h-60 overflow-y-auto">

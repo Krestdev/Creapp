@@ -15,7 +15,6 @@ import React from "react";
 
 const Page = () => {
   const { user } = useStore();
-  // const isManager = user?.role.some(r=>r.label === "SALES_MANAGER");
   const isAdmin = user?.role.some(
     (r) => r.label === "SALES_MANAGER" || r.label === "ADMIN"
   );
@@ -64,16 +63,18 @@ const Page = () => {
           subtitle="Consultez et gérez les cotations."
           color="red"
         >
-          {links.filter(p=> isAdmin ? true : p.href !== "./devis/approbation").map((link, id) => {
-            const isLast = links.length > 1 ? id === links.length - 1 : false;
-            return (
-              <Link key={id} href={link.href}>
-                <Button size={"lg"} variant={isLast ? "accent" : "ghost"}>
-                  {link.title}
-                </Button>
-              </Link>
-            );
-          })}
+          {links
+            .filter((p) => (isAdmin ? true : p.href !== "./devis/approbation"))
+            .map((link, id) => {
+              const isLast = links.length > 1 ? id === links.length - 1 : false;
+              return (
+                <Link key={id} href={link.href}>
+                  <Button size={"lg"} variant={isLast ? "accent" : "ghost"}>
+                    {link.title}
+                  </Button>
+                </Link>
+              );
+            })}
         </PageTitle>
         <DevisTable
           data={data.data}

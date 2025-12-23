@@ -198,7 +198,7 @@ export default function CreateUserForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {roleData.data?.data.map((role) => (
+                  {roleData.data?.data.filter((role) => role.label !== "MANAGER").map((role) => (
                     <SelectItem key={role.id} value={role.id.toString()}>
                       {TranslateRole(role.label)}
                     </SelectItem>

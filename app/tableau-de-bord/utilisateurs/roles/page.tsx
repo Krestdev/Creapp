@@ -14,9 +14,6 @@ function Page() {
         <div className="w-full">
           <RolesPage />
         </div>
-        {/* <div className={`w-full`}>
-          <RoleCreateForm />
-        </div> */}
       </div>
     </div>
   );
