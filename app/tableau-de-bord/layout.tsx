@@ -8,13 +8,16 @@ import React from "react";
 export default function Layout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const { isHydrated } = useStore();
+  const { isHydrated, user } = useStore();
   useAuthGuard();
 
   if (!isHydrated) {
     return (
       <LoadingPage/>
     );
+  }
+  if(!user){
+    return null;
   }
   return <DashboardLayout>{children}</DashboardLayout>;
 }

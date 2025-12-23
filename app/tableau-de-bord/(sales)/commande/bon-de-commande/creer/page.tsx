@@ -1,4 +1,4 @@
-import CreateForm from '@/app/tableau-de-bord/commande/bon-de-commande/creer/create-form'
+import CreateForm from '@/app/tableau-de-bord/(sales)/commande/bon-de-commande/creer/create-form'
 import PageTitle from '@/components/pageTitle'
 
 function Page() {

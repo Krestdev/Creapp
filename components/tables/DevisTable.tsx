@@ -75,8 +75,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import EditQuotation from "@/app/tableau-de-bord/commande/devis/edit";
-import CancelQuotation from "@/app/tableau-de-bord/commande/devis/cancel";
+import EditQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/edit";
+import CancelQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/cancel";
 import { VariantProps } from "class-variance-authority";
 import { Badge, badgeVariants } from "../ui/badge";
 import {

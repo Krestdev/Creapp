@@ -1,4 +1,4 @@
-import { Paiement } from "@/app/tableau-de-bord/commande/paiements/page";
+import { Paiement } from "@/app/tableau-de-bord/(sales)/commande/paiements/page";
 import {
   Dialog,
   DialogContent,

@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
-import { Paiement } from "@/app/tableau-de-bord/commande/paiements/page";
+import { Paiement } from "@/app/tableau-de-bord/(sales)/commande/paiements/page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
