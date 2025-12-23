@@ -225,7 +225,7 @@ export type Provider = {
 };
 
 export type QuotationStatus = "SUBMITTED" | "APPROVED" | "REJECTED" | "PENDING";
-export type QuotationElementStatus = "SELECTED" | "NOT_SELECTED";
+export type QuotationElementStatus = "SELECTED" | "REJECTED";
 
 export type QuotationElement = {
   id: number;

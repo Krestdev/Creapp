@@ -7,11 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { XAF } from "@/lib/utils";
+import { cn, XAF } from "@/lib/utils";
 import { Quotation } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
+  CheckCircle,
   DollarSign,
   LucideBriefcaseBusiness,
   LucideCalendar,
@@ -20,6 +21,7 @@ import {
   LucideHash,
   LucideUserCircle2,
   LucideUserRound,
+  XCircle,
 } from "lucide-react";
 import {
   Table,
@@ -115,13 +117,13 @@ export function DevisModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[940px]! max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
+      <DialogContent className="sm:max-w-3xl">
         {/* Header */}
-        <DialogHeader className="bg-linear-to-r from-[#9E1351] to-[#700032] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <DialogTitle className="text-xl font-semibold text-white">
+        <DialogHeader>
+          <DialogTitle>
             {`Devis - ${quotation || "Sans titre"}`}
           </DialogTitle>
-          <DialogDescription className="text-sm text-[#FAFAFA]">
+          <DialogDescription>
             {page === 1
               ? "Détail du devis"
               : `Justificatif du devis ${quotation}`}
@@ -280,10 +282,12 @@ export function DevisModal({
                     {data?.element?.map((el, index) => (
                       <TableRow
                         key={index}
-                        className={`${index % 2 === 0 ? "bg-[#FAFAFA]" : ""}`}
+                        className={cn(index % 2 === 0 ? "bg-white" : "bg-gray-50",el.status === "SELECTED" && "bg-green-50!", el.status === "REJECTED" && "bg-red-50!")}
                       >
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium inline-flex gap-1 items-center">
                           {getRequestTitle(el.requestModelId) || "N/A"}
+                          {el.status === "SELECTED" && <CheckCircle size={12} className="text-green-600"/>}
+                          {el.status === "REJECTED" && <XCircle size={12} className="text-destructive"/>}
                         </TableCell>
                         <TableCell>{el.title || "N/A"}</TableCell>
                         <TableCell>

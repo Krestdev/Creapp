@@ -12,7 +12,7 @@ export default function PrivateLayout({ children }: { children: ReactNode }) {
     return <LoadingPage/>
   }
 
-  if (!user || !user.role.some(w=>w.label.toLocaleLowerCase() === "sales" || w.label.toLocaleLowerCase() === "sales_manager")) {
+  if (!user || !user.role.some(w=>w.label.toLocaleLowerCase() === "sales" || w.label.toLocaleLowerCase() === "sales_manager" || w.label.toLocaleLowerCase() === "admin")) {
     return <ErrorPage statusCode={401}/>;
   }
   return children
