@@ -27,7 +27,7 @@ import { useStore } from "@/providers/datastore";
 import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ChevronDownIcon, Loader2 } from "lucide-react";
@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { CategoryQueries } from "@/queries/categoryModule";
 
 // Validation Zod
 const formSchema = z.object({
@@ -81,6 +82,8 @@ export function BesoinLastVal({
   });
 
   const request = new RequestQueries();
+  const categories = new CategoryQueries();
+  const queryClient = useQueryClient();
 
   const requestData = useQuery({
     queryKey: ["requests-validation"],
@@ -90,14 +93,39 @@ export function BesoinLastVal({
     enabled: isHydrated,
   });
 
+  const categoriesData = useQuery({
+    queryKey: ["categoryList"],
+    queryFn: () => {
+      return categories.getCategories();
+    },
+    enabled: isHydrated,
+  });
+
+  const validator = categoriesData.data?.data
+    ?.find((cat) => cat.id === data?.categoryId)
+    ?.validators?.find((v) => v.userId === user?.id);
+
   const validateRequest = useMutation({
     mutationKey: ["requests-validation"],
-    mutationFn: async ({ id }: { id: number }) => {
-      await request.validate(id, user?.id!);
+    mutationFn: async ({
+      id,
+      validator,
+    }: {
+      id: number;
+      validator:
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
+    }) => {
+      await request.validate(id, validator?.id!, validator);
     },
     onSuccess: () => {
-      toast.success("Besoin soulis avec succès !");
+      toast.success("Besoin approuvé avec succès !");
       requestData.refetch();
+      queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" },);
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
@@ -109,15 +137,17 @@ export function BesoinLastVal({
     mutationFn: async (data: Partial<RequestModelT>) => {
       const id = data?.id;
 
-      console.log(id);
-
       if (!id) throw new Error("ID de besoin manquant");
 
       await request.update(Number(id), data);
       return { id: Number(id) };
     },
     onSuccess: (res) => {
-      validateRequest.mutateAsync({ id: res.id });
+      validateRequest.mutateAsync({
+        id: res.id,
+        validator: validator,
+      });
+
     },
     onError: (error) => {
       toast.error("Une erreur est survenue.");
@@ -143,8 +173,6 @@ export function BesoinLastVal({
   }, [open, data, form]);
 
   const submitForm = async (values: FormValues) => {
-    console.log(isSuccess, isPending, isError);
-
     try {
       requestMutation.mutate({
         id: Number(data?.id),

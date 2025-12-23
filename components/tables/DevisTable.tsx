@@ -21,7 +21,7 @@ import {
   Eye,
   LucidePen,
   Settings2,
-  Trash
+  Trash,
 } from "lucide-react";
 import * as React from "react";
 
@@ -46,7 +46,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
-import { CommandRequestT, Provider, Quotation, QuotationElement, QuotationStatus } from "@/types/types";
+import {
+  CommandRequestT,
+  Provider,
+  Quotation,
+  QuotationElement,
+  QuotationStatus,
+} from "@/types/types";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Pagination } from "../base/pagination";
@@ -73,7 +79,14 @@ import EditQuotation from "@/app/tableau-de-bord/commande/devis/edit";
 import CancelQuotation from "@/app/tableau-de-bord/commande/devis/cancel";
 import { VariantProps } from "class-variance-authority";
 import { Badge, badgeVariants } from "../ui/badge";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
 
 interface DevisTableProps {
   data: Quotation[] | undefined;
@@ -98,21 +111,24 @@ export function DevisTable({
   customDateRange,
   setCustomDateRange,
   providers,
-  commands
+  commands,
 }: DevisTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({"element":false});
+    React.useState<VisibilityState>({ element: false });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [commandRefFilter, setCommandRefFilter] = React.useState<string>("all");
 
   // États pour les filtres spécifiques
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
   const [commandFilter, setCommandFilter] = React.useState<string>("all");
-  const [montantFilter, setMontantFilter] = React.useState<"all" | "lt100000" | "100000-500000" | "gt500000">("all");
+  const [montantFilter, setMontantFilter] = React.useState<
+    "all" | "lt100000" | "100000-500000" | "gt500000"
+  >("all");
 
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
@@ -148,25 +164,33 @@ export function DevisTable({
   };
 
   const calculateTotalMontant = (elements: QuotationElement[]) => {
-    return elements?.reduce(
-      (total, element) => total + (element.priceProposed || 0),
-      0
-    ) || 0;
+    return (
+      elements?.reduce(
+        (total, element) => total + (element.priceProposed || 0),
+        0
+      ) || 0
+    );
   };
 
-  const getStatusLabel = (status: QuotationStatus):{label:string; variant:VariantProps<typeof badgeVariants>["variant"]} => {
-    switch(status){
+  const getStatusLabel = (
+    status: QuotationStatus
+  ): {
+    label: string;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+  } => {
+    switch (status) {
       case "PENDING":
-        return {label:"En attente", variant: "amber"};
+        return { label: "En attente", variant: "amber" };
       case "APPROVED":
-        return {label:"Approuvé", variant: "success"};
+        return { label: "Approuvé", variant: "success" };
       case "REJECTED":
-        return {label:"Rejeté", variant: "destructive"};
+        return { label: "Rejeté", variant: "destructive" };
       case "SUBMITTED":
-        return {label:"Approuvé", variant: "primary"};
-        default: return {label: "Inconnu", variant: "outline"};
+        return { label: "Approuvé", variant: "primary" };
+      default:
+        return { label: "Inconnu", variant: "outline" };
     }
-  }
+  };
 
   // Fonction pour filtrer les données selon tous les filtres
   const getFilteredData = React.useMemo(() => {
@@ -206,7 +230,10 @@ export function DevisTable({
           break;
       }
 
-      if (dateFilter !== "custom" || (customDateRange?.from && customDateRange?.to)) {
+      if (
+        dateFilter !== "custom" ||
+        (customDateRange?.from && customDateRange?.to)
+      ) {
         filtered = filtered.filter((item) => {
           const itemDate = new Date(item.createdAt!);
           return itemDate >= startDate && itemDate <= endDate;
@@ -243,8 +270,23 @@ export function DevisTable({
       });
     }
 
+    // Filtre par référence de commande
+    if (commandRefFilter !== "all") {
+      filtered = filtered.filter((item) => {
+        const commandRef = getQuotationRef(item.commandRequestId);
+        return commandRef === commandRefFilter;
+      });
+    }
+
     return filtered;
-  }, [data, dateFilter, customDateRange, providerFilter, commandFilter, montantFilter]);
+  }, [
+    data,
+    dateFilter,
+    customDateRange,
+    providerFilter,
+    commandFilter,
+    montantFilter,
+  ]);
 
   // Fonction pour obtenir le texte d'affichage du filtre de date
   const getDateFilterText = () => {
@@ -297,6 +339,7 @@ export function DevisTable({
     }
     setProviderFilter("all");
     setCommandFilter("all");
+    setCommandRefFilter("all");
     setMontantFilter("all");
     setGlobalFilter("");
   };
@@ -304,28 +347,6 @@ export function DevisTable({
   const filteredData = getFilteredData;
 
   const columns: ColumnDef<Quotation>[] = [
-    // {
-    //   id: "select",
-    //   header: ({ table }) => (
-    //     <Checkbox
-    //       checked={
-    //         table.getIsAllPageRowsSelected() ||
-    //         (table.getIsSomePageRowsSelected() && "indeterminate")
-    //       }
-    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //       aria-label="Select all"
-    //     />
-    //   ),
-    //   cell: ({ row }) => (
-    //     <Checkbox
-    //       checked={row.getIsSelected()}
-    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-    //       aria-label="Select row"
-    //     />
-    //   ),
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
     {
       accessorKey: "ref",
       header: ({ column }) => {
@@ -359,7 +380,9 @@ export function DevisTable({
       cell: ({ row }) => (
         <div className="font-medium first-letter:uppercase">
           {`${getQuotationTitle(row.getValue("commandRequestId"))} - `}
-        <span className="text-destructive text-[12px]">{`${getQuotationRef(row.getValue("commandRequestId"))}`}</span>
+          <span className="text-destructive text-[12px]">{`${getQuotationRef(
+            row.getValue("commandRequestId")
+          )}`}</span>
         </div>
       ),
     },
@@ -404,30 +427,17 @@ export function DevisTable({
     {
       accessorKey: "element",
       header: () => {
-        return (
-          <span
-            className="tablehead"
-          >
-            {"Éléments"}
-          </span>
-        );
+        return <span className="tablehead">{"Éléments"}</span>;
       },
       cell: ({ row }) => {
         const value = row.getValue("element") as QuotationElement[];
         return <span>{value.length}</span>;
       },
-      
     },
     {
       accessorKey: "status",
       header: () => {
-        return (
-          <span
-            className="tablehead"
-          >
-            {"Statut"}
-          </span>
-        );
+        return <span className="tablehead">{"Statut"}</span>;
       },
       cell: ({ row }) => {
         const value = row.getValue("status") as QuotationStatus;
@@ -474,7 +484,9 @@ export function DevisTable({
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedDevis(item);
-                  setSelectedQuotation(getQuotationTitle(item.commandRequestId));
+                  setSelectedQuotation(
+                    getQuotationTitle(item.commandRequestId)
+                  );
                   setIsDevisModalOpen(true);
                 }}
               >
@@ -491,10 +503,13 @@ export function DevisTable({
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
               </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive" onClick={() =>{
-                setSelectedDevis(item);
-                setToCancel(true);
-              }}>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => {
+                  setSelectedDevis(item);
+                  setToCancel(true);
+                }}
+              >
                 <Trash color="red" className="mr-2 h-4 w-4" />
                 {"Annuler"}
               </DropdownMenuItem>
@@ -550,176 +565,231 @@ export function DevisTable({
       <div className="flex flex-wrap items-end gap-4 py-4">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant={"outline"}><Settings2/>{"Filtres"}</Button>
+            <Button variant={"outline"}>
+              <Settings2 />
+              {"Filtres"}
+            </Button>
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
               <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>{"Configurer les fitres pour affiner les données"}</SheetDescription>
+              <SheetDescription>
+                {"Configurer les fitres pour affiner les données"}
+              </SheetDescription>
             </SheetHeader>
             <div className="px-5 grid gap-5">
               <div className="grid gap-1.5">
-            <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-            <Input
-              name="search"
-              type="search"
-              id="searchCommand"
-              placeholder="Référence, titre, fournisseur..."
-              value={globalFilter ?? ""}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-              className="max-w-sm"
-            />
-          </div>
+                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
+                <Input
+                  name="search"
+                  type="search"
+                  id="searchCommand"
+                  placeholder="Référence, titre, fournisseur..."
+                  value={globalFilter ?? ""}
+                  onChange={(event) => setGlobalFilter(event.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
 
-          {/* Filtre par fournisseur */}
-          <div className="grid gap-1.5">
-            <Label>{"Fournisseur"}</Label>
-            <Select value={providerFilter} onValueChange={setProviderFilter}>
-              <SelectTrigger className="min-w-40 w-full">
-                <SelectValue placeholder="Tous les fournisseurs" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les fournisseurs</SelectItem>
-                {providers.map((provider) => (
-                  <SelectItem key={provider.id} value={provider.id.toString()}>
-                    {provider.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Filtre par fournisseur */}
+              <div className="grid gap-1.5">
+                <Label>{"Fournisseur"}</Label>
+                <Select
+                  value={providerFilter}
+                  onValueChange={setProviderFilter}
+                >
+                  <SelectTrigger className="min-w-40 w-full">
+                    <SelectValue placeholder="Tous les fournisseurs" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les fournisseurs</SelectItem>
+                    {providers.map((provider) => (
+                      <SelectItem
+                        key={provider.id}
+                        value={provider.id.toString()}
+                      >
+                        {provider.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Filtre par demande de cotation */}
-          <div className="grid gap-1.5">
-            <Label>{"Demande de cotation"}</Label>
-            <Select value={commandFilter} onValueChange={setCommandFilter}>
-              <SelectTrigger className="min-w-40 w-full">
-                <SelectValue placeholder="Toutes les demandes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes les demandes"}</SelectItem>
-                {commands.map((command) => (
-                  <SelectItem key={command.id} value={command.id.toString()}>
-                    {command.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Filtre par référence de commande */}
+              <div className="grid gap-1.5">
+                <Label>{"Référence de commande"}</Label>
+                <Select
+                  value={commandRefFilter}
+                  onValueChange={setCommandRefFilter}
+                >
+                  <SelectTrigger className="min-w-40 w-full">
+                    <SelectValue placeholder="Toutes les références" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      {"Toutes les références"}
+                    </SelectItem>
+                    {commands.map((command) => (
+                      <SelectItem key={command.id} value={command.reference}>
+                        {command.reference}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Filtre par montant */}
-          <div className="grid gap-1.5">
-            <Label>{"Montant"}</Label>
-            <Select value={montantFilter} onValueChange={(value: "all" | "lt100000" | "100000-500000" | "gt500000") => setMontantFilter(value)}>
-              <SelectTrigger className="min-w-40 w-full">
-                <SelectValue placeholder="Tous les montants" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous les montants"}</SelectItem>
-                <SelectItem value="lt100000">{`< 100 000 XAF`}</SelectItem>
-                <SelectItem value="100000-500000">{" 0 0000 - 500 000 XAF"}</SelectItem>
-                <SelectItem value="gt500000">{`> 500 000 XAF`}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Filtre par demande de cotation */}
+              <div className="grid gap-1.5">
+                <Label>{"Demande de cotation"}</Label>
+                <Select value={commandFilter} onValueChange={setCommandFilter}>
+                  <SelectTrigger className="min-w-40 w-full">
+                    <SelectValue placeholder="Toutes les demandes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Toutes les demandes"}</SelectItem>
+                    {commands.map((command) => (
+                      <SelectItem
+                        key={command.id}
+                        value={command.id.toString()}
+                      >
+                        {command.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Filtre par période */}
-          <div className="grid gap-1.5">
-            <Label>{"Période"}</Label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="min-w-52 w-full justify-between font-normal font-sans text-base">
-                  <span>{getDateFilterText()}</span>
-                  <CalendarIcon />
+              {/* Filtre par montant */}
+              <div className="grid gap-1.5">
+                <Label>{"Montant"}</Label>
+                <Select
+                  value={montantFilter}
+                  onValueChange={(
+                    value: "all" | "lt100000" | "100000-500000" | "gt500000"
+                  ) => setMontantFilter(value)}
+                >
+                  <SelectTrigger className="min-w-40 w-full">
+                    <SelectValue placeholder="Tous les montants" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous les montants"}</SelectItem>
+                    <SelectItem value="lt100000">{`< 100 000 XAF`}</SelectItem>
+                    <SelectItem value="100000-500000">
+                      {" 0 0000 - 500 000 XAF"}
+                    </SelectItem>
+                    <SelectItem value="gt500000">{`> 500 000 XAF`}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Filtre par période */}
+              <div className="grid gap-1.5">
+                <Label>{"Période"}</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="min-w-52 w-full justify-between font-normal font-sans text-base"
+                    >
+                      <span>{getDateFilterText()}</span>
+                      <CalendarIcon />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter(undefined);
+                        if (setCustomDateRange) {
+                          setCustomDateRange(undefined);
+                        }
+                      }}
+                      className={cn(
+                        "flex items-center justify-between",
+                        !dateFilter && "bg-accent"
+                      )}
+                    >
+                      <span>{"Toutes les périodes"}</span>
+                      {!dateFilter && <ChevronRight className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setDateFilter("today")}
+                      className={cn(
+                        "flex items-center justify-between",
+                        dateFilter === "today" && "bg-accent"
+                      )}
+                    >
+                      <span>{"Aujourd'hui"}</span>
+                      {dateFilter === "today" && (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setDateFilter("week")}
+                      className={cn(
+                        "flex items-center justify-between",
+                        dateFilter === "week" && "bg-accent"
+                      )}
+                    >
+                      <span>{"Cette semaine"}</span>
+                      {dateFilter === "week" && (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setDateFilter("month")}
+                      className={cn(
+                        "flex items-center justify-between",
+                        dateFilter === "month" && "bg-accent"
+                      )}
+                    >
+                      <span>{"Ce mois"}</span>
+                      {dateFilter === "month" && (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setDateFilter("year")}
+                      className={cn(
+                        "flex items-center justify-between",
+                        dateFilter === "year" && "bg-accent"
+                      )}
+                    >
+                      <span>{"Cette année"}</span>
+                      {dateFilter === "year" && (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleCustomDateClick}
+                      className={cn(
+                        "flex items-center justify-between",
+                        dateFilter === "custom" && "bg-accent"
+                      )}
+                    >
+                      <span className="flex items-center">
+                        <CalendarDays className="mr-2 h-4 w-4" />
+                        {"Personnaliser"}
+                      </span>
+                      {dateFilter === "custom" && (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Bouton pour réinitialiser les filtres */}
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={resetAllFilters}
+                  className="w-full"
+                >
+                  {"Réinitialiser"}
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => {
-                    setDateFilter(undefined);
-                    if (setCustomDateRange) {
-                      setCustomDateRange(undefined);
-                    }
-                  }}
-                  className={cn(
-                    "flex items-center justify-between",
-                    !dateFilter && "bg-accent"
-                  )}
-                >
-                  <span>{"Toutes les périodes"}</span>
-                  {!dateFilter && <ChevronRight className="h-4 w-4" />}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setDateFilter("today")}
-                  className={cn(
-                    "flex items-center justify-between",
-                    dateFilter === "today" && "bg-accent"
-                  )}
-                >
-                  <span>{"Aujourd'hui"}</span>
-                  {dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setDateFilter("week")}
-                  className={cn(
-                    "flex items-center justify-between",
-                    dateFilter === "week" && "bg-accent"
-                  )}
-                >
-                  <span>{"Cette semaine"}</span>
-                  {dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setDateFilter("month")}
-                  className={cn(
-                    "flex items-center justify-between",
-                    dateFilter === "month" && "bg-accent"
-                  )}
-                >
-                  <span>{"Ce mois"}</span>
-                  {dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setDateFilter("year")}
-                  className={cn(
-                    "flex items-center justify-between",
-                    dateFilter === "year" && "bg-accent"
-                  )}
-                >
-                  <span>{"Cette année"}</span>
-                  {dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleCustomDateClick}
-                  className={cn(
-                    "flex items-center justify-between",
-                    dateFilter === "custom" && "bg-accent"
-                  )}
-                >
-                  <span className="flex items-center">
-                    <CalendarDays className="mr-2 h-4 w-4" />
-                    {"Personnaliser"}
-                  </span>
-                  {dateFilter === "custom" && (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Bouton pour réinitialiser les filtres */}
-          <div className="flex items-end">
-            <Button
-              variant="outline"
-              onClick={resetAllFilters}
-              className="w-full"
-            >
-              {"Réinitialiser"}
-            </Button>
-          </div>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
@@ -739,12 +809,15 @@ export function DevisTable({
                 .map((column) => {
                   let columnName = column.id;
                   if (column.id === "ref") columnName = "Référence";
-                  else if (column.id === "commandRequestId") columnName = "Demande de cotation";
-                  else if (column.id === "providerId") columnName = "Fournisseur";
+                  else if (column.id === "commandRequestId")
+                    columnName = "Demande de cotation";
+                  else if (column.id === "providerId")
+                    columnName = "Fournisseur";
                   else if (column.id === "montant") columnName = "Montant";
                   else if (column.id === "status") columnName = "Statuts";
-                  else if (column.id === "createdAt") columnName = "Date de création";
-                  
+                  else if (column.id === "createdAt")
+                    columnName = "Date de création";
+
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
@@ -944,8 +1017,20 @@ export function DevisTable({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      { selectedDevis && <EditQuotation open={isUpdateModalOpen} openChange={setIsUpdateModalOpen} quotation={selectedDevis}/>}
-      { selectedDevis && <CancelQuotation open={toCancel} openChange={setToCancel} quotation={selectedDevis}/>}
+      {selectedDevis && (
+        <EditQuotation
+          open={isUpdateModalOpen}
+          openChange={setIsUpdateModalOpen}
+          quotation={selectedDevis}
+        />
+      )}
+      {selectedDevis && (
+        <CancelQuotation
+          open={toCancel}
+          openChange={setToCancel}
+          quotation={selectedDevis}
+        />
+      )}
     </div>
   );
 }

@@ -65,13 +65,13 @@ const CotationPDF = ({ data }: { data: CommandRequestT }) => {
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{"Contact principal : "}</Text>
                 <Text style={styles.infoValue}>
-                  {"M. Jean Phillipe (Responsable Achat)"}
+                  {data.name}
                 </Text>
               </View>
 
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{"Téléphone : "}</Text>
-                <Text style={styles.infoValue}>{"+33 35 45 45"}</Text>
+                <Text style={styles.infoValue}>{data.phone}</Text>
               </View>
             </View>
           </View>

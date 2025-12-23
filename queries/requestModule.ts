@@ -46,23 +46,42 @@ export class RequestQueries {
   // Valider
   validate = async (
     id: number,
-    userId: number
+    validatorId: number,
+    validator:
+      | {
+          id?: number | undefined;
+          userId: number;
+          rank: number;
+        }
+      | undefined
   ): Promise<{ data: RequestModelT }> => {
     return api
-      .put(`${this.route}/validate/${id}`, { userId })
+      .put(`${this.route}/validate/${id}`, { validatorId, validator })
       .then((res) => res.data);
   };
 
   // Revoir (review)
   review = async (
     id: number,
-    data: { validated: boolean; userId: number; decision?: string; }
+    data: {
+      validated: boolean;
+      userId: number;
+      decision?: string;
+      validator?:
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
+    }
   ): Promise<{ data: RequestModelT }> => {
     return api
       .put(`${this.route}/review/${id}`, {
         validated: data.validated,
         userId: data.userId,
         decision: data.decision,
+        validator: data.validator,
       })
       .then((res) => res.data);
   };

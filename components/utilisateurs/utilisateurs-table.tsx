@@ -63,6 +63,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import UpdateUser from "./UpdateUser";
+import { ShowUser } from "./show-user";
 
 interface UtilisateursTableProps {
   data: UserT[];
@@ -80,6 +81,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
   const [selectedItem, setSelectedItem] = React.useState<UserT | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
 
   // Récupérer les rôles uniques des utilisateurs pour les options du filtre
   const uniqueRoles = React.useMemo(() => {
@@ -206,7 +208,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         queryKey: ["usersList"],
         refetchType: "active",
       });
-    }
+    },
   });
 
   const userQueries = new UserQueries();
@@ -240,7 +242,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Nom
+              {"Nom"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -259,7 +261,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Rôle
+              {"Rôles"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -267,19 +269,22 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         cell: ({ row }) => {
           const role = row.getValue("role") as Role[];
           return (
-            <div className="flex flex-wrap max-w-[300px] gap-1">
+            <div className="flex flex-wrap max-w-[350px] gap-1">
               {role.map((rol) => {
-                return(
-                <Badge
-                  className={`${getRoleBadgeColor(
-                    rol.label
-                  )} flex items-center gap-1 w-fit`}
-                  key={rol.id}
-                >
-                  {getRoleIcon(rol.label)}
-                  {TranslateRole(rol.label.charAt(0).toUpperCase() + rol.label.slice(1))}
-                </Badge>
-              )})}
+                return (
+                  <Badge
+                    className={`${getRoleBadgeColor(
+                      rol.label
+                    )} flex items-center gap-1 w-fit`}
+                    key={rol.id}
+                  >
+                    {getRoleIcon(rol.label)}
+                    {TranslateRole(
+                      rol.label.charAt(0).toUpperCase() + rol.label.slice(1)
+                    )}
+                  </Badge>
+                );
+              })}
             </div>
           );
         },
@@ -327,35 +332,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
       },
       {
-        accessorKey: "members",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              className="bg-transparent max-w-[200px]"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Département associé
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => {
-          const data = row.getValue("members") as Member[];
-          return (
-            <div className="flex flex-wrap max-w-[150px] gap-1">
-              {data.map((mem) => (
-                <Badge key={mem.id} variant="outline">
-                  {mem.department?.label}
-                </Badge>
-              ))}
-            </div>
-          );
-        },
-      },
-      {
         accessorKey: "lastConnection",
         header: ({ column }) => {
           return (
@@ -400,7 +376,12 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(utilisateur);
+                    setIsDetailModalOpen(true);
+                  }}
+                >
                   <Eye className="mr-2 h-4 w-4" />
                   Voir
                 </DropdownMenuItem>
@@ -414,30 +395,33 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   <LucidePen className="mr-2 h-4 w-4" />
                   Modifier
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    userMutationData.mutate({
-                      id: utilisateur.id ?? -1,
-                      status: "active",
-                    })
-                  }
-                  disabled={utilisateur.status === "active"}
-                >
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  {"Activer"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    userMutationData.mutate({
-                      id: utilisateur.id ?? -1,
-                      status: "inactive",
-                    })
-                  }
-                  disabled={utilisateur.status === "inactive"}
-                >
-                  <UserX className="mr-2 h-4 w-4" />
-                  {"Suspendre"}
-                </DropdownMenuItem>
+                {row.original.status === "inactive" ? (
+                  <DropdownMenuItem
+                    onClick={() =>
+                      userMutationData.mutate({
+                        id: utilisateur.id ?? -1,
+                        status: "active",
+                      })
+                    }
+                    disabled={utilisateur.status === "active"}
+                  >
+                    <UserCheck className="mr-2 h-4 w-4" />
+                    {"Activer"}
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={() =>
+                      userMutationData.mutate({
+                        id: utilisateur.id ?? -1,
+                        status: "inactive",
+                      })
+                    }
+                    disabled={utilisateur.status === "inactive"}
+                  >
+                    <UserX className="mr-2 h-4 w-4" />
+                    {"Suspendre"}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   className="text-red-600"
                   onClick={() => userMutation.mutate(utilisateur.id ?? -1)}
@@ -519,7 +503,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
-        <div className="relative flex-1">
+        <div className="relative">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher par nom et département..."
@@ -677,6 +661,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
         userData={selectedItem}
+      />
+      <ShowUser
+        open={isDetailModalOpen}
+        onOpenChange={setIsDetailModalOpen}
+        user={selectedItem}
       />
     </div>
   );

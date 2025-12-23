@@ -20,6 +20,7 @@ import {
   Eye,
   LucidePen,
   Search,
+  Trash2,
 } from "lucide-react";
 import * as React from "react";
 
@@ -35,6 +36,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -47,6 +55,10 @@ import { Pagination } from "../base/pagination";
 import { Badge } from "../ui/badge";
 import UpdateProvider from "./UpdateProvider";
 import { ShowProvider } from "./show-provider";
+import { ProviderQueries } from "@/queries/providers";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { ModalWarning } from "../modals/modal-warning";
 
 interface ProvidersTableProps {
   data: Provider[];
@@ -65,8 +77,37 @@ export function ProviderTable({ data }: ProvidersTableProps) {
   const [selectedItem, setSelectedItem] = React.useState<Provider | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [openUpdate, setOpenUpdate] = React.useState(false);
+  const [openWarning, SetOpenWarning] = React.useState(false);
 
-  // Cette fonction vérifie si les informations d'un fournisseur sont complètes
+  // États pour les filtres
+  const [regimeFilter, setRegimeFilter] = React.useState<string>("all");
+  const [statusFilter, setStatusFilter] = React.useState<string>("all");
+  const queryClient = useQueryClient();
+
+  const provider = new ProviderQueries();
+  const providerMutation = useMutation({
+    mutationKey: ["providerUpdate"],
+    mutationFn: (id: number) => provider.delete(id),
+    onSuccess: () => {
+      toast.success("Fournisseur supprimé avec succès !");
+      queryClient.invalidateQueries({ queryKey: ["providersList"] });
+    },
+  });
+
+  // Extraire les régimes uniques des fournisseurs
+  const uniqueRegimes = React.useMemo(() => {
+    const regimes = data
+      .map((provider) => provider.regem)
+      .filter(
+        (regime): regime is string =>
+          regime !== undefined && regime !== null && regime.trim() !== ""
+      );
+
+    // Supprimer les doublons et trier par ordre alphabétique
+    return [...new Set(regimes)].sort();
+  }, [data]);
+
+  // Fonction pour vérifier les informations du fournisseur
   const checkProviderInfo = (provider: Provider) => {
     if (
       !provider.name ||
@@ -80,18 +121,39 @@ export function ProviderTable({ data }: ProvidersTableProps) {
     }
   };
 
-  const getRowColor = (statut: string) => {
-    switch (statut) {
-      case "active":
-        return "bg-green-50";
-      case "inactive":
-        return "bg-gray-50";
-      case "suspended":
-        return "bg-red-50";
-      default:
-        return "";
+  // Données filtrées
+  const filteredData = React.useMemo(() => {
+    let filtered = [...data];
+
+    // Filtre par recherche globale
+    if (globalFilter) {
+      filtered = filtered.filter((provider) => {
+        const searchableFields = ["name", "email", "phone", "address", "regem"];
+        return searchableFields.some((field) => {
+          const value = provider[field as keyof Provider];
+          return value
+            ?.toString()
+            .toLowerCase()
+            .includes(globalFilter.toLowerCase());
+        });
+      });
     }
-  };
+
+    // Filtre par régime
+    if (regimeFilter !== "all") {
+      filtered = filtered.filter((provider) => provider.regem === regimeFilter);
+    }
+
+    // Filtre par statut (complet/incomplet)
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((provider) => {
+        const status = checkProviderInfo(provider);
+        return status === statusFilter;
+      });
+    }
+
+    return filtered;
+  }, [data, globalFilter, regimeFilter, statusFilter]);
 
   const translateColumns = (columnId: string) => {
     const translations: { [key: string]: string } = {
@@ -99,6 +161,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       address: "Adresse",
       phone: "Téléphone",
       email: "Email",
+      regem: "Régime",
       completionStatus: "Statut",
       actions: "Actions",
     };
@@ -125,6 +188,32 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         cell: ({ row }) => (
           <div className="font-medium uppercase">{row.getValue("name")}</div>
         ),
+      },
+      {
+        accessorKey: "regem",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Régime
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          const regime = row.getValue("regem") as string;
+          return (
+            <div className="font-medium">
+              {regime || (
+                <span className="text-muted-foreground">Non spécifié</span>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "address",
@@ -235,7 +324,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedItem(provider);
-                    setOpenUpdate(true)
+                    setOpenUpdate(true);
                   }}
                 >
                   <Eye className="mr-2 h-4 w-4" />
@@ -251,6 +340,16 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                   <LucidePen className="mr-2 h-4 w-4" />
                   {"Modifier"}
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(provider);
+                    SetOpenWarning(true);
+                  }}
+                  className="text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                  {"Supprimer"}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -261,7 +360,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
   );
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -273,7 +372,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["name", "email", "phone", "address"];
+      const searchableColumns = ["name", "email", "phone", "address", "regem"];
       return searchableColumns.some((column) => {
         const value = row.getValue(column);
         return value
@@ -291,44 +390,69 @@ export function ProviderTable({ data }: ProvidersTableProps) {
     },
   });
 
-  // Obtenez la valeur du filtre pour la colonne completionStatus
-  const statusFilter =
-    (table.getColumn("completionStatus")?.getFilterValue() as string) ?? "all";
+  // Fonction pour réinitialiser tous les filtres
+  const resetAllFilters = () => {
+    setRegimeFilter("all");
+    setStatusFilter("all");
+    setGlobalFilter("");
+  };
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-4 py-4">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap items-center gap-3 py-4">
+        {/* Recherche existante */}
+        <div className="relative">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher par nom, email, téléphone..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-8 max-w-sm"
+            className="pl-8 w-[250px]"
           />
         </div>
 
-        {/* Filtre par statut de complétion */}
-        {/* <Select
-          value={statusFilter}
-          onValueChange={(value) => {
-            if (value === "all") {
-              table.getColumn("completionStatus")?.setFilterValue("");
-            } else {
-              table.getColumn("completionStatus")?.setFilterValue(value);
-            }
-          }}
-        >
+        {/* Filtre par régime */}
+        <Select value={regimeFilter} onValueChange={setRegimeFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrer par statut" />
+            <SelectValue placeholder="Tous les régimes" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-            <SelectItem value="complet">{"Complet"}</SelectItem>
-            <SelectItem value="incomplet">{"Incomplet"}</SelectItem>
+            <SelectItem value="all">{"Tous les régimes"}</SelectItem>
+            {uniqueRegimes.map((regime) => (
+              <SelectItem key={regime} value={regime}>
+                {regime}
+              </SelectItem>
+            ))}
           </SelectContent>
-        </Select> */}
+        </Select>
 
+        {/* Filtre par statut */}
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Tous les statuts" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="complet">
+              <div className="flex items-center gap-2">
+                <Badge variant="success" className="h-4 w-4 p-0">
+                  <Check className="h-3 w-3" />
+                </Badge>
+                Complet
+              </div>
+            </SelectItem>
+            <SelectItem value="incomplet">
+              <div className="flex items-center gap-2">
+                <Badge variant="amber" className="h-4 w-4 p-0">
+                  <AlertTriangle className="h-3 w-3" />
+                </Badge>
+                Incomplet
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Menu des colonnes */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
@@ -358,6 +482,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         </DropdownMenu>
       </div>
 
+      {/* Reste du code inchangé */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -407,13 +532,14 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Aucun résultat trouvé avec les filtres actuels
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
       <Pagination table={table} />
       <UpdateProvider
         open={isUpdateModalOpen}
@@ -424,6 +550,16 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         open={openUpdate}
         onOpenChange={setOpenUpdate}
         data={selectedItem}
+      />
+      <ModalWarning
+        variant="error"
+        title="Supprimer"
+        name={selectedItem?.name}
+        description="êtes-vous sur de vouloir supprimer ce fournisseur ?"
+        open={openWarning}
+        onOpenChange={SetOpenWarning}
+        onAction={() => providerMutation.mutate(selectedItem?.id!)}
+        actionText="Supprimer"
       />
     </div>
   );

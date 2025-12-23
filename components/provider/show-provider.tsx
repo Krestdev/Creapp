@@ -1,5 +1,5 @@
 "use client";
-import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,29 +7,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useFetchQuery } from "@/hooks/useData";
-import { XAF } from "@/lib/utils";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { Provider } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  Calendar,
   CircleDollarSign,
-  FileQuestion,
-  Hash,
   LucideCalendar,
-  LucideCalendarFold,
-  LucideCheckCheck,
-  LucideFile,
-  LucideFlag,
-  LucideInfo,
-  LucideMapPin,
-  LucideScrollText,
-  LucideSquareUserRound,
-  LucideUserRound,
   LucideWallet,
-  LucideX,
+  LucideFile,
 } from "lucide-react";
 
 interface DetailBCProps {
@@ -39,16 +24,18 @@ interface DetailBCProps {
 }
 
 export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
+
+  const baseurl = process.env.NEXT_PUBLIC_API;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[760px] w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
           <DialogTitle className="text-xl font-semibold text-white">
-            {`Fournisseur: ${data?.name}`}
+            {`Fournisseur ${data?.name}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            {"Informations relatives à la commande"}
+            {"Informations relatives au fournisseur"}
           </p>
         </DialogHeader>
 

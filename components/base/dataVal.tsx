@@ -504,16 +504,25 @@ export function DataVal({
       validated,
       decision,
       validatorId,
+      validator,
     }: {
       id: number;
       validated: boolean;
       decision?: string;
       validatorId?: number;
+      validator?:
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => {
       await request.review(id, {
         validated: validated,
         decision: decision,
         userId: validatorId ?? -1,
+        validator: validator,
       });
     },
     onSuccess: () => {
@@ -531,11 +540,9 @@ export function DataVal({
   });
 
   const handleValidation = async (motif?: string): Promise<boolean> => {
-    const validatorId = categoriesData.data?.data
+    const validator = categoriesData.data?.data
       ?.find((cat) => cat.id === selectedItem?.categoryId)
-      ?.validators?.find((v) => v.userId === user?.id)?.id;
-
-    console.log(validatorId);
+      ?.validators?.find((v) => v.userId === user?.id);
 
     try {
       if (!selectedItem) {
@@ -547,14 +554,16 @@ export function DataVal({
         await reviewRequest.mutateAsync({
           id: Number(selectedItem.id),
           validated: true,
-          validatorId: validatorId,
+          validatorId: validator?.id,
+          validator: validator,
         });
       } else if (validationType === "reject") {
         await reviewRequest.mutateAsync({
           id: Number(selectedItem.id),
           validated: false,
           decision: motif,
-          validatorId: validatorId,
+          validatorId: validator?.id,
+          validator: validator,
         });
       }
 

@@ -42,6 +42,13 @@ import Besoins from "./besoins";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 
 const formSchema = z.object({
+  name: z.string().min(1, "Le nom est obligatoire"),
+  telephone: z
+    .string()
+    .min(1, "Le numéro de téléphone est obligatoire")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Le numéro de téléphone doit contenir uniquement des chiffres",
+    }),
   titre: z.string().min(1, "Le titre est obligatoire"),
   requests: z.array(z.number()).min(1, {
     message: "Veuillez sélectionner au moins un besoin",
@@ -80,6 +87,8 @@ export function UpdateCotationModal({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
+      telephone: "",
       titre: "",
       requests: [],
       date_limite: new Date(),
@@ -166,6 +175,8 @@ export function UpdateCotationModal({
 
     // Reset du formulaire
     form.reset({
+      name: commandData.name || "",
+      telephone: commandData.phone || "",
       titre: commandData.title || "",
       requests: selectedRequests.map((r) => r.id),
       date_limite: commandData.dueDate
@@ -181,6 +192,8 @@ export function UpdateCotationModal({
       setSelected([]);
       setDataSup(undefined);
       form.reset({
+        name: "",
+        telephone: "",
         titre: "",
         requests: [],
         date_limite: new Date(),
@@ -205,6 +218,8 @@ export function UpdateCotationModal({
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     try {
       const data: Partial<CommandRequestT> = {
+        name: values.name,
+        phone: values.telephone,
         title: values.titre,
         requests: selected.map((item) => item.id),
         dueDate: values.date_limite,
@@ -260,7 +275,7 @@ export function UpdateCotationModal({
                     )}
                   />
 
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="requests"
                     render={() => (
@@ -283,7 +298,7 @@ export function UpdateCotationModal({
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
 
                   <FormField
                     control={form.control}
@@ -323,6 +338,41 @@ export function UpdateCotationModal({
                       </FormItem>
                     )}
                   />
+
+                  <div className="flex flex-col gap-4 border rounded-md bg-gray-50 p-4">
+                    <h2>{"Contact pricipal"}</h2>
+
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nom</FormLabel>
+                          <FormControl className="w-[320px]">
+                            <Input placeholder="ex. Cédric" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="telephone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Numéro de téléphone</FormLabel>
+                          <FormControl className="w-[320px]">
+                            <Input
+                              placeholder="ex. 06 12 34 56 78"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   {/* Boutons d'action */}
                   <div className="flex justify-end gap-4 pt-4 border-t shrink-0">

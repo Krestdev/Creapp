@@ -32,8 +32,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Member, Role, User } from "@/types/types";
+import { Role, User } from "@/types/types";
 import { Pagination } from "../base/pagination";
+import { ShowRole } from "./show-role";
+import { Badge } from "../ui/badge";
 
 interface RolesTableProps {
   data: Role[];
@@ -48,6 +50,8 @@ export function RoleTable({ data }: RolesTableProps) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [selectedItem, setSelectedItem] = React.useState<Role | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
 
   const TranslateRole = (role: string) => {
     switch (role) {
@@ -78,7 +82,7 @@ export function RoleTable({ data }: RolesTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Name
+              {"Name"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -105,11 +109,12 @@ export function RoleTable({ data }: RolesTableProps) {
         },
         cell: ({ row }) => {
           return (
-            <div>
-              {(row.getValue("users") as User[])
-                .map((user) => user.name)
-                .splice(0, 3)
-                .join(", ")}
+            <div className="flex gap-0.5 w-fit">
+              {(row.getValue("users") as User[]).map((user) => (
+                <div key={user.id}>
+                  <Badge variant="sky">{user.name}</Badge>
+                </div>
+              ))}
             </div>
           );
         },
@@ -135,7 +140,14 @@ export function RoleTable({ data }: RolesTableProps) {
           const role = row.original;
 
           return (
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedItem(role);
+                setIsDetailModalOpen(true);
+              }}
+            >
               <Eye className="ml-2 h-4 w-4" />
               {"Voir"}
             </Button>
@@ -286,11 +298,12 @@ export function RoleTable({ data }: RolesTableProps) {
         </Table>
       </div>
       <Pagination table={table} />
-      {/* <UpdateRole
-        open={isUpdateModalOpen}
-        setOpen={setIsUpdateModalOpen}
-        departmentData={selectedItem}
-      /> */}
+      <ShowRole
+        open={isDetailModalOpen}
+        onOpenChange={setIsDetailModalOpen}
+        role={selectedItem}
+        usersCount={selectedItem?.users?.length}
+      />
     </div>
   );
 }

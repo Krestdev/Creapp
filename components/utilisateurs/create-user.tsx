@@ -22,6 +22,8 @@ import { DepartmentQueries } from "@/queries/departmentModule";
 import { ResponseT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -29,7 +31,9 @@ import { z } from "zod";
 const formSchema = z.object({
   name: z.string().min(1),
   email: z.string().min(1),
-  password: z.string().min(6, {message: "Le mot de passe doit contenir au moins 6 caractères"}),
+  password: z
+    .string()
+    .min(6, { message: "Le mot de passe doit contenir au moins 6 caractères" }),
   cpassword: z.string(),
   phone: z.string().min(1),
   role: z.string(),
@@ -40,7 +44,19 @@ const formSchema = z.object({
 export default function CreateUserForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      cpassword: "",
+      phone: "",
+      role: "",
+      poste: "",
+      department: "",
+    },
   });
+
+  const router = useRouter();
 
   const userQueries = new UserQueries();
   const deparmentQueries = new DepartmentQueries();
@@ -51,7 +67,16 @@ export default function CreateUserForm() {
     ) => userQueries.create(data),
     onSuccess: (data: ResponseT<User>) => {
       toast.success("Utilisateur créé avec succès.");
-      console.log("Register successful:", data);
+      form.reset({
+        name: "",
+        email: "",
+        password: "",
+        cpassword: "",
+        phone: "",
+        role: "",
+        poste: "",
+        department: "",
+      });
     },
     onError: (error: unknown) => {
       toast.error(
@@ -110,14 +135,14 @@ export default function CreateUserForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl py-10"
+        className="max-w-3xl grid grid-cols-1 gap-6 @min-[640px]:grid-cols-2"
       >
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nom</FormLabel>
+              <FormLabel>{"Nom"}</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="ex. John Doe" type="" {...field} />
               </FormControl>
@@ -131,7 +156,7 @@ export default function CreateUserForm() {
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Contact</FormLabel>
+              <FormLabel>{"Contact"}</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="ex. 237657897434" type="" {...field} />
               </FormControl>
@@ -146,44 +171,11 @@ export default function CreateUserForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Adresse E-mail</FormLabel>
+              <FormLabel>{"Adresse E-mail"}</FormLabel>
               <FormControl className="w-full">
                 <Input
                   placeholder="ex. johndoe@gemail.com"
                   type=""
-                  {...field}
-                />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Mot de passe</FormLabel>
-              <FormControl className="w-full">
-                <PasswordInput placeholder="Entrer Mot de passe" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="cpassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirmer le mot de passe</FormLabel>
-              <FormControl className="w-full">
-                <PasswordInput
-                  placeholder="Confirmer le mot de passe"
                   {...field}
                 />
               </FormControl>
@@ -221,10 +213,43 @@ export default function CreateUserForm() {
 
         <FormField
           control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Mot de passe"}</FormLabel>
+              <FormControl className="w-full">
+                <PasswordInput placeholder="Entrer Mot de passe" {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="cpassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Confirmer le mot de passe"}</FormLabel>
+              <FormControl className="w-full">
+                <PasswordInput
+                  placeholder="Confirmer le mot de passe"
+                  {...field}
+                />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="poste"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Poste</FormLabel>
+              <FormLabel>{"Poste"}</FormLabel>
               <FormControl className="w-full">
                 <Input
                   placeholder="ex. Attaché de direction"
@@ -243,7 +268,7 @@ export default function CreateUserForm() {
           name="department"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Département</FormLabel>
+              <FormLabel>{"Département"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={"0"}>
                 <FormControl className="w-full">
                   <SelectTrigger>
@@ -251,7 +276,7 @@ export default function CreateUserForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value={"0"}> Pas de departement</SelectItem>
+                  <SelectItem value={"0"}>{"Pas de departement"}</SelectItem>
                   {departmentData.data?.data.map((department) => (
                     <SelectItem
                       key={department.id}
@@ -267,7 +292,13 @@ export default function CreateUserForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Créer l’utilisateur</Button>
+        <Button
+          variant={"primary"}
+          type="submit"
+          className="ml-auto @min-[640px]:col-span-2"
+        >
+          {"Enregistrer"}
+        </Button>
       </form>
     </Form>
   );

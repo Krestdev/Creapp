@@ -205,32 +205,18 @@ function CreateQuotation({ quotation, openChange }: Props) {
       );
   }, [form.watch("commandRequestId")]);
 
-  // Fonction pour trouver l'index global d'un élément
-  /* const findGlobalIndex = (needId: number, elementIndex: number) => {
-    const elements = form.getValues("elements");
-    let currentIndex = 0;
-    let foundCount = 0;
-    
-    for (let i = 0; i < elements.length; i++) {
-      if (elements[i].needId === needId) {
-        if (foundCount === elementIndex) {
-          return i;
-        }
-        foundCount++;
-      }
-    }
-    return -1;
-  }; */
+  const [search, setSearch] = React.useState("");
 
-  // Fonction pour supprimer un élément
-  /* const removeElement = (needId: number, elementIndex: number) => {
-    const globalIndex = findGlobalIndex(needId, elementIndex);
-    if (globalIndex === -1) return;
-    
-    const currentElements = [...form.getValues("elements")];
-    currentElements.splice(globalIndex, 1);
-    form.setValue("elements", currentElements);
-  }; */
+  const normalizeText = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+  const filteredProviders =
+    providersData.data?.data.filter((provider) =>
+      normalizeText(provider.name).includes(normalizeText(search))
+    ) ?? [];
 
   if (requestsData.isLoading || providersData.isLoading) {
     return <LoadingPage />;
@@ -286,22 +272,35 @@ function CreateQuotation({ quotation, openChange }: Props) {
                   value={field.value ? String(field.value) : undefined}
                   onValueChange={(v) => field.onChange(Number(v))}
                   open={openS}
-                  onOpenChange={setOpenS}
+                  onOpenChange={(open) => {
+                    setOpenS(open);
+                    if (!open) setSearch(""); // reset recherche à la fermeture
+                  }}
                 >
                   <SelectTrigger className="min-w-60 w-full uppercase">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
 
-                  {/* CONTENU DU SELECT */}
                   <SelectContent className="max-h-[500px] p-0">
+                    {/* 🔍 CHAMP DE RECHERCHE */}
+                    <div className="p-2 border-b">
+                      <Input
+                        placeholder="Rechercher un fournisseur..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()} // empêche fermeture du select
+                        className="h-9"
+                      />
+                    </div>
+
                     {/* LISTE SCROLLABLE */}
-                    <div className="max-h-[430px] overflow-y-auto">
-                      {providersData.data?.data.length === 0 ? (
-                        <SelectItem value="-" disabled>
-                          Aucun fournisseur enregistré
-                        </SelectItem>
+                    <div className="max-h-[380px] overflow-y-auto">
+                      {filteredProviders.length === 0 ? (
+                        <div className="p-3 text-sm text-muted-foreground text-center">
+                          Aucun fournisseur trouvé
+                        </div>
                       ) : (
-                        providersData.data?.data.map((provider) => (
+                        filteredProviders.map((provider) => (
                           <SelectItem
                             key={provider.id}
                             value={String(provider.id)}
@@ -313,10 +312,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
                       )}
                     </div>
 
-                    {/* FOOTER FIXÉ EN BAS DU SELECT */}
+                    {/* FOOTER */}
                     <div
                       className="sticky bottom-0 bg-background border-t p-2"
-                      onMouseDown={(e) => e.preventDefault()} 
+                      onMouseDown={(e) => e.preventDefault()}
                     >
                       <Button
                         type="button"

@@ -33,6 +33,8 @@ import { UserQueries } from "@/queries/baseModule";
 import { useQuery } from "@tanstack/react-query";
 import { ProviderQueries } from "@/queries/providers";
 import { RequestQueries } from "@/queries/requestModule";
+import React from "react";
+import ShowFile from "../base/show-file";
 
 interface DetailModalProps {
   open: boolean;
@@ -50,23 +52,26 @@ export function DevisModal({
   const totalAmount =
     data?.element?.reduce((acc, curr) => acc + curr.priceProposed, 0) || 0;
 
-    const users = new UserQueries()
-    const usersData = useQuery({
-      queryKey: ["usersList"],
-      queryFn: () => users.getAll(),
-    })
+  const [page, setPage] = React.useState(1);
+  const [file, setFile] = React.useState<string | File | undefined>(undefined);
 
-    const providers = new ProviderQueries()
-    const providersData = useQuery({
-      queryKey: ["providersList"],
-      queryFn: () => providers.getAll(),
-    })
+  const users = new UserQueries();
+  const usersData = useQuery({
+    queryKey: ["usersList"],
+    queryFn: () => users.getAll(),
+  });
 
-    const request = new RequestQueries()
-    const requestsData = useQuery({
-      queryKey: ["requestsList"],
-      queryFn: () => request.getAll(),
-    })
+  const providers = new ProviderQueries();
+  const providersData = useQuery({
+    queryKey: ["providersList"],
+    queryFn: () => providers.getAll(),
+  });
+
+  const request = new RequestQueries();
+  const requestsData = useQuery({
+    queryKey: ["requestsList"],
+    queryFn: () => request.getAll(),
+  });
 
   // Récupérer les informations de l'utilisateur (à adapter selon votre structure)
   // const getUserName = (userId: string | number | undefined) => {
@@ -77,16 +82,25 @@ export function DevisModal({
 
   // Récupérer le nom du fournisseur (à adapter selon votre structure)
   const getProviderName = (providerId: number | undefined) => {
-    return providersData.data?.data?.find((p) => p.id === providerId)?.name || "Non spécifié";
+    return (
+      providersData.data?.data?.find((p) => p.id === providerId)?.name ||
+      "Non spécifié"
+    );
   };
 
   const getUserName = (userId: number | undefined) => {
-    return usersData.data?.data?.find((u) => u.id === userId)?.name || "Non spécifique";
+    return (
+      usersData.data?.data?.find((u) => u.id === userId)?.name ||
+      "Non spécifique"
+    );
   };
 
   const getRequestTitle = (requestId: number | undefined) => {
-    return requestsData.data?.data?.find((r) => r.id === requestId)?.label || "Non spécifié";
-  }
+    return (
+      requestsData.data?.data?.find((r) => r.id === requestId)?.label ||
+      "Non spécifié"
+    );
+  };
 
   // Formater les dates
   const formatDate = (dateString: string | undefined) => {
@@ -112,181 +126,189 @@ export function DevisModal({
         </DialogHeader>
 
         {/* Infos générales */}
-        <div className="flex gap-3 p-4">
-          <div className="w-full grid grid-cols-3 gap-3 py-3">
-            {/* Référence */}
-            <div className="w-full flex flex-row items-center gap-2">
-              <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                <LucideHash size={24} />
-              </div>
-              <div className="flex flex-col">
-                <p className="text-[#52525B]">{"Référence"}</p>
-                <div className="w-fit bg-[#F2CFDE] flex items-center justify-center px-1.5 rounded">
-                  <p className="text-[#9E1351] text-sm">{data?.ref || "N/A"}</p>
+        {page === 1 ? (
+          <div className="flex gap-3 p-4">
+            <div className="w-full grid grid-cols-3 gap-3 py-3">
+              {/* Référence */}
+              <div className="w-full flex flex-row items-center gap-2">
+                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
+                  <LucideHash size={24} />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-[#52525B]">{"Référence"}</p>
+                  <div className="w-fit bg-[#F2CFDE] flex items-center justify-center px-1.5 rounded">
+                    <p className="text-[#9E1351] text-sm">
+                      {data?.ref || "N/A"}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Montant */}
-            <div className="w-full flex flex-row items-center gap-2">
-              <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                <DollarSign size={24} />
+              {/* Montant */}
+              <div className="w-full flex flex-row items-center gap-2">
+                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
+                  <DollarSign size={24} />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-[#52525B]">{"Montant total"}</p>
+                  <p className="text-sm font-semibold">
+                    {XAF.format(totalAmount)}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <p className="text-[#52525B]">Montant total</p>
-                <p className="text-sm font-semibold">
-                  {XAF.format(totalAmount)}
-                </p>
-              </div>
-            </div>
 
-            {/* Fournisseur */}
-            <div className="w-full flex flex-row items-center gap-2">
-              <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                <LucideUserCircle2 size={24} />
+              {/* Fournisseur */}
+              <div className="w-full flex flex-row items-center gap-2">
+                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
+                  <LucideUserCircle2 size={24} />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-[#52525B]">{"Fournisseur"}</p>
+                  <p className="text-sm font-semibold">
+                    {getProviderName(data?.providerId)}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <p className="text-[#52525B]">Fournisseur</p>
-                <p className="text-sm font-semibold">
-                  {getProviderName(data?.providerId)}
-                </p>
-              </div>
-            </div>
 
-            
-            {/* Initié par */}
-            <div className="w-full flex flex-row items-center gap-2">
-              <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                <LucideUserRound size={24} />
+              {/* Initié par */}
+              <div className="w-full flex flex-row items-center gap-2">
+                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
+                  <LucideUserRound size={24} />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-[#52525B]">{"Initié par"}</p>
+                  <p className="text-sm font-semibold uppercase">
+                    {getUserName(data?.userId)}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <p className="text-[#52525B]">Initié par</p>
-                <p className="text-sm font-semibold uppercase">{getUserName(data?.userId)}</p>
-              </div>
-            </div>
 
-            {/* Créé le */}
-            <div className="w-full flex flex-row items-center gap-2">
-              <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                <LucideCalendar size={24} />
+              {/* Créé le */}
+              <div className="w-full flex flex-row items-center gap-2">
+                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
+                  <LucideCalendar size={24} />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-[#52525B]">{"Créé le"}</p>
+                  <p className="text-sm font-semibold">
+                    {formatDate(data?.createdAt)}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <p className="text-[#52525B]">Créé le</p>
-                <p className="text-sm font-semibold">
-                  {formatDate(data?.createdAt)}
-                </p>
-              </div>
-            </div>
 
-            {/* Date limite */}
-            <div className="w-full flex flex-row items-center gap-2">
-              <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                <LucideCalendarFold size={24} />
+              {/* Date limite */}
+              <div className="w-full flex flex-row items-center gap-2">
+                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
+                  <LucideCalendarFold size={24} />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-[#52525B]">{"Date limite"}</p>
+                  <p className="text-sm font-semibold">
+                    {formatDate(data?.dueDate)}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <p className="text-[#52525B]">Date limite</p>
-                <p className="text-sm font-semibold">
-                  {formatDate(data?.dueDate)}
-                </p>
-              </div>
-            </div>
 
-            {/* Justificatifs */}
-            <div className="w-full flex flex-row items-center gap-2">
-              <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                <LucideFile size={24} />
-              </div>
-              <div className="flex flex-col">
-                <p className="text-[#52525B]">Justificatifs</p>
-                <div className="flex gap-1.5 items-center">
-                  {data?.proof ? (
-                    <>
-                      <img
-                        src="/images/pdf.png"
-                        alt="justificatif"
-                        className="h-8 w-auto aspect-square"
-                      />
-                      <div>
-                        {/* <p className="text-[#2F2F2F] text-[12px] font-medium">
-                          {data.proof.name || "Document justificatif"}
-                        </p>
-                        <p className="text-[#A1A1AA] text-[12px]">
-                          {data.proof.size ? `${(data.proof.size / 1024).toFixed(1)} ko` : "Taille inconnue"}
-                        </p> */}
+              {/* Justificatifs */}
+              <Button
+                variant={"ghost"}
+                className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
+                disabled={!data?.proof}
+                onClick={() => {
+                  setPage(2);
+                  setFile(data?.proof);
+                }}
+              >
+                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
+                  <LucideFile size={24} />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-[#52525B]">{"Justificatifs"}</p>
+                  <div className="flex gap-1.5 items-center">
+                    {data?.proof ? (
+                      <>
+                        <img
+                          src="/images/pdf.png"
+                          alt="justificatif"
+                          className="h-8 w-auto aspect-square"
+                        />
                         <p className="text-[#2F2F2F] text-[12px] font-medium">
-                          {"Document justificatif"}
+                          {data.proof
+                            ? "Document justificatif"
+                            : "Aucun justificatif"}
                         </p>
-                        <p className="text-[#A1A1AA] text-[12px]">
-                          {true
-                            ? `${(20 / 1024).toFixed(1)} ko`
-                            : "Taille inconnue"}
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-sm text-gray-500">Aucun justificatif</p>
-                  )}
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        {"Aucun justificatif"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </Button>
+
+              {/* Modifié le */}
+              <div className="w-full flex flex-row items-center gap-2">
+                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
+                  <LucideCalendar size={24} />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-[#52525B]">{"Modifié le"}</p>
+                  <p className="text-sm font-semibold">
+                    {formatDate(data?.updatedAt)}
+                  </p>
                 </div>
               </div>
-            </div>
 
-            {/* Modifié le */}
-            <div className="w-full flex flex-row items-center gap-2">
-              <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                <LucideCalendar size={24} />
-              </div>
-              <div className="flex flex-col">
-                <p className="text-[#52525B]">Modifié le</p>
-                <p className="text-sm font-semibold">
-                  {formatDate(data?.updatedAt)}
-                </p>
-              </div>
-            </div>
-
-            {/* TABLEAU QUI PREND 2 COLONNES */}
-            <div className="col-span-3 w-full overflow-x-auto">
-              <Table className="w-full border rounded-lg bg-white">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{"Besoin"}</TableHead>
-                    <TableHead>{"Élément"}</TableHead>
-                    <TableHead>{"Quantité"}</TableHead>
-                    <TableHead>{"Prix Unitaire"}</TableHead>
-                    <TableHead>{"Total"}</TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {data?.element?.map((el, index) => (
-                    <TableRow
-                      key={index}
-                      className={`${index % 2 === 0 ? "bg-[#FAFAFA]" : ""}`}
-                    >
-                      <TableCell className="font-medium">
-                        {getRequestTitle(el.requestModelId) || "N/A"}
-                      </TableCell>
-                      <TableCell>{el.title || "N/A"}</TableCell>
-                      <TableCell>
-                        {el.quantity || 0} {el.unit || "unité"}
-                      </TableCell>
-                      <TableCell>{XAF.format(el.priceProposed || 0)}</TableCell>
-                      <TableCell>
-                        {XAF.format(
-                          (el.quantity || 0) * (el.priceProposed || 0)
-                        )}
-                      </TableCell>
+              {/* TABLEAU QUI PREND 2 COLONNES */}
+              <div className="col-span-3 w-full overflow-x-auto">
+                <Table className="w-full border rounded-lg bg-white">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{"Besoin"}</TableHead>
+                      <TableHead>{"Élément"}</TableHead>
+                      <TableHead>{"Quantité"}</TableHead>
+                      <TableHead>{"Prix Unitaire"}</TableHead>
+                      <TableHead>{"Total"}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+
+                  <TableBody>
+                    {data?.element?.map((el, index) => (
+                      <TableRow
+                        key={index}
+                        className={`${index % 2 === 0 ? "bg-[#FAFAFA]" : ""}`}
+                      >
+                        <TableCell className="font-medium">
+                          {getRequestTitle(el.requestModelId) || "N/A"}
+                        </TableCell>
+                        <TableCell>{el.title || "N/A"}</TableCell>
+                        <TableCell>
+                          {el.quantity || 0} {el.unit || "unité"}
+                        </TableCell>
+                        <TableCell>
+                          {XAF.format(el.priceProposed || 0)}
+                        </TableCell>
+                        <TableCell>
+                          {XAF.format(
+                            (el.quantity || 0) * (el.priceProposed || 0)
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <ShowFile file={file} setPage={setPage} title="Justificatif" />
+        )}
 
         {/* Footer */}
         <div className="flex justify-end gap-3 p-6 pt-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Fermer
+            {"Fermer"}
           </Button>
         </div>
       </DialogContent>

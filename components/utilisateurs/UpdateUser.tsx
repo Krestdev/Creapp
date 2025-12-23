@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { UserQueries } from "@/queries/baseModule";
-import { Role, User as UserT } from "@/types/types";
+import { Role, User, User as UserT } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -39,6 +39,7 @@ const formSchema = z
     password: z.string().optional(),
     confirmPassword: z.string().optional(),
     role: z.array(z.number()).optional(),
+    post: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -79,6 +80,7 @@ export default function UpdateUser({
       password: "",
       confirmPassword: "",
       role: [],
+      post: "",
     },
   });
 
@@ -88,9 +90,7 @@ export default function UpdateUser({
   useEffect(() => {
     if (userData && open) {
       const roles = userData.role || [];
-      setSelectedRole(
-        roles.map((r) => ({ id: r.id!, label: r.label }))
-      );
+      setSelectedRole(roles.map((r) => ({ id: r.id!, label: r.label })));
 
       form.reset({
         email: userData.email || "",
@@ -99,6 +99,7 @@ export default function UpdateUser({
         password: "",
         confirmPassword: "",
         role: roles.map((r) => r.id!),
+        post: userData.post || "",
       });
     }
   }, [userData, open, form]);
@@ -107,25 +108,18 @@ export default function UpdateUser({
      MUTATION
   ========================= */
   const userQueries = new UserQueries();
+
   const userMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const { roleIds, ...payload } = data;
+    mutationFn: ({ id, data }: { id: number; data: Partial<UserT> }) =>
+      userQueries.update(id, data),
 
-      if (roleIds?.length) {
-        return userQueries.update(Number(payload.id), {
-          ...payload,
-          role: roleIds,
-        });
-      }
-
-      return userQueries.update(Number(payload.id), payload);
-    },
     onSuccess: () => {
       toast.success("Utilisateur modifié avec succès !");
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["usersList"] });
       setOpen(false);
       onSuccess?.();
     },
+
     onError: () => {
       toast.error("Erreur lors de la modification");
     },
@@ -153,10 +147,10 @@ export default function UpdateUser({
     if (!userData?.id) return;
 
     const payload: any = {
-      id: userData.id,
       email: values.email,
       name: values.name,
       phone: values.phone || undefined,
+      post: values.post || undefined,
     };
 
     if (values.password && values.password.trim() !== "") {
@@ -164,10 +158,10 @@ export default function UpdateUser({
     }
 
     if (selectedRole.length) {
-      payload.roleIds = selectedRole.map((r) => r.id);
+      payload.role = selectedRole.map((r) => r.id);
     }
 
-    userMutation.mutate(payload);
+    userMutation.mutate({ id: userData.id, data: payload });
   }
 
   /* =========================
@@ -175,26 +169,43 @@ export default function UpdateUser({
   ========================= */
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] p-0 flex flex-col">
+      <DialogContent className="sm:max-w-[840px] p-0 flex flex-col">
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg">
           <DialogTitle className="text-xl font-semibold">
-            Modifier l’utilisateur {userData?.name ?? ""}
+            {userData?.name ?? ""}
           </DialogTitle>
+          <p className="text-sm text-white/80 mt-1">
+            {"Modifier l'utilisateur en indiquant les nouvelles informations."}
+          </p>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex-1 overflow-y-auto px-6 pb-6 space-y-4"
+            className="w-full grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 px-6"
           >
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom *</FormLabel>
+                  <FormLabel>Nom </FormLabel>
                   <FormControl>
                     <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact </FormLabel>
+                  <FormControl>
+                    <Input type="email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -206,9 +217,23 @@ export default function UpdateUser({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email *</FormLabel>
+                  <FormLabel>Adresse email </FormLabel>
                   <FormControl>
                     <Input type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="post"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Poste </FormLabel>
+                  <FormControl>
+                    <Input type="Poste" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -247,19 +272,6 @@ export default function UpdateUser({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Téléphone</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
             <div className="space-y-2">
               <FormLabel>Rôles *</FormLabel>
               <MultiSelectRole
@@ -281,7 +293,12 @@ export default function UpdateUser({
             <Button variant="outline" onClick={() => setOpen(false)}>
               Annuler
             </Button>
-            <Button onClick={form.handleSubmit(onSubmit)} type="submit" disabled={userMutation.isPending}>
+            <Button
+              variant={"primary"}
+              onClick={form.handleSubmit(onSubmit)}
+              type="submit"
+              disabled={userMutation.isPending}
+            >
               {userMutation.isPending ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </div>

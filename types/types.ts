@@ -39,6 +39,7 @@ export type User = {
   email: string;
   name: string;
   phone?: string;
+  post?: string;
   password?: string;
   projectId?: number | null;
   verificationOtp?: number | null;
@@ -54,6 +55,7 @@ export type User = {
 export type Role = {
   id: number;
   label: string;
+  users?: User[];
 };
 
 export interface UserTest extends User {

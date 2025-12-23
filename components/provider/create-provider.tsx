@@ -37,7 +37,12 @@ const SingleFileArray = z
 
 const formSchema = z.object({
   name: z.string().min(1),
-  phone: z.string().min(1),
+  phone: z
+    .string()
+    .min(1)
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Le numéro de téléphone doit contenir uniquement des chiffres",
+    }),
   email: z.string().min(1),
   address: z.string(),
   carte_contribuable: SingleFileArray,
@@ -110,7 +115,7 @@ export default function CreateProviderForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl py-10"
+        className="max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2"
       >
         <FormField
           control={form.control}
@@ -209,7 +214,7 @@ export default function CreateProviderForm() {
           control={form.control}
           name="regem"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="@min-[640px]:col-span-2">
               <FormLabel>
                 Régime <span className="text-red-500">*</span>
               </FormLabel>
@@ -239,8 +244,8 @@ export default function CreateProviderForm() {
           control={form.control}
           name="carte_contribuable"
           render={({ field }) => (
-            <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"carte contribuable"}</FormLabel>
+            <FormItem>
+              <FormLabel isRequired>{"Carte contribuable"}</FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value}
@@ -261,7 +266,7 @@ export default function CreateProviderForm() {
           control={form.control}
           name="acf"
           render={({ field }) => (
-            <FormItem className="@min-[640px]:col-span-2">
+            <FormItem>
               <FormLabel isRequired>{"ACF"}</FormLabel>
               <FormControl>
                 <FilesUpload
@@ -283,7 +288,7 @@ export default function CreateProviderForm() {
           control={form.control}
           name="plan_localisation"
           render={({ field }) => (
-            <FormItem className="@min-[640px]:col-span-2">
+            <FormItem>
               <FormLabel isRequired>{"Plan de localisation"}</FormLabel>
               <FormControl>
                 <FilesUpload
@@ -305,7 +310,7 @@ export default function CreateProviderForm() {
           control={form.control}
           name="commerce_registre"
           render={({ field }) => (
-            <FormItem className="@min-[640px]:col-span-2">
+            <FormItem>
               <FormLabel isRequired>{"registre de commerce"}</FormLabel>
               <FormControl>
                 <FilesUpload
@@ -327,7 +332,7 @@ export default function CreateProviderForm() {
           control={form.control}
           name="banck_attestation"
           render={({ field }) => (
-            <FormItem className="@min-[640px]:col-span-2">
+            <FormItem>
               <FormLabel isRequired>{"Attestation bancaire"}</FormLabel>
               <FormControl>
                 <FilesUpload
@@ -343,7 +348,13 @@ export default function CreateProviderForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Créer le fournisseur</Button>
+        <Button
+          variant={"primary"}
+          className="@min-[640px]:col-span-2 w-fit ml-auto"
+          type="submit"
+        >
+          Créer le fournisseur
+        </Button>
       </form>
     </Form>
   );

@@ -154,7 +154,7 @@ export default function UpdateProvider({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex-1 overflow-y-auto px-6 pb-6"
+            className="max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 mx-4 flex-1 overflow-y-auto pb-6"
           >
             {/* LABEL */}
             <FormField
@@ -180,6 +180,23 @@ export default function UpdateProvider({
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input placeholder="Entrer l'email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Addresse"}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Entrer l'addresse de l'entreprise"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -238,7 +255,7 @@ export default function UpdateProvider({
               control={form.control}
               name="regem"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="@min-[640px]:col-span-2">
                   <FormLabel>
                     Régime <span className="text-red-500">*</span>
                   </FormLabel>
@@ -271,7 +288,7 @@ export default function UpdateProvider({
               control={form.control}
               name="carte_contribuable"
               render={({ field }) => (
-                <FormItem className="@min-[640px]:col-span-2">
+                <FormItem>
                   <FormLabel isRequired>{"carte contribuable"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -293,7 +310,7 @@ export default function UpdateProvider({
               control={form.control}
               name="acf"
               render={({ field }) => (
-                <FormItem className="@min-[640px]:col-span-2">
+                <FormItem>
                   <FormLabel isRequired>{"ACF"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -315,7 +332,7 @@ export default function UpdateProvider({
               control={form.control}
               name="plan_localisation"
               render={({ field }) => (
-                <FormItem className="@min-[640px]:col-span-2">
+                <FormItem>
                   <FormLabel isRequired>{"Plan de localisation"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -337,7 +354,7 @@ export default function UpdateProvider({
               control={form.control}
               name="commerce_registre"
               render={({ field }) => (
-                <FormItem className="@min-[640px]:col-span-2">
+                <FormItem>
                   <FormLabel isRequired>{"registre de commerce"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -359,7 +376,7 @@ export default function UpdateProvider({
               control={form.control}
               name="banck_attestation"
               render={({ field }) => (
-                <FormItem className="@min-[640px]:col-span-2">
+                <FormItem>
                   <FormLabel isRequired>{"Attestation bancaire"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -375,29 +392,13 @@ export default function UpdateProvider({
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Addresse"}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Entrer l'addresse de l'entreprise"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </form>
           <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
             {/* SUBMIT */}
             <Button
               type="submit"
               className="w-fit"
+              variant={"primary"}
               onClick={form.handleSubmit(onSubmit)}
             >
               {"Enregistrer"}
