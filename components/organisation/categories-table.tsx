@@ -18,12 +18,10 @@ import {
   LucideEye,
   LucidePen,
   LucideTrash2,
-  Users,
 } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -42,7 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RequestQueries } from "@/queries/requestModule";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { Category } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -54,7 +52,6 @@ import {
 import { toast } from "sonner";
 import { ShowCategory } from "./show-category";
 import { UpdateCategory } from "./UpdateCategory";
-import { CategoryQueries } from "@/queries/categoryModule";
 
 interface CategoriesTableProps {
   data: Category[];
@@ -262,9 +259,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
       const search = filterValue.toLowerCase();
       const name = row.getValue("label") as string;
 
-      return (
-        name.toLowerCase().includes(search)
-      );
+      return name.toLowerCase().includes(search);
     },
     state: {
       sorting,

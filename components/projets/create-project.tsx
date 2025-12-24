@@ -9,13 +9,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
 import { ProjectQueries } from "@/queries/projectModule";
@@ -25,8 +18,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-import { Textarea } from "../ui/textarea";
 import { SearchableSelect } from "../base/searchableSelect";
+import { Textarea } from "../ui/textarea";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -211,14 +204,16 @@ export function ProjectCreateForm() {
               <FormLabel>{"Budget prévisionnel"}</FormLabel>
               <FormControl>
                 <div className="relative">
-                <Input
-                  type="number"
-                  value={String(value)}
-                  {...props}
-                  placeholder="ex. 150 000 000"
+                  <Input
+                    type="number"
+                    value={String(value)}
+                    {...props}
+                    placeholder="ex. 150 000 000"
                   />
-                  <div className="absolute right-0 top-[1%] bg-gray-100 p-2 ">{"FCFA"}</div>
+                  <div className="absolute right-0 top-[1%] bg-gray-100 p-2 ">
+                    {"FCFA"}
                   </div>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

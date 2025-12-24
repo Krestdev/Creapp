@@ -7,13 +7,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
 import { DepartmentQueries } from "@/queries/departmentModule";
@@ -23,9 +16,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
+import { SearchableSelect } from "../base/searchableSelect";
 import { Form } from "../ui/form";
 import { Textarea } from "../ui/textarea";
-import { SearchableSelect } from "../base/searchableSelect";
 
 export interface ActionResponse<T = any> {
   success: boolean;

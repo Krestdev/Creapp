@@ -1,4 +1,5 @@
 "use client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -6,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { DepartmentT } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -14,11 +14,9 @@ import {
   Building,
   Calendar,
   CheckCircle,
-  ChevronRight,
   FileText,
   Hash,
   LucideCalendar,
-  LucideCheckCircle,
   LucideInfo,
   LucideUser,
   LucideUsers,
@@ -34,7 +32,11 @@ interface DetailDepartmentProps {
   data: DepartmentT | null;
 }
 
-export function ShowDepartment({ open, onOpenChange, data }: DetailDepartmentProps) {
+export function ShowDepartment({
+  open,
+  onOpenChange,
+  data,
+}: DetailDepartmentProps) {
   // Fonction pour formater la date
   const formatDate = (dateString?: string) => {
     if (!dateString) return "-";
@@ -65,9 +67,9 @@ export function ShowDepartment({ open, onOpenChange, data }: DetailDepartmentPro
 
     return {
       total: data.members.length,
-      chiefs: data.members.filter(m => m.chief).length,
-      validators: data.members.filter(m => m.validator).length,
-      finalValidators: data.members.filter(m => m.finalValidator).length,
+      chiefs: data.members.filter((m) => m.chief).length,
+      validators: data.members.filter((m) => m.validator).length,
+      finalValidators: data.members.filter((m) => m.finalValidator).length,
     };
   };
 
@@ -107,7 +109,9 @@ export function ShowDepartment({ open, onOpenChange, data }: DetailDepartmentPro
                   <Hash className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Nom du département</p>
+                  <p className="text-sm text-muted-foreground">
+                    Nom du département
+                  </p>
                   <p className="font-semibold">{data?.label || "-"}</p>
                 </div>
               </div>
@@ -119,7 +123,9 @@ export function ShowDepartment({ open, onOpenChange, data }: DetailDepartmentPro
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">Description</p>
-                  <p className="font-semibold">{data?.description || "Aucune description"}</p>
+                  <p className="font-semibold">
+                    {data?.description || "Aucune description"}
+                  </p>
                 </div>
               </div>
 
@@ -140,7 +146,9 @@ export function ShowDepartment({ open, onOpenChange, data }: DetailDepartmentPro
                   <LucideCalendar className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Dernière modification</p>
+                  <p className="text-sm text-muted-foreground">
+                    Dernière modification
+                  </p>
                   <p className="font-semibold">{formatDate(data?.updatedAt)}</p>
                 </div>
               </div>
@@ -161,7 +169,9 @@ export function ShowDepartment({ open, onOpenChange, data }: DetailDepartmentPro
                       <Users className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Total des membres</p>
+                      <p className="text-sm text-muted-foreground">
+                        Total des membres
+                      </p>
                       <p className="text-2xl font-bold">{roleCounts.total}</p>
                     </div>
                   </div>
@@ -197,7 +207,9 @@ export function ShowDepartment({ open, onOpenChange, data }: DetailDepartmentPro
                     </div>
                     <span className="text-sm">Derniers validateurs</span>
                   </div>
-                  <Badge variant="secondary">{roleCounts.finalValidators}</Badge>
+                  <Badge variant="secondary">
+                    {roleCounts.finalValidators}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -224,7 +236,9 @@ export function ShowDepartment({ open, onOpenChange, data }: DetailDepartmentPro
                             <User className="h-4 w-4 text-gray-600" />
                           </div>
                           <div>
-                            <p className="font-medium">{member.label || "Membre sans nom"}</p>
+                            <p className="font-medium">
+                              {member.label || "Membre sans nom"}
+                            </p>
                             <p className="text-sm text-muted-foreground">
                               ID Utilisateur: {member.userId}
                             </p>
@@ -251,9 +265,11 @@ export function ShowDepartment({ open, onOpenChange, data }: DetailDepartmentPro
                               Dernier validateur
                             </Badge>
                           )}
-                          {!member.chief && !member.validator && !member.finalValidator && (
-                            <Badge variant="outline">Membre standard</Badge>
-                          )}
+                          {!member.chief &&
+                            !member.validator &&
+                            !member.finalValidator && (
+                              <Badge variant="outline">Membre standard</Badge>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -263,7 +279,9 @@ export function ShowDepartment({ open, onOpenChange, data }: DetailDepartmentPro
             ) : (
               <div className="text-center py-8 border rounded-lg bg-gray-50">
                 <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-500">Aucun membre dans ce département</p>
+                <p className="text-gray-500">
+                  Aucun membre dans ce département
+                </p>
                 <p className="text-sm text-gray-400 mt-1">
                   Ajoutez des membres via le formulaire de modification
                 </p>

@@ -31,7 +31,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
   const [file, setFile] = useState<string | File | undefined>(undefined);
   const [title, setTitle] = useState("");
 
-  const baseurl = process.env.NEXT_PUBLIC_API;
+  // const baseurl = process.env.NEXT_PUBLIC_API;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[760px] w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
@@ -41,7 +41,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
             {`Fournisseur ${data?.name}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            {title!== "" ? title : "Informations relatives au fournisseur"}
+            {title !== "" ? title : "Informations relatives au fournisseur"}
           </p>
         </DialogHeader>
 
@@ -104,7 +104,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                   <p className="text-sm text-muted-foreground">{"Créé le"}</p>
                   {data?.createdAt ? (
                     <p className="font-semibold">
-                      {format(new Date(data?.createdAt!), "PPP", {
+                      {format(new Date(data.createdAt), "PPP", {
                         locale: fr,
                       })}
                     </p>
@@ -125,7 +125,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                   </p>
                   {data?.updatedAt ? (
                     <p className="font-semibold">
-                      {format(new Date(data?.updatedAt!), "PPP", {
+                      {format(new Date(data.updatedAt), "PPP", {
                         locale: fr,
                       })}
                     </p>

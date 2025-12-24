@@ -34,7 +34,7 @@ const getUserValidatorPosition = (
   userId: number
 ): number | null => {
   if (!category || !category.validators) return null;
-  const validator = category.validators.find(v => v.userId === userId);
+  const validator = category.validators.find((v) => v.userId === userId);
   return validator?.rank ?? null;
 };
 
@@ -51,15 +51,14 @@ const useHasUserAlreadyValidated = (
       if (!categories || !request.categoryId) return false;
 
       const validatorId = categories
-        .find(c => c.id === request.categoryId)
-        ?.validators.find(v => v.userId === userId)?.id;
+        .find((c) => c.id === request.categoryId)
+        ?.validators.find((v) => v.userId === userId)?.id;
 
       if (!validatorId) return false;
 
       return (
-        request.revieweeList?.some(
-          r => r.validatorId === validatorId
-        ) ?? false
+        request.revieweeList?.some((r) => r.validatorId === validatorId) ??
+        false
       );
     },
     [categoryData.data?.data]
@@ -75,11 +74,11 @@ const useIsLastValidatorForCategory = (
       const categories = categoryData.data?.data;
       if (!categories) return false;
 
-      const category = categories.find(c => c.id === categoryId);
+      const category = categories.find((c) => c.id === categoryId);
       if (!category || !category.validators?.length) return false;
 
-      const maxRank = Math.max(...category.validators.map(v => v.rank));
-      const lastValidator = category.validators.find(v => v.rank === maxRank);
+      const maxRank = Math.max(...category.validators.map((v) => v.rank));
+      const lastValidator = category.validators.find((v) => v.rank === maxRank);
 
       return lastValidator?.userId === user.id;
     },
@@ -93,7 +92,8 @@ const useFilteredRequests = (
   customDateRange?: { from: Date; to: Date }
 ) => {
   return React.useMemo(() => {
-    const data = requestData.data?.data.filter(item => item.state !== "cancel") ?? [];
+    const data =
+      requestData.data?.data.filter((item) => item.state !== "cancel") ?? [];
     if (!dateFilter) return data;
 
     const now = new Date();
@@ -124,7 +124,7 @@ const useFilteredRequests = (
         break;
     }
 
-    return data.filter(item => {
+    return data.filter((item) => {
       const d = new Date(item.createdAt);
       return d >= start && d <= end;
     });
@@ -146,9 +146,7 @@ const usePendingData = (
       // 1️⃣ Seulement les besoins en attente
       if (item.state !== "pending") return false;
 
-      const category = categories.find(
-        (c) => c.id === item.categoryId
-      );
+      const category = categories.find((c) => c.id === item.categoryId);
       if (!category || !category.validators?.length) return false;
 
       // 2️⃣ Vérifier que l'utilisateur est validateur
@@ -172,8 +170,7 @@ const usePendingData = (
       const previousValidatorIds = previousValidators.map((v) => v.id);
 
       // 7️⃣ Vérifier qu'ils ont TOUS validé
-      const validatedIds =
-        item.revieweeList?.map((r) => r.validatorId) ?? [];
+      const validatedIds = item.revieweeList?.map((r) => r.validatorId) ?? [];
 
       const allPreviousValidated = previousValidatorIds.every((id) =>
         validatedIds.includes(id!)
@@ -181,14 +178,8 @@ const usePendingData = (
 
       return allPreviousValidated;
     });
-  }, [
-    filteredData,
-    user.id,
-    categoryData.data?.data,
-    hasUserAlreadyValidated,
-  ]);
+  }, [filteredData, user.id, categoryData.data?.data, hasUserAlreadyValidated]);
 };
-
 
 const useProceedData = (
   filteredData: RequestModelT[],
@@ -202,7 +193,7 @@ const useProceedData = (
   );
 
   return React.useMemo(() => {
-    return filteredData.filter(item => {
+    return filteredData.filter((item) => {
       if (!item.categoryId) return false;
 
       if (isLastValidatorForCategory(item.categoryId)) {
@@ -231,7 +222,7 @@ const Approb = ({
 }: Props) => {
   const { isHydrated, user } = useStore();
 
-  if (!isHydrated || !user) return null;
+  // if (!isHydrated || !user) return null;
 
   const request = new RequestQueries();
   const category = new CategoryQueries();
@@ -240,16 +231,19 @@ const Approb = ({
   const categoryData = useQuery({
     queryKey: ["categories"],
     queryFn: () => category.getCategories(),
+    enabled: !isHydrated || !user ? false : true,
   });
 
   const requestData = useQuery({
     queryKey: ["requests"],
     queryFn: () => request.getAll(),
+    enabled: !isHydrated || !user ? false : true,
   });
 
   useQuery({
     queryKey: ["users"],
     queryFn: () => userQueries.getAll(),
+    enabled: !isHydrated || !user ? false : true,
   });
 
   const filteredData = useFilteredRequests(
@@ -257,6 +251,8 @@ const Approb = ({
     dateFilter,
     customDateRange
   );
+
+  if (!isHydrated || !user) return null;
 
   const pendingData = usePendingData(filteredData, user, categoryData);
   const proceedData = useProceedData(filteredData, user, categoryData);
@@ -269,14 +265,14 @@ const Approb = ({
         </h2>
 
         {pendingData.length > 0 ? (
-            <DataVal
-              data={pendingData}
-              dateFilter={dateFilter}
-              setDateFilter={setDateFilter}
-              customDateRange={customDateRange}
-              setCustomDateRange={setCustomDateRange}
-              empty={"Aucun besoin traité"}
-            />
+          <DataVal
+            data={pendingData}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+            customDateRange={customDateRange}
+            setCustomDateRange={setCustomDateRange}
+            empty={"Aucun besoin traité"}
+          />
         ) : (
           <div className="text-center py-12 border rounded-lg bg-gray-50">
             <CheckCircle className="mx-auto h-8 w-8 text-green-600 mb-2" />

@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,26 +10,7 @@ import {
 import { UserQueries } from "@/queries/baseModule";
 import { Category, User } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import {
-  Calendar,
-  ChevronRight,
-  FolderTree,
-  Hash,
-  Info,
-  LucideCalendar,
-  LucideCheckCircle,
-  LucideFileText,
-  LucideInfo,
-  LucideShieldCheck,
-  LucideUser,
-  ShieldCheck,
-  Tag,
-  Users,
-  FileText,
-  AlertCircle,
-} from "lucide-react";
+import { AlertCircle, FileText, Hash, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface ShowCategoryProps {

@@ -25,8 +25,9 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
+import CancelQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/cancel";
+import EditQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/edit";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -37,6 +38,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -53,10 +61,12 @@ import {
   QuotationElement,
   QuotationStatus,
 } from "@/types/types";
+import { VariantProps } from "class-variance-authority";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Pagination } from "../base/pagination";
 import { DevisModal } from "../modals/DevisModal";
+import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
 import {
   Dialog,
@@ -68,17 +78,6 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import EditQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/edit";
-import CancelQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/cancel";
-import { VariantProps } from "class-variance-authority";
-import { Badge, badgeVariants } from "../ui/badge";
 import {
   Sheet,
   SheetContent,

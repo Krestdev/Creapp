@@ -1,22 +1,19 @@
 "use client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
+import { UserQueries } from "@/queries/baseModule";
 import { CategoryQueries } from "@/queries/categoryModule";
-import { RequestQueries } from "@/queries/requestModule";
 import { Category, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
+import { SearchableSelect } from "../base/searchableSelect";
 import {
   Form,
   FormControl,
@@ -25,13 +22,7 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import { Trash2, Plus, ChevronUp, ChevronDown } from "lucide-react";
-import { useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { UserQueries } from "@/queries/baseModule";
-import { useRef } from "react";
 import { Textarea } from "../ui/textarea";
-import { SearchableSelect } from "../base/searchableSelect";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -383,7 +374,9 @@ export function CategoryCreateForm() {
                                 : []
                             }
                             value={field.value?.toString() || ""}
-                            onChange={(value) => field.onChange(parseInt(value))}
+                            onChange={(value) =>
+                              field.onChange(parseInt(value))
+                            }
                             placeholder="Sélectionner"
                           />
                           <FormMessage />

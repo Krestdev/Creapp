@@ -23,7 +23,6 @@ import { ResponseT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -56,7 +55,7 @@ export default function CreateUserForm() {
     },
   });
 
-  const router = useRouter();
+  // const router = useRouter();
 
   const userQueries = new UserQueries();
   const deparmentQueries = new DepartmentQueries();
@@ -198,11 +197,13 @@ export default function CreateUserForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {roleData.data?.data.filter((role) => role.label !== "MANAGER").map((role) => (
-                    <SelectItem key={role.id} value={role.id.toString()}>
-                      {TranslateRole(role.label)}
-                    </SelectItem>
-                  ))}
+                  {roleData.data?.data
+                    .filter((role) => role.label !== "MANAGER")
+                    .map((role) => (
+                      <SelectItem key={role.id} value={role.id.toString()}>
+                        {TranslateRole(role.label)}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
 
