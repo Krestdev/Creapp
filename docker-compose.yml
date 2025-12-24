@@ -10,9 +10,9 @@ services:
     ports:
       - "3016:3000"
     networks:
-      - caddy-network
+      - caddy-net
 
 networks:
-  caddy-network:
+  caddy-net:
     driver: bridge
     attachable: true
