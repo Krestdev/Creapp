@@ -62,7 +62,7 @@
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.3052 0 0);
+  --foreground: oklch(30.519% 0.00003 271.152);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.13 0.028 261.692);
   --popover: oklch(1 0 0);
@@ -171,6 +171,15 @@
   }
   .add-button {
     @apply w-full h-9 inline-flex items-center justify-center gap-2 border border-input bg-white text-sm font-medium [&_svg]:size-5 rounded-md transition-colors duration-150 hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed;
+  }
+  .view-group {
+    @apply w-full flex gap-2 items-start justify-start text-sm;
+  }
+  .view-group-title {
+    @apply text-gray-600
+  }
+  .view-icon {
+    @apply size-10 rounded-full bg-gray-200 text-foreground flex items-center justify-center;
   }
 }
 

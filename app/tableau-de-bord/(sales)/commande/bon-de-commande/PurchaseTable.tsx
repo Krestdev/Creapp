@@ -52,6 +52,9 @@ import { Pagination } from "@/components/base/pagination";
 import { BonsCommande, PURCHASE_ORDER_PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
 import { formatToShortName, XAF } from "@/lib/utils";
 import { format } from "date-fns";
+import ViewPurchase from "./viewPurchase";
+import { UserQueries } from "@/queries/baseModule";
+import { useFetchQuery } from "@/hooks/useData";
 
 interface BonsCommandeTableProps {
   data: Array<BonsCommande>;
@@ -96,6 +99,8 @@ const getPriorityLabel = (
 
 export function PurchaseTable({ data }: BonsCommandeTableProps) {
   const router = useRouter();
+  const usersQuery = new UserQueries();
+  const getUsers = useFetchQuery(["users"], usersQuery.getAll);
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -107,6 +112,13 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
   const [statusFilter, setStatusFilter] = React.useState<"all" | Status>("all");
   const [priorityFilter, setPriorityFilter] = React.useState<"all" | Priority>("all");
   const [penaltyFilter, setPenaltyFilter] = React.useState<"all" | "yes" | "no">("all");
+
+  //ViewModal
+  const [view, setView] = React.useState<boolean>(false);
+  //EditModal
+  const [edit, setEdit] = React.useState<boolean>(false);
+  //Selected
+  const [selectedValue, setSelectedValue] = React.useState<BonsCommande>();
 
   const filteredData = React.useMemo(() => {
     let filtered = [...(data ?? [])];
@@ -289,9 +301,9 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
 
               <DropdownMenuItem
                 className="cursor-pointer"
-                onClick={() => router.push(`./bon-de-commande/${item.id}`)}
+                onClick={()=>{setSelectedValue(item); setView(true)}}
               >
-                <Eye className="mr-2 h-4 w-4" />
+                <Eye />
                 {"Voir"}
               </DropdownMenuItem>
 
@@ -302,7 +314,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
                 className="cursor-pointer"
                 onClick={() => router.push(`./bon-de-commande/approbation/${item.id}`)}
               >
-                <Check className="mr-2 h-4 w-4" />
+                <Check />
                 {"Approuver"}
               </DropdownMenuItem>
 
@@ -311,7 +323,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
                 className="cursor-pointer text-destructive"
                 onClick={() => router.push(`./bon-de-commande/rejet/${item.id}`)}
               >
-                <X className="mr-2 h-4 w-4" />
+                <X />
                 {"Rejeter"}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -601,6 +613,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
 
         {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       </div>
+      {selectedValue && <ViewPurchase open={view} openChange={setView} purchaseOrder={selectedValue} users={getUsers.data?.data ?? []} />}
     </div>
   );
 }

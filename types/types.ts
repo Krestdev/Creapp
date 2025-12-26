@@ -34,7 +34,7 @@ export type UserRole = "admin" | "user";
 // };
 
 export type User = {
-  id?: number;
+  id: number;
   email: string;
   name: string;
   phone?: string;
@@ -316,7 +316,7 @@ export const PURCHASE_ORDER_STATUS = [
 
 export const PURCHASE_ORDER_PRIORITIES = [
   { value: "low", name: "Basse" },
-  { value: "medium", name: "Normal" },
+  { value: "medium", name: "Normale" },
   { value: "high", name: "Élevée" },
   { value: "urgent", name: "Urgent" },
 ] as const;
