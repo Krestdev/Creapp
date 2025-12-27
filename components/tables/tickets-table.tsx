@@ -56,6 +56,8 @@ import { DetailTicket } from "../modals/detail-ticket";
 import { ApproveTicket } from "../modals/ApproveTicket";
 import { PurchaseOrder } from "@/queries/purchase-order";
 import { useFetchQuery } from "@/hooks/useData";
+import { QuotationQueries } from "@/queries/quotation";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
@@ -94,7 +96,7 @@ const statusConfig = {
     label: "En attente",
     badgeClassName: "bg-[#FEF3C7] border-[#FEE685] text-[#E17100]",
   },
-  approved: {
+  validated: {
     label: "Approuvé",
     badgeClassName: "bg-[#DCFCE7] border-[#BBF7D0] text-[#16A34A]",
   },
@@ -119,10 +121,16 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
   const [selectedTicket, setSelectedTicket] = React.useState<PaymentRequest>();
 
   const purchaseOrderQuery = new PurchaseOrder();
-    const { data: bons } = useFetchQuery(
-      ["purchaseOrders"],
-      purchaseOrderQuery.getAll
-    );
+  const { data: bons } = useFetchQuery(
+    ["purchaseOrders"],
+    purchaseOrderQuery.getAll
+  );
+
+  const quotationQuery = new QuotationQueries();
+  const { data: devis } = useFetchQuery(["quotations"], quotationQuery.getAll);
+
+  const command = new CommandRqstQueries();
+  const { data: cotation } = useFetchQuery(["commands"], command.getAll);
 
   // Récupérer les statuts uniques présents dans les données
   const uniqueStatuses = React.useMemo(() => {
@@ -147,7 +155,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
   }, [data]);
 
   // Valeur par défaut du filtre de statut
-  const defaultStatusFilter = isAdmin ? "pending" : "approved";
+  const defaultStatusFilter = isAdmin ? "pending" : "validated";
 
   // État pour suivre la valeur sélectionnée dans le Select
   const [selectedStatus, setSelectedStatus] =
@@ -187,7 +195,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Référence
+            {"Référence"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         );
@@ -209,7 +217,9 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
           </span>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("fournisseur")}</div>,
+      cell: ({ row }) => (
+        <div>{row.getValue("fournisseur") || "Non spécifié"}</div>
+      ),
     },
     {
       accessorKey: "bonDeCommande",
@@ -219,28 +229,36 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Bon de Commande
+            {"Bon de Commande"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         );
       },
-      cell: ({ row }) => <div>{row.getValue("bonDeCommande")}</div>,
+      cell: ({ row }) => {
+        const commandId = row.original.commandId;
+
+        // Trouver le bon correspondant
+        const bon = bons?.data?.find((item) => item.id === Number(commandId));
+
+        // Afficher la référence ou l'ID
+        return <div>{bon ? bon.reference : commandId || "-"}</div>;
+      },
     },
     {
-      accessorKey: "montant",
+      accessorKey: "price",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Montant
+            {"Montant"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         );
       },
       cell: ({ row }) => {
-        const montant = Number.parseFloat(row.getValue("montant"));
+        const montant = Number.parseFloat(row.getValue("price"));
         const formatted = new Intl.NumberFormat("fr-FR", {
           style: "currency",
           currency: "XAF",
@@ -250,23 +268,23 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       },
     },
     {
-      accessorKey: "priorite",
+      accessorKey: "priority",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Priorité
+            {"Priorité"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         );
       },
       cell: ({ row }) => {
         const priorite = row.getValue(
-          "priorite"
+          "priority"
         ) as keyof typeof priorityConfig;
-        const config = priorityConfig[priorite];
+        const config = priorityConfig[priorite] || priorityConfig.medium;
 
         return (
           <Badge className={cn("gap-1", config.badgeClassName)}>
@@ -277,21 +295,24 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       },
     },
     {
-      accessorKey: "state",
+      accessorKey: "status",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Statut
+            {"Statut"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         );
       },
       cell: ({ row }) => {
-        const statut = row.getValue("state") as keyof typeof statusConfig;
-        const config = statusConfig[statut];
+        const statut = row.getValue("status") as keyof typeof statusConfig;
+        const config = statusConfig[statut] || {
+          label: statut,
+          badgeClassName: "bg-gray-100 text-gray-800",
+        };
 
         return (
           <Badge className={cn("gap-1", config.badgeClassName)}>
@@ -369,12 +390,12 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "fournisseur", "bonDeCommande"];
+      const searchableColumns = ["reference", "fournisseur", "price"];
       const searchValue = filterValue.toLowerCase();
 
       return searchableColumns.some((column) => {
         const value = row.getValue(column) as string;
-        return value?.toLowerCase().includes(searchValue);
+        return value?.toString().toLowerCase().includes(searchValue);
       });
     },
     state: {
@@ -407,31 +428,27 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
 
   // Mettre à jour le filtre quand selectedStatus change
   React.useEffect(() => {
-    const statusColumn = table.getColumn("state");
+    const statusColumn = table.getColumn("status");
     if (statusColumn) {
       if (selectedStatus === "all") {
-        // Pour "Tous les statuts", on supprime le filtre
         statusColumn.setFilterValue(undefined);
       } else {
-        // Sinon on applique le filtre avec la valeur sélectionnée
         statusColumn.setFilterValue(selectedStatus);
       }
     }
-  }, [selectedStatus]);
+  }, [selectedStatus, table]);
 
   // Mettre à jour le filtre quand selectedPriority change
   React.useEffect(() => {
-    const priorityColumn = table.getColumn("priorite");
+    const priorityColumn = table.getColumn("priority");
     if (priorityColumn) {
       if (selectedPriority === "all") {
-        // Pour "Toutes les priorités", on supprime le filtre
         priorityColumn.setFilterValue(undefined);
       } else {
-        // Sinon on applique le filtre avec la valeur sélectionnée
         priorityColumn.setFilterValue(selectedPriority);
       }
     }
-  }, [selectedPriority]);
+  }, [selectedPriority, table]);
 
   // Initialiser le filtre de statut avec la valeur par défaut
   React.useEffect(() => {
@@ -490,7 +507,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns
+              {"Columns"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -543,7 +560,8 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
               table.getRowModel().rows.map((row) => {
                 const priorite = row.original
                   .priority as keyof typeof priorityConfig;
-                const config = priorityConfig[priorite];
+                const config =
+                  priorityConfig[priorite] || priorityConfig.medium;
 
                 return (
                   <TableRow
@@ -571,7 +589,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {"Aucun résultat"}
                 </TableCell>
               </TableRow>
             )}
@@ -589,7 +607,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       <ApproveTicket
         open={openValidationModal}
         onOpenChange={setOpenValidationModal}
-        title={bons?.data.find(x => x.id === Number(selectedTicket?.commandId))?.reference!}
+        title={selectedTicket?.reference || "Ticket"}
         subTitle={"Valider le ticket"}
         description={"Voulez-vous valider ce ticket ?"}
         action={function (): void {
@@ -601,7 +619,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       <ApproveTicket
         open={openPaiementModal}
         onOpenChange={setOpenPaiementModal}
-        title={bons?.data.find(x => x.id === Number(selectedTicket?.commandId))?.reference!}
+        title={selectedTicket?.reference || "Ticket"}
         subTitle={"Payer le ticket"}
         description={"Voulez-vous payer ce ticket ?"}
         action={function (): void {

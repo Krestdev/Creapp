@@ -77,7 +77,7 @@ const Besoins = ({ selected, setSelected, dataSup = [] }: Props) => {
       {filteredData.length > 0 ? (
         <div className="flex flex-col">
           <BesoinsTraiter
-            data={filteredData}
+            data={filteredData.filter(x => x.categoryId !== 0)}
             selected={selected}
             setSelected={setSelected}
             categories={categoriesData.data?.data ?? []}

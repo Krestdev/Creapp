@@ -133,9 +133,9 @@ export type RequestModelT = {
   benef?: number[] | null;
   beficiaryList?: { id: number; name: string; email: string }[] | null;
   state: string;
-  proprity: "medium" | "high" | "low" | "urgent";
+  priority: "medium" | "high" | "low" | "urgent";
   projectId?: number | null;
-  project: ProjectT;
+  project?: ProjectT;
   categoryId?: number | null;
   category?: number | null;
   revieweeList?: Review[] | null;

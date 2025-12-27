@@ -132,11 +132,11 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   const currentStatus =
     statusConfig[data.state as StatusKey] ?? statusConfig.pending;
   const curentPriority =
-    data.proprity === "urgent"
+    data.priority === "urgent"
       ? "Urgent"
-      : data.proprity === "medium"
+      : data.priority === "medium"
       ? "Moyen"
-      : data.proprity === "low"
+      : data.priority === "low"
       ? "Faible"
       : "Elevé";
 
@@ -435,18 +435,18 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   </p>
                   <Badge
                     className={`${
-                      data.proprity === "urgent"
+                      data.priority === "urgent"
                         ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                        : data.proprity === "medium"
+                        : data.priority === "medium"
                         ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                        : data.proprity === "low"
+                        : data.priority === "low"
                         ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                         : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                     }`}
                   >
-                    {data.proprity === "urgent" ? (
+                    {data.priority === "urgent" ? (
                       <X className="h-3 w-3 mr-1" />
-                    ) : data.proprity === "medium" ? (
+                    ) : data.priority === "medium" ? (
                       <Clock className="h-3 w-3 mr-1" />
                     ) : (
                       <Check className="h-3 w-3 mr-1" />

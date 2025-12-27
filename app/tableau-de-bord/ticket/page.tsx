@@ -11,48 +11,6 @@ import { useFetchQuery } from "@/hooks/useData";
 import { PaymentQueries } from "@/queries/payment";
 import Empty from "@/components/base/empty";
 
-const ticketsData: TicketsData[] = [
-  {
-    id: "1",
-    reference: "TKT-001",
-    fournisseur: "Tech Solutions",
-    bonDeCommande: "BC-001",
-    montant: 5000000,
-    moyenPaiement: "Virement bancaire",
-    comptePayeur: "Compte Principal",
-    priorite: "high",
-    state: "pending",
-    createdAt: new Date("2025-02-24"),
-    updatedAt: new Date("2025-02-24"),
-  },
-  {
-    id: "2",
-    reference: "TKT-002",
-    fournisseur: "Office Supplies Co",
-    bonDeCommande: "BC-002",
-    montant: 750000,
-    moyenPaiement: "Mobile Money",
-    comptePayeur: "Compte Secondaire",
-    priorite: "medium",
-    state: "paid",
-    createdAt: new Date("2025-02-24"),
-    updatedAt: new Date("2025-02-24"),
-  },
-  {
-    id: "3",
-    reference: "TKT-003",
-    fournisseur: "Safety First",
-    bonDeCommande: "BC-003",
-    montant: 2500000,
-    moyenPaiement: "Chèque",
-    comptePayeur: "Compte Approvisionnement",
-    priorite: "urgent",
-    state: "approved",
-    createdAt: new Date("2025-02-24"),
-    updatedAt: new Date("2025-02-24"),
-  },
-];
-
 function Page() {
   const { user } = useStore();
 
@@ -70,8 +28,11 @@ function Page() {
     return <ErrorPage error={error} />;
   }
   if (isSuccess) {
-    const pending = data?.data.filter((ticket) => ticket.status === "pending");
-    const approved = data?.data.filter((ticket) => ticket.status !== "pending");
+    const ticketsData = data?.data.filter((ticket) => ticket.status !== "ghost");
+    const pending = ticketsData.filter((ticket) => ticket.status === "pending");
+    const approved = ticketsData.filter(
+      (ticket) => ticket.status !== "pending"
+    );
 
     return (
       <div className="flex flex-col gap-6">
@@ -103,15 +64,15 @@ function Page() {
               />
               <TitleValueCard
                 title="Total Tickets"
-                value={ticketsData.length.toString()}
+                value={data.data.length.toString()}
                 className="bg-white border border-[#DFDFDF] text-[#52525B]"
                 valColor="text-black"
               />
             </div>
           </>
         )}
-        {data?.data.length > 0 ? (
-          <Tickets ticketsData={data?.data} />
+        {ticketsData.length > 0 ? (
+          <Tickets ticketsData={ticketsData} />
         ) : (
           <Empty message={"Aucun ticket disponible"} />
         )}

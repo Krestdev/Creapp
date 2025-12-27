@@ -75,7 +75,7 @@ export function BesoinLastVal({
     defaultValues: {
       title: data?.label || "",
       limiteDate: new Date(data?.dueDate ?? ""),
-      priorite: data?.proprity as "medium" | "high" | "low" | "urgent",
+      priorite: data?.priority as "medium" | "high" | "low" | "urgent",
       quantite: String(data?.quantity) || "",
       description: data?.description || "",
     },
@@ -165,7 +165,7 @@ export function BesoinLastVal({
       form.reset({
         title: data?.label || "",
         limiteDate: new Date(data?.dueDate ?? ""), // Handle undefined or null dates
-        priorite: data?.proprity,
+        priorite: data?.priority,
         quantite: String(data?.quantity) || "",
         description: data?.description || "",
       });
@@ -178,7 +178,7 @@ export function BesoinLastVal({
         id: Number(data?.id),
         label: values.title,
         description: values.description,
-        proprity: values.priorite,
+        priority: values.priorite,
         quantity: Number(values.quantite),
         dueDate: values.limiteDate,
       });
@@ -213,7 +213,7 @@ export function BesoinLastVal({
       form.reset({
         title: data?.label || "",
         limiteDate: data?.dueDate ? new Date(data.dueDate) : undefined,
-        priorite: data?.proprity as "medium" | "high" | "low" | "urgent",
+        priorite: data?.priority as "medium" | "high" | "low" | "urgent",
         quantite: String(data?.quantity || ""),
         description: data?.description || "",
       });

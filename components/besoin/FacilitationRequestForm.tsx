@@ -172,7 +172,7 @@ export default function FacilitationRequestForm() {
       amount: Number(values.montant),
       type: "FAC",
       state: "pending",
-      proprity: "medium",
+      priority: "medium",
     };
 
     console.log("Données soumises:", requestData);

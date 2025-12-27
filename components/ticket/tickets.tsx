@@ -11,19 +11,18 @@ const Tickets = ({ ticketsData }: Props) => {
   const approved = ticketsData.filter((ticket) => ticket.status !== "pending");
   const { user } = useStore();
 
-  console.log(ticketsData);
-  
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">
         <div className="flex justify-between">
-          <h2>Tickets</h2>
+          <h2>{"Tickets"}</h2>
         </div>
-        {user?.role.flatMap((x) => x.label).includes("MANAGER") ? (
+        {/* {user?.role.flatMap((x) => x.label).includes("MANAGER") ? (
           <TicketsTable data={approved} isAdmin={false} />
         ) : (
           <TicketsTable data={ticketsData} isAdmin={true} />
-        )}
+        )} */}
+        <TicketsTable data={ticketsData} isAdmin={true} />
       </div>
     </div>
   );

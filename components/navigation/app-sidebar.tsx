@@ -270,7 +270,7 @@ function AppSidebar() {
         {
           pageId: "PG-09-03",
           title: "Catégories",
-          href: "/tableau-de-bord/organisation/categories",
+          href: "/tableau-de-bord/besoins/categories",
           authorized: ["ADMIN"],
         },
       ],
