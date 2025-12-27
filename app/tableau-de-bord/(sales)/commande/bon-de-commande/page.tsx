@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
-import { cn } from "@/lib/utils";
+import { cn, XAF } from "@/lib/utils";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -93,7 +93,7 @@ const Page = () => {
       variant: "primary",
       more: {
         title: "Montant Total",
-        value: filteredData.reduce((total, item)=> total + item.amountBase, 0),
+        value: XAF.format(filteredData.reduce((total, item)=> total + item.devi.element.reduce((t, e)=> t + e.priceProposed*e.quantity,0), 0)),
       },
     },
     {

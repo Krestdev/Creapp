@@ -49,7 +49,7 @@ export type PaymentRequest = {
 };
 
 export type User = {
-  id?: number;
+  id: number;
   email: string;
   name: string;
   phone?: string;
@@ -135,6 +135,7 @@ export type RequestModelT = {
   state: string;
   priority: "medium" | "high" | "low" | "urgent";
   projectId?: number | null;
+  project: ProjectT;
   categoryId?: number | null;
   category?: number | null;
   revieweeList?: Review[] | null;
@@ -334,7 +335,7 @@ export const PURCHASE_ORDER_STATUS = [
 
 export const PURCHASE_ORDER_PRIORITIES = [
   { value: "low", name: "Basse" },
-  { value: "medium", name: "Normal" },
+  { value: "medium", name: "Normale" },
   { value: "high", name: "Élevée" },
   { value: "urgent", name: "Urgent" },
 ] as const;
@@ -355,6 +356,7 @@ export type BonsCommande = {
   paymentMethod: string;
   paymentTerms: string;
   deliveryDelay: Date;
+  motif?:string;
   createdAt: Date;
   updatedAt: Date;
 };

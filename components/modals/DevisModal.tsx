@@ -143,12 +143,12 @@ export function DevisModal({
           <div className="flex gap-3 p-4">
             <div className="w-full grid grid-cols-3 gap-3 py-3">
               {/* Référence */}
-              <div className="w-full flex flex-row items-center gap-2">
-                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                  <LucideHash size={24} />
-                </div>
+              <div className="view-group">
+                <span className="view-icon">
+                  <LucideHash />
+                </span>
                 <div className="flex flex-col">
-                  <p className="text-[#52525B]">{"Référence"}</p>
+                  <p className="text-gray-600">{"Référence"}</p>
                   <div className="w-fit bg-[#F2CFDE] flex items-center justify-center px-1.5 rounded">
                     <p className="text-[#9E1351] text-sm">
                       {data?.ref || "N/A"}
@@ -158,12 +158,12 @@ export function DevisModal({
               </div>
 
               {/* Montant */}
-              <div className="w-full flex flex-row items-center gap-2">
-                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                  <DollarSign size={24} />
-                </div>
+              <div className="view-group">
+                <span className="view-icon">
+                  <DollarSign />
+                </span>
                 <div className="flex flex-col">
-                  <p className="text-[#52525B]">{"Montant total"}</p>
+                  <p className="text-gray-600">{"Montant total"}</p>
                   <p className="text-sm font-semibold">
                     {XAF.format(totalAmount)}
                   </p>
@@ -171,12 +171,12 @@ export function DevisModal({
               </div>
 
               {/* Fournisseur */}
-              <div className="w-full flex flex-row items-center gap-2">
-                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                  <LucideUserCircle2 size={24} />
-                </div>
+              <div className="view-group">
+                <span className="view-icon">
+                  <LucideUserCircle2 />
+                </span>
                 <div className="flex flex-col">
-                  <p className="text-[#52525B]">{"Fournisseur"}</p>
+                  <p className="text-gray-600">{"Fournisseur"}</p>
                   <p className="text-sm font-semibold">
                     {getProviderName(data?.providerId)}
                   </p>
@@ -184,12 +184,12 @@ export function DevisModal({
               </div>
 
               {/* Initié par */}
-              <div className="w-full flex flex-row items-center gap-2">
-                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                  <LucideUserRound size={24} />
-                </div>
+              <div className="view-group">
+                <span className="view-icon">
+                  <LucideUserRound />
+                </span>
                 <div className="flex flex-col">
-                  <p className="text-[#52525B]">{"Initié par"}</p>
+                  <p className="text-gray-600">{"Initié par"}</p>
                   <p className="text-sm font-semibold uppercase">
                     {getUserName(data?.userId)}
                   </p>
@@ -197,12 +197,12 @@ export function DevisModal({
               </div>
 
               {/* Créé le */}
-              <div className="w-full flex flex-row items-center gap-2">
-                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                  <LucideCalendar size={24} />
-                </div>
+              <div className="view-group">
+                <span className="view-icon">
+                  <LucideCalendar />
+                </span>
                 <div className="flex flex-col">
-                  <p className="text-[#52525B]">{"Créé le"}</p>
+                  <p className="text-gray-600">{"Créé le"}</p>
                   <p className="text-sm font-semibold">
                     {formatDate(data?.createdAt)}
                   </p>
@@ -210,12 +210,12 @@ export function DevisModal({
               </div>
 
               {/* Date limite */}
-              <div className="w-full flex flex-row items-center gap-2">
-                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                  <LucideCalendarFold size={24} />
-                </div>
+              <div className="view-group">
+                <span className="view-icon">
+                  <LucideCalendarFold />
+                </span>
                 <div className="flex flex-col">
-                  <p className="text-[#52525B]">{"Date limite"}</p>
+                  <p className="text-gray-600">{"Date limite"}</p>
                   <p className="text-sm font-semibold">
                     {formatDate(data?.dueDate)}
                   </p>
@@ -232,11 +232,11 @@ export function DevisModal({
                   setFile(data?.proof);
                 }}
               >
-                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                  <LucideFile size={24} />
-                </div>
+                <span className="view-icon">
+                  <LucideFile />
+                </span>
                 <div className="flex flex-col">
-                  <p className="text-[#52525B]">{"Justificatifs"}</p>
+                  <p className="text-gray-600">{"Justificatifs"}</p>
                   <div className="flex gap-1.5 items-center">
                     {data?.proof ? (
                       <>
@@ -261,12 +261,12 @@ export function DevisModal({
               </Button>
 
               {/* Modifié le */}
-              <div className="w-full flex flex-row items-center gap-2">
-                <div className="flex items-center justify-center rounded-full bg-[#E4E4E7] size-10">
-                  <LucideCalendar size={24} />
-                </div>
+              <div className="view-group">
+                <span className="view-icon">
+                  <LucideCalendar />
+                </span>
                 <div className="flex flex-col">
-                  <p className="text-[#52525B]">{"Modifié le"}</p>
+                  <p className="text-gray-600">{"Modifié le"}</p>
                   <p className="text-sm font-semibold">
                     {formatDate(data?.updatedAt)}
                   </p>

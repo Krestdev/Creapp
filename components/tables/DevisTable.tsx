@@ -489,7 +489,7 @@ export function DevisTable({
                   setIsDevisModalOpen(true);
                 }}
               >
-                <Eye className="mr-2 h-4 w-4" />
+                <Eye />
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -499,7 +499,7 @@ export function DevisTable({
                   setIsUpdateModalOpen(true);
                 }}
               >
-                <LucidePen className="mr-2 h-4 w-4" />
+                <LucidePen />
                 {"Modifier"}
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -509,7 +509,7 @@ export function DevisTable({
                   setToCancel(true);
                 }}
               >
-                <Trash color="red" className="mr-2 h-4 w-4" />
+                <Trash />
                 {"Annuler"}
               </DropdownMenuItem>
             </DropdownMenuContent>

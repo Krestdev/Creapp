@@ -10,7 +10,7 @@ export class RequestQueries {
 
   // Créer une demande
   create = async (
-    data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
+    data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "project">
   ): Promise<{ data: RequestModelT }> => {
     return api.post(this.route, data).then((res) => res.data);
   };

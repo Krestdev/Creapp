@@ -13,7 +13,14 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
-import { ArrowUpDown, ChevronDown, Eye, Pencil, Settings2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  CheckCircle2,
+  ChevronDown,
+  Eye,
+  Settings2,
+  XCircle,
+} from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
@@ -26,7 +33,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,7 +44,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -46,16 +60,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-import { useFetchQuery } from "@/hooks/useData";
 import { formatToShortName, XAF } from "@/lib/utils";
-import { UserQueries } from "@/queries/baseModule";
-import { BonsCommande, PURCHASE_ORDER_PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
+import {
+  BonsCommande,
+  PURCHASE_ORDER_PRIORITIES,
+  PURCHASE_ORDER_STATUS,
+} from "@/types/types";
 import { format } from "date-fns";
-import ViewPurchase from "./viewPurchase";
-import EditPurchase from "./editPurchase";
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { PurchaseOrder } from "@/queries/purchase-order";
+import ViewPurchase from "../viewPurchase";
 
-interface BonsCommandeTableProps {
+interface Props {
   data: Array<BonsCommande>;
 }
 
@@ -96,9 +122,11 @@ const getPriorityLabel = (
   }
 };
 
-export function PurchaseTable({ data }: BonsCommandeTableProps) {
-  const usersQuery = new UserQueries();
-  const getUsers = useFetchQuery(["users"], usersQuery.getAll);
+const canDecide = (status: Status) => status === "PENDING" || status === "IN-REVIEW";
+
+export function PurchaseApprovalTable({ data }: Props) {
+  const purchaseOrderQuery = React.useMemo(() => new PurchaseOrder(), []);
+  const queryClient = useQueryClient();
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -106,28 +134,27 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  // filtres spécifiques
+  // filtres
   const [statusFilter, setStatusFilter] = React.useState<"all" | Status>("all");
   const [priorityFilter, setPriorityFilter] = React.useState<"all" | Priority>("all");
   const [penaltyFilter, setPenaltyFilter] = React.useState<"all" | "yes" | "no">("all");
 
-  //ViewModal
-  const [view, setView] = React.useState<boolean>(false);
-  //EditModal
-  const [edit, setEdit] = React.useState<boolean>(false);
-  //Selected
+  // modals
+  const [view, setView] = React.useState(false);
   const [selectedValue, setSelectedValue] = React.useState<BonsCommande>();
+
+  const [decisionOpen, setDecisionOpen] = React.useState(false);
+  const [decisionType, setDecisionType] = React.useState<"approve" | "reject">("approve");
+
+  // optionnel : reason pour rejet
+  const [rejectReason, setRejectReason] = React.useState("");
 
   const filteredData = React.useMemo(() => {
     let filtered = [...(data ?? [])];
 
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((po) => po.status === statusFilter);
-    }
-
-    if (priorityFilter !== "all") {
-      filtered = filtered.filter((po) => po.priority === priorityFilter);
-    }
+    if (statusFilter !== "all") filtered = filtered.filter((po) => po.status === statusFilter);
+    if(statusFilter === "all") filtered = filtered.filter((po) => po.status === "IN-REVIEW" || po.status === "PENDING");
+    if (priorityFilter !== "all") filtered = filtered.filter((po) => po.priority === priorityFilter);
 
     if (penaltyFilter !== "all") {
       filtered = filtered.filter((po) => {
@@ -138,6 +165,53 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
 
     return filtered;
   }, [data, statusFilter, priorityFilter, penaltyFilter]);
+
+  const approveMutation = useMutation({
+    mutationFn: async (id: number) => {
+      // ✅ adapte selon ton query class
+      // ex: return purchaseOrderQuery.approve(id);
+      return purchaseOrderQuery.approve(id);
+    },
+    onSuccess: () => {
+      toast.success("Bon de commande approuvé ✅");
+      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
+      setDecisionOpen(false);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Impossible d'approuver"),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+      // ✅ adapte selon ton query class
+      // ex: return purchaseOrderQuery.reject(id, reason);
+      return purchaseOrderQuery.reject(id, reason);
+    },
+    onSuccess: () => {
+      toast.success("Bon de commande rejeté ❌");
+      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
+      setDecisionOpen(false);
+      setRejectReason("");
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Impossible de rejeter"),
+  });
+
+  const openDecision = (po: BonsCommande, type: "approve" | "reject") => {
+    setSelectedValue(po);
+    setDecisionType(type);
+    setDecisionOpen(true);
+  };
+
+  const confirmDecision = () => {
+    if (!selectedValue) return;
+    if (!canDecide(selectedValue.status as Status)) return;
+
+    if (decisionType === "approve") {
+      approveMutation.mutate(selectedValue.id);
+      return;
+    }
+
+    rejectMutation.mutate({ id: selectedValue.id, reason: rejectReason});
+  };
 
   const columns: ColumnDef<BonsCommande>[] = [
     {
@@ -188,9 +262,10 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
           <ArrowUpDown />
         </span>
       ),
-      cell: ({ row }) =>{ 
-        const name:BonsCommande["devi"] = row.getValue("devi")
-      return <div className="font-medium">{name.commandRequest.title}</div>},
+      cell: ({ row }) => {
+        const devi: BonsCommande["devi"] = row.getValue("devi");
+        return <div className="font-medium">{devi.commandRequest.title}</div>;
+      },
     },
 
     {
@@ -204,9 +279,10 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
           <ArrowUpDown />
         </span>
       ),
-      cell: ({ row }) =>{ 
-        const provider:BonsCommande["provider"]= row.getValue("provider");
-      return <div className="font-medium">{formatToShortName(provider.name)}</div>},
+      cell: ({ row }) => {
+        const provider: BonsCommande["provider"] = row.getValue("provider");
+        return <div className="font-medium">{formatToShortName(provider.name)}</div>;
+      },
     },
 
     {
@@ -217,12 +293,13 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Montant"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) => {
-        const base = row.original;
-        return <div className="font-medium">{XAF.format(base.devi.element.reduce((total, el)=> total + el.priceProposed*el.quantity, 0))}</div>;
+        const po = row.original;
+        const total = po.devi.element.reduce((t, el) => t + el.priceProposed * el.quantity, 0);
+        return <div className="font-medium">{XAF.format(total)}</div>;
       },
     },
 
@@ -252,11 +329,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
       header: () => <span className="tablehead">{"Pénalités"}</span>,
       cell: ({ row }) => {
         const has = !!row.original.hasPenalties;
-        return (
-          <Badge variant={has ? "amber" : "outline"}>
-            {has ? "Oui" : "Non"}
-          </Badge>
-        );
+        return <Badge variant={has ? "amber" : "outline"}>{has ? "Oui" : "Non"}</Badge>;
       },
     },
 
@@ -268,7 +341,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Créé le"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) => {
@@ -284,6 +357,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
+        const decidable = canDecide(item.status as Status);
 
         return (
           <DropdownMenu>
@@ -297,19 +371,27 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
 
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={()=>{setSelectedValue(item); setView(true)}}
-              >
+              <DropdownMenuItem className="cursor-pointer" onClick={() => { setSelectedValue(item); setView(true); }}>
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
+
               <DropdownMenuItem
+                disabled={!decidable}
                 className="cursor-pointer"
-                onClick={()=>{setSelectedValue(item); setEdit(true)}}
+                onClick={() => openDecision(item, "approve")}
               >
-                <Pencil />
-                {"Modifier"}
+                <CheckCircle2 />
+                {"Approuver"}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                disabled={!decidable}
+                className="cursor-pointer text-destructive focus:text-destructive"
+                onClick={() => openDecision(item, "reject")}
+              >
+                <XCircle />
+                {"Rejeter"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -343,10 +425,14 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
       const paymentTermsText = (po.paymentTerms ?? "").toLowerCase();
       const locationText = (po.deliveryLocation ?? "").toLowerCase();
 
+      const providerName = (po.provider?.name ?? "").toLowerCase();
+      const title = (po.devi?.commandRequest?.title ?? "").toLowerCase();
+      const ref = (po.reference ?? "").toLowerCase();
+
       return (
-        String(po.id).includes(s) ||
-        String(po.deviId).includes(s) ||
-        String(po.providerId).includes(s) ||
+        ref.includes(s) ||
+        providerName.includes(s) ||
+        title.includes(s) ||
         statusText.includes(s) ||
         priorityText.includes(s) ||
         paymentMethodText.includes(s) ||
@@ -355,13 +441,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
         createdText.includes(s)
       );
     },
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      globalFilter,
-    },
+    state: { sorting, columnFilters, columnVisibility, rowSelection, globalFilter },
   });
 
   const resetAllFilters = () => {
@@ -371,6 +451,8 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
     setGlobalFilter("");
     table.resetColumnFilters();
   };
+
+  const isDeciding = approveMutation.isPending || rejectMutation.isPending;
 
   return (
     <div className="w-full space-y-4">
@@ -388,9 +470,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
             <SheetContent className="overflow-y-auto">
               <SheetHeader>
                 <SheetTitle>{"Filtres"}</SheetTitle>
-                <SheetDescription>
-                  {"Configurer les filtres pour affiner vos données"}
-                </SheetDescription>
+                <SheetDescription>{"Configurer les filtres pour affiner vos données"}</SheetDescription>
               </SheetHeader>
 
               <div className="space-y-5 px-5">
@@ -399,7 +479,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
                   <Input
                     id="searchPO"
                     type="search"
-                    placeholder="ID, devis, fournisseur, statut..."
+                    placeholder="Référence, titre, fournisseur, statut..."
                     value={globalFilter ?? ""}
                     onChange={(e) => setGlobalFilter(e.target.value)}
                   />
@@ -407,10 +487,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
 
                 <div className="space-y-3">
                   <Label>{"Statut"}</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(v: "all" | Status) => setStatusFilter(v)}
-                  >
+                  <Select value={statusFilter} onValueChange={(v: "all" | Status) => setStatusFilter(v)}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Tous les statuts" />
                     </SelectTrigger>
@@ -427,10 +504,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
 
                 <div className="space-y-3">
                   <Label>{"Priorité"}</Label>
-                  <Select
-                    value={priorityFilter}
-                    onValueChange={(v: "all" | Priority) => setPriorityFilter(v)}
-                  >
+                  <Select value={priorityFilter} onValueChange={(v: "all" | Priority) => setPriorityFilter(v)}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Toutes les priorités" />
                     </SelectTrigger>
@@ -447,10 +521,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
 
                 <div className="space-y-3">
                   <Label>{"Pénalités"}</Label>
-                  <Select
-                    value={penaltyFilter}
-                    onValueChange={(v: "all" | "yes" | "no") => setPenaltyFilter(v)}
-                  >
+                  <Select value={penaltyFilter} onValueChange={(v: "all" | "yes" | "no") => setPenaltyFilter(v)}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Toutes" />
                     </SelectTrigger>
@@ -468,37 +539,6 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
               </div>
             </SheetContent>
           </Sheet>
-
-          {/* Filtres actifs */}
-          {(statusFilter !== "all" || priorityFilter !== "all" || penaltyFilter !== "all" || globalFilter) && (
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <span>Filtres actifs:</span>
-
-              {statusFilter !== "all" && (
-                <Badge variant="default" className="font-normal">
-                  {`Statut: ${getStatusLabel(statusFilter).label}`}
-                </Badge>
-              )}
-
-              {priorityFilter !== "all" && (
-                <Badge variant="outline" className="font-normal">
-                  {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
-                </Badge>
-              )}
-
-              {penaltyFilter !== "all" && (
-                <Badge variant="outline" className="font-normal">
-                  {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
-                </Badge>
-              )}
-
-              {globalFilter && (
-                <Badge variant="outline" className="font-normal">
-                  {`Recherche: "${globalFilter}"`}
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Menu colonnes */}
@@ -516,9 +556,9 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
               .filter((column) => column.getCanHide())
               .map((column) => {
                 let columnName = column.id;
-                if (column.id === "id") columnName = "#";
-                else if (column.id === "deviId") columnName = "Devis";
-                else if (column.id === "providerId") columnName = "Fournisseur";
+                if (column.id === "reference") columnName = "Référence";
+                else if (column.id === "devi") columnName = "Titre";
+                else if (column.id === "provider") columnName = "Fournisseur";
                 else if (column.id === "amountBase") columnName = "Montant";
                 else if (column.id === "priority") columnName = "Priorité";
                 else if (column.id === "status") columnName = "Statut";
@@ -547,9 +587,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id} className="border-r last:border-r-0">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -559,11 +597,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="hover:bg-muted/50"
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"} className="hover:bg-muted/50">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="border-r last:border-r-0">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -589,17 +623,68 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
         </Table>
       </div>
 
-      {/* PAGINATION + INFOS */}
+      {/* PAGINATION */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} sur{" "}
-          {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
+          {table.getFilteredSelectedRowModel().rows.length} sur {table.getFilteredRowModel().rows.length} ligne(s)
+          sélectionnée(s)
         </div>
-
         {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       </div>
-      {selectedValue && <ViewPurchase open={view} openChange={setView} purchaseOrder={selectedValue} users={getUsers.data?.data ?? []} />}
-      {selectedValue && <EditPurchase open={edit} openChange={setEdit} purchaseOrder={selectedValue} />}
+
+      {/* VIEW */}
+      {selectedValue && (
+        <ViewPurchase
+          open={view}
+          openChange={setView}
+          purchaseOrder={selectedValue}
+          users={[]}
+        />
+      )}
+
+      {/* CONFIRM DECISION */}
+      <Dialog open={decisionOpen} onOpenChange={setDecisionOpen}>
+        <DialogContent>
+          <DialogHeader variant={decisionType === "approve" ? "success" : "error"}>
+            <DialogTitle>
+              {decisionType === "approve" ? "Approuver le bon de commande ?" : "Rejeter le bon de commande ?"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedValue ? (
+                <>
+                  {`Référence: ${selectedValue.reference} — `}
+                  <span className="font-medium">{selectedValue.devi?.commandRequest?.title ?? "-"}</span>
+                </>
+              ) : null}
+            </DialogDescription>
+          </DialogHeader>
+
+          {decisionType === "reject" && (
+            <div className="grid gap-2">
+              <Label>{"Motif (optionnel)"}</Label>
+              <Input
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Ex: montant incorrect, pièce manquante..."
+              />
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDecisionOpen(false)} disabled={isDeciding}>
+              {"Annuler"}
+            </Button>
+            <Button
+              variant={decisionType === "approve" ? "accent" : "destructive"}
+              onClick={confirmDecision}
+              isLoading={isDeciding}
+              disabled={!selectedValue || !canDecide(selectedValue.status as Status) || isDeciding}
+            >
+              {decisionType === "approve" ? "Approuver" : "Rejeter"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
