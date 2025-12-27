@@ -135,7 +135,7 @@ export type RequestModelT = {
   state: string;
   priority: "medium" | "high" | "low" | "urgent";
   projectId?: number | null;
-  project: ProjectT;
+  project?: ProjectT;
   categoryId?: number | null;
   category?: number | null;
   revieweeList?: Review[] | null;

@@ -78,7 +78,7 @@ function ViewPurchase({open, openChange, purchaseOrder, users}:Props) {
                 </span>
                 <div>
                   <p>{"Projets associés"}</p>
-                  <span className="font-semibold">{purchaseOrder.devi.commandRequest.besoins.map((b)=> b.project.label).join(", ")}</span>
+                  <span className="font-semibold">{purchaseOrder.devi.commandRequest.besoins.map((b)=> b.project?.label).join(", ")}</span>
                 </div>
               </div>
               <div className="view-group">

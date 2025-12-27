@@ -276,7 +276,7 @@ export default function UpdateRequest({
       dueDate: values.datelimite!,
       projectId: Number(values.projet),
       state: requestData?.state || "pending",
-      proprity: requestData?.proprity || "medium",
+      priority: requestData?.priority || "medium",
     });
   }
 
