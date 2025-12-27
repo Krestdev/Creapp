@@ -50,7 +50,7 @@ function ViewPurchase({open, openChange, purchaseOrder, users}:Props) {
     <Dialog open={open} onOpenChange={openChange}>
         <DialogContent className='sm:max-w-3xl'>
             <DialogHeader>
-                <DialogTitle>{"Bon de commande"}</DialogTitle>
+                <DialogTitle>{`[BC] ${purchaseOrder.devi.commandRequest.title}`}</DialogTitle>
                 <DialogDescription>{"Détails du bon de commande"}</DialogDescription>
             </DialogHeader>
             <section className="grid grid-cols-1 @min-[560px]/dialog:grid-cols-2 gap-3">
@@ -69,7 +69,7 @@ function ViewPurchase({open, openChange, purchaseOrder, users}:Props) {
                 </span>
                 <div>
                   <p>{"Montant"}</p>
-                  <span className="bg-primary-100 text-primary-600 px-1.5 uppercase rounded leading-[150%]">{purchaseOrder.reference}</span>
+                  <p className='font-semibold'>{XAF.format(purchaseOrder.devi.element.reduce((total, element)=> total + element.priceProposed*element.quantity, 0))}</p>
                 </div>
               </div>
               <div className="view-group">
@@ -78,7 +78,7 @@ function ViewPurchase({open, openChange, purchaseOrder, users}:Props) {
                 </span>
                 <div>
                   <p>{"Projets associés"}</p>
-                  <span className="bg-primary-100 text-primary-600 px-1.5 uppercase rounded leading-[150%]">{purchaseOrder.reference}</span>
+                  <span className="font-semibold">{purchaseOrder.devi.commandRequest.besoins.map((b)=> b.project.label).join(", ")}</span>
                 </div>
               </div>
               <div className="view-group">

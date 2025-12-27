@@ -120,6 +120,7 @@ export type RequestModelT = {
   state: string;
   proprity: "medium" | "high" | "low" | "urgent";
   projectId: number | null;
+  project: ProjectT;
   categoryId: number | null;
   category?: number | null;
   revieweeList?: Review[] | null;
@@ -337,6 +338,7 @@ export type BonsCommande = {
   paymentMethod: string;
   paymentTerms: string;
   deliveryDelay: Date;
+  motif?:string;
   createdAt: Date;
   updatedAt: Date;
 };
