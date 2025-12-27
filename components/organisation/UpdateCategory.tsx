@@ -296,6 +296,7 @@ export function UpdateCategory({
               <FormField
                 control={form.control}
                 name="label"
+                disabled={categoryData?.id === 0}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{"Titre de la catégorie *"}</FormLabel>
@@ -309,9 +310,10 @@ export function UpdateCategory({
               <FormField
                 control={form.control}
                 name="description"
+                disabled={categoryData?.id === 0}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{"Description"}</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Description de la catégorie"
@@ -357,7 +359,7 @@ export function UpdateCategory({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Badge className="bg-primary text-primary-foreground">
-                            Position {index + 1}
+                            {`Position ${index + 1}`}
                             {index === fields.length - 1 && (
                               <span className="ml-1">(Dernier)</span>
                             )}
@@ -432,7 +434,7 @@ export function UpdateCategory({
                                     ))
                                   ) : (
                                     <SelectItem value="" disabled>
-                                      Aucun utilisateur disponible
+                                      {"Aucun utilisateur disponible"}
                                     </SelectItem>
                                   )}
                                 </SelectContent>
@@ -518,7 +520,7 @@ export function UpdateCategory({
               onClick={() => setOpen(false)}
               variant={"outline"}
             >
-              Annuler
+              {"Annuler"}
             </Button>
           </div>
         </Form>

@@ -28,8 +28,11 @@ function Page() {
     return <ErrorPage error={error} />;
   }
   if (isSuccess) {
-    const pending = data?.data.filter((ticket) => ticket.status === "pending");
-    const approved = data?.data.filter((ticket) => ticket.status !== "pending");
+    const ticketsData = data?.data.filter((ticket) => ticket.status !== "ghost");
+    const pending = ticketsData.filter((ticket) => ticket.status === "pending");
+    const approved = ticketsData.filter(
+      (ticket) => ticket.status !== "pending"
+    );
 
     return (
       <div className="flex flex-col gap-6">
@@ -68,8 +71,8 @@ function Page() {
             </div>
           </>
         )}
-        {data?.data.length > 0 ? (
-          <Tickets ticketsData={data?.data} />
+        {ticketsData.length > 0 ? (
+          <Tickets ticketsData={ticketsData} />
         ) : (
           <Empty message={"Aucun ticket disponible"} />
         )}

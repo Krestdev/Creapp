@@ -187,7 +187,11 @@ export function DataVal({
 
   // Fonction pour obtenir la position de l'utilisateur pour un besoin donné
   const getUserPositionForRequest = (request: RequestModelT) => {
-    if (!request.categoryId || !user?.id || !categoriesData.data?.data)
+    if (
+      request.categoryId === null ||
+      user?.id === null ||
+      categoriesData.data?.data === undefined
+    )
       return null;
 
     const category = categoriesData.data.data.find(
@@ -195,13 +199,17 @@ export function DataVal({
     );
     if (!category || !category.validators) return null;
 
-    const validator = category.validators.find((v) => v.userId === user.id);
+    const validator = category.validators.find((v) => v.userId === user?.id);
     return validator?.rank || null;
   };
 
   // Fonction pour vérifier si l'utilisateur est le dernier validateur pour un besoin
   const isUserLastValidatorForRequest = (request: RequestModelT) => {
-    if (!request.categoryId || !user?.id || !categoriesData.data?.data)
+    if (
+      request.categoryId === null ||
+      user?.id === null ||
+      categoriesData.data?.data === undefined
+    )
       return false;
 
     const category = categoriesData.data.data.find(
@@ -217,7 +225,7 @@ export function DataVal({
       (v) => v.rank === maxPosition
     );
 
-    return lastValidator?.userId === user.id;
+    return lastValidator?.userId === user?.id;
   };
 
   // Fonction pour vérifier si l'utilisateur a déjà validé un besoin
@@ -845,6 +853,8 @@ export function DataVal({
         const validationInfo = getValidationInfo(item);
         const userHasValidated = hasUserAlreadyValidated(item);
 
+        console.log(item);
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -883,8 +893,8 @@ export function DataVal({
                 }
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
-                Approuver
-                {validationInfo.isLastValidator && " (Final)"}
+                {"Approuver"}
+                {validationInfo.isLastValidator}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => openValidationModal("reject", item)}
@@ -901,7 +911,7 @@ export function DataVal({
               >
                 <LucideBan className="text-red-500 mr-2 h-4 w-4" />
                 Rejeter
-                {validationInfo.isLastValidator && " (Final)"}
+                {validationInfo.isLastValidator}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
