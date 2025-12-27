@@ -152,7 +152,7 @@ export default function RHRequestForm() {
         userId: Number(user?.id),
         type: "RH",
         state: "pending",
-        proprity: "medium",
+        priority: "medium",
       };
   
       console.log("Données soumises:", requestData);

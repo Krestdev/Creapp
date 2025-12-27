@@ -115,7 +115,7 @@ export default function SpecialRequestForm() {
         userId: Number(user?.id),
         type: "SPECIAL",
         state: "pending",
-        proprity: "medium",
+        priority: "medium",
         categoryId: 0,
         proof: undefined
       };

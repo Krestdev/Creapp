@@ -187,7 +187,7 @@ export default function MyForm() {
       dueDate: values.datelimite,
       projectId: Number(values.projet),
       state: "pending",
-      proprity: "medium",
+      priority: "medium",
     };
 
     console.log("Données soumises:", requestData);

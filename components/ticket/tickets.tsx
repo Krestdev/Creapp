@@ -11,8 +11,6 @@ const Tickets = ({ ticketsData }: Props) => {
   const approved = ticketsData.filter((ticket) => ticket.status !== "pending");
   const { user } = useStore();
 
-  console.log(ticketsData);
-  
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">
