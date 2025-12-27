@@ -15,6 +15,53 @@ export class RequestQueries {
     return api.post(this.route, data).then((res) => res.data);
   };
 
+  special = async (
+    data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
+  ): Promise<{ data: RequestModelT }> => {
+    const formData = new FormData();
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+
+      // Files
+      if (Array.isArray(value) && value.every((v) => v instanceof File)) {
+        value.forEach((file) => formData.append(key, file));
+        return;
+      }
+
+      if (value instanceof File) {
+        formData.append(key, value);
+        return;
+      }
+
+      // Date
+      if (value instanceof Date) {
+        formData.append(key, value.toISOString());
+        return;
+      }
+
+      // Array or Object → JSON
+      if (Array.isArray(value) || typeof value === "object") {
+        formData.append(key, JSON.stringify(value));
+        return;
+      }
+
+      // Primitive
+      formData.append(key, String(value));
+    });
+
+    console.table(formData);
+    
+
+    return api
+      .post(`${this.route}/special`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
+  };
+
   // Récupérer toutes les demandes
   getAll = async (): Promise<{ data: RequestModelT[] }> => {
     return api.get(this.route).then((res) => res.data);

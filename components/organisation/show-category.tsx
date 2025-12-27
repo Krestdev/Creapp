@@ -89,7 +89,7 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
       });
     }
   }, [data]);
-
+  
   // Fonction pour obtenir l'email d'un utilisateur
 
   return (

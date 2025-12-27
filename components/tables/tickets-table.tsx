@@ -51,12 +51,14 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { Pagination } from "../base/pagination";
-import { TicketsData } from "@/types/types";
+import { PaymentRequest } from "@/types/types";
 import { DetailTicket } from "../modals/detail-ticket";
 import { ApproveTicket } from "../modals/ApproveTicket";
+import { PurchaseOrder } from "@/queries/purchase-order";
+import { useFetchQuery } from "@/hooks/useData";
 
 interface TicketsTableProps {
-  data: TicketsData[];
+  data: PaymentRequest[];
   isAdmin: boolean;
 }
 
@@ -114,14 +116,20 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
   const [openDetailModal, setOpenDetailModal] = React.useState(false);
   const [openValidationModal, setOpenValidationModal] = React.useState(false);
   const [openPaiementModal, setOpenPaiementModal] = React.useState(false);
-  const [selectedTicket, setSelectedTicket] = React.useState<TicketsData>();
+  const [selectedTicket, setSelectedTicket] = React.useState<PaymentRequest>();
+
+  const purchaseOrderQuery = new PurchaseOrder();
+    const { data: bons } = useFetchQuery(
+      ["purchaseOrders"],
+      purchaseOrderQuery.getAll
+    );
 
   // Récupérer les statuts uniques présents dans les données
   const uniqueStatuses = React.useMemo(() => {
     const statuses = new Set<string>();
     data.forEach((item) => {
-      if (item.state) {
-        statuses.add(item.state);
+      if (item.status) {
+        statuses.add(item.status);
       }
     });
     return Array.from(statuses);
@@ -131,8 +139,8 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
   const uniquePriorities = React.useMemo(() => {
     const priorities = new Set<string>();
     data.forEach((item) => {
-      if (item.priorite) {
-        priorities.add(item.priorite);
+      if (item.priority) {
+        priorities.add(item.priority);
       }
     });
     return Array.from(priorities);
@@ -148,7 +156,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
   // État pour suivre la priorité sélectionnée dans le Select
   const [selectedPriority, setSelectedPriority] = React.useState<string>("all");
 
-  const columns: ColumnDef<TicketsData>[] = [
+  const columns: ColumnDef<PaymentRequest>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -534,7 +542,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
                 const priorite = row.original
-                  .priorite as keyof typeof priorityConfig;
+                  .priority as keyof typeof priorityConfig;
                 const config = priorityConfig[priorite];
 
                 return (
@@ -581,7 +589,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       <ApproveTicket
         open={openValidationModal}
         onOpenChange={setOpenValidationModal}
-        title={selectedTicket?.bonDeCommande ?? ""}
+        title={bons?.data.find(x => x.id === Number(selectedTicket?.commandId))?.reference!}
         subTitle={"Valider le ticket"}
         description={"Voulez-vous valider ce ticket ?"}
         action={function (): void {
@@ -593,7 +601,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       <ApproveTicket
         open={openPaiementModal}
         onOpenChange={setOpenPaiementModal}
-        title={selectedTicket?.bonDeCommande ?? ""}
+        title={bons?.data.find(x => x.id === Number(selectedTicket?.commandId))?.reference!}
         subTitle={"Payer le ticket"}
         description={"Voulez-vous payer ce ticket ?"}
         action={function (): void {

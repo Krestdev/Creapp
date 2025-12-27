@@ -30,10 +30,16 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
   const [page, setPage] = useState(1);
   const [file, setFile] = useState<string | File | undefined>(undefined);
   const [title, setTitle] = useState("");
-
-  // const baseurl = process.env.NEXT_PUBLIC_API;
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        onOpenChange(isOpen);
+        if (!isOpen) {
+          setPage(1);
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[760px] w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
@@ -138,6 +144,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
             <div className="flex-1 flex flex-col gap-3">
               {/* Carte contribuable */}
               <Button
+                disabled={!data?.carte_contribuable}
                 variant={"ghost"}
                 className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
                 onClick={() => {
@@ -177,6 +184,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               </Button>
               {/* ACF */}
               <Button
+                disabled={!data?.acf}
                 variant={"ghost"}
                 className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
                 onClick={() => {
@@ -216,6 +224,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               </Button>
               {/* Plan de localisation */}
               <Button
+                disabled={!data?.plan_localisation}
                 variant={"ghost"}
                 className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
                 onClick={() => {
@@ -255,6 +264,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               </Button>
               {/* Régistre de commerce */}
               <Button
+                disabled={!data?.commerce_registre}
                 variant={"ghost"}
                 className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
                 onClick={() => {
@@ -294,6 +304,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               </Button>
               {/* Attestation bancaire */}
               <Button
+                disabled={!data?.banck_attestation}
                 variant={"ghost"}
                 className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
                 onClick={() => {

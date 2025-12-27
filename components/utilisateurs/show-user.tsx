@@ -50,7 +50,7 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
       case "USER":
         return "Emetteur";
       case "MANAGER":
-        return "Manager";
+        return "Validateur";
       case "SALES":
         return "Responsable d'achat";
       case "SALES_MANAGER":

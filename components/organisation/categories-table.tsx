@@ -227,13 +227,15 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                   <LucidePen className="mr-2 h-4 w-4" />
                   {"Modifier"}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-red-600"
-                  onClick={() => categoryData.mutate(categories.id)}
-                >
-                  <LucideTrash2 className="mr-2 h-4 w-4 text-red-400" />
-                  {"Supprimer"}
-                </DropdownMenuItem>
+                {row.original.id !== 0 && (
+                  <DropdownMenuItem
+                    className="text-red-600"
+                    onClick={() => categoryData.mutate(categories.id)}
+                  >
+                    <LucideTrash2 className="mr-2 h-4 w-4 text-red-400" />
+                    {"Supprimer"}
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -369,7 +371,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {"Aucun résultat."}
                 </TableCell>
               </TableRow>
             )}

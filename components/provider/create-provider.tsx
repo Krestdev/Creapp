@@ -353,7 +353,7 @@ export default function CreateProviderForm() {
           className="@min-[640px]:col-span-2 w-fit ml-auto"
           type="submit"
         >
-          Créer le fournisseur
+          {"Créer le fournisseur"}
         </Button>
       </form>
     </Form>
