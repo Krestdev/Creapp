@@ -297,7 +297,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                     <div className="max-h-[380px] overflow-y-auto">
                       {filteredProviders.length === 0 ? (
                         <div className="p-3 text-sm text-muted-foreground text-center">
-                          Aucun fournisseur trouvé
+                          {"Aucun fournisseur trouvé"}
                         </div>
                       ) : (
                         filteredProviders.map((provider) => (
@@ -326,7 +326,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           setOpenP(true);
                         }}
                       >
-                        Ajouter un fournisseur
+                        {"Ajouter un fournisseur"}
                       </Button>
                     </div>
                   </SelectContent>

@@ -26,7 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { paymentMethods } from "@/data/payment-methods";
 import { useFetchQuery } from "@/hooks/useData";
-import { formatToShortName } from "@/lib/utils";
+import { formatToShortName, isProviderValid } from "@/lib/utils";
 import { ProviderQueries } from "@/queries/providers";
 import { CreatePurchasePayload, PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
@@ -142,6 +142,13 @@ function CreateForm() {
     toast.error("Devis introuvable");
     return;
   }
+   const provider = getProviders.data?.data.find((p)=> p.id === quotation.providerId);
+   const result = provider ? isProviderValid(provider) : false;
+
+   if(!result){
+    toast.error("Fournisseur Invalide ! Veuillez compléter les informations relatives au fournisseurs");
+    return;
+   }
 
   const ids = quotation?.commandRequest.besoins.map(b=> b.id);
 
@@ -289,7 +296,7 @@ const penalty = form.watch("hasPenalties");
                         captionLayout="dropdown"
                         onSelect={(date) => {
                           if (!date) return;
-                          const value = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+                          const value = format(date, "yyyy-MM-dd");
                           field.onChange(value);
                           setSelectDate(false);
                         }}

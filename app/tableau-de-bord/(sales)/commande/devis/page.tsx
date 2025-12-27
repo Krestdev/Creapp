@@ -11,7 +11,6 @@ import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderQueries } from "@/queries/providers";
 import { QuotationQueries } from "@/queries/quotation";
 import Link from "next/link";
-import React from "react";
 
 const Page = () => {
   const { user } = useStore();
@@ -41,10 +40,6 @@ const Page = () => {
   /**Commands fetch */
   const commandsQuery = new CommandRqstQueries();
   const commands = useFetchQuery(["commands"], commandsQuery.getAll, 30000);
-
-  const [dateFilter, setDateFilter] = React.useState<
-    "today" | "week" | "month" | "year" | "custom" | undefined
-  >();
   if (isLoading || providers.isLoading || commands.isLoading) {
     return <LoadingPage />;
   }
@@ -78,8 +73,6 @@ const Page = () => {
         </PageTitle>
         <DevisTable
           data={data.data}
-          dateFilter={dateFilter}
-          setDateFilter={setDateFilter}
           commands={commands.data.data}
           providers={providers.data.data}
         />

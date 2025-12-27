@@ -367,3 +367,5 @@ export interface NavLink {
   disabled?: boolean;
   hide?: boolean;
 }
+
+export type DateFilter = "today" | "week" | "month" | "year" | "custom" | undefined;

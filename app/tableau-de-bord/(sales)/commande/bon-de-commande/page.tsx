@@ -82,7 +82,7 @@ const Page = () => {
     {
       title: "Receptions",
       href: "./bon-de-commande/receptions",
-      disabled: true
+      disabled: false
     },
   ];
 

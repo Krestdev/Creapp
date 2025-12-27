@@ -1,3 +1,4 @@
+import { Provider } from "@/types/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -51,3 +52,8 @@ export const formatToShortName = (fullName: string | undefined | null): string =
 
   return `${firstName} ${secondInitial}.`;
 };
+
+export function isProviderValid(provider:Provider):boolean{
+  if(!provider.NIU || !provider.RCCM || !provider.address || !provider.email || !provider.phone || !provider.regem || !provider.plan_localisation || !provider.acf ||!provider.carte_contribuable || !provider.banck_attestation ) return false;
+  return true;
+}
