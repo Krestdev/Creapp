@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
 import {
   Form,
   FormControl,
@@ -12,7 +11,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,8 +21,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { ProviderQueries } from "@/queries/providers";
 import { Provider } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import FilesUpload from "../comp-547";
 import {
@@ -35,30 +33,40 @@ import {
   SelectValue,
 } from "../ui/select";
 
-const SingleFileArray = z
-  .array(
-    z.union([
-      z.instanceof(File, { message: "Doit être un fichier valide" }),
-      z.string(),
-    ])
-  )
-  .max(1, "Pas plus d'un document")
-  .nullable();
+// Définir un type pour les fichiers
+type FileValue = File | string;
+
+// Schéma de validation corrigé
+const SingleFileSchema = z
+  .union([z.instanceof(File), z.string().url("Doit être une URL valide")])
+  .optional()
+  .nullable()
+  .transform((val) => val ?? null);
+
+const FileSchema = z.union([z.instanceof(File), z.string()]).nullable();
 
 const formSchema = z.object({
-  name: z.string(),
-  phone: z.string(),
-  email: z.string(),
-  address: z.string(),
-  carte_contribuable: SingleFileArray,
-  acf: SingleFileArray,
-  plan_localisation: SingleFileArray,
-  commerce_registre: SingleFileArray,
-  banck_attestation: SingleFileArray,
-  RCCM: z.string().optional(),
-  NIU: z.string().optional(),
-  regem: z.string().optional(),
+  name: z.string().min(1, "Le nom est obligatoire"),
+  phone: z.string().min(1, "Le téléphone est obligatoire"),
+  email: z.string().email("Email invalide"),
+  address: z.string().min(1, "L'adresse est obligatoire"),
+
+  // ✅ TOUJOURS string
+  RCCM: z.string(),
+  NIU: z.string(),
+
+  regem: z.string().min(1, "Le régime est obligatoire"),
+
+  // ✅ fichiers
+  carte_contribuable: FileSchema,
+  acf: FileSchema,
+  plan_localisation: FileSchema,
+  commerce_registre: FileSchema,
+  banck_attestation: FileSchema,
 });
+
+// Type pour le formulaire
+type FormValues = z.infer<typeof formSchema>;
 
 interface UpdateRequestProps {
   open: boolean;
@@ -73,9 +81,9 @@ export default function UpdateProvider({
   providerData,
   onSuccess,
 }: UpdateRequestProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  // Valeurs par défaut avec le bon type
+  const defaultValues: FormValues = useMemo(
+    () => ({
       name: "",
       phone: "",
       email: "",
@@ -83,95 +91,159 @@ export default function UpdateProvider({
       RCCM: "",
       NIU: "",
       regem: "",
-      carte_contribuable: [],
-      acf: [],
-      plan_localisation: [],
-      commerce_registre: [],
-      banck_attestation: [],
-    },
+      carte_contribuable: null,
+      acf: null,
+      plan_localisation: null,
+      commerce_registre: null,
+      banck_attestation: null,
+    }),
+    []
+  );
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues,
+    mode: "onChange",
   });
 
+  // Réinitialiser le formulaire quand providerData change
   useEffect(() => {
-    form.reset({
-      name: providerData?.name || "",
-      phone: providerData?.phone || "",
-      email: providerData?.email || "",
-      address: providerData?.address || "",
-      RCCM: providerData?.RCCM || "",
-      NIU: providerData?.NIU || "",
-      regem: providerData?.regem || "",
-      // Add other fields as necessary
-    });
-  }, [providerData, form]);
+    if (open && providerData) {
+      form.reset({
+        name: providerData.name ?? "",
+        phone: providerData.phone ?? "",
+        email: providerData.email ?? "",
+        address: providerData.address ?? "",
+        RCCM: providerData.RCCM ?? "",
+        NIU: providerData.NIU ?? "",
+        regem: providerData.regem ?? "",
 
+        carte_contribuable: providerData.carte_contribuable ?? null,
+        acf: providerData.acf ?? null,
+        plan_localisation: providerData.plan_localisation ?? null,
+        commerce_registre: providerData.commerce_registre ?? null,
+        banck_attestation: providerData.banck_attestation ?? null,
+      });
+    } else if (!open) {
+      form.reset(defaultValues);
+    }
+  }, [open, providerData, form, defaultValues]);
+
+  const queryClient = useQueryClient();
   const providerQueries = new ProviderQueries();
+
   const providerMutation = useMutation({
-    mutationKey: ["providerUpdate"],
-    mutationFn: async (data: Partial<Provider>) =>
-      providerQueries.update(Number(providerData?.id), data),
-
-    onSuccess: () => {
-      toast.success("Besoin modifié avec succès !");
-      setOpen(false);
-      onSuccess?.();
+    mutationKey: ["providerUpdate", providerData?.id],
+    mutationFn: async (data: Partial<Provider>) => {
+      if (!providerData?.id) {
+        throw new Error("ID du fournisseur manquant");
+      }
+      return providerQueries.update(providerData.id, data);
     },
-
-    onError: (e) => {
-      console.error(e);
-      toast.error("Une erreur est survenue lors de la modification.");
+    onSuccess: () => {
+      toast.success("Fournisseur modifié avec succès !");
+      setOpen(false);
+      form.reset(defaultValues);
+      onSuccess?.();
+      queryClient.invalidateQueries({ queryKey: ["providersList"], refetchType: "active" });
+    },
+    onError: (error: Error) => {
+      console.error("Erreur de mise à jour:", error);
+      toast.error(
+        error.message || "Une erreur est survenue lors de la modification."
+      );
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    providerMutation.mutate({
+  function onSubmit(values: FormValues) {
+    if (!providerData?.id) {
+      toast.error("Fournisseur non sélectionné");
+      return;
+    }
+
+    // Préparer les données pour l'API
+    const updateData: Partial<Provider> = {
       name: values.name,
       phone: values.phone,
       email: values.email,
       address: values.address,
-      RCCM: values.RCCM,
-      NIU: values.NIU,
       regem: values.regem,
-      carte_contribuable: values.carte_contribuable?.[0],
-      acf: values.acf?.[0],
-      plan_localisation: values.plan_localisation?.[0],
-      commerce_registre: values.commerce_registre?.[0],
-      banck_attestation: values.banck_attestation?.[0],
-    });
+    };
+
+    // Ajouter les champs optionnels s'ils ont une valeur
+    if (values.RCCM) updateData.RCCM = values.RCCM;
+    if (values.NIU) updateData.NIU = values.NIU;
+
+    // Gérer les fichiers - adapter selon votre API
+    if (values.carte_contribuable !== null) {
+      updateData.carte_contribuable = values.carte_contribuable;
+    }
+    if (values.acf !== null) {
+      updateData.acf = values.acf;
+    }
+    if (values.plan_localisation !== null) {
+      updateData.plan_localisation = values.plan_localisation;
+    }
+    if (values.commerce_registre !== null) {
+      updateData.commerce_registre = values.commerce_registre;
+    }
+    if (values.banck_attestation !== null) {
+      updateData.banck_attestation = values.banck_attestation;
+    }
+
+    providerMutation.mutate(updateData);
   }
+
+  // Fonction pour gérer les changements de fichiers
+  const handleFileChange = (
+    field: any,
+    value: FileValue | FileValue[] | null
+  ) => {
+    if (Array.isArray(value)) {
+      field.onChange(value[0] || null);
+    } else {
+      field.onChange(value);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
-        {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            {" Modifier le fournisseur"}
+            Modifier le fournisseur
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            {"Modifiez les informations du fournisseur existant"}
+            Modifiez les informations du fournisseur existant
           </p>
         </DialogHeader>
+
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 mx-4 flex-1 overflow-y-auto pb-6"
+            id="update-provider-form"
           >
-            {/* LABEL */}
+            {/* Nom */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Nom (entreprise)"}</FormLabel>
+                  <FormLabel>Nom (entreprise)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nom de l'entreprise" {...field} />
+                    <Input
+                      placeholder="Nom de l'entreprise"
+                      {...field}
+                      disabled={providerMutation.isPending}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* DESCRIPTION */}
+            {/* Email */}
             <FormField
               control={form.control}
               name="email"
@@ -179,23 +251,30 @@ export default function UpdateProvider({
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Entrer l'email" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="Entrer l'email"
+                      {...field}
+                      disabled={providerMutation.isPending}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* Adresse */}
             <FormField
               control={form.control}
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Addresse"}</FormLabel>
+                  <FormLabel>Adresse</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Entrer l'addresse de l'entreprise"
+                      placeholder="Entrer l'adresse de l'entreprise"
                       {...field}
+                      disabled={providerMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -203,17 +282,18 @@ export default function UpdateProvider({
               )}
             />
 
-            {/* DESCRIPTION */}
+            {/* Téléphone */}
             <FormField
               control={form.control}
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Numéro de telephone</FormLabel>
+                  <FormLabel>Numéro de téléphone</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Entrer le numéro de téléphone"
                       {...field}
+                      disabled={providerMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -221,36 +301,45 @@ export default function UpdateProvider({
               )}
             />
 
+            {/* RCCM */}
             <FormField
               control={form.control}
               name="RCCM"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>RCCM</FormLabel>
-                  <FormControl className="w-full">
-                    <Input placeholder="RC/234/456/..." {...field} />
+                  <FormControl>
+                    <Input
+                      placeholder="RC/234/456/..."
+                      {...field}
+                      disabled={providerMutation.isPending}
+                    />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* NIU */}
             <FormField
               control={form.control}
               name="NIU"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>NIU</FormLabel>
-                  <FormControl className="w-full">
-                    <Input placeholder="QA123..." {...field} />
+                  <FormControl>
+                    <Input
+                      placeholder="QA123..."
+                      {...field}
+                      disabled={providerMutation.isPending}
+                    />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* Régime */}
             <FormField
               control={form.control}
               name="regem"
@@ -261,39 +350,35 @@ export default function UpdateProvider({
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
+                    disabled={providerMutation.isPending}
                   >
                     <FormControl>
-                      <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner un Régime" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {[
-                        { id: 1, value: "Réel" },
-                        { id: 2, value: "Simplifié" },
-                      ].map((p) => (
-                        <SelectItem key={p.id} value={p.value}>
-                          {p.value}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="Réel">Réel</SelectItem>
+                      <SelectItem value="Simplifié">Simplifié</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Justificatif */}
+            {/* Carte Contribuable */}
             <FormField
               control={form.control}
               name="carte_contribuable"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"carte contribuable"}</FormLabel>
+                  <FormLabel>Carte contribuable</FormLabel>
                   <FormControl>
                     <FilesUpload
-                      value={field.value}
-                      onChange={field.onChange}
+                      value={field.value ? [field.value] : []}
+                      onChange={(value) => handleFileChange(field, value)}
                       name={field.name}
                       acceptTypes="all"
                       multiple={false}
@@ -305,17 +390,17 @@ export default function UpdateProvider({
               )}
             />
 
-            {/* Justificatif */}
+            {/* ACF */}
             <FormField
               control={form.control}
               name="acf"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"ACF"}</FormLabel>
+                  <FormLabel>ACF</FormLabel>
                   <FormControl>
                     <FilesUpload
-                      value={field.value}
-                      onChange={field.onChange}
+                      value={field.value ? [field.value] : []}
+                      onChange={(value) => handleFileChange(field, value)}
                       name={field.name}
                       acceptTypes="all"
                       multiple={false}
@@ -327,17 +412,17 @@ export default function UpdateProvider({
               )}
             />
 
-            {/* Justificatif */}
+            {/* Plan de localisation */}
             <FormField
               control={form.control}
               name="plan_localisation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Plan de localisation"}</FormLabel>
+                  <FormLabel>Plan de localisation</FormLabel>
                   <FormControl>
                     <FilesUpload
-                      value={field.value}
-                      onChange={field.onChange}
+                      value={field.value ? [field.value] : []}
+                      onChange={(value) => handleFileChange(field, value)}
                       name={field.name}
                       acceptTypes="all"
                       multiple={false}
@@ -349,17 +434,17 @@ export default function UpdateProvider({
               )}
             />
 
-            {/* Justificatif */}
+            {/* Registre de commerce */}
             <FormField
               control={form.control}
               name="commerce_registre"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"registre de commerce"}</FormLabel>
+                  <FormLabel>Registre de commerce</FormLabel>
                   <FormControl>
                     <FilesUpload
-                      value={field.value}
-                      onChange={field.onChange}
+                      value={field.value ? [field.value] : []}
+                      onChange={(value) => handleFileChange(field, value)}
                       name={field.name}
                       acceptTypes="all"
                       multiple={false}
@@ -371,17 +456,17 @@ export default function UpdateProvider({
               )}
             />
 
-            {/* Justificatif */}
+            {/* Attestation bancaire */}
             <FormField
               control={form.control}
               name="banck_attestation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Attestation bancaire"}</FormLabel>
+                  <FormLabel>Attestation bancaire</FormLabel>
                   <FormControl>
                     <FilesUpload
-                      value={field.value}
-                      onChange={field.onChange}
+                      value={field.value ? [field.value] : []}
+                      onChange={(value) => handleFileChange(field, value)}
                       name={field.name}
                       acceptTypes="all"
                       multiple={false}
@@ -393,23 +478,23 @@ export default function UpdateProvider({
               )}
             />
           </form>
+
           <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
-            {/* SUBMIT */}
-            <Button
-              type="submit"
-              className="w-fit"
-              variant={"primary"}
-              onClick={form.handleSubmit(onSubmit)}
-            >
-              {"Enregistrer"}
-            </Button>
             <Button
               type="button"
-              className="w-fit"
+              variant="outline"
               onClick={() => setOpen(false)}
-              variant={"outline"}
+              disabled={providerMutation.isPending}
             >
-              {"Annuler"}
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              form="update-provider-form"
+              disabled={providerMutation.isPending || !form.formState.isDirty}
+            >
+              {providerMutation.isPending ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </div>
         </Form>

@@ -201,7 +201,7 @@ export default function MyForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl md:mx-12 py-10"
+        className="space-y-8 max-w-3xl md:mx-12"
       >
         <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
           {/* PROJET */}

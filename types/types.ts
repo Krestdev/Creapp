@@ -34,6 +34,21 @@ export type UserRole = "admin" | "user";
 //   role: UserRole;
 // };
 
+export type PaymentRequest = {
+  id: number;
+  reference: string;
+  status: string;
+  type: string;
+  title: string;
+  price: number;
+  priority: string;
+  userId: number;
+  commandId: string;
+  projectId: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type User = {
   id?: number;
   email: string;
@@ -116,14 +131,17 @@ export type RequestModelT = {
   dueDate: Date;
   unit: string;
   beneficiary: string;
-  benef: number[] | null;
+  benef?: number[] | null;
   beficiaryList?: { id: number; name: string; email: string }[] | null;
   state: string;
   proprity: "medium" | "high" | "low" | "urgent";
-  projectId: number | null;
-  categoryId: number | null;
+  projectId?: number | null;
+  categoryId?: number | null;
   category?: number | null;
   revieweeList?: Review[] | null;
+  proof?: (string | File)[] | null | undefined
+  type?: "SPECIAL" | "RH" | "FAC",
+  amount?: number
 };
 
 export type TableData = {
@@ -344,7 +362,7 @@ export type BonsCommande = {
 
 export interface NavLink {
   title: string;
-  href:string;
-  disabled?:boolean;
-  hide?:boolean;
+  href: string;
+  disabled?: boolean;
+  hide?: boolean;
 }

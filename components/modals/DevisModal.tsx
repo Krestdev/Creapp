@@ -114,7 +114,15 @@ export function DevisModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        onOpenChange(isOpen);
+        if (!isOpen) {
+          setPage(1);
+        }
+      }}
+    >
       <DialogContent className="max-w-[940px]! max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header */}
         <DialogHeader className="bg-linear-to-r from-[#9E1351] to-[#700032] text-white p-6 m-4 rounded-lg pb-8 relative">

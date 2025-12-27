@@ -108,17 +108,27 @@ export function ProviderTable({ data }: ProvidersTableProps) {
   }, [data]);
 
   // Fonction pour vérifier les informations du fournisseur
-  const checkProviderInfo = (provider: Provider) => {
-    if (
-      !provider.name ||
-      !provider.email ||
-      !provider.address ||
-      !provider.phone
-    ) {
-      return "incomplet";
-    } else {
-      return "complet";
-    }
+  const checkProviderInfo = (provider: Provider): "complet" | "incomplet" => {
+    const allFields = [
+      provider.name,
+      provider.email,
+      provider.address,
+      provider.phone,
+      provider.regem,
+      provider.RCCM,
+      provider.NIU,
+      provider.carte_contribuable,
+      provider.acf,
+      provider.plan_localisation,
+      provider.commerce_registre,
+      provider.banck_attestation,
+    ];
+
+    return allFields.every(
+      (field) => typeof field === "string" && field.trim() !== ""
+    )
+      ? "complet"
+      : "incomplet";
   };
 
   // Données filtrées
@@ -328,7 +338,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                   }}
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  View
+                  {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

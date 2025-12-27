@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TicketsData } from "@/types/types";
+import { PaymentRequest } from "@/types/types";
 import {
   AlertCircle,
   Calendar,
@@ -21,7 +21,7 @@ import {
 interface DetailTicketProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: TicketsData | undefined;
+  data: PaymentRequest | undefined;
 }
 
 export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {

@@ -107,9 +107,9 @@ export function RoleTable({ data }: RolesTableProps) {
         },
         cell: ({ row }) => {
           return (
-            <div className="flex gap-0.5 w-fit">
-              {(row.getValue("users") as User[]).map((user) => (
-                <div key={user.id}>
+            <div className="flex gap-1.5 w-fit">
+              {(row.getValue("users") as User[]).map((user, index) => (
+                <div key={index}>
                   <Badge variant="sky">{user.name}</Badge>
                 </div>
               ))}

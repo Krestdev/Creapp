@@ -77,6 +77,9 @@ export function UpdateCategory({
   categoryData,
   onSuccess,
 }: UpdateCategoryProps) {
+
+  
+  console.log(categoryData?.id);
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -231,7 +234,9 @@ export function UpdateCategory({
   };
 
   const onsubmit = (values: z.infer<typeof formSchema>) => {
-    if (!categoryData?.id) {
+    
+    if (categoryData?.id === undefined) {
+      console.log(categoryData?.id);
       toast.error("ID de catégorie manquant");
       return;
     }
