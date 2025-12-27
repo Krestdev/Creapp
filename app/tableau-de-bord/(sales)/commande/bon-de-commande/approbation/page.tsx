@@ -31,7 +31,7 @@ function Page() {
     return (
       <div className="content">
         <PageTitle title="Approbation" subtitle="Approbation des bons de commandes" color="blue"/>
-        <PurchaseApprovalTable data={data.data}/>
+        <PurchaseApprovalTable data={data.data.filter(c=> c.status === "IN-REVIEW" || c.status === "PENDING" )}/>
       </div>
     )
   }

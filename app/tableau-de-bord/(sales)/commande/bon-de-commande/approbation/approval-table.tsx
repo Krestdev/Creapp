@@ -153,6 +153,7 @@ export function PurchaseApprovalTable({ data }: Props) {
     let filtered = [...(data ?? [])];
 
     if (statusFilter !== "all") filtered = filtered.filter((po) => po.status === statusFilter);
+    if(statusFilter === "all") filtered = filtered.filter((po) => po.status === "IN-REVIEW" || po.status === "PENDING");
     if (priorityFilter !== "all") filtered = filtered.filter((po) => po.priority === priorityFilter);
 
     if (penaltyFilter !== "all") {
