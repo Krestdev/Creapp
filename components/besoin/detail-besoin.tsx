@@ -33,10 +33,7 @@ import {
   Users,
   X,
   XCircle,
-  ChevronRight,
-  Dot,
 } from "lucide-react";
-import { Card } from "../ui/card";
 
 interface DetailModalProps {
   open: boolean;
@@ -206,7 +203,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
       }
 
       // 🔹 Étape suivante possible seulement s'il n'y a pas encore de review
-      let isNextStep = false;
+      const isNextStep = false;
 
       if (!review) {
         const previousValidators = configuredValidators.slice(0, i);
@@ -240,7 +237,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   };
 
   const validationHistory = getValidationHistory();
-console.log(data.state);
+  console.log(data.state);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

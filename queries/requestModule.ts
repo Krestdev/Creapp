@@ -1,5 +1,5 @@
 import api from "@/providers/axios";
-import { Category, RequestModelT } from "@/types/types";
+import { RequestModelT } from "@/types/types";
 
 export class RequestQueries {
   route = "/request/object";

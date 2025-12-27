@@ -75,7 +75,7 @@ export default function VerifyEmailClient() {
   React.useEffect(() => {
     if (!canSubmit || verifyMutation.isPending) return;
     verifyMutation.mutate({ otp: Number(otp), email: emailFromUrl });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [canSubmit]);
 
   const invalidLink = !emailFromUrl;

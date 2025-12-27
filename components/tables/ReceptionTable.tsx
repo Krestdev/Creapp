@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
-import { Reception } from "@/app/tableau-de-bord/commande/receptions/page";
+import { Reception } from "@/app/tableau-de-bord/(sales)/commande/receptions/page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";

@@ -16,10 +16,6 @@ import {
   ArrowUpDown,
   CheckCircle,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Eye,
   LucideClock,
   LucideIcon,
@@ -34,7 +30,6 @@ import * as React from "react";
 
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -45,6 +40,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -58,17 +60,10 @@ import { ProjectT } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
-import UpdateProject from "./UpdateProject";
 import { Pagination } from "../base/pagination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { DetailProject } from "./detail-project";
 import { ModalWarning } from "../modals/modal-warning";
+import { DetailProject } from "./detail-project";
+import UpdateProject from "./UpdateProject";
 
 // Interface pour tous les filtres
 export interface ProjectFilters {

@@ -1,12 +1,12 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { useStore } from "@/providers/datastore";
-import { DepartmentQueries } from "@/queries/departmentModule";
+import { UserQueries } from "@/queries/baseModule";
+import { CategoryQueries } from "@/queries/categoryModule";
 import { RequestQueries } from "@/queries/requestModule";
 import { Category, RequestModelT, User } from "@/types/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
-  Building,
   ClipboardList,
   EllipsisVertical,
   ScrollText,
@@ -29,8 +29,6 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { UserQueries } from "@/queries/baseModule";
 
 type ItemSide = {
   pageId: string;
@@ -111,48 +109,45 @@ function AppSidebar() {
     categoryData: UseQueryResult<{ data: Category[] }, Error>
   ) => {
     const hasUserAlreadyValidated = useHasUserAlreadyValidated(categoryData);
-  
+
     return React.useMemo(() => {
       const categories = categoryData.data?.data;
       if (!categories) return [];
-  
+
       return filteredData.filter((item) => {
         // 1️⃣ Seulement les besoins en attente
         if (item.state !== "pending") return false;
-  
-        const category = categories.find(
-          (c) => c.id === item.categoryId
-        );
+
+        const category = categories.find((c) => c.id === item.categoryId);
         if (!category || !category.validators?.length) return false;
-  
+
         // 2️⃣ Vérifier que l'utilisateur est validateur
         const currentValidator = category.validators.find(
           (v) => v.userId === user?.id
         );
         if (!currentValidator) return false;
-  
+
         // 3️⃣ S'il a déjà validé → ne plus afficher
         if (hasUserAlreadyValidated(item, user?.id!)) return false;
-  
+
         // 4️⃣ Trouver les validateurs précédents (rank inférieur)
         const previousValidators = category.validators.filter(
           (v) => v.rank < currentValidator.rank
         );
-  
+
         // 5️⃣ Aucun validateur avant lui → OK (rank 1)
         if (previousValidators.length === 0) return true;
-  
+
         // 6️⃣ IDs des validateurs précédents
         const previousValidatorIds = previousValidators.map((v) => v.id);
-  
+
         // 7️⃣ Vérifier qu'ils ont TOUS validé
-        const validatedIds =
-          item.revieweeList?.map((r) => r.validatorId) ?? [];
-  
+        const validatedIds = item.revieweeList?.map((r) => r.validatorId) ?? [];
+
         const allPreviousValidated = previousValidatorIds.every((id) =>
           validatedIds.includes(id!)
         );
-  
+
         return allPreviousValidated;
       });
     }, [
@@ -168,8 +163,8 @@ function AppSidebar() {
   ) => {
     return React.useMemo(() => {
       const data = requestData.data?.data ?? [];
-      let start = new Date(0);
-      let end = new Date();
+      const start = new Date(0);
+      const end = new Date();
 
       return data.filter((item) => {
         const d = new Date(item.createdAt);

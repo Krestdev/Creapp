@@ -14,30 +14,19 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  Calendar,
-  CircleDollarSign,
+  CheckCircle,
+  Clipboard,
+  DollarSign,
   FileText,
   Hash,
   LucideCalendar,
   LucideCalendarFold,
-  LucideCheckCheck,
-  LucideFile,
-  LucideFlag,
-  LucideInfo,
-  LucideScrollText,
-  LucideSquareUserRound,
-  LucideUserRound,
-  LucideX,
-  Clipboard,
-  DollarSign,
-  BarChart,
-  Target,
-  LucideIcon,
-  PlayCircle,
-  PauseCircle,
-  CheckCircle,
-  XCircle,
   LucideClock,
+  LucideIcon,
+  LucideSquareUserRound,
+  PauseCircle,
+  PlayCircle,
+  XCircle,
 } from "lucide-react";
 
 interface DetailProjectProps {
@@ -46,7 +35,11 @@ interface DetailProjectProps {
   data: ProjectT | null;
 }
 
-export function DetailProject({ open, onOpenChange, data }: DetailProjectProps) {
+export function DetailProject({
+  open,
+  onOpenChange,
+  data,
+}: DetailProjectProps) {
   if (!data) return null;
 
   // Fonction pour obtenir les informations du badge selon le statut
@@ -59,7 +52,7 @@ export function DetailProject({ open, onOpenChange, data }: DetailProjectProps) 
   } => {
     switch (status) {
       case "planning":
-        return { label: "Planification",  variant: "amber" };
+        return { label: "Planification", variant: "amber" };
       case "in-progress":
         return { label: "En cours", icon: PlayCircle, variant: "amber" };
       case "on-hold":
@@ -85,9 +78,7 @@ export function DetailProject({ open, onOpenChange, data }: DetailProjectProps) 
           <DialogTitle className="text-xl font-semibold text-white">
             {data.label}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
-            {"Détails du projet"}
-          </p>
+          <p className="text-sm text-white/80 mt-1">{"Détails du projet"}</p>
         </DialogHeader>
 
         {/* Content */}
@@ -121,7 +112,9 @@ export function DetailProject({ open, onOpenChange, data }: DetailProjectProps) 
                   <p className="text-sm text-muted-foreground">
                     {"Budget prévisionnel"}
                   </p>
-                  <p className="font-semibold text-lg">{XAF.format(data.budget)}</p>
+                  <p className="font-semibold text-lg">
+                    {XAF.format(data.budget)}
+                  </p>
                 </div>
               </div>
 
@@ -134,7 +127,9 @@ export function DetailProject({ open, onOpenChange, data }: DetailProjectProps) 
                   <p className="text-sm text-muted-foreground">
                     {"Chef de projet"}
                   </p>
-                  <p className="font-semibold">{data.chief?.name || "Non assigné"}</p>
+                  <p className="font-semibold">
+                    {data.chief?.name || "Non assigné"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -149,7 +144,9 @@ export function DetailProject({ open, onOpenChange, data }: DetailProjectProps) 
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">{"Statut"}</p>
                   <Badge variant={statusBadge.variant}>
-                    {statusBadge.icon && <statusBadge.icon className="h-4 w-4 mr-1" />}
+                    {statusBadge.icon && (
+                      <statusBadge.icon className="h-4 w-4 mr-1" />
+                    )}
                     {statusBadge.label}
                   </Badge>
                 </div>
@@ -163,7 +160,9 @@ export function DetailProject({ open, onOpenChange, data }: DetailProjectProps) 
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">{"Créé le"}</p>
                   <p className="font-semibold">
-                    {data.createdAt ? format(new Date(data.createdAt), "PPP", { locale: fr }) : "Non spécifié"}
+                    {data.createdAt
+                      ? format(new Date(data.createdAt), "PPP", { locale: fr })
+                      : "Non spécifié"}
                   </p>
                 </div>
               </div>
@@ -174,9 +173,13 @@ export function DetailProject({ open, onOpenChange, data }: DetailProjectProps) 
                   <LucideCalendarFold className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{"Modifié le"}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {"Modifié le"}
+                  </p>
                   <p className="font-semibold">
-                    {data.updatedAt ? format(new Date(data.updatedAt), "PPP", { locale: fr }) : "Non spécifié"}
+                    {data.updatedAt
+                      ? format(new Date(data.updatedAt), "PPP", { locale: fr })
+                      : "Non spécifié"}
                   </p>
                 </div>
               </div>
@@ -190,7 +193,9 @@ export function DetailProject({ open, onOpenChange, data }: DetailProjectProps) 
                 <Clipboard className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-2">{"Description"}</p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  {"Description"}
+                </p>
                 <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                   <p className="text-sm">
                     {data.description || "Aucune description fournie"}

@@ -9,22 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Role } from "@/types/types";
-import {
-  FileText,
-  Key,
-  Users,
-  Lock,
-  Hash,
-  Globe,
-  CheckCircle,
-  LucideFlag,
-  Calendar,
-  LucideCalendarFold,
-  LucideFile,
-  AlertCircle,
-} from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { CheckCircle, Hash, Key, Lock, LucideFlag, Users } from "lucide-react";
 
 interface ShowRoleProps {
   open: boolean;
@@ -40,8 +25,6 @@ export function ShowRole({
   onOpenChange,
   role,
   usersCount = 0,
-  createdAt,
-  updatedAt,
 }: ShowRoleProps) {
   if (!role) return null;
 

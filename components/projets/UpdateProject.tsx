@@ -24,13 +24,13 @@ import { ProjectQueries } from "@/queries/projectModule";
 import { ProjectT, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Loader } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Field, FieldError, FieldGroup, FieldLabel } from "../ui/field";
 import { Textarea } from "../ui/textarea";
-import { Loader } from "lucide-react";
 
 // ----------------------------------------------------------------------
 // VALIDATION
