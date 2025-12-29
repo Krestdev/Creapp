@@ -36,7 +36,7 @@ function Page() {
 
     return (
       <div className="flex flex-col gap-6">
-        {user?.role.flatMap((r) => r.label).includes("MANAGER") ? (
+        {user?.role.flatMap((r) => r.label).includes("ACCOUNTING-MANAGER") ? (
           <PageTitle
             title="Tickets"
             subtitle="Consultez et gérez les tickets."
