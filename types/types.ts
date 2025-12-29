@@ -369,3 +369,12 @@ export interface NavLink {
 }
 
 export type DateFilter = "today" | "week" | "month" | "year" | "custom" | undefined;
+
+export type Reception = {
+  reference:string;
+  id: number;
+  commandId:number;
+  userId: number;
+  createdAt: Date;
+  updatedAt?: Date;
+}

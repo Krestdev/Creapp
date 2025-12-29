@@ -1,6 +1,9 @@
+'use client'
 import React from "react";
 import PageTitle from "@/components/pageTitle";
 import { ReceptionTable } from "@/components/tables/ReceptionTable";
+import { ReceptionQuery } from "@/queries/reception";
+import { useFetchQuery } from "@/hooks/useData";
 
 export type Reception = {
   id: string;
@@ -88,6 +91,8 @@ const receptionsData: Reception[] = [
 ];
 
 const ReceptionsPage = () => {
+  const receptionQuery = new ReceptionQuery();
+  const getReceptions = useFetchQuery(["receptions"], receptionQuery.getAll);
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
