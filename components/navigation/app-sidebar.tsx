@@ -513,7 +513,7 @@ function AppSidebar() {
           <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
         </Link>
       </SidebarHeader>
-      <SidebarContent className="p-2 flex flex-col gap-2">
+      <SidebarContent className="p-2 flex flex-col gap-1.5">
         {filteredNavLinks.map((navLink) => (
           <NavigationItem
             key={navLink.href}
