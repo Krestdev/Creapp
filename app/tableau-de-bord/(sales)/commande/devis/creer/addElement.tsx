@@ -125,7 +125,7 @@ function AddElement({
         openChange(state);
       }}
     >
-      <DialogContent className="max-h-[70vh] h-full overflow-y-auto dialog:w-full @min-[440px]/dialog:w-[450px] @min-[600px]/dialog:w-[500px]">
+      <DialogContent className="max-h-[70vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="h-fit!">
             {isEdit
@@ -139,7 +139,7 @@ function AddElement({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <div className="grid grid-cols-1 @min-[440px]/dialog:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 @min-[440px]/dialog:grid-cols-2 gap-3 place-items-start">
             {/* Besoin */}
             <FormField
               control={form.control}

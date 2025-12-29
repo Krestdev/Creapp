@@ -659,7 +659,9 @@ export function PurchaseApprovalTable({ data }: Props) {
               ) : null}
             </DialogDescription>
           </DialogHeader>
-
+          {decisionType === "approve" && (
+            <p className="mb-2">{"Êtes-vous sûr de vouloir valider ce bon de commande ?"}<br/><span className="text-sm italic"><u>{"NB:"}</u>{" Cette action est irréversible"}</span></p>
+          )}
           {decisionType === "reject" && (
             <div className="grid gap-2">
               <Label>{"Motif (optionnel)"}</Label>
@@ -672,9 +674,6 @@ export function PurchaseApprovalTable({ data }: Props) {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDecisionOpen(false)} disabled={isDeciding}>
-              {"Annuler"}
-            </Button>
             <Button
               variant={decisionType === "approve" ? "accent" : "destructive"}
               onClick={confirmDecision}
@@ -682,6 +681,9 @@ export function PurchaseApprovalTable({ data }: Props) {
               disabled={!selectedValue || !canDecide(selectedValue.status as Status) || isDeciding}
             >
               {decisionType === "approve" ? "Approuver" : "Rejeter"}
+            </Button>
+            <Button variant="outline" onClick={() => setDecisionOpen(false)} disabled={isDeciding}>
+              {"Annuler"}
             </Button>
           </DialogFooter>
         </DialogContent>
