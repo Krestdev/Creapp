@@ -7,6 +7,7 @@ import ErrorPage from '@/components/error-page'
 import { PurchaseOrder } from '@/queries/purchase-order'
 import { useFetchQuery } from '@/hooks/useData'
 import LoadingPage from '@/components/loading-page'
+import { ApprovedTable } from './approved-table'
 
 function Page() {
   const { user } = useStore();
@@ -32,6 +33,7 @@ function Page() {
       <div className="content">
         <PageTitle title="Approbation" subtitle="Approbation des bons de commandes" color="blue"/>
         <PurchaseApprovalTable data={data.data.filter(c=> c.status === "IN-REVIEW" || c.status === "PENDING" )}/>
+        <ApprovedTable data={data.data.filter(c=>c.status === "APPROVED" || c.status === "REJECTED")}/>
       </div>
     )
   }
