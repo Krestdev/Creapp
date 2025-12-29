@@ -6,6 +6,7 @@ import { XAF } from '@/lib/utils';
 import { BonsCommande, User } from '@/types/types';
 import { VariantProps } from 'class-variance-authority';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { BriefcaseBusiness, Calendar, CalendarFold, CircleAlert, DollarSign, Hammer, LucideHash, Package, SquareUser, TriangleAlert, UserRound } from 'lucide-react';
 import React from 'react'
 
@@ -106,6 +107,7 @@ function ViewPurchase({open, openChange, purchaseOrder, users}:Props) {
                 <div>
                   <p>{"Statut"}</p>
                   <Badge variant={status(purchaseOrder.status).variant}>{status(purchaseOrder.status).label}</Badge>
+                  {purchaseOrder.motif && <p className='mt-1'>{purchaseOrder.motif}</p>}
                 </div>
               </div>
               <div className="view-group">
@@ -141,7 +143,7 @@ function ViewPurchase({open, openChange, purchaseOrder, users}:Props) {
                 </span>
                 <div>
                   <p>{"Date limite"}</p>
-                  <p className="font-semibold">{format(new Date(purchaseOrder.deliveryDelay), "dd LLLL yyyy")}</p>
+                  <p className="font-semibold">{format(new Date(purchaseOrder.deliveryDelay), "dd LLLL yyyy", {locale: fr})}</p>
                 </div>
               </div>
               <div className="view-group">
@@ -150,7 +152,7 @@ function ViewPurchase({open, openChange, purchaseOrder, users}:Props) {
                 </span>
                 <div>
                   <p>{"Créé le"}</p>
-                  <p className="font-semibold">{format(new Date(purchaseOrder.createdAt), "dd LLLL yyyy")}</p>
+                  <p className="font-semibold">{format(new Date(purchaseOrder.createdAt), "dd LLLL yyyy", {locale: fr})}</p>
                 </div>
               </div>
             </section>

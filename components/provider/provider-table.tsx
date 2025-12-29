@@ -330,7 +330,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedItem(provider);
@@ -442,13 +442,13 @@ export function ProviderTable({ data }: ProvidersTableProps) {
             <SelectValue placeholder="Tous les statuts" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="all">{"Tous les statuts"}</SelectItem>
             <SelectItem value="complet">
               <div className="flex items-center gap-2">
                 <Badge variant="success" className="h-4 w-4 p-0">
                   <Check className="h-3 w-3" />
                 </Badge>
-                Complet
+                {"Complet"}
               </div>
             </SelectItem>
             <SelectItem value="incomplet">
@@ -456,7 +456,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 <Badge variant="amber" className="h-4 w-4 p-0">
                   <AlertTriangle className="h-3 w-3" />
                 </Badge>
-                Incomplet
+                {"Incomplet"}
               </div>
             </SelectItem>
           </SelectContent>

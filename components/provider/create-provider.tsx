@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -59,6 +60,10 @@ export default function CreateProviderForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      email: "",
+      address: "",
+      name: "",
+      phone: "",
       carte_contribuable: [],
       acf: [],
       plan_localisation: [],
@@ -115,16 +120,16 @@ export default function CreateProviderForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2"
+        className="form-3xl"
       >
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nom (Entreprise)</FormLabel>
+              <FormLabel isRequired>{"Nom (Entreprise)"}</FormLabel>
               <FormControl className="w-full">
-                <Input placeholder="ex. John Doe" type="" {...field} />
+                <Input placeholder="ex. John Doe" {...field} />
               </FormControl>
 
               <FormMessage />
@@ -136,9 +141,9 @@ export default function CreateProviderForm() {
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Contact</FormLabel>
+              <FormLabel isRequired>{"Numéro de téléphone"}</FormLabel>
               <FormControl className="w-full">
-                <Input placeholder="ex. John Doe" type="" {...field} />
+                <Input placeholder="ex. 695 555 555" type="number" {...field} />
               </FormControl>
 
               <FormMessage />
@@ -151,11 +156,10 @@ export default function CreateProviderForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>E - mail</FormLabel>
+              <FormLabel isRequired>{"Adresse mail"}</FormLabel>
               <FormControl className="w-full">
                 <Input
                   placeholder="ex. johndoe@gemail.com"
-                  type=""
                   {...field}
                 />
               </FormControl>
@@ -170,9 +174,9 @@ export default function CreateProviderForm() {
           name="address"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Adresse</FormLabel>
+              <FormLabel isRequired>{"Adresse"}</FormLabel>
               <FormControl className="w-full">
-                <Input placeholder="ex. 123 Rue de la Paix" {...field} />
+                <Input placeholder="ex. Boulevard de la Liberté" {...field} />
               </FormControl>
 
               <FormMessage />
@@ -185,11 +189,10 @@ export default function CreateProviderForm() {
           name="RCCM"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>RCCM</FormLabel>
+              <FormLabel isRequired>{"RCCM"}</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="RC/234/456/..." {...field} />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}
@@ -200,11 +203,11 @@ export default function CreateProviderForm() {
           name="NIU"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>NIU</FormLabel>
+              <FormLabel isRequired>{"NIU"}</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="QA123..." {...field} />
               </FormControl>
-
+              <FormDescription>{"Numéro d'Identification Unique"}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -215,8 +218,8 @@ export default function CreateProviderForm() {
           name="regem"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel>
-                Régime <span className="text-red-500">*</span>
+              <FormLabel isRequired>
+                {"Régime"}
               </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>

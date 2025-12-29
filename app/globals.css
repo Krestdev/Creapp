@@ -181,6 +181,9 @@
   .view-icon {
     @apply size-10 rounded-full bg-gray-200 text-foreground flex items-center justify-center;
   }
+  .form-3xl {
+    @apply max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start;
+  }
 }
 
 /* scroll bar edit */
@@ -197,7 +200,7 @@
 
 ::-webkit-scrollbar-thumb {
   background: #9e1348; /* Tailwind: bg-gray-400 */
-  border-radius: 9999px; /* Fully rounded */
+  border-radius: 0px; /* Fully rounded */
 }
 
 ::-webkit-scrollbar-thumb:hover {

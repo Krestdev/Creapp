@@ -15,7 +15,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,6 +80,12 @@ function AppSidebar() {
     enabled: isHydrated,
   });
 
+  const [openSection, setOpenSection] = useState<string | null>(null);
+
+  const toggleSection = (sectionTitle: string) => {
+    setOpenSection((prev) => (prev === sectionTitle ? null : sectionTitle));
+  };
+
   const useHasUserAlreadyValidated = (
     categoryData: UseQueryResult<{ data: Category[] }, Error>
   ) => {
@@ -103,59 +109,85 @@ function AppSidebar() {
     );
   };
 
+  const isValidCategoryId = (id: number | null | undefined): id is number =>
+    id !== null && id !== undefined;
+
+  const isUserValidatorForCategory = (
+    categoryId: number | null | undefined,
+    userId: number,
+    categories: Category[]
+  ): boolean => {
+    if (!isValidCategoryId(categoryId)) return false;
+
+    const category = categories.find((c) => c.id === categoryId);
+    if (!category?.validators) return false;
+
+    return category.validators.some((v) => v.userId === userId);
+  };
+
+  const hasUserValidatedRequest = (
+    request: RequestModelT,
+    userId: number,
+    categories: Category[]
+  ): boolean => {
+    if (!isValidCategoryId(request.categoryId)) return false;
+
+    const category = categories.find((c) => c.id === request.categoryId);
+    if (!category?.validators || !request.revieweeList) return false;
+
+    const validator = category.validators.find((v) => v.userId === userId);
+    if (!validator) return false;
+
+    return request.revieweeList.some((r) => r.validatorId === validator.id);
+  };
+
+  const hasAllPreviousValidatorsApproved = (
+    request: RequestModelT,
+    userId: number,
+    categories: Category[]
+  ): boolean => {
+    if (!isValidCategoryId(request.categoryId)) return false;
+
+    const category = categories.find((c) => c.id === request.categoryId);
+    if (!category?.validators) return false;
+
+    const currentValidator = category.validators.find(
+      (v) => v.userId === userId
+    );
+    if (!currentValidator) return false;
+
+    // Rank 1 → toujours visible
+    if (currentValidator.rank === 1) return true;
+
+    const previousValidators = category.validators.filter(
+      (v) => v.rank < currentValidator.rank
+    );
+
+    if (previousValidators.length === 0) return true;
+
+    const validatedIds = request.revieweeList?.map((r) => r.validatorId) ?? [];
+
+    return previousValidators.every((v) => validatedIds.includes(v.id!));
+  };
+
   const usePendingData = (
     filteredData: RequestModelT[],
     user: User,
     categoryData: UseQueryResult<{ data: Category[] }, Error>
   ) => {
-    const hasUserAlreadyValidated = useHasUserAlreadyValidated(categoryData);
-
     return React.useMemo(() => {
       const categories = categoryData.data?.data;
       if (!categories) return [];
 
       return filteredData.filter((item) => {
-        // 1️⃣ Seulement les besoins en attente
-        if (item.state !== "pending") return false;
-
-        const category = categories.find((c) => c.id === item.categoryId);
-        if (!category || !category.validators?.length) return false;
-
-        // 2️⃣ Vérifier que l'utilisateur est validateur
-        const currentValidator = category.validators.find(
-          (v) => v.userId === user?.id
+        return (
+          item.state === "pending" &&
+          isUserValidatorForCategory(item.categoryId, user.id!, categories) &&
+          !hasUserValidatedRequest(item, user.id!, categories) &&
+          hasAllPreviousValidatorsApproved(item, user.id!, categories)
         );
-        if (!currentValidator) return false;
-
-        // 3️⃣ S'il a déjà validé → ne plus afficher
-        if (hasUserAlreadyValidated(item, user?.id!)) return false;
-
-        // 4️⃣ Trouver les validateurs précédents (rank inférieur)
-        const previousValidators = category.validators.filter(
-          (v) => v.rank < currentValidator.rank
-        );
-
-        // 5️⃣ Aucun validateur avant lui → OK (rank 1)
-        if (previousValidators.length === 0) return true;
-
-        // 6️⃣ IDs des validateurs précédents
-        const previousValidatorIds = previousValidators.map((v) => v.id);
-
-        // 7️⃣ Vérifier qu'ils ont TOUS validé
-        const validatedIds = item.revieweeList?.map((r) => r.validatorId) ?? [];
-
-        const allPreviousValidated = previousValidatorIds.every((id) =>
-          validatedIds.includes(id!)
-        );
-
-        return allPreviousValidated;
       });
-    }, [
-      filteredData,
-      user?.id,
-      categoryData.data?.data,
-      hasUserAlreadyValidated,
-    ]);
+    }, [filteredData, user.id, categoryData.data?.data]);
   };
 
   const useFilteredRequests = (
@@ -342,7 +374,7 @@ function AppSidebar() {
       pageId: "PG-04",
       icon: Ticket,
       href: "/tableau-de-bord/ticket",
-      authorized: ["ADMIN", "ACCOUNTING"],
+      authorized: ["ADMIN", "ACCOUNTING", "ACCOUNTING-MANAGER"],
       title: "Tickets",
       // items: [
       //   {
@@ -481,9 +513,14 @@ function AppSidebar() {
           <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
         </Link>
       </SidebarHeader>
-      <SidebarContent className="p-2 flex flex-col gap-02">
+      <SidebarContent className="p-2 flex flex-col gap-1.5">
         {filteredNavLinks.map((navLink) => (
-          <NavigationItem key={navLink.href} {...navLink} />
+          <NavigationItem
+            key={navLink.href}
+            {...navLink}
+            isOpen={openSection === navLink.title}
+            onToggle={() => toggleSection(navLink.title)}
+          />
         ))}
       </SidebarContent>
       <SidebarFooter className="px-0">

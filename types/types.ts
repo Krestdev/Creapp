@@ -285,7 +285,7 @@ export type TicketsData = {
   comptePayeur: string;
   montant: number;
   priorite: "low" | "medium" | "high" | "urgent";
-  state: "pending" | "paid" | "approved";
+  state: "gost " | "pending" | "paid" | "approved";
   createdAt: Date;
   updatedAt: Date;
 };
@@ -375,3 +375,12 @@ export type DateFilter =
   | "year"
   | "custom"
   | undefined;
+
+export type Reception = {
+  reference: string;
+  id: number;
+  commandId: number;
+  userId: number;
+  createdAt: Date;
+  updatedAt?: Date;
+};

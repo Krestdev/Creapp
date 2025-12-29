@@ -154,12 +154,9 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
     return Array.from(priorities);
   }, [data]);
 
-  // Valeur par défaut du filtre de statut
-  const defaultStatusFilter = isAdmin ? "pending" : "validated";
-
   // État pour suivre la valeur sélectionnée dans le Select
   const [selectedStatus, setSelectedStatus] =
-    React.useState<string>(defaultStatusFilter);
+    React.useState<string>("all");
 
   // État pour suivre la priorité sélectionnée dans le Select
   const [selectedPriority, setSelectedPriority] = React.useState<string>("all");
@@ -222,14 +219,14 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       ),
     },
     {
-      accessorKey: "bonDeCommande",
+      accessorKey: "title",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Bon de Commande"}
+            {"Titre"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         );
@@ -241,7 +238,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
         const bon = bons?.data?.find((item) => item.id === Number(commandId));
 
         // Afficher la référence ou l'ID
-        return <div>{bon ? bon.reference : commandId || "-"}</div>;
+        return <div>{row.getValue("title")}</div>;
       },
     },
     {
@@ -450,11 +447,6 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
     }
   }, [selectedPriority, table]);
 
-  // Initialiser le filtre de statut avec la valeur par défaut
-  React.useEffect(() => {
-    setSelectedStatus(defaultStatusFilter);
-  }, [defaultStatusFilter]);
-
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
@@ -492,7 +484,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="all">{"Tous les statuts"}</SelectItem>
             {uniqueStatuses.map((status) => {
               const config = statusConfig[status as keyof typeof statusConfig];
               return (
@@ -507,7 +499,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              {"Columns"}
+              {"Colonnes"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

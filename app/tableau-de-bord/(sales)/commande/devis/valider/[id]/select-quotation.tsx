@@ -20,6 +20,7 @@ import { toast } from "sonner";
 
 type SubmitPayload = Array<{
   deviId: number;
+  commandRequestId: number;
   elements: Array<{ name: string; elementIds: number[] }>;
 }>;
 
@@ -51,7 +52,7 @@ const buildSubmitPayload = (
       const already = existing.elements.some((e) => e.name === groupItem.name);
       if (!already) existing.elements.push(groupItem);
     } else {
-      byDevi.set(quote.id, { deviId: quote.id, elements: [groupItem] });
+      byDevi.set(quote.id, { deviId: quote.id, commandRequestId: quote.commandRequestId, elements: [groupItem] });
     }
   }
 
