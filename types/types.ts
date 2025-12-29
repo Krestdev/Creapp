@@ -139,9 +139,9 @@ export type RequestModelT = {
   categoryId?: number | null;
   category?: number | null;
   revieweeList?: Review[] | null;
-  proof?: (string | File)[] | null | undefined
-  type?: "SPECIAL" | "RH" | "FAC",
-  amount?: number
+  proof?: (string | File)[] | null | undefined;
+  type?: "SPECIAL" | "RH" | "FAC";
+  amount?: number;
 };
 
 export type TableData = {
@@ -356,7 +356,7 @@ export type BonsCommande = {
   paymentMethod: string;
   paymentTerms: string;
   deliveryDelay: Date;
-  motif?:string;
+  motif?: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -368,4 +368,10 @@ export interface NavLink {
   hide?: boolean;
 }
 
-export type DateFilter = "today" | "week" | "month" | "year" | "custom" | undefined;
+export type DateFilter =
+  | "today"
+  | "week"
+  | "month"
+  | "year"
+  | "custom"
+  | undefined;
