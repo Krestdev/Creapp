@@ -200,7 +200,7 @@
 
 ::-webkit-scrollbar-thumb {
   background: #9e1348; /* Tailwind: bg-gray-400 */
-  border-radius: 9999px; /* Fully rounded */
+  border-radius: 0px; /* Fully rounded */
 }
 
 ::-webkit-scrollbar-thumb:hover {
