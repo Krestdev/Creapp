@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
-import { Reception } from "@/app/tableau-de-bord/(sales)/commande/receptions/page";
+import { Reception } from "@/app/tableau-de-bord/(sales)/commande/bon-de-commande/receptions/page";
 import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

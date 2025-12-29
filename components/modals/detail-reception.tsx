@@ -1,4 +1,4 @@
-import { Reception } from "@/app/tableau-de-bord/(sales)/commande/receptions/page";
+import { Reception } from "@/app/tableau-de-bord/(sales)/commande/bon-de-commande/receptions/page";
 import {
   Dialog,
   DialogContent,

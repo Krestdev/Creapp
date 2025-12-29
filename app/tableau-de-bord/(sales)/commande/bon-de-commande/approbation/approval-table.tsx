@@ -28,6 +28,14 @@ import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -60,25 +68,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
+import { Textarea } from "@/components/ui/textarea";
 import { formatToShortName, XAF } from "@/lib/utils";
+import { PurchaseOrder } from "@/queries/purchase-order";
 import {
   BonsCommande,
   PURCHASE_ORDER_PRIORITIES,
   PURCHASE_ORDER_STATUS,
 } from "@/types/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { PurchaseOrder } from "@/queries/purchase-order";
 import ViewPurchase from "../viewPurchase";
 
 interface Props {
@@ -174,7 +175,7 @@ export function PurchaseApprovalTable({ data }: Props) {
     },
     onSuccess: () => {
       toast.success("Bon de commande approuvé ✅");
-      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"], refetchType: "active" });
       setDecisionOpen(false);
     },
     onError: (e: any) => toast.error(e?.message ?? "Impossible d'approuver"),
@@ -188,7 +189,7 @@ export function PurchaseApprovalTable({ data }: Props) {
     },
     onSuccess: () => {
       toast.success("Bon de commande rejeté ❌");
-      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"], refetchType: "active" });
       setDecisionOpen(false);
       setRejectReason("");
     },
@@ -381,7 +382,7 @@ export function PurchaseApprovalTable({ data }: Props) {
                 className="cursor-pointer"
                 onClick={() => openDecision(item, "approve")}
               >
-                <CheckCircle2 />
+                <CheckCircle2 className="text-green-600"/>
                 {"Approuver"}
               </DropdownMenuItem>
 
@@ -390,7 +391,7 @@ export function PurchaseApprovalTable({ data }: Props) {
                 className="cursor-pointer text-destructive focus:text-destructive"
                 onClick={() => openDecision(item, "reject")}
               >
-                <XCircle />
+                <XCircle className="text-destructive"/>
                 {"Rejeter"}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -662,7 +663,7 @@ export function PurchaseApprovalTable({ data }: Props) {
           {decisionType === "reject" && (
             <div className="grid gap-2">
               <Label>{"Motif (optionnel)"}</Label>
-              <Input
+              <Textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="Ex: montant incorrect, pièce manquante..."

@@ -26,13 +26,13 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { paymentMethods } from "@/data/payment-methods";
 import { useFetchQuery } from "@/hooks/useData";
-import { formatToShortName } from "@/lib/utils";
+import { formatToShortName, isProviderValid } from "@/lib/utils";
 import { ProviderQueries } from "@/queries/providers";
 import { CreatePurchasePayload, PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
 import { PENALITY_MODE, PURCHASE_ORDER_PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
@@ -93,6 +93,7 @@ function CreateForm() {
   const quotationQuery = new QuotationQueries();
   const providerQuery = new ProviderQueries();
   const purchaseOrderQuery = new PurchaseOrder();
+  const queryClient = useQueryClient();
 
   const getQuotations = useFetchQuery(["quotations"],quotationQuery.getAll);
   const getProviders = useFetchQuery(["providers"],providerQuery.getAll);
@@ -126,6 +127,10 @@ function CreateForm() {
       penaltyMode: "",
       paymentMethod: "",
     });
+    queryClient.invalidateQueries({
+        queryKey: ["purchaseOrders"],
+        refetchType: "active",
+      });
       
     },
     onError: (error:Error)=>{
@@ -142,6 +147,13 @@ function CreateForm() {
     toast.error("Devis introuvable");
     return;
   }
+   const provider = getProviders.data?.data.find((p)=> p.id === quotation.providerId);
+   const result = provider ? isProviderValid(provider) : false;
+
+   if(!result){
+    toast.error("Fournisseur Invalide ! Veuillez compléter les informations relatives au fournisseurs");
+    return;
+   }
 
   const ids = quotation?.commandRequest.besoins.map(b=> b.id);
 
@@ -169,7 +181,7 @@ const penalty = form.watch("hasPenalties");
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-3xl grid grid-cols-1 gap-4 @min-[560px]:grid-cols-2"
+        className="form-3xl"
       >
         <FormField
           control={form.control}
@@ -289,7 +301,7 @@ const penalty = form.watch("hasPenalties");
                         captionLayout="dropdown"
                         onSelect={(date) => {
                           if (!date) return;
-                          const value = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+                          const value = format(date, "yyyy-MM-dd");
                           field.onChange(value);
                           setSelectDate(false);
                         }}
