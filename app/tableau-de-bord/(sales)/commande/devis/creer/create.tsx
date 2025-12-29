@@ -265,7 +265,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
           name="providerId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>Fournisseur</FormLabel>
+              <FormLabel isRequired>{"Fournisseur"}</FormLabel>
 
               <FormControl>
                 <Select

@@ -32,7 +32,7 @@ import { CreatePurchasePayload, PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
 import { PENALITY_MODE, PURCHASE_ORDER_PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
@@ -93,6 +93,7 @@ function CreateForm() {
   const quotationQuery = new QuotationQueries();
   const providerQuery = new ProviderQueries();
   const purchaseOrderQuery = new PurchaseOrder();
+  const queryClient = useQueryClient();
 
   const getQuotations = useFetchQuery(["quotations"],quotationQuery.getAll);
   const getProviders = useFetchQuery(["providers"],providerQuery.getAll);
@@ -126,6 +127,10 @@ function CreateForm() {
       penaltyMode: "",
       paymentMethod: "",
     });
+    queryClient.invalidateQueries({
+        queryKey: ["purchaseOrders"],
+        refetchType: "active",
+      });
       
     },
     onError: (error:Error)=>{
@@ -176,7 +181,7 @@ const penalty = form.watch("hasPenalties");
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-3xl grid grid-cols-1 gap-4 @min-[560px]:grid-cols-2"
+        className="form-3xl"
       >
         <FormField
           control={form.control}
