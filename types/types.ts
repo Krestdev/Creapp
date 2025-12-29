@@ -285,7 +285,7 @@ export type TicketsData = {
   comptePayeur: string;
   montant: number;
   priorite: "low" | "medium" | "high" | "urgent";
-  state: "pending" | "paid" | "approved";
+  state: "gost " | "pending" | "paid" | "approved";
   createdAt: Date;
   updatedAt: Date;
 };

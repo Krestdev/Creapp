@@ -219,14 +219,14 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
       ),
     },
     {
-      accessorKey: "bonDeCommande",
+      accessorKey: "title",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Bon de Commande"}
+            {"Titre"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         );
@@ -238,7 +238,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
         const bon = bons?.data?.find((item) => item.id === Number(commandId));
 
         // Afficher la référence ou l'ID
-        return <div>{bon ? bon.reference : commandId || "-"}</div>;
+        return <div>{row.getValue("title")}</div>;
       },
     },
     {
@@ -499,7 +499,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              {"Columns"}
+              {"Colonnes"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
