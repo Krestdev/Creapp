@@ -94,49 +94,6 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
 
   const columns = React.useMemo<ColumnDef<Category>[]>(
     () => [
-      // {
-      //   id: "select",
-      //   header: ({ table }) => (
-      //     <Checkbox
-      //       checked={
-      //         table.getIsAllPageRowsSelected() ||
-      //         (table.getIsSomePageRowsSelected() && "indeterminate")
-      //       }
-      //       onCheckedChange={(value) =>
-      //         table.toggleAllPageRowsSelected(!!value)
-      //       }
-      //       aria-label="Select all"
-      //     />
-      //   ),
-      //   cell: ({ row }) => (
-      //     <Checkbox
-      //       checked={row.getIsSelected()}
-      //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-      //       aria-label="Select row"
-      //     />
-      //   ),
-      //   enableSorting: false,
-      //   enableHiding: false,
-      // },
-      // {
-      //   accessorKey: "reference",
-      //   header: ({ column }) => {
-      //     return (
-      //       <Button
-      //         variant="ghost"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         Référence
-      //         <ArrowUpDown className="ml-2 h-4 w-4" />
-      //       </Button>
-      //     );
-      //   },
-      //   cell: ({ row }) => (
-      //     <div className="font-medium">{row.getValue("reference")}</div>
-      //   ),
-      // },
       {
         accessorKey: "label",
         header: ({ column }) => {
@@ -156,15 +113,6 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
           <div className="font-medium">{row.getValue("label")}</div>
         ),
       },
-      // {
-      //   accessorKey: "description",
-      //   header: "Description",
-      //   cell: ({ row }) => (
-      //     <div className="max-w-[300px] truncate">
-      //       {row.getValue("description")}
-      //     </div>
-      //   ),
-      // },
       {
         accessorKey: "description",
         header: ({ column }) => {

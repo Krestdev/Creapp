@@ -78,8 +78,6 @@ export function UpdateCategory({
   onSuccess,
 }: UpdateCategoryProps) {
 
-  
-  console.log(categoryData?.id);
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -121,13 +119,6 @@ export function UpdateCategory({
       });
     }
   }, [categoryData, form]);
-
-  console.log(
-    categoryData?.validators?.map((validator) => ({
-      userId: validator.userId,
-      rank: validator.rank,
-    })) || []
-  );
 
   const categoryApi = useMutation({
     mutationKey: ["updateCategory"],

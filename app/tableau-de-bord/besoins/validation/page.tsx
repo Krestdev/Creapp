@@ -31,7 +31,7 @@ const Page = () => {
       {/* page title */}
       <PageTitle
         title="Validation des besoins"
-        subtitle="Soumettez ou rejetez les besoins."
+        subtitle="Approuvez ou rejetez les besoins."
         color="green"
       />
       <Approb 
