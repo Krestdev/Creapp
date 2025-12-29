@@ -15,7 +15,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,6 +79,12 @@ function AppSidebar() {
     },
     enabled: isHydrated,
   });
+
+  const [openSection, setOpenSection] = useState<string | null>(null);
+
+  const toggleSection = (sectionTitle: string) => {
+    setOpenSection((prev) => (prev === sectionTitle ? null : sectionTitle));
+  };
 
   const useHasUserAlreadyValidated = (
     categoryData: UseQueryResult<{ data: Category[] }, Error>
@@ -507,9 +513,14 @@ function AppSidebar() {
           <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
         </Link>
       </SidebarHeader>
-      <SidebarContent className="p-2 flex flex-col gap-02">
+      <SidebarContent className="p-2 flex flex-col gap-1.5">
         {filteredNavLinks.map((navLink) => (
-          <NavigationItem key={navLink.href} {...navLink} />
+          <NavigationItem
+            key={navLink.href}
+            {...navLink}
+            isOpen={openSection === navLink.title}
+            onToggle={() => toggleSection(navLink.title)}
+          />
         ))}
       </SidebarContent>
       <SidebarFooter className="px-0">
