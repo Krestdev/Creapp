@@ -852,9 +852,7 @@ export function DataVal({
         const item = row.original;
         const validationInfo = getValidationInfo(item);
         const userHasValidated = hasUserAlreadyValidated(item);
-
-        console.log(item);
-
+        
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -872,7 +870,7 @@ export function DataVal({
                 }}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                Voir les détails
+                {"Voir les détails"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -910,7 +908,7 @@ export function DataVal({
                 }
               >
                 <LucideBan className="text-red-500 mr-2 h-4 w-4" />
-                Rejeter
+                {"Rejeter"}
                 {validationInfo.isLastValidator}
               </DropdownMenuItem>
             </DropdownMenuContent>

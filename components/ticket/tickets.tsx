@@ -8,7 +8,7 @@ interface Props {
 }
 
 const Tickets = ({ ticketsData }: Props) => {
-  const approved = ticketsData.filter((ticket) => ticket.status !== "pending");
+  const approved = ticketsData.filter((ticket) => ticket.status === "validated");
   const { user } = useStore();
 
   return (
@@ -17,12 +17,12 @@ const Tickets = ({ ticketsData }: Props) => {
         <div className="flex justify-between">
           <h2>{"Tickets"}</h2>
         </div>
-        {/* {user?.role.flatMap((x) => x.label).includes("MANAGER") ? (
-          <TicketsTable data={approved} isAdmin={false} />
-        ) : (
+        {user?.role.flatMap((x) => x.label).includes("MANAGER") ? (
           <TicketsTable data={ticketsData} isAdmin={true} />
-        )} */}
-        <TicketsTable data={ticketsData} isAdmin={true} />
+        ) : (
+          <TicketsTable data={approved} isAdmin={false} />
+        )}
+        {/* <TicketsTable data={ticketsData} isAdmin={true} /> */}
       </div>
     </div>
   );

@@ -12,8 +12,9 @@ const CategoriesPage = () => {
     queryFn: () => category.getCategories(),
     enabled: isHydrated,
   });
-  
-  if (categoryData.data)
+
+  if (categoryData.data) {
+    console.log(categoryData.data.data);
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
@@ -21,6 +22,7 @@ const CategoriesPage = () => {
         </div>
       </div>
     );
+  }
 };
 
 export default CategoriesPage;
