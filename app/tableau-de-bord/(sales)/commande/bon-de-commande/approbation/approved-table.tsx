@@ -1,25 +1,23 @@
 "use client";
 
 import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+    type ColumnDef,
+    type ColumnFiltersState,
+    type SortingState,
+    type VisibilityState,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
 import {
-  ArrowUpDown,
-  CheckCircle2,
-  ChevronDown,
-  Eye,
-  Settings2,
-  XCircle,
+    ArrowUpDown,
+    ChevronDown,
+    Eye,
+    Settings2
 } from "lucide-react";
 import * as React from "react";
 
@@ -28,58 +26,46 @@ import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
 } from "@/components/ui/sheet";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 
-import { Textarea } from "@/components/ui/textarea";
 import { formatToShortName, XAF } from "@/lib/utils";
-import { PurchaseOrder } from "@/queries/purchase-order";
 import {
-  BonsCommande,
-  PURCHASE_ORDER_PRIORITIES,
-  PURCHASE_ORDER_STATUS,
+    BonsCommande,
+    PURCHASE_ORDER_PRIORITIES,
+    PURCHASE_ORDER_STATUS,
 } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { toast } from "sonner";
 import ViewPurchase from "../viewPurchase";
 
 interface Props {
@@ -123,11 +109,7 @@ const getPriorityLabel = (
   }
 };
 
-const canDecide = (status: Status) => status === "PENDING" || status === "IN-REVIEW";
-
-export function PurchaseApprovalTable({ data }: Props) {
-  const purchaseOrderQuery = React.useMemo(() => new PurchaseOrder(), []);
-  const queryClient = useQueryClient();
+export function ApprovedTable({ data }: Props) {
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -136,6 +118,7 @@ export function PurchaseApprovalTable({ data }: Props) {
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   // filtres
+  const [statusFilter, setStatusFilter] = React.useState<"all" | Status>("all");
   const [priorityFilter, setPriorityFilter] = React.useState<"all" | Priority>("all");
   const [penaltyFilter, setPenaltyFilter] = React.useState<"all" | "yes" | "no">("all");
 
@@ -143,15 +126,11 @@ export function PurchaseApprovalTable({ data }: Props) {
   const [view, setView] = React.useState(false);
   const [selectedValue, setSelectedValue] = React.useState<BonsCommande>();
 
-  const [decisionOpen, setDecisionOpen] = React.useState(false);
-  const [decisionType, setDecisionType] = React.useState<"approve" | "reject">("approve");
-
-  // optionnel : reason pour rejet
-  const [rejectReason, setRejectReason] = React.useState("");
 
   const filteredData = React.useMemo(() => {
     let filtered = [...(data ?? [])];
 
+    if (statusFilter !== "all") filtered = filtered.filter((po) => po.status === statusFilter);
     if (priorityFilter !== "all") filtered = filtered.filter((po) => po.priority === priorityFilter);
 
     if (penaltyFilter !== "all") {
@@ -162,54 +141,8 @@ export function PurchaseApprovalTable({ data }: Props) {
     }
 
     return filtered;
-  }, [data, priorityFilter, penaltyFilter]);
+  }, [data, priorityFilter, statusFilter, penaltyFilter]);
 
-  const approveMutation = useMutation({
-    mutationFn: async (id: number) => {
-      // ✅ adapte selon ton query class
-      // ex: return purchaseOrderQuery.approve(id);
-      return purchaseOrderQuery.approve(id);
-    },
-    onSuccess: () => {
-      toast.success("Bon de commande approuvé ✅");
-      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"], refetchType: "active" });
-      setDecisionOpen(false);
-    },
-    onError: (e: any) => toast.error(e?.message ?? "Impossible d'approuver"),
-  });
-
-  const rejectMutation = useMutation({
-    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
-      // ✅ adapte selon ton query class
-      // ex: return purchaseOrderQuery.reject(id, reason);
-      return purchaseOrderQuery.reject(id, reason);
-    },
-    onSuccess: () => {
-      toast.success("Bon de commande rejeté ❌");
-      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"], refetchType: "active" });
-      setDecisionOpen(false);
-      setRejectReason("");
-    },
-    onError: (e: any) => toast.error(e?.message ?? "Impossible de rejeter"),
-  });
-
-  const openDecision = (po: BonsCommande, type: "approve" | "reject") => {
-    setSelectedValue(po);
-    setDecisionType(type);
-    setDecisionOpen(true);
-  };
-
-  const confirmDecision = () => {
-    if (!selectedValue) return;
-    if (!canDecide(selectedValue.status as Status)) return;
-
-    if (decisionType === "approve") {
-      approveMutation.mutate(selectedValue.id);
-      return;
-    }
-
-    rejectMutation.mutate({ id: selectedValue.id, reason: rejectReason});
-  };
 
   const columns: ColumnDef<BonsCommande>[] = [
     {
@@ -355,8 +288,6 @@ export function PurchaseApprovalTable({ data }: Props) {
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
-        const decidable = canDecide(item.status as Status);
-
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -372,24 +303,6 @@ export function PurchaseApprovalTable({ data }: Props) {
               <DropdownMenuItem className="cursor-pointer" onClick={() => { setSelectedValue(item); setView(true); }}>
                 <Eye />
                 {"Voir"}
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                disabled={!decidable}
-                className="cursor-pointer"
-                onClick={() => openDecision(item, "approve")}
-              >
-                <CheckCircle2 className="text-green-600"/>
-                {"Approuver"}
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                disabled={!decidable}
-                className="cursor-pointer text-destructive focus:text-destructive"
-                onClick={() => openDecision(item, "reject")}
-              >
-                <XCircle className="text-destructive"/>
-                {"Rejeter"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -449,10 +362,9 @@ export function PurchaseApprovalTable({ data }: Props) {
     table.resetColumnFilters();
   };
 
-  const isDeciding = approveMutation.isPending || rejectMutation.isPending;
-
   return (
     <div className="w-full space-y-4">
+        <h3>{`Bons de commandes traités (${data.length})`}</h3>
       {/* BARRE DE FILTRES */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -481,6 +393,22 @@ export function PurchaseApprovalTable({ data }: Props) {
                     onChange={(e) => setGlobalFilter(e.target.value)}
                   />
                 </div>
+                <div className="space-y-3">
+                                  <Label>{"Statut"}</Label>
+                                  <Select value={statusFilter} onValueChange={(v: "all" | Status) => setStatusFilter(v)}>
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Tous les statuts" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="all">{"Tous"}</SelectItem>
+                                      {PURCHASE_ORDER_STATUS.filter(o=>o.value === "REJECTED" || o.value==="APPROVED").map((s) => (
+                                        <SelectItem key={s.value} value={s.value}>
+                                          {s.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                 <div className="space-y-3">
                   <Label>{"Priorité"}</Label>
                   <Select value={priorityFilter} onValueChange={(v: "all" | Priority) => setPriorityFilter(v)}>
@@ -620,52 +548,6 @@ export function PurchaseApprovalTable({ data }: Props) {
           users={[]}
         />
       )}
-
-      {/* CONFIRM DECISION */}
-      <Dialog open={decisionOpen} onOpenChange={setDecisionOpen}>
-        <DialogContent>
-          <DialogHeader variant={decisionType === "approve" ? "success" : "error"}>
-            <DialogTitle>
-              {decisionType === "approve" ? "Approuver le bon de commande ?" : "Rejeter le bon de commande ?"}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedValue ? (
-                <>
-                  {`Référence: ${selectedValue.reference} — `}
-                  <span className="font-medium">{selectedValue.devi?.commandRequest?.title ?? "-"}</span>
-                </>
-              ) : null}
-            </DialogDescription>
-          </DialogHeader>
-          {decisionType === "approve" && (
-            <p className="mb-2">{"Êtes-vous sûr de vouloir valider ce bon de commande ?"}<br/><span className="text-sm italic"><u>{"NB:"}</u>{" Cette action est irréversible"}</span></p>
-          )}
-          {decisionType === "reject" && (
-            <div className="grid gap-2">
-              <Label>{"Motif (optionnel)"}</Label>
-              <Textarea
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Ex: montant incorrect, pièce manquante..."
-              />
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              variant={decisionType === "approve" ? "accent" : "destructive"}
-              onClick={confirmDecision}
-              isLoading={isDeciding}
-              disabled={!selectedValue || !canDecide(selectedValue.status as Status) || isDeciding}
-            >
-              {decisionType === "approve" ? "Approuver" : "Rejeter"}
-            </Button>
-            <Button variant="outline" onClick={() => setDecisionOpen(false)} disabled={isDeciding}>
-              {"Annuler"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
