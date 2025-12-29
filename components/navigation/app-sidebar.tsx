@@ -368,7 +368,7 @@ function AppSidebar() {
       pageId: "PG-04",
       icon: Ticket,
       href: "/tableau-de-bord/ticket",
-      authorized: ["ADMIN", "ACCOUNTING"],
+      authorized: ["ADMIN", "ACCOUNTING", "ACCOUNTING-MANAGER"],
       title: "Tickets",
       // items: [
       //   {
