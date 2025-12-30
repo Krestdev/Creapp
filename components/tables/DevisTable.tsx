@@ -18,7 +18,7 @@ import {
   Eye,
   LucidePen,
   Settings2,
-  Trash
+  Trash,
 } from "lucide-react";
 import * as React from "react";
 
@@ -57,7 +57,7 @@ import {
   Provider,
   Quotation,
   QuotationElement,
-  QuotationStatus
+  QuotationStatus,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -65,7 +65,11 @@ import { Pagination } from "../base/pagination";
 import { DevisModal } from "../modals/DevisModal";
 import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
 import { Label } from "../ui/label";
 import {
   Sheet,
@@ -75,6 +79,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
+import { SearchableSelect } from "../base/searchableSelect";
 
 interface DevisTableProps {
   data: Quotation[] | undefined;
@@ -82,11 +87,7 @@ interface DevisTableProps {
   commands: Array<CommandRequestT>;
 }
 
-export function DevisTable({
-  data,
-  providers,
-  commands,
-}: DevisTableProps) {
+export function DevisTable({ data, providers, commands }: DevisTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -106,8 +107,9 @@ export function DevisTable({
 
   // modal specific states
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-  const [customDateRange, setCustomDateRange] = React.useState<{ from: Date; to: Date } | undefined>();
-  const [viewPeriod, setViewPeriod] = React.useState<boolean>(false); //Period Filter
+  const [customDateRange, setCustomDateRange] = React.useState<
+    { from: Date; to: Date } | undefined
+  >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [toCancel, setToCancel] = React.useState(false);
@@ -122,6 +124,7 @@ export function DevisTable({
   // États pour le modal personnalisé
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
     React.useState(false);
+  
   const getProviderName = (providerId: number) => {
     const provider = providers.find((p) => p.id === providerId);
     return provider ? provider.name : "Inconnu";
@@ -156,13 +159,31 @@ export function DevisTable({
       case "PENDING":
         return { label: "En attente", variant: "amber" };
       case "APPROVED":
-        return { label: "Approuvé", variant: "success" };
+        return { label: "Traité", variant: "success" };
       case "REJECTED":
         return { label: "Rejeté", variant: "destructive" };
       case "SUBMITTED":
-        return { label: "Approuvé", variant: "primary" };
+        return { label: "Traité", variant: "primary" };
       default:
         return { label: "Inconnu", variant: "outline" };
+    }
+  };
+
+  // Gérer le changement de filtre par référence
+  const handleCommandRefFilterChange = (value: string) => {
+    setCommandRefFilter(value);
+    // Si une référence est sélectionnée, réinitialiser le filtre par titre
+    if (value !== "all") {
+      setCommandFilter("all");
+    }
+  };
+
+  // Gérer le changement de filtre par titre
+  const handleCommandFilterChange = (value: string) => {
+    setCommandFilter(value);
+    // Si un titre est sélectionné, réinitialiser le filtre par référence
+    if (value !== "all") {
+      setCommandRefFilter("all");
     }
   };
 
@@ -221,7 +242,7 @@ export function DevisTable({
       filtered = filtered.filter((item) => item.providerId === providerId);
     }
 
-    // Filtre par commande
+    // Filtre par commande (titre)
     if (commandFilter !== "all") {
       const commandId = parseInt(commandFilter);
       filtered = filtered.filter((item) => item.commandRequestId === commandId);
@@ -244,10 +265,11 @@ export function DevisTable({
       });
     }
 
-    // Filtre par référence de commande
+    // Filtre par référence de commande - CORRECTION ICI
     if (commandRefFilter !== "all") {
       filtered = filtered.filter((item) => {
         const commandRef = getQuotationRef(item.commandRequestId);
+        // Comparaison exacte des références
         return commandRef === commandRefFilter;
       });
     }
@@ -260,8 +282,8 @@ export function DevisTable({
     providerFilter,
     commandFilter,
     montantFilter,
+    commandRefFilter, // AJOUTÉ: Inclure commandRefFilter dans les dépendances
   ]);
-
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -374,7 +396,7 @@ export function DevisTable({
       cell: ({ row }) => {
         const value = row.getValue("status") as QuotationStatus;
         const { label, variant } = getStatusLabel(value);
-        return <Badge variant={variant}>{label}</Badge>; //here!
+        return <Badge variant={variant}>{label}</Badge>;
       },
     },
     {
@@ -431,7 +453,9 @@ export function DevisTable({
                   setSelectedDevis(item);
                   setIsUpdateModalOpen(true);
                 }}
-                disabled={item.status === "APPROVED" || item.status === "REJECTED"}
+                disabled={
+                  item.status === "APPROVED" || item.status === "REJECTED"
+                }
               >
                 <LucidePen />
                 {"Modifier"}
@@ -442,7 +466,9 @@ export function DevisTable({
                   setSelectedDevis(item);
                   setToCancel(true);
                 }}
-                disabled={item.status === "APPROVED" || item.status === "REJECTED"}
+                disabled={
+                  item.status === "APPROVED" || item.status === "REJECTED"
+                }
               >
                 <Trash />
                 {"Annuler"}
@@ -552,30 +578,25 @@ export function DevisTable({
               {/* Filtre par référence de commande */}
               <div className="grid gap-1.5">
                 <Label>{"Référence de commande"}</Label>
-                <Select
+                <SearchableSelect
                   value={commandRefFilter}
-                  onValueChange={setCommandRefFilter}
-                >
-                  <SelectTrigger className="min-w-40 w-full">
-                    <SelectValue placeholder="Toutes les références" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">
-                      {"Toutes les références"}
-                    </SelectItem>
-                    {commands.map((command) => (
-                      <SelectItem key={command.id} value={command.reference}>
-                        {command.reference}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={handleCommandRefFilterChange}
+                  options={commands.map((command) => ({
+                    value: command.reference,
+                    label: command.reference,
+                  }))}
+                  width="w-full"    
+                />
               </div>
 
               {/* Filtre par demande de cotation */}
               <div className="grid gap-1.5">
                 <Label>{"Demande de cotation"}</Label>
-                <Select value={commandFilter} onValueChange={setCommandFilter}>
+                <Select 
+                  value={commandFilter} 
+                  onValueChange={handleCommandFilterChange}
+                  disabled={commandRefFilter !== "all"}
+                >
                   <SelectTrigger className="min-w-40 w-full">
                     <SelectValue placeholder="Toutes les demandes" />
                   </SelectTrigger>
@@ -619,31 +640,46 @@ export function DevisTable({
               {/* Filtre par période */}
               <div className="grid gap-1.5">
                 <Label>{"Période"}</Label>
-                <Select onValueChange={(v)=>{
-                  if(v !== "custom") {setCustomDateRange(undefined); setCustomOpen(false)};
-                  if (v === "all") return setDateFilter(undefined);
-                  setDateFilter(v as Exclude<DateFilter, undefined>)
-                  setCustomOpen(v==="custom")
-                  }}>
+                <Select
+                  onValueChange={(v) => {
+                    if (v !== "custom") {
+                      setCustomDateRange(undefined);
+                      setCustomOpen(false);
+                    }
+                    if (v === "all") return setDateFilter(undefined);
+                    setDateFilter(v as Exclude<DateFilter, undefined>);
+                    setCustomOpen(v === "custom");
+                  }}
+                >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période"/>
+                    <SelectValue placeholder="Sélectionner une période" />
                   </SelectTrigger>
-                   <SelectContent>
+                  <SelectContent>
                     <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
-                    <SelectItem value="today">{"Aujourd’hui"}</SelectItem>
+                    <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
                     <SelectItem value="week">{"Cette semaine"}</SelectItem>
                     <SelectItem value="month">{"Ce mois"}</SelectItem>
                     <SelectItem value="year">{"Cette année"}</SelectItem>
                     <SelectItem value="custom">{"Personnalisé"}</SelectItem>
                   </SelectContent>
                 </Select>
-                <Collapsible open={customOpen} onOpenChange={setCustomOpen} disabled={dateFilter !== "custom"}>
+                <Collapsible
+                  open={customOpen}
+                  onOpenChange={setCustomOpen}
+                  disabled={dateFilter !== "custom"}
+                >
                   <CollapsibleTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
                       {"Plage personnalisée"}
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
-                          ? `${format(customDateRange.from, "dd/MM/yyyy")} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                          ? `${format(
+                              customDateRange.from,
+                              "dd/MM/yyyy"
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -660,10 +696,23 @@ export function DevisTable({
                       className="rounded-md border w-full"
                     />
                     <div className="space-y-1">
-                      <Button className="w-full" onClick={()=>{setCustomDateRange(undefined);setDateFilter(undefined);setCustomOpen(false)}}>
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          setCustomDateRange(undefined);
+                          setDateFilter(undefined);
+                          setCustomOpen(false);
+                        }}
+                      >
                         {"Annuler"}
                       </Button>
-                      <Button className="w-full" variant={"outline"} onClick={()=>{setCustomOpen(false)}}>
+                      <Button
+                        className="w-full"
+                        variant={"outline"}
+                        onClick={() => {
+                          setCustomOpen(false);
+                        }}
+                      >
                         {"Réduire"}
                       </Button>
                     </div>

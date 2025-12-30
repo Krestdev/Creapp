@@ -48,7 +48,7 @@ import {
 } from "@/components/ui/table";
 
 import { useFetchQuery } from "@/hooks/useData";
-import { formatToShortName, XAF } from "@/lib/utils";
+import { formatToShortName, totalAmountPurchase, XAF } from "@/lib/utils";
 import { UserQueries } from "@/queries/baseModule";
 import { BonsCommande, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
 import { format } from "date-fns";
@@ -210,19 +210,19 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
     },
 
     {
-      accessorKey: "amountBase",
+      accessorKey: "amount",
       header: ({ column }) => (
         <span
           className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Montant"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) => {
         const base = row.original;
-        return <div className="font-medium">{XAF.format(base.devi.element.reduce((total, el)=> total + el.priceProposed*el.quantity, 0))}</div>;
+        return <div className="font-medium">{XAF.format(totalAmountPurchase(base))}</div>;
       },
     },
 

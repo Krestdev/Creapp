@@ -6,6 +6,7 @@ import { RequestQueries } from "@/queries/requestModule";
 import { Category, RequestModelT, User } from "@/types/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
+  Bell,
   BriefcaseBusiness,
   ClipboardList,
   EllipsisVertical,
@@ -29,6 +30,10 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { useFetchQuery } from "@/hooks/useData";
+import { QuotationQueries } from "@/queries/quotation";
+import { PurchaseOrder } from "@/queries/purchase-order";
 
 type ItemSide = {
   pageId: string;
@@ -51,22 +56,39 @@ function AppSidebar() {
 
   const request = new RequestQueries();
   const category = new CategoryQueries();
-  const userQueries = new UserQueries();
+  const command = new CommandRqstQueries();
+  const quotationQuery = new QuotationQueries();
+  const purchaseOrderQuery = new PurchaseOrder();
+
+  const { data: cotation } = useFetchQuery(["commands"], command.getAll);
+  const { data: quotationsData } = useFetchQuery(
+    ["quotations"],
+    quotationQuery.getAll
+  );
+
+  const getPurchases = useFetchQuery(
+    ["purchaseOrders"],
+    purchaseOrderQuery.getAll
+  );
+
+  const newCotation = cotation?.data.filter(
+    (w) =>
+      !quotationsData?.data
+        .filter((c) => c.status === "APPROVED")
+        .some((d) => d.commandRequestId === w.id)
+  );
+
+  const newDevis = quotationsData?.data.filter(
+    (c) =>
+      c.status === "APPROVED" &&
+      !getPurchases.data?.data.some((a) => a.deviId === c.id)
+  );
 
   // Récupérer toutes les catégories avec leurs validateurs
   const categoriesData = useQuery({
-    queryKey: ["categories-with-validators"],
+    queryKey: ["categoryList"],
     queryFn: async () => {
       return category.getCategories();
-    },
-    enabled: isHydrated,
-  });
-
-  // Récupérer tous les utilisateurs
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      return userQueries.getAll();
     },
     enabled: isHydrated,
   });
@@ -82,31 +104,20 @@ function AppSidebar() {
 
   const [openSection, setOpenSection] = useState<string | null>(null);
 
+  // Récupérer tous les IDs des besoins présents dans les cotations
+  const besoinsDansCotation =
+    cotation?.data.flatMap((item) => item.besoins.map((b) => b.id)) ?? [];
+
+  // Filtrer les besoins validés qui ne sont pas dans une cotation
+  const besoinVal = requestData.data?.data.filter(
+    (x) =>
+      x.categoryId !== 0 &&
+      x.state === "validated" &&
+      !besoinsDansCotation.includes(x.id)
+  );
+
   const toggleSection = (sectionTitle: string) => {
     setOpenSection((prev) => (prev === sectionTitle ? null : sectionTitle));
-  };
-
-  const useHasUserAlreadyValidated = (
-    categoryData: UseQueryResult<{ data: Category[] }, Error>
-  ) => {
-    return React.useCallback(
-      (request: RequestModelT, userId: number) => {
-        const categories = categoryData.data?.data;
-        if (!categories || !request.categoryId) return false;
-
-        const validatorId = categories
-          .find((c) => c.id === request.categoryId)
-          ?.validators.find((v) => v.userId === userId)?.id;
-
-        if (!validatorId) return false;
-
-        return (
-          request.revieweeList?.some((r) => r.validatorId === validatorId) ??
-          false
-        );
-      },
-      [categoryData.data?.data]
-    );
   };
 
   const isValidCategoryId = (id: number | null | undefined): id is number =>
@@ -213,6 +224,7 @@ function AppSidebar() {
     requireAuth: true,
     authorizedRoles: [],
   });
+
   // Si en cours de vérification, afficher un loader
   if (isChecking) {
     return (
@@ -319,12 +331,18 @@ function AppSidebar() {
           title: "Demande de cotation",
           href: "/tableau-de-bord/commande/cotation",
           authorized: ["ADMIN", "SALES"],
+          badge:
+            besoinVal && besoinVal.length > 0 ? besoinVal?.length : undefined,
         },
         {
           pageId: "PG-03-02",
           title: "Devis",
           href: "/tableau-de-bord/commande/devis",
           authorized: ["ADMIN", "SALES"],
+          // badge:
+          //   newCotation && newCotation.length > 0
+          //     ? newCotation?.length
+          //     : undefined,
         },
         // {
         //   pageId: "PG-03-03",
@@ -337,6 +355,8 @@ function AppSidebar() {
           title: "Bons de commande",
           href: "/tableau-de-bord/commande/bon-de-commande",
           authorized: ["ADMIN", "SALES"],
+          // badge:
+          //   newDevis && newDevis?.length > 0 ? newDevis?.length : undefined,
         },
         // {
         //   pageId: "PG-03-04",
@@ -383,7 +403,7 @@ function AppSidebar() {
           href: "/tableau-de-bord/ticket",
           authorized: ["ADMIN", "VOLT", "VOLT-MANAGER"],
         },
-      ]
+      ],
       // items: [
       //   {
       //     pageId: "PG-04-01",
@@ -507,6 +527,13 @@ function AppSidebar() {
     //     },
     //   ],
     // },
+    // {
+    //   pageId: "PG-10",
+    //   icon: Bell,
+    //   href: "/tableau-de-bord/notifications",
+    //   authorized: ["USER"],
+    //   title: "Notifications",
+    // }
   ];
 
   // Filtrer les liens de navigation selon les rôles de l'utilisateur

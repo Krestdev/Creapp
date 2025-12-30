@@ -1,4 +1,3 @@
-//Paiement Form
 "use client";
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
@@ -27,30 +26,33 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { totalAmountPurchase } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { NewPayment, PaymentQueries } from "@/queries/payment";
-import { BonsCommande, CommandRequestT, PAYMENT_METHOD, PaymentRequest, PRIORITIES } from "@/types/types";
+import { PaymentQueries, UpdatePayment } from "@/queries/payment";
+import {
+  BonsCommande,
+  PAYMENT_METHOD,
+  PaymentRequest,
+  PRIORITIES
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
-const METHOD = PAYMENT_METHOD.map(m=> m.value) as [
+const METHOD = PAYMENT_METHOD.map((m) => m.value) as [
   (typeof PAYMENT_METHOD)[number]["value"],
   ...(typeof PAYMENT_METHOD)[number]["value"][]
 ];
-const PAY_PRIORITY = PRIORITIES.map(m=> m.value) as [
+const PAY_PRIORITY = PRIORITIES.map((m) => m.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][]
 ];
 
 const formSchema = z.object({
-  commandId: z.number({ message: "Requis" }),
   deadline: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
@@ -62,26 +64,29 @@ const formSchema = z.object({
   price: z.number({ message: "Veuillez renseigner un montant" }),
   method: z.enum(METHOD),
   priority: z.enum(PAY_PRIORITY),
-  proof: z.array(
+  proof: z
+    .array(
       z.union([
         z.instanceof(File, { message: "Doit être un fichier valide" }),
         z.string(),
       ])
-    ).min(1, "Veuillez ajouter un élément")
-    .max(1, "Un seul justificatif autorisé")
+    )
+    .min(1, "Veuillez ajouter un élément")
+    .max(1, "Un seul justificatif autorisé"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
+  payment: PaymentRequest;
   purchases: Array<BonsCommande>;
+  openChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function CreatePaiement({ purchases }: Props) {
+function EditPaymentForm({ payment, purchases, openChange }: Props) {
   /**Data states */
   const { user } = useStore();
   const paymentQuery = new PaymentQueries();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [dueDate, setDueDate] = React.useState<boolean>(false);
   const today = new Date(); //On part sur 3 jours de delai de base :)
@@ -90,115 +95,89 @@ function CreatePaiement({ purchases }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      commandId: undefined,
-      deadline: format(new Date(), "yyyy-MM-dd"),
-      isPartial:  false,
-      price: 0,
-      method: "bank-transfer" ,
-      priority: "high",
-      proof: [],
+      deadline: format(new Date(payment.deadline), "yyyy-MM-dd"),
+      isPartial: payment.isPartial,
+      price: payment.price,
+      method: payment.method,
+      priority: payment.priority,
+      proof: payment.proof ? [payment.proof] : [],
     },
   });
 
-  const commandId = form.watch("commandId");
   const isPartial = form.watch("isPartial");
 
-  const createPayment = useMutation({
-    mutationFn: async(payload:NewPayment) => paymentQuery.new(payload),
-    onSuccess: ()=>{
-      toast.success("Votre paiement a été initié avec succès !");
-      queryClient.invalidateQueries({queryKey:["payments","purchaseOrders"], refetchType: "active"});
-      router.push("./");
+  const updatePayment = useMutation({
+    mutationFn: async (data: Partial<UpdatePayment>) =>
+      paymentQuery.update(payment.id, data),
+    onSuccess: () => {
+      toast.success("Votre paiement a été modifié avec succès !");
+      queryClient.invalidateQueries({
+        queryKey: ["payments", "purchaseOrders"],
+        refetchType: "active",
+      });
+      openChange(false);
     },
-    onError:(error:Error)=>{
+    onError: (error: Error) => {
       toast.error(error.message);
-    }
-  })
+    },
+  });
 
   function onSubmit(values: FormValues) {
-    const purchase = purchases.find(p=>p.id === values.commandId);
-    if(!purchase){
-      form.setError("commandId", { message: "Bon de commande invalide" })
-      return toast.error("Bon de commande invalide");
+    const purchase = purchases.find((p) => p.id === payment.commandId);
+
+    if (!purchase) {
+      toast.error("Bon de commande invalide");
+      return form.setError("root", { message: "Bon de commande invalide" });
     }
-    if(!(values.proof[0] instanceof File)){
-      return toast.error("La preuve doit être un fichier")
-    }
-    if(!values.isPartial && values.price !== totalAmountPurchase(purchase)){
+    if (!values.isPartial && values.price !== totalAmountPurchase(purchase)) {
       toast.error("Montant incorrect !");
-      return form.setError("price", {message: "Le montant doit être égale au montant total du Bon de commande"});
+      return form.setError("price", {
+        message:
+          "Le montant doit être égale au montant total du Bon de commande",
+      });
     }
-    if(values.isPartial && values.price >= totalAmountPurchase(purchase) || !values.isPartial && values.price > totalAmountPurchase(purchase)){
+    if (
+      (values.isPartial && values.price >= totalAmountPurchase(purchase)) ||
+      (!values.isPartial && values.price > totalAmountPurchase(purchase))
+    ) {
       toast.error("Montant invalide !");
-      return form.setError("price", {message: "Votre montant est supérieur ou égal au montant total du bon de commande"})
+      return form.setError("price", {
+        message:
+          "Votre montant est supérieur ou égal au montant total du bon de commande",
+      });
     }
-    const payload: NewPayment = {
+    if (values.proof[0] instanceof File) {
+      const payload: Partial<UpdatePayment> = {
+        method: values.method,
+        commandId: payment.commandId,
+        type: "PURCHASE",
+        deadline: new Date(values.deadline),
+        title: purchase.devi.commandRequest.title,
+        price: values.price,
+        priority: values.priority,
+        userId: user?.id ?? 0,
+        proof: values.proof[0],
+        isPartial: values.isPartial,
+      };
+      return updatePayment.mutate(payload);
+    }
+    const payload: Partial<UpdatePayment> = {
       method: values.method,
+      commandId: payment.commandId,
       type: "PURCHASE",
       deadline: new Date(values.deadline),
       title: purchase.devi.commandRequest.title,
       price: values.price,
       priority: values.priority,
       userId: user?.id ?? 0,
-      proof: values.proof[0],
-      commandId: values.commandId,
-      isPartial: values.isPartial
-    }
-    createPayment.mutate(payload)
+      isPartial: values.isPartial,
+    };
+    return updatePayment.mutate(payload);
   }
-
-  useEffect(()=>{
-    if(!!commandId){
-      const purchase = purchases.find(p=>p.id === commandId)
-      if(!purchase){
-        toast.error("Bon de commande invalide");
-        return form.setError("commandId", {message: "Bon de commande invalide"});
-      }
-      form.setValue("price", totalAmountPurchase(purchase))
-    }
-  },[commandId])
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="form-3xl"
-      >
-        {/* Bon de commande */}
-        <FormField
-          control={form.control}
-          name="commandId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Bon de commande"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={(v) => field.onChange(Number(v))}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {purchases.length === 0 ? (
-                      <SelectItem value="-" disabled>
-                        {"Aucune demande enregistrée"}
-                      </SelectItem>
-                    ) : (
-                      purchases.map((request) => (
-                        <SelectItem key={request.id} value={String(request.id)}>
-                          {request.devi.commandRequest.title}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+      <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
         {/* Date limite de soumission */}
         <FormField
           control={form.control}
@@ -405,14 +384,18 @@ function CreatePaiement({ purchases }: Props) {
             </FormItem>
           )}
         />
-        <div className="@min-[640px]:col-span-2 w-full flex justify-end">
-          <Button type="submit" className="w-fit" variant={"primary"} disabled={createPayment.isPending} isLoading={createPayment.isPending}>
-            {"Créer le paiement"}
-          </Button>
-        </div>
+
+        <Button
+          type="submit"
+          className="w-fit"
+          disabled={updatePayment.isPending}
+          isLoading={updatePayment.isPending}
+        >
+          {"Mettre à jour la demande"}
+        </Button>
       </form>
     </Form>
   );
 }
 
-export default CreatePaiement;
+export default EditPaymentForm;
