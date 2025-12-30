@@ -25,9 +25,10 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CommandRequestT, Provider } from "@/types/types";
+import { CommandRequestT, PaymentRequest, PRIORITIES, Provider } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
+import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -35,16 +36,9 @@ import z from "zod";
 
 const formSchema = z.object({
   commandId: z.number({ message: "Requis" }),
-  dueDate: z.string({ message: "Veuillez définir une date" }).refine(
-    (val) => {
-      const d = new Date(val);
-      return !isNaN(d.getTime());
-    },
-    { message: "Date invalide" }
-  ),
   isPartial: z.boolean(),
-  amount: z.number({ message: "Veuillez renseigner un montant" }),
-  payementMethod: z.string({
+  price: z.number({ message: "Veuillez renseigner un montant" }),
+  paymentMethod: z.string({
     message: "Veuillez choisir un moyen de paiement",
   }),
   priority: z.string({ message: "Veuillez choisir une priorité" }),
@@ -62,11 +56,11 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
-  paiement?: FormValues;
+  payment?: PaymentRequest;
   openChange?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function CreatePaiement({ paiement, openChange }: Props) {
+function CreatePaiement({ payment, openChange }: Props) {
   /**Data states */
   const [dueDate, setDueDate] = React.useState<boolean>(false);
   const [requests, setRequests] = React.useState<Array<CommandRequestT>>([]);
@@ -76,13 +70,12 @@ function CreatePaiement({ paiement, openChange }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      commandId: paiement?.commandId ?? undefined,
-      dueDate: paiement?.dueDate ?? undefined,
-      isPartial: paiement?.isPartial ?? false,
-      amount: paiement?.amount ?? 0,
-      payementMethod: paiement?.payementMethod ?? "",
-      priority: paiement?.priority ?? "",
-      proof: paiement?.proof ?? undefined,
+      commandId: payment?.commandId ?? undefined,
+      isPartial:  false,
+      price: payment?.price ?? 0,
+      paymentMethod: payment?.paymentMethod ?? "",
+      priority: payment?.priority ?? "",
+      proof: payment?.proof ?? undefined,
     },
   });
 
@@ -91,13 +84,12 @@ function CreatePaiement({ paiement, openChange }: Props) {
   }
 
   const paymentMethods = ["Cheque", "Virement", "Espece", "Autre"];
-  const priorities = ["Haute", "Moyenne", "Basse"];
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2"
+        className="form-3xl"
       >
         {/* Bon de commande */}
         <FormField
@@ -152,7 +144,7 @@ function CreatePaiement({ paiement, openChange }: Props) {
                     <Input
                       id={field.name}
                       value={field.value || ""}
-                      placeholder="JJ/MM/AAAA"
+                      placeholder="Sélectionner une date"
                       className="bg-background pr-10"
                       onChange={(e) => {
                         field.onChange(e.target.value);
@@ -191,14 +183,7 @@ function CreatePaiement({ paiement, openChange }: Props) {
                           captionLayout="dropdown"
                           onSelect={(date) => {
                             if (!date) return;
-                            // Formater la date en YYYY-MM-DD
-                            const year = date.getFullYear();
-                            const month = String(date.getMonth() + 1).padStart(
-                              2,
-                              "0"
-                            );
-                            const day = String(date.getDate()).padStart(2, "0");
-                            const value = `${year}-${month}-${day}`;
+                            const value = format(date, "yyyy-MM-dd");
                             field.onChange(value);
                             setDueDate(false);
                           }}
@@ -222,7 +207,7 @@ function CreatePaiement({ paiement, openChange }: Props) {
             <FormItem>
               <FormLabel isRequired>{"Paiement partiel"}</FormLabel>
               <FormControl>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 h-10">
                   <Switch
                     id="isPartial"
                     checked={field.value}
@@ -269,7 +254,7 @@ function CreatePaiement({ paiement, openChange }: Props) {
         {/* Moyen de paiement */}
         <FormField
           control={form.control}
-          name="payementMethod"
+          name="paymentMethod"
           render={({ field }) => (
             <FormItem>
               <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
@@ -311,9 +296,9 @@ function CreatePaiement({ paiement, openChange }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {priorities.map((priority) => (
-                      <SelectItem key={priority} value={priority}>
-                        {priority}
+                    {PRIORITIES.map((priority) => (
+                      <SelectItem key={priority.value} value={priority.value}>
+                        {priority.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -347,7 +332,7 @@ function CreatePaiement({ paiement, openChange }: Props) {
         />
 
         <Button type="submit" className="w-fit">
-          {!!paiement ? "Modifier la facture" : "Soumettre la facture"}
+          {!!payment ? "Modifier la facture" : "Soumettre la facture"}
         </Button>
       </form>
     </Form>

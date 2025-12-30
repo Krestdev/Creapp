@@ -25,8 +25,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
-import { Paiement } from "@/app/tableau-de-bord/(sales)/commande/paiements/page";
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -57,43 +56,33 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
+import { BonsCommande, PaymentRequest, PRIORITIES } from "@/types/types";
+import { VariantProps } from "class-variance-authority";
 
-export type PaiementData = {
-  id: string;
-  reference: string;
-  fournisseur: string;
-  titre: string;
-  montant: number;
-  priorite: "low" | "medium" | "high" | "urgent";
-  statut: "pending" | "paid" | "rejected" | "processing"; // Added statut type
-};
-
-interface PaiementTableProps {
-  data: Paiement[];
+interface Props {
+  payments: Array<PaymentRequest>;
+  purchases: Array<BonsCommande>;
 }
 
-const priorityConfig = {
-  low: {
-    label: "Basse",
-    badgeClassName: "bg-gray-500 text-white hover:bg-gray-600",
-    icon: Flag,
-  },
-  medium: {
-    label: "Moyenne",
-    badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
-    icon: Flag,
-  },
-  high: {
-    label: "Haute",
-    badgeClassName: "bg-orange-500 text-white hover:bg-orange-600",
-    icon: Flag,
-  },
-  urgent: {
-    label: "Urgente",
-    badgeClassName: "bg-red-500 text-white hover:bg-red-600",
-    icon: Flag,
-  },
-};
+function getPriorityBadge(
+  priority: PaymentRequest["priority"]
+): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+  const priorityData = PRIORITIES.find((p) => p.value === priority);
+  const label = priorityData?.name ?? "Inconnu";
+
+  switch (priority) {
+    case "low":
+      return { label, variant: "outline" };
+    case "medium":
+      return { label, variant: "default" };
+    case "high":
+      return { label, variant: "destructive" };
+    case "urgent":
+      return { label, variant: "purple" };
+    default:
+      return { label, variant: "outline" };
+  }
+}
 
 const statusConfig = {
   pending: {
@@ -118,7 +107,7 @@ const statusConfig = {
   },
 };
 
-export function PaiementsTable({ data }: PaiementTableProps) {
+export function PaiementsTable({ payments, purchases }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -127,13 +116,13 @@ export function PaiementsTable({ data }: PaiementTableProps) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [selected, setSelected] = React.useState<Paiement | undefined>(
+  const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
     undefined
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   // const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
 
-  const columns: ColumnDef<Paiement>[] = [
+  const columns: ColumnDef<PaymentRequest>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -165,7 +154,7 @@ export function PaiementsTable({ data }: PaiementTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Référence"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
@@ -174,7 +163,7 @@ export function PaiementsTable({ data }: PaiementTableProps) {
       ),
     },
     {
-      accessorKey: "bonDeCommande",
+      accessorKey: "commandId",
       header: ({ column }) => {
         return (
           <span
@@ -182,96 +171,90 @@ export function PaiementsTable({ data }: PaiementTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Bon de commande"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </span>
-        );
-      },
-      cell: ({ row }) => <div>{row.getValue("bonDeCommande")}</div>,
-    },
-    {
-      accessorKey: "fournisseur",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Fournisseur
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </span>
-        );
-      },
-      cell: ({ row }) => <div>{row.getValue("fournisseur")}</div>,
-    },
-    {
-      accessorKey: "montant",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Montant
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
-        const montant = Number.parseFloat(row.getValue("montant"));
-
-        return <div className="font-medium">{XAF.format(montant)}</div>;
+        const value = row.original;
+        return <div>{value.commandId || "-"}</div>;
       },
     },
     {
-      accessorKey: "priorite",
+      id: "provider",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Priorité
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            {"Fournisseur"}
+            <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
-        const priorite = row.getValue(
-          "priorite"
-        ) as keyof typeof priorityConfig;
-        const config = priorityConfig[priorite];
-        const Icon = config.icon;
-
-        return (
-          <Badge className={cn("gap-1", config.badgeClassName)}>
-            <Icon className="h-3 w-3" />
-            {config.label}
-          </Badge>
-        );
+        const value = row.original;
+        const purchase = purchases.find((p) => p.id === value.commandId);
+        return <div>{purchase?.provider?.name || "Inconnu"}</div>;
       },
     },
     {
-      accessorKey: "statut",
+      accessorKey: "price",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Statut
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            {"Montant"}
+            <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
-        const statut = row.getValue("statut") as keyof typeof statusConfig;
-        const config = statusConfig[statut] || statusConfig.pending;
-        const Icon = config.icon;
-
+        const value = row.getValue("price");
+        return <div className="font-medium">{XAF.format(Number(value))}</div>;
+      },
+    },
+    {
+      accessorKey: "priority",
+      header: ({ column }) => {
         return (
-          <Badge className={cn("gap-1", config.badgeClassName)}>
-            <Icon className="h-3 w-3" />
-            {config.label}
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Priorité"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const priority = getPriorityBadge(value.priority);
+        return <Badge variant={priority.variant}>{priority.label}</Badge>;
+      },
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Statut"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const statusInfo = statusConfig[value.status as keyof typeof statusConfig];
+        return (
+          <Badge className={cn(statusInfo?.badgeClassName || "bg-gray-500")}>
+            {statusInfo?.label || value.status}
           </Badge>
         );
       },
@@ -281,7 +264,7 @@ export function PaiementsTable({ data }: PaiementTableProps) {
     },
     {
       id: "actions",
-      header: "Actions",
+      header: ()=><span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
@@ -295,14 +278,14 @@ export function PaiementsTable({ data }: PaiementTableProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
                   setSelected(item);
                   setShowDetail(true);
                 }}
               >
-                <Eye className="mr-2 h-4 w-4" />
+                <Eye />
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -312,11 +295,11 @@ export function PaiementsTable({ data }: PaiementTableProps) {
                   // setShowUpdateModal(true);
                 }}
               >
-                <LucidePen className="mr-2 h-4 w-4" />
+                <LucidePen />
                 {"Modifier"}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => console.log("Reject", item)}>
-                <Trash className="mr-2 h-4 w-4 text-red-500" />
+                <Trash />
                 {"Annuler"}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -327,7 +310,7 @@ export function PaiementsTable({ data }: PaiementTableProps) {
   ];
 
   const table = useReactTable({
-    data,
+    data: payments, // CORRECTION: 'data' au lieu de 'payments'
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -339,7 +322,7 @@ export function PaiementsTable({ data }: PaiementTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "fournisseur", "titre"];
+      const searchableColumns = ["reference", "provider", "title"];
       const searchValue = filterValue.toLowerCase();
 
       return searchableColumns.some((column) => {
@@ -368,52 +351,52 @@ export function PaiementsTable({ data }: PaiementTableProps) {
 
         <Select
           value={
-            (table.getColumn("priorite")?.getFilterValue() as string) ?? "all"
+            (table.getColumn("priority")?.getFilterValue() as string) ?? "all" // CORRECTION: 'priority' au lieu de 'priorite'
           }
           onValueChange={(value) =>
             table
-              .getColumn("priorite")
+              .getColumn("priority")
               ?.setFilterValue(value === "all" ? "" : value)
           }
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by priority" />
+            <SelectValue placeholder="Filtrer par priorité" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Priorities</SelectItem>
-            <SelectItem value="low">Basse</SelectItem>
-            <SelectItem value="medium">Moyenne</SelectItem>
-            <SelectItem value="high">Haute</SelectItem>
-            <SelectItem value="urgent">Urgente</SelectItem>
+            <SelectItem value="all">{"Toutes"}</SelectItem>
+            {PRIORITIES.map((p) => (
+              <SelectItem key={p.value} value={p.value}>
+                {p.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
         <Select
-          value={
-            (table.getColumn("statut")?.getFilterValue() as string) ?? "all"
-          }
+          value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"} // CORRECTION: 'status' au lieu de 'statut'
           onValueChange={(value) =>
             table
-              .getColumn("statut")
+              .getColumn("status")
               ?.setFilterValue(value === "all" ? "" : value)
           }
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder="Filtrer par statut" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="pending">En attente</SelectItem>
-            <SelectItem value="processing">En cours</SelectItem>
-            <SelectItem value="paid">Payé</SelectItem>
-            <SelectItem value="rejected">Rejeté</SelectItem>
+            <SelectItem value="all">{"Tous"}</SelectItem>
+            <SelectItem value="pending">{"En attente"}</SelectItem>
+            <SelectItem value="processing">{"En cours"}</SelectItem>
+            <SelectItem value="paid">{"Payé"}</SelectItem>
+            <SelectItem value="rejected">{"Rejeté"}</SelectItem>
           </SelectContent>
         </Select>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Columns
+              {"Colonnes"}
+              <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -487,7 +470,7 @@ export function PaiementsTable({ data }: PaiementTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Aucun résultat.
                 </TableCell>
               </TableRow>
             )}
@@ -503,12 +486,6 @@ export function PaiementsTable({ data }: PaiementTableProps) {
           onOpenChange={setShowDetail}
         />
       )}
-      {/* {selected && (
-        <CreatePaiement
-          paiement={selected}
-          onOpenChange={setShowUpdateModal}
-        />
-      )} */}
     </div>
   );
 }

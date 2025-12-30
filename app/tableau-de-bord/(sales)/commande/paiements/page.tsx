@@ -1,67 +1,44 @@
+'use client'
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { PaiementsTable } from "@/components/tables/PaiementsTable";
 import { Button } from "@/components/ui/button";
+import { useFetchQuery } from "@/hooks/useData";
+import { useStore } from "@/providers/datastore";
+import { PaymentQueries } from "@/queries/payment";
+import { PurchaseOrder } from "@/queries/purchase-order";
 import Link from "next/link";
 
-export type Paiement = {
-  id: string;
-  reference: string;
-  title: string;
-  bonDeCommande: string;
-  fournisseur: string;
-  montant: number;
-  moyen: string;
-  user: string;
-  proof: string[];
-  priorite: "urgent" | "high" | "medium" | "low";
-  statut: "pending" | "completed" | "failed" | "processing";
-  dueDate: Date;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-const paiementsData: Paiement[] = [
-  {
-    id: "1",
-    reference: "BCP-001",
-    title: "Matériel informatique",
-    fournisseur: "Tech Solutions",
-    montant: 5000000,
-    moyen: "Virement bancaire",
-    priorite: "high",
-    statut: "pending",
-    dueDate: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    bonDeCommande: "BC-001",
-    user: "Atangana Pierre",
-    proof: ["document.pdf"],
-  },
-  {
-    id: "2",
-    reference: "BCP-002",
-    title: "Fournitures de bureau",
-    fournisseur: "Office Supplies Co",
-    montant: 750000,
-    moyen: "Mobile Money",
-    priorite: "medium",
-    statut: "completed",
-    dueDate: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    bonDeCommande: "BC-002",
-    user: "Bondjou Paul",
-    proof: ["image.jpg"],
-  },
-];
-
-const PaiementPage = () => {
+ function Page(){
+  const { user } = useStore();
+  const isAuth:boolean = user?.role.some(r => r.label === "ADMIN" || r.label === "SALES" || r.label === "SALES_MANAGER") ?? false
+  
+  if(!isAuth){
+    return <ErrorPage statusCode={401} message="Vous n'avez pas accès à cette page"/>
+  }
+  
   const links = [
     {
-      title: "Créer une facture",
-      href: "/tableau-de-bord/bdcommande/paiements/creer",
+      title: "Créer un paiement",
+      href: "./paiements/creer",
     },
   ];
+
+  const paymentQuery = new PaymentQueries();
+  const commandQuery = new PurchaseOrder();
+  const getPayments = useFetchQuery(["payments"], paymentQuery.getAll, 15000);
+  const getPurchases = useFetchQuery(["purchaseOrders"], commandQuery.getAll, 15000);
+
+  if(getPayments.isLoading || getPurchases.isLoading){
+    return <LoadingPage/>
+  }
+
+  if(getPayments.isError || getPurchases.isError){
+    return <ErrorPage />
+  }
+
+  if(getPayments.isSuccess && getPurchases.isSuccess)
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
@@ -77,9 +54,9 @@ const PaiementPage = () => {
           </Link>
         ))}
       </PageTitle>
-      <PaiementsTable data={paiementsData} />
+      <PaiementsTable payments={getPayments.data.data.filter(p=>p.type === "PURCHASE")} purchases={getPurchases.data.data} />
     </div>
   );
 };
 
-export default PaiementPage;
+export default Page;

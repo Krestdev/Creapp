@@ -279,7 +279,7 @@ export type Quotation = {
   commandId?: undefined;
   isPartial?: boolean;
   amount?: number;
-  payementMethod?: string;
+  paymentMethod?: string;
   priority?: string;
   commandRequest: CommandRequestT;
 };
