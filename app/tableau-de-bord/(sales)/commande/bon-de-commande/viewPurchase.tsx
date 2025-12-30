@@ -7,12 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BonsCommande, User } from "@/types/types";
+import { BonDeCommande, BonsCommande, User } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import React from "react";
-import BonDeCommandePDF, {
-  bonDeCommande,
-} from "./BonDeCommandePDF";
+import { BonDeCommandePDF } from "./BonDeCommandePDF";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Button } from "@/components/ui/button";
 import { BonDocument } from "./BonDoc";
@@ -24,12 +22,75 @@ interface Props {
   users: Array<User>;
 }
 
+// export const bonDeCommande: BonDeCommande = {
+//   numero: "BC0000224/11/2025/CREACONSULT/Ets Ideal DECOR",
+//   dateCreation: "2025-11-21T17:18:03",
+//   imprimePar: "CREACONSULT",
+//   imprimeLe: "2025-11-21 18:28:21",
+//   company: {
+//     name: "CREACONSULT",
+//     address:
+//       "BP 11735 Douala - Cameroun\nTel: 233 42 63 05\nEmail: creaconsult@yahoo.fr",
+//     phone: "233 42 63 05",
+//     email: "creaconsult@yahoo.fr",
+//   },
+//   fournisseur: {
+//     nom: "Ets Ideal DECOR",
+//     adresse: "Douala",
+//     ville: "DOUALA",
+//     pays: "CAMEROUN",
+//     niu: "P11761702977BU",
+//     email: "idealdecor237@gmail.com",
+//     telephone: "678819432/693",
+//   },
+//   client: {
+//     nom: "CREACONSULT",
+//     adresse: "BP 11735 Douala",
+//     ville: "DOUALA",
+//     pays: "CAMEROUN",
+//   },
+//   items: [
+//     {
+//       ref: "LOGO-EXT-80",
+//       designation: "Logo de 80 cm de Diamètre - Extérieur",
+//       qty: 1,
+//       puHt: 90000,
+//       tva: 0,
+//     },
+//     {
+//       ref: "LETT-3D-80",
+//       designation: "Lettrage 3D Lumineux de 80 cm Hauteur",
+//       qty: 4,
+//       puHt: 60000,
+//       tva: 0,
+//     },
+//     {
+//       ref: "POSE-GEN",
+//       designation: "Frais de pose Générale",
+//       qty: 1,
+//       puHt: 80000,
+//       tva: 0,
+//     },
+//   ],
+//   totals: {
+//     totalHt: 1304000,
+//     remise: 100000,
+//     tva: 0,
+//     isirda: 4063,
+//     net: 1199937,
+//   },
+//   amountInWords:
+//     "Un million cent quatre-vingt-dix-neuf mille neuf cent trente-sept XAF",
+//   conditions:
+//     "80% à la commande et le solde à la livraison avec bordereau de réception. Pénalité de 10 000 FCFA par jour de retard.",
+// };
+
 function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="max-h-[750px] max-w-[800px]! p-4 gap-0 overflow-x-hidden border-none flex flex-col">
+      <DialogContent className="max-h-[750px] max-w-4xl! gap-0 overflow-hidden border-none flex flex-col">
         {/* Header with burgundy background */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
+        <DialogHeader className="bg-[#8B1538] text-white mb-2 rounded-lg relative">
           <DialogTitle className="text-xl font-semibold text-white">
             {purchaseOrder.reference}
           </DialogTitle>
@@ -37,15 +98,16 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
             {"Informations relatives aux bons de commande"}
           </p>
         </DialogHeader>
-        <div className="flex-1 overflow-auto">
-          <BonDeCommandePDF />
+
+        <div className="flex-1 pb-[68px] bg-white">
+          <BonDeCommandePDF doc={purchaseOrder} />
         </div>
 
         {/* pdf here */}
-        <DialogFooter>
+        <DialogFooter className="shrink-0 sticky z-10 w-full bottom-0">
           <PDFDownloadLink
-            document={<BonDocument doc={bonDeCommande} />}
-            fileName={`BonDeCommande_${bonDeCommande.numero}.pdf`}
+            document={<BonDocument doc={purchaseOrder} />}
+            fileName={`BonDeCommande_${purchaseOrder.reference}.pdf`}
           >
             {({ loading }) => (
               <Button
