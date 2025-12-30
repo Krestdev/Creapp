@@ -119,7 +119,7 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
 
   // Fonction pour traduire les moyens de paiement
   const typePaiment = (type: string | undefined) => {
-    switch (type?.toLowerCase()) {
+    switch (type) {
       case "FAC":
         return "Facilitation";
       case "RH":
@@ -129,7 +129,7 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
       case "PURCHASE":
         return "Normal";
       default:
-        return "diver";
+        return "Diver";
     }
   };
 
@@ -139,14 +139,11 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            Détails du ticket de paiement
+            Détails du ticket
           </DialogTitle>
           <h4 className="text-sm text-white/80 mt-1">
-            {typePaiment(data?.type)} : {data?.reference || "N/A"}
+            {typePaiment(data?.type)} - {data?.title || "N/A"}
           </h4>
-          <p className="text-sm text-white/80 mt-1">
-            Référence : {data?.reference || "N/A"}
-          </p>
         </DialogHeader>
 
         {/* Contenu - SCROLLABLE */}
