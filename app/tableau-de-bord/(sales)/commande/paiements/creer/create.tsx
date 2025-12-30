@@ -211,7 +211,7 @@ function CreatePaiement({ purchases }: Props) {
 
             return (
               <FormItem>
-                <FormLabel isRequired>{"Date limite de soumission"}</FormLabel>
+                <FormLabel isRequired>{"Delai de paiement"}</FormLabel>
                 <FormControl>
                   <div className="relative flex gap-2">
                     <Input
@@ -405,10 +405,11 @@ function CreatePaiement({ purchases }: Props) {
             </FormItem>
           )}
         />
-
-        <Button type="submit" className="w-fit" disabled={createPayment.isPending} isLoading={createPayment.isPending}>
-          {"Créer la demande"}
-        </Button>
+        <div className="@min-[640px]:col-span-2 w-full flex justify-end">
+          <Button type="submit" className="w-fit" variant={"primary"} disabled={createPayment.isPending} isLoading={createPayment.isPending}>
+            {"Créer le paiement"}
+          </Button>
+        </div>
       </form>
     </Form>
   );
