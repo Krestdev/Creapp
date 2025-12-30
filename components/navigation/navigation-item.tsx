@@ -102,7 +102,7 @@ function NavigationItem(item: NavigationItemProps & {
             ref={contentRef}
             className={cn(
               "overflow-hidden transition-all duration-300",
-              "space-y-1 ml-3"
+              "space-y-1 ml-3 mt-0.5"
             )}
             style={{
               maxHeight: isOpen ? '0px' : '0px',
@@ -169,7 +169,7 @@ function NavigationItem(item: NavigationItemProps & {
               />
             )}
             <span className={cn(
-              "transition-all duration-300",
+              "transition-all duration-300 mt-1",
               pathname === item.href && "font-semibold"
             )}>
               {item.title}

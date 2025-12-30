@@ -8,7 +8,7 @@ const UserListPage = () => {
   const { isHydrated } = useStore();
   const user = new UserQueries();
   const userData = useQuery({
-    queryKey: ["users"],
+    queryKey: ["usersList"],
     queryFn: () => user.getAll(),
     enabled: isHydrated,
   });

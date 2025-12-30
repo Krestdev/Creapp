@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TranslateRole } from "@/lib/utils";
 import { Role } from "@/types/types";
 import { CheckCircle, Hash, Key, Lock, LucideFlag, Users } from "lucide-react";
 
@@ -27,17 +28,6 @@ export function ShowRole({
   usersCount = 0,
 }: ShowRoleProps) {
   if (!role) return null;
-
-  const TranslateRole = (roleLabel: string) => {
-    const translations: Record<string, string> = {
-      USER: "Emetteur",
-      MANAGER: "Manager",
-      SALES: "Responsable d'achat",
-      SALES_MANAGER: "Donneur d'ordre d'achat",
-      ADMIN: "Administrateur",
-    };
-    return translations[roleLabel] || roleLabel;
-  };
 
   const getRoleColor = (roleLabel: string) => {
     switch (roleLabel) {

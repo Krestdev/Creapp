@@ -30,7 +30,7 @@ Font.register({
 const CotationPDF = ({ data }: { data: CommandRequestT }) => {
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" style={styles.page} wrap break>
         {/* Papier entete */}
         <Image style={styles.headerImage} src={"/images/crea.jpg"} fixed />
 

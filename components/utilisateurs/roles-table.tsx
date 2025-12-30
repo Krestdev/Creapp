@@ -34,6 +34,7 @@ import { Role, User } from "@/types/types";
 import { Pagination } from "../base/pagination";
 import { ShowRole } from "./show-role";
 import { Badge } from "../ui/badge";
+import { TranslateRole } from "@/lib/utils";
 
 interface RolesTableProps {
   data: Role[];
@@ -50,23 +51,6 @@ export function RoleTable({ data }: RolesTableProps) {
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [selectedItem, setSelectedItem] = React.useState<Role | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
-
-  const TranslateRole = (role: string) => {
-    switch (role) {
-      case "USER":
-        return "Emetteur";
-      case "MANAGER":
-        return "Manager";
-      case "SALES":
-        return "Responsable d'achat";
-      case "SALES_MANAGER":
-        return "Donneur d'ordre d'achat";
-      case "ADMIN":
-        return "Administrateur";
-      default:
-        return role;
-    }
-  };
 
   const columns = React.useMemo<ColumnDef<Role>[]>(
     () => [

@@ -17,11 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TranslateRole } from "@/lib/utils";
 import { UserQueries } from "@/queries/baseModule";
 import { DepartmentQueries } from "@/queries/departmentModule";
 import { ResponseT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -56,7 +57,7 @@ export default function CreateUserForm() {
   });
 
   // const router = useRouter();
-
+  const queryClient = useQueryClient();
   const userQueries = new UserQueries();
   const deparmentQueries = new DepartmentQueries();
   const registerAPI = useMutation({
@@ -75,6 +76,10 @@ export default function CreateUserForm() {
         role: "",
         poste: "",
         department: "",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["usersList"],
+        refetchType: "active",
       });
     },
     onError: (error: unknown) => {
@@ -112,23 +117,6 @@ export default function CreateUserForm() {
       toast.error("Failed to submit the form. Please try again.");
     }
   }
-
-  const TranslateRole = (role: string) => {
-    switch (role) {
-      case "USER":
-        return "Emetteur";
-      case "MANAGER":
-        return "Manager";
-      case "SALES":
-        return "Responsable d'achat";
-      case "SALES_MANAGER":
-        return "Donneur d'ordre d'achat";
-      case "ADMIN":
-        return "Administrateur";
-      default:
-        return role;
-    }
-  };
 
   return (
     <Form {...form}>

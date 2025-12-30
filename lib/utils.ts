@@ -38,11 +38,13 @@ export const parseFrenchDate = (dateString: string): Date | undefined => {
   return date;
 };
 
-export const formatToShortName = (fullName: string | undefined | null): string => {
+export const formatToShortName = (
+  fullName: string | undefined | null
+): string => {
   if (!fullName) return "Undefined";
 
   const parts = fullName.trim().split(/\s+/); // Gère les doubles espaces
-  
+
   if (parts.length <= 1) {
     return parts[0];
   }
@@ -53,7 +55,40 @@ export const formatToShortName = (fullName: string | undefined | null): string =
   return `${firstName} ${secondInitial}.`;
 };
 
-export function isProviderValid(provider:Provider):boolean{
-  if(!provider.NIU || !provider.RCCM || !provider.address || !provider.email || !provider.phone || !provider.regem || !provider.plan_localisation || !provider.acf ||!provider.carte_contribuable || !provider.banck_attestation ) return false;
+export function isProviderValid(provider: Provider): boolean {
+  if (
+    !provider.NIU ||
+    !provider.RCCM ||
+    !provider.address ||
+    !provider.email ||
+    !provider.phone ||
+    !provider.regem ||
+    !provider.plan_localisation ||
+    !provider.acf ||
+    !provider.carte_contribuable ||
+    !provider.banck_attestation
+  )
+    return false;
   return true;
 }
+
+export const TranslateRole = (role: string) => {
+  switch (role) {
+    case "USER":
+      return "Emetteur";
+    case "MANAGER":
+      return "Validateur";
+    case "SALES":
+      return "Responsable d'achat";
+    case "SALES_MANAGER":
+      return "Donneur d'ordre d'achat";
+    case "ADMIN":
+      return "Administrateur";
+    case "VOLT":
+      return "Trésorier";
+    case "VOLT-MANAGER":
+      return "Donneur d'ordre de décaissement";
+    default:
+      return role;
+  }
+};

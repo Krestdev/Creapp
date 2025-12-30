@@ -4,6 +4,7 @@ import { Role } from "@/types/types";
 import { LucidePlus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
+import { TranslateRole } from "@/lib/utils";
 
 // type User = {
 //   id: number;
@@ -54,23 +55,6 @@ export default function MultiSelectRole({
 
   const removeRole = (id: number) => {
     onChange(selected.filter((u) => u.id !== id));
-  };
-
-  const TranslateRole = (role: string) => {
-    switch (role) {
-      case "USER":
-        return "Emetteur";
-      case "MANAGER":
-        return "Validateur";
-      case "SALES":
-        return "Responsable d'achat";
-      case "SALES_MANAGER":
-        return "Donneur d'ordre d'achat";
-      case "ADMIN":
-        return "Administrateur";
-      default:
-        return role;
-    }
   };
 
   return (
