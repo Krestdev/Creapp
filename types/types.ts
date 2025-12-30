@@ -39,12 +39,20 @@ export const PAYMENT_TYPES = [
   { value: "PURCHASE", name: "Achat" },
 ] as const;
 
+export const PAYMENT_METHOD = [
+  { value: "checks", name: "Chèque" },
+  { value: "bank-transfer", name: "Virement" },
+  { value: "cash", name: "Espèces" },
+] as const;
+
 export type PaymentRequest = {
   id: number;
   reference: string;
   proof:string;
   status: string;
   type: (typeof PAYMENT_TYPES)[number]["value"];
+  method: (typeof PAYMENT_METHOD)[number]["value"];
+  deadline: Date;
   title: string;
   price: number;
   priority: (typeof PRIORITIES)[number]["value"];
@@ -279,7 +287,7 @@ export type Quotation = {
   commandId?: undefined;
   isPartial?: boolean;
   amount?: number;
-  payementMethod?: string;
+  paymentMethod?: string;
   priority?: string;
   commandRequest: CommandRequestT;
 };
@@ -361,7 +369,7 @@ export type BonsCommande = {
   penaltyMode?: string;
   hasPenalties?: boolean;
   deliveryLocation?: string;
-  paymentMethod: string;
+  paymentMethod: (typeof PAYMENT_METHOD[number]["value"]);
   paymentTerms: string;
   deliveryDelay: Date;
   motif?: string;

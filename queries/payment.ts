@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { PaymentRequest } from "@/types/types";
 
-interface NewPayment extends Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "proof" | "reference"> {
+interface NewPayment extends Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status"> {
   proof: File;
 }
 

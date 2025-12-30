@@ -30,7 +30,7 @@ import { formatToShortName, isProviderValid } from "@/lib/utils";
 import { ProviderQueries } from "@/queries/providers";
 import { CreatePurchasePayload, PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
-import { PENALITY_MODE, PRIORITIES } from "@/types/types";
+import { PAYMENT_METHOD, PENALITY_MODE, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -40,9 +40,14 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
-const PRIORITIES = PRIORITIES.map(s => s.value) as [
+const PO_PRIORITIES = PRIORITIES.map(s => s.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][]
+];
+
+const METHOD = PAYMENT_METHOD.map(m=> m.value) as [
+  (typeof PAYMENT_METHOD)[number]["value"],
+  ...(typeof PAYMENT_METHOD)[number]["value"][]
 ];
 
 export const formSchema = z
@@ -59,8 +64,8 @@ export const formSchema = z
       { message: "Date invalide" }
     ),
     paymentTerms: z.string().min(1, "Ce champ est requis"),
-    paymentMethod: z.string().min(1, "Ce champ est requis"),
-    priority: z.enum(PRIORITIES),
+    paymentMethod: z.enum(METHOD),
+    priority: z.enum(PO_PRIORITIES),
     deliveryLocation: z.string().min(1, "Ce champ est requis"),
 
     hasPenalties: z.boolean(),
@@ -109,7 +114,7 @@ function CreateForm() {
       amountBase: 0,
       hasPenalties: false,
       penaltyMode: "",
-      paymentMethod: "",
+      paymentMethod: "bank-transfer",
     },
   });
 
@@ -126,7 +131,7 @@ function CreateForm() {
       amountBase: 0,
       hasPenalties: false,
       penaltyMode: "",
-      paymentMethod: "",
+      paymentMethod: "bank-transfer",
     });
     queryClient.invalidateQueries({
         queryKey: ["purchaseOrders"],
@@ -241,8 +246,8 @@ const penalty = form.watch("hasPenalties");
                   <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
                   <SelectContent>
                     {
-                      paymentMethods.map(({title, value}, id)=>
-                        <SelectItem key={id} value={value}>{title}</SelectItem>
+                      PAYMENT_METHOD.map(({name, value}, id)=>
+                        <SelectItem key={id} value={value}>{name}</SelectItem>
                       )
                     }
                   </SelectContent>
