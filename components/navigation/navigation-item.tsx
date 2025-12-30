@@ -168,7 +168,7 @@ function NavigationItem(item: NavigationItemProps & {
               />
             )}
             <span className={cn(
-              "transition-all duration-300 mt-1",
+              "transition-all duration-300",
               pathname === item.href && "font-semibold"
             )}>
               {item.title}
