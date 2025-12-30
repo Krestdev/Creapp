@@ -1,4 +1,4 @@
-import { company, XAF } from "@/lib/utils";
+import { company, formatXAF, XAF } from "@/lib/utils";
 import { BonDeCommande, BonsCommande } from "@/types/types";
 import {
   Document,
@@ -301,7 +301,6 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                   borderWidth: 1,
                   borderColor: "#000",
                   marginBottom: 8,
-                  maxWidth: "60%",
                 }}
               >
                 {/* Ligne 1 : Numéro du Bon */}
@@ -347,8 +346,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                         "/" +
                         format(doc.createdAt, "dd/MM/yyyy" + "/", {
                           locale: fr,
-                        }) +
-                        doc.provider.name}
+                        })}
                     </Text>
                   </View>
                   <View style={{ flex: 2, padding: 4 }}>
@@ -409,27 +407,27 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
 
                       {/* Prix unitaire HT */}
                       <Text style={[styles.td, styles.colPu]}>
-                        {XAF.format(it.priceProposed)}
+                        {formatXAF(it.priceProposed)}
                       </Text>
 
                       {/* TVA */}
                       <Text style={[styles.td, styles.colTva]}>
-                        {XAF.format(tvaAmount)}
+                        {formatXAF(tvaAmount)}
                       </Text>
 
                       {/* IRIS / IS */}
                       <Text style={[styles.td, styles.colIris]}>
-                        {XAF.format(irisAmount)}
+                        {formatXAF(irisAmount)}
                       </Text>
 
                       {/* Total HT */}
                       <Text style={[styles.td, styles.colTotalHt]}>
-                        {XAF.format(totalHt)}
+                        {formatXAF(totalHt)}
                       </Text>
 
                       {/* Total TTC */}
                       <Text style={[styles.td, styles.colTotalTtc]}>
-                        {XAF.format(totalTtc)}
+                        {formatXAF(totalTtc)}
                       </Text>
                     </View>
                   );
@@ -442,25 +440,25 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                   <View style={styles.summaryRow}>
                     <Text>{"Total HT:"}</Text>
                     <Text style={{ textAlign: "right" }}>
-                      {XAF.format(totalHt)}
+                      {formatXAF(totalHt)}
                     </Text>
                   </View>
                   <View style={styles.summaryRow}>
                     <Text>{"TVA:"}</Text>
                     <Text style={{ textAlign: "right" }}>
-                      {XAF.format(totalTva)}
+                      {formatXAF(totalTva)}
                     </Text>
                   </View>
                   <View style={styles.summaryRow}>
                     <Text>{"IS / IR / DA:"}</Text>
                     <Text style={{ textAlign: "right" }}>
-                      {XAF.format(totalIris)}
+                      {formatXAF(totalIris)}
                     </Text>
                   </View>
                   <View style={[styles.summaryRow, { marginTop: 6 }]}>
                     <Text style={styles.bold}>{"Total Net à payer:"}</Text>
                     <Text style={[styles.bold, { textAlign: "right" }]}>
-                      {XAF.format(totalTtc)}
+                      {formatXAF(totalTtc)}
                     </Text>
                   </View>
                 </View>
