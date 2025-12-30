@@ -11,9 +11,7 @@ const Tickets = ({ ticketsData }: Props) => {
     (ticket) => ticket.status === "validated"
   );
   const paid = ticketsData.filter((ticket) => ticket.status === "paid");
-  const pending = ticketsData.filter(
-    (ticket) => ticket.status === "pending"
-  )
+  const pending = ticketsData.filter((ticket) => ticket.status === "pending");
   const { user } = useStore();
 
   return (
@@ -23,11 +21,11 @@ const Tickets = ({ ticketsData }: Props) => {
         {user?.role.flatMap((x) => x.label).includes("VOLT") ? (
           <>
             <div className="flex flex-col">
-              <h2>{"En attentes de paiement"}</h2>
+              <h2>{"Tickets en attentes de paiement"}</h2>
               <TicketsTable data={approved} isAdmin={false} />
             </div>
             <div className="flex flex-col">
-              <h2>{"Tickets deja payés"}</h2>
+              <h2>{"Tickets payés"}</h2>
               <TicketsTable data={paid} isAdmin={false} />
             </div>
           </>
@@ -39,7 +37,11 @@ const Tickets = ({ ticketsData }: Props) => {
             </div>
             <div className="flex flex-col">
               <h2>{"Tickets traités"}</h2>
-              <TicketsTable data={paid.concat(approved)} isAdmin={true} isManaged={true} />
+              <TicketsTable
+                data={paid.concat(approved)}
+                isAdmin={true}
+                isManaged={true}
+              />
             </div>
           </>
         )}

@@ -21,7 +21,7 @@ import {
   LucideDollarSign,
 } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -61,6 +61,10 @@ import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { PaymentQueries, UpdatePayment } from "@/queries/payment";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { PRIORITIES } from "@/types/types";
+import { VariantProps } from "class-variance-authority";
+import { get } from "http";
+import { useStore } from "@/providers/datastore";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
@@ -68,46 +72,98 @@ interface TicketsTableProps {
   isManaged?: boolean;
 }
 
-const priorityConfig = {
-  low: {
-    label: "Basse",
-    badgeClassName: "bg-gray-500 text-white hover:bg-gray-600",
-    rowClassName:
-      "bg-gray-50 hover:bg-gray-100 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
-  },
-  medium: {
-    label: "Moyenne",
-    badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
-    rowClassName:
-      "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
-  },
-  high: {
-    label: "Haute",
-    badgeClassName: "bg-orange-500 text-white hover:bg-orange-600",
-    rowClassName:
-      "bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/20 dark:hover:bg-orange-950/30",
-  },
-  urgent: {
-    label: "Urgente",
-    badgeClassName: "bg-red-500 text-white hover:bg-red-600",
-    rowClassName:
-      "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
-  },
-};
+// const priorityConfig = {
+//   low: {
+//     label: "Basse",
+//     badgeClassName: "bg-gray-500 text-white hover:bg-gray-600",
+//     rowClassName:
+//       "bg-gray-50 hover:bg-gray-100 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
+//   },
+//   medium: {
+//     label: "Moyenne",
+//     badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
+//     rowClassName:
+//       "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
+//   },
+//   high: {
+//     label: "Haute",
+//     badgeClassName: "bg-orange-500 text-white hover:bg-orange-600",
+//     rowClassName:
+//       "bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/20 dark:hover:bg-orange-950/30",
+//   },
+//   urgent: {
+//     label: "Urgente",
+//     badgeClassName: "bg-red-500 text-white hover:bg-red-600",
+//     rowClassName:
+//       "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
+//   },
+// };
 
+const getPriorityBadge = (
+  priority: PaymentRequest["priority"]
+): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+  rowClassName?: string;
+} => {
+  switch (priority) {
+    case "low":
+      return {
+        label: "Basse",
+        variant: "amber",
+        rowClassName:
+          "bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/20 dark:hover:bg-orange-950/30",
+      };
+    case "medium":
+      return {
+        label: "Normale",
+        variant: "success",
+        rowClassName:
+          "bg-green-50 hover:bg-green-100 dark:bg-green-950/20 dark:hover:bg-green-950/30",
+      };
+    case "high":
+      return {
+        label: "Élevée",
+        variant: "destructive",
+        rowClassName:
+          "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
+      };
+    case "urgent":
+      return {
+        label: "urgent",
+        variant: "primary",
+        rowClassName:
+          "bg-primary-50 hover:bg-primary-100 dark:bg-primary-950/20 dark:hover:bg-primary-950/30",
+      };
+    default:
+      return {
+        label: "Inconnu",
+        variant: "outline",
+        rowClassName:
+          "bg-gray-50 hover:bg-gray-100 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
+      };
+  }
+};
 const statusConfig = {
   pending: {
     label: "En attente",
     badgeClassName: "bg-[#FEF3C7] border-[#FEE685] text-[#E17100]",
   },
   validated: {
-    label: "Approuvé",
+    label: "Non payé",
     badgeClassName: "bg-purple-100 border-purple-500 text-purple-500",
   },
   paid: {
     label: "Payé",
     badgeClassName: "bg-[#DCFCE7] border-[#BBF7D0] text-[#16A34A]",
   },
+};
+
+const typeConfig = {
+  FAC: { label: "Facilitation" },
+  RH: { label: "Ressources Humaines" },
+  SPECIAL: { label: "Special" },
+  PURCHASE: { label: "Besoin Normal" },
 };
 
 export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
@@ -126,6 +182,8 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
   const [commands, setCommands] = React.useState<BonsCommande>();
   const queryClient = useQueryClient();
   const [message, setMessage] = React.useState<string>("");
+
+  const { user } = useStore();
 
   const purchaseOrderQuery = new PurchaseOrder();
   const { data: bons } = useFetchQuery(
@@ -154,12 +212,6 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
     },
   });
 
-  const quotationQuery = new QuotationQueries();
-  const { data: devis } = useFetchQuery(["quotations"], quotationQuery.getAll);
-
-  const command = new CommandRqstQueries();
-  const { data: cotation } = useFetchQuery(["commands"], command.getAll);
-
   // Récupérer les statuts uniques présents dans les données
   const uniqueStatuses = React.useMemo(() => {
     const statuses = new Set<string>();
@@ -169,6 +221,17 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
       }
     });
     return Array.from(statuses);
+  }, [data]);
+
+  // Récupérer les types uniques présents dans les données
+  const uniqueTypes = React.useMemo(() => {
+    const types = new Set<string>();
+    data.forEach((item) => {
+      if (item.type) {
+        types.add(item.type);
+      }
+    });
+    return Array.from(types);
   }, [data]);
 
   // Récupérer les priorités uniques présentes dans les données
@@ -183,49 +246,65 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
   }, [data]);
 
   // État pour suivre la valeur sélectionnée dans le Select
+  const [selectedType, setSelectedType] = React.useState<string>("all");
+
+  // État pour suivre la valeur sélectionnée dans le Select
   const [selectedStatus, setSelectedStatus] = React.useState<string>("all");
 
   // État pour suivre la priorité sélectionnée dans le Select
   const [selectedPriority, setSelectedPriority] = React.useState<string>("all");
 
+  const getType = (key: string) => {
+    switch (key) {
+      case "FAC":
+        return "Facilitation";
+      case "RH":
+        return "Ressources Humaines";
+      case "SPECIAL":
+        return "Special";
+      default:
+        return "Besoin Normal";
+    }
+  };
+
   const columns: ColumnDef<PaymentRequest>[] = [
+    // {
+    //   id: "select",
+    //   header: ({ table }) => (
+    //     <Checkbox
+    //       checked={
+    //         table.getIsAllPageRowsSelected() ||
+    //         (table.getIsSomePageRowsSelected() && "indeterminate")
+    //       }
+    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //       aria-label="Select all"
+    //     />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Checkbox
+    //       checked={row.getIsSelected()}
+    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //       aria-label="Select row"
+    //     />
+    //   ),
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: "reference",
+      accessorKey: "type",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Référence"}
+            {"Type"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("reference")}</div>
+        <div className="font-medium">{getType(row.getValue("type"))}</div>
       ),
     },
     {
@@ -305,17 +384,62 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         );
       },
       cell: ({ row }) => {
-        const priorite = row.getValue(
-          "priority"
-        ) as keyof typeof priorityConfig;
-        const config = priorityConfig[priorite] || priorityConfig.medium;
+        const status = row.getValue("status") as PaymentRequest["status"];
+        // const config = priorityConfig[priorite] || priorityConfig.medium;
 
-        return (
-          <Badge className={cn("gap-1", config.badgeClassName)}>
-            <Flag className="h-3 w-3" />
-            {config.label}
-          </Badge>
-        );
+        // return (
+        //   <Badge className={cn("gap-1", config.badgeClassName)}>
+        //     <Flag className="h-3 w-3" />
+        //     {config.label}
+        //   </Badge>
+        // );
+
+        //get user from stor
+
+        if (
+          status !== "paid" &&
+          !user?.role.flatMap((r) => r.label).includes("VOLT")
+        ) {
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild className="w-fit h-fit">
+                <Badge
+                  variant={getPriorityBadge(row.original.priority).variant}
+                >
+                  <Flag className="h-3 w-3" />
+                  {getPriorityBadge(row.original.priority).label}
+                  <ChevronDown />
+                </Badge>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {PRIORITIES.map((level) => {
+                  return (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        paymentMutation.mutate({
+                          id: row.original.id!,
+                          data: { priority: level.value },
+                        });
+                      }}
+                    >
+                      <Badge variant={getPriorityBadge(level.value).variant}>
+                        <Flag className="h-3 w-3" />
+                        {level.name}
+                      </Badge>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        } else {
+          return (
+            <Badge variant={getPriorityBadge(row.original.priority).variant}>
+              <Flag className="h-3 w-3" />
+              {getPriorityBadge(row.original.priority).label}
+            </Badge>
+          );
+        }
       },
     },
     {
@@ -409,7 +533,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
   ];
 
   const table = useReactTable({
-    data,
+    data: data.sort((a, b) => a.reference.localeCompare(b.reference)),
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -447,13 +571,23 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
     return config?.label || selectedStatus;
   };
 
+  // Fonction pour obtenir le libellé à afficher dans le SelectValue pour les types
+  const getTypeDisplayValue = () => {
+    if (selectedType === "all") {
+      return "Tous les types";
+    }
+    const config = typeConfig[selectedType as keyof typeof typeConfig];
+    return config?.label || selectedType;
+  };
+
   // Fonction pour obtenir le libellé à afficher dans le SelectValue pour les priorités
   const getPriorityDisplayValue = () => {
     if (selectedPriority === "all") {
       return "Toutes les priorités";
     }
-    const config =
-      priorityConfig[selectedPriority as keyof typeof priorityConfig];
+    const config = getPriorityBadge(
+      selectedPriority as PaymentRequest["priority"]
+    );
     return config?.label || selectedPriority;
   };
 
@@ -481,6 +615,18 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
     }
   }, [selectedPriority, table]);
 
+  // Mettre à jour le filtre quand selectedType change
+  React.useEffect(() => {
+    const typeColumn = table.getColumn("type");
+    if (typeColumn) {
+      if (selectedType === "all") {
+        typeColumn.setFilterValue(undefined);
+      } else {
+        typeColumn.setFilterValue(selectedType);
+      }
+    }
+  }, [selectedType, table]);
+
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
@@ -500,8 +646,9 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
           <SelectContent>
             <SelectItem value="all">Toutes les priorités</SelectItem>
             {uniquePriorities.map((priority) => {
-              const config =
-                priorityConfig[priority as keyof typeof priorityConfig];
+              const config = getPriorityBadge(
+                priority as PaymentRequest["priority"]
+              );
               return (
                 <SelectItem key={priority} value={priority}>
                   {config?.label || priority}
@@ -532,6 +679,25 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
             </SelectContent>
           </Select>
         )}
+
+        <Select value={selectedType} onValueChange={setSelectedType}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder={getTypeDisplayValue()}>
+              {getTypeDisplayValue()}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{"Tous les types"}</SelectItem>
+            {uniqueTypes.map((type) => {
+              const config = typeConfig[type as keyof typeof typeConfig];
+              return (
+                <SelectItem key={type} value={type}>
+                  {config?.label || type}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -587,10 +753,8 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
-                const priorite = row.original
-                  .priority as keyof typeof priorityConfig;
-                const config =
-                  priorityConfig[priorite] || priorityConfig.medium;
+                const config = getPriorityBadge(row.original.priority);
+                //
 
                 return (
                   <TableRow

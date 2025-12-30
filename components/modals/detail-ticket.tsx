@@ -31,7 +31,13 @@ interface DetailTicketProps {
   commands: BonsCommande | undefined;
 }
 
-export function DetailTicket({ open, onOpenChange, data, action, commands }: DetailTicketProps) {
+export function DetailTicket({
+  open,
+  onOpenChange,
+  data,
+  action,
+  commands,
+}: DetailTicketProps) {
   // Fonction pour formater le montant
   const formatMontant = (montant: number | undefined) => {
     if (!montant) return "0 FCFA";
@@ -114,10 +120,26 @@ export function DetailTicket({ open, onOpenChange, data, action, commands }: Det
         return "Espèces";
       case "carte":
         return "Carte bancaire";
-        case "cash":
-          return "Espèce";
+      case "cash":
+        return "Espèce";
       default:
         return moyen || "Non spécifié";
+    }
+  };
+
+  // Fonction pour traduire les moyens de paiement
+  const typePaiment = (type: string | undefined) => {
+    switch (type) {
+      case "FAC":
+        return "Facilitation";
+      case "RH":
+        return "Resource Humain";
+      case "SPECIAL":
+        return "Special";
+      case "PURCHASE":
+        return "Normal";
+      default:
+        return "Diver";
     }
   };
 
@@ -127,11 +149,11 @@ export function DetailTicket({ open, onOpenChange, data, action, commands }: Det
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            Détails du ticket de paiement
+            Détails du ticket
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
-            Référence : {data?.reference || "N/A"}
-          </p>
+          <h4 className="text-sm text-white/80 mt-1">
+            {typePaiment(data?.type)} - {data?.title || "N/A"}
+          </h4>
         </DialogHeader>
 
         {/* Contenu - SCROLLABLE */}
@@ -175,7 +197,9 @@ export function DetailTicket({ open, onOpenChange, data, action, commands }: Det
                 <p className="text-sm text-muted-foreground mb-1">
                   {"Fournisseur"}
                 </p>
-                <p className="font-semibold">{commands?.provider.name || "N/A"}</p>
+                <p className="font-semibold">
+                  {commands?.provider.name || "N/A"}
+                </p>
               </div>
             </div>
 
