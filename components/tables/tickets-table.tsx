@@ -49,9 +49,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, company } from "@/lib/utils";
 import { Pagination } from "../base/pagination";
-import { PaymentRequest } from "@/types/types";
+import { BonsCommande, PaymentRequest } from "@/types/types";
 import { DetailTicket } from "../modals/detail-ticket";
 import { ApproveTicket } from "../modals/ApproveTicket";
 import { PurchaseOrder } from "@/queries/purchase-order";
@@ -123,6 +123,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
   const [openValidationModal, setOpenValidationModal] = React.useState(false);
   const [openPaiementModal, setOpenPaiementModal] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<PaymentRequest>();
+  const [commands, setCommands] = React.useState<BonsCommande>();
   const queryClient = useQueryClient();
   const [message, setMessage] = React.useState<string>("");
 
@@ -241,14 +242,19 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Fournisseur
+            {"Fournisseur"}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div>{row.getValue("fournisseur") || "Non spécifié"}</div>
-      ),
+      cell: ({ row }) => {
+        
+        const commandId = row.original.commandId;
+        // Trouver le bon correspondant
+        const bon = bons?.data?.find((item) => item.id === Number(commandId));
+        return(
+        <div className="uppercase">{bon?.provider.name || company.name}</div>
+      )},
     },
     {
       accessorKey: "title",
@@ -264,11 +270,6 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         );
       },
       cell: ({ row }) => {
-        const commandId = row.original.commandId;
-
-        // Trouver le bon correspondant
-        const bon = bons?.data?.find((item) => item.id === Number(commandId));
-
         // Afficher la référence ou l'ID
         return <div>{row.getValue("title")}</div>;
       },
@@ -358,6 +359,9 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
       cell: ({ row }) => {
         const item = row.original;
 
+        const commandId = row.original.commandId;
+        // Trouver le bon correspondant
+        const bon = bons?.data?.find((item) => item.id === Number(commandId));
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
@@ -370,6 +374,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
+                  setCommands(bon);
                   setSelectedTicket(item);
                   setOpenDetailModal(true);
                 }}
@@ -632,6 +637,13 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         open={openDetailModal}
         onOpenChange={setOpenDetailModal}
         data={selectedTicket}
+        commands={commands}
+        action={() =>
+          paymentMutation.mutate({
+            id: selectedTicket?.id!,
+            data: { status: "paid" },
+          })
+        }
       />
 
       <ApproveTicket
