@@ -374,8 +374,16 @@ function AppSidebar() {
       pageId: "PG-04",
       icon: Ticket,
       href: "/tableau-de-bord/ticket",
-      authorized: ["ADMIN", "ACCOUNTING", "ACCOUNTING-MANAGER"],
+      authorized: ["ADMIN", "VOLT", "VOLT-MANAGER"],
       title: "Tickets",
+      items: [
+        {
+          pageId: "PG-04-02",
+          title: "Liste des tickets",
+          href: "/tableau-de-bord/ticket",
+          authorized: ["ADMIN", "VOLT", "VOLT-MANAGER"],
+        },
+      ]
       // items: [
       //   {
       //     pageId: "PG-04-01",

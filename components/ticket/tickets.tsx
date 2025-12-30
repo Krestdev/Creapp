@@ -1,7 +1,6 @@
 import { TicketsTable } from "@/components/tables/tickets-table";
 import { useStore } from "@/providers/datastore";
 import { PaymentRequest } from "@/types/types";
-import React from "react";
 
 interface Props {
   ticketsData: PaymentRequest[];
@@ -11,20 +10,39 @@ const Tickets = ({ ticketsData }: Props) => {
   const approved = ticketsData.filter(
     (ticket) => ticket.status === "validated"
   );
+  const paid = ticketsData.filter((ticket) => ticket.status === "paid");
+  const pending = ticketsData.filter(
+    (ticket) => ticket.status === "pending"
+  )
   const { user } = useStore();
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col">
-        <div className="flex justify-between">
-          <h2>{"Tickets"}</h2>
-        </div>
-        {user?.role.flatMap((x) => x.label).includes("ACCOUNTING") ? (
-          <TicketsTable data={approved} isAdmin={false} />
+        <div className="flex justify-between"></div>
+        {user?.role.flatMap((x) => x.label).includes("VOLT") ? (
+          <>
+            <div className="flex flex-col">
+              <h2>{"En attentes de paiement"}</h2>
+              <TicketsTable data={approved} isAdmin={false} />
+            </div>
+            <div className="flex flex-col">
+              <h2>{"Tickets deja payés"}</h2>
+              <TicketsTable data={paid} isAdmin={false} />
+            </div>
+          </>
         ) : (
-          <TicketsTable data={ticketsData} isAdmin={true} />
+          <>
+            <div className="flex flex-col">
+              <h2>{"En attentes d'approbation"}</h2>
+              <TicketsTable data={pending} isAdmin={true} />
+            </div>
+            <div className="flex flex-col">
+              <h2>{"Tickets traités"}</h2>
+              <TicketsTable data={paid.concat(approved)} isAdmin={true} isManaged={true} />
+            </div>
+          </>
         )}
-        {/* <TicketsTable data={ticketsData} isAdmin={true} /> */}
       </div>
     </div>
   );

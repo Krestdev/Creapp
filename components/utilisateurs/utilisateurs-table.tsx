@@ -63,6 +63,7 @@ import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import UpdateUser from "./UpdateUser";
 import { ShowUser } from "./show-user";
+import { TranslateRole } from "@/lib/utils";
 
 interface UtilisateursTableProps {
   data: UserT[];
@@ -481,23 +482,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     (table.getColumn("role")?.getFilterValue() as string) ?? "all";
   const statutFilter =
     (table.getColumn("status")?.getFilterValue() as string) ?? "all";
-
-  const TranslateRole = (role: string) => {
-    switch (role) {
-      case "USER":
-        return "Emetteur";
-      case "MANAGER":
-        return "Validateur";
-      case "SALES":
-        return "Responsable d'achat";
-      case "SALES_MANAGER":
-        return "Donneur d'ordre d'achat";
-      case "ADMIN":
-        return "Administrateur";
-      default:
-        return role;
-    }
-  };
 
   return (
     <div className="w-full">

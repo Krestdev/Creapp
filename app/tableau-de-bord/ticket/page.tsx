@@ -36,10 +36,10 @@ function Page() {
 
     return (
       <div className="flex flex-col gap-6">
-        {user?.role.flatMap((r) => r.label).includes("ACCOUNTING-MANAGER") ? (
+        {user?.role.flatMap((r) => r.label).includes("VOLT") ? (
           <PageTitle
             title="Tickets"
-            subtitle="Consultez et gérez les tickets."
+            subtitle="Consultez et payez les tickets."
             color="red"
           />
         ) : (
@@ -64,7 +64,7 @@ function Page() {
               />
               <TitleValueCard
                 title="Total Tickets"
-                value={data.data.length.toString()}
+                value={ticketsData.length.toString()}
                 className="bg-white border border-[#DFDFDF] text-[#52525B]"
                 valColor="text-black"
               />

@@ -125,7 +125,7 @@ export function DevisModal({
         }
       }}
     >
-      <DialogContent className="max-w-[940px]! max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
+      <DialogContent className="sm:max-w-[90vw] lg:max-w-[920px] max-h-screen overflow-y-auto overflow-x-hidden">
         {/* Header */}
         <DialogHeader>
           <DialogTitle>

@@ -21,6 +21,7 @@ import {
   Edit,
   LucideShieldAlert,
 } from "lucide-react";
+import { TranslateRole } from "@/lib/utils";
 
 interface ShowUserProps {
   open: boolean;
@@ -42,23 +43,6 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
       });
     } catch {
       return dateString;
-    }
-  };
-
-  const TranslateRole = (role: string) => {
-    switch (role) {
-      case "USER":
-        return "Emetteur";
-      case "MANAGER":
-        return "Validateur";
-      case "SALES":
-        return "Responsable d'achat";
-      case "SALES_MANAGER":
-        return "Donneur d'ordre d'achat";
-      case "ADMIN":
-        return "Administrateur";
-      default:
-        return role;
     }
   };
 

@@ -380,6 +380,11 @@ export type Reception = {
   reference: string;
   id: number;
   commandId: number;
+  proof: string;
+  deliverables: string;
+  deadline: Date;
+  status: string;
+  providerId: number;
   userId: number;
   createdAt: Date;
   updatedAt?: Date;

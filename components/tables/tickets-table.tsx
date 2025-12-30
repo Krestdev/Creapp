@@ -58,10 +58,14 @@ import { PurchaseOrder } from "@/queries/purchase-order";
 import { useFetchQuery } from "@/hooks/useData";
 import { QuotationQueries } from "@/queries/quotation";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { PaymentQueries } from "@/queries/payment";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
   isAdmin: boolean;
+  isManaged?: boolean;
 }
 
 const priorityConfig = {
@@ -98,7 +102,7 @@ const statusConfig = {
   },
   validated: {
     label: "Approuvé",
-    badgeClassName: "bg-[#DCFCE7] border-[#BBF7D0] text-[#16A34A]",
+    badgeClassName: "bg-purple-100 border-purple-500 text-purple-500",
   },
   paid: {
     label: "Payé",
@@ -106,7 +110,7 @@ const statusConfig = {
   },
 };
 
-export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
+export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -119,12 +123,41 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
   const [openValidationModal, setOpenValidationModal] = React.useState(false);
   const [openPaiementModal, setOpenPaiementModal] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<PaymentRequest>();
+  const queryClient = useQueryClient();
+  const [message, setMessage] = React.useState<string>("");
 
   const purchaseOrderQuery = new PurchaseOrder();
   const { data: bons } = useFetchQuery(
     ["purchaseOrders"],
     purchaseOrderQuery.getAll
   );
+
+  const payementQuery = new PaymentQueries();
+  const paymentMutation = useMutation({
+    mutationKey: ["payment"],
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<PaymentRequest>;
+    }) => {
+      return payementQuery.update(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["payments"],
+        refetchType: "active",
+      });
+      toast.success(message);
+      message.includes("payé")
+        ? setOpenPaiementModal(false)
+        : setOpenValidationModal(false);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const quotationQuery = new QuotationQueries();
   const { data: devis } = useFetchQuery(["quotations"], quotationQuery.getAll);
@@ -155,8 +188,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
   }, [data]);
 
   // État pour suivre la valeur sélectionnée dans le Select
-  const [selectedStatus, setSelectedStatus] =
-    React.useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = React.useState<string>("all");
 
   // État pour suivre la priorité sélectionnée dans le Select
   const [selectedPriority, setSelectedPriority] = React.useState<string>("all");
@@ -349,9 +381,11 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
               {isAdmin ? (
                 <DropdownMenuItem
                   onClick={() => {
+                    setMessage("Ticket approuvé avec succès");
                     setSelectedTicket(item);
                     setOpenValidationModal(true);
                   }}
+                  disabled={isManaged}
                 >
                   <LucideCheck className="text-[#16A34A] mr-2 h-4 w-4" />
                   {"Approuver"}
@@ -359,6 +393,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
               ) : (
                 <DropdownMenuItem
                   onClick={() => {
+                    setMessage("Ticket payé avec succès");
                     setSelectedTicket(item);
                     setOpenPaiementModal(true);
                   }}
@@ -387,7 +422,7 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "fournisseur", "price"];
+      const searchableColumns = ["reference", "fournisseur", "price", "title"];
       const searchValue = filterValue.toLowerCase();
 
       return searchableColumns.some((column) => {
@@ -477,24 +512,27 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
           </SelectContent>
         </Select>
 
-        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder={getStatusDisplayValue()}>
-              {getStatusDisplayValue()}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-            {uniqueStatuses.map((status) => {
-              const config = statusConfig[status as keyof typeof statusConfig];
-              return (
-                <SelectItem key={status} value={status}>
-                  {config?.label || status}
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+        {isAdmin && (
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder={getStatusDisplayValue()}>
+                {getStatusDisplayValue()}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Tous les statuts"}</SelectItem>
+              {uniqueStatuses.map((status) => {
+                const config =
+                  statusConfig[status as keyof typeof statusConfig];
+                return (
+                  <SelectItem key={status} value={status}>
+                    {config?.label || status}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -602,9 +640,12 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
         title={selectedTicket?.reference || "Ticket"}
         subTitle={"Valider le ticket"}
         description={"Voulez-vous valider ce ticket ?"}
-        action={function (): void {
-          throw new Error("Function not implemented.");
-        }}
+        action={() =>
+          paymentMutation.mutate({
+            id: selectedTicket?.id!,
+            data: { status: "validated" },
+          })
+        }
         buttonTexts={"Approuver"}
       />
 
@@ -614,9 +655,12 @@ export function TicketsTable({ data, isAdmin }: TicketsTableProps) {
         title={selectedTicket?.reference || "Ticket"}
         subTitle={"Payer le ticket"}
         description={"Voulez-vous payer ce ticket ?"}
-        action={function (): void {
-          throw new Error("Function not implemented.");
-        }}
+        action={() =>
+          paymentMutation.mutate({
+            id: selectedTicket?.id!,
+            data: { status: "paid" },
+          })
+        }
         buttonTexts={"Payer"}
       />
     </div>
