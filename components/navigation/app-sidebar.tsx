@@ -6,6 +6,7 @@ import { RequestQueries } from "@/queries/requestModule";
 import { Category, RequestModelT, User } from "@/types/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
+  Bell,
   BriefcaseBusiness,
   ClipboardList,
   EllipsisVertical,
@@ -32,6 +33,7 @@ import NavigationItem from "./navigation-item";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { useFetchQuery } from "@/hooks/useData";
 import { QuotationQueries } from "@/queries/quotation";
+import { PurchaseOrder } from "@/queries/purchase-order";
 
 type ItemSide = {
   pageId: string;
@@ -56,6 +58,7 @@ function AppSidebar() {
   const category = new CategoryQueries();
   const command = new CommandRqstQueries();
   const quotationQuery = new QuotationQueries();
+  const purchaseOrderQuery = new PurchaseOrder();
 
   const { data: cotation } = useFetchQuery(["commands"], command.getAll);
   const { data: quotationsData } = useFetchQuery(
@@ -63,11 +66,22 @@ function AppSidebar() {
     quotationQuery.getAll
   );
 
+  const getPurchases = useFetchQuery(
+    ["purchaseOrders"],
+    purchaseOrderQuery.getAll
+  );
+
   const newCotation = cotation?.data.filter(
     (w) =>
       !quotationsData?.data
         .filter((c) => c.status === "APPROVED")
         .some((d) => d.commandRequestId === w.id)
+  );
+
+  const newDevis = quotationsData?.data.filter(
+    (c) =>
+      c.status === "APPROVED" &&
+      !getPurchases.data?.data.some((a) => a.deviId === c.id)
   );
 
   // Récupérer toutes les catégories avec leurs validateurs
@@ -317,14 +331,18 @@ function AppSidebar() {
           title: "Demande de cotation",
           href: "/tableau-de-bord/commande/cotation",
           authorized: ["ADMIN", "SALES"],
-          badge: besoinVal && besoinVal.length > 0 ? besoinVal?.length : undefined,
+          badge:
+            besoinVal && besoinVal.length > 0 ? besoinVal?.length : undefined,
         },
         {
           pageId: "PG-03-02",
           title: "Devis",
           href: "/tableau-de-bord/commande/devis",
           authorized: ["ADMIN", "SALES"],
-          badge: newCotation && newCotation.length > 0 ? newCotation?.length : undefined,
+          // badge:
+          //   newCotation && newCotation.length > 0
+          //     ? newCotation?.length
+          //     : undefined,
         },
         // {
         //   pageId: "PG-03-03",
@@ -337,6 +355,8 @@ function AppSidebar() {
           title: "Bons de commande",
           href: "/tableau-de-bord/commande/bon-de-commande",
           authorized: ["ADMIN", "SALES"],
+          // badge:
+          //   newDevis && newDevis?.length > 0 ? newDevis?.length : undefined,
         },
         // {
         //   pageId: "PG-03-04",
@@ -507,6 +527,13 @@ function AppSidebar() {
     //     },
     //   ],
     // },
+    // {
+    //   pageId: "PG-10",
+    //   icon: Bell,
+    //   href: "/tableau-de-bord/notifications",
+    //   authorized: ["USER"],
+    //   title: "Notifications",
+    // }
   ];
 
   // Filtrer les liens de navigation selon les rôles de l'utilisateur

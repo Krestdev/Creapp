@@ -94,7 +94,7 @@ export function SearchableSelect({
           align="start"
           ref={contentRef}
         >
-          <Command className="w-[300px]"> {/* Largeur fixe pour le Command */}
+          <Command className="w-[350px]"> {/* Largeur fixe pour le Command */}
             <CommandInput
               placeholder="Rechercher..."
               value={search}

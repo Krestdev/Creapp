@@ -144,55 +144,39 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     }
   };
 
-  const getStatutIcon = (statut: string) => {
+  const getStatutIcon = (statut: boolean) => {
     switch (statut) {
-      case "active":
+      case true:
         return <CheckCircle className="h-3 w-3" />;
-      case "inactive":
+      default:
         return <XCircle className="h-3 w-3" />;
-      case "suspended":
-        return <UserX className="h-3 w-3" />;
-      default:
-        return <CheckCircle className="h-3 w-3" />;
     }
   };
 
-  const getStatutBadgeColor = (statut: string) => {
+  const getStatutBadgeColor = (statut: boolean) => {
     switch (statut) {
-      case "active":
+      case true:
         return "bg-green-500 text-white hover:bg-green-600";
-      case "inactive":
-        return "bg-gray-500 text-white hover:bg-gray-600";
-      case "suspended":
-        return "bg-red-500 text-white hover:bg-red-600";
       default:
         return "bg-gray-500 text-white hover:bg-gray-600";
     }
   };
 
-  const getRowColor = (statut: string) => {
+  const getRowColor = (statut: boolean) => {
     switch (statut) {
-      case "active":
+      case true:
         return "bg-green-50";
-      case "inactive":
-        return "bg-gray-50";
-      case "suspended":
-        return "bg-red-50";
       default:
-        return "";
+        return "bg-gray-50";
     }
   };
 
-  const TranslateStatus = (statut: string) => {
+  const TranslateStatus = (statut: boolean) => {
     switch (statut) {
-      case "active":
-        return "Actif";
-      case "inactive":
-        return "Inactif";
-      case "suspended":
-        return "Suspendu";
+      case true:
+        return "Vérifié";
       default:
-        return "Inconnu";
+        return "Non vérifié";
     }
   };
 
@@ -298,7 +282,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
       },
       {
-        accessorKey: "status",
+        accessorKey: "verified",
         header: ({ column }) => {
           return (
             <span
@@ -313,7 +297,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           );
         },
         cell: ({ row }) => {
-          const status = row.getValue("status") as string;
+          const status = row.getValue("verified") as boolean;
           return (
             <Badge
               className={`${getStatutBadgeColor(
@@ -321,7 +305,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               )} flex items-center gap-1 w-fit`}
             >
               {getStatutIcon(status)}
-              {TranslateStatus(status.charAt(0) + status.slice(1))}
+              {TranslateStatus(status)}
             </Badge>
           );
         },
@@ -481,7 +465,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const roleFilter =
     (table.getColumn("role")?.getFilterValue() as string) ?? "all";
   const statutFilter =
-    (table.getColumn("status")?.getFilterValue() as string) ?? "all";
+    (table.getColumn("verified")?.getFilterValue() as string) ?? "all";
 
   return (
     <div className="w-full">
@@ -611,7 +595,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={getRowColor(row.original.status)}
+                  className={getRowColor(row.original.verified!)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell

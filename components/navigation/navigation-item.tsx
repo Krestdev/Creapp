@@ -131,7 +131,6 @@ function NavigationItem(item: NavigationItemProps & {
                   >
                     <span className={cn(
                       "transition-all duration-300",
-                      isSubActive && "font-semibold pl-1"
                     )}>
                       {subItem.title}
                     </span>

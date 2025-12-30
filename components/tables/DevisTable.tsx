@@ -156,11 +156,11 @@ export function DevisTable({
       case "PENDING":
         return { label: "En attente", variant: "amber" };
       case "APPROVED":
-        return { label: "Approuvé", variant: "success" };
+        return { label: "Traité", variant: "success" };
       case "REJECTED":
         return { label: "Rejeté", variant: "destructive" };
       case "SUBMITTED":
-        return { label: "Approuvé", variant: "primary" };
+        return { label: "Traité", variant: "primary" };
       default:
         return { label: "Inconnu", variant: "outline" };
     }

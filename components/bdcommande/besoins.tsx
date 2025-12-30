@@ -19,9 +19,10 @@ interface Props {
   selected: Request[];
   setSelected: Dispatch<SetStateAction<Request[]>>;
   dataSup?: RequestModelT[];
+  isHome?: boolean;
 }
 
-const Besoins = ({ selected, setSelected, dataSup = [] }: Props) => {
+const Besoins = ({ selected, setSelected, dataSup = [], isHome=false }: Props) => {
   const command = new CommandRqstQueries();
   const request = new RequestQueries();
   const category = new CategoryQueries();
@@ -81,6 +82,7 @@ const Besoins = ({ selected, setSelected, dataSup = [] }: Props) => {
             selected={selected}
             setSelected={setSelected}
             categories={categoriesData.data?.data ?? []}
+            isHome={isHome}
           />
         </div>
       ) : (
