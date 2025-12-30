@@ -86,7 +86,7 @@ export const TranslateRole = (role: string) => {
       return "Administrateur";
     case "VOLT":
       return "Trésorier";
-    case "VOLT-MANAGER":
+    case "VOLT_MANAGER":
       return "Donneur d'ordre de décaissement";
     default:
       return role;
