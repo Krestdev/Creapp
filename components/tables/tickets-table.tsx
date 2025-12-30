@@ -136,13 +136,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
   const payementQuery = new PaymentQueries();
   const paymentMutation = useMutation({
     mutationKey: ["payment"],
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: number;
-      data: UpdatePayment;
-    }) => {
+    mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
       return payementQuery.update(id, data);
     },
     onSuccess: () => {
@@ -248,13 +242,13 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         );
       },
       cell: ({ row }) => {
-        
         const commandId = row.original.commandId;
         // Trouver le bon correspondant
         const bon = bons?.data?.find((item) => item.id === Number(commandId));
-        return(
-        <div className="uppercase">{bon?.provider.name || company.name}</div>
-      )},
+        return (
+          <div className="uppercase">{bon?.provider.name || company.name}</div>
+        );
+      },
     },
     {
       accessorKey: "title",
@@ -655,7 +649,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         action={() =>
           paymentMutation.mutate({
             id: selectedTicket?.id!,
-            data: { ...data, status: "validated" },
+            data: { price: selectedTicket?.price, status: "validated" },
           })
         }
         buttonTexts={"Approuver"}
@@ -670,7 +664,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         action={() =>
           paymentMutation.mutate({
             id: selectedTicket?.id!,
-            data: { ...data, status: "paid" },
+            data: { price: selectedTicket?.price, status: "paid" },
           })
         }
         buttonTexts={"Payer"}
