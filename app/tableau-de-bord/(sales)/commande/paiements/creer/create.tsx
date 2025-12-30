@@ -25,10 +25,11 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CommandRequestT, PaymentRequest, PRIORITIES, Provider } from "@/types/types";
+import { CommandRequestT, PAYMENT_METHOD, PaymentRequest, PRIORITIES, Provider } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { format } from "date-fns";
+import { METHODS } from "http";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -36,21 +37,23 @@ import z from "zod";
 
 const formSchema = z.object({
   commandId: z.number({ message: "Requis" }),
+  deadline: z.string({ message: "Veuillez définir une date" }).refine(
+    (val) => {
+      const d = new Date(val);
+      return !isNaN(d.getTime());
+    },
+    { message: "Date invalide" }
+  ),
   isPartial: z.boolean(),
   price: z.number({ message: "Veuillez renseigner un montant" }),
-  paymentMethod: z.string({
+  method: z.string({
     message: "Veuillez choisir un moyen de paiement",
   }),
   priority: z.string({ message: "Veuillez choisir une priorité" }),
-  proof: z
-    .array(
-      z.union([
+  proof: z.union([
         z.instanceof(File, { message: "Doit être un fichier valide" }),
         z.string(),
       ])
-    )
-    .min(1, "Veuillez renseigner au moins 1 justificatif")
-    .max(1, "Pas plus d'un justificatif"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -71,10 +74,11 @@ function CreatePaiement({ payment, openChange }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       commandId: payment?.commandId ?? undefined,
+      deadline: payment ? format(new Date(payment.deadline), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
       isPartial:  false,
       price: payment?.price ?? 0,
-      paymentMethod: payment?.paymentMethod ?? "",
-      priority: payment?.priority ?? "",
+      method: payment?.method ,
+      priority: payment?.priority,
       proof: payment?.proof ?? undefined,
     },
   });
@@ -82,8 +86,6 @@ function CreatePaiement({ payment, openChange }: Props) {
   function onSubmit(values: FormValues) {
     console.log(values);
   }
-
-  const paymentMethods = ["Cheque", "Virement", "Espece", "Autre"];
 
   return (
     <Form {...form}>
@@ -129,7 +131,7 @@ function CreatePaiement({ payment, openChange }: Props) {
         {/* Date limite de soumission */}
         <FormField
           control={form.control}
-          name="dueDate"
+          name="deadline"
           render={({ field }) => {
             // Convertir la valeur string en Date pour le calendrier
             const selectedDate = field.value
@@ -227,7 +229,7 @@ function CreatePaiement({ payment, openChange }: Props) {
         {/* Montant */}
         <FormField
           control={form.control}
-          name="amount"
+          name="price"
           render={({ field }) => (
             <FormItem>
               <FormLabel isRequired>{"Montant"}</FormLabel>
@@ -235,13 +237,14 @@ function CreatePaiement({ payment, openChange }: Props) {
                 <div className="relative">
                   <Input
                     type="number"
-                    value={field.value || ""}
+                    value={field.value}
                     onChange={(e) => {
                       const value = e.target.value;
-                      field.onChange(value === "" ? undefined : Number(value));
+                      field.onChange(Number(value));
                     }}
+                    className="pr-12"
                   />
-                  <p className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <p className="absolute right-2 top-1/2 -translate-y-1/2">
                     {"FCFA"}
                   </p>
                 </div>
@@ -254,7 +257,7 @@ function CreatePaiement({ payment, openChange }: Props) {
         {/* Moyen de paiement */}
         <FormField
           control={form.control}
-          name="paymentMethod"
+          name="method"
           render={({ field }) => (
             <FormItem>
               <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
@@ -267,9 +270,9 @@ function CreatePaiement({ payment, openChange }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {paymentMethods.map((method) => (
-                      <SelectItem key={method} value={method}>
-                        {method}
+                    {PAYMENT_METHOD.map((method) => (
+                      <SelectItem key={method.value} value={method.value}>
+                        {method.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

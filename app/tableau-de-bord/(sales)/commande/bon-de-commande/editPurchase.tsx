@@ -3,35 +3,34 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { paymentMethods } from "@/data/payment-methods";
 import { useFetchQuery } from "@/hooks/useData";
 import { formatToShortName } from "@/lib/utils";
 import { ProviderQueries } from "@/queries/providers";
 import { PurchaseOrder, updatePoPayload } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
-import { BonsCommande, PENALITY_MODE, PRIORITIES } from "@/types/types";
+import { BonsCommande, PAYMENT_METHOD, PENALITY_MODE, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -47,9 +46,13 @@ interface Props {
   purchaseOrder: BonsCommande;
 }
 
-const PRIORITIES = PRIORITIES.map(s => s.value) as [
+const PO_PRIORITIES = PRIORITIES.map(s => s.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][]
+];
+const PO_METHODS = PAYMENT_METHOD.map(s => s.value) as [
+  (typeof PAYMENT_METHOD)[number]["value"],
+  ...(typeof PAYMENT_METHOD)[number]["value"][]
 ];
 
 export const formSchema = z
@@ -66,8 +69,8 @@ export const formSchema = z
       { message: "Date invalide" }
     ),
     paymentTerms: z.string().min(1, "Ce champ est requis"),
-    paymentMethod: z.string().min(1, "Ce champ est requis"),
-    priority: z.enum(PRIORITIES),
+    paymentMethod: z.enum(PO_METHODS),
+    priority: z.enum(PO_PRIORITIES),
     deliveryLocation: z.string().min(1, "Ce champ est requis"),
 
     hasPenalties: z.boolean(),
@@ -218,8 +221,8 @@ function EditPurchase({open, openChange, purchaseOrder}:Props) {
                               <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
                               <SelectContent>
                                 {
-                                  paymentMethods.map(({title, value}, id)=>
-                                    <SelectItem key={id} value={value}>{title}</SelectItem>
+                                  PAYMENT_METHOD.map(({name, value}, id)=>
+                                    <SelectItem key={id} value={value}>{name}</SelectItem>
                                   )
                                 }
                               </SelectContent>
