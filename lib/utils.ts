@@ -6,6 +6,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const company = {
+  name: "CREACONSULT",
+  address: "BP 11735 Douala - Cameroun",
+  phone: "233 42 63 05",
+  email: "creaconsult@yahoo.fr",
+};
+
 export const XAF = new Intl.NumberFormat("fr-FR", {
   style: "currency",
   currency: "XAF",
