@@ -48,7 +48,7 @@ const Page = () => {
       let matchDate = true; //Date filter
 
       const start = new Date(item.createdAt);
-      console.log(start)
+      console.log(start);
       if (from && !to) {
         matchDate = start >= from;
       } else if (!from && to) {
@@ -61,28 +61,27 @@ const Page = () => {
     });
   }, [data?.data, dateRange]);
 
-  const links:Array<NavLink> = [
+  const links: Array<NavLink> = [
     {
       title: "Créer un bon",
       href: "./bon-de-commande/creer",
-      hide: false
+      hide: false,
     },
     {
       title: "Statistiques",
       href: "./bon-de-commande/statistiques",
-      disabled: true
-
+      disabled: true,
     },
     {
       title: "Approbation",
       href: "./bon-de-commande/approbation",
       disabled: !isAdmin,
-      hide: !isAdmin
+      hide: !isAdmin,
     },
     {
       title: "Receptions",
       href: "./bon-de-commande/receptions",
-      disabled: false
+      disabled: false,
     },
   ];
 
@@ -93,17 +92,29 @@ const Page = () => {
       variant: "primary",
       more: {
         title: "Montant Total",
-        value: XAF.format(filteredData.reduce((total, item)=> total + item.devi.element.reduce((t, e)=> t + e.priceProposed*e.quantity,0), 0)),
+        value: XAF.format(
+          filteredData.reduce(
+            (total, item) =>
+              total +
+              item.devi.element.reduce(
+                (t, e) => t + e.priceProposed * e.quantity,
+                0
+              ),
+            0
+          )
+        ),
       },
     },
     {
       title: "En attente",
-      value: filteredData.filter((c) => c.status === "PENDING" || c.status === "IN-REVIEW").length,
+      value: filteredData.filter(
+        (c) => c.status === "PENDING" || c.status === "IN-REVIEW"
+      ).length,
       variant: "secondary",
       more: {
         title: "Rejetés",
-        value: filteredData.filter((c) => c.status === "REJECTED").length
-      }
+        value: filteredData.filter((c) => c.status === "REJECTED").length,
+      },
     },
     {
       title: "Validés",
@@ -125,16 +136,29 @@ const Page = () => {
           title="Bons de commande"
           subtitle="Approbation des bons de commande"
         >
-          {links.filter(x=> !x.hide ? true : x.hide === true && false).map((link, id) => {
-            const isLast = links.length > 1 ? id === links.length - 1 : false;
+          {links
+            .filter((x) => (!x.hide ? true : x.hide === true && false))
+            .map((link, id) => {
+              const isLast = links.length > 1 ? id === links.length - 1 : false;
               return (
-                <Link key={id} href={link.href} onClick={(e)=>{link.disabled && e.preventDefault();}} className={cn(link.disabled && "cursor-not-allowed")}>
-                  <Button size={"lg"} variant={isLast ? "accent" : "ghost"} disabled={link.disabled}>
+                <Link
+                  key={id}
+                  href={link.href}
+                  onClick={(e) => {
+                    link.disabled && e.preventDefault();
+                  }}
+                  className={cn(link.disabled && "cursor-not-allowed")}
+                >
+                  <Button
+                    size={"lg"}
+                    variant={isLast ? "accent" : "ghost"}
+                    disabled={link.disabled}
+                  >
                     {link.title}
                   </Button>
                 </Link>
               );
-          })}
+            })}
         </PageTitle>
         <div className="flex flex-wrap items-end gap-3">
           <div className="grid gap-2">
@@ -145,7 +169,9 @@ const Page = () => {
               className="min-w-40"
             />
           </div>
-          <Button variant={"outline"} onClick={()=>setDateRange(undefined)}>{"Réinitialiser"}</Button>
+          <Button variant={"outline"} onClick={() => setDateRange(undefined)}>
+            {"Réinitialiser"}
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
@@ -153,7 +179,7 @@ const Page = () => {
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
         </div>
-        <PurchaseTable data={filteredData}/>
+        <PurchaseTable data={filteredData} />
       </div>
     );
 };
