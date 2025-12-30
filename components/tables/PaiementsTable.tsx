@@ -55,6 +55,7 @@ import { VariantProps } from "class-variance-authority";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
 import { Label } from "../ui/label";
+import EditPayment from "@/app/tableau-de-bord/(sales)/commande/paiements/edit-payment";
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -108,7 +109,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
     undefined
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
-  // const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
+  const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
 
   const columns: ColumnDef<PaymentRequest>[] = [
     {
@@ -281,7 +282,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
               <DropdownMenuItem
                 onClick={() => {
                   setSelected(item);
-                  // setShowUpdateModal(true);
+                 setShowUpdateModal(true);
                 }}
               >
                 <LucidePen />
@@ -481,6 +482,11 @@ export function PaiementsTable({ payments, purchases }: Props) {
           purchases={purchases}
         />
       )}
+      {
+        selected && (
+          <EditPayment open={showUpdateModal} openChange={setShowUpdateModal} payment={selected} purchases={purchases}/>
+        )
+      }
     </div>
   );
 }

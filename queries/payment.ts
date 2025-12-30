@@ -6,6 +6,10 @@ export interface NewPayment extends Omit<PaymentRequest, "id" | "createdAt" | "u
   commandId: number;
 }
 
+export interface UpdatePayment extends Omit<Partial<PaymentRequest>, "proof"> {
+  proof?: File;
+}
+
 export class PaymentQueries {
   route = "/request/payment";
 
@@ -102,9 +106,18 @@ export class PaymentQueries {
 
   update = async (
     id: number,
-    data: Partial<PaymentRequest>
+    data: UpdatePayment
   ): Promise<{ data: PaymentRequest }> => {
-    return api.put(`${this.route}/${id}`, data).then((res) => res.data);
+    const formData = new FormData();
+    const {proof, ...rest} = data;
+    if(proof)formData.append("proof", proof);
+    Object.entries(rest).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      formData.append(key, String(value));
+    });
+    return api.put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }).then((res) => res.data);
   };
 
   // --------------------------------------

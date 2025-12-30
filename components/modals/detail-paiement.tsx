@@ -195,7 +195,7 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Créé le"}</p>
             <p className="font-semibold">
-              {format(new Date(payment.createdAt), "dd-MMMM-yyyy", {
+              {format(new Date(payment.createdAt), "dd MMMM yyyy", {
                 locale: fr,
               })}
             </p>
