@@ -30,7 +30,7 @@ import { formatToShortName, isProviderValid } from "@/lib/utils";
 import { ProviderQueries } from "@/queries/providers";
 import { CreatePurchasePayload, PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
-import { PENALITY_MODE, PURCHASE_ORDER_PRIORITIES } from "@/types/types";
+import { PENALITY_MODE, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -40,9 +40,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
-const PRIORITIES = PURCHASE_ORDER_PRIORITIES.map(s => s.value) as [
-  (typeof PURCHASE_ORDER_PRIORITIES)[number]["value"],
-  ...(typeof PURCHASE_ORDER_PRIORITIES)[number]["value"][]
+const PRIORITIES = PRIORITIES.map(s => s.value) as [
+  (typeof PRIORITIES)[number]["value"],
+  ...(typeof PRIORITIES)[number]["value"][]
 ];
 
 export const formSchema = z
@@ -97,6 +97,7 @@ function CreateForm() {
 
   const getQuotations = useFetchQuery(["quotations"],quotationQuery.getAll);
   const getProviders = useFetchQuery(["providers"],providerQuery.getAll);
+  const getPurchases = useFetchQuery(["purchaseOrders"], purchaseOrderQuery.getAll);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -198,7 +199,7 @@ const penalty = form.watch("hasPenalties");
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getQuotations.data && getQuotations.data.data.filter(c=>c.status ==="APPROVED").map((quote)=>(
+                    {getQuotations.isSuccess && getPurchases.isSuccess && getQuotations.data.data.filter(c=>c.status ==="APPROVED" && !getPurchases.data.data.some(a=>a.deviId === c.id)).map((quote)=>(
                       <SelectItem key={quote.id} value={String(quote.id)} className="line-clamp-1" >
                       {`${quote.commandRequest.title} - ${formatToShortName(getProviders.data?.data.find(p=> p.id === quote.providerId)?.name)}`}
                     </SelectItem>
@@ -338,7 +339,7 @@ const penalty = form.watch("hasPenalties");
                   <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
                   <SelectContent>
                     {
-                      PURCHASE_ORDER_PRIORITIES.map((priority)=>
+                      PRIORITIES.map((priority)=>
                         <SelectItem key={priority.value} value={priority.value}>{priority.name}</SelectItem>
                       )
                     }

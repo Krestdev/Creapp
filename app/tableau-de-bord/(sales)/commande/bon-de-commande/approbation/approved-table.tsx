@@ -62,7 +62,7 @@ import {
 import { formatToShortName, XAF } from "@/lib/utils";
 import {
     BonsCommande,
-    PURCHASE_ORDER_PRIORITIES,
+    PRIORITIES,
     PURCHASE_ORDER_STATUS,
 } from "@/types/types";
 import { format } from "date-fns";
@@ -73,7 +73,7 @@ interface Props {
 }
 
 type Status = typeof PURCHASE_ORDER_STATUS[number]["value"];
-type Priority = typeof PURCHASE_ORDER_PRIORITIES[number]["value"];
+type Priority = typeof PRIORITIES[number]["value"];
 
 const getStatusLabel = (
   status: Status
@@ -417,7 +417,7 @@ export function ApprovedTable({ data }: Props) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{"Toutes"}</SelectItem>
-                      {PURCHASE_ORDER_PRIORITIES.map((p) => (
+                      {PRIORITIES.map((p) => (
                         <SelectItem key={p.value} value={p.value}>
                           {p.name}
                         </SelectItem>

@@ -71,7 +71,10 @@ export default function MultiSelectRole({
         {display === "Role" &&
           (selected.length > 0 ? (
             selected.map((role, index) => (
-              <div key={index} className="relative bg-[#8B0E4E] hover:bg-[#8B0E4E]/90 text-white px-3 py-1 rounded-md flex items-center gap-2 pr-8">
+              <div
+                key={index}
+                className="relative bg-[#8B0E4E] hover:bg-[#8B0E4E]/90 text-white px-3 py-1 rounded-md flex items-center gap-2 pr-8"
+              >
                 <Button
                   className="bg-transparent hover:bg-transparent px-0"
                   type="button"
@@ -114,7 +117,7 @@ export default function MultiSelectRole({
         </Button>
 
         {open && (
-          <div className="absolute right-0 top-full w-full bg-white shadow-md rounded-lg border z-20 transition-all ease-in-out max-h-60 overflow-y-auto">
+          <div className="absolute right-0 top-full w-full bg-white shadow-md rounded-lg border z-20 transition-all ease-in-out max-h-20 overflow-y-auto">
             {available.length === 0 ? (
               <p className="p-2 text-sm text-gray-500 text-center">
                 {display === "Role"

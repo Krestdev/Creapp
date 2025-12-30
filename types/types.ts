@@ -32,18 +32,26 @@ export type UserRole = "admin" | "user";
 //   name: string;
 //   role: UserRole;
 // };
+export const PAYMENT_TYPES = [
+  { value: "FAC", name: "Facilitation" },
+  { value: "RH", name: "Ressources Humaines" },
+  { value: "SPECIAL", name: "Spécial" },
+  { value: "PURCHASE", name: "Achat" },
+] as const;
 
 export type PaymentRequest = {
   id: number;
   reference: string;
+  proof:string;
   status: string;
-  type: string;
+  type: (typeof PAYMENT_TYPES)[number]["value"];
   title: string;
   price: number;
-  priority: string;
+  priority: (typeof PRIORITIES)[number]["value"];
   userId: number;
-  commandId: string;
-  projectId: number;
+  commandId?: number | null;
+  requestId?: number | null;
+  projectId?: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -333,7 +341,7 @@ export const PURCHASE_ORDER_STATUS = [
   { value: "REJECTED", name: "Rejeté" },
 ] as const;
 
-export const PURCHASE_ORDER_PRIORITIES = [
+export const PRIORITIES = [
   { value: "low", name: "Basse" },
   { value: "medium", name: "Normale" },
   { value: "high", name: "Élevée" },
@@ -348,7 +356,7 @@ export type BonsCommande = {
   providerId: number;
   provider: Provider;
   amountBase: number;
-  priority: (typeof PURCHASE_ORDER_PRIORITIES)[number]["value"];
+  priority: (typeof PRIORITIES)[number]["value"];
   status: (typeof PURCHASE_ORDER_STATUS)[number]["value"];
   penaltyMode?: string;
   hasPenalties?: boolean;

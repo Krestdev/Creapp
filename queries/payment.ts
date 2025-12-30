@@ -1,6 +1,10 @@
 import api from "@/providers/axios";
 import { PaymentRequest } from "@/types/types";
 
+interface NewPayment extends Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "proof" | "reference"> {
+  proof: File;
+}
+
 export class PaymentQueries {
   route = "/request/payment";
 
@@ -39,6 +43,20 @@ export class PaymentQueries {
       })
       .then((response) => response.data);
   };
+  new = async (payload:NewPayment):Promise<{data: PaymentRequest}> => {
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      if (Array.isArray(value) && value[0] instanceof File) {
+        value.forEach((file) => {
+          formData.append(key, file);
+        });
+        return;
+      }
+      formData.append(key, String(value));
+    });
+    return api.post(this.route, payload).then((response) => response.data)
+  }
 
   // --------------------------------------
   // READ (GET ALL)
