@@ -1,16 +1,16 @@
 "use client";
 
 import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+    type ColumnDef,
+    type ColumnFiltersState,
+    type SortingState,
+    type VisibilityState,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
 import { ArrowUpDown, ChevronDown, Eye, Pencil, Settings2 } from "lucide-react";
@@ -21,46 +21,43 @@ import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 
 import { useFetchQuery } from "@/hooks/useData";
-import { formatToShortName, XAF } from "@/lib/utils";
 import { UserQueries } from "@/queries/baseModule";
-import { BonsCommande, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
+import { PURCHASE_ORDER_STATUS, Reception } from "@/types/types";
 import { format } from "date-fns";
-import ViewPurchase from "./viewPurchase";
-import EditPurchase from "./editPurchase";
+import { fr } from "date-fns/locale";
 
-interface BonsCommandeTableProps {
-  data: Array<BonsCommande>;
+interface Props {
+  data: Array<Reception>;
 }
 
 type Status = typeof PURCHASE_ORDER_STATUS[number]["value"];
-type Priority = typeof PRIORITIES[number]["value"];
 
 const getStatusLabel = (
   status: Status
@@ -79,24 +76,8 @@ const getStatusLabel = (
   }
 };
 
-const getPriorityLabel = (
-  priority: Priority
-): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } => {
-  switch (priority) {
-    case "low":
-      return { label: "Basse", variant: "outline" };
-    case "medium":
-      return { label: "Normal", variant: "default" };
-    case "high":
-      return { label: "Élevée", variant: "primary" };
-    case "urgent":
-      return { label: "Urgent", variant: "destructive" };
-    default:
-      return { label: "Inconnu", variant: "dark" };
-  }
-};
 
-export function PurchaseTable({ data }: BonsCommandeTableProps) {
+export function ReceptionTable({ data }: Props) {
   const usersQuery = new UserQueries();
   const getUsers = useFetchQuery(["users"], usersQuery.getAll);
 
@@ -108,15 +89,13 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
 
   // filtres spécifiques
   const [statusFilter, setStatusFilter] = React.useState<"all" | Status>("all");
-  const [priorityFilter, setPriorityFilter] = React.useState<"all" | Priority>("all");
-  const [penaltyFilter, setPenaltyFilter] = React.useState<"all" | "yes" | "no">("all");
 
   //ViewModal
   const [view, setView] = React.useState<boolean>(false);
   //EditModal
   const [edit, setEdit] = React.useState<boolean>(false);
   //Selected
-  const [selectedValue, setSelectedValue] = React.useState<BonsCommande>();
+  const [selectedValue, setSelectedValue] = React.useState<Reception>();
 
   const filteredData = React.useMemo(() => {
     let filtered = [...(data ?? [])];
@@ -125,21 +104,10 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
       filtered = filtered.filter((po) => po.status === statusFilter);
     }
 
-    if (priorityFilter !== "all") {
-      filtered = filtered.filter((po) => po.priority === priorityFilter);
-    }
-
-    if (penaltyFilter !== "all") {
-      filtered = filtered.filter((po) => {
-        const has = !!po.hasPenalties;
-        return penaltyFilter === "yes" ? has : !has;
-      });
-    }
-
     return filtered;
-  }, [data, statusFilter, priorityFilter, penaltyFilter]);
+  }, [data, statusFilter]);
 
-  const columns: ColumnDef<BonsCommande>[] = [
+  const columns: ColumnDef<Reception>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -178,23 +146,23 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
     },
 
     {
-      accessorKey: "devi",
+      accessorKey: "commandId",
       header: ({ column }) => (
         <span
           className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          {"Titre"}
+          {"Bon de commande"}
           <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) =>{ 
-        const name:BonsCommande["devi"] = row.getValue("devi")
-      return <div className="font-medium">{name.commandRequest.title}</div>},
+        const name:Reception["commandId"] = row.getValue("commandId")
+      return <div className="font-medium">{"Bon de commande"}</div>},
     },
 
     {
-      accessorKey: "provider",
+      accessorKey: "providerId",
       header: ({ column }) => (
         <span
           className="tablehead"
@@ -205,34 +173,33 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
         </span>
       ),
       cell: ({ row }) =>{ 
-        const provider:BonsCommande["provider"]= row.getValue("provider");
-      return <div className="font-medium">{formatToShortName(provider.name)}</div>},
+        const provider:Reception["providerId"]= row.getValue("providerId");
+      return <div className="font-medium">{"Fournisseur"}</div>},
     },
 
     {
-      accessorKey: "amountBase",
+      accessorKey: "deadline",
       header: ({ column }) => (
         <span
           className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          {"Montant"}
+          {"Date limite"}
           <ArrowUpDown className="h-4 w-4" />
         </span>
       ),
       cell: ({ row }) => {
         const base = row.original;
-        return <div className="font-medium">{XAF.format(base.devi.element.reduce((total, el)=> total + el.priceProposed*el.quantity, 0))}</div>;
+        return <div className="font-medium">{format(new Date(), "dd-MM-yyyy", {locale: fr})}</div>;
       },
     },
 
     {
-      accessorKey: "priority",
-      header: () => <span className="tablehead">{"Priorité"}</span>,
+      accessorKey: "deliverables",
+      header: () => <span className="tablehead">{"Éléments"}</span>,
       cell: ({ row }) => {
-        const value = row.getValue("priority") as Priority;
-        const { label, variant } = getPriorityLabel(value);
-        return <Badge variant={variant}>{label}</Badge>;
+        const value = row.original;
+        return <div>{value.deliverables}</div>;
       },
     },
 
@@ -240,44 +207,10 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
       accessorKey: "status",
       header: () => <span className="tablehead">{"Statut"}</span>,
       cell: ({ row }) => {
-        const value = row.getValue("status") as Status;
-        const { label, variant } = getStatusLabel(value);
-        return <Badge variant={variant}>{label}</Badge>;
+        const value = row.original;
+        return <Badge>{value.status}</Badge>;
       },
     },
-
-    {
-      id: "penalties",
-      accessorFn: (row) => (row.hasPenalties ? "yes" : "no"),
-      header: () => <span className="tablehead">{"Pénalités"}</span>,
-      cell: ({ row }) => {
-        const has = !!row.original.hasPenalties;
-        return (
-          <Badge variant={has ? "amber" : "outline"}>
-            {has ? "Oui" : "Non"}
-          </Badge>
-        );
-      },
-    },
-
-    {
-      accessorKey: "createdAt",
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Créé le"}
-          <ArrowUpDown className="h-4 w-4" />
-        </span>
-      ),
-      cell: ({ row }) => {
-        const raw = row.getValue("createdAt") as any;
-        const d = new Date(raw);
-        return <div>{isNaN(d.getTime()) ? "-" : format(d, "dd/MM/yyyy HH:mm")}</div>;
-      },
-    },
-
     {
       id: "actions",
       header: () => <span className="tablehead">{"Actions"}</span>,
@@ -338,20 +271,11 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
       const createdText = isNaN(created.getTime()) ? "" : format(created, "dd/MM/yyyy HH:mm").toLowerCase();
 
       const statusText = (po.status ?? "").toLowerCase();
-      const priorityText = (po.priority ?? "").toLowerCase();
-      const paymentMethodText = (po.paymentMethod ?? "").toLowerCase();
-      const paymentTermsText = (po.paymentTerms ?? "").toLowerCase();
-      const locationText = (po.deliveryLocation ?? "").toLowerCase();
 
       return (
         String(po.id).includes(s) ||
-        String(po.deviId).includes(s) ||
         String(po.providerId).includes(s) ||
         statusText.includes(s) ||
-        priorityText.includes(s) ||
-        paymentMethodText.includes(s) ||
-        paymentTermsText.includes(s) ||
-        locationText.includes(s) ||
         createdText.includes(s)
       );
     },
@@ -366,8 +290,6 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
 
   const resetAllFilters = () => {
     setStatusFilter("all");
-    setPriorityFilter("all");
-    setPenaltyFilter("all");
     setGlobalFilter("");
     table.resetColumnFilters();
   };
@@ -424,44 +346,6 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-3">
-                  <Label>{"Priorité"}</Label>
-                  <Select
-                    value={priorityFilter}
-                    onValueChange={(v: "all" | Priority) => setPriorityFilter(v)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Toutes les priorités" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Toutes"}</SelectItem>
-                      {PRIORITIES.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label>{"Pénalités"}</Label>
-                  <Select
-                    value={penaltyFilter}
-                    onValueChange={(v: "all" | "yes" | "no") => setPenaltyFilter(v)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Toutes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Toutes"}</SelectItem>
-                      <SelectItem value="yes">{"Oui"}</SelectItem>
-                      <SelectItem value="no">{"Non"}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <Button variant="outline" onClick={resetAllFilters} className="w-full">
                   {"Réinitialiser les filtres"}
                 </Button>
@@ -470,7 +354,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
           </Sheet>
 
           {/* Filtres actifs */}
-          {(statusFilter !== "all" || priorityFilter !== "all" || penaltyFilter !== "all" || globalFilter) && (
+          {(statusFilter !== "all" || globalFilter) && (
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <span>Filtres actifs:</span>
 
@@ -479,19 +363,6 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
                   {`Statut: ${getStatusLabel(statusFilter).label}`}
                 </Badge>
               )}
-
-              {priorityFilter !== "all" && (
-                <Badge variant="outline" className="font-normal">
-                  {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
-                </Badge>
-              )}
-
-              {penaltyFilter !== "all" && (
-                <Badge variant="outline" className="font-normal">
-                  {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
-                </Badge>
-              )}
-
               {globalFilter && (
                 <Badge variant="outline" className="font-normal">
                   {`Recherche: "${globalFilter}"`}
@@ -517,13 +388,10 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
               .map((column) => {
                 let columnName = column.id;
                 if (column.id === "id") columnName = "#";
-                else if (column.id === "deviId") columnName = "Devis";
+                else if (column.id === "commandId") columnName = "Bon de commande";
                 else if (column.id === "providerId") columnName = "Fournisseur";
-                else if (column.id === "amountBase") columnName = "Montant";
-                else if (column.id === "priority") columnName = "Priorité";
+                else if (column.id === "deliverables") columnName = "Éléments";
                 else if (column.id === "status") columnName = "Statut";
-                else if (column.id === "createdAt") columnName = "Créé le";
-                else if (column.id === "penalties") columnName = "Pénalités";
 
                 return (
                   <DropdownMenuCheckboxItem
@@ -576,7 +444,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
                 <TableCell colSpan={columns.length} className="h-24 text-center">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <span className="text-muted-foreground">{"Aucun résultat trouvé"}</span>
-                    {(statusFilter !== "all" || priorityFilter !== "all" || penaltyFilter !== "all" || globalFilter) && (
+                    {(statusFilter !== "all" || globalFilter) && (
                       <Button variant="ghost" size="sm" onClick={resetAllFilters}>
                         {"Réinitialiser les filtres"}
                       </Button>
@@ -598,8 +466,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
 
         {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       </div>
-      {selectedValue && <ViewPurchase open={view} openChange={setView} purchaseOrder={selectedValue} users={getUsers.data?.data ?? []} />}
-      {selectedValue && <EditPurchase open={edit} openChange={setEdit} purchaseOrder={selectedValue} />}
+      {/**View and Edit Dialog Here */}
     </div>
   );
 }

@@ -31,7 +31,7 @@ import { formatToShortName } from "@/lib/utils";
 import { ProviderQueries } from "@/queries/providers";
 import { PurchaseOrder, updatePoPayload } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
-import { BonsCommande, PENALITY_MODE, PURCHASE_ORDER_PRIORITIES } from "@/types/types";
+import { BonsCommande, PENALITY_MODE, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -47,9 +47,9 @@ interface Props {
   purchaseOrder: BonsCommande;
 }
 
-const PRIORITIES = PURCHASE_ORDER_PRIORITIES.map(s => s.value) as [
-  (typeof PURCHASE_ORDER_PRIORITIES)[number]["value"],
-  ...(typeof PURCHASE_ORDER_PRIORITIES)[number]["value"][]
+const PRIORITIES = PRIORITIES.map(s => s.value) as [
+  (typeof PRIORITIES)[number]["value"],
+  ...(typeof PRIORITIES)[number]["value"][]
 ];
 
 export const formSchema = z
@@ -316,7 +316,7 @@ function EditPurchase({open, openChange, purchaseOrder}:Props) {
                               <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
                               <SelectContent>
                                 {
-                                  PURCHASE_ORDER_PRIORITIES.map((priority)=>
+                                  PRIORITIES.map((priority)=>
                                     <SelectItem key={priority.value} value={priority.value}>{priority.name}</SelectItem>
                                   )
                                 }
