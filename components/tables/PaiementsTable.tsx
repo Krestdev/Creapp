@@ -14,14 +14,10 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  CheckCircle,
   ChevronDown,
-  Clock,
   Eye,
-  Flag,
   LucidePen,
-  Trash,
-  XCircle,
+  Trash
 } from "lucide-react";
 import * as React from "react";
 
@@ -53,11 +49,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
+import { XAF } from "@/lib/utils";
+import { BonsCommande, PAY_STATUS, PaymentRequest, PRIORITIES } from "@/types/types";
+import { VariantProps } from "class-variance-authority";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
-import { BonsCommande, PaymentRequest, PRIORITIES } from "@/types/types";
-import { VariantProps } from "class-variance-authority";
+import { Label } from "../ui/label";
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -84,27 +81,18 @@ function getPriorityBadge(
   }
 }
 
-const statusConfig = {
-  pending: {
-    label: "En attente",
-    badgeClassName: "bg-yellow-500 text-white hover:bg-yellow-600",
-    icon: Clock,
-  },
-  processing: {
-    label: "En cours",
-    badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
-    icon: Clock,
-  },
-  paid: {
-    label: "Payé",
-    badgeClassName: "bg-green-500 text-white hover:bg-green-600",
-    icon: CheckCircle,
-  },
-  rejected: {
-    label: "Rejeté",
-    badgeClassName: "bg-red-500 text-white hover:bg-red-600",
-    icon: XCircle,
-  },
+function getStatusBadge(status: PaymentRequest["status"]): {label: string; variant: VariantProps<typeof badgeVariants>["variant"]} {
+  const statusData = PAY_STATUS.find(s=>s.value === status);
+  const label = statusData?.name ?? "Inconnu"
+
+  switch(status) {
+    case "pending":
+      return { label, variant: "amber"};
+    case "validated":
+      return { label, variant: "success" };
+    default:
+      return { label, variant: "outline" };
+  }
 };
 
 export function PaiementsTable({ payments, purchases }: Props) {
@@ -177,7 +165,8 @@ export function PaiementsTable({ payments, purchases }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original;
-        return <div>{value.commandId || "-"}</div>;
+        const purchase = purchases.find(p=> p.id === value.commandId);
+        return <div>{purchase?.devi.commandRequest.title ?? "Non défini"}</div>;
       },
     },
     {
@@ -196,7 +185,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
       cell: ({ row }) => {
         const value = row.original;
         const purchase = purchases.find((p) => p.id === value.commandId);
-        return <div>{purchase?.provider?.name || "Inconnu"}</div>;
+        return <div>{purchase?.provider?.name ?? "Inconnu"}</div>;
       },
     },
     {
@@ -251,10 +240,10 @@ export function PaiementsTable({ payments, purchases }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original;
-        const statusInfo = statusConfig[value.status as keyof typeof statusConfig];
+        const status = getStatusBadge(value.status);
         return (
-          <Badge className={cn(statusInfo?.badgeClassName || "bg-gray-500")}>
-            {statusInfo?.label || value.status}
+          <Badge variant={status.variant}>
+            {status.label}
           </Badge>
         );
       },
@@ -340,61 +329,66 @@ export function PaiementsTable({ payments, purchases }: Props) {
   });
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-4 py-4">
-        <Input
-          placeholder="Search..."
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
-
-        <Select
-          value={
-            (table.getColumn("priority")?.getFilterValue() as string) ?? "all" // CORRECTION: 'priority' au lieu de 'priorite'
-          }
-          onValueChange={(value) =>
-            table
-              .getColumn("priority")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrer par priorité" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{"Toutes"}</SelectItem>
-            {PRIORITIES.map((p) => (
-              <SelectItem key={p.value} value={p.value}>
-                {p.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"} // CORRECTION: 'status' au lieu de 'statut'
-          onValueChange={(value) =>
-            table
-              .getColumn("status")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrer par statut" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{"Tous"}</SelectItem>
-            <SelectItem value="pending">{"En attente"}</SelectItem>
-            <SelectItem value="processing">{"En cours"}</SelectItem>
-            <SelectItem value="paid">{"Payé"}</SelectItem>
-            <SelectItem value="rejected">{"Rejeté"}</SelectItem>
-          </SelectContent>
-        </Select>
-
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="grid gap-1.5">
+            <Label>{"Recherche"}</Label>
+            <Input
+              placeholder="Référence"
+              value={globalFilter ?? ""}
+              onChange={(event) => setGlobalFilter(event.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>{"Priorité"}</Label>
+            <Select
+              value={
+                (table.getColumn("priority")?.getFilterValue() as string) ?? "all" // CORRECTION: 'priority' au lieu de 'priorite'
+              }
+              onValueChange={(value) =>
+                table
+                  .getColumn("priority")
+                  ?.setFilterValue(value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrer par priorité" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Toutes"}</SelectItem>
+                {PRIORITIES.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>{"Statut"}</Label>
+            <Select
+              value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"} // CORRECTION: 'status' au lieu de 'statut'
+              onValueChange={(value) =>
+                table
+                  .getColumn("status")
+                  ?.setFilterValue(value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrer par statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Tous"}</SelectItem>
+                {PAY_STATUS.map((status)=><SelectItem key={status.value} value={status.value}>{status.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto bg-transparent">
+            <Button variant="outline" className="bg-transparent">
               {"Colonnes"}
               <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
@@ -470,7 +464,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Aucun résultat.
+                  {"Aucun résultat."}
                 </TableCell>
               </TableRow>
             )}
@@ -481,9 +475,10 @@ export function PaiementsTable({ payments, purchases }: Props) {
       <Pagination table={table} />
       {selected && (
         <DetailPaiement
-          data={selected}
+          payment={selected}
           open={showDetail}
-          onOpenChange={setShowDetail}
+          openChange={setShowDetail}
+          purchases={purchases}
         />
       )}
     </div>

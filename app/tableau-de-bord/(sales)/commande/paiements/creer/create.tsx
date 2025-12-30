@@ -25,15 +25,29 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CommandRequestT, PAYMENT_METHOD, PaymentRequest, PRIORITIES, Provider } from "@/types/types";
+import { totalAmountPurchase } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
+import { NewPayment, PaymentQueries } from "@/queries/payment";
+import { BonsCommande, CommandRequestT, PAYMENT_METHOD, PaymentRequest, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { METHODS } from "http";
 import { CalendarIcon } from "lucide-react";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
+
+const METHOD = PAYMENT_METHOD.map(m=> m.value) as [
+  (typeof PAYMENT_METHOD)[number]["value"],
+  ...(typeof PAYMENT_METHOD)[number]["value"][]
+];
+const PAY_PRIORITY = PRIORITIES.map(m=> m.value) as [
+  (typeof PRIORITIES)[number]["value"],
+  ...(typeof PRIORITIES)[number]["value"][]
+];
 
 const formSchema = z.object({
   commandId: z.number({ message: "Requis" }),
@@ -46,46 +60,103 @@ const formSchema = z.object({
   ),
   isPartial: z.boolean(),
   price: z.number({ message: "Veuillez renseigner un montant" }),
-  method: z.string({
-    message: "Veuillez choisir un moyen de paiement",
-  }),
-  priority: z.string({ message: "Veuillez choisir une priorité" }),
-  proof: z.union([
+  method: z.enum(METHOD),
+  priority: z.enum(PAY_PRIORITY),
+  proof: z.array(
+      z.union([
         z.instanceof(File, { message: "Doit être un fichier valide" }),
         z.string(),
       ])
+    ).min(1, "Veuillez ajouter un élément")
+    .max(1, "Un seul justificatif autorisé")
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
-  payment?: PaymentRequest;
-  openChange?: React.Dispatch<React.SetStateAction<boolean>>;
+  purchases: Array<BonsCommande>;
 }
 
-function CreatePaiement({ payment, openChange }: Props) {
+function CreatePaiement({ purchases }: Props) {
   /**Data states */
+  const { user } = useStore();
+  const paymentQuery = new PaymentQueries();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [dueDate, setDueDate] = React.useState<boolean>(false);
-  const [requests, setRequests] = React.useState<Array<CommandRequestT>>([]);
   const today = new Date(); //On part sur 3 jours de delai de base :)
   today.setDate(today.getDate() + 3);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      commandId: payment?.commandId ?? undefined,
-      deadline: payment ? format(new Date(payment.deadline), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+      commandId: undefined,
+      deadline: format(new Date(), "yyyy-MM-dd"),
       isPartial:  false,
-      price: payment?.price ?? 0,
-      method: payment?.method ,
-      priority: payment?.priority,
-      proof: payment?.proof ?? undefined,
+      price: 0,
+      method: "bank-transfer" ,
+      priority: "high",
+      proof: [],
     },
   });
 
+  const commandId = form.watch("commandId");
+  const isPartial = form.watch("isPartial");
+
+  const createPayment = useMutation({
+    mutationFn: async(payload:NewPayment) => paymentQuery.new(payload),
+    onSuccess: ()=>{
+      toast.success("Votre paiement a été initié avec succès !");
+      queryClient.invalidateQueries({queryKey:["payments","purchaseOrders"], refetchType: "active"});
+      router.push("./");
+    },
+    onError:(error:Error)=>{
+      toast.error(error.message);
+    }
+  })
+
   function onSubmit(values: FormValues) {
-    console.log(values);
+    const purchase = purchases.find(p=>p.id === values.commandId);
+    if(!purchase){
+      form.setError("commandId", { message: "Bon de commande invalide" })
+      return toast.error("Bon de commande invalide");
+    }
+    if(!(values.proof[0] instanceof File)){
+      return toast.error("La preuve doit être un fichier")
+    }
+    if(!values.isPartial && values.price !== totalAmountPurchase(purchase)){
+      toast.error("Montant incorrect !");
+      return form.setError("price", {message: "Le montant doit être égale au montant total du Bon de commande"});
+    }
+    if(values.isPartial && values.price >= totalAmountPurchase(purchase) || !values.isPartial && values.price > totalAmountPurchase(purchase)){
+      toast.error("Montant invalide !");
+      return form.setError("price", {message: "Votre montant est supérieur ou égal au montant total du bon de commande"})
+    }
+    const payload: NewPayment = {
+      method: values.method,
+      type: "PURCHASE",
+      deadline: new Date(values.deadline),
+      title: purchase.devi.commandRequest.title,
+      price: values.price,
+      priority: values.priority,
+      userId: user?.id ?? 0,
+      proof: values.proof[0],
+      commandId: values.commandId,
+      isPartial: values.isPartial
+    }
+    createPayment.mutate(payload)
   }
+
+  useEffect(()=>{
+    if(!!commandId){
+      const purchase = purchases.find(p=>p.id === commandId)
+      if(!purchase){
+        toast.error("Bon de commande invalide");
+        return form.setError("commandId", {message: "Bon de commande invalide"});
+      }
+      form.setValue("price", totalAmountPurchase(purchase))
+    }
+  },[commandId])
 
   return (
     <Form {...form}>
@@ -109,14 +180,14 @@ function CreatePaiement({ payment, openChange }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {requests.length === 0 ? (
+                    {purchases.length === 0 ? (
                       <SelectItem value="-" disabled>
                         {"Aucune demande enregistrée"}
                       </SelectItem>
                     ) : (
-                      requests.map((request) => (
+                      purchases.map((request) => (
                         <SelectItem key={request.id} value={String(request.id)}>
-                          {request.title}
+                          {request.devi.commandRequest.title}
                         </SelectItem>
                       ))
                     )}
@@ -237,6 +308,7 @@ function CreatePaiement({ payment, openChange }: Props) {
                 <div className="relative">
                   <Input
                     type="number"
+                    disabled={!isPartial}
                     value={field.value}
                     onChange={(e) => {
                       const value = e.target.value;
@@ -334,8 +406,8 @@ function CreatePaiement({ payment, openChange }: Props) {
           )}
         />
 
-        <Button type="submit" className="w-fit">
-          {!!payment ? "Modifier la facture" : "Soumettre la facture"}
+        <Button type="submit" className="w-fit" disabled={createPayment.isPending} isLoading={createPayment.isPending}>
+          {"Créer la demande"}
         </Button>
       </form>
     </Form>

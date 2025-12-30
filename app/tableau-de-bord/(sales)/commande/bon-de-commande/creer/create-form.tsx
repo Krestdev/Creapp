@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { paymentMethods } from "@/data/payment-methods";
 import { useFetchQuery } from "@/hooks/useData";
 import { formatToShortName, isProviderValid } from "@/lib/utils";
 import { ProviderQueries } from "@/queries/providers";
