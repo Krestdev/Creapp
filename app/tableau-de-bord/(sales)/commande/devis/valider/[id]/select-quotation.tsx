@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useFetchQuery } from "@/hooks/useData";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { cn, XAF } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { ProviderQueries } from "@/queries/providers";
 import { PurchaseOrder } from "@/queries/purchase-order";
@@ -20,9 +21,40 @@ import { toast } from "sonner";
 
 type SubmitPayload = Array<{
   deviId: number;
+  userId:number;
   commandRequestId: number;
   elements: Array<{ name: string; elementIds: number[] }>;
 }>;
+
+
+
+/**
+ * ✅ Preload:
+ * besoinId -> providerId, basé sur element.status === "SELECTED"
+ */
+const computePreselected = (quotationGroup: QuotationGroup) => {
+  const pre: Record<number, number> = {};
+
+  for (const besoin of quotationGroup.commandRequest.besoins) {
+    const quoteSelected = quotationGroup.quotations.find((q) =>
+      (q.element || []).some(
+        (el) => el.requestModelId === besoin.id && el.status === "SELECTED"
+      )
+    );
+
+    if (quoteSelected) {
+      pre[besoin.id] = quoteSelected.providerId;
+    }
+  }
+
+  return pre;
+};
+
+function SelectQuotation({ id }: { id: string }) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const {user} = useStore();
 
 const buildSubmitPayload = (
   quotationGroup: QuotationGroup,
@@ -52,38 +84,12 @@ const buildSubmitPayload = (
       const already = existing.elements.some((e) => e.name === groupItem.name);
       if (!already) existing.elements.push(groupItem);
     } else {
-      byDevi.set(quote.id, { deviId: quote.id, commandRequestId: quote.commandRequestId, elements: [groupItem] });
+      byDevi.set(quote.id, { deviId: quote.id, userId: user?.id ?? 0, commandRequestId: quote.commandRequestId, elements: [groupItem] });
     }
   }
 
   return Array.from(byDevi.values());
 };
-
-/**
- * ✅ Preload:
- * besoinId -> providerId, basé sur element.status === "SELECTED"
- */
-const computePreselected = (quotationGroup: QuotationGroup) => {
-  const pre: Record<number, number> = {};
-
-  for (const besoin of quotationGroup.commandRequest.besoins) {
-    const quoteSelected = quotationGroup.quotations.find((q) =>
-      (q.element || []).some(
-        (el) => el.requestModelId === besoin.id && el.status === "SELECTED"
-      )
-    );
-
-    if (quoteSelected) {
-      pre[besoin.id] = quoteSelected.providerId;
-    }
-  }
-
-  return pre;
-};
-
-function SelectQuotation({ id }: { id: string }) {
-  const router = useRouter();
-  const queryClient = useQueryClient();
 
   const quotationQuery = new QuotationQueries();
   const quotations = useFetchQuery(["quotations"], quotationQuery.getAll);

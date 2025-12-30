@@ -102,6 +102,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
     requestsQuery.getAll,
     500000
   );
+  /**Devis */
+  const quotationQuery = new QuotationQueries();
+  const quotationsData = useFetchQuery(["quotations"], quotationQuery.getAll)
   /**Fournisseurs */
   const providerQuery = new ProviderQueries();
   const providersData = useFetchQuery(
@@ -134,7 +137,6 @@ function CreateQuotation({ quotation, openChange }: Props) {
   };
 
   /**Quotation */
-  const quotationQuery = new QuotationQueries();
   const { mutate, isPending } = useMutation({
     mutationFn: async ({ values, id }: { values: FormValues; id?: number }) => {
       const payload = {
@@ -218,7 +220,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
       normalizeText(provider.name).includes(normalizeText(search))
     ) ?? [];
 
-  if (requestsData.isLoading || providersData.isLoading) {
+  if (requestsData.isLoading || providersData.isLoading || quotationsData.isLoading) {
     return <LoadingPage />;
   }
 
@@ -226,6 +228,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
     mutate({ values, id: quotation?.id });
   }
 
+  if(requestsData.isSuccess && quotationsData.isSuccess)
   return (
     <Form {...form}>
       <form
@@ -244,7 +247,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                   width="w-full"
                   allLabel=""
                   options={
-                    requestsData.data?.data.map((request) => ({
+                    requestsData.data.data.filter(w=> !quotationsData.data.data.filter(c=>c.status === "APPROVED").some(d=> d.commandRequestId === w.id)).map((request) => ({
                       label: request.title,
                       value: request.id.toString(),
                     })) ?? []
@@ -305,6 +308,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                             key={provider.id}
                             value={String(provider.id)}
                             className="uppercase"
+                            disabled={quotationsData.data.data.filter(x=>x.commandRequestId === form.getValues("commandRequestId")).some(u=>u.providerId === provider.id)}
                           >
                             {provider.name}
                           </SelectItem>
