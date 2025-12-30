@@ -1,8 +1,13 @@
 import api from "@/providers/axios";
 import { PaymentRequest } from "@/types/types";
 
-interface NewPayment extends Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status"> {
+export interface NewPayment extends Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status"> {
   proof: File;
+  commandId: number;
+}
+
+export interface UpdatePayment extends Omit<Partial<PaymentRequest>, "proof"> {
+  proof?: File;
 }
 
 export class PaymentQueries {
@@ -45,17 +50,15 @@ export class PaymentQueries {
   };
   new = async (payload:NewPayment):Promise<{data: PaymentRequest}> => {
     const formData = new FormData();
-    Object.entries(payload).forEach(([key, value]) => {
+    const {proof, ...rest} = payload;
+    formData.append("proof", proof);
+    Object.entries(rest).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
-      if (Array.isArray(value) && value[0] instanceof File) {
-        value.forEach((file) => {
-          formData.append(key, file);
-        });
-        return;
-      }
       formData.append(key, String(value));
     });
-    return api.post(this.route, payload).then((response) => response.data)
+    return api.post(this.route, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }).then((response) => response.data)
   }
 
   // --------------------------------------
@@ -103,9 +106,18 @@ export class PaymentQueries {
 
   update = async (
     id: number,
-    data: Partial<PaymentRequest>
+    data: UpdatePayment
   ): Promise<{ data: PaymentRequest }> => {
-    return api.put(`${this.route}/${id}`, data).then((res) => res.data);
+    const formData = new FormData();
+    const {proof, ...rest} = data;
+    if(proof)formData.append("proof", proof);
+    Object.entries(rest).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      formData.append(key, String(value));
+    });
+    return api.put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }).then((res) => res.data);
   };
 
   // --------------------------------------

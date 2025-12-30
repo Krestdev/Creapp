@@ -45,17 +45,23 @@ export const PAYMENT_METHOD = [
   { value: "cash", name: "Espèces" },
 ] as const;
 
+export const PAY_STATUS = [
+  { value: "pending", name:"En cours" },
+  { value: "validated", name:"Approuvé" }
+] as const;
+
 export type PaymentRequest = {
   id: number;
   reference: string;
-  proof: string;
-  status: string;
+  proof:string;
+  status: (typeof PAY_STATUS)[number]["value"];
   type: (typeof PAYMENT_TYPES)[number]["value"];
   method: (typeof PAYMENT_METHOD)[number]["value"];
   deadline: Date;
   title: string;
   price: number;
   priority: (typeof PRIORITIES)[number]["value"];
+  isPartial: boolean;
   userId: number;
   commandId?: number | null;
   requestId?: number | null;
@@ -347,6 +353,7 @@ export const PURCHASE_ORDER_STATUS = [
   { value: "PENDING", name: "En attente" },
   { value: "IN-REVIEW", name: "En révision" },
   { value: "REJECTED", name: "Rejeté" },
+  { value: "PAID", name: "Payé" },
 ] as const;
 
 export const PRIORITIES = [

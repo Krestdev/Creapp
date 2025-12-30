@@ -1,4 +1,4 @@
-import { Provider } from "@/types/types";
+import { BonsCommande, Provider } from "@/types/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -99,3 +99,7 @@ export const TranslateRole = (role: string) => {
       return role;
   }
 };
+
+export function totalAmountPurchase(payload:BonsCommande):number{
+  return payload.devi.element.reduce((total, el)=> total + el.priceProposed*el.quantity, 0)
+}
