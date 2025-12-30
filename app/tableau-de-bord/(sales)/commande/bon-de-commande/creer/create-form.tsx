@@ -40,7 +40,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
-const PRIORITIES = PRIORITIES.map(s => s.value) as [
+const PO_PRIORITIES = PRIORITIES.map(s => s.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][]
 ];
@@ -60,7 +60,7 @@ export const formSchema = z
     ),
     paymentTerms: z.string().min(1, "Ce champ est requis"),
     paymentMethod: z.string().min(1, "Ce champ est requis"),
-    priority: z.enum(PRIORITIES),
+    priority: z.enum(PO_PRIORITIES),
     deliveryLocation: z.string().min(1, "Ce champ est requis"),
 
     hasPenalties: z.boolean(),
