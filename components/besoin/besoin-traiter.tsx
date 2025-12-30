@@ -56,6 +56,7 @@ interface BesoinsTraiterTableProps {
   selected?: Request[];
   setSelected?: React.Dispatch<React.SetStateAction<Request[]>>;
   categories: Category[];
+  isHome?: boolean;
 }
 
 export function BesoinsTraiter({
@@ -63,6 +64,7 @@ export function BesoinsTraiter({
   selected,
   setSelected,
   categories,
+  isHome,
 }: BesoinsTraiterTableProps) {
   const [isOpenModal, setIsModalOpen] = React.useState(false);
   const [select, setSelect] = React.useState<RequestModelT>();
@@ -205,27 +207,33 @@ export function BesoinsTraiter({
         const someSelected = internalSelectedIds.size > 0 && !allSelected;
 
         return (
-          <Checkbox
-            checked={allSelected || (someSelected && "indeterminate")}
-            onCheckedChange={(value) => handleSelectAllChange(!!value)}
-            aria-label="Select all"
-          />
+          !isHome && (
+            <Checkbox
+              checked={allSelected || (someSelected && "indeterminate")}
+              onCheckedChange={(value) => handleSelectAllChange(!!value)}
+              aria-label="Select all"
+            />
+          )
         );
       },
       cell: ({ row }) => {
         const requestId = row.original.id;
         const isSelected = internalSelectedIds.has(requestId);
 
-        return (
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={(value) =>
-              handleCheckboxChange(requestId, !!value)
-            }
-            aria-label="Select row"
-            className="border-gray-500"
-          />
-        );
+        {
+          return (
+            !isHome && (
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={(value) =>
+                  handleCheckboxChange(requestId, !!value)
+                }
+                aria-label="Select row"
+                className="border-gray-500"
+              />
+            )
+          );
+        }
       },
       enableSorting: false,
       enableHiding: false,

@@ -50,7 +50,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { CommandRequestT } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -72,6 +72,8 @@ import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { QuotationQueries } from "@/queries/quotation";
 import { useFetchQuery } from "@/hooks/useData";
+import { ModalWarning } from "../modals/modal-warning";
+import { toast } from "sonner";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -105,6 +107,7 @@ export function CommandeTable({
   const [selectedOrder, setSelectedOrder] =
     React.useState<CommandRequestT | null>(null);
   const [showOrder, setShowOrder] = React.useState(false);
+  const queryClient = useQueryClient();
 
   const command = new CommandRqstQueries();
   const commandData = useQuery({
@@ -117,11 +120,25 @@ export function CommandeTable({
   const quotationQuery = new QuotationQueries();
   const { data: devis } = useFetchQuery(["quotations"], quotationQuery.getAll);
 
+  const cancelDevis = useMutation({
+    mutationKey: ["cancelDevis"],
+    mutationFn: (id: number) => command.delete(id),
+    onSuccess: () => {
+      toast.success("Demande de cotation annulée avec succès.");
+      queryClient.invalidateQueries({
+        queryKey: ["commands"],
+        refetchType: "active",
+      });
+    },
+  });
+
   // modal specific states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [selectedCommand, setSelectedCommand] = React.useState<
     CommandRequestT | undefined
   >(undefined);
+  const [isDevisModalCancelOpen, setIsDevisModalCancelOpen] =
+    React.useState(false);
 
   // États pour le modal personnalisé
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
@@ -282,28 +299,6 @@ export function CommandeTable({
 
   const columns: ColumnDef<CommandRequestT>[] = [
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
       accessorKey: "reference",
       header: ({ column }) => {
         return (
@@ -399,6 +394,9 @@ export function CommandeTable({
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
+        const devisAssocies = devis?.data.filter(
+          (x) => x.commandRequestId === row.original.id
+        );
 
         return (
           <DropdownMenu>
@@ -420,22 +418,29 @@ export function CommandeTable({
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedCommand(item);
-                  setIsUpdateModalOpen(true);
-                }}
-              >
-                <LucidePen className="mr-2 h-4 w-4" />
-                {"Modifier"}
-              </DropdownMenuItem>
               <DropdownMenuItem>
                 <DownloadButton
                   data={item}
                   className="bg-transparent text-black hover:bg-transparent hover:text-black h-8 py-0 px-0 font-normal!"
                 />
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedCommand(item);
+                  setIsUpdateModalOpen(true);
+                }}
+                disabled={devisAssocies?.length! > 0}
+              >
+                <LucidePen className="mr-2 h-4 w-4" />
+                {"Modifier"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={devisAssocies?.length! > 0}
+                onClick={() => {
+                  setSelectedCommand(item);
+                  setIsDevisModalCancelOpen(true);
+                }}
+              >
                 <Trash color="red" className="mr-2 h-4 w-4" />
                 {"Annuler"}
               </DropdownMenuItem>
@@ -804,6 +809,15 @@ export function CommandeTable({
         open={showOrder}
         onOpenChange={setShowOrder}
         data={selectedOrder}
+      />
+      <ModalWarning
+        open={isDevisModalCancelOpen}
+        onOpenChange={setIsDevisModalCancelOpen}
+        actionText="Annuler"
+        description="Vous êtes sur le point de supprimer la demande de cotation"
+        title={selectedCommand?.title || ""}
+        onAction={() => cancelDevis.mutate(selectedCommand?.id || 0)}
+        variant="error"
       />
     </div>
   );

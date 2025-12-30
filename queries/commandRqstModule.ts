@@ -73,7 +73,6 @@ export class CommandRqstQueries {
 
   reject = async (id: number): Promise<{ data: CommandRequestT }> => {
     return api.put(`${this.route}/reject/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };

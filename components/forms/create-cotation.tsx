@@ -122,7 +122,7 @@ export default function CreateCotationForm() {
   // map request to Request Type {id: number, name: string}
   const requests =
     filteredData
-      .filter((x) => x.state === "validated")
+      .filter((x) => x.categoryId !== 0 && x.state === "validated")
       .map((item) => ({
         id: item.id,
         name: item.label,

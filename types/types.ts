@@ -376,7 +376,7 @@ export type BonsCommande = {
   penaltyMode?: string;
   hasPenalties?: boolean;
   deliveryLocation?: string;
-  paymentMethod: (typeof PAYMENT_METHOD[number]["value"]);
+  paymentMethod: (typeof PAYMENT_METHOD)[number]["value"];
   paymentTerms: string;
   deliveryDelay: Date;
   motif?: string;
@@ -419,6 +419,29 @@ type Item = {
   qty: number;
   puHt: number;
   tva: number; // percent
+};
+
+export type Notification = {
+  id: number;
+  title: string;
+  type: string;
+  message: string;
+  userId: number;
+  read: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export const notificationRoutes: Record<string, string> = {
+  BESOIN_A_VALIDER: "/tableau-de-bord/besoins/validation",
+  BESOIN_VALIDE: "/tableau-de-bord/besoins/mylist",
+
+  DEVIS_A_VALIDER: "/tableau-de-bord/commande/devis/approbation",
+  BON_COMMANDE_CREE: "/tableau-de-bord/commande/bon-de-commande",
+
+  PAIEMENT_A_VALIDER: "/tableau-de-bord/ticket",
+  PAIEMENT_VALIDE: "/tableau-de-bord/ticket",
+  PAIEMENT_PAYE: "/tableau-de-bord/ticket",
 };
 
 export type BonDeCommande = {

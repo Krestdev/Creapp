@@ -1,20 +1,49 @@
 "use client";
 
+import Empty from "@/components/base/empty";
+import Besoins from "@/components/bdcommande/besoins";
 import Cotation from "@/components/bdcommande/cotation";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
+import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { RequestQueries } from "@/queries/requestModule";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import React from "react";
 
 const Page = () => {
-  const { user } = useStore();
+  const { user, isHydrated } = useStore();
   const links = [
     {
       title: "Créer une Demande",
       href: "./cotation/creer",
     },
   ];
+
+  const request = new RequestQueries();
+  const command = new CommandRqstQueries();
+
+  const requestData = useQuery({
+    queryKey: ["requests"],
+    queryFn: () => {
+      return request.getAll();
+    },
+    enabled: isHydrated,
+  });
+
+  const { data: cotation } = useFetchQuery(["commands"], command.getAll);
+
+  const besoinsDansCotation =
+    cotation?.data.flatMap((item) => item.besoins.map((b) => b.id)) ?? [];
+
+  const besoinVal = requestData.data?.data.filter(
+    (x) =>
+      x.categoryId !== 0 &&
+      x.state === "validated" &&
+      !besoinsDansCotation.includes(x.id)
+  );
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
@@ -41,7 +70,18 @@ const Page = () => {
             );
           })}
       </PageTitle>
-      <Cotation />
+      <div className="flex flex-col">
+        <h2>{"Besoins"}</h2>
+        {besoinVal && besoinVal?.length > 0 ? (
+          <Besoins selected={[]} setSelected={() => {}} isHome />
+        ) : (
+          <Empty message="Aucun besoin disponible" />
+        )}
+      </div>
+      <div className="flex flex-col">
+        <h2>{"Demande de cotation"}</h2>
+        <Cotation />
+      </div>
     </div>
   );
 };

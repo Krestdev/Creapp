@@ -188,7 +188,7 @@ export function ProjectCreateForm() {
           name="description"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel>{"Description du Projet"}</FormLabel>
+              <FormLabel>{"Description du Projet"} <span className="text-destructive">*</span></FormLabel>
               <FormControl>
                 <Textarea {...field} placeholder="Décrivez le projet" />
               </FormControl>

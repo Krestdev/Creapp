@@ -2,19 +2,42 @@ import api from "@/providers/axios";
 import { Quotation, QuotationElement, SubmissionElement } from "@/types/types";
 
 interface CreateQuotation {
-  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status" | "commandRequest">;
+  devis: Omit<
+    Quotation,
+    | "id"
+    | "element"
+    | "ref"
+    | "createdAt"
+    | "updatedAt"
+    | "status"
+    | "commandRequest"
+  >;
   elements: Array<Omit<QuotationElement, "id" | "deviId" | "status">>;
 }
 interface UpdateQuotation {
-  devis: Omit<Quotation, "id" | "element" | "ref" | "createdAt" | "updatedAt" | "status" | "commandRequest">;
-  elements: Array<{id?: number} & Omit<QuotationElement, "deviId" | "id" | "status">>;
+  devis: Omit<
+    Quotation,
+    | "id"
+    | "element"
+    | "ref"
+    | "createdAt"
+    | "updatedAt"
+    | "status"
+    | "commandRequest"
+  >;
+  elements: Array<
+    { id?: number } & Omit<QuotationElement, "deviId" | "id" | "status">
+  >;
 }
 
 export class QuotationQueries {
   route = "/request/devi";
 
   // CREATE — POST multipart
-  create = async ({ devis, elements }: CreateQuotation): Promise<{ data: Quotation }> => {
+  create = async ({
+    devis,
+    elements,
+  }: CreateQuotation): Promise<{ data: Quotation }> => {
     const formData = new FormData();
 
     const { proof, ...restDevis } = devis;
@@ -64,10 +87,14 @@ export class QuotationQueries {
       })
       .then((response) => response.data);
   };
-  cancel = async (id:number):Promise<{data: Quotation}> => {
+  cancel = async (id: number): Promise<{ data: Quotation }> => {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
-  }
-  validate = async (payload:Array<SubmissionElement>):Promise<{ data: Array<Quotation> }> => {
-    return api.put(`${this.route}/validerDevis`, payload).then((response) => response.data);
-  }
+  };
+  validate = async (
+    payload: Array<SubmissionElement>
+  ): Promise<{ data: Array<Quotation> }> => {
+    return api
+      .put(`${this.route}/validerDevis`, payload)
+      .then((response) => response.data);
+  };
 }

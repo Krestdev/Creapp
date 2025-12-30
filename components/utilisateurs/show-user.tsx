@@ -46,6 +46,19 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
     }
   };
 
+  const TranslateStatus = (statut: string) => {
+    switch (statut) {
+      case "active":
+        return "Vérifié";
+      case "inactive":
+        return "Non vérifié";
+      case "suspended":
+        return "Suspendu";
+      default:
+        return "Inconnu";
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[640px]! max-h-[650px] overflow-y-auto p-0 gap-0 overflow-x-hidden border-none flex flex-col">
@@ -102,17 +115,6 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
               </div>
               <div className="w-2/3 p-3 text-[14px]">
                 <div className="flex items-center gap-2">
-                  <Badge
-                    variant={
-                      user.status === "active"
-                        ? "default"
-                        : user.status === "suspended"
-                        ? "destructive"
-                        : "secondary"
-                    }
-                  >
-                    {user.status === "active" ? "Activé" : "Inactivé"}
-                  </Badge>
                   <Badge variant={user.verified ? "default" : "secondary"}>
                     {user.verified ? (
                       <>
