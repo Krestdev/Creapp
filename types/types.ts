@@ -389,3 +389,49 @@ export type Reception = {
   createdAt: Date;
   updatedAt?: Date;
 };
+
+type Item = {
+  ref: string;
+  designation: string;
+  qty: number;
+  puHt: number;
+  tva: number; // percent
+};
+
+export type BonDeCommande = {
+  numero: string;
+  dateCreation: string; // iso or readable
+  imprimePar: string;
+  imprimeLe: string;
+  company: {
+    name: string;
+    address: string;
+    phone?: string;
+    email?: string;
+  };
+  fournisseur: {
+    nom: string;
+    adresse?: string;
+    ville?: string;
+    pays?: string;
+    niu?: string;
+    email?: string;
+    telephone?: string;
+  };
+  client: {
+    nom: string;
+    adresse?: string;
+    ville?: string;
+    pays?: string;
+  };
+  items: Item[];
+  totals: {
+    totalHt: number;
+    remise: number;
+    tva: number;
+    isirda: number;
+    net: number;
+  };
+  amountInWords?: string;
+  conditions?: string;
+};
