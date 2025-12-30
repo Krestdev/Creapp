@@ -260,7 +260,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                               .some((d) => d.commandRequestId === w.id)
                         )
                         .map((request) => ({
-                          label: `${request.title}(${request.reference})`,
+                          label: `${request.title} - ${request.reference}`,
                           value: request.id.toString(),
                         })) ?? []
                     }

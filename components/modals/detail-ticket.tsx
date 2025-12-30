@@ -14,28 +14,30 @@ import {
   AlertCircle,
   Calendar,
   CreditCard,
-  FileText,
   FolderOpen,
   FolderTree,
   Hash,
-  User,
   Building,
   Receipt,
 } from "lucide-react";
-import { PaymentRequest } from "@/types/types";
+import { BonsCommande, PaymentRequest } from "@/types/types";
+import { useStore } from "@/providers/datastore";
 
 interface DetailTicketProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: PaymentRequest | undefined;
+  action: () => void;
+  commands: BonsCommande | undefined;
 }
 
-export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
+export function DetailTicket({ open, onOpenChange, data, action, commands }: DetailTicketProps) {
   // Fonction pour formater le montant
   const formatMontant = (montant: number | undefined) => {
     if (!montant) return "0 FCFA";
     return `${montant.toLocaleString("fr-FR")} FCFA`;
   };
+  const { user } = useStore();
 
   // Fonction pour obtenir la couleur du badge selon la priorité
   const getPrioriteColor = (priorite: string | undefined) => {
@@ -112,6 +114,8 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
         return "Espèces";
       case "carte":
         return "Carte bancaire";
+        case "cash":
+          return "Espèce";
       default:
         return moyen || "Non spécifié";
     }
@@ -139,9 +143,7 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <Hash className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Référence
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Référence</p>
                 <Badge
                   variant="secondary"
                   className="bg-pink-100 text-pink-900 hover:bg-pink-100 dark:bg-pink-900 dark:text-pink-100"
@@ -157,9 +159,7 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <FolderOpen className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Montant
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Montant</p>
                 <p className="font-semibold text-lg">
                   {formatMontant(data?.price || 0)}
                 </p>
@@ -173,9 +173,9 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground mb-1">
-                  Fournisseur
+                  {"Fournisseur"}
                 </p>
-                {/* <p className="font-semibold">{data?.fournisseur || "N/A"}</p> */}
+                <p className="font-semibold">{commands?.provider.name || "N/A"}</p>
               </div>
             </div>
 
@@ -186,9 +186,9 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground mb-1">
-                  Bon de commande
+                  {"Bon de commande"}
                 </p>
-                {/* <p className="text-sm">{data?.bonDeCommande || "N/A"}</p> */}
+                <p className="text-sm">{commands?.reference || "N/A"}</p>
               </div>
             </div>
 
@@ -202,13 +202,13 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                   Moyen de paiement
                 </p>
                 <p className="text-sm">
-                  {/* {translateMoyenPaiement(data?.moyenPaiement)} */}
+                  {translateMoyenPaiement(commands?.paymentMethod) || "N/A"}
                 </p>
               </div>
             </div>
 
             {/* Compte Payeur */}
-            <div className="flex items-start gap-3">
+            {/* <div className="flex items-start gap-3">
               <div className="mt-1">
                 <FolderTree className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -216,9 +216,9 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <p className="text-sm text-muted-foreground mb-1">
                   Compte Payeur
                 </p>
-                {/* <p className="font-semibold">{data?.comptePayeur || "N/A"}</p> */}
+                <p className="font-semibold">{commands. || "N/A"}</p>
               </div>
-            </div>
+            </div> */}
 
             {/* Statut */}
             <div className="flex items-start gap-3">
@@ -254,11 +254,11 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <Calendar className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Créé le
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Créé le</p>
                 <p className="font-semibold">
-                  {data?.createdAt ? format(new Date(data.createdAt), "PPP", { locale: fr }) : "N/A"}
+                  {data?.createdAt
+                    ? format(new Date(data.createdAt), "PPP", { locale: fr })
+                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -269,11 +269,11 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <Calendar className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Modifié le
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Modifié le</p>
                 <p className="font-semibold">
-                  {data?.updatedAt ? format(new Date(data.updatedAt), "PPP", { locale: fr }) : "N/A"}
+                  {data?.updatedAt
+                    ? format(new Date(data.updatedAt), "PPP", { locale: fr })
+                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -281,20 +281,19 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
         </div>
 
         {/* Boutons du footer - FIXE */}
-        <div className="flex gap-3 p-6 pt-0 shrink-0">
-          <Button
-            onClick={() => {
-              // Logique de paiement
-              console.log("Paiement du ticket:", data?.id);
-            }}
-            className="flex-1 bg-[#003D82] hover:bg-[#002D62] text-white"
-            disabled={!data || data.status === "paid"}
-          >
-            {data?.status === "paid" ? "Déjà payé" : "Payer"}
-          </Button>
+        <div className="flex gap-3 p-6 pt-0 shrink-0 w-full justify-end">
+          {user?.role.flatMap((x) => x.label).includes("VOLT") && (
+            <Button
+              onClick={action}
+              className="bg-[#003D82] hover:bg-[#002D62] text-white"
+              disabled={!data || data.status === "paid"}
+            >
+              {data?.status === "paid" ? "Déjà payé" : "Payer"}
+            </Button>
+          )}
           <Button
             variant="outline"
-            className="flex-1 bg-transparent"
+            className="bg-transparent"
             onClick={() => onOpenChange(false)}
           >
             Fermer
