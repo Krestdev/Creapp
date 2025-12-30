@@ -670,7 +670,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         action={() =>
           paymentMutation.mutate({
             id: selectedTicket?.id!,
-            data: { status: "paid" },
+            data: { ...data, status: "paid" },
           })
         }
         buttonTexts={"Payer"}
