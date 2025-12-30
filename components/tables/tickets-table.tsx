@@ -58,7 +58,7 @@ import { PurchaseOrder } from "@/queries/purchase-order";
 import { useFetchQuery } from "@/hooks/useData";
 import { QuotationQueries } from "@/queries/quotation";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { PaymentQueries } from "@/queries/payment";
+import { PaymentQueries, UpdatePayment } from "@/queries/payment";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -140,7 +140,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
       data,
     }: {
       id: number;
-      data: Partial<PaymentRequest>;
+      data: UpdatePayment;
     }) => {
       return payementQuery.update(id, data);
     },

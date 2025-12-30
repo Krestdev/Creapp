@@ -47,7 +47,9 @@ export const PAYMENT_METHOD = [
 
 export const PAY_STATUS = [
   { value: "pending", name:"En cours" },
-  { value: "validated", name:"Approuvé" }
+  { value: "validated", name:"Approuvé" },
+  { value: "ghost", name:"Fantome" },
+  { value: "paid", name:"Payé" },
 ] as const;
 
 export type PaymentRequest = {

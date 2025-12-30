@@ -190,7 +190,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
 
             return (
               <FormItem>
-                <FormLabel isRequired>{"Date limite de soumission"}</FormLabel>
+                <FormLabel isRequired>{"Delai de paiement"}</FormLabel>
                 <FormControl>
                   <div className="relative flex gap-2">
                     <Input
