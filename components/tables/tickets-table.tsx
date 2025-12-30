@@ -655,7 +655,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         action={() =>
           paymentMutation.mutate({
             id: selectedTicket?.id!,
-            data: { status: "validated" },
+            data: { ...data, status: "validated" },
           })
         }
         buttonTexts={"Approuver"}
