@@ -321,6 +321,38 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
             {config.label}
           </Badge>
         );
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild className="w-fit">
+              <Button
+                variant="ghost"
+                className={cn("gap-1", config.badgeClassName)}
+              >
+                <Flag className="h-3 w-3" />
+                {config.label}
+                <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {["bas", "moyenne", "haut", "urgent"].map((level) => {
+                return (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      paymentMutation.mutate({
+                        id: row.original.id!,
+                        data: { priority: level },
+                      });
+                    }}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    {level}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
       },
     },
     {

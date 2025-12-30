@@ -117,6 +117,22 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
     }
   };
 
+  // Fonction pour traduire les moyens de paiement
+  const typePaiment = (type: string | undefined) => {
+    switch (type?.toLowerCase()) {
+      case "FAC":
+        return "Facilitation";
+      case "RH":
+        return "Resource Humain";
+      case "SPECIAL":
+        return "Special";
+      case "PURCHASE":
+        return "Normal";
+      default:
+        return "diver";
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[420px] max-h-[80vh] p-0 gap-0 border-none flex flex-col">
@@ -125,6 +141,9 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
           <DialogTitle className="text-xl font-semibold text-white">
             Détails du ticket de paiement
           </DialogTitle>
+          <h4 className="text-sm text-white/80 mt-1">
+            {typePaiment(data?.type)} : {data?.reference || "N/A"}
+          </h4>
           <p className="text-sm text-white/80 mt-1">
             Référence : {data?.reference || "N/A"}
           </p>
@@ -139,9 +158,7 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <Hash className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Référence
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Référence</p>
                 <Badge
                   variant="secondary"
                   className="bg-pink-100 text-pink-900 hover:bg-pink-100 dark:bg-pink-900 dark:text-pink-100"
@@ -157,9 +174,7 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <FolderOpen className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Montant
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Montant</p>
                 <p className="font-semibold text-lg">
                   {formatMontant(data?.price || 0)}
                 </p>
@@ -254,11 +269,11 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <Calendar className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Créé le
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Créé le</p>
                 <p className="font-semibold">
-                  {data?.createdAt ? format(new Date(data.createdAt), "PPP", { locale: fr }) : "N/A"}
+                  {data?.createdAt
+                    ? format(new Date(data.createdAt), "PPP", { locale: fr })
+                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -269,11 +284,11 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
                 <Calendar className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Modifié le
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Modifié le</p>
                 <p className="font-semibold">
-                  {data?.updatedAt ? format(new Date(data.updatedAt), "PPP", { locale: fr }) : "N/A"}
+                  {data?.updatedAt
+                    ? format(new Date(data.updatedAt), "PPP", { locale: fr })
+                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -282,7 +297,7 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
 
         {/* Boutons du footer - FIXE */}
         <div className="flex gap-3 p-6 pt-0 shrink-0">
-          <Button
+          {/* <Button
             onClick={() => {
               // Logique de paiement
               console.log("Paiement du ticket:", data?.id);
@@ -291,7 +306,7 @@ export function DetailTicket({ open, onOpenChange, data }: DetailTicketProps) {
             disabled={!data || data.status === "paid"}
           >
             {data?.status === "paid" ? "Déjà payé" : "Payer"}
-          </Button>
+          </Button> */}
           <Button
             variant="outline"
             className="flex-1 bg-transparent"
