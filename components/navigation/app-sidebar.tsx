@@ -413,7 +413,7 @@ function AppSidebar() {
       pageId: "PG-04",
       icon: Ticket,
       href: "/tableau-de-bord/ticket",
-      authorized: ["ADMIN", "VOLT-MANAGER"],
+      authorized: ["ADMIN", "VOLT_MANAGER"],
       title: "Tickets",
       badge: pendingTicket && pendingTicket?.length > 0 ? pendingTicket?.length : undefined,
       // items: [

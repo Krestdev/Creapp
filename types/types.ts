@@ -90,6 +90,7 @@ export type User = {
   updatedAt?: string;
   role: Role[];
   members: Member[];
+  validators?: { id?: number; userId: number; rank: number }[];
 };
 
 export type Role = {

@@ -614,9 +614,9 @@ export function DataVal({
       progress:
         totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
       canValidate:
-        !hasUserAlreadyValidated(request) &&
-        request.state === "pending" &&
-        userPosition !== null,
+        // !hasUserAlreadyValidated(request) &&
+        request.state === "pending" 
+        && userPosition !== null,
     };
   };
 
@@ -852,7 +852,10 @@ export function DataVal({
         const item = row.original;
         const validationInfo = getValidationInfo(item);
         const userHasValidated = hasUserAlreadyValidated(item);
+
+        console.log(item, validationInfo.canValidate);
         
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -880,14 +883,10 @@ export function DataVal({
                     : openValidationModal("approve", item)
                 }
                 disabled={
-                  !validationInfo.canValidate ||
-                  item.state !== "pending" ||
+                  validationInfo.canValidate === false ||
+                  item.state !== "pending" 
+                  ||
                   userHasValidated
-                }
-                className={
-                  !validationInfo.canValidate
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
                 }
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
