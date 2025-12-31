@@ -14,9 +14,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "../ui/label";
+import { useStore } from "@/providers/datastore";
 
 const CreateResquestPage = () => {
+  const { user } = useStore();
   const [typeBesoin, setTypeBesoin] = React.useState<string>("");
+
+  const userRoles = user?.role?.flatMap((x) => x.label) || [];
+
+  const hasRole = (role: string) => userRoles.includes(role);
 
   const renderForm = () => {
     switch (typeBesoin) {
@@ -37,20 +43,37 @@ const CreateResquestPage = () => {
     <div className="space-y-6">
       <div className="grid gap-2 mx-12">
         <Label>Type de besoin</Label>
-        <Select onValueChange={(value) => setTypeBesoin(value)}>
+
+        <Select onValueChange={setTypeBesoin}>
           <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
             <SelectValue placeholder="Sélectionner le type de besoin" />
           </SelectTrigger>
+
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="ordinaire">{"Besoin ordinaire"}</SelectItem>
+              {/* Visible par tous */}
+              <SelectItem value="ordinaire">
+                Besoin ordinaire
+              </SelectItem>
+
+              {/* Visible par tous (modifiable si besoin) */}
               <SelectItem value="facilitation">
-                {"Besoin de facilitation"}
+                Besoin de facilitation
               </SelectItem>
-              <SelectItem value="ressource_humaine">
-                {"Besoin Ressource humaine"}
-              </SelectItem>
-              <SelectItem value="speciaux">{"Besoin spéciaux"}</SelectItem>
+
+              {/* RH uniquement */}
+              {hasRole("RH") && (
+                <SelectItem value="ressource_humaine">
+                  Besoin Ressource humaine
+                </SelectItem>
+              )}
+
+              {/* VOLT-MANAGER uniquement */}
+              {hasRole("VOLT_MANAGER") && (
+                <SelectItem value="speciaux">
+                  Besoin spéciaux
+                </SelectItem>
+              )}
             </SelectGroup>
           </SelectContent>
         </Select>
