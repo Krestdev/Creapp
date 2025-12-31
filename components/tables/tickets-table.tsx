@@ -438,7 +438,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
                       onClick={() => {
                         paymentMutation.mutate({
                           id: row.original.id!,
-                          data: { priority: level.value },
+                          data: { priority: level.value, price: row.original.price },
                         });
                       }}
                     >
