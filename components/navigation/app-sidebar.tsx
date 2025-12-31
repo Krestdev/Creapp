@@ -253,23 +253,23 @@ function AppSidebar() {
     {
       pageId: "PG-00",
       icon: BriefcaseBusiness,
-      href: "/tableau-de-bord/projets",
+      href: "/tableau-de-bord/projets/liste",
       authorized: ["ADMIN"],
       title: "Projets",
-      items: [
-        /* {
-          pageId: "PG-00-01",
-          authorized: ["ADMIN"],
-          title: "Créer un projet",
-          href: "/tableau-de-bord/projets/create",
-        }, */
-        {
-          pageId: "PG-00-02",
-          authorized: ["ADMIN"],
-          title: "Liste des projets",
-          href: "/tableau-de-bord/projets/liste",
-        },
-      ],
+      // items: [
+      //   /* {
+      //     pageId: "PG-00-01",
+      //     authorized: ["ADMIN"],
+      //     title: "Créer un projet",
+      //     href: "/tableau-de-bord/projets/create",
+      //   }, */
+      //   {
+      //     pageId: "PG-00-02",
+      //     authorized: ["ADMIN"],
+      //     title: "Liste des projets",
+      //     href: "/tableau-de-bord/projets/liste",
+      //   },
+      // ],
     },
     // {
     //   icon: Clipboard,
