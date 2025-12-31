@@ -833,7 +833,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         action={() =>
           validateMutation.mutate({
             id: selectedTicket?.id!,
-            data: { status: "validated" },
+            data: { price: selectedTicket?.price, status: "validated" },
           })
         }
         buttonTexts={"Approuver"}
