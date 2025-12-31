@@ -72,7 +72,7 @@ function getPriorityBadge(
     case "low":
       return { label, variant: "outline" };
     case "medium":
-      return { label, variant: "default" };
+      return { label, variant: "blue" };
     case "high":
       return { label, variant: "destructive" };
     case "urgent":

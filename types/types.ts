@@ -56,6 +56,8 @@ export type PaymentRequest = {
   id: number;
   reference: string;
   proof:string;
+  account?:string;
+  justification?: string;
   status: (typeof PAY_STATUS)[number]["value"];
   type: (typeof PAYMENT_TYPES)[number]["value"];
   method: (typeof PAYMENT_METHOD)[number]["value"];

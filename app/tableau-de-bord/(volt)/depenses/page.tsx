@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
 import { PaymentQueries } from "@/queries/payment";
+import { PurchaseOrder } from "@/queries/purchase-order";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
-import React from "react";
+import ExpensesTable from "./expenses-table";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -24,13 +25,19 @@ function Page() {
     paymentsQuery.getAll,
     30000
   );
-  if (isLoading) {
+  const purchasesQuery = new PurchaseOrder();
+  const getPurchases = useFetchQuery(
+    ["purchaseOrders"],
+    purchasesQuery.getAll,
+    30000
+  );
+  if ( isLoading || getPurchases.isLoading ) {
     return <LoadingPage />;
   }
-  if (isError) {
-    return <ErrorPage error={error} />;
+  if (isError || getPurchases.isError) {
+    return <ErrorPage error={error || getPurchases.error || undefined} />;
   }
-  if (isSuccess) {
+  if (isSuccess && getPurchases.isSuccess) {
     return (
       <div className="content">
         <PageTitle
@@ -62,6 +69,7 @@ function Page() {
               );
             })}
         </PageTitle>
+        <ExpensesTable payments={data.data.filter(p=> p.status === "validated")} purchases={getPurchases.data.data} />
       </div>
     );
   }
