@@ -64,6 +64,7 @@ import { Pagination } from "../base/pagination";
 import UpdateUser from "./UpdateUser";
 import { ShowUser } from "./show-user";
 import { TranslateRole } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
 
 interface UtilisateursTableProps {
   data: UserT[];
@@ -180,12 +181,13 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     }
   };
 
+  const { user } = useStore();
   const queryClient = useQueryClient();
-  const user = new UserQueries();
+  const users = new UserQueries();
   const userMutationData = useMutation({
     mutationKey: ["usersStatus"],
     mutationFn: (data: { id: number; status: string }) =>
-      user.changeStatus(data.id, { status: data.status }),
+      users.changeStatus(data.id, { status: data.status }),
     onSuccess: () => {
       toast.success("Statut mis à jour avec succès !");
       queryClient.invalidateQueries({
@@ -400,7 +402,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                         status: "inactive",
                       })
                     }
-                    disabled={utilisateur.status === "inactive"}
+                    disabled={utilisateur.status === "inactive" || utilisateur.id === user?.id}
                   >
                     <UserX className="mr-2 h-4 w-4" />
                     {"Suspendre"}
@@ -409,6 +411,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 <DropdownMenuItem
                   className="text-red-600"
                   onClick={() => userMutation.mutate(utilisateur.id ?? -1)}
+                  disabled={utilisateur.id === user?.id}
                 >
                   <Trash2 className="mr-2 h-4 w-4 text-destructive" />
                   {"Supprimer"}
