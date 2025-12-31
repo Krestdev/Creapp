@@ -9,6 +9,7 @@ import {
   Bell,
   BriefcaseBusiness,
   ClipboardList,
+  DollarSign,
   EllipsisVertical,
   ScrollText,
   Ticket,
@@ -34,6 +35,7 @@ import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { useFetchQuery } from "@/hooks/useData";
 import { QuotationQueries } from "@/queries/quotation";
 import { PurchaseOrder } from "@/queries/purchase-order";
+import { title } from "process";
 
 type ItemSide = {
   pageId: string;
@@ -396,14 +398,6 @@ function AppSidebar() {
       href: "/tableau-de-bord/ticket",
       authorized: ["ADMIN", "VOLT", "VOLT-MANAGER"],
       title: "Tickets",
-      items: [
-        {
-          pageId: "PG-04-02",
-          title: "Liste des tickets",
-          href: "/tableau-de-bord/ticket",
-          authorized: ["ADMIN", "VOLT", "VOLT-MANAGER"],
-        },
-      ],
       // items: [
       //   {
       //     pageId: "PG-04-01",
@@ -436,6 +430,13 @@ function AppSidebar() {
       //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
       //   },
       // ],
+    },
+    {
+      pageId: "PG-91",
+      icon: DollarSign,
+      href: "/tableau-de-bord/depenses",
+      authorized: ["VOLT", "ADMIN"],
+      title: "Dépenses",
     },
     // {
     //   pageId: "PG-05",

@@ -1,16 +1,16 @@
 "use client";
 
 import {
-    type ColumnDef,
-    type ColumnFiltersState,
-    type SortingState,
-    type VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
 import { ArrowUpDown, ChevronDown, Eye, Pencil, Settings2 } from "lucide-react";
@@ -21,30 +21,37 @@ import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 
 import { useFetchQuery } from "@/hooks/useData";
@@ -57,11 +64,14 @@ interface Props {
   data: Array<Reception>;
 }
 
-type Status = typeof PURCHASE_ORDER_STATUS[number]["value"];
+type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
 
 const getStatusLabel = (
   status: Status
-): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } => {
+): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} => {
   switch (status) {
     case "PENDING":
       return { label: "En attente", variant: "amber" };
@@ -76,14 +86,16 @@ const getStatusLabel = (
   }
 };
 
-
 export function ReceptionTable({ data }: Props) {
   const usersQuery = new UserQueries();
   const getUsers = useFetchQuery(["users"], usersQuery.getAll);
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
@@ -101,7 +113,7 @@ export function ReceptionTable({ data }: Props) {
     let filtered = [...(data ?? [])];
 
     if (statusFilter !== "all") {
-      filtered = filtered.filter((po) => po.status === statusFilter);
+      filtered = filtered.filter((po) => po.Status === statusFilter);
     }
 
     return filtered;
@@ -142,11 +154,13 @@ export function ReceptionTable({ data }: Props) {
           <ArrowUpDown />
         </span>
       ),
-      cell: ({ row }) => <div className="font-medium uppercase">{row.getValue("reference")}</div>,
+      cell: ({ row }) => (
+        <div className="font-medium uppercase">{row.getValue("reference")}</div>
+      ),
     },
 
     {
-      accessorKey: "commandId",
+      accessorKey: "Command",
       header: ({ column }) => (
         <span
           className="tablehead"
@@ -156,13 +170,18 @@ export function ReceptionTable({ data }: Props) {
           <ArrowUpDown />
         </span>
       ),
-      cell: ({ row }) =>{ 
-        const name:Reception["commandId"] = row.getValue("commandId")
-      return <div className="font-medium">{"Bon de commande"}</div>},
+      cell: ({ row }) => {
+        const name: Reception["Command"] = row.getValue("Command");
+        return (
+          <div className="font-medium">
+            {name ? name.reference : "Pas de Command"}
+          </div>
+        );
+      },
     },
 
     {
-      accessorKey: "providerId",
+      accessorKey: "Provider",
       header: ({ column }) => (
         <span
           className="tablehead"
@@ -172,13 +191,14 @@ export function ReceptionTable({ data }: Props) {
           <ArrowUpDown />
         </span>
       ),
-      cell: ({ row }) =>{ 
-        const provider:Reception["providerId"]= row.getValue("providerId");
-      return <div className="font-medium">{"Fournisseur"}</div>},
+      cell: ({ row }) => {
+        const provider: Reception["Provider"] = row.getValue("Provider");
+        return <div className="font-medium">{provider.name}</div>;
+      },
     },
 
     {
-      accessorKey: "deadline",
+      accessorKey: "Deadline",
       header: ({ column }) => (
         <span
           className="tablehead"
@@ -189,17 +209,27 @@ export function ReceptionTable({ data }: Props) {
         </span>
       ),
       cell: ({ row }) => {
-        const base = row.original;
-        return <div className="font-medium">{format(new Date(), "dd-MM-yyyy", {locale: fr})}</div>;
+        const base = row.getValue("Deadline") as string;
+        return (
+          <div className="font-medium">
+            {format(new Date(base), "dd-MM-yyyy", { locale: fr })}
+          </div>
+        );
       },
     },
 
     {
-      accessorKey: "deliverables",
+      accessorKey: "Deliverables",
       header: () => <span className="tablehead">{"Éléments"}</span>,
       cell: ({ row }) => {
         const value = row.original;
-        return <div>{value.deliverables}</div>;
+        return (
+          <div>
+            {value.Deliverables.map((delivrable) => {
+              return <Badge>{delivrable.title}</Badge>;
+            })}
+          </div>
+        );
       },
     },
 
@@ -208,7 +238,7 @@ export function ReceptionTable({ data }: Props) {
       header: () => <span className="tablehead">{"Statut"}</span>,
       cell: ({ row }) => {
         const value = row.original;
-        return <Badge>{value.status}</Badge>;
+        return <Badge>{value.Status}</Badge>;
       },
     },
     {
@@ -232,14 +262,20 @@ export function ReceptionTable({ data }: Props) {
 
               <DropdownMenuItem
                 className="cursor-pointer"
-                onClick={()=>{setSelectedValue(item); setView(true)}}
+                onClick={() => {
+                  setSelectedValue(item);
+                  setView(true);
+                }}
               >
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
-                onClick={()=>{setSelectedValue(item); setEdit(true)}}
+                onClick={() => {
+                  setSelectedValue(item);
+                  setEdit(true);
+                }}
               >
                 <Pencil />
                 {"Modifier"}
@@ -268,9 +304,11 @@ export function ReceptionTable({ data }: Props) {
       const po = row.original;
 
       const created = new Date(po.createdAt as any);
-      const createdText = isNaN(created.getTime()) ? "" : format(created, "dd/MM/yyyy HH:mm").toLowerCase();
+      const createdText = isNaN(created.getTime())
+        ? ""
+        : format(created, "dd/MM/yyyy HH:mm").toLowerCase();
 
-      const statusText = (po.status ?? "").toLowerCase();
+      const statusText = (po.Status ?? "").toLowerCase();
 
       return (
         String(po.id).includes(s) ||
@@ -346,7 +384,11 @@ export function ReceptionTable({ data }: Props) {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button variant="outline" onClick={resetAllFilters} className="w-full">
+                <Button
+                  variant="outline"
+                  onClick={resetAllFilters}
+                  className="w-full"
+                >
                   {"Réinitialiser les filtres"}
                 </Button>
               </div>
@@ -388,7 +430,8 @@ export function ReceptionTable({ data }: Props) {
               .map((column) => {
                 let columnName = column.id;
                 if (column.id === "id") columnName = "#";
-                else if (column.id === "commandId") columnName = "Bon de commande";
+                else if (column.id === "commandId")
+                  columnName = "Bon de commande";
                 else if (column.id === "providerId") columnName = "Fournisseur";
                 else if (column.id === "deliverables") columnName = "Éléments";
                 else if (column.id === "status") columnName = "Statut";
@@ -397,7 +440,9 @@ export function ReceptionTable({ data }: Props) {
                   <DropdownMenuCheckboxItem
                     key={column.id}
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
                     {columnName}
                   </DropdownMenuCheckboxItem>
@@ -414,10 +459,16 @@ export function ReceptionTable({ data }: Props) {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="border-r last:border-r-0">
+                  <TableHead
+                    key={header.id}
+                    className="border-r last:border-r-0"
+                  >
                     {header.isPlaceholder
                       ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -433,19 +484,34 @@ export function ReceptionTable({ data }: Props) {
                   className="hover:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="border-r last:border-r-0">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <TableCell
+                      key={cell.id}
+                      className="border-r last:border-r-0"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <span className="text-muted-foreground">{"Aucun résultat trouvé"}</span>
+                    <span className="text-muted-foreground">
+                      {"Aucun résultat trouvé"}
+                    </span>
                     {(statusFilter !== "all" || globalFilter) && (
-                      <Button variant="ghost" size="sm" onClick={resetAllFilters}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetAllFilters}
+                      >
                         {"Réinitialiser les filtres"}
                       </Button>
                     )}

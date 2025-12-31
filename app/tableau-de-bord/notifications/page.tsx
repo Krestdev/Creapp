@@ -150,7 +150,7 @@ export default function Page() {
   };
 
   return (
-    <div>
+    <div className="content">
       <PageTitle
         title="Notifications"
         subtitle="Consulter et traiter les notifications."
