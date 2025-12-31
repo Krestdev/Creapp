@@ -125,7 +125,7 @@ function NavigationItem(item: NavigationItemProps & {
                       "inline-flex w-full items-center gap-2 justify-between p-2 h-10 rounded bg-transparent hover:bg-primary/10 text-gray-700 font-mono text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary/50 focus:ring-offset-2",
                       "transform-gpu rounded-md",
                       isSubActive
-                        ? "bg-[#9b3e66] text-white hover:bg-[#9b3e66]/90 shadow-sm"
+                        ? "bg-primary/70 text-white hover:bg-primary/40 shadow-sm"
                         : "hover:bg-primary/5"
                     )}
                   >

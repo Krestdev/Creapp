@@ -36,6 +36,7 @@ import { useFetchQuery } from "@/hooks/useData";
 import { QuotationQueries } from "@/queries/quotation";
 import { PurchaseOrder } from "@/queries/purchase-order";
 import { title } from "process";
+import { PaymentQueries } from "@/queries/payment";
 
 type ItemSide = {
   pageId: string;
@@ -51,6 +52,7 @@ type Sidebar = {
   authorized: string[];
   title: string;
   items?: ItemSide[];
+  badge?: number;
 };
 
 function AppSidebar() {
@@ -227,6 +229,21 @@ function AppSidebar() {
     authorizedRoles: [],
   });
 
+  const paymentsQuery = new PaymentQueries();
+  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
+    ["payments"],
+    paymentsQuery.getAll,
+    30000
+  );
+
+  const ticketsData = data?.data.filter((ticket) => ticket.status !== "ghost");
+  const pendingTicket = ticketsData?.filter(
+    (ticket) => ticket.status === "pending"
+  );
+  const approvedTicket = ticketsData?.filter(
+    (ticket) => ticket.status === "validated"
+  );
+
   // Si en cours de vérification, afficher un loader
   if (isChecking) {
     return (
@@ -396,8 +413,9 @@ function AppSidebar() {
       pageId: "PG-04",
       icon: Ticket,
       href: "/tableau-de-bord/ticket",
-      authorized: ["ADMIN", "VOLT", "VOLT-MANAGER"],
+      authorized: ["ADMIN", "VOLT-MANAGER"],
       title: "Tickets",
+      badge: pendingTicket && pendingTicket?.length > 0 ? pendingTicket?.length : undefined,
       // items: [
       //   {
       //     pageId: "PG-04-01",
@@ -437,6 +455,7 @@ function AppSidebar() {
       href: "/tableau-de-bord/depenses",
       authorized: ["VOLT", "ADMIN"],
       title: "Dépenses",
+      badge: approvedTicket && approvedTicket?.length > 0 ? approvedTicket?.length : undefined,
     },
     // {
     //   pageId: "PG-05",
