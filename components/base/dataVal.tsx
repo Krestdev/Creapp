@@ -885,8 +885,8 @@ export function DataVal({
                 disabled={
                   validationInfo.canValidate === false ||
                   item.state !== "pending" 
-                  ||
-                  userHasValidated
+                  // ||
+                  // userHasValidated
                 }
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
