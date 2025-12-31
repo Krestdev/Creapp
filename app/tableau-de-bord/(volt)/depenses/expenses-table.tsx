@@ -57,6 +57,7 @@ import PayExpense from "./pay-expense";
 interface Props {
   payments: Array<PaymentRequest>;
   purchases: Array<BonsCommande>;
+  type: "pending"|"validated";
 }
 
 function getPriorityBadge(
@@ -112,7 +113,7 @@ function getTypeBadge(type: PaymentRequest["type"]): {label: string; variant: Va
   }
 };
 
-function ExpensesTable({ payments, purchases }: Props) {
+function ExpensesTable({ payments, purchases, type }: Props) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
       []
@@ -316,6 +317,7 @@ function ExpensesTable({ payments, purchases }: Props) {
                   {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                disabled={item.status !== "validated"}
                   onClick={() => {
                     setSelected(item);
                     setShowPay(true);
@@ -452,7 +454,7 @@ function ExpensesTable({ payments, purchases }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Ticket en attente (${payments.length})`}</h3>
+      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${payments.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
