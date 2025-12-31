@@ -212,6 +212,26 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
     },
   });
 
+  const validateMutation = useMutation({
+    mutationKey: ["payment"],
+    mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
+      return payementQuery.vaidate(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["payments"],
+        refetchType: "active",
+      });
+      toast.success(message);
+      message.includes("payé")
+        ? setOpenPaiementModal(false)
+        : setOpenValidationModal(false);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   // Récupérer les statuts uniques présents dans les données
   const uniqueStatuses = React.useMemo(() => {
     const statuses = new Set<string>();
@@ -811,15 +831,15 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         subTitle={"Valider le ticket"}
         description={"Voulez-vous valider ce ticket ?"}
         action={() =>
-          paymentMutation.mutate({
+          validateMutation.mutate({
             id: selectedTicket?.id!,
-            data: { price: selectedTicket?.price, status: "validated" },
+            data: { status: "validated" },
           })
         }
         buttonTexts={"Approuver"}
       />
 
-      <ApproveTicket
+      {/* <ApproveTicket
         open={openPaiementModal}
         onOpenChange={setOpenPaiementModal}
         title={selectedTicket?.reference || "Ticket"}
@@ -832,7 +852,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
           })
         }
         buttonTexts={"Payer"}
-      />
+      /> */}
     </div>
   );
 }

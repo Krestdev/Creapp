@@ -1,7 +1,11 @@
 import api from "@/providers/axios";
 import { PaymentRequest } from "@/types/types";
 
-export interface NewPayment extends Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status"> {
+export interface NewPayment
+  extends Omit<
+    PaymentRequest,
+    "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status"
+  > {
   proof: File;
   commandId: number;
 }
@@ -10,7 +14,10 @@ export interface UpdatePayment extends Omit<Partial<PaymentRequest>, "proof"> {
   proof?: File;
 }
 
-export type PayPayload = Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "status"|"justification">&{justification: File};
+export type PayPayload = Omit<
+  PaymentRequest,
+  "id" | "createdAt" | "updatedAt" | "status" | "justification"
+> & { justification: File };
 export class PaymentQueries {
   route = "/request/payment";
 
@@ -49,18 +56,20 @@ export class PaymentQueries {
       })
       .then((response) => response.data);
   };
-  new = async (payload:NewPayment):Promise<{data: PaymentRequest}> => {
+  new = async (payload: NewPayment): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
-    const {proof, ...rest} = payload;
+    const { proof, ...rest } = payload;
     formData.append("proof", proof);
     Object.entries(rest).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
       formData.append(key, String(value));
     });
-    return api.post(this.route, formData, {
+    return api
+      .post(this.route, formData, {
         headers: { "Content-Type": "multipart/form-data" },
-      }).then((response) => response.data)
-  }
+      })
+      .then((response) => response.data);
+  };
 
   // --------------------------------------
   // READ (GET ALL)
@@ -110,32 +119,46 @@ export class PaymentQueries {
     data: UpdatePayment
   ): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
-    const {proof, ...rest} = data;
-    if(proof)formData.append("proof", proof);
+    const { proof, ...rest } = data;
+    if (proof) formData.append("proof", proof);
     Object.entries(rest).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
       formData.append(key, String(value));
     });
-    return api.put(`${this.route}/${id}`, formData, {
+    return api
+      .put(`${this.route}/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
-      }).then((res) => res.data);
+      })
+      .then((res) => res.data);
+  };
+
+  vaidate = async (
+    id: number,
+    data: UpdatePayment
+  ): Promise<{ data: PaymentRequest }> => {
+    return api.put(`${this.route}/${id}`, data).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
   pay = async (
-    id:number,
+    id: number,
     data: PayPayload
-  ):Promise<{data: PaymentRequest}> => {
+  ): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
-    const {justification, ...rest} = data;
+    const { justification, ...rest } = data;
     formData.append("justification", justification);
-    formData.append("status", "paid")
+    formData.append("status", "paid");
     Object.entries(rest).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
       formData.append(key, String(value));
     });
-    return api.put(`${this.route}/${id}`, formData, {
+    return api
+      .put(`${this.route}/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
-      }).then((res) => res.data);
+      })
+      .then((res) => res.data);
   };
 
   // --------------------------------------
