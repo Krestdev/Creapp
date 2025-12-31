@@ -18,6 +18,7 @@ function Page() {
         title: "Créer une dépense",
         href: "./depenses/creer",
         hide: false,
+        disabled: true
       },
     ];
   const paymentsQuery = new PaymentQueries();
