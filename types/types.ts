@@ -46,10 +46,10 @@ export const PAYMENT_METHOD = [
 ] as const;
 
 export const PAY_STATUS = [
-  { value: "pending", name:"En cours" },
-  { value: "validated", name:"Approuvé" },
-  { value: "ghost", name:"Fantome" },
-  { value: "paid", name:"Payé" },
+  { value: "pending", name: "En cours" },
+  { value: "validated", name: "Approuvé" },
+  { value: "ghost", name: "Fantome" },
+  { value: "paid", name: "Payé" },
 ] as const;
 
 export type PaymentRequest = {
@@ -410,11 +410,14 @@ export type Reception = {
   proof: string;
   deliverables: string;
   deadline: Date;
-  status: string;
+  Status: string;
   providerId: number;
   userId: number;
   createdAt: Date;
   updatedAt?: Date;
+  Command: BonsCommande | null;
+  Provider: Provider;
+  Deliverables: QuotationElement[];
 };
 
 type Item = {

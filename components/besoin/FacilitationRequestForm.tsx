@@ -365,10 +365,7 @@ export default function FacilitationRequestForm() {
             name="justificatif"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>
-                  {"Justificatif"}
-                  <span className="text-red-500">*</span>
-                </FormLabel>
+                <FormLabel>{"Justificatif"}</FormLabel>
                 <FormControl>
                   <FilesUpload
                     value={field.value || []}

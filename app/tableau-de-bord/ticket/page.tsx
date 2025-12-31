@@ -10,6 +10,7 @@ import LoadingPage from "@/components/loading-page";
 import { useFetchQuery } from "@/hooks/useData";
 import { PaymentQueries } from "@/queries/payment";
 import Empty from "@/components/base/empty";
+import StatsCard from "@/components/base/StatsCard";
 
 function Page() {
   const { user } = useStore();
@@ -28,11 +29,15 @@ function Page() {
     return <ErrorPage error={error} />;
   }
   if (isSuccess) {
-    const ticketsData = data?.data.filter((ticket) => ticket.status !== "ghost");
+    const ticketsData = data?.data.filter(
+      (ticket) => ticket.status !== "ghost"
+    );
     const pending = ticketsData.filter((ticket) => ticket.status === "pending");
     const approved = ticketsData.filter(
       (ticket) => ticket.status !== "pending"
     );
+    const paid = ticketsData.filter((ticket) => ticket.status === "paid");
+    const unPaid = ticketsData.filter((ticket) => ticket.status !== "paid" && ticket.status !== "pending");
 
     return (
       <div className="flex flex-col gap-6">
@@ -50,23 +55,28 @@ function Page() {
               color="green"
             />
             <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
-              <TitleValueCard
-                title="Tickets en attente"
-                value={pending.length.toString()}
-                className="bg-[#15803D] border border-[#2262A2] text-[#E4E4E7]"
-                valColor="text-white"
-              />
-              <TitleValueCard
-                title="Tickets Validées"
-                value={approved.length.toString()}
-                className="bg-[#013E7B] border border-[#BBF7D0] text-[#E4E4E7]"
-                valColor="text-white"
-              />
-              <TitleValueCard
+              <StatsCard
                 title="Total Tickets"
-                value={ticketsData.length.toString()}
-                className="bg-white border border-[#DFDFDF] text-[#52525B]"
-                valColor="text-black"
+                titleColor="text-[#fff]"
+                value={String(ticketsData.length)}
+                description="Tickets en attente :"
+                descriptionValue={String(pending.length)}
+                descriptionColor="text-[#fff]"
+                dividerColor="bg-[#DFDFDF]"
+                className={"bg-[#013E7B] text-[#E4E4E7] border-[#BBF7D0]"}
+                dvalueColor="text-yellow-400"
+              />
+
+              <StatsCard
+                title="Tickets Validées"
+                titleColor="text-[#52525B]"
+                value={String(approved.length)}
+                description="Tickets non payés :"
+                descriptionValue={String(unPaid.length)}
+                descriptionColor="text-[#A1A1AA]"
+                dividerColor="bg-[#DFDFDF]"
+                className={"bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"}
+                dvalueColor="text-destructive"
               />
             </div>
           </>

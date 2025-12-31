@@ -9,4 +9,13 @@ export class ReceptionQuery {
       return response.data;
     });
   };
+
+  update = async (
+    id: number,
+    data: Reception
+  ): Promise<{ data: Array<Reception> }> => {
+    return api.put(`${this.route}/${id}`, data).then((response) => {
+      return response.data;
+    });
+  };
 }

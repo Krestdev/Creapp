@@ -18,6 +18,10 @@ export const XAF = new Intl.NumberFormat("fr-FR", {
   currency: "XAF",
 });
 
+export function formatXAF(value: number) {
+  return `${value.toLocaleString("fr-FR").replace(/\s/g, " ")} FCFA`;
+}
+
 export const parseFrenchDate = (dateString: string): Date | undefined => {
   if (!dateString || dateString === "Non définie") return undefined;
 
