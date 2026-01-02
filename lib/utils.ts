@@ -1,4 +1,4 @@
-import { BonsCommande, Provider } from "@/types/types";
+import { BonsCommande, Provider, Role } from "@/types/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -86,7 +86,7 @@ export function isProviderValid(provider: Provider): boolean {
 export const TranslateRole = (role: string) => {
   switch (role) {
     case "USER":
-      return "Emetteur";
+      return "Employé";
     case "MANAGER":
       return "Validateur";
     case "SALES":
@@ -99,6 +99,8 @@ export const TranslateRole = (role: string) => {
       return "Trésorier";
     case "VOLT_MANAGER":
       return "Donneur d'ordre de décaissement";
+    case "RH":
+      return "Ressources Humaines";
     default:
       return role;
   }
@@ -106,4 +108,30 @@ export const TranslateRole = (role: string) => {
 
 export function totalAmountPurchase(payload:BonsCommande):number{
   return payload.devi.element.reduce((total, el)=> total + el.priceProposed*el.quantity, 0)
+}
+
+interface RoleCheck {
+  roleList: Role[];
+  role: "admin" | "achat" | "Donner d'ordre achat" | "trésorier" | "Donneur d'ordre décaissement" | "rh";
+}
+export function isRole({roleList, role}:RoleCheck):boolean{
+  if (roleList.some(r => r.label === "ADMIN")) {
+    return true;
+  }
+  if(role === "achat" && roleList.some(r => r.label === "SALES" || r.label === "SALES_MANAGER")){
+    return true;
+  }
+  if(role === "Donner d'ordre achat" && roleList.some(r => r.label === "SALES_MANAGER")){
+    return true;
+  }
+  if(role === "trésorier" && roleList.some(r => r.label === "VOLT")){
+    return true;
+  }
+  if(role === "Donneur d'ordre décaissement" && roleList.some(r => r.label === "VOLT_MANAGER")){
+    return true;
+  }
+  if(role === "rh" && roleList.some(r => r.label === "RH")){
+    return true;
+  }
+  return false;
 }

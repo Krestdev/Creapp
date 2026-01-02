@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
-import { cn, XAF } from "@/lib/utils";
+import { cn, isRole, XAF } from "@/lib/utils";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -33,9 +33,7 @@ const Page = () => {
   );
 
   const { user } = useStore();
-  const isAdmin = user?.role.some(
-    (r) => r.label === "SALES_MANAGER" || r.label === "ADMIN"
-  );
+  const auth = isRole({ roleList: user?.role || [], role: "Donner d'ordre achat" });
 
   const filteredData: Array<BonsCommande> = useMemo(() => {
     const list = data?.data ?? [];
@@ -70,13 +68,12 @@ const Page = () => {
     {
       title: "Statistiques",
       href: "./bon-de-commande/statistiques",
-      disabled: true,
+      disabled: false,
     },
     {
       title: "Approbation",
       href: "./bon-de-commande/approbation",
-      disabled: !isAdmin,
-      hide: !isAdmin,
+      hide: !auth,
     },
     {
       title: "Receptions",

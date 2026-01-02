@@ -22,11 +22,24 @@ function NavigationItem(item: NavigationItemProps & {
               {item.title}
             </span>
           </AccordionTrigger>
-          <AccordionContent className="grid gap-2">
-            {item.items.map((subItem, id)=>(
-              <NavigationLink key={id} href={subItem.href} title={subItem.title} badgeValue={subItem.badgeValue} />
-            ))}
-          </AccordionContent>
+          <AccordionContent className="relative pl-6">
+      {/* Ligne verticale */}
+      <span
+        className="absolute left-2 top-1 bottom-1 w-px bg-muted-foreground/40"
+        aria-hidden
+      />
+
+      <div className="grid gap-2">
+        {item.items.map((subItem, id) => (
+          <NavigationLink
+            key={id}
+            href={subItem.href}
+            title={subItem.title}
+            badgeValue={subItem.badgeValue}
+          />
+        ))}
+      </div>
+    </AccordionContent>
         </AccordionItem>
 
       </Accordion>
