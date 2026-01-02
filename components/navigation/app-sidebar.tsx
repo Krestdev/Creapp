@@ -1,20 +1,24 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
+import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
 import { CategoryQueries } from "@/queries/categoryModule";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { PaymentQueries } from "@/queries/payment";
+import { PurchaseOrder } from "@/queries/purchase-order";
+import { QuotationQueries } from "@/queries/quotation";
 import { RequestQueries } from "@/queries/requestModule";
-import { Category, RequestModelT, User } from "@/types/types";
+import { Category, NavigationItemProps, NavigationLinkProps, RequestModelT, Role, User } from "@/types/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
-  Bell,
   BriefcaseBusiness,
   ClipboardList,
   DollarSign,
   EllipsisVertical,
+  LucideIcon,
   ScrollText,
   Ticket,
   Truck,
-  UsersRound,
+  UsersRound
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
@@ -31,32 +35,19 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { useFetchQuery } from "@/hooks/useData";
-import { QuotationQueries } from "@/queries/quotation";
-import { PurchaseOrder } from "@/queries/purchase-order";
-import { title } from "process";
-import { PaymentQueries } from "@/queries/payment";
-
-type ItemSide = {
-  pageId: string;
-  href: string;
-  authorized: string[];
-  title: string;
-  badge?: number;
-};
-type Sidebar = {
-  pageId: string;
-  icon: any;
-  href: string;
-  authorized: string[];
-  title: string;
-  items?: ItemSide[];
-  badge?: number;
-};
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
+
+  function getRoleName(roles: Array<Role>): string {
+    if (roles.some(r => r.label === "ADMIN")) return "Administrateur";
+    if (roles.some(r => r.label === "VOLT_MANAGER")) return "DO Décaissement";
+    if (roles.some(r => r.label === "VOLT")) return "Trésorier";
+    if (roles.some(r => r.label === "SALES_MANAGER")) return "DO d'Achats";
+    if (roles.some(r => r.label === "SALES")) return "Responsable d'Achats";
+    if (roles.some(r => r.label === "ACCOUNTING")) return "Comptable";
+    return "Employé";
+  }
 
   const request = new RequestQueries();
   const category = new CategoryQueries();
@@ -106,8 +97,6 @@ function AppSidebar() {
     enabled: isHydrated,
   });
 
-  const [openSection, setOpenSection] = useState<string | null>(null);
-
   // Récupérer tous les IDs des besoins présents dans les cotations
   const besoinsDansCotation =
     cotation?.data.flatMap((item) => item.besoins.map((b) => b.id)) ?? [];
@@ -119,10 +108,6 @@ function AppSidebar() {
       x.state === "validated" &&
       !besoinsDansCotation.includes(x.id)
   );
-
-  const toggleSection = (sectionTitle: string) => {
-    setOpenSection((prev) => (prev === sectionTitle ? null : sectionTitle));
-  };
 
   const isValidCategoryId = (id: number | null | undefined): id is number =>
     id !== null && id !== undefined;
@@ -270,7 +255,7 @@ function AppSidebar() {
     return null;
   }
 
-  const navLinks: Sidebar[] = [
+  const navLinks: NavigationItemProps[] = [
     {
       pageId: "PG-00",
       icon: BriefcaseBusiness,
@@ -330,7 +315,7 @@ function AppSidebar() {
           title: "Approbation",
           href: "/tableau-de-bord/besoins/validation",
           authorized: ["ADMIN", "MANAGER"],
-          badge: pendingData?.length > 0 ? pendingData?.length : undefined,
+          badgeValue: pendingData?.length > 0 ? pendingData?.length : undefined,
         },
         {
           pageId: "PG-09-03",
@@ -352,7 +337,7 @@ function AppSidebar() {
           title: "Demande de cotation",
           href: "/tableau-de-bord/commande/cotation",
           authorized: ["ADMIN", "SALES"],
-          badge:
+          badgeValue:
             besoinVal && besoinVal.length > 0 ? besoinVal?.length : undefined,
         },
         {
@@ -364,6 +349,12 @@ function AppSidebar() {
           //   newCotation && newCotation.length > 0
           //     ? newCotation?.length
           //     : undefined,
+        },
+        {
+          pageId: "PG-03-45",
+          title: "Approbation Devis",
+          href: "/tableau-de-bord/commande/devis/approbation",
+          authorized: ["ADMIN", "SALES_MANAGER"],
         },
         // {
         //   pageId: "PG-03-03",
@@ -378,6 +369,12 @@ function AppSidebar() {
           authorized: ["ADMIN", "SALES"],
           // badge:
           //   newDevis && newDevis?.length > 0 ? newDevis?.length : undefined,
+        },
+        {
+          pageId: "PG-03-44",
+          title: "Approbation BC",
+          href: "/tableau-de-bord/commande/bon-de-commande/approbation",
+          authorized: ["ADMIN", "SALES_MANAGER"],
         },
         // {
         //   pageId: "PG-03-04",
@@ -577,12 +574,13 @@ function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2 flex flex-col gap-1.5">
-        {filteredNavLinks.map((navLink) => (
+        {filteredNavLinks.map(({ items, ...props }, id) => (
           <NavigationItem
-            key={navLink.href}
-            {...navLink}
-            isOpen={openSection === navLink.title}
-            onToggle={() => toggleSection(navLink.title)}
+            key={id}
+            {...props}
+            items={items?.filter((item) =>
+              item.authorized.some((role) => userRoles.includes(role))
+            )}
           />
         ))}
       </SidebarContent>
@@ -591,7 +589,7 @@ function AppSidebar() {
           <DropdownMenuTrigger className="w-full h-auto border-none shadow-none p-2 flex items-center gap-2 justify-between cursor-pointer hover:shadow-sm transition-all duration-300 ease-out">
             <div className="flex flex-col gap-1">
               <span className="text-xs leading-[120%] text-gray-500">
-                {"Employé"}
+                {getRoleName(user?.role || [])}
               </span>
               <span className="text-sm font-medium leading-[120%] text-gray-900 capitalize">
                 {user?.name || "Utilisateur"}

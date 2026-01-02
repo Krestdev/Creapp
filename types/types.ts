@@ -8,13 +8,13 @@ export interface NavigationItemProps {
   href: string;
   authorized: string[];
   title: string;
-  badge?: number;
+  badgeValue?: number;
   items?: {
     pageId: string;
     title: string;
     href: string;
     authorized: string[];
-    badge?: number;
+    badgeValue?: number;
   }[];
 }
 
@@ -492,3 +492,10 @@ export type BonDeCommande = {
   amountInWords?: string;
   conditions?: string;
 };
+
+export type NavigationLinkProps = {
+  href: string;
+  title: string;
+  icon?: LucideIcon;
+  badgeValue?: number;
+}

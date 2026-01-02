@@ -1,191 +1,57 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
-import { NavigationItemProps } from "@/types/types";
-import { ChevronRight } from "lucide-react";
+import { NavigationItemProps, NavigationLinkProps } from "@/types/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 
 function NavigationItem(item: NavigationItemProps & { 
   isOpen?: boolean; 
   onToggle?: () => void;
 }) {
   const pathname = usePathname();
-  const { user } = useStore();
-  const roles = user?.role.map((r) => r.label) || ["USER"];
-  
-  // Référence pour l'animation du contenu
-  const contentRef = useRef<HTMLDivElement>(null);
-  
-  // Utilisez les props passées depuis AppSidebar
-  const isOpen = item.isOpen || false;
-  const onToggle = item.onToggle || (() => {});
-
-  const hasItems = item.items && item.items.length > 0;
-  
-  // Vérifie si un des enfants est actif
-  const isAnyChildActive = item.items?.some(subItem => 
-    pathname === subItem.href && 
-    subItem.authorized.some(role => roles.includes(role))
-  ) || false;
-
-  // Animation pour l'ouverture/fermeture
-  useEffect(() => {
-    if (contentRef.current) {
-      if (isOpen) {
-        // Animation d'entrée
-        contentRef.current.style.maxHeight = `${contentRef.current.scrollHeight}px`;
-        contentRef.current.style.opacity = '1';
-        contentRef.current.style.transform = 'translateY(0)';
-      } else {
-        // Animation de sortie
-        contentRef.current.style.maxHeight = '0px';
-        contentRef.current.style.opacity = '0';
-        contentRef.current.style.transform = 'translateY(-10px)';
-      }
-    }
-  }, [isOpen]);
+  const isActive = pathname.includes(item.href);
 
   return (
-    <div className="relative">
-      {hasItems ? (
-        // Section déroulante (parent)
-        <div>
-          <button
-            onClick={onToggle}
-            className={cn(
-              "inline-flex w-full items-center gap-2 justify-between p-2 h-10 transition-all duration-300 rounded bg-transparent hover:bg-primary/10 text-gray-700 font-mono text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary/50 focus:ring-offset-2 cursor-pointer",
-              // Style actif si un enfant est sélectionné
-              isAnyChildActive && "bg-primary text-white hover:bg-primary/90",
-            )}
-          >
-            <div className="flex items-center gap-3 transition-all duration-300">
-              {item.icon && (
-                <item.icon 
-                  size={20} 
-                  className={cn(
-                    "w-4 h-4 transition-transform duration-300",
-                    isOpen && "scale-110",
-                    isAnyChildActive && "text-white"
-                  )} 
-                />
-              )}
-              <span className={cn(
-                "transition-all duration-300",
-                isAnyChildActive && "font-semibold text-white"
-              )}>
-                {item.title}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              {item.badge && (
-                <div className={cn(
-                  "flex items-center justify-center w-[29px] h-[26px] p-1 rounded bg-[#FFAF06] text-[#700032] text-xs transition-all duration-300",
-                  isOpen && "scale-110",
-                  isAnyChildActive && "bg-wtext-white text-black"
-                )}>
-                  {`${item.badge}`}
-                </div>
-              )}
-              <ChevronRight
-                className={cn(
-                  "w-4 h-4 transition-all duration-300",
-                  isOpen && "rotate-90"
-                )}
-              />
-            </div>
-          </button>
-          
-          {/* Contenu déroulant avec animation */}
-          <div
-            ref={contentRef}
-            className={cn(
-              "overflow-hidden transition-all duration-300",
-              "space-y-1 ml-3 mt-0.5"
-            )}
-            style={{
-              maxHeight: isOpen ? '0px' : '0px',
-              opacity: isOpen ? 0 : 0,
-              // transform: 'translateY(-10px)',
-            }}
-          >
-            {item.items
-              ?.filter(subItem => 
-                subItem.authorized.some(role => roles.includes(role))
-              )
-              .map((subItem) => {
-                const isSubActive = pathname === subItem.href;
-                return (
-                  <Link
-                    key={subItem.href}
-                    href={subItem.href}
-                    className={cn(
-                      "block items-center justify-between text-sm rounded transition-all duration-300",
-                      "inline-flex w-full items-center gap-2 justify-between p-2 h-10 rounded bg-transparent hover:bg-primary/10 text-gray-700 font-mono text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary/50 focus:ring-offset-2",
-                      "transform-gpu rounded-md",
-                      isSubActive
-                        ? "bg-primary/70 text-white hover:bg-primary/40 shadow-sm"
-                        : "hover:bg-primary/5"
-                    )}
-                  >
-                    <span className={cn(
-                      "transition-all duration-300",
-                    )}>
-                      {subItem.title}
-                    </span>
-                    {subItem.badge && (
-                      <div className={cn(
-                        "flex items-center justify-center w-[29px] h-[26px] p-1 rounded bg-[#FFAF06] text-[#700032] text-xs transition-all duration-300"
-                      )}>
-                        {`${subItem.badge}`}
-                      </div>
-                    )}
-                  </Link>
-                );
-              })}
-          </div>
-        </div>
-      ) : (
-        // Lien simple (sans sous-éléments)
-        <Link
-          href={item.href}
-          className={cn(
-            "inline-flex w-full items-center gap-2 justify-between p-2 h-10 transition-all duration-300 rounded bg-transparent hover:bg-primary/10 text-gray-700 font-mono text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary/50 focus:ring-offset-2",
-            "transform-gpu",
-            pathname === item.href
-              ? "bg-primary text-white hover:bg-primary/90 shadow-md"
-              : "hover:bg-primary/5"
-          )}
-        >
-          <div className="flex items-center gap-3 transition-all duration-300">
-            {item.icon && (
-              <item.icon 
-                size={20} 
-                className={cn(
-                  "transition-transform duration-300",
-                )} 
-              />
-            )}
-            <span className={cn(
-              "transition-all duration-300",
-              pathname === item.href && "font-semibold"
-            )}>
+    item.items && item.items?.length > 0 ? (
+      <Accordion type="single" collapsible>
+        <AccordionItem value={item.title} className="space-y-1">
+          <AccordionTrigger className={cn("h-10 w-full rounded transition-all ease-out duration-300 px-2 inline-flex items-center font-medium text-foreground font-mono hover:bg-gray-100 cursor-pointer", isActive && "bg-primary-100 hover:bg-primary-100")}>
+            <span className="inline-flex items-center gap-2">
+              {item.icon && <item.icon size={20} className={cn("text-foreground", isActive && "text-primary-700")} />}
               {item.title}
             </span>
-          </div>
-          {item.badge && (
-            <div className={cn(
-              "flex items-center justify-center w-[29px] h-[26px] p-1 rounded bg-[#FFAF06] text-[#700032] text-xs transition-all duration-300",
-              pathname === item.href && "scale-110 bg-white text-primary"
-            )}>
-              {`${item.badge}`}
-            </div>
-          )}
-        </Link>
-      )}
-    </div>
+          </AccordionTrigger>
+          <AccordionContent className="grid gap-2">
+            {item.items.map((subItem, id)=>(
+              <NavigationLink key={id} href={subItem.href} title={subItem.title} badgeValue={subItem.badgeValue} />
+            ))}
+          </AccordionContent>
+        </AccordionItem>
+
+      </Accordion>
+    ) : 
+    <NavigationLink href={item.href} title={item.title} badgeValue={item.badgeValue} icon={item.icon} />
   );
 }
 
 export default NavigationItem;
+
+function NavigationLink({href, title, icon, badgeValue}:NavigationLinkProps){
+  const Icon = icon;
+  const pathname = usePathname();
+  const isActive = pathname === href;
+  return (
+    <Link href={href} className={cn("h-10 w-full p-2 rounded transition-all ease-out duration-300 bg-transparent flex gap-2 items-center justify-between hover:bg-gray-100", isActive && "bg-primary-100 hover:bg-primary-100")}>
+      <span className="inline-flex items-center gap-2">
+        {Icon && <Icon size={20} className={cn("text-foreground", isActive && "text-primary-700")} />}
+        <span className={cn("text-sm text-foreground font-medium font-mono", isActive && "font-semibold")}>{title}</span>
+      </span>
+      {badgeValue && badgeValue > 0 && (
+        <span className="inline-flex h-[26px] min-w-[26px] px-1 items-center justify-center text-center rounded bg-accent text-xs font-medium text-primary-700">
+          {badgeValue}
+        </span>
+      )}
+    </Link>
+  )
+}
