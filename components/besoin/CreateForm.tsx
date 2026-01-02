@@ -284,25 +284,6 @@ export default function MyForm() {
             )}
           />
 
-          {/* DESCRIPTION */}
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{"Description"}</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Description"
-                    className="resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {/* QUANTITE */}
           <FormField
             control={form.control}
@@ -374,7 +355,7 @@ export default function MyForm() {
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP", { locale: fr })
+                          format(field.value, "PPP HH:mm", { locale: fr })
                         ) : (
                           <span>{"Choisir une date"}</span>
                         )}
@@ -449,6 +430,26 @@ export default function MyForm() {
               )}
             />
           )}
+          
+
+          {/* DESCRIPTION */}
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem className="col-span-2">
+                <FormLabel>{"Description"}</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Description"
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* SUBMIT */}

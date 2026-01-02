@@ -50,9 +50,6 @@ export class RequestQueries {
       formData.append(key, String(value));
     });
 
-    console.table(formData);
-    
-
     return api
       .post(`${this.route}/special`, formData, {
         headers: { "Content-Type": "multipart/form-data" },

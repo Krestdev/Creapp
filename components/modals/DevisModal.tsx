@@ -109,7 +109,7 @@ export function DevisModal({
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "Non spécifié";
     try {
-      return format(new Date(dateString), "PPP", { locale: fr });
+      return format(new Date(dateString), "PPP HH:mm", { locale: fr });
     } catch {
       return "Date invalide";
     }

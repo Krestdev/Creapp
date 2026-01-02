@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { SearchableSelect } from "../base/searchableSelect";
 import { Textarea } from "../ui/textarea";
+import { Loader2 } from "lucide-react";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -220,8 +221,9 @@ export function ProjectCreateForm() {
           )}
         />
         <div className="@min-[640px]:col-span-2 ml-auto">
-          <Button type="submit" variant={"primary"}>
+          <Button disabled={projectApi.isPending} type="submit" variant={"primary"}>
             {"Enrégistrer"}
+            {projectApi.isPending && <Loader2 className="ml-2 animate-spin" />}
           </Button>
         </div>
       </form>

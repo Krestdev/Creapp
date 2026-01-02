@@ -348,7 +348,7 @@ export function CommandeTable({
         );
       },
       cell: ({ row }) => (
-        <div>{format(row.getValue("createdAt"), "PPP", { locale: fr })}</div>
+        <div>{format(row.getValue("createdAt"), "PPP HH:mm", { locale: fr })}</div>
       ),
     },
     {
@@ -365,7 +365,7 @@ export function CommandeTable({
         );
       },
       cell: ({ row }) => (
-        <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>
+        <div>{format(row.getValue("dueDate"), "PPP HH:mm", { locale: fr })}</div>
       ),
     },
     {
@@ -710,7 +710,7 @@ export function CommandeTable({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {tempCustomDateRange?.from ? (
-                        format(tempCustomDateRange.from, "PPP", { locale: fr })
+                        format(tempCustomDateRange.from, "PPP HH:mm", { locale: fr })
                       ) : (
                         <span>{"Sélectionner une date"}</span>
                       )}
@@ -745,7 +745,7 @@ export function CommandeTable({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {tempCustomDateRange?.to ? (
-                        format(tempCustomDateRange.to, "PPP", { locale: fr })
+                        format(tempCustomDateRange.to, "PPP HH:mm", { locale: fr })
                       ) : (
                         <span>{"Sélectionner une date"}</span>
                       )}

@@ -288,28 +288,6 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
   };
 
   const columns: ColumnDef<PaymentRequest>[] = [
-    // {
-    //   id: "select",
-    //   header: ({ table }) => (
-    //     <Checkbox
-    //       checked={
-    //         table.getIsAllPageRowsSelected() ||
-    //         (table.getIsSomePageRowsSelected() && "indeterminate")
-    //       }
-    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //       aria-label="Select all"
-    //     />
-    //   ),
-    //   cell: ({ row }) => (
-    //     <Checkbox
-    //       checked={row.getIsSelected()}
-    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-    //       aria-label="Select row"
-    //     />
-    //   ),
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
     {
       accessorKey: "type",
       header: ({ column }) => {
@@ -405,17 +383,6 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
       },
       cell: ({ row }) => {
         const status = row.getValue("status") as PaymentRequest["status"];
-        // const config = priorityConfig[priorite] || priorityConfig.medium;
-
-        // return (
-        //   <Badge className={cn("gap-1", config.badgeClassName)}>
-        //     <Flag className="h-3 w-3" />
-        //     {config.label}
-        //   </Badge>
-        // );
-
-        //get user from stor
-
         if (
           status !== "paid" &&
           !user?.role.flatMap((r) => r.label).includes("VOLT")
@@ -838,21 +805,6 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         }
         buttonTexts={"Approuver"}
       />
-
-      {/* <ApproveTicket
-        open={openPaiementModal}
-        onOpenChange={setOpenPaiementModal}
-        title={selectedTicket?.reference || "Ticket"}
-        subTitle={"Payer le ticket"}
-        description={"Voulez-vous payer ce ticket ?"}
-        action={() =>
-          paymentMutation.mutate({
-            id: selectedTicket?.id!,
-            data: { price: selectedTicket?.price, status: "paid" },
-          })
-        }
-        buttonTexts={"Payer"}
-      /> */}
     </div>
   );
 }

@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
+import BeneficiairesList from "./AddBenef";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -54,12 +55,6 @@ const SingleFileSchema = z
 
 const formSchema = z.object({
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
-  montant: z
-    .string()
-    .min(1, "Le montant est requis")
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Le montant doit être un nombre positif",
-    }),
   projet: z.string().min(1, "Le projet est requis"),
   delai: z
     .date()
@@ -74,7 +69,12 @@ export default function FacilitationRequestForm() {
   const { user } = useStore();
   const queryClient = useQueryClient();
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [beneficiairesList, setBeneficiairesList] = useState<
+    { id: number; nom: string; montant: number }[]
+  >([]);
 
+  console.log(beneficiairesList);
+  
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
   // ----------------------------------------------------------------------
@@ -82,7 +82,6 @@ export default function FacilitationRequestForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       beneficiaire: "",
-      montant: "",
       projet: "",
       category: "facilitation",
       delai: undefined,
@@ -109,12 +108,6 @@ export default function FacilitationRequestForm() {
     queryKey: ["users"],
     queryFn: async () => users.getAll(),
   });
-
-  const USERS =
-    usersData.data?.data.map((u) => ({
-      id: u.id!,
-      name: u.name,
-    })) || [];
 
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
@@ -144,6 +137,10 @@ export default function FacilitationRequestForm() {
         queryKey: ["requests", user?.id],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["payment", user?.id],
+        refetchType: "active",
+      });
     },
 
     onError: (error: any) => {
@@ -169,13 +166,12 @@ export default function FacilitationRequestForm() {
       dueDate: values.delai,
       projectId: Number(values.projet),
       proof: values.justificatif,
-      amount: Number(values.montant),
+      amount: beneficiairesList.reduce((total, b) => total + b.montant, 0),
       type: "FAC",
       state: "pending",
       priority: "medium",
+      benFac: {list: beneficiairesList.map((b) => ({ id: b.id, name: b.nom, amount: b.montant }))},
     };
-
-    console.log("Données soumises:", requestData);
     requestMutation.mutate(requestData);
   }
 
@@ -262,22 +258,6 @@ export default function FacilitationRequestForm() {
             )}
           />
 
-          {/* TITLE */}
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem className="@min-[640px]:col-span-2">
-                <FormLabel>
-                  {"Description"}
-                  <span className="text-red-500">*</span>
-                </FormLabel>
-                <Textarea {...field} placeholder="Décrivez le besoin" />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {/* BENEFICIAIRE */}
           <FormField
             control={form.control}
@@ -285,33 +265,21 @@ export default function FacilitationRequestForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {"Nom du bénéficiaire"}
+                  {"Recepteur pour compte"}
                   <span className="text-red-500">*</span>
                 </FormLabel>
-                <Input {...field} placeholder="ex. Atangana Baptiste" />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* MONTANT */}
-          <FormField
-            control={form.control}
-            name="montant"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {"Montant"}
-                  <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input type="number" placeholder="ex. 250000" {...field} />
-                    <p className="absolute top-1/2 right-3 -translate-y-1/2">
-                      {"FCFA"}
-                    </p>
-                  </div>
-                </FormControl>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un recepteur pour compte" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {usersData.data?.data.map((user) => (
+                      <SelectItem key={user.id} value={user.id.toString()}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -337,7 +305,7 @@ export default function FacilitationRequestForm() {
                           className="w-full pl-3 text-left font-normal"
                         >
                           {field.value ? (
-                            format(field.value, "PPP", { locale: fr })
+                            format(field.value, "PPP HH:mm", { locale: fr })
                           ) : (
                             <span>{"Choisir une date"}</span>
                           )}
@@ -358,6 +326,24 @@ export default function FacilitationRequestForm() {
               </FormItem>
             )}
           />
+
+          {/* Description/Détail */}
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem className="@min-[640px]:col-span-2">
+                <FormLabel>
+                  {"Description/Détail"}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
+                <Textarea {...field} placeholder="Décrivez le besoin" />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <BeneficiairesList onBeneficiairesChange={setBeneficiairesList} />
 
           {/* JUSTIFICATIF */}
           <FormField

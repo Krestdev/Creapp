@@ -82,7 +82,7 @@ function Page() {
           </>
         )}
         {ticketsData.length > 0 ? (
-          <Tickets ticketsData={ticketsData} />
+          <Tickets ticketsData={ticketsData.reverse()} />
         ) : (
           <Empty message={"Aucun ticket disponible"} />
         )}

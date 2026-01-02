@@ -64,6 +64,8 @@ import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
 import { DetailProject } from "./detail-project";
 import UpdateProject from "./UpdateProject";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 // Interface pour tous les filtres
 export interface ProjectFilters {
@@ -109,6 +111,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
   const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
   const [isWarningModalOpen, setIsWarningModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isCompletedModalOpen, setIsCompletedModalOpen] = React.useState(false);
   const [isSuspendedModalOpen, setIsSuspendedModalOpen] = React.useState(false);
 
   // Obtenir la liste unique des chefs de projet
@@ -149,7 +152,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
   } => {
     switch (status) {
       case "planning":
-        return { label: "Planification", variant: "amber" };
+        return { label: "En cours", variant: "amber" };
       case "in-progress":
         return { label: "En cours", icon: PlayCircle, variant: "amber" };
       case "on-hold":
@@ -433,6 +436,32 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
         },
       },
       {
+        accessorKey: "createdAt",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Date de création"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          return (
+            <div>
+              {format(row.getValue("createdAt"), "PPP HH:mm", { locale: fr })}
+            </div>
+          );
+        },
+        filterFn: (row, id, value) => {
+          return value.includes(row.getValue(id));
+        },
+      },
+      {
         id: "actions",
         header: () => {
           return <span className="tablehead">{"Actions"}</span>;
@@ -473,12 +502,10 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
                   {"Modifier"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() =>
-                    projectMutationData.mutate({
-                      id: project.id ?? -1,
-                      status: "Completed",
-                    })
-                  }
+                  onClick={() => {
+                    setSelectedItem(project);
+                    setIsCompletedModalOpen(true);
+                  }}
                   disabled={project.status === "Completed"}
                 >
                   <CheckCircle />
@@ -664,6 +691,8 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
                         ? "Budget prévisionnel"
                         : column.id === "status"
                         ? "Statut"
+                        : column.id === "createdAt"
+                        ? "Date de création"
                         : column.id}
                     </DropdownMenuCheckboxItem>
                   );
@@ -788,6 +817,21 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
           projectMutationData.mutate({
             id: selectedItem?.id ?? -1,
             status: "cancelled",
+          })
+        }
+        name={selectedItem?.label}
+        variant="error"
+      />
+      <ModalWarning
+        open={isCompletedModalOpen}
+        onOpenChange={setIsCompletedModalOpen}
+        title="Terminer le projet"
+        message="Êtes-vous sûr de vouloir terminer ce projet ? Cette action est irréversible."
+        actionText="Terminer"
+        onAction={() =>
+          projectMutationData.mutate({
+            id: selectedItem?.id ?? -1,
+            status: "Completed",
           })
         }
         name={selectedItem?.label}

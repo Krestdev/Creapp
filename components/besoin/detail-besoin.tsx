@@ -20,6 +20,7 @@ import { fr } from "date-fns/locale";
 import {
   AlertCircle,
   Calendar,
+  CalendarClock,
   Check,
   CheckCircle,
   Clock,
@@ -245,7 +246,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            {data.label}
+            {`Besoin - ${data.label}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">{"Détails du besoin"}</p>
         </DialogHeader>
@@ -341,6 +342,38 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               </div>
 
+              {/* Priorité */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <AlertCircle className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {"Priorité"}
+                  </p>
+                  <Badge
+                    className={`${
+                      data.priority === "urgent"
+                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                        : data.priority === "medium"
+                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                        : data.priority === "low"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                        : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    }`}
+                  >
+                    {data.priority === "urgent" ? (
+                      <X className="h-3 w-3 mr-1" />
+                    ) : data.priority === "medium" ? (
+                      <Clock className="h-3 w-3 mr-1" />
+                    ) : (
+                      <Check className="h-3 w-3 mr-1" />
+                    )}
+                    {curentPriority}
+                  </Badge>
+                </div>
+              </div>
+
               {/* Historique de validation - NOUVELLE VERSION */}
               <div className="flex items-start gap-3">
                 <div className="mt-1">
@@ -427,32 +460,23 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               {/* Priorité */}
               <div className="flex items-start gap-3">
                 <div className="mt-1">
-                  <AlertCircle className="h-5 w-5 text-muted-foreground" />
+                  <CalendarClock className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground mb-1">
-                    {"Priorité"}
+                    {"Période"}
                   </p>
-                  <Badge
-                    className={`${
-                      data.priority === "urgent"
-                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                        : data.priority === "medium"
-                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                        : data.priority === "low"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                        : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    }`}
-                  >
-                    {data.priority === "urgent" ? (
-                      <X className="h-3 w-3 mr-1" />
-                    ) : data.priority === "medium" ? (
-                      <Clock className="h-3 w-3 mr-1" />
-                    ) : (
-                      <Check className="h-3 w-3 mr-1" />
-                    )}
-                    {curentPriority}
-                  </Badge>
+                  {data.period ? (
+                    <p className="font-semibold">{`Du ${format(
+                      data.period.from!,
+                      "PPP HH:mm",
+                      { locale: fr }
+                    )} au ${format(data.period.to!, "PPP HH:mm", {
+                      locale: fr,
+                    })}`}</p>
+                  ) : (
+                    <p>Non renseigné</p>
+                  )}
                 </div>
               </div>
 
@@ -463,27 +487,39 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground mb-1">
-                    {"Bénéficiaires"}
+                    {data.categoryId === 0
+                      ? "Recepteur pour compte"
+                      : "Bénéficiaires"}
                   </p>
-                  <div className="flex flex-col">
-                    {data.beneficiary === "me" ? (
-                      <p className="font-semibold capitalize">{user?.name}</p>
-                    ) : (
-                      <div className="flex flex-col">
-                        {data.beficiaryList?.map((ben) => {
-                          const beneficiary = usersData.data?.data?.find(
-                            (x) => x.id === ben.id
-                          );
-                          return (
-                            <p
-                              key={ben.id}
-                              className="font-semibold capitalize"
-                            >{`${beneficiary?.name || ben.id}`}</p>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  {data.categoryId === 0 ? (
+                    <p className="font-semibold capitalize">
+                      {
+                        usersData.data?.data?.find(
+                          (u) => u.id === Number(data.beneficiary)
+                        )?.name
+                      }
+                    </p>
+                  ) : (
+                    <div className="flex flex-col">
+                      {data.beneficiary === "me" ? (
+                        <p className="font-semibold capitalize">{user?.name}</p>
+                      ) : (
+                        <div className="flex flex-col">
+                          {data.beficiaryList?.map((ben) => {
+                            const beneficiary = usersData.data?.data?.find(
+                              (x) => x.id === ben.id
+                            );
+                            return (
+                              <p
+                                key={ben.id}
+                                className="font-semibold capitalize"
+                              >{`${beneficiary?.name || ben.id}`}</p>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -527,7 +563,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Créé le"}
                   </p>
                   <p className="font-semibold">
-                    {format(data.createdAt, "PPP", { locale: fr })}
+                    {format(data.createdAt, "PPP HH:mm", { locale: fr })}
                   </p>
                 </div>
               </div>
@@ -542,7 +578,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Modifié le"}
                   </p>
                   <p className="font-semibold">
-                    {format(data.updatedAt, "PPP", { locale: fr })}
+                    {format(data.updatedAt, "PPP HH:mm", { locale: fr })}
                   </p>
                 </div>
               </div>
@@ -557,7 +593,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Date limite"}
                   </p>
                   <p className="font-semibold">
-                    {format(data.dueDate!, "PPP", { locale: fr })}
+                    {format(data.dueDate!, "PPP HH:mm", { locale: fr })}
                   </p>
                 </div>
               </div>

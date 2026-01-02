@@ -115,7 +115,7 @@ export default function MultiSelectUsers({
                   <p className="text-[#2F2F2F] text-sm ">{item.name}</p>
                   <p className="text-[12px] text-[#B0B0B0]">{`avant le ${format(
                     item.dueDate!,
-                    "PPP",
+                    "PPP HH:mm",
                     { locale: fr }
                   )}`}</p>
                 </div>

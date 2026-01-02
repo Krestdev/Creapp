@@ -26,7 +26,7 @@ const CreateResquestPage = () => {
 
   const renderForm = () => {
     switch (typeBesoin) {
-      case "ordinaire":
+      case "achat":
         return <CreateRequest />;
       case "speciaux":
         return <SpecialRequestForm />;
@@ -42,7 +42,7 @@ const CreateResquestPage = () => {
   return (
     <div className="space-y-6">
       <div className="grid gap-2 mx-12">
-        <Label>Type de besoin</Label>
+        <Label>{"Type de besoin"}</Label>
 
         <Select onValueChange={setTypeBesoin}>
           <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
@@ -52,26 +52,26 @@ const CreateResquestPage = () => {
           <SelectContent>
             <SelectGroup>
               {/* Visible par tous */}
-              <SelectItem value="ordinaire">
-                Besoin ordinaire
+              <SelectItem value="achat">
+                {"Besoin achat"}
               </SelectItem>
 
               {/* Visible par tous (modifiable si besoin) */}
               <SelectItem value="facilitation">
-                Besoin de facilitation
+                {"Besoin de facilitation"}
               </SelectItem>
 
               {/* RH uniquement */}
               {hasRole("RH") && (
                 <SelectItem value="ressource_humaine">
-                  Besoin Ressource humaine
+                  {"Besoin Ressource humaine"}
                 </SelectItem>
               )}
 
               {/* VOLT-MANAGER uniquement */}
               {hasRole("VOLT_MANAGER") && (
                 <SelectItem value="speciaux">
-                  Besoin spéciaux
+                  {"Besoin spéciaux"}
                 </SelectItem>
               )}
             </SelectGroup>

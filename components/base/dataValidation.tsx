@@ -1074,7 +1074,7 @@ export function DataValidation({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {tempCustomDateRange?.from ? (
-                        format(tempCustomDateRange.from, "PPP", { locale: fr })
+                        format(tempCustomDateRange.from, "PPP HH:mm", { locale: fr })
                       ) : (
                         <span>{"Sélectionner une date"}</span>
                       )}
@@ -1109,7 +1109,7 @@ export function DataValidation({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {tempCustomDateRange?.to ? (
-                        format(tempCustomDateRange.to, "PPP", { locale: fr })
+                        format(tempCustomDateRange.to, "PPP HH:mm", { locale: fr })
                       ) : (
                         <span>{"Sélectionner une date"}</span>
                       )}

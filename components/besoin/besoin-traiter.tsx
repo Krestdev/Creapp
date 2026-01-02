@@ -293,7 +293,7 @@ export function BesoinsTraiter({
         </Button>
       ),
       cell: ({ row }) => (
-        <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>
+        <div>{format(row.getValue("dueDate"), "PPP HH:mm", { locale: fr })}</div>
       ),
     },
     {

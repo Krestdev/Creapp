@@ -57,7 +57,7 @@ const CotationPDF = ({ data }: { data: CommandRequestT }) => {
                 {"Date limite de soumission : "}
               </Text>
               <Text style={styles.infoValue}>
-                {format(data.dueDate, "PPP", { locale: fr })}
+                {format(data.dueDate, "PPP HH:mm", { locale: fr })}
               </Text>
             </View>
 
@@ -131,7 +131,7 @@ const CotationPDF = ({ data }: { data: CommandRequestT }) => {
           {/* --------- FOOTER --------- */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              {`Créé le ${format(data.createdAt, "PPP", { locale: fr })}.`}
+              {`Créé le ${format(data.createdAt, "PPP HH:mm", { locale: fr })}.`}
             </Text>
           </View>
         </View>

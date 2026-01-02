@@ -209,9 +209,11 @@ function AppSidebar() {
     requestData: UseQueryResult<{ data: RequestModelT[] }, Error>
   ) => {
     return React.useMemo(() => {
-      const data = requestData.data?.data ?? [];
-      const start = new Date(0);
-      const end = new Date();
+      const data =
+        requestData.data?.data.filter((r) => r.state !== "cancel") ?? [];
+
+      let start = new Date(0);
+      let end = new Date();
 
       return data.filter((item) => {
         const d = new Date(item.createdAt);
@@ -415,7 +417,10 @@ function AppSidebar() {
       href: "/tableau-de-bord/ticket",
       authorized: ["ADMIN", "VOLT_MANAGER"],
       title: "Tickets",
-      badge: pendingTicket && pendingTicket?.length > 0 ? pendingTicket?.length : undefined,
+      badge:
+        pendingTicket && pendingTicket?.length > 0
+          ? pendingTicket?.length
+          : undefined,
       // items: [
       //   {
       //     pageId: "PG-04-01",
@@ -455,7 +460,10 @@ function AppSidebar() {
       href: "/tableau-de-bord/depenses",
       authorized: ["VOLT", "ADMIN"],
       title: "Dépenses",
-      badge: approvedTicket && approvedTicket?.length > 0 ? approvedTicket?.length : undefined,
+      badge:
+        approvedTicket && approvedTicket?.length > 0
+          ? approvedTicket?.length
+          : undefined,
     },
     // {
     //   pageId: "PG-05",

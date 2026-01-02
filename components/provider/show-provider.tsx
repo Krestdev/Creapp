@@ -110,7 +110,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                   <p className="text-sm text-muted-foreground">{"Créé le"}</p>
                   {data?.createdAt ? (
                     <p className="font-semibold">
-                      {format(new Date(data.createdAt), "PPP", {
+                      {format(new Date(data.createdAt), "PPP HH:mm", {
                         locale: fr,
                       })}
                     </p>
@@ -131,7 +131,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                   </p>
                   {data?.updatedAt ? (
                     <p className="font-semibold">
-                      {format(new Date(data.updatedAt), "PPP", {
+                      {format(new Date(data.updatedAt), "PPP HH:mm", {
                         locale: fr,
                       })}
                     </p>

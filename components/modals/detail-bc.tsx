@@ -225,7 +225,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
                 <p className="text-sm text-muted-foreground">
                   {"Délai de livraison"}
                 </p>
-                {/* <p className="font-semibold">{format(data.deliveryDelay, "PPP", { locale: fr })}</p> */}
+                {/* <p className="font-semibold">{format(data.deliveryDelay, "PPP HH:mm", { locale: fr })}</p> */}
               </div>
             </div>
 
@@ -315,7 +315,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Date limite"}</p>
                 <p className="font-semibold">
-                  {format(data.deliveryDelay, "PPP", { locale: fr })}
+                  {format(data.deliveryDelay, "PPP HH:mm", { locale: fr })}
                 </p>
               </div>
             </div>
@@ -328,7 +328,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Créé le"}</p>
                 <p className="font-semibold">
-                  {format(data.createdAt, "PPP", { locale: fr })}
+                  {format(data.createdAt, "PPP HH:mm", { locale: fr })}
                 </p>
               </div>
             </div>
@@ -341,7 +341,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Modifié le"}</p>
                 <p className="font-semibold">
-                  {format(data.updatedAt, "PPP", { locale: fr })}
+                  {format(data.updatedAt, "PPP HH:mm", { locale: fr })}
                 </p>
               </div>
             </div>

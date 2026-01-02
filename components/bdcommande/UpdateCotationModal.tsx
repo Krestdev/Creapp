@@ -318,7 +318,7 @@ export function UpdateCotationModal({
                                 )}
                               >
                                 {field.value ? (
-                                  format(field.value, "PPP")
+                                  format(field.value, "PPP HH:mm")
                                 ) : (
                                   <span>Choisir une date</span>
                                 )}

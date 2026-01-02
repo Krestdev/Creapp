@@ -23,7 +23,7 @@ import { ProjectQueries } from "@/queries/projectModule";
 
 import { ProjectT, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -61,12 +61,14 @@ export default function UpdateProject({
       label: "",
       description: "",
       chiefid: "",
+      budget: 0,
     },
   });
 
   const projectQueries = new ProjectQueries();
   const userQueries = new UserQueries();
   const { isHydrated } = useStore();
+  const queryClient = useQueryClient();
 
   const projectApi = useMutation({
     mutationFn: (
@@ -80,6 +82,7 @@ export default function UpdateProject({
       console.log("created successful:", data);
       form.reset();
       setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["projectsList"], refetchType: "active" });
     },
     onError: (error: any) => {
       toast.error("Une erreur est survenue lors de la mise à jour du projet.");
@@ -111,7 +114,7 @@ export default function UpdateProject({
       description: values.description || "",
       budget: values.budget,
       chiefId: parseInt(values.chiefid, 10),
-      status: "planning",
+      status: projectData?.status || "ongoing",
     };
     projectApi.mutate(data);
   };
@@ -144,7 +147,7 @@ export default function UpdateProject({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-1">
                     <FieldLabel htmlFor="label">
-                      {"Titre du projet *"}
+                      {"Titre du projet"} <span className="text-destructive">*</span>
                     </FieldLabel>
                     <Input
                       {...field}
@@ -170,7 +173,7 @@ export default function UpdateProject({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-1">
                     <FieldLabel htmlFor="description">
-                      {"Description"}{" "}
+                      {"Description"} <span className="text-destructive">*</span>
                     </FieldLabel>
                     <Textarea
                       {...field}
@@ -202,7 +205,7 @@ export default function UpdateProject({
                   return (
                     <Field data-invalid={fieldState.invalid} className="gap-1">
                       <FieldLabel htmlFor="chiefid">
-                        {"Chef de projet *"}
+                        {"Chef de projet"} <span className="text-destructive">*</span>
                       </FieldLabel>
 
                       <Select
@@ -238,7 +241,7 @@ export default function UpdateProject({
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-1">
-                    <FieldLabel htmlFor="budget">{"Budget *"}</FieldLabel>
+                    <FieldLabel htmlFor="budget">{"Budget"}</FieldLabel>
                     <Input
                       {...field}
                       id="budget"
