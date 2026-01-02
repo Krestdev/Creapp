@@ -11,11 +11,6 @@ function NavigationItem(item: NavigationItemProps & {
 }) {
   const pathname = usePathname();
   const isActive = pathname.includes(item.href);
-  
-  // Utilisez les props passées depuis AppSidebar
-  const isOpen = item.isOpen || false;
-  const onToggle = item.onToggle || (() => {});
-  
 
   return (
     item.items && item.items?.length > 0 ? (

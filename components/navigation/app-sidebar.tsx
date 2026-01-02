@@ -7,7 +7,7 @@ import { PaymentQueries } from "@/queries/payment";
 import { PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
 import { RequestQueries } from "@/queries/requestModule";
-import { Category, NavigationItemProps, NavigationLinkProps, RequestModelT, User } from "@/types/types";
+import { Category, NavigationItemProps, NavigationLinkProps, RequestModelT, Role, User } from "@/types/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
@@ -38,6 +38,16 @@ import NavigationItem from "./navigation-item";
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
+
+  function getRoleName (roles :Array<Role>):string{
+    if(roles.some(r=> r.label === "ADMIN")) return "Administrateur";
+    if(roles.some(r=> r.label === "VOLT_MANAGER")) return "DO Décaissement";
+    if(roles.some(r=> r.label === "VOLT")) return "Trésorier";
+    if(roles.some(r=> r.label === "SALES_MANAGER")) return "DO d'Achats";
+    if(roles.some(r=> r.label === "SALES")) return "Responsable d'Achats";
+    if(roles.some(r=> r.label === "ACCOUNTING")) return "Comptable";
+    return "Employé";
+  }
 
   const request = new RequestQueries();
   const category = new CategoryQueries();
@@ -87,8 +97,6 @@ function AppSidebar() {
     enabled: isHydrated,
   });
 
-  const [openSection, setOpenSection] = useState<string | null>(null);
-
   // Récupérer tous les IDs des besoins présents dans les cotations
   const besoinsDansCotation =
     cotation?.data.flatMap((item) => item.besoins.map((b) => b.id)) ?? [];
@@ -100,10 +108,6 @@ function AppSidebar() {
       x.state === "validated" &&
       !besoinsDansCotation.includes(x.id)
   );
-
-  const toggleSection = (sectionTitle: string) => {
-    setOpenSection((prev) => (prev === sectionTitle ? null : sectionTitle));
-  };
 
   const isValidCategoryId = (id: number | null | undefined): id is number =>
     id !== null && id !== undefined;
@@ -344,6 +348,12 @@ function AppSidebar() {
           //     ? newCotation?.length
           //     : undefined,
         },
+        {
+          pageId: "PG-03-45",
+          title: "Approbation Devis",
+          href: "/tableau-de-bord/commande/devis/approbation",
+          authorized: ["ADMIN", "SALES_MANAGER"],
+        },
         // {
         //   pageId: "PG-03-03",
         //   title: "Besoins",
@@ -357,6 +367,12 @@ function AppSidebar() {
           authorized: ["ADMIN", "SALES"],
           // badge:
           //   newDevis && newDevis?.length > 0 ? newDevis?.length : undefined,
+        },
+        {
+          pageId: "PG-03-44",
+          title: "Approbation BC",
+          href: "/tableau-de-bord/commande/bon-de-commande/approbation",
+          authorized: ["ADMIN", "SALES_MANAGER"],
         },
         // {
         //   pageId: "PG-03-04",
@@ -550,12 +566,13 @@ function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2 flex flex-col gap-1.5">
-        {filteredNavLinks.map((navLink) => (
+        {filteredNavLinks.map(({items, ...props}, id) => (
           <NavigationItem
-            key={navLink.href}
-            {...navLink}
-            isOpen={openSection === navLink.title}
-            onToggle={() => toggleSection(navLink.title)}
+          key={id}
+          {...props}
+            items={items?.filter((item) =>
+              item.authorized.some((role) => userRoles.includes(role))
+            )}
           />
         ))}
       </SidebarContent>
@@ -564,7 +581,7 @@ function AppSidebar() {
           <DropdownMenuTrigger className="w-full h-auto border-none shadow-none p-2 flex items-center gap-2 justify-between cursor-pointer hover:shadow-sm transition-all duration-300 ease-out">
             <div className="flex flex-col gap-1">
               <span className="text-xs leading-[120%] text-gray-500">
-                {"Employé"}
+                {getRoleName(user?.role || [])}
               </span>
               <span className="text-sm font-medium leading-[120%] text-gray-900 capitalize">
                 {user?.name || "Utilisateur"}
