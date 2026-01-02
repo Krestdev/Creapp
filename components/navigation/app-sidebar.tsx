@@ -1,20 +1,24 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
+import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
 import { CategoryQueries } from "@/queries/categoryModule";
+import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { PaymentQueries } from "@/queries/payment";
+import { PurchaseOrder } from "@/queries/purchase-order";
+import { QuotationQueries } from "@/queries/quotation";
 import { RequestQueries } from "@/queries/requestModule";
-import { Category, RequestModelT, User } from "@/types/types";
+import { Category, NavigationItemProps, NavigationLinkProps, RequestModelT, User } from "@/types/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
-  Bell,
   BriefcaseBusiness,
   ClipboardList,
   DollarSign,
   EllipsisVertical,
+  LucideIcon,
   ScrollText,
   Ticket,
   Truck,
-  UsersRound,
+  UsersRound
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
@@ -31,29 +35,6 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { useFetchQuery } from "@/hooks/useData";
-import { QuotationQueries } from "@/queries/quotation";
-import { PurchaseOrder } from "@/queries/purchase-order";
-import { title } from "process";
-import { PaymentQueries } from "@/queries/payment";
-
-type ItemSide = {
-  pageId: string;
-  href: string;
-  authorized: string[];
-  title: string;
-  badge?: number;
-};
-type Sidebar = {
-  pageId: string;
-  icon: any;
-  href: string;
-  authorized: string[];
-  title: string;
-  items?: ItemSide[];
-  badge?: number;
-};
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
@@ -268,7 +249,7 @@ function AppSidebar() {
     return null;
   }
 
-  const navLinks: Sidebar[] = [
+  const navLinks: NavigationItemProps[] = [
     {
       pageId: "PG-00",
       icon: BriefcaseBusiness,
@@ -328,7 +309,7 @@ function AppSidebar() {
           title: "Approbation",
           href: "/tableau-de-bord/besoins/validation",
           authorized: ["ADMIN", "MANAGER"],
-          badge: pendingData?.length > 0 ? pendingData?.length : undefined,
+          badgeValue: pendingData?.length > 0 ? pendingData?.length : undefined,
         },
         {
           pageId: "PG-09-03",
@@ -350,7 +331,7 @@ function AppSidebar() {
           title: "Demande de cotation",
           href: "/tableau-de-bord/commande/cotation",
           authorized: ["ADMIN", "SALES"],
-          badge:
+          badgeValue:
             besoinVal && besoinVal.length > 0 ? besoinVal?.length : undefined,
         },
         {
@@ -415,7 +396,7 @@ function AppSidebar() {
       href: "/tableau-de-bord/ticket",
       authorized: ["ADMIN", "VOLT_MANAGER"],
       title: "Tickets",
-      badge: pendingTicket && pendingTicket?.length > 0 ? pendingTicket?.length : undefined,
+      badgeValue: pendingTicket && pendingTicket?.length > 0 ? pendingTicket?.length : undefined,
       // items: [
       //   {
       //     pageId: "PG-04-01",
@@ -455,7 +436,7 @@ function AppSidebar() {
       href: "/tableau-de-bord/depenses",
       authorized: ["VOLT", "ADMIN"],
       title: "Dépenses",
-      badge: approvedTicket && approvedTicket?.length > 0 ? approvedTicket?.length : undefined,
+      badgeValue: approvedTicket && approvedTicket?.length > 0 ? approvedTicket?.length : undefined,
     },
     // {
     //   pageId: "PG-05",
