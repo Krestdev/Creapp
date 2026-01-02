@@ -414,7 +414,7 @@ function AppSidebar() {
       href: "/tableau-de-bord/ticket",
       authorized: ["ADMIN", "VOLT_MANAGER"],
       title: "Tickets",
-      badge:
+      badgeValue:
         pendingTicket && pendingTicket?.length > 0
           ? pendingTicket?.length
           : undefined,
@@ -457,7 +457,7 @@ function AppSidebar() {
       href: "/tableau-de-bord/depenses",
       authorized: ["VOLT", "ADMIN"],
       title: "Dépenses",
-      badge:
+      badgeValue:
         approvedTicket && approvedTicket?.length > 0
           ? approvedTicket?.length
           : undefined,
