@@ -56,31 +56,30 @@ import {
 
 import { useFetchQuery } from "@/hooks/useData";
 import { UserQueries } from "@/queries/baseModule";
-import { PURCHASE_ORDER_STATUS, Reception } from "@/types/types";
+import { PURCHASE_ORDER_STATUS, Reception, RECEPTION_STATUS } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import ViewReception from "./view-reception";
 
 interface Props {
   data: Array<Reception>;
 }
 
-type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
-
-const getStatusLabel = (
-  status: Status
+const getStatusBadge = (
+  status: Reception["Status"]
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
 } => {
+  const statusData = RECEPTION_STATUS.find((s) => s.value === status);
+  const label = statusData?.name ?? "Inconnu";
   switch (status) {
     case "PENDING":
-      return { label: "En attente", variant: "amber" };
-    case "IN-REVIEW":
-      return { label: "En révision", variant: "primary" };
-    case "APPROVED":
-      return { label: "Approuvé", variant: "success" };
-    case "REJECTED":
-      return { label: "Rejeté", variant: "destructive" };
+      return { label, variant: "amber" };
+    case "PARTIAL":
+      return { label, variant: "primary" };
+    case "COMPLETED":
+      return { label, variant: "success" };
     default:
       return { label: "Inconnu", variant: "outline" };
   }
@@ -100,7 +99,7 @@ export function ReceptionTable({ data }: Props) {
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   // filtres spécifiques
-  const [statusFilter, setStatusFilter] = React.useState<"all" | Status>("all");
+  const [statusFilter, setStatusFilter] = React.useState<"all" | Reception["Status"]>("all");
 
   //ViewModal
   const [view, setView] = React.useState<boolean>(false);
@@ -144,7 +143,7 @@ export function ReceptionTable({ data }: Props) {
     },
 
     {
-      accessorKey: "reference",
+      accessorKey: "Reference",
       header: ({ column }) => (
         <span
           className="tablehead"
@@ -155,7 +154,7 @@ export function ReceptionTable({ data }: Props) {
         </span>
       ),
       cell: ({ row }) => (
-        <div className="font-medium uppercase">{row.getValue("reference")}</div>
+        <div className="font-medium uppercase">{row.getValue("Reference")}</div>
       ),
     },
 
@@ -212,7 +211,7 @@ export function ReceptionTable({ data }: Props) {
         const base = row.getValue("Deadline") as string;
         return (
           <div className="font-medium">
-            {format(new Date(base), "dd-MM-yyyy", { locale: fr })}
+            {format(new Date(base), "dd MMMM yyyy", { locale: fr })}
           </div>
         );
       },
@@ -222,13 +221,11 @@ export function ReceptionTable({ data }: Props) {
       accessorKey: "Deliverables",
       header: () => <span className="tablehead">{"Éléments"}</span>,
       cell: ({ row }) => {
-        const value = row.original;
+        const value = row.original.Deliverables;
+        const amount = value.filter((el) => el.isDelivered).length;
+        const length = value.length;
         return (
-          <div>
-            {value.Deliverables.map((delivrable) => {
-              return <Badge>{delivrable.title}</Badge>;
-            })}
-          </div>
+          `${amount}/${length} livré${amount > 1 ? "s" : ""}`
         );
       },
     },
@@ -238,7 +235,8 @@ export function ReceptionTable({ data }: Props) {
       header: () => <span className="tablehead">{"Statut"}</span>,
       cell: ({ row }) => {
         const value = row.original;
-        return <Badge>{value.Status}</Badge>;
+        const status = getStatusBadge(value.Status);
+        return <Badge variant={status.variant}>{status.label}</Badge>;
       },
     },
     {
@@ -369,7 +367,7 @@ export function ReceptionTable({ data }: Props) {
                   <Label>{"Statut"}</Label>
                   <Select
                     value={statusFilter}
-                    onValueChange={(v: "all" | Status) => setStatusFilter(v)}
+                    onValueChange={(v: "all" | Reception["Status"]) => setStatusFilter(v)}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Tous les statuts" />
@@ -402,7 +400,7 @@ export function ReceptionTable({ data }: Props) {
 
               {statusFilter !== "all" && (
                 <Badge variant="default" className="font-normal">
-                  {`Statut: ${getStatusLabel(statusFilter).label}`}
+                  {`Statut: ${getStatusBadge(statusFilter).label}`}
                 </Badge>
               )}
               {globalFilter && (
@@ -532,7 +530,7 @@ export function ReceptionTable({ data }: Props) {
 
         {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       </div>
-      {/**View and Edit Dialog Here */}
+      {selectedValue && <ViewReception open={view} onOpenChange={setView} reception={selectedValue} />}
     </div>
   );
 }
