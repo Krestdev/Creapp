@@ -22,11 +22,24 @@ function NavigationItem(item: NavigationItemProps & {
               {item.title}
             </span>
           </AccordionTrigger>
-          <AccordionContent className="grid gap-2">
-            {item.items.map((subItem, id)=>(
-              <NavigationLink key={id} href={subItem.href} title={subItem.title} badgeValue={subItem.badgeValue} />
-            ))}
-          </AccordionContent>
+          <AccordionContent className="relative pl-6">
+      {/* Ligne verticale */}
+      <span
+        className="absolute left-2 top-1 bottom-1 w-px bg-muted-foreground/40"
+        aria-hidden
+      />
+
+      <div className="grid gap-2">
+        {item.items.map((subItem, id) => (
+          <NavigationLink
+            key={id}
+            href={subItem.href}
+            title={subItem.title}
+            badgeValue={subItem.badgeValue}
+          />
+        ))}
+      </div>
+    </AccordionContent>
         </AccordionItem>
 
       </Accordion>
@@ -45,10 +58,10 @@ function NavigationLink({href, title, icon, badgeValue}:NavigationLinkProps){
     <Link href={href} className={cn("h-10 w-full p-2 rounded transition-all ease-out duration-300 bg-transparent flex gap-2 items-center justify-between hover:bg-gray-100", isActive && "bg-primary-100 hover:bg-primary-100")}>
       <span className="inline-flex items-center gap-2">
         {Icon && <Icon size={20} className={cn("text-foreground", isActive && "text-primary-700")} />}
-        <span className={cn("text-sm text-foreground font-medium font-mono", isActive && "font-semibold")}>{title}</span>
+        <span className={cn("text-sm text-foreground font-medium font-mono truncate", isActive && "font-semibold")}>{title}</span>
       </span>
       {badgeValue && badgeValue > 0 && (
-        <span className="inline-flex h-[26px] min-w-[26px] px-1 items-center justify-center text-center rounded bg-accent text-xs font-medium text-primary-700">
+        <span className="inline-flex shrink-0 h-[26px] min-w-[26px] px-1 items-center justify-center text-center rounded bg-accent text-xs font-medium text-primary-700">
           {badgeValue}
         </span>
       )}

@@ -407,21 +407,26 @@ export type DateFilter =
   | "custom"
   | undefined;
 
+export const RECEPTION_STATUS = [
+  { value: "PENDING", name: "En attente" },
+  { value: "PARTIAL", name: "Partielle" },
+  { value: "COMPLETED", name: "Complète" },
+] as const;
+
 export type Reception = {
-  reference: string;
+  Reference: string;
   id: number;
   commandId: number;
   proof: string;
-  deliverables: string;
   deadline: Date;
-  Status: string;
+  Status: typeof RECEPTION_STATUS[number]["value"];
   providerId: number;
   userId: number;
   createdAt: Date;
   updatedAt?: Date;
-  Command: BonsCommande | null;
+  Command: BonsCommande;
   Provider: Provider;
-  Deliverables: QuotationElement[];
+  Deliverables: Array<QuotationElement & {isDelivered: boolean}>;
 };
 
 type Item = {
