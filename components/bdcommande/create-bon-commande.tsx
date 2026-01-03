@@ -260,7 +260,7 @@ export default function CreateBonForm() {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(field.value, "PPP HH:mm")
                           ) : (
                             <span>Pick a date</span>
                           )}

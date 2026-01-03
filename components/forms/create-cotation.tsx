@@ -196,7 +196,7 @@ export default function CreateCotationForm() {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(field.value, "PPP HH:mm")
                           ) : (
                             <span>Choisir une date</span>
                           )}

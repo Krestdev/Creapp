@@ -39,13 +39,13 @@ import NavigationItem from "./navigation-item";
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
 
-  function getRoleName (roles :Array<Role>):string{
-    if(roles.some(r=> r.label === "ADMIN")) return "Administrateur";
-    if(roles.some(r=> r.label === "VOLT_MANAGER")) return "DO Décaissement";
-    if(roles.some(r=> r.label === "VOLT")) return "Trésorier";
-    if(roles.some(r=> r.label === "SALES_MANAGER")) return "DO d'Achats";
-    if(roles.some(r=> r.label === "SALES")) return "Responsable d'Achats";
-    if(roles.some(r=> r.label === "ACCOUNTING")) return "Comptable";
+  function getRoleName(roles: Array<Role>): string {
+    if (roles.some(r => r.label === "ADMIN")) return "Administrateur";
+    if (roles.some(r => r.label === "VOLT_MANAGER")) return "DO Décaissement";
+    if (roles.some(r => r.label === "VOLT")) return "Trésorier";
+    if (roles.some(r => r.label === "SALES_MANAGER")) return "DO d'Achats";
+    if (roles.some(r => r.label === "SALES")) return "Responsable d'Achats";
+    if (roles.some(r => r.label === "ACCOUNTING")) return "Comptable";
     return "Employé";
   }
 
@@ -194,9 +194,11 @@ function AppSidebar() {
     requestData: UseQueryResult<{ data: RequestModelT[] }, Error>
   ) => {
     return React.useMemo(() => {
-      const data = requestData.data?.data ?? [];
-      const start = new Date(0);
-      const end = new Date();
+      const data =
+        requestData.data?.data.filter((r) => r.state !== "cancel") ?? [];
+
+      let start = new Date(0);
+      let end = new Date();
 
       return data.filter((item) => {
         const d = new Date(item.createdAt);
@@ -412,7 +414,10 @@ function AppSidebar() {
       href: "/tableau-de-bord/ticket",
       authorized: ["ADMIN", "VOLT_MANAGER"],
       title: "Tickets",
-      badgeValue: pendingTicket && pendingTicket?.length > 0 ? pendingTicket?.length : undefined,
+      badgeValue:
+        pendingTicket && pendingTicket?.length > 0
+          ? pendingTicket?.length
+          : undefined,
       // items: [
       //   {
       //     pageId: "PG-04-01",
@@ -452,7 +457,10 @@ function AppSidebar() {
       href: "/tableau-de-bord/depenses",
       authorized: ["VOLT", "ADMIN"],
       title: "Dépenses",
-      badgeValue: approvedTicket && approvedTicket?.length > 0 ? approvedTicket?.length : undefined,
+      badgeValue:
+        approvedTicket && approvedTicket?.length > 0
+          ? approvedTicket?.length
+          : undefined,
     },
     // {
     //   pageId: "PG-05",
@@ -566,10 +574,10 @@ function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2 flex flex-col gap-1.5">
-        {filteredNavLinks.map(({items, ...props}, id) => (
+        {filteredNavLinks.map(({ items, ...props }, id) => (
           <NavigationItem
-          key={id}
-          {...props}
+            key={id}
+            {...props}
             items={items?.filter((item) =>
               item.authorized.some((role) => userRoles.includes(role))
             )}

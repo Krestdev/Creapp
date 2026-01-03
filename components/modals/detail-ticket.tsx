@@ -19,9 +19,18 @@ import {
   Hash,
   Building,
   Receipt,
+  CalendarClock,
+  Users,
+  LucideFile,
 } from "lucide-react";
 import { BonsCommande, PaymentRequest } from "@/types/types";
 import { useStore } from "@/providers/datastore";
+import { useFetchQuery } from "@/hooks/useData";
+import { RequestQueries } from "@/queries/requestModule";
+import { UserQueries } from "@/queries/baseModule";
+import { useState } from "react";
+import ShowFile from "../base/show-file";
+import { DownloadFile } from "../base/downLoadFile";
 
 interface DetailTicketProps {
   open: boolean;
@@ -44,6 +53,19 @@ export function DetailTicket({
     return `${montant.toLocaleString("fr-FR")} FCFA`;
   };
   const { user } = useStore();
+
+  const requests = new RequestQueries();
+  const users = new UserQueries();
+
+  const usersData = useFetchQuery(["users"], users.getAll, 30000);
+  const requestData = useFetchQuery(["requests"], requests.getAll, 30000);
+
+  const [page, setPage] = useState(1);
+  const [file, setFile] = useState<string | File | undefined>(undefined);
+
+  const request = requestData.data?.data.find(
+    (req) => req.id === data?.requestId
+  );
 
   // Fonction pour obtenir la couleur du badge selon la priorité
   const getPrioriteColor = (priorite: string | undefined) => {
@@ -149,90 +171,210 @@ export function DetailTicket({
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            Détails du ticket
+            {"Détails du ticket"}
           </DialogTitle>
           <h4 className="text-sm text-white/80 mt-1">
-            {typePaiment(data?.type)} - {data?.title || "N/A"}
+            {page === 1
+              ? `${typePaiment(data?.type)} - ${data?.title || "N/A"}`
+              : `Justificatif du ticket ${data?.title}`}
           </h4>
         </DialogHeader>
 
         {/* Contenu - SCROLLABLE */}
-        <div className="flex-1 overflow-y-auto px-6">
-          <div className="space-y-4 pb-4">
-            {/* Référence */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <Hash className="h-5 w-5 text-muted-foreground" />
+        {page === 1 ? (
+          <div className="flex-1 overflow-y-auto px-6">
+            <div className="space-y-4 pb-4">
+              {/* Référence */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <Hash className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Référence
+                  </p>
+                  <Badge
+                    variant="secondary"
+                    className="bg-pink-100 text-pink-900 hover:bg-pink-100 dark:bg-pink-900 dark:text-pink-100"
+                  >
+                    {data?.reference || "N/A"}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">Référence</p>
-                <Badge
-                  variant="secondary"
-                  className="bg-pink-100 text-pink-900 hover:bg-pink-100 dark:bg-pink-900 dark:text-pink-100"
-                >
-                  {data?.reference || "N/A"}
-                </Badge>
-              </div>
-            </div>
 
-            {/* Montant */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <FolderOpen className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">Montant</p>
-                <p className="font-semibold text-lg">
-                  {formatMontant(data?.price || 0)}
-                </p>
-              </div>
-            </div>
+              {/* Periode */}
+              {data?.type === "RH" && (
+                <>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      <CalendarClock className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Periode
+                      </p>
+                      <p className="font-semibold text-lg">
+                        {request?.period ? (
+                          <p className="font-semibold">{`Du ${format(
+                            request?.period.from!,
+                            "PPP HH:mm",
+                            { locale: fr }
+                          )} au ${format(request?.period.to!, "PPP HH:mm", {
+                            locale: fr,
+                          })}`}</p>
+                        ) : (
+                          <p>Non renseigné</p>
+                        )}
+                      </p>
+                    </div>
+                  </div>
 
-            {/* Fournisseur */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <Building className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  {"Fournisseur"}
-                </p>
-                <p className="font-semibold">
-                  {commands?.provider.name || "N/A"}
-                </p>
-              </div>
-            </div>
+                  {/* Bénéficiaires */}
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      <Users className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {"Bénéficiaires"}
+                      </p>
+                      <div className="flex flex-col">
+                        {request?.beneficiary === "me" ? (
+                          <p className="font-semibold capitalize">
+                            {user?.name}
+                          </p>
+                        ) : (
+                          <div className="flex flex-col">
+                            {request?.beficiaryList?.map((ben) => {
+                              const beneficiary = usersData.data?.data?.find(
+                                (x) => x.id === ben.id
+                              );
+                              return (
+                                <p
+                                  key={ben.id}
+                                  className="font-semibold capitalize"
+                                >{`${beneficiary?.name || ben.id}`}</p>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
-            {/* Bon de commande */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <Receipt className="h-5 w-5 text-muted-foreground" />
+              {/* Bénéficiaire */}
+              {data?.type === "FAC" && (
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <Users className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {"Recepteur pour compte"}
+                    </p>
+                    <div className="flex flex-col">
+                      <p>{usersData.data?.data?.find((x) => x.id === Number(request?.beneficiary))?.name || "Non renseigné"}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <FolderOpen className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">Montant</p>
+                  <p className="font-semibold text-lg">
+                    {formatMontant(data?.price || 0)}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  {"Bon de commande"}
-                </p>
-                <p className="text-sm">{commands?.reference || "N/A"}</p>
-              </div>
-            </div>
 
-            {/* Moyen de paiement */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <CreditCard className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Moyen de paiement
-                </p>
-                <p className="text-sm">
-                  {translateMoyenPaiement(commands?.paymentMethod) || "N/A"}
-                </p>
-              </div>
-            </div>
+              {/* Justificatifs */}
+              <Button
+                variant={"ghost"}
+                className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
+                disabled={!data?.proof}
+                onClick={() => {
+                  setPage(2);
+                  setFile(data?.proof);
+                }}
+              >
+                <span className="view-icon">
+                  <LucideFile />
+                </span>
+                <div className="flex flex-col">
+                  <p className="text-gray-600">{"Justificatifs"}</p>
+                  <div className="flex gap-1.5 items-center">
+                    {data?.proof ? (
+                      <>
+                        <img
+                          src="/images/pdf.png"
+                          alt="justificatif"
+                          className="h-8 w-auto aspect-square"
+                        />
+                        <p className="text-[#2F2F2F] text-[12px] font-medium">
+                          {data.proof
+                            ? "Document justificatif"
+                            : "Aucun justificatif"}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        {"Aucun justificatif"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </Button>
 
-            {/* Compte Payeur */}
-            {/* <div className="flex items-start gap-3">
+              {/* Fournisseur */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <Building className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {"Fournisseur"}
+                  </p>
+                  <p className="font-semibold">
+                    {commands?.provider.name || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Bon de commande */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <Receipt className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {"Bon de commande"}
+                  </p>
+                  <p className="text-sm">{commands?.reference || "N/A"}</p>
+                </div>
+              </div>
+
+              {/* Moyen de paiement */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Moyen de paiement
+                  </p>
+                  <p className="text-sm">
+                    {translateMoyenPaiement(commands?.paymentMethod) || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Compte Payeur */}
+              {/* <div className="flex items-start gap-3">
               <div className="mt-1">
                 <FolderTree className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -244,68 +386,78 @@ export function DetailTicket({
               </div>
             </div> */}
 
-            {/* Statut */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <AlertCircle className="h-5 w-5 text-muted-foreground" />
+              {/* Statut */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <AlertCircle className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">Statut</p>
+                  <Badge className={getStateColor(data?.status)}>
+                    {translateState(data?.status)}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">Statut</p>
-                <Badge className={getStateColor(data?.status)}>
-                  {translateState(data?.status)}
-                </Badge>
-              </div>
-            </div>
 
-            {/* Priorité */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <AlertCircle className="h-5 w-5 text-muted-foreground" />
+              {/* Priorité */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <AlertCircle className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {"Priorité"}
+                  </p>
+                  <Badge className={getPrioriteColor(data?.priority)}>
+                    {translatePriorite(data?.priority)}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">
-                  {"Priorité"}
-                </p>
-                <Badge className={getPrioriteColor(data?.priority)}>
-                  {translatePriorite(data?.priority)}
-                </Badge>
-              </div>
-            </div>
 
-            {/* Date de création */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <Calendar className="h-5 w-5 text-muted-foreground" />
+              {/* Date de création */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">Créé le</p>
+                  <p className="font-semibold">
+                    {data?.createdAt
+                      ? format(new Date(data.createdAt), "PPP HH:mm", { locale: fr })
+                      : "N/A"}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">Créé le</p>
-                <p className="font-semibold">
-                  {data?.createdAt
-                    ? format(new Date(data.createdAt), "PPP", { locale: fr })
-                    : "N/A"}
-                </p>
-              </div>
-            </div>
 
-            {/* Date de modification */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <Calendar className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-1">Modifié le</p>
-                <p className="font-semibold">
-                  {data?.updatedAt
-                    ? format(new Date(data.updatedAt), "PPP", { locale: fr })
-                    : "N/A"}
-                </p>
+              {/* Date de modification */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Modifié le
+                  </p>
+                  <p className="font-semibold">
+                    {data?.updatedAt
+                      ? format(new Date(data.updatedAt), "PPP HH:mm", { locale: fr })
+                      : "N/A"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <ShowFile
+            file={file}
+            setPage={setPage}
+            title={`Justificatif du ticket ${data?.title}`}
+          />
+        )}
 
         {/* Boutons du footer - FIXE */}
         <div className="flex gap-3 p-6 pt-0 shrink-0 w-full justify-end">
+          {page === 2 && file && <DownloadFile file={file} />}
           {user?.role.flatMap((x) => x.label).includes("VOLT") && (
             <Button
               onClick={action}
@@ -320,7 +472,7 @@ export function DetailTicket({
             className="bg-transparent"
             onClick={() => onOpenChange(false)}
           >
-            Fermer
+            {"Fermer"}
           </Button>
         </div>
       </DialogContent>

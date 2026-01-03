@@ -111,7 +111,6 @@ export default function SpecialRequestForm() {
         quantity: 1,
         unit: "unit",
         beneficiary: user?.id!.toString() ?? "",
-        // benef: Array(user?.id),
         userId: Number(user?.id),
         type: "SPECIAL",
         state: "pending",
@@ -188,7 +187,7 @@ export default function SpecialRequestForm() {
                           className="w-full pl-3 text-left font-normal"
                         >
                           {field.value ? (
-                            format(field.value, "PPP", { locale: fr })
+                            format(field.value, "PPP HH:mm", { locale: fr })
                           ) : (
                             <span>Choisir une date</span>
                           )}

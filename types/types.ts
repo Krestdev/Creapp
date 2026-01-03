@@ -1,5 +1,6 @@
 import { LucideIcon } from "lucide-react";
 import React from "react";
+import { DateRange } from "react-day-picker";
 
 export interface NavigationItemProps {
   pageId: string;
@@ -55,8 +56,8 @@ export const PAY_STATUS = [
 export type PaymentRequest = {
   id: number;
   reference: string;
-  proof:string;
-  account?:string;
+  proof: string;
+  account?: string;
   justification?: string;
   status: (typeof PAY_STATUS)[number]["value"];
   type: (typeof PAYMENT_TYPES)[number]["value"];
@@ -158,6 +159,7 @@ export type RequestModelT = {
   unit: string;
   beneficiary: string;
   benef?: number[] | null;
+  period?: DateRange | undefined;
   beficiaryList?: { id: number; name: string; email: string }[] | null;
   state: string;
   priority: "medium" | "high" | "low" | "urgent";
@@ -169,6 +171,7 @@ export type RequestModelT = {
   proof?: (string | File)[] | null | undefined;
   type?: "SPECIAL" | "RH" | "FAC";
   amount?: number;
+  benFac?: { list: { id: number; name: string; amount: number }[] } | null;
 };
 
 export type TableData = {

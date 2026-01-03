@@ -52,13 +52,25 @@ const SingleFileSchema = z
 const formSchema = z.object({
   titre: z.string().min(1, "Le titre est requis"),
   description: z.string().min(1, "La description est requise"),
-  periode: z.date().refine((val) => val instanceof Date, {
-    message: "La période est requise",
-  }),
+  periode: z
+    .object({
+      from: z.date({ required_error: "La date de début est requise" }),
+      to: z.date({ required_error: "La date de fin est requise" }),
+    })
+    .refine((data) => data.from <= data.to, {
+      message:
+        "La date de début doit être antérieure ou égale à la date de fin",
+      path: ["from"],
+    }),
+  montant: z
+    .string()
+    .min(1, "Le montant est requis")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Le montant doit être un nombre positif",
+    }),
   date_limite: z
     .date()
     .min(new Date(), "La date limite doit être dans le futur"),
-  // Beneficiaire represente le tableau de numbers des IDs des utilisateurs
   beneficiaire: z.array(z.number()).min(1, "Le bénéficiaire est requis"),
   justificatif: SingleFileSchema,
 });
@@ -76,7 +88,11 @@ export default function RHRequestForm() {
     defaultValues: {
       titre: "",
       description: "",
-      periode: undefined,
+      montant: "",
+      periode: {
+        from: undefined,
+        to: undefined,
+      },
       date_limite: undefined,
       beneficiaire: [],
       justificatif: [],
@@ -102,62 +118,66 @@ export default function RHRequestForm() {
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
   const request = new RequestQueries();
-    const requestMutation = useMutation({
-      mutationKey: ["requests"],
-      mutationFn: async (
-        data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
-      ) => request.special(data),
-  
-      onSuccess: () => {
-        toast.success("Besoin soumis avec succès !");
-        setIsSuccessModalOpen(true);
-        form.reset();
-  
-        // Invalider et rafraîchir toutes les requêtes liées aux besoins
-        queryClient.invalidateQueries({
-          queryKey: ["requests"],
-          refetchType: "active",
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["requests-validation"],
-          refetchType: "active",
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["requests", user?.id],
-          refetchType: "active",
-        });
-      },
-  
-      onError: (error: any) => {
-        console.error("Erreur lors de la soumission:", error);
-        toast.error("Une erreur est survenue lors de la soumission.");
-      },
-    });
-  
-    function onSubmit(values: z.input<typeof formSchema>) {
-      // Préparation des données
-      const requestData: Omit<
-        RequestModelT,
-        "id" | "createdAt" | "updatedAt" | "ref"
-      > = {
-        label: values.titre,
-        dueDate: values.date_limite,
-        beneficiary: "",
-        benef: values.beneficiaire,
-        proof: values.justificatif,
-        description: values.description || null,
-        categoryId: 0,
-        quantity: 1,
-        unit: "unit",
-        userId: Number(user?.id),
-        type: "RH",
-        state: "pending",
-        priority: "medium",
-      };
-  
-      console.log("Données soumises:", requestData);
-      requestMutation.mutate(requestData);
-    }
+  const requestMutation = useMutation({
+    mutationKey: ["requests"],
+    mutationFn: async (
+      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
+    ) => request.special(data),
+
+    onSuccess: () => {
+      toast.success("Besoin soumis avec succès !");
+      setIsSuccessModalOpen(true);
+      form.reset();
+
+      // Invalider et rafraîchir toutes les requêtes liées aux besoins
+      queryClient.invalidateQueries({
+        queryKey: ["requests"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["requests-validation"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["requests", user?.id],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["payment", user?.id],
+        refetchType: "active",
+      });
+    },
+
+    onError: (error: any) => {
+      console.error("Erreur lors de la soumission:", error);
+      toast.error("Une erreur est survenue lors de la soumission.");
+    },
+  });
+
+  function onSubmit(values: z.input<typeof formSchema>) {
+    // Préparation des données
+    const requestData: Omit<
+      RequestModelT,
+      "id" | "createdAt" | "updatedAt" | "ref"
+    > = {
+      label: values.titre,
+      dueDate: values.date_limite,
+      beneficiary: "",
+      benef: values.beneficiaire,
+      proof: values.justificatif,
+      description: values.description || null,
+      amount: Number(values.montant),
+      categoryId: 0,
+      quantity: 1,
+      unit: "unit",
+      userId: Number(user?.id),
+      type: "RH",
+      state: "pending",
+      priority: "medium",
+      period: { from: values.periode.from, to: values.periode.to },
+    };
+    requestMutation.mutate(requestData);
+  }
 
   return (
     <Form {...form}>
@@ -184,7 +204,7 @@ export default function RHRequestForm() {
             )}
           />
 
-          {/* PERIODE */}
+          {/* PERIODE - RANGE */}
           <FormField
             control={form.control}
             name="periode"
@@ -203,10 +223,13 @@ export default function RHRequestForm() {
                           variant={"outline"}
                           className="w-full pl-3 text-left font-normal"
                         >
-                          {field.value ? (
-                            format(field.value, "PPP", { locale: fr })
+                          {field.value?.from && field.value?.to ? (
+                            <>
+                              {format(field.value.from, "PPP HH:mm", { locale: fr })}{" "}
+                              - {format(field.value.to, "PPP HH:mm", { locale: fr })}
+                            </>
                           ) : (
-                            <span>Choisir une date</span>
+                            <span>{"Choisir une période"}</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -214,9 +237,13 @@ export default function RHRequestForm() {
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
-                        mode="single"
+                        mode="range"
                         selected={field.value}
                         onSelect={field.onChange}
+                        numberOfMonths={2}
+                        locale={fr}
+                        className="rounded-md border"
+                        defaultMonth={field.value?.from || new Date()}
                       />
                     </PopoverContent>
                   </Popover>
@@ -245,7 +272,7 @@ export default function RHRequestForm() {
                         className="w-full pl-3 text-left font-normal"
                       >
                         {field.value ? (
-                          format(field.value, "PPP", { locale: fr })
+                          format(field.value, "PPP HH:mm", { locale: fr })
                         ) : (
                           <span>Choisir une date</span>
                         )}
@@ -258,9 +285,29 @@ export default function RHRequestForm() {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={(date) => date < new Date()}
+                      locale={fr}
                     />
                   </PopoverContent>
                 </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* MONTANT */}
+          <FormField
+            control={form.control}
+            name="montant"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {"Montant"}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input placeholder="Montant" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

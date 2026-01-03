@@ -76,9 +76,9 @@ export function DetailProject({
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
           <DialogTitle className="text-xl font-semibold text-white">
-            {data.label}
+            {"PROJET" + " " + data.label}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">{"Détails du projet"}</p>
+          <p className="text-sm text-white/80 mt-1">{data.description}</p>
         </DialogHeader>
 
         {/* Content */}
@@ -161,7 +161,7 @@ export function DetailProject({
                   <p className="text-sm text-muted-foreground">{"Créé le"}</p>
                   <p className="font-semibold">
                     {data.createdAt
-                      ? format(new Date(data.createdAt), "PPP", { locale: fr })
+                      ? format(new Date(data.createdAt), "PPP HH:mm", { locale: fr })
                       : "Non spécifié"}
                   </p>
                 </div>
@@ -178,7 +178,7 @@ export function DetailProject({
                   </p>
                   <p className="font-semibold">
                     {data.updatedAt
-                      ? format(new Date(data.updatedAt), "PPP", { locale: fr })
+                      ? format(new Date(data.updatedAt), "PPP HH:mm", { locale: fr })
                       : "Non spécifié"}
                   </p>
                 </div>

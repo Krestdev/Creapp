@@ -41,7 +41,7 @@ export function ShowDepartment({
   const formatDate = (dateString?: string) => {
     if (!dateString) return "-";
     try {
-      return format(new Date(dateString), "PPP", { locale: fr });
+      return format(new Date(dateString), "PPP HH:mm", { locale: fr });
     } catch {
       return dateString;
     }

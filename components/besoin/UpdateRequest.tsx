@@ -48,6 +48,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { units } from "@/data/unit";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -149,7 +150,6 @@ export default function UpdateRequest({
     if (requestData && open && categoriesData.data) {
       // Attendre que les catégories soient chargées
       const initializeForm = async () => {
-        
         // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
         const usersSelection: { id: number; name: string }[] = [];
         if (requestData.beneficiary === "groupe" && requestData.benef) {
@@ -162,21 +162,21 @@ export default function UpdateRequest({
           });
           setSelectedUsers(usersSelection);
         }
-        
+
         // Réinitialiser le formulaire avec les valeurs
-                form.reset({
-                  projet: requestData.projectId?.toString(),
-                  categorie: requestData.categoryId?.toString() || "",
-                  titre: requestData.label || "",
-                  description: requestData.description || "",
-                  quantity: requestData.quantity?.toString() || "",
-                  unite: requestData.unit || "",
-                  datelimite: requestData.dueDate
-                    ? new Date(requestData.dueDate)
-                    : new Date(),
-                  beneficiaire: requestData.beneficiary || "me",
-                  utilisateurs: usersSelection.map((u) => u.id),
-                });
+        form.reset({
+          projet: requestData.projectId?.toString(),
+          categorie: requestData.categoryId?.toString() || "",
+          titre: requestData.label || "",
+          description: requestData.description || "",
+          quantity: requestData.quantity?.toString() || "",
+          unite: requestData.unit || "",
+          datelimite: requestData.dueDate
+            ? new Date(requestData.dueDate)
+            : new Date(),
+          beneficiaire: requestData.beneficiary || "me",
+          utilisateurs: usersSelection.map((u) => u.id),
+        });
       };
 
       initializeForm();
@@ -191,7 +191,6 @@ export default function UpdateRequest({
   useEffect(() => {
     if (requestData && open && categoriesData.data && USERS.length > 0) {
       const initializeForm = async () => {
-        
         // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
         const usersSelection: { id: number; name: string }[] = [];
         if (
@@ -257,7 +256,6 @@ export default function UpdateRequest({
       toast.error("Une erreur est survenue lors de la modification."),
   });
 
-
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (!requestData?.id) {
       toast.error("ID du besoin manquant");
@@ -289,10 +287,10 @@ export default function UpdateRequest({
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            Modifier le besoin
+            {"MODIFICATION BESOIN - " + requestData?.label}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            Modifiez les informations du besoin existant
+            {"Modifiez les informations du besoin existant"}
           </p>
         </DialogHeader>
 
@@ -418,7 +416,7 @@ export default function UpdateRequest({
                                 className="w-full justify-between"
                               >
                                 {field.value
-                                  ? format(field.value, "PPP", { locale: fr })
+                                  ? format(field.value, "PPP HH:mm", { locale: fr })
                                   : "Sélectionner une date"}
                                 <ChevronDownIcon />
                               </Button>
@@ -477,9 +475,11 @@ export default function UpdateRequest({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="KG">KG</SelectItem>
-                            <SelectItem value="L">Litre</SelectItem>
-                            <SelectItem value="FCFA">FCFA</SelectItem>
+                            {units.map((u) => (
+                              <SelectItem key={u.value} value={u.value}>
+                                {u.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -504,8 +504,8 @@ export default function UpdateRequest({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="me">Soi-même</SelectItem>
-                            <SelectItem value="groupe">Groupe</SelectItem>
+                            <SelectItem value="me">{"Moi-même"}</SelectItem>
+                            <SelectItem value="groupe">{"Groupe"}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

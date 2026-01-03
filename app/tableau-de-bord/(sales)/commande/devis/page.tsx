@@ -24,7 +24,7 @@ const Page = () => {
       href: "./devis/creer",
     },
     {
-      title: "Approbation",
+      title: "Approbation devis",
       href: "./devis/approbation",
     },
   ];

@@ -125,7 +125,14 @@ export function BesoinLastVal({
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
       requestData.refetch();
-      queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" },);
+      queryClient.invalidateQueries({
+        queryKey: ["requests"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["payment"],
+        refetchType: "active",
+      });
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
@@ -147,7 +154,6 @@ export function BesoinLastVal({
         id: res.id,
         validator: validator,
       });
-
     },
     onError: (error) => {
       toast.error("Une erreur est survenue.");
@@ -275,7 +281,7 @@ export function BesoinLastVal({
                               className="w-full h-10 justify-between font-normal"
                             >
                               {field.value
-                                ? format(field.value, "PPP", { locale: fr })
+                                ? format(field.value, "PPP HH:mm", { locale: fr })
                                 : "Sélectionner une date"}
                               <ChevronDownIcon />
                             </Button>
