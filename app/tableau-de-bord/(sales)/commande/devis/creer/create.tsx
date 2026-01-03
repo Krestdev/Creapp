@@ -95,6 +95,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const { user } = useStore();
 
+
   /**Demandes de cotation */
   const cmdRqstQuery = new CommandRqstQueries();
   const cmdRqstData = useFetchQuery(["commands"], cmdRqstQuery.getAll, 500000);
@@ -206,6 +207,22 @@ function CreateQuotation({ quotation, openChange }: Props) {
           (c) => c.id === form.watch("commandRequestId")
         )?.besoins
       );
+  }, [form.watch("commandRequestId")]);
+
+  // Après cet useEffect existant
+  React.useEffect(() => {
+    if (form.watch("commandRequestId"))
+      setSelectedNeeds(
+        cmdRqstData.data?.data.find(
+          (c) => c.id === form.watch("commandRequestId")
+        )?.besoins
+      );
+  }, [form.watch("commandRequestId")]);
+
+  React.useEffect(() => {
+    form.resetField("providerId");
+    form.resetField("elements");
+    setSearch("");
   }, [form.watch("commandRequestId")]);
 
   const [search, setSearch] = React.useState("");
@@ -486,11 +503,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                       }}
                                     >
                                       <span className="truncate">
-                                        {`${item.designation} - ${
-                                          item.quantity
-                                        } ${item.unit} - ${XAF.format(
-                                          item.price
-                                        )}`}
+                                        {`${item.designation} - ${item.quantity
+                                          } ${item.unit} - ${XAF.format(
+                                            item.price
+                                          )}`}
                                       </span>
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
                                         {"Modifier"}
@@ -500,7 +516,6 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                       size={20}
                                       className="text-destructive cursor-pointer"
                                       onClick={() => {
-                                        // Trouver et supprimer l'élément correct
                                         const currentElements = [
                                           ...field.value,
                                         ];

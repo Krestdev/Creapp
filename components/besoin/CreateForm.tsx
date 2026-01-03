@@ -320,7 +320,7 @@ export default function MyForm() {
                   </FormControl>
                   <SelectContent>
                     {
-                      units.map((unit, id)=>
+                      units.map((unit, id) =>
                         <SelectItem key={unit.value} value={unit.value}>
                           {unit.name}
                         </SelectItem>
@@ -355,7 +355,7 @@ export default function MyForm() {
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP HH:mm", { locale: fr })
+                          format(field.value, "PPP", { locale: fr })
                         ) : (
                           <span>{"Choisir une date"}</span>
                         )}
@@ -430,7 +430,7 @@ export default function MyForm() {
               )}
             />
           )}
-          
+
 
           {/* DESCRIPTION */}
           <FormField

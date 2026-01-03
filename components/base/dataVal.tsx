@@ -519,12 +519,12 @@ export function DataVal({
       decision?: string;
       validatorId?: number;
       validator?:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     }) => {
       await request.review(id, {
         validated: validated,
@@ -615,7 +615,7 @@ export function DataVal({
         totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
       canValidate:
         // !hasUserAlreadyValidated(request) &&
-        request.state === "pending" 
+        request.state === "pending"
         && userPosition !== null,
     };
   };
@@ -782,33 +782,33 @@ export function DataVal({
       // Nouvelle colonne : Validation de validation (uniquement pour type pending)
       ...(type === "pending"
         ? [
-            {
-              id: "validationProgress",
-              header: () => <span className="tablehead">Validation</span>,
-              cell: ({ row }: { row: Row<RequestModelT> }) => {
-                const validationInfo = getValidationInfo(row.original);
+          {
+            id: "validationProgress",
+            header: () => <span className="tablehead">Validation</span>,
+            cell: ({ row }: { row: Row<RequestModelT> }) => {
+              const validationInfo = getValidationInfo(row.original);
 
-                if (!validationInfo.totalValidators) return null;
+              if (!validationInfo.totalValidators) return null;
 
-                return (
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                          style={{ width: `${validationInfo.progress}%` }}
-                        />
-                      </div>
-                      <div className="text-xs text-gray-500 text-center mt-1">
-                        {validationInfo.validatedCount}/
-                        {validationInfo.totalValidators}
-                      </div>
+              return (
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                        style={{ width: `${validationInfo.progress}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 text-center mt-1">
+                      {validationInfo.validatedCount}/
+                      {validationInfo.totalValidators}
                     </div>
                   </div>
-                );
-              },
+                </div>
+              );
             },
-          ]
+          },
+        ]
         : []),
     ];
 
@@ -854,7 +854,7 @@ export function DataVal({
         const userHasValidated = hasUserAlreadyValidated(item);
 
         console.log(item, validationInfo.canValidate);
-        
+
 
         return (
           <DropdownMenu>
@@ -884,7 +884,7 @@ export function DataVal({
                 }
                 disabled={
                   validationInfo.canValidate === false ||
-                  item.state !== "pending" 
+                  item.state !== "pending"
                   // ||
                   // userHasValidated
                 }
@@ -1119,20 +1119,20 @@ export function DataVal({
                     {column.id === "label"
                       ? "Titres"
                       : column.id === "projectId"
-                      ? "Projets"
-                      : column.id === "categoryId"
-                      ? "Catégories"
-                      : column.id === "userId"
-                      ? "Émetteurs"
-                      : column.id === "beneficiary"
-                      ? "Bénéficiaires"
-                      : column.id === "createdAt"
-                      ? "Date d'émission"
-                      : column.id === "state"
-                      ? "Statuts"
-                      : column.id === "validationProgress"
-                      ? "Validation"
-                      : column.id}
+                        ? "Projets"
+                        : column.id === "categoryId"
+                          ? "Catégories"
+                          : column.id === "userId"
+                            ? "Émetteurs"
+                            : column.id === "beneficiary"
+                              ? "Bénéficiaires"
+                              : column.id === "createdAt"
+                                ? "Date d'émission"
+                                : column.id === "state"
+                                  ? "Statuts"
+                                  : column.id === "validationProgress"
+                                    ? "Validation"
+                                    : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -1156,9 +1156,9 @@ export function DataVal({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                       </TableHead>
                     );
                   })}
@@ -1236,7 +1236,7 @@ export function DataVal({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {tempCustomDateRange?.from ? (
-                        format(tempCustomDateRange.from, "PPP HH:mm", { locale: fr })
+                        format(tempCustomDateRange.from, "PPP", { locale: fr })
                       ) : (
                         <span>Sélectionner une date</span>
                       )}
@@ -1271,7 +1271,7 @@ export function DataVal({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {tempCustomDateRange?.to ? (
-                        format(tempCustomDateRange.to, "PPP HH:mm", { locale: fr })
+                        format(tempCustomDateRange.to, "PPP", { locale: fr })
                       ) : (
                         <span>Sélectionner une date</span>
                       )}

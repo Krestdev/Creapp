@@ -30,6 +30,7 @@ import { z } from "zod";
 import Besoins from "../bdcommande/besoins";
 import { SuccessModal } from "../modals/success-modal";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { fr } from "date-fns/locale";
 
 const formSchema = z.object({
   name: z.string().min(1, "Le nom est obligatoire"),
@@ -196,7 +197,7 @@ export default function CreateCotationForm() {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP HH:mm")
+                            format(field.value, "PPP", { locale: fr })
                           ) : (
                             <span>Choisir une date</span>
                           )}

@@ -35,6 +35,8 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
+import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
+import { ProviderQueries } from "@/queries/providers";
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
@@ -54,6 +56,7 @@ function AppSidebar() {
   const command = new CommandRqstQueries();
   const quotationQuery = new QuotationQueries();
   const purchaseOrderQuery = new PurchaseOrder();
+  const providersQuery = new ProviderQueries();
 
   const { data: cotation } = useFetchQuery(["commands"], command.getAll);
   const { data: quotationsData } = useFetchQuery(
@@ -66,18 +69,14 @@ function AppSidebar() {
     purchaseOrderQuery.getAll
   );
 
-  const newCotation = cotation?.data.filter(
-    (w) =>
-      !quotationsData?.data
-        .filter((c) => c.status === "APPROVED")
-        .some((d) => d.commandRequestId === w.id)
-  );
+  const providers = useFetchQuery(["providers"], providersQuery.getAll);
 
-  const newDevis = quotationsData?.data.filter(
-    (c) =>
-      c.status === "APPROVED" &&
-      !getPurchases.data?.data.some((a) => a.deviId === c.id)
-  );
+  const purchase = getPurchases.data?.data.filter(c => c.status === "IN-REVIEW" || c.status === "PENDING")
+
+  const devis = quotationsData?.data.filter(c => c.status === "PENDING")
+
+  const approbationDevis = providers?.data?.data && cotation?.data && quotationsData?.data ?
+    groupQuotationsByCommandRequest(cotation?.data!, quotationsData?.data!, providers?.data?.data!).filter(c => c.status === "NOT_PROCESSED") : []
 
   // Récupérer toutes les catégories avec leurs validateurs
   const categoriesData = useQuery({
@@ -355,6 +354,8 @@ function AppSidebar() {
           title: "Approbation Devis",
           href: "/tableau-de-bord/commande/devis/approbation",
           authorized: ["ADMIN", "SALES_MANAGER"],
+          badgeValue:
+            approbationDevis && approbationDevis.length > 0 ? approbationDevis?.length : undefined,
         },
         // {
         //   pageId: "PG-03-03",
@@ -375,6 +376,8 @@ function AppSidebar() {
           title: "Approbation BC",
           href: "/tableau-de-bord/commande/bon-de-commande/approbation",
           authorized: ["ADMIN", "SALES_MANAGER"],
+          badgeValue:
+            purchase && purchase.length > 0 ? purchase?.length : undefined,
         },
         // {
         //   pageId: "PG-03-04",

@@ -83,18 +83,18 @@ export function SearchableSelect({
               className
             )}
           >
-            <span className="truncate flex-1 text-left">
+            <span className="truncate flex-1 text-left max-w-[270px]">
               {selected ? selected.label : placeholder}
             </span>
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent 
-          className="p-0 w-auto" 
+        <PopoverContent
+          className="p-0 w-auto"
           align="start"
           ref={contentRef}
         >
-          <Command className="w-[350px]"> {/* Largeur fixe pour le Command */}
+          <Command className="w-[350px]">
             <CommandInput
               placeholder="Rechercher..."
               value={search}

@@ -109,7 +109,7 @@ export function DevisModal({
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "Non spécifié";
     try {
-      return format(new Date(dateString), "PPP HH:mm", { locale: fr });
+      return format(new Date(dateString), "PPP", { locale: fr });
     } catch {
       return "Date invalide";
     }
@@ -290,12 +290,12 @@ export function DevisModal({
                     {data?.element?.map((el, index) => (
                       <TableRow
                         key={index}
-                        className={cn(index % 2 === 0 ? "bg-white" : "bg-gray-50",el.status === "SELECTED" && "bg-green-50!", el.status === "REJECTED" && "bg-red-50!")}
+                        className={cn(index % 2 === 0 ? "bg-white" : "bg-gray-50", el.status === "SELECTED" && "bg-green-50!", el.status === "REJECTED" && "bg-red-50!")}
                       >
                         <TableCell className="font-medium inline-flex gap-1 items-center">
                           {getRequestTitle(el.requestModelId) || "N/A"}
-                          {el.status === "SELECTED" && <CheckCircle size={12} className="text-green-600"/>}
-                          {el.status === "REJECTED" && <XCircle size={12} className="text-destructive"/>}
+                          {el.status === "SELECTED" && <CheckCircle size={12} className="text-green-600" />}
+                          {el.status === "REJECTED" && <XCircle size={12} className="text-destructive" />}
                         </TableCell>
                         <TableCell>{el.title || "N/A"}</TableCell>
                         <TableCell>

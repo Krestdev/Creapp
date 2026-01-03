@@ -453,7 +453,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
         cell: ({ row }) => {
           return (
             <div>
-              {format(row.getValue("createdAt"), "PPP HH:mm", { locale: fr })}
+              {format(row.getValue("createdAt"), "PPP", { locale: fr })}
             </div>
           );
         },
@@ -684,16 +684,16 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
                       {column.id === "reference"
                         ? "Référence"
                         : column.id === "label"
-                        ? "Projet"
-                        : column.id === "chief"
-                        ? "Chef Projet"
-                        : column.id === "budget"
-                        ? "Budget prévisionnel"
-                        : column.id === "status"
-                        ? "Statut"
-                        : column.id === "createdAt"
-                        ? "Date de création"
-                        : column.id}
+                          ? "Projet"
+                          : column.id === "chief"
+                            ? "Chef Projet"
+                            : column.id === "budget"
+                              ? "Budget prévisionnel"
+                              : column.id === "status"
+                                ? "Statut"
+                                : column.id === "createdAt"
+                                  ? "Date de création"
+                                  : column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
@@ -718,9 +718,9 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

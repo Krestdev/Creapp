@@ -218,9 +218,9 @@ export function DetailTicket({
                         {request?.period ? (
                           <p className="font-semibold">{`Du ${format(
                             request?.period.from!,
-                            "PPP HH:mm",
+                            "PPP",
                             { locale: fr }
-                          )} au ${format(request?.period.to!, "PPP HH:mm", {
+                          )} au ${format(request?.period.to!, "PPP", {
                             locale: fr,
                           })}`}</p>
                         ) : (
@@ -265,7 +265,7 @@ export function DetailTicket({
                 </>
               )}
 
-              {<div className="flex items-start gap-3">
+              {data?.type !== "RH" && <div className="flex items-start gap-3">
                 <div className="mt-1">
                   <Users className="h-5 w-5 text-muted-foreground" />
                 </div>
@@ -307,7 +307,7 @@ export function DetailTicket({
                 </div>
               </div>}
 
-              {request?.type === "FAC" &&
+              {data?.type === "FAC" &&
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <Users className="h-5 w-5 text-muted-foreground" />
@@ -477,7 +477,7 @@ export function DetailTicket({
                   <p className="text-sm text-muted-foreground mb-1">Créé le</p>
                   <p className="font-semibold">
                     {data?.createdAt
-                      ? format(new Date(data.createdAt), "PPP HH:mm", { locale: fr })
+                      ? format(new Date(data.createdAt), "PPP", { locale: fr })
                       : "N/A"}
                   </p>
                 </div>
@@ -494,7 +494,7 @@ export function DetailTicket({
                   </p>
                   <p className="font-semibold">
                     {data?.updatedAt
-                      ? format(new Date(data.updatedAt), "PPP HH:mm", { locale: fr })
+                      ? format(new Date(data.updatedAt), "PPP", { locale: fr })
                       : "N/A"}
                   </p>
                 </div>

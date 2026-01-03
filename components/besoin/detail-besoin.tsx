@@ -470,9 +470,9 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   {data.period ? (
                     <p className="font-semibold">{`Du ${format(
                       data.period.from!,
-                      "PPP HH:mm",
+                      "PPP",
                       { locale: fr }
-                    )} au ${format(data.period.to!, "PPP HH:mm", {
+                    )} au ${format(data.period.to!, "PPP", {
                       locale: fr,
                     })}`}</p>
                   ) : (
@@ -605,7 +605,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Créé le"}
                   </p>
                   <p className="font-semibold">
-                    {format(data.createdAt, "PPP HH:mm", { locale: fr })}
+                    {format(data.createdAt, "PPP", { locale: fr })}
                   </p>
                 </div>
               </div>
@@ -620,7 +620,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Modifié le"}
                   </p>
                   <p className="font-semibold">
-                    {format(data.updatedAt, "PPP HH:mm", { locale: fr })}
+                    {format(data.updatedAt, "PPP", { locale: fr })}
                   </p>
                 </div>
               </div>
@@ -635,7 +635,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Date limite"}
                   </p>
                   <p className="font-semibold">
-                    {format(data.dueDate!, "PPP HH:mm", { locale: fr })}
+                    {format(data.dueDate!, "PPP", { locale: fr })}
                   </p>
                 </div>
               </div>

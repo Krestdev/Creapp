@@ -113,12 +113,12 @@ export function BesoinLastVal({
     }: {
       id: number;
       validator:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     }) => {
       await request.validate(id, validator?.id!, validator);
     },
@@ -201,16 +201,16 @@ export function BesoinLastVal({
   const headerColor = isError
     ? "from-red-500 to-[#581114]"
     : isSuccess
-    ? "from-[#15803D] to-[#0B411F]"
-    : "from-[#15803D] to-[#0B411F]";
+      ? "from-[#15803D] to-[#0B411F]"
+      : "from-[#15803D] to-[#0B411F]";
 
   const headerTitle = isError ? "Erreur ❌" : isSuccess ? "Succès ✅" : titre;
 
   const headerDescription = isError
     ? "Une erreur est survenue. Vous pouvez réessayer."
     : isSuccess
-    ? "Les modifications ont bien été enregistrées."
-    : description;
+      ? "Les modifications ont bien été enregistrées."
+      : description;
 
   // Reset complet quand le modal se ferme
   useEffect(() => {
@@ -281,7 +281,7 @@ export function BesoinLastVal({
                               className="w-full h-10 justify-between font-normal"
                             >
                               {field.value
-                                ? format(field.value, "PPP HH:mm", { locale: fr })
+                                ? format(field.value, "PPP", { locale: fr })
                                 : "Sélectionner une date"}
                               <ChevronDownIcon />
                             </Button>

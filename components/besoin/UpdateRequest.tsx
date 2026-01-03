@@ -416,7 +416,7 @@ export default function UpdateRequest({
                                 className="w-full justify-between"
                               >
                                 {field.value
-                                  ? format(field.value, "PPP HH:mm", { locale: fr })
+                                  ? format(field.value, "PPP", { locale: fr })
                                   : "Sélectionner une date"}
                                 <ChevronDownIcon />
                               </Button>

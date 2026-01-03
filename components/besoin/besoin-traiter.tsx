@@ -293,7 +293,7 @@ export function BesoinsTraiter({
         </Button>
       ),
       cell: ({ row }) => (
-        <div>{format(row.getValue("dueDate"), "PPP HH:mm", { locale: fr })}</div>
+        <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>
       ),
     },
     {
@@ -406,14 +406,14 @@ export function BesoinsTraiter({
                     {column.id === "label"
                       ? "Titre"
                       : column.id === "dueDate"
-                      ? "Date limite"
-                      : column.id === "categoryId"
-                      ? "Catégorie"
-                      : column.id === "userId"
-                      ? "Emetteur"
-                      : column.id === "beneficiary"
-                      ? "Beneficiaire"
-                      : null}
+                        ? "Date limite"
+                        : column.id === "categoryId"
+                          ? "Catégorie"
+                          : column.id === "userId"
+                            ? "Emetteur"
+                            : column.id === "beneficiary"
+                              ? "Beneficiaire"
+                              : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -432,9 +432,9 @@ export function BesoinsTraiter({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -447,9 +447,8 @@ export function BesoinsTraiter({
                 return (
                   <TableRow
                     key={row.id}
-                    className={`border-none ${
-                      index % 2 === 1 ? "bg-gray-200" : ""
-                    }`}
+                    className={`border-none ${index % 2 === 1 ? "bg-gray-200" : ""
+                      }`}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className="border-none">

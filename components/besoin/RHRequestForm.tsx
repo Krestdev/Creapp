@@ -34,6 +34,7 @@ import { SearchableSelect } from "../base/searchableSelect";
 import { UserQueries } from "@/queries/baseModule";
 import FilesUpload from "../comp-547";
 import MultiSelectUsers from "../base/multiSelectUsers";
+import { ProjectQueries } from "@/queries/projectModule";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -50,6 +51,7 @@ const SingleFileSchema = z
   .default([]);
 
 const formSchema = z.object({
+  projet: z.string().min(1, "Le projet est requis"),
   titre: z.string().min(1, "Le titre est requis"),
   description: z.string().min(1, "La description est requise"),
   periode: z
@@ -86,6 +88,7 @@ export default function RHRequestForm() {
   const form = useForm<z.input<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      projet: "",
       titre: "",
       description: "",
       montant: "",
@@ -97,6 +100,15 @@ export default function RHRequestForm() {
       beneficiaire: [],
       justificatif: [],
     },
+  });
+
+  // ----------------------------------------------------------------------
+  // QUERY PROJECTS
+  // ----------------------------------------------------------------------
+  const projects = new ProjectQueries();
+  const projectsData = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => projects.getAll(),
   });
 
   // ----------------------------------------------------------------------
@@ -167,6 +179,7 @@ export default function RHRequestForm() {
       proof: values.justificatif,
       description: values.description || null,
       amount: Number(values.montant),
+      projectId: Number(values.projet),
       categoryId: 0,
       quantity: 1,
       unit: "unit",
@@ -186,6 +199,41 @@ export default function RHRequestForm() {
         className="space-y-8 max-w-3xl md:mx-12"
       >
         <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
+          {/* PROJET */}
+          <FormField
+            control={form.control}
+            name="projet"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {"Projet concerné"}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
+                <SearchableSelect
+                  onChange={field.onChange}
+                  options={
+                    projectsData.data?.data
+                      ?.filter(
+                        (p) =>
+                          p.status !== "cancelled" &&
+                          p.status !== "Completed" &&
+                          p.status !== "on-hold"
+                      )
+                      .map((p) => ({
+                        value: p.id!.toString(),
+                        label: p.label,
+                      })) ?? []
+                  }
+                  value={field.value}
+                  width="w-full"
+                  allLabel=""
+                  placeholder="Sélectionner un projet"
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* TITRE */}
           <FormField
             control={form.control}
@@ -225,8 +273,8 @@ export default function RHRequestForm() {
                         >
                           {field.value?.from && field.value?.to ? (
                             <>
-                              {format(field.value.from, "PPP HH:mm", { locale: fr })}{" "}
-                              - {format(field.value.to, "PPP HH:mm", { locale: fr })}
+                              {format(field.value.from, "PPP", { locale: fr })}{" "}
+                              - {format(field.value.to, "PPP", { locale: fr })}
                             </>
                           ) : (
                             <span>{"Choisir une période"}</span>
@@ -272,7 +320,7 @@ export default function RHRequestForm() {
                         className="w-full pl-3 text-left font-normal"
                       >
                         {field.value ? (
-                          format(field.value, "PPP HH:mm", { locale: fr })
+                          format(field.value, "PPP", { locale: fr })
                         ) : (
                           <span>Choisir une date</span>
                         )}
