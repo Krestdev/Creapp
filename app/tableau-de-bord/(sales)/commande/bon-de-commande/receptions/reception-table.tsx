@@ -60,6 +60,7 @@ import { PURCHASE_ORDER_STATUS, Reception, RECEPTION_STATUS } from "@/types/type
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewReception from "./view-reception";
+import UpdateReception from "./update-reception";
 
 interface Props {
   data: Array<Reception>;
@@ -222,7 +223,7 @@ export function ReceptionTable({ data }: Props) {
       header: () => <span className="tablehead">{"Éléments"}</span>,
       cell: ({ row }) => {
         const value = row.original.Deliverables;
-        const amount = value.filter((el) => el.isDelivered).length;
+        const amount = value.filter((el) => el.state === true).length;
         const length = value.length;
         return (
           `${amount}/${length} livré${amount > 1 ? "s" : ""}`
@@ -531,6 +532,7 @@ export function ReceptionTable({ data }: Props) {
         {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       </div>
       {selectedValue && <ViewReception open={view} onOpenChange={setView} reception={selectedValue} />}
+      {selectedValue && <UpdateReception open={edit} onOpenChange={setEdit} reception={selectedValue} />}
     </div>
   );
 }

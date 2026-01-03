@@ -47,7 +47,7 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{`${reception.Command.devi.commandRequest.title}`}</DialogTitle>
+          <DialogTitle>{`${reception.Command?.devi.commandRequest.title ?? "Non défini"}`}</DialogTitle>
           <DialogDescription>
             {"Réception du bon de commande"}
           </DialogDescription>
@@ -64,6 +64,7 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
                   {reception.Reference || "N/A"}
                 </p>
               </div>
+            </div>
             </div>
             {/**Fournisseur */}
             <div className="view-group">
@@ -97,7 +98,7 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Référence Bon"}</p>
                 <Badge variant={"outline"}>
-                  {reception.Command.reference || "N/A"}
+                  {reception.Command?.reference || "N/A"}
                 </Badge>
               </div>
             </div>
@@ -109,7 +110,7 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Date limite"}</p>
                 <p className="font-semibold">
-                  {format(new Date(reception.deadline), "dd MMMM yyyy", {locale: fr})}
+                  {format(new Date(reception.Deadline), "dd MMMM yyyy", {locale: fr})}
                 </p>
               </div>
             </div>
@@ -123,8 +124,9 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
                 <div className="grid gap-1">
                   {reception.Deliverables.map((item, id)=>
                 <span className="w-full inline-flex gap-1.5 items-center text-sm font-medium" key={id}>
-                    <Badge variant={item.isDelivered ? "success" : "destructive"} className="w-[22px]">{item.isDelivered ? <CheckIcon/> : <XIcon/>}</Badge>
+                    <Badge variant={item.state ? "success" : "destructive"} className="w-[22px] p-0">{item.state ? <CheckIcon size={16}/> : <XIcon size={16}/>}</Badge>
                     {item.title}
+                    <span className={item.state ? "text-green-500" : "text-red-500"}>{item.state ? "(Livré)" : "(Non livré)"}</span>
                 </span>)}
                 </div>
               </div>
@@ -166,10 +168,9 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
                 </p>
               </div>
             </div>
-          </div>
         </div>
         <DialogFooter>
-            <DialogClose>
+            <DialogClose asChild>
                 <Button variant={"outline"}>{"Fermer"}</Button>
             </DialogClose>
         </DialogFooter>

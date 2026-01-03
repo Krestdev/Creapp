@@ -3,7 +3,8 @@ import { Reception } from "@/types/types";
 
 export interface ReceptionCompletion {
   id: number;
-  Deliverables: Array<Reception["Deliverables"]>;
+  Deliverables: Reception["Deliverables"];
+  proof?: File;
 }
 
 export class ReceptionQuery {
@@ -24,7 +25,7 @@ export class ReceptionQuery {
     });
   };
   completeReception = async ({id, Deliverables}:ReceptionCompletion): Promise<{ data: Reception }> => {
-    return api.put(`${this.route}/complete/${id}`, { Deliverables }).then((response) => {
+    return api.put(`${this.route}/${id}`, { Deliverables }).then((response) => {
       return response.data;
     });
   };

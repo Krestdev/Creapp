@@ -33,9 +33,9 @@ import { PAYMENT_METHOD, PENALITY_MODE, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
@@ -49,6 +49,19 @@ const METHOD = PAYMENT_METHOD.map(m=> m.value) as [
   ...(typeof PAYMENT_METHOD)[number]["value"][]
 ];
 
+const paymentSchema = z.object({
+        percentage: z.coerce.number({message: "Valeur invalide"}).refine((val)=> val <= 100 && val > 0, {message: "Doit être entre 0 et 100"}),
+        deadLine: z.string()
+        .refine(
+      (val) => {
+        const d = new Date(val);
+        const now = new Date()
+        return !isNaN(d.getTime()) && d >= now;
+      },
+      { message: "Date invalide" }
+    ).optional(),
+      });
+
 export const formSchema = z
   .object({
     deviId: z.coerce.number({ message: "Veuillez définir un devis" }),
@@ -57,12 +70,18 @@ export const formSchema = z
     .refine(
       (val) => {
         const d = new Date(val);
-        const now = new Date
-        return !isNaN(d.getTime()) || d <= now;
+        const now = new Date()
+        return !isNaN(d.getTime()) && d >= now;
       },
       { message: "Date invalide" }
     ),
     paymentTerms: z.string().min(1, "Ce champ est requis"),
+    instalments:z.array(
+      paymentSchema
+    ).refine((data) => {
+        const total = data.reduce((sum, payment) => sum + payment.percentage, 0);
+        return total === 100
+      }, {message: "Le total des paiements doit être égal à 100%"}),
     paymentMethod: z.enum(METHOD),
     priority: z.enum(PO_PRIORITIES),
     deliveryLocation: z.string().min(1, "Ce champ est requis"),
@@ -94,6 +113,7 @@ export const formSchema = z
   
 function CreateForm() {
   const [selectDate, setSelectDate] = React.useState(false); 
+  const [duePopovers, setDuePopovers] = React.useState<Record<number, boolean>>({});
   const quotationQuery = new QuotationQueries();
   const providerQuery = new ProviderQueries();
   const purchaseOrderQuery = new PurchaseOrder();
@@ -113,9 +133,19 @@ function CreateForm() {
       amountBase: 0,
       hasPenalties: false,
       penaltyMode: "",
+      instalments: [{percentage: 100, deadLine: undefined}],
       paymentMethod: "bank-transfer",
     },
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "instalments",
+  });
+
+  const instalments = form.watch("instalments");
+  const totalAmount = instalments.reduce((sum, payment) => sum + payment.percentage, 0); //total amount
+  const paymentsError = form.formState.errors.instalments?.root?.message;
 
   const {mutate, isPending} = useMutation({
     mutationFn: (payload:CreatePurchasePayload)=>purchaseOrderQuery.create(payload),
@@ -130,6 +160,7 @@ function CreateForm() {
       amountBase: 0,
       hasPenalties: false,
       penaltyMode: "",
+      instalments: [{percentage: 100, deadLine: undefined}],
       paymentMethod: "bank-transfer",
     });
     queryClient.invalidateQueries({
@@ -174,6 +205,7 @@ function CreateForm() {
       deliveryLocation: values.deliveryLocation,
       hasPenalties: values.hasPenalties,
       penaltyMode: values.penaltyMode,
+      instalments: values.instalments,
     },
     ids: ids
   };
@@ -319,6 +351,142 @@ const penalty = form.watch("hasPenalties");
             </FormItem>
           )}
         />
+        <div className="w-full @min-[560px]:col-span-2 grid gap-3">
+          <div className="flex items-center justify-between">
+            <FormLabel isRequired>{"Échelonnement des paiements"}</FormLabel>
+            <div className="text-sm text-muted-foreground">
+              {"Total: "}<span className={totalAmount === 100 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>{`${totalAmount}%`}</span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {fields.map((field, index) => (
+              <div key={field.id} className="p-4 rounded-md border grid grid-cols-1 @min-[560px]:grid-cols-2 gap-3 place-items-start">
+                <FormField
+                  control={form.control}
+                  name={`instalments.${index}.percentage`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{"Montant (%)"}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          placeholder="Ex. 30"
+                          onChange={(e) => {
+                            const value = e.target.value === "" ? 0 : parseFloat(e.target.value);
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`instalments.${index}.deadLine`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{`Date d'échéance (optionnel)`}</FormLabel>
+                      <FormControl>
+                       <div className="relative flex gap-2">
+                  <Input
+                    id={field.name}
+                    value={field.value}
+                    placeholder="Sélectionner une date"
+                    className="bg-background pr-10"
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setDuePopovers((p) => ({ ...p, [index]: true }))
+                      }
+                    }}
+                  />
+                  <Popover open={!!duePopovers[index]} onOpenChange={(open) =>
+                              setDuePopovers((p) => ({ ...p, [index]: open }))
+                            }>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="date-picker"
+                        variant="ghost"
+                        className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                      >
+                        <CalendarIcon className="size-3.5" />
+                        <span className="sr-only">
+                          {"Sélectionner une date"}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto overflow-hidden p-0"
+                      align="end"
+                      alignOffset={-8}
+                      sideOffset={10}
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={
+                          field.value ? new Date(field.value) : undefined
+                        }
+                        captionLayout="dropdown"
+                        onSelect={(date) => {
+                          if (!date) return;
+                          const value = format(date, "yyyy-MM-dd");
+                          field.onChange(value);
+                          setSelectDate(false);
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {fields.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="delete"
+                    size="icon"
+                    onClick={() => remove(index)}
+                  >
+                    <Trash2 />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => append({ percentage: 0, deadLine: undefined })}
+          >
+            <Plus />
+            {"Ajouter un paiement"}
+          </Button>
+
+          <div className="text-sm text-muted-foreground">
+            <p className="mt-2">
+              <strong>{"Note : "}</strong>{"La somme de tous les paiements doit être égale à 100%."}
+              {totalAmount !== 100 && (
+                <span className="text-destructive ml-2">
+                  {`Total actuel: ${totalAmount}% (il manque ${100 - totalAmount}%)`}
+                </span>
+              )}
+            </p>
+            {paymentsError && (
+              <p className="text-sm font-medium text-destructive">{paymentsError}</p>
+            )}
+          </div>
+        </div>
         <FormField
           control={form.control}
           name="paymentTerms"

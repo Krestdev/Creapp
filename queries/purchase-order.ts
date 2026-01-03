@@ -11,7 +11,13 @@ export type CreatePurchasePayload = {
     | "devi"
     | "reference"
     | "provider"
-  >;
+    | "instalments"
+  >&{
+    instalments: Array<{
+      percentage: number;
+      deadLine?: string;
+    }>
+  };
   ids: Array<number>;
 };
 export type updatePoPayload = Omit<

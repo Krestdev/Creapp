@@ -383,6 +383,11 @@ export type BonsCommande = {
   status: (typeof PURCHASE_ORDER_STATUS)[number]["value"];
   penaltyMode?: string;
   hasPenalties?: boolean;
+  instalments: Array<{
+    percentage: number;
+    deadLine: string;
+    status: string;
+  }>;
   deliveryLocation?: string;
   paymentMethod: (typeof PAYMENT_METHOD)[number]["value"];
   paymentTerms: string;
@@ -418,15 +423,15 @@ export type Reception = {
   id: number;
   commandId: number;
   proof: string;
-  deadline: Date;
-  Status: typeof RECEPTION_STATUS[number]["value"];
+  Deadline: Date;
+  Status: (typeof RECEPTION_STATUS)[number]["value"];
   providerId: number;
   userId: number;
   createdAt: Date;
   updatedAt?: Date;
   Command: BonsCommande;
   Provider: Provider;
-  Deliverables: Array<QuotationElement & {isDelivered: boolean}>;
+  Deliverables: Array<QuotationElement & { state: boolean }>;
 };
 
 type Item = {
@@ -503,4 +508,4 @@ export type NavigationLinkProps = {
   title: string;
   icon?: LucideIcon;
   badgeValue?: number;
-}
+};
