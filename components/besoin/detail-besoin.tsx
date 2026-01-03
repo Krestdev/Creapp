@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
 import { CategoryQueries } from "@/queries/categoryModule";
@@ -24,6 +25,7 @@ import {
   Check,
   CheckCircle,
   Clock,
+  DollarSign,
   FileText,
   FolderOpen,
   FolderTree,
@@ -136,10 +138,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
     data.priority === "urgent"
       ? "Urgent"
       : data.priority === "medium"
-      ? "Moyen"
-      : data.priority === "low"
-      ? "Faible"
-      : "Elevé";
+        ? "Moyen"
+        : data.priority === "low"
+          ? "Faible"
+          : "Elevé";
 
   // Fonction pour obtenir l'historique de validation formaté
   const getValidationHistory = () => {
@@ -352,15 +354,14 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Priorité"}
                   </p>
                   <Badge
-                    className={`${
-                      data.priority === "urgent"
-                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                        : data.priority === "medium"
+                    className={`${data.priority === "urgent"
+                      ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                      : data.priority === "medium"
                         ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                         : data.priority === "low"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                        : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    }`}
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      }`}
                   >
                     {data.priority === "urgent" ? (
                       <X className="h-3 w-3 mr-1" />
@@ -406,8 +407,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                                   {item.status === "approved"
                                     ? `Étape ${item.step} : Approuvé par`
                                     : item.status === "rejected"
-                                    ? `Étape ${item.step} : Rejeté par`
-                                    : `Étape ${item.step} : En attente de l'approbation de`}
+                                      ? `Étape ${item.step} : Rejeté par`
+                                      : `Étape ${item.step} : En attente de l'approbation de`}
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <div className="flex-1">
@@ -481,7 +482,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
 
               {/* Bénéficiaires */}
-              <div className="flex items-start gap-3">
+              {<div className="flex items-start gap-3">
                 <div className="mt-1">
                   <Users className="h-5 w-5 text-muted-foreground" />
                 </div>
@@ -521,7 +522,48 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     </div>
                   )}
                 </div>
-              </div>
+              </div>}
+
+              {data.type === "FAC" &&
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <Users className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {"Pour le compte de"}
+                    </p>
+                    {
+                      <div className="flex flex-col">
+                        <div className="flex flex-col">
+                          {data.benFac?.list?.map((ben) => {
+                            return (
+                              <p
+                                key={ben.id}
+                                className="font-semibold capitalize"
+                              >{`${ben?.name} - ${XAF.format(ben?.amount)}`}</p>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              {(data.type === "FAC" || data.type === "RH") &&
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <DollarSign className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {"Montant"}
+                    </p>
+                    <p>{XAF.format(data.amount!)}</p>
+                  </div>
+                </div>
+              }
 
               {/* Quantité */}
               <div className="flex items-start gap-3">

@@ -842,16 +842,16 @@ export function DataTable({
                     {column.id === "ref"
                       ? "Références"
                       : column.id === "label"
-                      ? "Titres"
-                      : column.id === "state"
-                      ? "Statuts"
-                      : column.id === "projectId"
-                      ? "Projets"
-                      : column.id === "categoryId"
-                      ? "Catégories"
-                      : column.id === "createdAt"
-                      ? "Date d'émission"
-                      : null}
+                        ? "Titres"
+                        : column.id === "state"
+                          ? "Statuts"
+                          : column.id === "projectId"
+                            ? "Projets"
+                            : column.id === "categoryId"
+                              ? "Catégories"
+                              : column.id === "createdAt"
+                                ? "Date d'émission"
+                                : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -875,9 +875,9 @@ export function DataTable({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                       </TableHead>
                     );
                   })}
