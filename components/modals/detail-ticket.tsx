@@ -31,6 +31,7 @@ import { UserQueries } from "@/queries/baseModule";
 import { useState } from "react";
 import ShowFile from "../base/show-file";
 import { DownloadFile } from "../base/downLoadFile";
+import { XAF } from "@/lib/utils";
 
 interface DetailTicketProps {
   open: boolean;
@@ -217,9 +218,9 @@ export function DetailTicket({
                         {request?.period ? (
                           <p className="font-semibold">{`Du ${format(
                             request?.period.from!,
-                            "PPP HH:mm",
+                            "PPP",
                             { locale: fr }
-                          )} au ${format(request?.period.to!, "PPP HH:mm", {
+                          )} au ${format(request?.period.to!, "PPP", {
                             locale: fr,
                           })}`}</p>
                         ) : (
@@ -264,22 +265,75 @@ export function DetailTicket({
                 </>
               )}
 
-              {/* Bénéficiaire */}
-              {data?.type === "FAC" && (
+              {data?.type !== "RH" && <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {request?.categoryId === 0
+                      ? "Recepteur pour compte"
+                      : "Bénéficiaires"}
+                  </p>
+                  {request?.categoryId === 0 ? (
+                    <p className="font-semibold capitalize">
+                      {
+                        usersData.data?.data?.find(
+                          (u) => u.id === Number(request?.beneficiary)
+                        )?.name
+                      }
+                    </p>
+                  ) : (
+                    <div className="flex flex-col">
+                      {request?.beneficiary === "me" ? (
+                        <p className="font-semibold capitalize">{user?.name}</p>
+                      ) : (
+                        <div className="flex flex-col">
+                          {request?.beficiaryList?.map((ben) => {
+                            const beneficiary = usersData.data?.data?.find(
+                              (x) => x.id === ben.id
+                            );
+                            return (
+                              <p
+                                key={ben.id}
+                                className="font-semibold capitalize"
+                              >{`${beneficiary?.name || ben.id}`}</p>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>}
+
+              {data?.type === "FAC" &&
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <Users className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground mb-1">
-                      {"Recepteur pour compte"}
+                      {"Pour le compte de"}
                     </p>
-                    <div className="flex flex-col">
-                      <p>{usersData.data?.data?.find((x) => x.id === Number(request?.beneficiary))?.name || "Non renseigné"}</p>
-                    </div>
+                    {
+                      <div className="flex flex-col">
+                        <div className="flex flex-col">
+                          {request?.benFac?.list?.map((ben) => {
+                            return (
+                              <p
+                                key={ben.id}
+                                className="font-semibold capitalize"
+                              >{`${ben?.name} - ${XAF.format(ben?.amount)}`}</p>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    }
                   </div>
                 </div>
-              )}
+              }
+
               <div className="flex items-start gap-3">
                 <div className="mt-1">
                   <FolderOpen className="h-5 w-5 text-muted-foreground" />
@@ -423,7 +477,7 @@ export function DetailTicket({
                   <p className="text-sm text-muted-foreground mb-1">Créé le</p>
                   <p className="font-semibold">
                     {data?.createdAt
-                      ? format(new Date(data.createdAt), "PPP HH:mm", { locale: fr })
+                      ? format(new Date(data.createdAt), "PPP", { locale: fr })
                       : "N/A"}
                   </p>
                 </div>
@@ -440,7 +494,7 @@ export function DetailTicket({
                   </p>
                   <p className="font-semibold">
                     {data?.updatedAt
-                      ? format(new Date(data.updatedAt), "PPP HH:mm", { locale: fr })
+                      ? format(new Date(data.updatedAt), "PPP", { locale: fr })
                       : "N/A"}
                   </p>
                 </div>

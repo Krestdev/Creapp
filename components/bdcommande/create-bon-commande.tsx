@@ -39,6 +39,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { fr } from "date-fns/locale";
 // import {
 //   FileInput,
 //   FileUploader,
@@ -260,7 +261,7 @@ export default function CreateBonForm() {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP HH:mm")
+                            format(field.value, "PPP", { locale: fr })
                           ) : (
                             <span>Pick a date</span>
                           )}

@@ -89,7 +89,7 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
       });
     }
   }, [data]);
-  
+
   // Fonction pour obtenir l'email d'un utilisateur
 
   return (
@@ -99,7 +99,7 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
           <DialogTitle className="text-xl font-semibold text-white flex items-center gap-2">
             <Tag className="h-5 w-5" />
-            {`Catégorie ${data?.label || "Non spécifiée"}`}
+            {`Catégorie ${data?.label}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Informations détaillées de la catégorie"}
@@ -166,23 +166,21 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
                     return (
                       <div
                         key={position}
-                        className={`flex flex-col items-center p-3 rounded-lg border ${
-                          isActive
+                        className={`flex flex-col items-center p-3 rounded-lg border ${isActive
                             ? isLast
                               ? "bg-red-50 border-red-200"
                               : "bg-green-50 border-green-200"
                             : "bg-gray-50 border-gray-200"
-                        }`}
+                          }`}
                       >
                         {/* Cercle position */}
                         <div
-                          className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold ${
-                            isActive
+                          className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold ${isActive
                               ? isLast
                                 ? "bg-red-100 text-red-600"
                                 : "bg-green-100 text-green-600"
                               : "bg-gray-100 text-gray-400"
-                          }`}
+                            }`}
                         >
                           {position}
                         </div>

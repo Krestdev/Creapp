@@ -161,7 +161,7 @@ export function DetailProject({
                   <p className="text-sm text-muted-foreground">{"Créé le"}</p>
                   <p className="font-semibold">
                     {data.createdAt
-                      ? format(new Date(data.createdAt), "PPP HH:mm", { locale: fr })
+                      ? format(new Date(data.createdAt), "PPP", { locale: fr })
                       : "Non spécifié"}
                   </p>
                 </div>
@@ -178,7 +178,7 @@ export function DetailProject({
                   </p>
                   <p className="font-semibold">
                     {data.updatedAt
-                      ? format(new Date(data.updatedAt), "PPP HH:mm", { locale: fr })
+                      ? format(new Date(data.updatedAt), "PPP", { locale: fr })
                       : "Non spécifié"}
                   </p>
                 </div>

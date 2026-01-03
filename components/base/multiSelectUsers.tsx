@@ -53,6 +53,14 @@ export default function MultiSelectUsers({
     onChange([...selected, user]);
   };
 
+  const addUserAll = () => {
+    onChange([...selected, ...users]);
+  };
+
+  const removeUserAll = () => {
+    onChange([]);
+  };
+
   const removeUser = (id: number) => {
     onChange(selected.filter((u) => u.id !== id));
   };
@@ -63,9 +71,8 @@ export default function MultiSelectUsers({
       ref={dropdownRef}
     >
       <div
-        className={`relative ${
-          display === "user" && "p-3 border"
-        } rounded-lg flex flex-wrap gap-2 items-center`}
+        className={`relative ${display === "user" && "p-3 border"
+          } rounded-lg flex flex-wrap gap-2 items-center`}
       >
         {/* Tags */}
         {display === "user" &&
@@ -93,9 +100,8 @@ export default function MultiSelectUsers({
           variant={"ghost"}
           type="button"
           onClick={() => setOpen(!open)}
-          className={`${
-            display === "user" ? "ml-auto" : "mx-auto w-full border"
-          }`}
+          className={`${display === "user" ? "ml-auto" : "mx-auto w-full border"
+            }`}
         >
           {display === "request" ? "Ajouter un besoin" : ""}
           <LucidePlus
@@ -115,7 +121,7 @@ export default function MultiSelectUsers({
                   <p className="text-[#2F2F2F] text-sm ">{item.name}</p>
                   <p className="text-[12px] text-[#B0B0B0]">{`avant le ${format(
                     item.dueDate!,
-                    "PPP HH:mm",
+                    "PPP",
                     { locale: fr }
                   )}`}</p>
                 </div>
@@ -135,21 +141,38 @@ export default function MultiSelectUsers({
         {open && (
           <div className="absolute right-0 top-full w-full bg-white shadow-md rounded-lg border z-20 transition-all ease-in-out max-h-60 overflow-y-auto">
             {available.length === 0 ? (
-              <p className="p-2 text-sm text-gray-500 text-center">
-                {display === "request"
-                  ? "Aucun besoin disponible"
-                  : "Aucun utilisateur disponible"}
-              </p>
-            ) : (
-              available.map((user) => (
+              <>
                 <div
-                  key={user.id}
-                  onClick={() => addUser(user)}
                   className="p-2 cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => removeUserAll()}
                 >
-                  {user.name}
+                  {"Tout retirer"}
                 </div>
-              ))
+                <p className="p-2 text-sm text-gray-500 text-center">
+                  {display === "request"
+                    ? "Aucun besoin disponible"
+                    : "Aucun utilisateur disponible"}
+                </p>
+              </>
+            ) : (
+              <>
+                {/* Tous les utilisateurs disponibles */}
+                <div
+                  className="p-2 cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => addUserAll()}
+                >
+                  {"Tous les utilisateurs"}
+                </div>
+                {available.map((user) => (
+                  <div
+                    key={user.id}
+                    onClick={() => addUser(user)}
+                    className="p-2 cursor-pointer hover:bg-gray-100 transition-colors"
+                  >
+                    {user.name}
+                  </div>
+                ))}
+              </>
             )}
           </div>
         )}

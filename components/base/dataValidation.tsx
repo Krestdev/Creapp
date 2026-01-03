@@ -968,18 +968,18 @@ export function DataValidation({
                     {column.id === "label"
                       ? "Titres"
                       : column.id === "projectId"
-                      ? "Projets"
-                      : column.id === "categoryId"
-                      ? "Catégories"
-                      : column.id === "userId"
-                      ? "Emetteurs"
-                      : column.id === "beneficiary"
-                      ? "Beneficiaires"
-                      : column.id === "createdAt"
-                      ? "Date d'émission"
-                      : column.id === "state"
-                      ? "Statuts"
-                      : column.id}
+                        ? "Projets"
+                        : column.id === "categoryId"
+                          ? "Catégories"
+                          : column.id === "userId"
+                            ? "Emetteurs"
+                            : column.id === "beneficiary"
+                              ? "Beneficiaires"
+                              : column.id === "createdAt"
+                                ? "Date d'émission"
+                                : column.id === "state"
+                                  ? "Statuts"
+                                  : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -1003,9 +1003,9 @@ export function DataValidation({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                       </TableHead>
                     );
                   })}
@@ -1074,7 +1074,7 @@ export function DataValidation({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {tempCustomDateRange?.from ? (
-                        format(tempCustomDateRange.from, "PPP HH:mm", { locale: fr })
+                        format(tempCustomDateRange.from, "PPP", { locale: fr })
                       ) : (
                         <span>{"Sélectionner une date"}</span>
                       )}
@@ -1109,7 +1109,7 @@ export function DataValidation({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {tempCustomDateRange?.to ? (
-                        format(tempCustomDateRange.to, "PPP HH:mm", { locale: fr })
+                        format(tempCustomDateRange.to, "PPP", { locale: fr })
                       ) : (
                         <span>{"Sélectionner une date"}</span>
                       )}

@@ -66,60 +66,60 @@ export default function SpecialRequestForm() {
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
   const request = new RequestQueries();
-    const requestMutation = useMutation({
-      mutationKey: ["requests"],
-      mutationFn: async (
-        data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
-      ) => request.special(data),
-  
-      onSuccess: () => {
-        toast.success("Besoin soumis avec succès !");
-        setIsSuccessModalOpen(true);
-        form.reset();
-  
-        // Invalider et rafraîchir toutes les requêtes liées aux besoins
-        queryClient.invalidateQueries({
-          queryKey: ["requests"],
-          refetchType: "active",
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["requests-validation"],
-          refetchType: "active",
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["requests", user?.id],
-          refetchType: "active",
-        });
-      },
-  
-      onError: (error: any) => {
-        console.error("Erreur lors de la soumission:", error);
-        toast.error("Une erreur est survenue lors de la soumission.");
-      },
-    });
-  
-    function onSubmit(values: z.input<typeof formSchema>) {
-      // Préparation des données
-      const requestData: Omit<
-        RequestModelT,
-        "id" | "createdAt" | "updatedAt" | "ref" 
-      > = {
-        label: values.titre,
-        amount: Number(values.montant),
-        dueDate: values.delai,
-        description: values.raison || null,
-        quantity: 1,
-        unit: "unit",
-        beneficiary: user?.id!.toString() ?? "",
-        userId: Number(user?.id),
-        type: "SPECIAL",
-        state: "pending",
-        priority: "medium",
-        categoryId: 0,
-        proof: undefined
-      };
-      requestMutation.mutate(requestData);
-    }
+  const requestMutation = useMutation({
+    mutationKey: ["requests"],
+    mutationFn: async (
+      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
+    ) => request.special(data),
+
+    onSuccess: () => {
+      toast.success("Besoin soumis avec succès !");
+      setIsSuccessModalOpen(true);
+      form.reset();
+
+      // Invalider et rafraîchir toutes les requêtes liées aux besoins
+      queryClient.invalidateQueries({
+        queryKey: ["requests"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["requests-validation"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["requests", user?.id],
+        refetchType: "active",
+      });
+    },
+
+    onError: (error: any) => {
+      console.error("Erreur lors de la soumission:", error);
+      toast.error("Une erreur est survenue lors de la soumission.");
+    },
+  });
+
+  function onSubmit(values: z.input<typeof formSchema>) {
+    // Préparation des données
+    const requestData: Omit<
+      RequestModelT,
+      "id" | "createdAt" | "updatedAt" | "ref"
+    > = {
+      label: values.titre,
+      amount: Number(values.montant),
+      dueDate: values.delai,
+      description: values.raison || null,
+      quantity: 1,
+      unit: "unit",
+      beneficiary: user?.id!.toString() ?? "",
+      userId: Number(user?.id),
+      type: "SPECIAL",
+      state: "pending",
+      priority: "medium",
+      categoryId: 0,
+      proof: undefined
+    };
+    requestMutation.mutate(requestData);
+  }
 
   return (
     <Form {...form}>
@@ -187,7 +187,7 @@ export default function SpecialRequestForm() {
                           className="w-full pl-3 text-left font-normal"
                         >
                           {field.value ? (
-                            format(field.value, "PPP HH:mm", { locale: fr })
+                            format(field.value, "PPP", { locale: fr })
                           ) : (
                             <span>Choisir une date</span>
                           )}

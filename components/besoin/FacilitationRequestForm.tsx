@@ -74,7 +74,7 @@ export default function FacilitationRequestForm() {
   >([]);
 
   console.log(beneficiairesList);
-  
+
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
   // ----------------------------------------------------------------------
@@ -170,7 +170,7 @@ export default function FacilitationRequestForm() {
       type: "FAC",
       state: "pending",
       priority: "medium",
-      benFac: {list: beneficiairesList.map((b) => ({ id: b.id, name: b.nom, amount: b.montant }))},
+      benFac: { list: beneficiairesList.map((b) => ({ id: b.id, name: b.nom, amount: b.montant })) },
     };
     requestMutation.mutate(requestData);
   }
@@ -305,7 +305,7 @@ export default function FacilitationRequestForm() {
                           className="w-full pl-3 text-left font-normal"
                         >
                           {field.value ? (
-                            format(field.value, "PPP HH:mm", { locale: fr })
+                            format(field.value, "PPP", { locale: fr })
                           ) : (
                             <span>{"Choisir une date"}</span>
                           )}

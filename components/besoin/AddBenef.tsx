@@ -192,7 +192,7 @@ export default function BeneficiairesList({
         {/* Formulaire */}
         {showForm && (
           <div className="p-4 border rounded-lg bg-gray-50">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nom">Nom du bénéficiaire *</Label>
@@ -226,9 +226,8 @@ export default function BeneficiairesList({
                       placeholder="0"
                       min="0"
                       step="1"
-                      className={`pr-10 ${
-                        errors.montant ? "border-red-500" : ""
-                      }`}
+                      className={`pr-10 ${errors.montant ? "border-red-500" : ""
+                        }`}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                       FCFA
@@ -247,7 +246,7 @@ export default function BeneficiairesList({
                   {editingId !== null ? "Modifier" : "Ajouter"}
                 </Button>
               </div>
-            </form>
+            </div>
           </div>
         )}
         <Button

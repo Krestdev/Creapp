@@ -842,16 +842,16 @@ export function DataTable({
                     {column.id === "ref"
                       ? "Références"
                       : column.id === "label"
-                      ? "Titres"
-                      : column.id === "state"
-                      ? "Statuts"
-                      : column.id === "projectId"
-                      ? "Projets"
-                      : column.id === "categoryId"
-                      ? "Catégories"
-                      : column.id === "createdAt"
-                      ? "Date d'émission"
-                      : null}
+                        ? "Titres"
+                        : column.id === "state"
+                          ? "Statuts"
+                          : column.id === "projectId"
+                            ? "Projets"
+                            : column.id === "categoryId"
+                              ? "Catégories"
+                              : column.id === "createdAt"
+                                ? "Date d'émission"
+                                : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -875,9 +875,9 @@ export function DataTable({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                       </TableHead>
                     );
                   })}
@@ -949,7 +949,7 @@ export function DataTable({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {tempCustomDateRange?.from ? (
-                        format(tempCustomDateRange.from, "PPP HH:mm", { locale: fr })
+                        format(tempCustomDateRange.from, "PPP", { locale: fr })
                       ) : (
                         <span>Sélectionner une date</span>
                       )}
@@ -984,7 +984,7 @@ export function DataTable({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {tempCustomDateRange?.to ? (
-                        format(tempCustomDateRange.to, "PPP HH:mm", { locale: fr })
+                        format(tempCustomDateRange.to, "PPP", { locale: fr })
                       ) : (
                         <span>Sélectionner une date</span>
                       )}
