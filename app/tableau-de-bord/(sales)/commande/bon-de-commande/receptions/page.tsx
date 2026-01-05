@@ -11,7 +11,7 @@ import { ReceptionTable } from "./reception-table";
 
 const ReceptionsPage = () => {
   const receptionQuery = new ReceptionQuery();
-  const getReceptions = useFetchQuery(["receptions"], receptionQuery.getAll, 30000);
+  const getReceptions = useFetchQuery(["receptions"], receptionQuery.getAll, 90000);
 
   if (getReceptions.isLoading) return <LoadingPage />;
   if (getReceptions.isError) return <ErrorPage />;

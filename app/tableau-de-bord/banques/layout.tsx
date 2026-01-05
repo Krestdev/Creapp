@@ -8,7 +8,7 @@ import { isRole } from "@/lib/utils";
 
 export default function PrivateLayout({ children }: { children: ReactNode }) {
   const { isHydrated, user } = useStore();
-  const auth = isRole({roleList: user?.role ?? [], role: "achat"});
+  const auth = isRole({roleList: user?.role ?? [], role: "trésorier"}) || isRole({roleList: user?.role ?? [], role: "comptable"});
 
   if (!isHydrated) {
     return <LoadingPage/>

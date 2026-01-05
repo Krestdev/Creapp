@@ -207,17 +207,18 @@ export default function FilesUpload({
         />
 
         <div className="flex flex-col items-center gap-1 text-center">
-          <div className="rounded-full border border-gray-100 p-3">
+          {/* <div className="rounded-full border border-gray-100 p-3">
             <UploadIcon size={16} className="text-gray-400" />
-          </div>
+          </div> */}
 
-          <div className="space-y-1 text-sm text-gray-900">
+          {/* <div className="space-y-1 text-sm text-gray-900">
             <p className="font-medium font-mono">
               {"Glissez-déposez vos fichiers ici"}
             </p>
             <p>{"ou"}</p>
-          </div>
-
+          </div> */}
+            <p className="font-medium font-mono">
+              {"Glissez-déposez vos fichiers ici ou "}
           <Button
             onClick={(e) => {
               e.preventDefault();
@@ -228,6 +229,7 @@ export default function FilesUpload({
           >
             {"Parcourir les fichiers"}
           </Button>
+            </p>
 
           <p className="text-xs text-gray-400">
             {acceptTypes === "images" && `PNG, JPG, GIF jusqu'à ${maxSizeMB}MB`}

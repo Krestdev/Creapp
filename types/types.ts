@@ -422,7 +422,7 @@ export type Reception = {
   Reference: string;
   id: number;
   commandId: number;
-  proof: string;
+  Proof: string;
   Deadline: Date;
   Status: (typeof RECEPTION_STATUS)[number]["value"];
   providerId: number;
@@ -431,7 +431,7 @@ export type Reception = {
   updatedAt?: Date;
   Command: BonsCommande;
   Provider: Provider;
-  Deliverables: Array<QuotationElement & { state: boolean }>;
+  Deliverables: Array<QuotationElement & { isDelivered: boolean }>;
 };
 
 type Item = {
@@ -509,3 +509,25 @@ export type NavigationLinkProps = {
   icon?: LucideIcon;
   badgeValue?: number;
 };
+
+export const BANK_TYPES = [
+  { value: "BANK", name: "Banque" },
+  { value: "CASH", name: "Caisse" },
+  { value: "MOBILE_WALLET", name: "Portefeuille Mobile" },
+] as const;
+
+export type Bank = {
+    id: number;
+    label: string;
+    type: (typeof BANK_TYPES)[number]["value"];
+    balance: number;
+    justification: string;
+    accountNumber?: string;
+    bankCode?: string;
+    atmCode?: string;
+    key?: string;
+    phoneNum?: string;
+    merchantNum?: string;
+    createdAt: Date;
+    updatedAt?: Date;
+}

@@ -124,9 +124,9 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
                 <div className="grid gap-1">
                   {reception.Deliverables.map((item, id)=>
                 <span className="w-full inline-flex gap-1.5 items-center text-sm font-medium" key={id}>
-                    <Badge variant={item.state ? "success" : "destructive"} className="w-[22px] p-0">{item.state ? <CheckIcon size={16}/> : <XIcon size={16}/>}</Badge>
+                    <Badge variant={item.isDelivered ? "success" : "destructive"} className="w-[22px] p-0">{item.isDelivered ? <CheckIcon size={16}/> : <XIcon size={16}/>}</Badge>
                     {item.title}
-                    <span className={item.state ? "text-green-500" : "text-red-500"}>{item.state ? "(Livré)" : "(Non livré)"}</span>
+                    <span className={item.isDelivered ? "text-green-500" : "text-red-500"}>{item.isDelivered ? "(Livré)" : "(Non livré)"}</span>
                 </span>)}
                 </div>
               </div>
@@ -138,22 +138,27 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
               </span>
               <div className="flex flex-col">
                 <p className="view-group-title">{"Justificatif"}</p>
-                { reception.proof && <Link
-              href={`${
-                process.env.NEXT_PUBLIC_API
-              }/uploads/${encodeURIComponent(reception.proof)}`}
-              target="_blank"
-              className="flex gap-0.5 items-center"
-            >
-              <img
-                src="/images/pdf.png"
-                alt="justificatif"
-                className="h-7 w-auto aspect-square"
-              />
-              <p className="text-foreground font-medium">
-                {reception.proof ? "Document justificatif" : "Aucun justificatif"}
-              </p>
-            </Link>}
+                <div className="space-y-1">
+                  { !!reception.Proof ?
+                  reception.Proof.split(";").map((proof, index) => (
+                    <Link
+                      key={index}
+                      href={`${
+                        process.env.NEXT_PUBLIC_API
+                      }/uploads/${encodeURIComponent(proof)}`}
+                      target="_blank"
+                      className="flex gap-0.5 items-center"
+              >
+                <img
+                  src="/images/pdf.png"
+                  alt="justificatif"
+                  className="h-7 w-auto aspect-square"
+                />
+                <p className="text-foreground font-medium">
+                  {`Fichier_${index + 1}`}
+                </p>
+              </Link>)) : <p className="italic">{"Aucun justificatif"}</p> }
+                </div>
               </div>
             </div>
             {/**Created/Updated */}

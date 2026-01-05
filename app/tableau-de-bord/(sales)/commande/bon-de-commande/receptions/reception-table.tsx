@@ -223,7 +223,7 @@ export function ReceptionTable({ data }: Props) {
       header: () => <span className="tablehead">{"Éléments"}</span>,
       cell: ({ row }) => {
         const value = row.original.Deliverables;
-        const amount = value.filter((el) => el.state === true).length;
+        const amount = value.filter((el) => el.isDelivered === true).length;
         const length = value.length;
         return (
           `${amount}/${length} livré${amount > 1 ? "s" : ""}`
