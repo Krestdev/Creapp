@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import React from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -13,13 +14,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 
+import FilesUpload from "@/components/comp-547";
 import { ReceptionCompletion, ReceptionQuery } from "@/queries/reception";
 import type { Reception } from "@/types/types";
-import FilesUpload from "@/components/comp-547";
 
 interface Props {
   open: boolean;
@@ -35,11 +34,12 @@ export default function UpdateReception({
   const queryClient = useQueryClient();
   const receptionQuery = new ReceptionQuery();
 
+  const defaultFiles:Array<string> = !!reception.Proof ? reception.Proof.split(";") : [];
   // local state (tu évites de modifier l’objet reception direct)
   const [deliverables, setDeliverables] = React.useState<
     Reception["Deliverables"]
   >(reception?.Deliverables ?? []);
-  const [proof, setProof] = React.useState<Array<File | string>| null>([]);
+  const [proof, setProof] = React.useState<Array<File | string>| null>(defaultFiles);
 
   React.useEffect(() => {
     // reset quand on ouvre / change de réception
@@ -49,8 +49,8 @@ export default function UpdateReception({
   //const status = computeStatus(deliverables);
 
   const markReception = useMutation({
-    mutationFn: ({ id, Deliverables }: ReceptionCompletion) =>
-      receptionQuery.completeReception({ id, Deliverables }),
+    mutationFn: ({ id, Deliverables, proof }: ReceptionCompletion) =>
+      receptionQuery.completeReception({ id, Deliverables, proof }),
     onSuccess: () => {
       toast.success("Réception mise à jour");
       onOpenChange(false);
@@ -65,14 +65,14 @@ export default function UpdateReception({
   const toggleDeliverable = (index: number, next: boolean) => {
     setDeliverables((prev) => {
       const copy = [...prev];
-      copy[index] = { ...copy[index], state: next };
+      copy[index] = { ...copy[index], isDelivered: next };
       return copy;
     });
   };
 
   const allChecked =
-    deliverables.length > 0 && deliverables.every((d) => d.state);
-  const noneChecked = deliverables.every((d) => !d.state);
+    deliverables.length > 0 && deliverables.every((d) => d.isDelivered);
+  const noneChecked = deliverables.every((d) => !d.isDelivered);
 
   const setAll = (value: boolean) => {
     setDeliverables((prev) => prev.map((d) => ({ ...d, state: value })));
@@ -82,7 +82,7 @@ export default function UpdateReception({
     markReception.mutate({
       id: reception.id,
       Deliverables: deliverables,
-      proof: proof?.[0] instanceof File ? proof[0] as File : undefined,
+      proof: proof as Array<File>,
     });
   };
 
@@ -109,7 +109,7 @@ export default function UpdateReception({
               <span className="font-medium">{deliverables.length}</span>
               {" — Reçus : "}
               <span className="font-medium">
-                {deliverables.filter((d) => d.state).length}
+                {deliverables.filter((d) => d.isDelivered).length}
               </span>
             </div>
 
@@ -155,10 +155,10 @@ export default function UpdateReception({
 
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
-                      {d.state ? "Reçu" : "Non reçu"}
+                      {d.isDelivered ? "Reçu" : "Non reçu"}
                     </span>
                     <Switch
-                      checked={!!d.state}
+                      checked={!!d.isDelivered}
                       onCheckedChange={(val) => toggleDeliverable(index, val)}
                     />
                   </div>
@@ -171,21 +171,12 @@ export default function UpdateReception({
             onChange={setProof}
             name="proof"
             acceptTypes="images"
-            multiple={false}
-            maxFiles={1}
+            multiple={true}
+            maxFiles={6}
           />
 
           {/* footer actions */}
           <DialogFooter>
-            <DialogClose asChild>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                {"Annuler"}
-              </Button>
-            </DialogClose>
             <Button
               type="button"
               variant="primary"
@@ -195,6 +186,15 @@ export default function UpdateReception({
             >
               {"Enregistrer"}
             </Button>
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                {"Annuler"}
+              </Button>
+            </DialogClose>
           </DialogFooter>
         </div>
       </DialogContent>

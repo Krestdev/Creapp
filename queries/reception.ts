@@ -4,7 +4,7 @@ import { Reception } from "@/types/types";
 export interface ReceptionCompletion {
   id: number;
   Deliverables: Reception["Deliverables"];
-  proof?: File;
+  proof?: Array<File>;
 }
 
 export class ReceptionQuery {
@@ -24,8 +24,17 @@ export class ReceptionQuery {
       return response.data;
     });
   };
-  completeReception = async ({id, Deliverables}:ReceptionCompletion): Promise<{ data: Reception }> => {
-    return api.put(`${this.route}/${id}`, { Deliverables }).then((response) => {
+  completeReception = async ({id, Deliverables, proof}:ReceptionCompletion): Promise<{ data: Reception }> => {
+    const formData = new FormData();
+    formData.append("Deliverables", JSON.stringify(Deliverables));
+    if (proof && proof.length > 0) {
+      proof.forEach((file) => {
+        formData.append("Proof", file);
+      });
+    }
+    return api.put(`${this.route}/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }).then((response) => {
       return response.data;
     });
   };

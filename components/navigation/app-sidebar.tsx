@@ -12,6 +12,7 @@ import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
   ClipboardList,
+  CreditCardIcon,
   DollarSign,
   EllipsisVertical,
   LucideIcon,
@@ -467,6 +468,27 @@ function AppSidebar() {
           ? approvedTicket?.length
           : undefined,
     },
+    {
+      pageId: "PG-56489713246",
+      icon: CreditCardIcon,
+      href: "/tableau-de-bord/banques",
+      authorized: ["ACCOUNTANT", "VOLT", "ADMIN"],
+      title: "Banques",
+      items: [
+        {
+          pageId: "PG-23354987-00",
+          title: "Liste des comptes",
+          href: "/tableau-de-bord/banques",
+          authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+        },
+        {
+          pageId: "PG-23354987-01",
+          title: "Transactions",
+          href: "/tableau-de-bord/banques/transactions",
+          authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+        },
+      ]
+    },
     // {
     //   pageId: "PG-05",
     //   icon: Bell,
@@ -568,7 +590,7 @@ function AppSidebar() {
 
   // Filtrer les liens de navigation selon les rôles de l'utilisateur
   const filteredNavLinks = navLinks.filter((navLink) =>
-    navLink.authorized.some((role) => userRoles.includes(role))
+   navLink.authorized.some((role) => userRoles.includes(role))
   );
 
   return (

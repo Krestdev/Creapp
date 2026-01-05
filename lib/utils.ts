@@ -112,7 +112,7 @@ export function totalAmountPurchase(payload:BonsCommande):number{
 
 interface RoleCheck {
   roleList: Role[];
-  role: "admin" | "achat" | "Donner d'ordre achat" | "trésorier" | "Donneur d'ordre décaissement" | "rh";
+  role: "admin" | "achat" | "Donner d'ordre achat" | "trésorier" | "Donneur d'ordre décaissement" | "rh" | "comptable";
 }
 export function isRole({roleList, role}:RoleCheck):boolean{
   if (roleList.some(r => r.label === "ADMIN")) {
@@ -131,6 +131,9 @@ export function isRole({roleList, role}:RoleCheck):boolean{
     return true;
   }
   if(role === "rh" && roleList.some(r => r.label === "RH")){
+    return true;
+  }
+  if(role === "comptable" && roleList.some(r => r.label === "ACCOUNTANT")){
     return true;
   }
   return false;
