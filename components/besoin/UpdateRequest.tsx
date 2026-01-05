@@ -286,8 +286,8 @@ export default function UpdateRequest({
       <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {"MODIFICATION BESOIN - " + requestData?.label}
+          <DialogTitle className="text-xl font-semibold text-white uppercase">
+            {"BESOIN - " + requestData?.label}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Modifiez les informations du besoin existant"}

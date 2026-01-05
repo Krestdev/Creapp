@@ -59,15 +59,15 @@ export const formSchema = z
   .object({
     deviId: z.coerce.number({ message: "Veuillez définir un devis" }),
     deliveryDelay: z
-    .string({ message: "Veuillez définir une date" })
-    .refine(
-      (val) => {
-        const d = new Date(val);
-        const now = new Date
-        return !isNaN(d.getTime()) || d <= now;
-      },
-      { message: "Date invalide" }
-    ),
+      .string({ message: "Veuillez définir une date" })
+      .refine(
+        (val) => {
+          const d = new Date(val);
+          const now = new Date
+          return !isNaN(d.getTime()) || d <= now;
+        },
+        { message: "Date invalide" }
+      ),
     paymentTerms: z.string().min(1, "Ce champ est requis"),
     paymentMethod: z.enum(PO_METHODS),
     priority: z.enum(PO_PRIORITIES),
@@ -98,297 +98,297 @@ export const formSchema = z
     }
   });
 
-function EditPurchase({open, openChange, purchaseOrder}:Props) {
-    const [selectDate, setSelectDate] = React.useState(false); //Popover select Date
-      const quotationQuery = new QuotationQueries();
-      const providerQuery = new ProviderQueries();
-      const purchaseOrderQuery = new PurchaseOrder();
-    
-      const getQuotations = useFetchQuery(["quotations"],quotationQuery.getAll);
-      const getProviders = useFetchQuery(["providers"],providerQuery.getAll);
-    
-      const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-          priority: purchaseOrder.priority,
-          paymentTerms: purchaseOrder.paymentTerms,
-          deliveryDelay: format(new Date(purchaseOrder.deliveryDelay), "yyyy-MM-dd"),
-          deliveryLocation: purchaseOrder.deliveryLocation,
-          amountBase: purchaseOrder.amountBase,
-          hasPenalties: purchaseOrder.hasPenalties,
-          penaltyMode: purchaseOrder.penaltyMode,
-          paymentMethod: purchaseOrder.paymentMethod,
-          deviId: purchaseOrder.deviId
-        },
-      });
-    
-      const {mutate, isPending} = useMutation({
-        mutationFn: (payload:updatePoPayload)=>purchaseOrderQuery.update(payload, purchaseOrder.id),
-        onSuccess: ()=>{
-          toast.success("Votre Bon de Commande a été mis à jour avec succès !");
-        openChange(false);
-          
-        },
-        onError: (error:Error)=>{
-          toast.error(error.message ?? "Une erreur est survenue");
-        }
-      })
-    
-      function onSubmit(values: z.infer<typeof formSchema>) {
-    
-      const payload: updatePoPayload = {
-          amountBase: values.amountBase ?? 0,
-          priority: values.priority,
-          paymentMethod: values.paymentMethod,
-          paymentTerms: values.paymentTerms,
-          deliveryDelay: new Date(values.deliveryDelay),
-          deliveryLocation: values.deliveryLocation,
-          hasPenalties: values.hasPenalties,
-          penaltyMode: values.penaltyMode,
-      };
-    
-      mutate(payload);
+function EditPurchase({ open, openChange, purchaseOrder }: Props) {
+  const [selectDate, setSelectDate] = React.useState(false); //Popover select Date
+  const quotationQuery = new QuotationQueries();
+  const providerQuery = new ProviderQueries();
+  const purchaseOrderQuery = new PurchaseOrder();
+
+  const getQuotations = useFetchQuery(["quotations"], quotationQuery.getAll);
+  const getProviders = useFetchQuery(["providers"], providerQuery.getAll);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      priority: purchaseOrder.priority,
+      paymentTerms: purchaseOrder.paymentTerms,
+      deliveryDelay: format(new Date(purchaseOrder.deliveryDelay), "yyyy-MM-dd"),
+      deliveryLocation: purchaseOrder.deliveryLocation,
+      amountBase: purchaseOrder.amountBase,
+      hasPenalties: purchaseOrder.hasPenalties,
+      penaltyMode: purchaseOrder.penaltyMode,
+      paymentMethod: purchaseOrder.paymentMethod,
+      deviId: purchaseOrder.deviId
+    },
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (payload: updatePoPayload) => purchaseOrderQuery.update(payload, purchaseOrder.id),
+    onSuccess: () => {
+      toast.success("Votre Bon de Commande a été mis à jour avec succès !");
+      openChange(false);
+
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? "Une erreur est survenue");
     }
-    
-    const penalty = form.watch("hasPenalties");
+  })
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+
+    const payload: updatePoPayload = {
+      amountBase: values.amountBase ?? 0,
+      priority: values.priority,
+      paymentMethod: values.paymentMethod,
+      paymentTerms: values.paymentTerms,
+      deliveryDelay: new Date(values.deliveryDelay),
+      deliveryLocation: values.deliveryLocation,
+      hasPenalties: values.hasPenalties,
+      penaltyMode: values.penaltyMode,
+    };
+
+    mutate(payload);
+  }
+
+  const penalty = form.watch("hasPenalties");
   return (
     <Dialog open={open} onOpenChange={openChange}>
-        <DialogContent className='sm:max-w-3xl sm:w-[90%]'>
-            <DialogHeader variant={"secondary"}>
-                <DialogTitle>{`Modifier ${purchaseOrder.devi.commandRequest.title}`}</DialogTitle>
-                <DialogDescription>{"Mettre à jour les informations liées au bon de commande"}</DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="grid grid-cols-1 gap-4 @min-[560px]/dialog:grid-cols-2"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="deviId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Devis"}</FormLabel>
-                          <FormControl>
-                            <Select
-                              value={String(field.value)}
-                              onValueChange={field.onChange}
-                              disabled
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Sélectionner" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {getQuotations.data && getQuotations.data.data.filter(c=>c.status ==="APPROVED").map((quote)=>(
-                                  <SelectItem key={quote.id} value={String(quote.id)} className="line-clamp-1" >
-                                  {`${quote.commandRequest.title} - ${formatToShortName(getProviders.data?.data.find(p=> p.id === quote.providerId)?.name)}`}
-                                </SelectItem>
-                                ))}
-                                {
-                                  getQuotations.data && getQuotations.data.data.length === 0 &&
-                                  <SelectItem value="-" disabled>
-                                    {"Aucun devis disponible"}
-                                  </SelectItem>
-                                }
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="deliveryLocation"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel isRequired>{"Lieu de livraison"}</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Ex. Creaconsult" />
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="paymentMethod"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel isRequired>{"Moyen de Paiement"}</FormLabel>
-                          <FormControl>
-                            <Select value={field.value} onValueChange={field.onChange}>
-                              <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
-                              <SelectContent>
-                                {
-                                  PAYMENT_METHOD.map(({name, value}, id)=>
-                                    <SelectItem key={id} value={value}>{name}</SelectItem>
-                                  )
-                                }
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="deliveryDelay"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel isRequired>{"Date limite de livraison"}</FormLabel>
-                          <FormControl>
-                            <div className="relative flex gap-2">
-                              <Input
-                                id={field.name}
-                                value={field.value}
-                                placeholder="Sélectionner une date"
-                                className="bg-background pr-10"
-                                onChange={(e) => {
-                                  field.onChange(e.target.value);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === "ArrowDown") {
-                                    e.preventDefault();
-                                    setSelectDate(true);
-                                  }
-                                }}
-                              />
-                              <Popover open={selectDate} onOpenChange={setSelectDate}>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    id="date-picker"
-                                    variant="ghost"
-                                    className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
-                                  >
-                                    <CalendarIcon className="size-3.5" />
-                                    <span className="sr-only">
-                                      {"Sélectionner une date"}
-                                    </span>
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-auto overflow-hidden p-0"
-                                  align="end"
-                                  alignOffset={-8}
-                                  sideOffset={10}
-                                >
-                                  <Calendar
-                                    mode="single"
-                                    selected={
-                                      field.value ? new Date(field.value) : undefined
-                                    }
-                                    captionLayout="dropdown"
-                                    onSelect={(date) => {
-                                      if (!date) return;
-                                      const value = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
-                                      field.onChange(value);
-                                      setSelectDate(false);
-                                    }}
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="paymentTerms"
-                      render={({ field }) => (
-                        <FormItem className="@min-[560px]/dialog:col-span-2">
-                          <FormLabel isRequired>{"Conditions de paiement"}</FormLabel>
-                          <FormControl>
-                            <Textarea {...field} placeholder="Définissez les conditions relatives bon de commande" />
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="priority"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel isRequired>{"Priorité"}</FormLabel>
-                          <FormControl>
-                            <Select value={field.value} onValueChange={field.onChange}>
-                              <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
-                              <SelectContent>
-                                {
-                                  PRIORITIES.map((priority)=>
-                                    <SelectItem key={priority.value} value={priority.value}>{priority.name}</SelectItem>
-                                  )
-                                }
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="hasPenalties"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Pénalités"}</FormLabel>
-                          <FormControl>
-                            <div className="flex items-center gap-2">
-                              <Switch checked={field.value} onCheckedChange={field.onChange} />
-                              <span>{field.value ? "Oui" : "Non"}</span>
-                            </div>
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="penaltyMode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Mode de pénalité"}</FormLabel>
-                          <FormControl>
-                            <Select value={field.value} onValueChange={field.onChange} disabled={!penalty}>
-                              <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
-                              <SelectContent>
-                                {
-                                  PENALITY_MODE.map((penalty)=>
-                                    <SelectItem key={penalty.value} value={penalty.value}>{penalty.name}</SelectItem>
-                                  )
-                                }
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="amountBase"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Montant des pénalités"}</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} placeholder="Ex. 150 000" disabled={!penalty}/>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter className="@min-[560px]/dialog:col-span-2">
-                      <Button type="submit" variant={"primary"} disabled={isPending} isLoading={isPending}>{"Modifier"}</Button>
-                      <DialogClose asChild>
-                        <Button variant={"outline"}>{"Annuler"}</Button>
-                      </DialogClose>
-                    </DialogFooter>
-                  </form>
-                </Form>
-        </DialogContent>
+      <DialogContent className='sm:max-w-3xl sm:w-[90%]'>
+        <DialogHeader variant={"secondary"}>
+          <DialogTitle>{`Bon de commande - ${purchaseOrder.provider.name}`}</DialogTitle>
+          <DialogDescription>{"Mettre à jour les informations liées au bon de commande"}</DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="grid grid-cols-1 gap-4 @min-[560px]/dialog:grid-cols-2"
+          >
+            <FormField
+              control={form.control}
+              name="deviId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Devis"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={String(field.value)}
+                      onValueChange={field.onChange}
+                      disabled
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getQuotations.data && getQuotations.data.data.filter(c => c.status === "APPROVED").map((quote) => (
+                          <SelectItem key={quote.id} value={String(quote.id)} className="line-clamp-1" >
+                            {`${quote.commandRequest.title} - ${formatToShortName(getProviders.data?.data.find(p => p.id === quote.providerId)?.name)}`}
+                          </SelectItem>
+                        ))}
+                        {
+                          getQuotations.data && getQuotations.data.data.length === 0 &&
+                          <SelectItem value="-" disabled>
+                            {"Aucun devis disponible"}
+                          </SelectItem>
+                        }
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="deliveryLocation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Lieu de livraison"}</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ex. Creaconsult" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="paymentMethod"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Moyen de Paiement"}</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                      <SelectContent>
+                        {
+                          PAYMENT_METHOD.map(({ name, value }, id) =>
+                            <SelectItem key={id} value={value}>{name}</SelectItem>
+                          )
+                        }
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="deliveryDelay"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Date limite de livraison"}</FormLabel>
+                  <FormControl>
+                    <div className="relative flex gap-2">
+                      <Input
+                        id={field.name}
+                        value={field.value}
+                        placeholder="Sélectionner une date"
+                        className="bg-background pr-10"
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            setSelectDate(true);
+                          }
+                        }}
+                      />
+                      <Popover open={selectDate} onOpenChange={setSelectDate}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date-picker"
+                            variant="ghost"
+                            className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                          >
+                            <CalendarIcon className="size-3.5" />
+                            <span className="sr-only">
+                              {"Sélectionner une date"}
+                            </span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto overflow-hidden p-0"
+                          align="end"
+                          alignOffset={-8}
+                          sideOffset={10}
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={
+                              field.value ? new Date(field.value) : undefined
+                            }
+                            captionLayout="dropdown"
+                            onSelect={(date) => {
+                              if (!date) return;
+                              const value = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+                              field.onChange(value);
+                              setSelectDate(false);
+                            }}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="paymentTerms"
+              render={({ field }) => (
+                <FormItem className="@min-[560px]/dialog:col-span-2">
+                  <FormLabel isRequired>{"Conditions de paiement"}</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} placeholder="Définissez les conditions relatives bon de commande" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Priorité"}</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                      <SelectContent>
+                        {
+                          PRIORITIES.map((priority) =>
+                            <SelectItem key={priority.value} value={priority.value}>{priority.name}</SelectItem>
+                          )
+                        }
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="hasPenalties"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Pénalités"}</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <span>{field.value ? "Oui" : "Non"}</span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="penaltyMode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Mode de pénalité"}</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={!penalty}>
+                      <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                      <SelectContent>
+                        {
+                          PENALITY_MODE.map((penalty) =>
+                            <SelectItem key={penalty.value} value={penalty.value}>{penalty.name}</SelectItem>
+                          )
+                        }
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="amountBase"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Montant des pénalités"}</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} placeholder="Ex. 150 000" disabled={!penalty} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <DialogFooter className="@min-[560px]/dialog:col-span-2">
+              <Button type="submit" variant={"primary"} disabled={isPending} isLoading={isPending}>{"Modifier"}</Button>
+              <DialogClose asChild>
+                <Button variant={"outline"}>{"Annuler"}</Button>
+              </DialogClose>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
     </Dialog>
   )
 }

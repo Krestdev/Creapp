@@ -91,8 +91,8 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
       <DialogContent className="max-h-[750px] max-w-4xl! gap-0 overflow-hidden border-none flex flex-col">
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white mb-2 rounded-lg relative">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {purchaseOrder.reference}
+          <DialogTitle className="text-xl font-semibold text-white uppercase">
+            {`Bon de commande - ${purchaseOrder.provider.name}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Informations relatives aux bons de commande"}

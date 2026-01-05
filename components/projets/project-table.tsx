@@ -352,7 +352,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
             </span>
           );
         },
-        cell: ({ row }) => <div>{row.getValue("label")}</div>,
+        cell: ({ row }) => <div className="uppercase">{row.getValue("label")}</div>,
       },
       {
         accessorKey: "budget",

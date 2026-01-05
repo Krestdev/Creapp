@@ -60,15 +60,14 @@ import { useStore } from "@/providers/datastore";
 import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { PAYMENT_TYPES, RequestModelT, PaymentRequest } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { DetailBesoin } from "../besoin/detail-besoin";
 import UpdateRequest from "../besoin/UpdateRequest";
-import { ValidationModal } from "../modals/ValidationModal";
-import { Badge } from "../ui/badge";
+import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
 import {
   Dialog,
@@ -83,6 +82,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { ModalWarning } from "../modals/modal-warning";
+import UpdateRequestFac from "../besoin/UpdateRequestFac";
+import { VariantProps } from "class-variance-authority";
 
 const statusConfig = {
   pending: {
@@ -180,6 +181,7 @@ export function DataTable({
     null
   );
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const [isUpdateFacModalOpen, setIsUpdateFacModalOpen] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
 
@@ -431,6 +433,23 @@ export function DataTable({
     return filtered;
   }, [requestData, localFilters]);
 
+  function getTypeBadge(type: "SPECIAL" | "RH" | "FAC" | "PURCHASE" | undefined): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+    const typeData = PAYMENT_TYPES.find(t => t.value === type);
+    const label = typeData?.name ?? "Inconnu"
+    switch (type) {
+      case "FAC":
+        return { label, variant: "lime" };
+      case "PURCHASE":
+        return { label, variant: "sky" };
+      case "SPECIAL":
+        return { label, variant: "purple" };
+      case "RH":
+        return { label, variant: "blue" };
+      default:
+        return { label: type || "Inconnu", variant: "outline" };
+    }
+  };
+
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
     {
@@ -464,10 +483,29 @@ export function DataTable({
         );
       },
       cell: ({ row }) => (
-        <div className="max-w-[200px] truncate first-letter:uppercase">
+        <div className="max-w-[200px] truncate uppercase">
           {row.getValue("label")}
         </div>
       ),
+    },
+    {
+      accessorKey: "type",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Type"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const type = getTypeBadge(value.type);
+        return <Badge variant={type.variant}>{type.label}</Badge>;
+      },
     },
     {
       accessorKey: "projectId",
@@ -488,7 +526,7 @@ export function DataTable({
           (proj) => proj.id === Number(projectId)
         );
         return (
-          <div className="first-letter:uppercase">
+          <div className="first-letter:uppercase lowercase">
             {project?.label || projectId}
           </div>
         );
@@ -513,7 +551,7 @@ export function DataTable({
           return categoryData.data?.data.find((x) => x.id === id)?.label || id;
         };
         return (
-          <div className="first-letter:uppercase">
+          <div className="first-letter:uppercase lowercase">
             {getCategoryName(Number(categoryId))}
           </div>
         );
@@ -594,7 +632,9 @@ export function DataTable({
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedItem(item);
-                  setIsUpdateModalOpen(true);
+                  console.log(item.type);
+
+                  item.type === "FAC" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true);
                 }}
                 disabled={item.state !== "pending"}
               >
@@ -629,7 +669,7 @@ export function DataTable({
   };
 
   const table = useReactTable<RequestModelT>({
-    data: filteredData?.reverse() || [],
+    data: filteredData || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -1040,12 +1080,17 @@ export function DataTable({
         actionButton="Modifier"
         action={() => {
           setIsModalOpen(false);
-          setIsUpdateModalOpen(true);
+          { selectedItem?.type === "FAC" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true) };
         }}
       />
       <UpdateRequest
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
+        requestData={selectedItem}
+      />
+      <UpdateRequestFac
+        open={isUpdateFacModalOpen}
+        setOpen={setIsUpdateFacModalOpen}
         requestData={selectedItem}
       />
       <ModalWarning

@@ -73,7 +73,7 @@ function AppSidebar() {
 
   const purchase = getPurchases.data?.data.filter(c => c.status === "IN-REVIEW" || c.status === "PENDING")
 
-  const devis = quotationsData?.data.filter(c => c.status === "PENDING")
+  const devisTraite = getPurchases.isSuccess && quotationsData?.data.filter(c => c.status === "APPROVED" && !getPurchases.data.data.some(a => a.deviId === c.id))
 
   const approbationDevis = providers?.data?.data && cotation?.data && quotationsData?.data ?
     groupQuotationsByCommandRequest(cotation?.data!, quotationsData?.data!, providers?.data?.data!).filter(c => c.status === "NOT_PROCESSED") : []
@@ -368,6 +368,8 @@ function AppSidebar() {
           title: "Bons de commande",
           href: "/tableau-de-bord/commande/bon-de-commande",
           authorized: ["ADMIN", "SALES"],
+          badgeValue:
+            devisTraite && devisTraite.length > 0 ? devisTraite?.length : undefined,
           // badge:
           //   newDevis && newDevis?.length > 0 ? newDevis?.length : undefined,
         },

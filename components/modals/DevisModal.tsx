@@ -128,7 +128,7 @@ export function DevisModal({
       <DialogContent className="sm:max-w-[90vw] lg:max-w-[920px] max-h-screen overflow-y-auto overflow-x-hidden">
         {/* Header */}
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="uppercase">
             {`Devis - ${quotation || "Sans titre"}`}
           </DialogTitle>
           <DialogDescription>

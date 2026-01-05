@@ -59,6 +59,51 @@ export class RequestQueries {
       });
   };
 
+  specialUpdate = async (
+    data: Partial<RequestModelT>,
+    id: number
+  ): Promise<{ data: RequestModelT, id: number }> => {
+    const formData = new FormData();
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+
+      // Files
+      if (Array.isArray(value) && value.every((v) => v instanceof File)) {
+        value.forEach((file) => formData.append(key, file));
+        return;
+      }
+
+      if (value instanceof File) {
+        formData.append(key, value);
+        return;
+      }
+
+      // Date
+      if (value instanceof Date) {
+        formData.append(key, value.toISOString());
+        return;
+      }
+
+      // Array or Object → JSON
+      if (Array.isArray(value) || typeof value === "object") {
+        formData.append(key, JSON.stringify(value));
+        return;
+      }
+
+      // Primitive
+      formData.append(key, String(value));
+    });
+
+    return api
+      .put(`${this.route}/special/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
+  };
+
   // Récupérer toutes les demandes
   getAll = async (): Promise<{ data: RequestModelT[] }> => {
     return api.get(this.route).then((res) => res.data);
@@ -87,16 +132,20 @@ export class RequestQueries {
     return api.get(`${this.route}/mine/${userId}`).then((res) => res.data);
   };
 
-  // Valider
+  // ============================
+  //         VALIDATION
+  // ============================
+
+  // Valider une demande (pour le DERNIER validateur)
   validate = async (
     id: number,
     validatorId: number,
     validator:
       | {
-          id?: number | undefined;
-          userId: number;
-          rank: number;
-        }
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
       | undefined
   ): Promise<{ data: RequestModelT }> => {
     return api
@@ -104,7 +153,7 @@ export class RequestQueries {
       .then((res) => res.data);
   };
 
-  // Revoir (review)
+  // Revoir (review) une demande (pour les validateurs intermédiaires)
   review = async (
     id: number,
     data: {
@@ -112,12 +161,12 @@ export class RequestQueries {
       userId: number;
       decision?: string;
       validator?:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     }
   ): Promise<{ data: RequestModelT }> => {
     return api
@@ -130,10 +179,69 @@ export class RequestQueries {
       .then((res) => res.data);
   };
 
-  // Rejeter
+  // Rejeter une demande
   reject = async (id: number): Promise<{ data: RequestModelT }> => {
     return api.put(`${this.route}/reject/${id}`).then((res) => res.data);
   };
+
+  // ============================
+  //         ACTIONS GROUPÉES
+  // ============================
+
+  /**
+   * Valider plusieurs demandes en batch (pour le DERNIER validateur)
+   * Route: PUT /request/object/validateBulk
+   * Utilisé lorsque l'utilisateur est le dernier validateur de la chaîne
+   */
+  validateBulk = async (
+    data: {
+      ids: number[];
+      validatorId: number;
+      validator?: {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      };
+    }
+  ): Promise<{ data: { success: boolean; count: number } }> => {
+    return api
+      .put(`${this.route}/validateBulk`, {
+        ids: data.ids,
+        validatorId: data.validatorId,
+        validator: data.validator,
+      })
+      .then((res) => res.data);
+  };
+
+  /**
+   * Revoir (review) plusieurs demandes en batch (pour les validateurs ASCENDANTS)
+   * Route: PUT /request/object/reviewBulk
+   * Utilisé lorsque l'utilisateur n'est pas le dernier validateur
+   */
+  reviewBulk = async (
+    data: {
+      ids: number[];
+      validated: boolean;
+      validatorId: number;
+      decision?: string;
+    }
+  ): Promise<{ data: { success: boolean; count: number; errors?: any[] } }> => {
+    // Construire le body exact selon le format requis
+    const body = {
+      decision: data.decision || "",
+      validated: data.validated,
+      validatorId: data.validatorId,
+      ids: data.ids,
+    };
+
+    return api
+      .put(`${this.route}/reviewBulk`, body)
+      .then((res) => res.data);
+  };
+
+  // ============================
+  //         AUTRES ACTIONS
+  // ============================
 
   // Modifier la priorité
   updatePriority = async (

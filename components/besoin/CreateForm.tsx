@@ -179,6 +179,7 @@ export default function MyForm() {
       quantity: Number(values.quantity),
       unit: values.unite,
       beneficiary: values.beneficiaire,
+      type: "PURCHASE",
       benef:
         values.beneficiaire === "autre" && values.beneficiaireId
           ? [Number(values.beneficiaireId)]

@@ -20,14 +20,14 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
   if (!data) return null;
 
   console.log(data);
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[750px] overflow-y-auto p-0 gap-0 overflow-x-hidden border-none flex flex-col">
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {data.title}
+          <DialogTitle className="text-xl font-semibold text-white uppercase">
+            {`Demande - ${data.title}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Informations relatives à la commande"}
@@ -67,10 +67,10 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
               <p className="flex-1 text-[10px]">
                 {data.dueDate
                   ? new Date(data.dueDate).toLocaleDateString("fr-FR", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })
                   : "-"}
               </p>
             </div>

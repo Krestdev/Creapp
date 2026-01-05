@@ -225,7 +225,7 @@ export function UpdateCategory({
   };
 
   const onsubmit = (values: z.infer<typeof formSchema>) => {
-    
+
     if (categoryData?.id === undefined) {
       console.log(categoryData?.id);
       toast.error("ID de catégorie manquant");
@@ -269,11 +269,11 @@ export function UpdateCategory({
       <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {`Modifier la catégorie ${categoryData?.label}`}
+          <DialogTitle className="text-xl font-semibold text-white uppercase">
+            {`Catégorie - ${categoryData?.label}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            Modifiez les informations de la catégorie
+            {"Modifiez les informations de la catégorie"}
           </p>
         </DialogHeader>
 

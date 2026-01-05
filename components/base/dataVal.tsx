@@ -7,6 +7,7 @@ import {
   type VisibilityState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -25,6 +26,11 @@ import {
   LucideIcon,
   UserCheck,
   X,
+  CheckSquare,
+  Square,
+  Users,
+  Circle,
+  LoaderIcon,
 } from "lucide-react";
 import * as React from "react";
 
@@ -59,7 +65,7 @@ import { UserQueries } from "@/queries/baseModule";
 import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { PAYMENT_TYPES, RequestModelT } from "@/types/types";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
@@ -85,6 +91,7 @@ import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { SearchableSelect } from "./searchableSelect";
 import { Checkbox } from "../ui/checkbox";
+import { Textarea } from "../ui/textarea";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -106,6 +113,7 @@ interface DataTableProps {
     totalValidators?: number;
     validatedCount?: number;
   };
+  isCheckable?: boolean;
 }
 
 export function DataVal({
@@ -117,6 +125,7 @@ export function DataVal({
   customDateRange,
   setCustomDateRange,
   customProps,
+  isCheckable = false,
 }: DataTableProps) {
   const { user } = useStore();
   const queryClient = useQueryClient();
@@ -152,6 +161,12 @@ export function DataVal({
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
+
+  // États pour les actions de groupe
+  const [isGroupActionDialogOpen, setIsGroupActionDialogOpen] = React.useState(false);
+  const [groupActionType, setGroupActionType] = React.useState<"approve" | "reject">("approve");
+  const [rejectionReason, setRejectionReason] = React.useState("");
+  const [isProcessingGroupAction, setIsProcessingGroupAction] = React.useState(false);
 
   const projects = new ProjectQueries();
   const projectsData = useQuery({
@@ -583,6 +598,122 @@ export function DataVal({
     }
   };
 
+  const reviewGroupRequests = useMutation({
+    mutationKey: ["requests-group-review"],
+    mutationFn: async ({
+      ids,
+      validated,
+      decision,
+      validatorId,
+      validator,
+      isLastValidator, // Nouveau paramètre pour déterminer quelle méthode utiliser
+    }: {
+      ids: number[];
+      validated: boolean;
+      decision?: string;
+      validatorId?: number;
+      validator?: {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      };
+      isLastValidator?: boolean; // Pour déterminer si on utilise validateBulk ou reviewBulk
+    }) => {
+      if (isLastValidator) {
+        // Utiliser validateBulk pour le dernier validateur
+        return request.validateBulk({
+          ids,
+          validatorId: validatorId ?? -1,
+        });
+      } else {
+        // Utiliser reviewBulk pour les validateurs ascendants
+        return request.reviewBulk({
+          ids,
+          validated,
+          decision,
+          validatorId: validatorId ?? -1,
+        });
+      }
+    },
+    onSuccess: (data, variables) => {
+      const selectedCount = Object.keys(rowSelection).length;
+      const actionType = variables.validated ? "approuvé" : "rejeté";
+
+      toast.success(
+        `${selectedCount} besoin(s) ${actionType}(s) avec succès !`
+      );
+
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      requestData.refetch();
+      setRowSelection({}); // Réinitialiser la sélection
+    },
+    onError: (error) => {
+      console.error("Erreur lors de la validation groupée:", error);
+      toast.error("Une erreur est survenue lors de la validation groupée.");
+    },
+  });
+
+  // Fonction pour gérer les actions de groupe
+  const handleGroupAction = async () => {
+    if (isProcessingGroupAction) return;
+
+    const selectedRows = table.getSelectedRowModel().rows;
+    if (selectedRows.length === 0) {
+      toast.error("Veuillez sélectionner au moins un besoin");
+      return;
+    }
+
+    // Vérifier que l'utilisateur peut valider tous les besoins sélectionnés
+    const cannotValidateItems = selectedRows.filter(row => {
+      const item = row.original;
+      const validationInfo = getValidationInfo(item);
+      const userHasValidated = hasUserAlreadyValidated(item);
+
+      return !validationInfo.canValidate ||
+        item.state !== "pending" ||
+        userHasValidated;
+    });
+
+    if (cannotValidateItems.length > 0) {
+      toast.error(`Vous ne pouvez pas valider ${cannotValidateItems.length} besoin(s) sélectionné(s)`);
+      return;
+    }
+
+    setIsProcessingGroupAction(true);
+
+    try {
+      const validatorss = user?.id ? { userId: user.id, rank: 1 } : undefined;
+      const selectedIds = selectedRows.map(row => Number(row.original.id));
+
+      const validator = categoriesData.data?.data
+        ?.find((cat) => cat.id === selectedRows[0].original.categoryId)
+        ?.validators?.find((v) => v.userId === user?.id);
+
+
+      // Vérifier si l'utilisateur est le dernier validateur pour TOUS les besoins sélectionnés
+      const isLastValidatorForAll = selectedRows.every(row => {
+        const item = row.original;
+        const validationInfo = getValidationInfo(item);
+        return validationInfo.isLastValidator;
+      });
+
+      await reviewGroupRequests.mutateAsync({
+        isLastValidator: isLastValidatorForAll,
+        ids: selectedIds,
+        validatorId: validator?.id,
+        validated: groupActionType === "approve",
+        decision: groupActionType === "reject" ? rejectionReason : undefined,
+      });
+
+      setIsGroupActionDialogOpen(false);
+      setRejectionReason("");
+    } catch (error) {
+      console.error("Erreur lors de l'action de groupe:", error);
+    } finally {
+      setIsProcessingGroupAction(false);
+    }
+  };
+
   const openValidationModal = (
     type: "approve" | "reject",
     item: RequestModelT
@@ -590,6 +721,18 @@ export function DataVal({
     setSelectedItem(item);
     setValidationType(type);
     setIsValidationModalOpen(true);
+  };
+
+  // Fonction pour ouvrir le dialogue d'action de groupe
+  const openGroupActionDialog = (type: "approve" | "reject") => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    if (selectedRows.length === 0) {
+      toast.error("Veuillez sélectionner au moins un besoin");
+      return;
+    }
+
+    setGroupActionType(type);
+    setIsGroupActionDialogOpen(true);
   };
 
   // Fonction pour obtenir l'info de validation pour un besoin
@@ -620,34 +763,93 @@ export function DataVal({
     };
   };
 
-  // Define columns
+  // Fonction pour sélectionner toutes les lignes de la page actuelle
+  const selectAllOnPage = () => {
+    table.toggleAllPageRowsSelected(true);
+  };
+
+  // Fonction pour désélectionner toutes les lignes
+  const deselectAll = () => {
+    table.toggleAllPageRowsSelected(false);
+  };
+
+  // Fonction pour sélectionner uniquement les éléments validables
+  const selectOnlyValidatable = () => {
+    const validatableRows = table.getRowModel().rows.filter(row => {
+      const item = row.original;
+      const validationInfo = getValidationInfo(item);
+      const userHasValidated = hasUserAlreadyValidated(item);
+
+      return validationInfo.canValidate &&
+        item.state === "pending" &&
+        !userHasValidated;
+    });
+
+    // Désélectionner tout d'abord
+    deselectAll();
+
+    // Sélectionner uniquement les lignes validables
+    validatableRows.forEach(row => row.toggleSelected(true));
+  };
+
+  function getTypeBadge(type: "SPECIAL" | "RH" | "FAC" | "PURCHASE" | undefined): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+    const typeData = PAYMENT_TYPES.find(t => t.value === type);
+    const label = typeData?.name ?? "Inconnu"
+    switch (type) {
+      case "FAC":
+        return { label, variant: "lime" };
+      case "PURCHASE":
+        return { label, variant: "sky" };
+      case "SPECIAL":
+        return { label, variant: "purple" };
+      case "RH":
+        return { label, variant: "blue" };
+      default:
+        return { label: type || "Inconnu", variant: "outline" };
+    }
+  };
+
+  // Define columns avec colonne conditionnelle
   const columns: ColumnDef<RequestModelT>[] = React.useMemo(() => {
-    const baseColumns: ColumnDef<RequestModelT>[] = [
-      // Checkbox
-      {
+    const baseColumns: ColumnDef<RequestModelT>[] = [];
+
+    // Ajouter la colonne checkbox seulement si isCheckable est true
+    if (isCheckable) {
+      baseColumns.push({
         id: "select",
         header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Sélectionner toutes les lignes"
-          />
+          <div className="flex items-center">
+            <Checkbox
+              checked={
+                table.getIsAllPageRowsSelected() ||
+                (table.getIsSomePageRowsSelected() && "indeterminate")
+              }
+              onCheckedChange={(value) =>
+                table.toggleAllPageRowsSelected(!!value)
+              }
+              aria-label="Sélectionner toutes les lignes"
+            />
+          </div>
         ),
         cell: ({ row }) => (
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
             aria-label="Sélectionner cette ligne"
+            disabled={
+              !getValidationInfo(row.original).canValidate ||
+              row.original.state !== "pending" ||
+              hasUserAlreadyValidated(row.original)
+            }
           />
         ),
         enableSorting: false,
         enableHiding: false,
-      },
+      });
+    }
+
+    // Ajouter les autres colonnes
+    baseColumns.push(
       {
         accessorKey: "label",
         header: ({ column }) => {
@@ -664,10 +866,29 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="max-w-[200px] truncate font-medium">
+          <div className="max-w-[200px] truncate font-medium uppercase">
             {row.getValue("label")}
           </div>
         ),
+      },
+      {
+        accessorKey: "type",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              {"Type"}
+              <ArrowUpDown />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          const value = row.original;
+          const type = getTypeBadge(value.type);
+          return <Badge variant={type.variant}>{type.label}</Badge>;
+        },
       },
       {
         accessorKey: "projectId",
@@ -685,7 +906,7 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="text-sm">
+          <div className="text-sm first-letter:uppercase lowercase">
             {getProjectName(row.getValue("projectId"))}
           </div>
         ),
@@ -711,7 +932,7 @@ export function DataVal({
 
           return (
             <div>
-              <div className="font-medium text-sm">{categoryName}</div>
+              <div className="font-medium text-sm first-letter:uppercase lowercase">{categoryName}</div>
             </div>
           );
         },
@@ -732,7 +953,7 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="text-sm">{getUserName(row.getValue("userId"))}</div>
+          <div className="text-sm first-letter:uppercase lowercase">{getUserName(row.getValue("userId"))}</div>
         ),
       },
       {
@@ -774,46 +995,46 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="text-sm max-w-[200px] truncate">
+          <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
             {getBeneficiaryDisplay(row.original)}
           </div>
         ),
-      },
-      // Nouvelle colonne : Validation de validation (uniquement pour type pending)
-      ...(type === "pending"
-        ? [
-          {
-            id: "validationProgress",
-            header: () => <span className="tablehead">Validation</span>,
-            cell: ({ row }: { row: Row<RequestModelT> }) => {
-              const validationInfo = getValidationInfo(row.original);
+      }
+    );
 
-              if (!validationInfo.totalValidators) return null;
+    // Ajouter la colonne Validation de validation (uniquement pour type pending)
+    if (type === "pending") {
+      baseColumns.push({
+        id: "validationProgress",
+        header: () => <span className="tablehead">Validation</span>,
+        cell: ({ row }: { row: Row<RequestModelT> }) => {
+          const validationInfo = getValidationInfo(row.original);
 
-              return (
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                        style={{ width: `${validationInfo.progress}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-500 text-center mt-1">
-                      {validationInfo.validatedCount}/
-                      {validationInfo.totalValidators}
-                    </div>
-                  </div>
+          if (!validationInfo.totalValidators) return null;
+
+          return (
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                    style={{ width: `${validationInfo.progress}%` }}
+                  />
                 </div>
-              );
-            },
-          },
-        ]
-        : []),
-    ];
+                <div className="text-xs text-gray-500 text-center mt-1">
+                  {validationInfo.validatedCount}/
+                  {validationInfo.totalValidators}
+                </div>
+              </div>
+            </div>
+          );
+        },
+      });
+    }
 
     // Ajouter la colonne Statut seulement si type === "proceed"
     if (type === "proceed") {
+      // Insérer la colonne statut après les catégories
       baseColumns.splice(3, 0, {
         accessorKey: "state",
         header: ({ column }) => {
@@ -853,9 +1074,6 @@ export function DataVal({
         const validationInfo = getValidationInfo(item);
         const userHasValidated = hasUserAlreadyValidated(item);
 
-        console.log(item, validationInfo.canValidate);
-
-
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -885,8 +1103,6 @@ export function DataVal({
                 disabled={
                   validationInfo.canValidate === false ||
                   item.state !== "pending"
-                  // ||
-                  // userHasValidated
                 }
               >
                 <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
@@ -917,7 +1133,7 @@ export function DataVal({
     });
 
     return baseColumns;
-  }, [type, user?.id, categoriesData.data]);
+  }, [type, user?.id, categoriesData.data, isCheckable]);
 
   // Table configuration
   const table = useReactTable({
@@ -927,14 +1143,20 @@ export function DataVal({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnVisibility,
       rowSelection,
+      globalFilter,
     },
   });
+
+  // Nombre d'éléments sélectionnés
+  const selectedCount = Object.keys(rowSelection).length;
+  const canValidateSelected = selectedCount > 0 && isCheckable;
 
   // Vérifier si des filtres sont actifs
   const hasActiveFilters =
@@ -946,6 +1168,7 @@ export function DataVal({
 
   return (
     <div className="w-full">
+
       <div className="flex flex-wrap items-center gap-3 py-4">
         {/* Global search */}
         <Input
@@ -1116,30 +1339,53 @@ export function DataVal({
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === "label"
-                      ? "Titres"
-                      : column.id === "projectId"
-                        ? "Projets"
-                        : column.id === "categoryId"
-                          ? "Catégories"
-                          : column.id === "userId"
-                            ? "Émetteurs"
-                            : column.id === "beneficiary"
-                              ? "Bénéficiaires"
-                              : column.id === "createdAt"
-                                ? "Date d'émission"
-                                : column.id === "state"
-                                  ? "Statuts"
-                                  : column.id === "validationProgress"
-                                    ? "Validation"
-                                    : column.id}
+                    {column.id === "select"
+                      ? "Sélection"
+                      : column.id === "label"
+                        ? "Titres"
+                        : column.id === "projectId"
+                          ? "Projets"
+                          : column.id === "categoryId"
+                            ? "Catégories"
+                            : column.id === "userId"
+                              ? "Émetteurs"
+                              : column.id === "beneficiary"
+                                ? "Bénéficiaires"
+                                : column.id === "createdAt"
+                                  ? "Date d'émission"
+                                  : column.id === "state"
+                                    ? "Statuts"
+                                    : column.id === "validationProgress"
+                                      ? "Validation"
+                                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
+      {isCheckable && selectedCount > 1 && <div className="flex items-center gap-2 pb-4">
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => openGroupActionDialog("approve")}
+          className="h-8 bg-green-600 hover:bg-green-700"
+          disabled={!canValidateSelected}
+        >
+          <CheckCheck className="h-4 w-4 mr-2" />
+          Approuver ({selectedCount})
+        </Button>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => openGroupActionDialog("reject")}
+          className="h-8 bg-red-600 hover:bg-red-700"
+          disabled={!canValidateSelected}
+        >
+          <LucideBan className="h-4 w-4 mr-2" />
+          Rejeter ({selectedCount})
+        </Button>
+      </div>}
       {/* Table */}
       {filteredData.length > 0 ? (
         <div className="rounded-md border overflow-hidden">
@@ -1169,11 +1415,12 @@ export function DataVal({
               {table.getRowModel().rows.map((row) => {
                 const validationInfo = getValidationInfo(row.original);
                 const statusConfig = getStatusConfig(row.original.state);
+                const isSelected = row.getIsSelected();
 
                 return (
                   <TableRow
                     key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
+                    data-state={isSelected && "selected"}
                     className={cn(
                       "hover:bg-gray-50",
                       statusConfig.rowClassName,
@@ -1181,7 +1428,8 @@ export function DataVal({
                       validationInfo.userPosition === 1 && "border-l-blue-400",
                       validationInfo.userPosition === 2 && "border-l-green-400",
                       validationInfo.userPosition === 3 && "border-l-red-400",
-                      validationInfo.isLastValidator && "border-l-red-400"
+                      validationInfo.isLastValidator && "border-l-red-400",
+                      isSelected && isCheckable && "bg-blue-50 hover:bg-blue-100"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -1318,6 +1566,84 @@ export function DataVal({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog pour les actions de groupe - seulement si isCheckable est true */}
+      {isCheckable && (
+        <Dialog open={isGroupActionDialogOpen} onOpenChange={setIsGroupActionDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {groupActionType === "approve" ? (
+                  <CheckCheck className="h-5 w-5 text-green-600" />
+                ) : (
+                  <LucideBan className="h-5 w-5 text-red-600" />
+                )}
+                {groupActionType === "approve" ? "Approuver plusieurs besoins" : "Rejeter plusieurs besoins"}
+              </DialogTitle>
+              <DialogDescription>
+                {groupActionType === "approve"
+                  ? `Êtes-vous sûr de vouloir approuver ${selectedCount} besoin(s) ?`
+                  : `Êtes-vous sûr de vouloir rejeter ${selectedCount} besoin(s) ?`}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="bg-blue-100 p-3 rounded-md">
+              <div className="flex items-center gap-2">
+                <Circle className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-800">
+                  {selectedCount} {"besoin(s) sélectionné(s)"}
+                </span>
+              </div>
+            </div>
+            {groupActionType === "reject" && (
+              <div className="space-y-2">
+                <Label htmlFor="rejectionReason" className="text-sm font-medium">
+                  {"Motif du rejet"} <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="rejectionReason"
+                  placeholder="Expliquez la raison du rejet pour tous les besoins sélectionnés..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                <p className="text-xs text-gray-500">
+                  {"Ce motif sera appliqué à tous les besoins sélectionnés."}
+                </p>
+              </div>
+            )}
+            <DialogFooter>
+              <Button
+                onClick={() => {
+                  setRejectionReason("");
+                  setIsGroupActionDialogOpen(false);
+                }}
+                disabled={isProcessingGroupAction}
+              >
+                {"Annuler"}
+              </Button>
+              <Button
+                onClick={handleGroupAction}
+                disabled={isProcessingGroupAction || (groupActionType === "reject" && !rejectionReason.trim())}
+                className={groupActionType === "approve"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-red-600 hover:bg-red-700"
+                }
+              >
+                {isProcessingGroupAction ? (
+                  <>
+                    <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+                    {"Traitement..."}
+                  </>
+                ) : groupActionType === "approve" ? (
+                  "Approuver"
+                ) : (
+                  "Rejeter"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Modals */}
       <DetailBesoin

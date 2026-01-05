@@ -343,7 +343,7 @@ export default function FacilitationRequestForm() {
             )}
           />
 
-          <BeneficiairesList onBeneficiairesChange={setBeneficiairesList} />
+          <BeneficiairesList initialBeneficiaires={beneficiairesList} onBeneficiairesChange={setBeneficiairesList} />
 
           {/* JUSTIFICATIF */}
           <FormField

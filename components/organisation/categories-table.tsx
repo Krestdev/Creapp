@@ -110,7 +110,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
           );
         },
         cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("label")}</div>
+          <div className="font-medium uppercase">{row.getValue("label")}</div>
         ),
       },
       {
@@ -130,7 +130,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         },
         cell: ({ row }) => {
           return (
-            <div className={`${row.getValue("description") ? "" : "italic"}`}>
+            <div className={`${row.getValue("description") ? "" : "italic"} first-letter:uppercase lowercase`}>
               {row.getValue("description")
                 ? row.getValue("description")
                 : "aucune description"}
@@ -245,8 +245,8 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                   column.id == "label"
                     ? "Nom catégorie"
                     : column.id == "description"
-                    ? "Description"
-                    : "";
+                      ? "Description"
+                      : "";
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -279,9 +279,9 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -294,7 +294,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  // className={getRowClassName(row.original.status)}
+                // className={getRowClassName(row.original.status)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
                     <TableCell

@@ -33,9 +33,8 @@ interface Props {
    UTILS (IMPORTANT : categoryId = 0 est VALIDE)
 ====================================================== */
 
-const isValidCategoryId = (
-  id: number | null | undefined
-): id is number => id !== null && id !== undefined;
+const isValidCategoryId = (id: number | null | undefined): id is number =>
+  id !== null && id !== undefined;
 
 const isUserValidatorForCategory = (
   categoryId: number | null | undefined,
@@ -44,10 +43,10 @@ const isUserValidatorForCategory = (
 ): boolean => {
   if (!isValidCategoryId(categoryId)) return false;
 
-  const category = categories.find(c => c.id === categoryId);
+  const category = categories.find((c) => c.id === categoryId);
   if (!category?.validators) return false;
 
-  return category.validators.some(v => v.userId === userId);
+  return category.validators.some((v) => v.userId === userId);
 };
 
 const hasUserValidatedRequest = (
@@ -57,15 +56,13 @@ const hasUserValidatedRequest = (
 ): boolean => {
   if (!isValidCategoryId(request.categoryId)) return false;
 
-  const category = categories.find(c => c.id === request.categoryId);
+  const category = categories.find((c) => c.id === request.categoryId);
   if (!category?.validators || !request.revieweeList) return false;
 
-  const validator = category.validators.find(v => v.userId === userId);
+  const validator = category.validators.find((v) => v.userId === userId);
   if (!validator) return false;
 
-  return request.revieweeList.some(
-    r => r.validatorId === validator.id
-  );
+  return request.revieweeList.some((r) => r.validatorId === validator.id);
 };
 
 const hasAllPreviousValidatorsApproved = (
@@ -75,27 +72,24 @@ const hasAllPreviousValidatorsApproved = (
 ): boolean => {
   if (!isValidCategoryId(request.categoryId)) return false;
 
-  const category = categories.find(c => c.id === request.categoryId);
+  const category = categories.find((c) => c.id === request.categoryId);
   if (!category?.validators) return false;
 
-  const currentValidator = category.validators.find(v => v.userId === userId);
+  const currentValidator = category.validators.find((v) => v.userId === userId);
   if (!currentValidator) return false;
 
   // Rank 1 → toujours visible
   if (currentValidator.rank === 1) return true;
 
   const previousValidators = category.validators.filter(
-    v => v.rank < currentValidator.rank
+    (v) => v.rank < currentValidator.rank
   );
 
   if (previousValidators.length === 0) return true;
 
-  const validatedIds =
-    request.revieweeList?.map(r => r.validatorId) ?? [];
+  const validatedIds = request.revieweeList?.map((r) => r.validatorId) ?? [];
 
-  return previousValidators.every(v =>
-    validatedIds.includes(v.id!)
-  );
+  return previousValidators.every((v) => validatedIds.includes(v.id!));
 };
 
 /* ======================================================
@@ -109,7 +103,7 @@ const useFilteredRequests = (
 ) => {
   return React.useMemo(() => {
     const data =
-      requestData.data?.data.filter(r => r.state !== "cancel") ?? [];
+      requestData.data?.data.filter((r) => r.state !== "cancel") ?? [];
 
     if (!dateFilter) return data;
 
@@ -141,7 +135,7 @@ const useFilteredRequests = (
         break;
     }
 
-    return data.filter(item => {
+    return data.filter((item) => {
       const d = new Date(item.createdAt);
       return d >= start && d <= end;
     });
@@ -157,7 +151,7 @@ const usePendingData = (
     const categories = categoryData.data?.data;
     if (!categories) return [];
 
-    return filteredData.filter(item => {
+    return filteredData.filter((item) => {
       return (
         item.state === "pending" &&
         isUserValidatorForCategory(item.categoryId, user.id!, categories) &&
@@ -177,7 +171,7 @@ const useProceedData = (
     const categories = categoryData.data?.data;
     if (!categories) return [];
 
-    return filteredData.filter(item => {
+    return filteredData.filter((item) => {
       return (
         isUserValidatorForCategory(item.categoryId, user.id!, categories) &&
         hasUserValidatedRequest(item, user.id!, categories) &&
@@ -237,7 +231,7 @@ const Approb = ({
       {/* ================== PENDING ================== */}
       <div>
         <h2 className="text-xl font-semibold mb-3">
-          Besoins en attente de validation ({pendingData.length})
+          {"Besoins en attente de validation"} ({pendingData.length})
         </h2>
 
         {pendingData.length > 0 ? (
@@ -248,11 +242,12 @@ const Approb = ({
             customDateRange={customDateRange}
             setCustomDateRange={setCustomDateRange}
             empty="Aucun besoin en attente"
+            isCheckable={true}
           />
         ) : (
           <div className="text-center py-12 border rounded-lg bg-gray-50">
             <CheckCircle className="mx-auto h-8 w-8 text-green-600 mb-2" />
-            <p>Aucun besoin en attente</p>
+            <p>{"Aucun besoin en attente"}</p>
           </div>
         )}
       </div>
@@ -260,7 +255,7 @@ const Approb = ({
       {/* ================== HISTORY ================== */}
       <div>
         <h2 className="text-xl font-semibold mb-3">
-          Historique des validations ({proceedData.length})
+          {"Historique des validations"} ({proceedData.length})
         </h2>
 
         <DataVal
@@ -271,6 +266,7 @@ const Approb = ({
           setDateFilter={setDateFilter}
           customDateRange={customDateRange}
           setCustomDateRange={setCustomDateRange}
+          isCheckable={false}
         />
       </div>
     </div>

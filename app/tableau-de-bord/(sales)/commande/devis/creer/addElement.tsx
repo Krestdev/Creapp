@@ -34,14 +34,15 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 import { Plus, Check, X, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   id: z.number().optional(),
-  needId: z.number({ message: "Veuillez sélectionner un besoin" }),
-  designation: z.string({ message: "Veuillez renseigner une désignation" }),
+  needId: z.number().min(1, { message: "Veuillez sélectionner un besoin" }),
+  designation: z.string().min(1, { message: "Veuillez renseigner une désignation" }),
   quantity: z.number(),
   unit: z.string(),
-  price: z.number({ message: "Veuillez renseigner un prix" }),
+  price: z.number().min(1, { message: "Veuillez renseigner un prix" }),
 });
 
 type ElementT = z.infer<typeof formSchema>;
@@ -110,6 +111,22 @@ function AddElement({
   const addTemporaryElement = (values: ElementT) => {
     const newElement = { ...values };
 
+    if (newElement.needId === undefined) {
+      toast.error("Veuillez sélectionner un besoin");
+      return;
+    }
+    if (newElement.designation.trim() === "") {
+      toast.error("Veuillez entrer une désignation");
+      return;
+    }
+    if (newElement.quantity <= 0) {
+      toast.error("Veuillez entrer une quantité supérieure à 0");
+      return;
+    }
+    if (newElement.price <= 0) {
+      toast.error("Veuillez entrer un prix supérieure à 0");
+      return;
+    }
     if (editingElement) {
       // Mode édition
       const updated = [...tempElements];

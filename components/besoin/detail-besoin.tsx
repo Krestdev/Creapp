@@ -247,7 +247,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
       <DialogContent className="max-w-5xl! max-h-[80vh] p-0 gap-0 border-none flex flex-col">
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
+          <DialogTitle className="text-xl font-semibold text-white uppercase">
             {`Besoin - ${data.label}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">{"Détails du besoin"}</p>

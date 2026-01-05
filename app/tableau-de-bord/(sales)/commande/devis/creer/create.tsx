@@ -595,7 +595,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
             )}
           />
           <div className="flex justify-end col-span-3 w-full gap-2">
-            {/* <Button
+            {quotation && <Button
               type="submit"
               disabled={isPending}
               isLoading={isPending}
@@ -604,7 +604,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
               onClick={() => (intentRef.current = "save")}
             >
               {!!quotation ? "Modifier le devis" : "Enregistrer"}
-            </Button> */}
+            </Button>}
             {!quotation && (
               <Button
                 type="submit"

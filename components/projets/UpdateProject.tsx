@@ -127,8 +127,8 @@ export default function UpdateProject({
       <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {`Modifier le projet  ${projectData?.label}`}
+          <DialogTitle className="text-xl font-semibold text-white uppercase">
+            {`Projet - ${projectData?.label}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Modifiez les informations du projet existant"}
@@ -198,9 +198,9 @@ export default function UpdateProject({
                 render={({ field, fieldState }) => {
                   const options = userApi.data
                     ? userApi.data.data.map((user) => ({
-                        value: user.id,
-                        label: user.name,
-                      }))
+                      value: user.id,
+                      label: user.name,
+                    }))
                     : [];
                   return (
                     <Field data-invalid={fieldState.invalid} className="gap-1">

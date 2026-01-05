@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, X, Edit2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,17 +14,25 @@ type Beneficiaire = {
 
 interface BeneficiairesListProps {
   onBeneficiairesChange?: (beneficiaires: Beneficiaire[]) => void;
+  initialBeneficiaires: Beneficiaire[];
 }
 
 export default function BeneficiairesList({
   onBeneficiairesChange,
+  initialBeneficiaires,
 }: BeneficiairesListProps) {
-  const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>([]);
+  const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>(
+    initialBeneficiaires ?? []
+  );
   const [showForm, setShowForm] = useState(false);
   const [nom, setNom] = useState("");
   const [montant, setMontant] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [errors, setErrors] = useState<{ nom?: string; montant?: string }>({});
+
+  useEffect(() => {
+    setBeneficiaires(initialBeneficiaires);
+  }, [initialBeneficiaires]);
 
   const validateForm = () => {
     const newErrors: { nom?: string; montant?: string } = {};
@@ -226,8 +234,9 @@ export default function BeneficiairesList({
                       placeholder="0"
                       min="0"
                       step="1"
-                      className={`pr-10 ${errors.montant ? "border-red-500" : ""
-                        }`}
+                      className={`pr-10 ${
+                        errors.montant ? "border-red-500" : ""
+                      }`}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                       FCFA
