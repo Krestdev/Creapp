@@ -234,7 +234,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           );
         },
         cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("name")}</div>
+          <div className="font-medium">{row.getValue("firstName") + " " + row.getValue("lastName")}</div>
         ),
       },
       {
@@ -583,9 +583,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
