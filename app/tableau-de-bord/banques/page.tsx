@@ -5,7 +5,7 @@ import { cn, isRole } from '@/lib/utils';
 import { useStore } from '@/providers/datastore';
 import { NavLink } from '@/types/types';
 import Link from 'next/link';
-import { BankTable } from './bank-table';
+import BankTable from './bank-table';
 import { BankQuery } from '@/queries/bank';
 import { useFetchQuery } from '@/hooks/useData';
 import LoadingPage from '@/components/loading-page';
@@ -13,7 +13,8 @@ import ErrorPage from '@/components/error-page';
 
 function Page() {
   const { user } = useStore();
-  const auth = isRole({roleList: user?.role ?? [], role: "trésorier"});
+  const auth = isRole({roleList: user?.role ?? [], role: "trésorier"}) || isRole({roleList: user?.role ?? [], role: "comptable"});
+  const canEdit = isRole({roleList: user?.role ?? [], role: "trésorier"})
   const links: Array<NavLink> = [
     {
       title: "Ajouter un compte",
@@ -59,7 +60,7 @@ function Page() {
               );
             })}
       </PageTitle>
-      <BankTable data={getBanks.data.data}/>
+      <BankTable data={getBanks.data.data} canEdit={canEdit}/>
     </div>
   )
 }

@@ -1,28 +1,29 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { useFetchQuery } from "@/hooks/useData";
+import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { useStore } from "@/providers/datastore";
 import { CategoryQueries } from "@/queries/categoryModule";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { PaymentQueries } from "@/queries/payment";
+import { ProviderQueries } from "@/queries/providers";
 import { PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
 import { RequestQueries } from "@/queries/requestModule";
-import { Category, NavigationItemProps, NavigationLinkProps, RequestModelT, Role, User } from "@/types/types";
+import { Category, NavigationItemProps, RequestModelT, Role, User } from "@/types/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
   ClipboardList,
-  CreditCardIcon,
   DollarSign,
   EllipsisVertical,
-  LucideIcon,
+  LandmarkIcon,
   ScrollText,
   Ticket,
   Truck,
   UsersRound
 } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,8 +37,6 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
-import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
-import { ProviderQueries } from "@/queries/providers";
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
@@ -470,7 +469,7 @@ function AppSidebar() {
     },
     {
       pageId: "PG-56489713246",
-      icon: CreditCardIcon,
+      icon: LandmarkIcon,
       href: "/tableau-de-bord/banques",
       authorized: ["ACCOUNTANT", "VOLT", "ADMIN"],
       title: "Banques",
