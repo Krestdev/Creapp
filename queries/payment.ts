@@ -56,6 +56,40 @@ export class PaymentQueries {
       })
       .then((response) => response.data);
   };
+
+  createDepense = async (
+    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">
+  ): Promise<{ message: string; data: PaymentRequest }> => {
+    const formData = new FormData();
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+
+      // Multiple files
+      if (Array.isArray(value) && value[0] instanceof File) {
+        value.forEach((file) => {
+          formData.append(key, file);
+        });
+        return;
+      }
+
+      // Single file
+      // if (value instanceof File) {
+      //   formData.append(key, value);
+      //   return;
+      // }
+
+      // Normal fields
+      formData.append(key, String(value));
+    });
+
+    return api
+      .post(`${this.route}/depense`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => response.data);
+  };
+
   new = async (payload: NewPayment): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
     const { proof, ...rest } = payload;

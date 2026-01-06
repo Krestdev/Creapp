@@ -58,12 +58,20 @@ export type PaymentRequest = {
   reference: string;
   proof: string;
   account?: string;
-  justification?: string;
+  justification?: (string | File)[];
   status: (typeof PAY_STATUS)[number]["value"];
   type: (typeof PAYMENT_TYPES)[number]["value"];
   method: (typeof PAYMENT_METHOD)[number]["value"];
   deadline: Date;
   title: string;
+  description?: string;
+  beneficiary?: User;
+  benefId?: number;
+
+  model?: string;
+  km?: number;
+  liters?: number;
+
   price: number;
   priority: (typeof PRIORITIES)[number]["value"];
   isPartial: boolean;
@@ -519,18 +527,18 @@ export const BANK_TYPES = [
 ] as const;
 
 export type Bank = {
-    id: number;
-    label: string;
-    type: (typeof BANK_TYPES)[number]["value"];
-    balance: number;
-    Status: boolean;
-    justification: string;
-    accountNumber?: string;
-    bankCode?: string;
-    atmCode?: string;
-    key?: string;
-    phoneNum?: string;
-    merchantNum?: string;
-    createdAt: Date;
-    updatedAt?: Date;
-}
+  id: number;
+  label: string;
+  type: (typeof BANK_TYPES)[number]["value"];
+  balance: number;
+  Status: boolean;
+  justification: string;
+  accountNumber?: string;
+  bankCode?: string;
+  atmCode?: string;
+  key?: string;
+  phoneNum?: string;
+  merchantNum?: string;
+  createdAt: Date;
+  updatedAt?: Date;
+};
