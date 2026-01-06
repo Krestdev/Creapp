@@ -58,12 +58,20 @@ export type PaymentRequest = {
   reference: string;
   proof: string;
   account?: string;
-  justification?: string;
+  justification?: (string | File)[];
   status: (typeof PAY_STATUS)[number]["value"];
   type: (typeof PAYMENT_TYPES)[number]["value"];
   method: (typeof PAYMENT_METHOD)[number]["value"];
   deadline: Date;
   title: string;
+  description?: string;
+  beneficiary?: User;
+  benefId?: number;
+
+  model?: string;
+  km?: number;
+  liters?: number;
+
   price: number;
   priority: (typeof PRIORITIES)[number]["value"];
   isPartial: boolean;
@@ -525,6 +533,7 @@ export type Bank = {
   label: string;
   type: (typeof BANK_TYPES)[number]["value"];
   balance: number;
+  Status: boolean;
   justification: string;
   accountNumber?: string;
   bankCode?: string;
@@ -534,4 +543,4 @@ export type Bank = {
   merchantNum?: string;
   createdAt: Date;
   updatedAt?: Date;
-}
+};
