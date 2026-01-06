@@ -20,7 +20,6 @@ import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
   ClipboardList,
-  Coins,
   CreditCardIcon,
   DollarSign,
   EllipsisVertical,
@@ -282,28 +281,7 @@ function AppSidebar() {
       href: "/tableau-de-bord/projets/liste",
       authorized: ["ADMIN"],
       title: "Projets",
-      // items: [
-      //   /* {
-      //     pageId: "PG-00-01",
-      //     authorized: ["ADMIN"],
-      //     title: "Créer un projet",
-      //     href: "/tableau-de-bord/projets/create",
-      //   }, */
-      //   {
-      //     pageId: "PG-00-02",
-      //     authorized: ["ADMIN"],
-      //     title: "Liste des projets",
-      //     href: "/tableau-de-bord/projets/liste",
-      //   },
-      // ],
     },
-    // {
-    //   icon: Clipboard,
-    //   pageId: "PG-001",
-    //   href: "/tableau-de-bord/taches",
-    //   authorized: ["ADMIN"],
-    //   title: "Tâches",
-    // },
     {
       icon: ScrollText,
       pageId: "PG-02",
@@ -323,13 +301,6 @@ function AppSidebar() {
           href: "/tableau-de-bord/besoins/mylist",
           authorized: ["ADMIN", "MANAGER", "USER"],
         },
-        // {
-        //   pageId: "PG-02-03",
-        //   title: "Approbation",
-        //   href: "/tableau-de-bord/besoins/approbation",
-        //   authorized: ["ADMIN", "MANAGER"],
-        //   badge: data?.length > 0 ? data?.length : undefined,
-        // },
         {
           pageId: "PG-02-03",
           title: "Approbation",
@@ -365,10 +336,6 @@ function AppSidebar() {
           title: "Devis",
           href: "/tableau-de-bord/commande/devis",
           authorized: ["ADMIN", "SALES"],
-          // badge:
-          //   newCotation && newCotation.length > 0
-          //     ? newCotation?.length
-          //     : undefined,
         },
         {
           pageId: "PG-03-45",
@@ -380,12 +347,6 @@ function AppSidebar() {
               ? approbationDevis?.length
               : undefined,
         },
-        // {
-        //   pageId: "PG-03-03",
-        //   title: "Besoins",
-        //   href: "/tableau-de-bord/commande/besoins",
-        //   authorized: ["ADMIN", "SALES"],
-        // },
         {
           pageId: "PG-03-5",
           title: "Bons de commande",
@@ -395,8 +356,6 @@ function AppSidebar() {
             devisTraite && devisTraite.length > 0
               ? devisTraite?.length
               : undefined,
-          // badge:
-          //   newDevis && newDevis?.length > 0 ? newDevis?.length : undefined,
         },
         {
           pageId: "PG-03-44",
@@ -406,30 +365,6 @@ function AppSidebar() {
           badgeValue:
             purchase && purchase.length > 0 ? purchase?.length : undefined,
         },
-        // {
-        //   pageId: "PG-03-04",
-        //   title: "Validation",
-        //   href: "/tableau-de-bord/commande/validation",
-        //   authorized: ["ADMIN"],
-        // },
-        // {
-        //   pageId: "PG-03-06",
-        //   title: "Créer une cotation",
-        //   href: "/tableau-de-bord/commande/creercotation",
-        //   authorized: ["ADMIN", "SALES"],
-        // },
-        // {
-        //   pageId: "PG-03-07",
-        //   title: "Nouveaux",
-        //   href: "/tableau-de-bord/commande/nouveaux",
-        //   authorized: ["ADMIN"],
-        // },
-        // {
-        //   pageId: "PG-03-07",
-        //   title: "Receptions",
-        //   href: "/tableau-de-bord/commande/receptions",
-        //   authorized: ["ADMIN", "SALES"],
-        // },
         {
           pageId: "PG-03-06",
           title: "Paiements",
@@ -448,38 +383,6 @@ function AppSidebar() {
         pendingTicket && pendingTicket?.length > 0
           ? pendingTicket?.length
           : undefined,
-      // items: [
-      //   {
-      //     pageId: "PG-04-01",
-      //     title: "Validation",
-      //     href: "/tableau-de-bord/ticket/validation",
-      //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
-      //   },
-      //   {
-      //     pageId: "PG-04-02",
-      //     title: "Liste des tickets",
-      //     href: "/tableau-de-bord/ticket/liste",
-      //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
-      //   },
-      //   {
-      //     pageId: "PG-04-03",
-      //     title: "Créer un paiement",
-      //     href: "/tableau-de-bord/ticket/nouveaux",
-      //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
-      //   },
-      //   {
-      //     pageId: "PG-04-04",
-      //     title: "Paiements",
-      //     href: "/tableau-de-bord/ticket/paiements",
-      //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
-      //   },
-      //   {
-      //     pageId: "PG-04-5",
-      //     title: "Paiements reçus",
-      //     href: "/tableau-de-bord/ticket/paiementrecus",
-      //     authorized: ["ADMIN", "SALES", "ACCOUNTING"],
-      //   },
-      // ],
     },
     {
       pageId: "PG-91",
@@ -513,27 +416,6 @@ function AppSidebar() {
         },
       ],
     },
-    // {
-    //   pageId: "PG-05",
-    //   icon: Bell,
-    //   href: "/tableau-de-bord/notifications",
-    //   authorized: ["ADMIN"],
-    //   title: "Notifications",
-    // },
-    // {
-    //   pageId: "PG-06",
-    //   icon: BookText,
-    //   href: "/tableau-de-bord/missions",
-    //   authorized: ["ADMIN"],
-    //   title: "Missions",
-    // },
-    // {
-    //   pageId: "PG-07",
-    //   icon: FolderOpen,
-    //   href: "/tableau-de-bord/documents",
-    //   authorized: ["ADMIN"],
-    //   title: "Documents",
-    // },
     {
       pageId: "PG-08",
       icon: UsersRound,
@@ -576,55 +458,6 @@ function AppSidebar() {
         },
       ],
     },
-    {
-      pageId: "PG-09",
-      icon: Coins,
-      href: "/tableau-de-bord/spending",
-      authorized: ["ADMIN"],
-      title: "Depense",
-      // items: [
-      //   {
-      //     pageId: "PG-09-01",
-      //     title: "Créer un fournisseur",
-      //     href: "/tableau-de-bord/spending/",
-      //     authorized: ["ADMIN"],
-      //   }
-      // ],
-    },
-    // {
-    //   pageId: "PG-09",
-    //   icon: Building,
-    //   href: "/tableau-de-bord/organisation",
-    //   authorized: ["ADMIN"],
-    //   title: "Organisation",
-    //   items: [
-    //     {
-    //       pageId: "PG-09-01",
-    //       title: "Departements",
-    //       href: "/tableau-de-bord/organisation/departements",
-    //       authorized: ["ADMIN"],
-    //     },
-    //     {
-    //       pageId: "PG-09-02",
-    //       title: "Creer un departement",
-    //       href: "/tableau-de-bord/organisation/createdepartement",
-    //       authorized: ["ADMIN"],
-    //     },
-    //     {
-    //       pageId: "PG-09-04",
-    //       title: "Creer un categorie",
-    //       href: "/tableau-de-bord/organisation/createcategorie",
-    //       authorized: ["ADMIN"],
-    //     },
-    //   ],
-    // },
-    // {
-    //   pageId: "PG-10",
-    //   icon: Bell,
-    //   href: "/tableau-de-bord/notifications",
-    //   authorized: ["USER"],
-    //   title: "Notifications",
-    // }
   ];
 
   // Filtrer les liens de navigation selon les rôles de l'utilisateur

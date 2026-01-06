@@ -10,17 +10,20 @@ import { PurchaseOrder } from "@/queries/purchase-order";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
 import ExpensesTable from "./expenses-table";
-import { StatisticCard, StatisticProps } from "@/components/base/TitleValueCard";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 
 function Page() {
   const links: Array<NavLink> = [
-      {
-        title: "Créer une dépense",
-        href: "./depenses/creer",
-        hide: false,
-        disabled: true
-      },
-    ];
+    {
+      title: "Créer une dépense",
+      href: "./depenses/creer",
+      hide: false,
+      disabled: false,
+    },
+  ];
   const paymentsQuery = new PaymentQueries();
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
     ["payments"],
@@ -33,7 +36,7 @@ function Page() {
     purchasesQuery.getAll,
     30000
   );
-  if ( isLoading || getPurchases.isLoading ) {
+  if (isLoading || getPurchases.isLoading) {
     return <LoadingPage />;
   }
   if (isError || getPurchases.isError) {
@@ -41,26 +44,34 @@ function Page() {
   }
   if (isSuccess && getPurchases.isSuccess) {
     const Statistics: Array<StatisticProps> = [
-        {
-          title: "Tickets en attente",
-          value: data.data.filter(p=> p.status === "validated").length,
-          variant: "primary",
-          more:{
-            title : "Montant total",
-            value: XAF.format(data.data.filter(p=> p.status === "validated").reduce((total, el)=> total + el.price, 0))
-          }
+      {
+        title: "Tickets en attente",
+        value: data.data.filter((p) => p.status === "validated").length,
+        variant: "primary",
+        more: {
+          title: "Montant total",
+          value: XAF.format(
+            data.data
+              .filter((p) => p.status === "validated")
+              .reduce((total, el) => total + el.price, 0)
+          ),
         },
-        {
-          title: "Tickets payés",
-          value: data.data.filter(p=> p.status === "paid").length,
-          variant: "secondary",
-          more: {
-            title: "Montant total",
-            value: XAF.format(data.data.filter(p=> p.status === "paid").reduce((total, el)=> total + el.price, 0))
-          },
+      },
+      {
+        title: "Tickets payés",
+        value: data.data.filter((p) => p.status === "paid").length,
+        variant: "secondary",
+        more: {
+          title: "Montant total",
+          value: XAF.format(
+            data.data
+              .filter((p) => p.status === "paid")
+              .reduce((total, el) => total + el.price, 0)
+          ),
         },
-      ];
-    
+      },
+    ];
+
     return (
       <div className="content">
         <PageTitle
@@ -93,12 +104,20 @@ function Page() {
             })}
         </PageTitle>
         <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
-                  {Statistics.map((data, id) => (
-                    <StatisticCard key={id} {...data} className="h-full" />
-                  ))}
-                </div>
-        <ExpensesTable payments={data.data.filter(p=> p.status === "validated")} type="pending" purchases={getPurchases.data.data} />
-        <ExpensesTable payments={data.data.filter(p=> p.status === "paid")} type="validated" purchases={getPurchases.data.data} />
+          {Statistics.map((data, id) => (
+            <StatisticCard key={id} {...data} className="h-full" />
+          ))}
+        </div>
+        <ExpensesTable
+          payments={data.data.filter((p) => p.status === "validated")}
+          type="pending"
+          purchases={getPurchases.data.data}
+        />
+        <ExpensesTable
+          payments={data.data.filter((p) => p.status === "paid")}
+          type="validated"
+          purchases={getPurchases.data.data}
+        />
       </div>
     );
   }
