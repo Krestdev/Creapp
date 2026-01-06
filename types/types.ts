@@ -531,6 +531,7 @@ export type Bank = {
   label: string;
   type: (typeof BANK_TYPES)[number]["value"];
   balance: number;
+  Status: boolean;
   justification: string;
   accountNumber?: string;
   bankCode?: string;

@@ -79,7 +79,7 @@ export function DetailProject({
 
   const getUserName = (id: number) => {
     const user = usersData.data?.data.find((user) => user.id === id);
-    return user?.firstName + " " + user?.lastName || "";
+    return user?.lastName + " " + user?.firstName || "";
   };
 
   const statusBadge = getStatusBadge(data.status);

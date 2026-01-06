@@ -159,7 +159,7 @@ export function CategoryCreateForm() {
   const getUserName = (userId: number) => {
     const users = usersData.data?.data || [];
     const user = users.find((u) => u.id === userId);
-    return user?.firstName + " " + user?.lastName || `Utilisateur #${userId}`;
+    return user?.lastName + " " + user?.firstName || `Utilisateur #${userId}`;
   };
 
   // Fonction pour obtenir les utilisateurs disponibles (non sélectionnés)
@@ -369,7 +369,7 @@ export function CategoryCreateForm() {
                               availableUsers.length > 0
                                 ? availableUsers.map((user) => ({
                                   value: user.id!.toString(),
-                                  label: user.firstName + " " + user.lastName,
+                                  label: user.lastName + " " + user.firstName,
                                 }))
                                 : []
                             }

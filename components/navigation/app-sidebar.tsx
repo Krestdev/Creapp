@@ -20,7 +20,8 @@ import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
   ClipboardList,
-  CreditCardIcon,
+  LandmarkIcon,
+  Coins,
   DollarSign,
   EllipsisVertical,
   ScrollText,
@@ -397,7 +398,7 @@ function AppSidebar() {
     },
     {
       pageId: "PG-56489713246",
-      icon: CreditCardIcon,
+      icon: LandmarkIcon,
       href: "/tableau-de-bord/banques",
       authorized: ["ACCOUNTANT", "VOLT", "ADMIN"],
       title: "Banques",
@@ -488,7 +489,7 @@ function AppSidebar() {
           <DropdownMenuTrigger className="w-full h-auto border-none shadow-none p-2 flex items-center gap-2 justify-between cursor-pointer hover:shadow-sm transition-all duration-300 ease-out">
             <div className="flex flex-col gap-1 text-left flex-start">
               <span className="text-sm font-medium leading-[120%] text-gray-900 capitalize">
-                {user?.firstName + " " + user?.lastName || "Utilisateur"}
+                {user?.lastName + " " + user?.firstName || "Utilisateur"}
               </span>
               <span className="text-xs leading-[120%] text-gray-500">
                 {getRoleName(user?.role || [])}

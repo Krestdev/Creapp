@@ -113,7 +113,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
 
   const getUserName = (userId: string) => {
     const user = usersData.data?.data?.find((u) => u.id === Number(userId));
-    return user?.firstName + " " + user?.lastName || userId;
+    return user?.lastName + " " + user?.firstName || userId;
   };
 
   const getBeneficiaryDisplay = (request: RequestModelT) => {

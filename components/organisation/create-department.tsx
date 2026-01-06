@@ -162,7 +162,7 @@ export function DepartmentCreateForm() {
               const options = userApi.data
                 ? userApi.data.data.map((user) => ({
                   value: user.id,
-                  label: user.firstName + " " + user.lastName,
+                  label: user.lastName + " " + user.firstName,
                 }))
                 : [];
               return (
@@ -196,7 +196,7 @@ export function DepartmentCreateForm() {
                     options={
                       userApi.data?.data.map((user) => ({
                         value: String(user.id),
-                        label: user.firstName + " " + user.lastName,
+                        label: user.lastName + " " + user.firstName,
                       })) || []
                     }
                     {...field}

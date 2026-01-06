@@ -200,7 +200,7 @@ export default function UpdateProject({
                   const options = userApi.data
                     ? userApi.data.data.map((user) => ({
                       value: user.id,
-                      label: user.firstName + " " + user.lastName,
+                      label: user.lastName + " " + user.firstName,
                     }))
                     : [];
                   return (

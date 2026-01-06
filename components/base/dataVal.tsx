@@ -332,7 +332,7 @@ export function DataVal({
 
   const getUserName = (userId: string) => {
     const user = usersData.data?.data?.find((u) => u.id === Number(userId));
-    return user?.firstName + " " + user?.lastName || userId;
+    return user?.lastName + " " + user?.firstName || userId;
   };
 
   // Fonction pour filtrer les données manuellement
@@ -434,7 +434,7 @@ export function DataVal({
       const user = usersData.data.data.find((u) => u.id === Number(userId));
       return {
         id: userId,
-        name: user?.firstName + " " + user?.lastName || `Utilisateur ${userId}`,
+        name: user?.lastName + " " + user?.firstName || `Utilisateur ${userId}`,
       };
     });
   }, [data, usersData.data]);

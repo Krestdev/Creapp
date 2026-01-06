@@ -57,7 +57,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserQueries } from "@/queries/baseModule";
-import { Member, Role, User as UserT } from "@/types/types";
+import { Role, User as UserT } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
@@ -83,6 +83,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const [selectedItem, setSelectedItem] = React.useState<UserT | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
+  const [verifiedFilter, setVerifiedFilter] = React.useState<string>("all");
 
   // Récupérer les rôles uniques des utilisateurs pour les options du filtre
   const uniqueRoles = React.useMemo(() => {
@@ -100,19 +101,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
     // Trier les rôles par ordre alphabétique
     return allRoles.sort((a, b) => a.localeCompare(b));
-  }, [data]);
-
-  // Récupérer les statuts uniques pour les options du filtre
-  const uniqueStatuses = React.useMemo(() => {
-    const allStatuses: string[] = [];
-
-    data.forEach((user) => {
-      if (user.status && !allStatuses.includes(user.status)) {
-        allStatuses.push(user.status);
-      }
-    });
-
-    return allStatuses.sort((a, b) => a.localeCompare(b));
   }, [data]);
 
   const getRoleIcon = (role: string) => {
@@ -184,6 +172,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const { user } = useStore();
   const queryClient = useQueryClient();
   const users = new UserQueries();
+
   const userMutationData = useMutation({
     mutationKey: ["usersStatus"],
     mutationFn: (data: { id: number; status: string }) =>
@@ -219,7 +208,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const columns = React.useMemo<ColumnDef<UserT>[]>(
     () => [
       {
-        accessorKey: "name",
+        accessorKey: "lastName",
         header: ({ column }) => {
           return (
             <span
@@ -228,13 +217,51 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Nom"}
+              Nom
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
         },
         cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("firstName") + " " + row.getValue("lastName")}</div>
+          <div className="font-medium">{row.getValue("lastName")}</div>
+        ),
+      },
+      {
+        accessorKey: "firstName",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Prénom
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("firstName")}</div>
+        ),
+      },
+      {
+        accessorKey: "email",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Email
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("email")}</div>
         ),
       },
       {
@@ -247,7 +274,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Rôles"}
+              Rôles
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -256,7 +283,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           const role = row.getValue("role") as Role[];
           return (
             <div className="flex flex-wrap max-w-[350px] gap-1">
-              {role.map((rol) => {
+              {role?.map((rol) => {
                 return (
                   <Badge
                     className={`${getRoleBadgeColor(
@@ -278,7 +305,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           if (!filterValue || filterValue === "all") return true;
 
           const roles = row.getValue(columnId) as Role[];
-          return roles.some((role) =>
+          return roles?.some((role) =>
             role.label.toLowerCase().includes(filterValue.toLowerCase())
           );
         },
@@ -313,8 +340,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue || filterValue === "all") return true;
-          const status = row.getValue(columnId) as string;
-          return status.toLowerCase().includes(filterValue.toLowerCase());
+          if (filterValue === "true") return row.getValue(columnId) === true;
+          if (filterValue === "false") return row.getValue(columnId) === false;
+          return true;
         },
       },
       {
@@ -333,7 +361,10 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           );
         },
         cell: ({ row }) => {
-          const date = new Date(row.getValue("lastConnection"));
+          const dateValue = row.getValue("lastConnection");
+          if (!dateValue) return <div className="text-muted-foreground">Jamais</div>;
+
+          const date = new Date(dateValue as string);
           return (
             <div>
               {date.toLocaleDateString("fr-FR")}{" "}
@@ -356,7 +387,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant={"outline"}>
-                  Actions
+                  {"Actions"}
                   <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
@@ -381,7 +412,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   <LucidePen className="mr-2 h-4 w-4" />
                   Modifier
                 </DropdownMenuItem>
-                {row.original.status === "inactive" ? (
+                {utilisateur.status === "inactive" ? (
                   <DropdownMenuItem
                     onClick={() =>
                       userMutationData.mutate({
@@ -389,10 +420,10 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                         status: "active",
                       })
                     }
-                    disabled={utilisateur.status === "active"}
+                    disabled={utilisateur.status !== "inactive"}
                   >
                     <UserCheck className="mr-2 h-4 w-4" />
-                    {"Activer"}
+                    Activer
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
@@ -405,16 +436,20 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                     disabled={utilisateur.status === "inactive" || utilisateur.id === user?.id}
                   >
                     <UserX className="mr-2 h-4 w-4" />
-                    {"Suspendre"}
+                    Suspendre
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
                   className="text-red-600"
-                  onClick={() => userMutation.mutate(utilisateur.id ?? -1)}
+                  onClick={() => {
+                    if (window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+                      userMutation.mutate(utilisateur.id ?? -1);
+                    }
+                  }}
                   disabled={utilisateur.id === user?.id}
                 >
-                  <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-                  {"Supprimer"}
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Supprimer
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -422,7 +457,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
       },
     ],
-    []
+    [user?.id, userMutation, userMutationData]
   );
 
   const table = useReactTable({
@@ -437,24 +472,28 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
+    globalFilterFn: (row, _, filterValue) => {
       if (!filterValue) return true;
 
       const searchValue = filterValue.toLowerCase();
-      const name = row.getValue("name") as string;
-      const members = row.getValue("members") as Member[];
+      const user = row.original;
 
-      // Recherche dans le nom
-      if (name?.toLowerCase().includes(searchValue)) return true;
-      // Recherche dans les départements
-      if (
-        members?.some((member) =>
-          member.department?.label?.toLowerCase().includes(searchValue)
-        )
-      )
-        return true;
+      // Recherche dans les champs textuels
+      const searchFields = [
+        user.firstName,
+        user.lastName,
+        user.email,
+      ].filter(Boolean).map(f => f.toString().toLowerCase());
 
-      return false;
+      // Recherche dans les rôles
+      const roleNames = user.role?.map(r =>
+        TranslateRole(r.label?.toLowerCase() || "")
+      ) || [];
+
+      // Vérifier si le terme de recherche correspond à n'importe quel champ
+      return [...searchFields, ...roleNames].some(field =>
+        field.includes(searchValue)
+      );
     },
     state: {
       sorting,
@@ -467,19 +506,34 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
   const roleFilter =
     (table.getColumn("role")?.getFilterValue() as string) ?? "all";
-  const statutFilter =
-    (table.getColumn("verified")?.getFilterValue() as string) ?? "all";
+
+  // Gestion des succès
+  const handleUpdateSuccess = () => {
+    setIsUpdateModalOpen(false);
+    setSelectedItem(null);
+    queryClient.invalidateQueries({
+      queryKey: ["usersList"],
+      refetchType: "active",
+    });
+  };
+
+  const handleDeleteSuccess = () => {
+    queryClient.invalidateQueries({
+      queryKey: ["usersList"],
+      refetchType: "active",
+    });
+  };
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-4 py-4">
+      <div className="flex flex-col gap-4 py-4 md:flex-row md:items-center">
         <div className="relative">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher par nom et département..."
+            placeholder="Rechercher par nom, email ou rôle..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-8 max-w-sm"
+            className="pl-8 w-full md:max-w-sm"
           />
         </div>
         <Select
@@ -490,7 +544,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               ?.setFilterValue(value === "all" ? "" : value)
           }
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full md:w-[180px]">
             <SelectValue placeholder="Filtrer par rôle" />
           </SelectTrigger>
           <SelectContent>
@@ -503,23 +557,23 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           </SelectContent>
         </Select>
         <Select
-          value={statutFilter}
-          onValueChange={(value) =>
-            table
-              .getColumn("status")
-              ?.setFilterValue(value === "all" ? "" : value)
-          }
+          value={verifiedFilter}
+          onValueChange={(value) => {
+            setVerifiedFilter(value);
+            if (value === "all") {
+              table.getColumn("verified")?.setFilterValue(undefined);
+            } else {
+              table.getColumn("verified")?.setFilterValue(value === "true");
+            }
+          }}
         >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrer par statut" />
+          <SelectTrigger className="w-full md:w-[180px]">
+            <SelectValue placeholder="Filtrer par vérification" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les Statuts</SelectItem>
-            {uniqueStatuses.map((status) => (
-              <SelectItem key={status} value={status.toLowerCase()}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </SelectItem>
-            ))}
+            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="true">Vérifié</SelectItem>
+            <SelectItem value="false">Non vérifié</SelectItem>
           </SelectContent>
         </Select>
         <DropdownMenu>
@@ -534,12 +588,13 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               .filter((column) => column.getCanHide())
               .map((column) => {
                 let text = column.id;
-                if (column.id === "name") text = "Nom";
-                else if (column.id === "role") text = "Rôle";
-                else if (column.id === "status") text = "Statut";
-                else if (column.id === "lastConnection")
-                  text = "Dernière connexion";
-                else if (column.id === "members") text = "Département associé";
+                if (column.id === "firstName") text = "Prénom";
+                else if (column.id === "lastName") text = "Nom";
+                else if (column.id === "email") text = "Email";
+                else if (column.id === "role") text = "Rôles";
+                else if (column.id === "verified") text = "Statut";
+                else if (column.id === "lastConnection") text = "Dernière connexion";
+
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -556,20 +611,19 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="flex items-center gap-2 py-2">
-        {table.getFilteredSelectedRowModel().rows.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              {table.getFilteredSelectedRowModel().rows.length} ligne(s)
-              sélectionnée(s)
-            </span>
-            <Button variant="outline" size="sm">
-              Actions groupées
-            </Button>
-          </div>
-        )}
-      </div>
-      <div className="rounded-md border">
+
+      {table.getFilteredSelectedRowModel().rows.length > 0 && (
+        <div className="flex items-center justify-between gap-2 py-2">
+          <span className="text-sm text-muted-foreground">
+            {table.getFilteredSelectedRowModel().rows.length} utilisateur(s) sélectionné(s)
+          </span>
+          <Button variant="outline" size="sm">
+            Actions groupées
+          </Button>
+        </div>
+      )}
+
+      <div className="rounded-md border overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -578,7 +632,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   return (
                     <TableHead
                       key={header.id}
-                      className="border-r last:border-r-0"
+                      className="border-r last:border-r-0 bg-muted/50"
                     >
                       {header.isPlaceholder
                         ? null
@@ -619,24 +673,33 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Aucun résultat trouvé.
+                  Aucun utilisateur trouvé.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <Pagination table={table} />
-      <UpdateUser
-        open={isUpdateModalOpen}
-        setOpen={setIsUpdateModalOpen}
-        userData={selectedItem}
-      />
-      <ShowUser
-        open={isDetailModalOpen}
-        onOpenChange={setIsDetailModalOpen}
-        user={selectedItem}
-      />
+
+      <div className="mt-4">
+        <Pagination table={table} />
+      </div>
+
+      {selectedItem && (
+        <>
+          <UpdateUser
+            open={isUpdateModalOpen}
+            setOpen={setIsUpdateModalOpen}
+            userData={selectedItem}
+            onSuccess={handleUpdateSuccess}
+          />
+          <ShowUser
+            open={isDetailModalOpen}
+            onOpenChange={setIsDetailModalOpen}
+            user={selectedItem}
+          />
+        </>
+      )}
     </div>
   );
 }
