@@ -113,7 +113,7 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
 
   const getUserName = (userId: string) => {
     const user = usersData.data?.data?.find((u) => u.id === Number(userId));
-    return user?.name || userId;
+    return user?.firstName + " " + user?.lastName || userId;
   };
 
   const getBeneficiaryDisplay = (request: RequestModelT) => {
@@ -439,14 +439,14 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
                     {column.id === "label"
                       ? "Titre"
                       : column.id === "projectId"
-                      ? "Projet"
-                      : column.id === "categoryId"
-                      ? "Catégorie"
-                      : column.id === "userId"
-                      ? "Emetteur"
-                      : column.id === "beneficiary"
-                      ? "Beneficiaire"
-                      : null}
+                        ? "Projet"
+                        : column.id === "categoryId"
+                          ? "Catégorie"
+                          : column.id === "userId"
+                            ? "Emetteur"
+                            : column.id === "beneficiary"
+                              ? "Beneficiaire"
+                              : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -468,9 +468,9 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

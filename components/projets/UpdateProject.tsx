@@ -67,7 +67,7 @@ export default function UpdateProject({
 
   const projectQueries = new ProjectQueries();
   const userQueries = new UserQueries();
-  const { isHydrated } = useStore();
+  const { isHydrated, user } = useStore();
   const queryClient = useQueryClient();
 
   const projectApi = useMutation({
@@ -115,6 +115,7 @@ export default function UpdateProject({
       budget: values.budget,
       chiefId: parseInt(values.chiefid, 10),
       status: projectData?.status || "ongoing",
+      userId: user?.id!
     };
     projectApi.mutate(data);
   };
@@ -199,7 +200,7 @@ export default function UpdateProject({
                   const options = userApi.data
                     ? userApi.data.data.map((user) => ({
                       value: user.id,
-                      label: user.name,
+                      label: user.firstName + " " + user.lastName,
                     }))
                     : [];
                   return (

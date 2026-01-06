@@ -27,7 +27,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon, LoaderIcon } from "lucide-react";
 import { useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { SearchableSelect } from "../base/searchableSelect";

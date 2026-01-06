@@ -120,7 +120,7 @@ export default function MyForm() {
   });
 
   const USERS =
-    usersData.data?.data.map((u) => ({ id: u.id!, name: u.name })) || [];
+    usersData.data?.data.map((u) => ({ id: u.id!, name: u.firstName + " " + u.lastName })) || [];
 
   // ----------------------------------------------------------------------
   // QUERY CATEGORIES

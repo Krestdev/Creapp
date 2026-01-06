@@ -94,7 +94,7 @@ export function RoleTable({ data }: RolesTableProps) {
             <div className="flex gap-1.5 w-fit">
               {(row.getValue("users") as User[]).map((user, index) => (
                 <div key={index}>
-                  <Badge variant="sky">{user.name}</Badge>
+                  <Badge variant="sky">{user.firstName + " " + user.lastName}</Badge>
                 </div>
               ))}
             </div>
@@ -232,9 +232,9 @@ export function RoleTable({ data }: RolesTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

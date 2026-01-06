@@ -590,7 +590,7 @@ function AppSidebar() {
 
   // Filtrer les liens de navigation selon les rôles de l'utilisateur
   const filteredNavLinks = navLinks.filter((navLink) =>
-   navLink.authorized.some((role) => userRoles.includes(role))
+    navLink.authorized.some((role) => userRoles.includes(role))
   );
 
   return (
@@ -616,7 +616,7 @@ function AppSidebar() {
           <DropdownMenuTrigger className="w-full h-auto border-none shadow-none p-2 flex items-center gap-2 justify-between cursor-pointer hover:shadow-sm transition-all duration-300 ease-out">
             <div className="flex flex-col gap-1 text-left flex-start">
               <span className="text-sm font-medium leading-[120%] text-gray-900 capitalize">
-                {user?.name || "Utilisateur"}
+                {user?.firstName + " " + user?.lastName || "Utilisateur"}
               </span>
               <span className="text-xs leading-[120%] text-gray-500">
                 {getRoleName(user?.role || [])}

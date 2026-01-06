@@ -31,6 +31,7 @@ import {
   Users,
   Circle,
   LoaderIcon,
+  Paperclip,
 } from "lucide-react";
 import * as React from "react";
 
@@ -92,6 +93,7 @@ import { Pagination } from "./pagination";
 import { SearchableSelect } from "./searchableSelect";
 import { Checkbox } from "../ui/checkbox";
 import { Textarea } from "../ui/textarea";
+import { PaymentQueries } from "@/queries/payment";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -182,6 +184,12 @@ export function DataVal({
     queryFn: async () => {
       return users.getAll();
     },
+  });
+
+  const payments = new PaymentQueries();
+  const paymentsData = useQuery({
+    queryKey: ["payments"],
+    queryFn: async () => payments.getAll(),
   });
 
   const request = new RequestQueries();
@@ -324,7 +332,7 @@ export function DataVal({
 
   const getUserName = (userId: string) => {
     const user = usersData.data?.data?.find((u) => u.id === Number(userId));
-    return user?.name || userId;
+    return user?.firstName + " " + user?.lastName || userId;
   };
 
   // Fonction pour filtrer les données manuellement
@@ -426,7 +434,7 @@ export function DataVal({
       const user = usersData.data.data.find((u) => u.id === Number(userId));
       return {
         id: userId,
-        name: user?.name || `Utilisateur ${userId}`,
+        name: user?.firstName + " " + user?.lastName || `Utilisateur ${userId}`,
       };
     });
   }, [data, usersData.data]);
@@ -1073,61 +1081,71 @@ export function DataVal({
         const item = row.original;
         const validationInfo = getValidationInfo(item);
         const userHasValidated = hasUserAlreadyValidated(item);
+        const paiement = paymentsData.data?.data.find(
+          (x) => x.requestId === item?.id
+        );
+        const isAttach = (item.type === "FAC" || item.type === "RH") && paiement?.proof !== null;
+
+        console.log(paiement);
+
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                Actions
-                <ChevronDown className="ml-2 h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedItem(item);
-                  setIsModalOpen(true);
-                }}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                {"Voir les détails"}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  validationInfo.isLastValidator
-                    ? (setSelectedItem(item), setIsLastValModalOpen(true))
-                    : openValidationModal("approve", item)
-                }
-                disabled={
-                  validationInfo.canValidate === false ||
-                  item.state !== "pending"
-                }
-              >
-                <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
-                {"Approuver"}
-                {validationInfo.isLastValidator}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => openValidationModal("reject", item)}
-                disabled={
-                  !validationInfo.canValidate ||
-                  item.state !== "pending" ||
-                  userHasValidated
-                }
-                className={
-                  !validationInfo.canValidate
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }
-              >
-                <LucideBan className="text-red-500 mr-2 h-4 w-4" />
-                {"Rejeter"}
-                {validationInfo.isLastValidator}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  {"Actions"}
+                  <ChevronDown className="ml-2 h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(item);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  {"Voir les détails"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() =>
+                    validationInfo.isLastValidator
+                      ? (setSelectedItem(item), setIsLastValModalOpen(true))
+                      : openValidationModal("approve", item)
+                  }
+                  disabled={
+                    validationInfo.canValidate === false ||
+                    item.state !== "pending"
+                  }
+                >
+                  <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
+                  {"Approuver"}
+                  {validationInfo.isLastValidator}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => openValidationModal("reject", item)}
+                  disabled={
+                    !validationInfo.canValidate ||
+                    item.state !== "pending" ||
+                    userHasValidated
+                  }
+                  className={
+                    !validationInfo.canValidate
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }
+                >
+                  <LucideBan className="text-red-500 mr-2 h-4 w-4" />
+                  {"Rejeter"}
+                  {validationInfo.isLastValidator}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {isAttach ? <Paperclip /> : ""}
+          </div>
         );
       },
     });

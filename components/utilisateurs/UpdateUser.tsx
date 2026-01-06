@@ -34,7 +34,8 @@ import MultiSelectRole from "../base/multiSelectRole";
 const formSchema = z
   .object({
     email: z.string().email("Email invalide"),
-    name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+    firstName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+    lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
     phone: z.string().optional(),
     password: z.string().optional(),
     confirmPassword: z.string().optional(),
@@ -75,7 +76,8 @@ export default function UpdateUser({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
-      name: "",
+      firstName: "",
+      lastName: "",
       phone: "",
       password: "",
       confirmPassword: "",
@@ -94,7 +96,8 @@ export default function UpdateUser({
 
       form.reset({
         email: userData.email || "",
-        name: userData.name || "",
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
         phone: userData.phone || "",
         password: "",
         confirmPassword: "",
@@ -151,7 +154,8 @@ export default function UpdateUser({
 
     const payload: any = {
       email: values.email,
-      name: values.name,
+      firstName: values.firstName,
+      lastName: values.lastName,
       phone: values.phone || undefined,
       post: values.post || undefined,
     };
@@ -175,7 +179,7 @@ export default function UpdateUser({
       <DialogContent className="sm:max-w-[840px] p-0 flex flex-col">
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg">
           <DialogTitle className="text-xl font-semibold">
-            {userData?.name ?? ""}
+            {userData?.firstName + " " + userData?.lastName}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Modifier l'utilisateur en indiquant les nouvelles informations."}
@@ -189,7 +193,21 @@ export default function UpdateUser({
           >
             <FormField
               control={form.control}
-              name="name"
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom </FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="lastName"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nom </FormLabel>

@@ -161,9 +161,9 @@ export function DepartmentCreateForm() {
             render={({ field, fieldState }) => {
               const options = userApi.data
                 ? userApi.data.data.map((user) => ({
-                    value: user.id,
-                    label: user.name,
-                  }))
+                  value: user.id,
+                  label: user.firstName + " " + user.lastName,
+                }))
                 : [];
               return (
                 <Field data-invalid={fieldState.invalid} className="gap-1">
@@ -196,7 +196,7 @@ export function DepartmentCreateForm() {
                     options={
                       userApi.data?.data.map((user) => ({
                         value: String(user.id),
-                        label: user.name,
+                        label: user.firstName + " " + user.lastName,
                       })) || []
                     }
                     {...field}

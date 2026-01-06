@@ -258,7 +258,7 @@ export function DataValidation({
 
   const getUserName = (userId: string) => {
     const user = usersData.data?.data?.find((u) => u.id === Number(userId));
-    return user?.name || userId;
+    return user?.firstName + " " + user?.lastName || userId;
   };
 
   const uniqueCategories = React.useMemo(() => {
@@ -302,7 +302,7 @@ export function DataValidation({
       const user = usersData.data.data.find((u) => u.id === Number(userId));
       return {
         id: userId,
-        name: user?.name || `Utilisateur ${userId}`,
+        name: user?.firstName + " " + user?.lastName || `Utilisateur ${userId}`,
       };
     });
   }, [tableData, usersData.data]);

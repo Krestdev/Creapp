@@ -411,7 +411,7 @@ export default function UpdateRequestFac({
                               key={user.id}
                               value={user.id!.toString()}
                             >
-                              {user.name}
+                              {user.firstName + " " + user.lastName}
                             </SelectItem>
                           ))}
                         </SelectContent>

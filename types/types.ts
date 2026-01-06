@@ -78,7 +78,8 @@ export type PaymentRequest = {
 export type User = {
   id: number;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   phone?: string;
   post?: string;
   password?: string;
@@ -135,6 +136,7 @@ export type Member = {
 export type ProjectT = {
   id?: number;
   reference: string;
+  userId: number;
   createdAt?: Date;
   updatedAt?: Date;
   label: string;
@@ -517,17 +519,17 @@ export const BANK_TYPES = [
 ] as const;
 
 export type Bank = {
-    id: number;
-    label: string;
-    type: (typeof BANK_TYPES)[number]["value"];
-    balance: number;
-    justification: string;
-    accountNumber?: string;
-    bankCode?: string;
-    atmCode?: string;
-    key?: string;
-    phoneNum?: string;
-    merchantNum?: string;
-    createdAt: Date;
-    updatedAt?: Date;
+  id: number;
+  label: string;
+  type: (typeof BANK_TYPES)[number]["value"];
+  balance: number;
+  justification: string;
+  accountNumber?: string;
+  bankCode?: string;
+  atmCode?: string;
+  key?: string;
+  phoneNum?: string;
+  merchantNum?: string;
+  createdAt: Date;
+  updatedAt?: Date;
 }
