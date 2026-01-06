@@ -242,7 +242,7 @@ export function DetailTicket({
                       <div className="flex flex-col">
                         {request?.beneficiary === "me" ? (
                           <p className="font-semibold capitalize">
-                            {user?.firstName + " " + user?.lastName}
+                            {user?.lastName + " " + user?.firstName}
                           </p>
                         ) : (
                           <div className="flex flex-col">
@@ -288,7 +288,7 @@ export function DetailTicket({
                   ) : (
                     <div className="flex flex-col">
                       {request?.beneficiary === "me" ? (
-                        <p className="font-semibold capitalize">{user?.firstName + " " + user?.lastName}</p>
+                        <p className="font-semibold capitalize">{user?.lastName + " " + user?.firstName}</p>
                       ) : (
                         <div className="flex flex-col">
                           {request?.beficiaryList?.map((ben) => {

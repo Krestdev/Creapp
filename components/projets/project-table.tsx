@@ -229,7 +229,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
   };
   const getUserName = (id: number) => {
     const user = usersData.data?.data.find((user) => user.id === id);
-    return user?.firstName + " " + user?.lastName || "";
+    return user?.lastName + " " + user?.firstName || "";
   };
 
   // Fonction pour normaliser le texte (ignorer accents)

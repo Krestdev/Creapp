@@ -104,7 +104,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
   const getUserName = (userId: string) => {
     const user = usersData.data?.data?.find((u) => u.id === Number(userId));
-    return user?.firstName + " " + user?.lastName || userId;
+    return user?.lastName + " " + user?.firstName || userId;
   };
 
   // Trouver la catégorie du besoin pour récupérer les validateurs configurés
@@ -552,7 +552,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     ) : (
                       <div className="flex flex-col">
                         {data.beneficiary === "me" ? (
-                          <p className="font-semibold capitalize">{user?.firstName + " " + user?.lastName}</p>
+                          <p className="font-semibold capitalize">{user?.lastName + " " + user?.firstName}</p>
                         ) : (
                           <div className="flex flex-col">
                             {data.beficiaryList?.map((ben) => {

@@ -191,12 +191,13 @@ export default function UpdateUser({
             onSubmit={form.handleSubmit(onSubmit)}
             className="w-full grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 px-6"
           >
+
             <FormField
               control={form.control}
-              name="firstName"
+              name="lastName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom </FormLabel>
+                  <FormLabel>Nom</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -207,10 +208,10 @@ export default function UpdateUser({
 
             <FormField
               control={form.control}
-              name="lastName"
+              name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom </FormLabel>
+                  <FormLabel>Prénom </FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
