@@ -388,7 +388,7 @@ export type BonsCommande = {
   instalments: Array<{
     percentage: number;
     deadLine: string;
-    status: string;
+    status: boolean;
   }>;
   deliveryLocation?: string;
   paymentMethod: (typeof PAYMENT_METHOD)[number]["value"];
