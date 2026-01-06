@@ -1,28 +1,36 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { useFetchQuery } from "@/hooks/useData";
+import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { useStore } from "@/providers/datastore";
 import { CategoryQueries } from "@/queries/categoryModule";
 import { CommandRqstQueries } from "@/queries/commandRqstModule";
 import { PaymentQueries } from "@/queries/payment";
+import { ProviderQueries } from "@/queries/providers";
 import { PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
 import { RequestQueries } from "@/queries/requestModule";
-import { Category, NavigationItemProps, NavigationLinkProps, RequestModelT, Role, User } from "@/types/types";
+import {
+  Category,
+  NavigationItemProps,
+  RequestModelT,
+  Role,
+  User,
+} from "@/types/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
   ClipboardList,
+  Coins,
   CreditCardIcon,
   DollarSign,
   EllipsisVertical,
-  LucideIcon,
   ScrollText,
   Ticket,
   Truck,
-  UsersRound
+  UsersRound,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,19 +44,17 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
-import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
-import { ProviderQueries } from "@/queries/providers";
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
 
   function getRoleName(roles: Array<Role>): string {
-    if (roles.some(r => r.label === "ADMIN")) return "Administrateur";
-    if (roles.some(r => r.label === "VOLT_MANAGER")) return "DO Décaissement";
-    if (roles.some(r => r.label === "VOLT")) return "Trésorier";
-    if (roles.some(r => r.label === "SALES_MANAGER")) return "DO d'Achats";
-    if (roles.some(r => r.label === "SALES")) return "Responsable d'Achats";
-    if (roles.some(r => r.label === "ACCOUNTING")) return "Comptable";
+    if (roles.some((r) => r.label === "ADMIN")) return "Administrateur";
+    if (roles.some((r) => r.label === "VOLT_MANAGER")) return "DO Décaissement";
+    if (roles.some((r) => r.label === "VOLT")) return "Trésorier";
+    if (roles.some((r) => r.label === "SALES_MANAGER")) return "DO d'Achats";
+    if (roles.some((r) => r.label === "SALES")) return "Responsable d'Achats";
+    if (roles.some((r) => r.label === "ACCOUNTING")) return "Comptable";
     return "Employé";
   }
 
@@ -72,12 +78,26 @@ function AppSidebar() {
 
   const providers = useFetchQuery(["providers"], providersQuery.getAll);
 
-  const purchase = getPurchases.data?.data.filter(c => c.status === "IN-REVIEW" || c.status === "PENDING")
+  const purchase = getPurchases.data?.data.filter(
+    (c) => c.status === "IN-REVIEW" || c.status === "PENDING"
+  );
 
-  const devisTraite = getPurchases.isSuccess && quotationsData?.data.filter(c => c.status === "APPROVED" && !getPurchases.data.data.some(a => a.deviId === c.id))
+  const devisTraite =
+    getPurchases.isSuccess &&
+    quotationsData?.data.filter(
+      (c) =>
+        c.status === "APPROVED" &&
+        !getPurchases.data.data.some((a) => a.deviId === c.id)
+    );
 
-  const approbationDevis = providers?.data?.data && cotation?.data && quotationsData?.data ?
-    groupQuotationsByCommandRequest(cotation?.data!, quotationsData?.data!, providers?.data?.data!).filter(c => c.status === "NOT_PROCESSED") : []
+  const approbationDevis =
+    providers?.data?.data && cotation?.data && quotationsData?.data
+      ? groupQuotationsByCommandRequest(
+          cotation?.data!,
+          quotationsData?.data!,
+          providers?.data?.data!
+        ).filter((c) => c.status === "NOT_PROCESSED")
+      : [];
 
   // Récupérer toutes les catégories avec leurs validateurs
   const categoriesData = useQuery({
@@ -356,7 +376,9 @@ function AppSidebar() {
           href: "/tableau-de-bord/commande/devis/approbation",
           authorized: ["ADMIN", "SALES_MANAGER"],
           badgeValue:
-            approbationDevis && approbationDevis.length > 0 ? approbationDevis?.length : undefined,
+            approbationDevis && approbationDevis.length > 0
+              ? approbationDevis?.length
+              : undefined,
         },
         // {
         //   pageId: "PG-03-03",
@@ -370,7 +392,9 @@ function AppSidebar() {
           href: "/tableau-de-bord/commande/bon-de-commande",
           authorized: ["ADMIN", "SALES"],
           badgeValue:
-            devisTraite && devisTraite.length > 0 ? devisTraite?.length : undefined,
+            devisTraite && devisTraite.length > 0
+              ? devisTraite?.length
+              : undefined,
           // badge:
           //   newDevis && newDevis?.length > 0 ? newDevis?.length : undefined,
         },
@@ -487,7 +511,7 @@ function AppSidebar() {
           href: "/tableau-de-bord/banques/transactions",
           authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
         },
-      ]
+      ],
     },
     // {
     //   pageId: "PG-05",
@@ -551,6 +575,21 @@ function AppSidebar() {
           authorized: ["ADMIN"],
         },
       ],
+    },
+    {
+      pageId: "PG-09",
+      icon: Coins,
+      href: "/tableau-de-bord/spending",
+      authorized: ["ADMIN"],
+      title: "Depense",
+      // items: [
+      //   {
+      //     pageId: "PG-09-01",
+      //     title: "Créer un fournisseur",
+      //     href: "/tableau-de-bord/spending/",
+      //     authorized: ["ADMIN"],
+      //   }
+      // ],
     },
     // {
     //   pageId: "PG-09",
