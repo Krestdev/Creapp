@@ -123,7 +123,7 @@ export default function RHRequestForm() {
   const USERS =
     usersData.data?.data.map((u) => ({
       id: u.id!,
-      name: u.name,
+      name: u.firstName + " " + u.lastName,
     })) || [];
 
   // ----------------------------------------------------------------------

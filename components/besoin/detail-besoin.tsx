@@ -254,7 +254,6 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   };
 
   const validationHistory = getValidationHistory();
-  console.log(data.state);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -303,7 +302,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                       {getProjectName(String(data.projectId))}
                     </p>
                   </div>
-                </div>}
+                </div>
+              }
 
               {/* Description */}
               <div className="flex items-start gap-3">
@@ -477,7 +477,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                       </div>
                     )}
                   </div>
-                </div>}
+                </div>
+              }
 
               {/* Motif de rejet */}
               {data.state === "rejected" && (
@@ -664,14 +665,27 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <div className="mt-1">
                   <Calendar className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {"Modifié le"}
-                  </p>
-                  <p className="font-semibold">
-                    {format(data.updatedAt, "PPP", { locale: fr })}
-                  </p>
-                </div>
+                {
+                  data.state === "rejected" ?
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {"Supprimé le"}
+                      </p>
+                      <p className="font-semibold">
+                        {format(data.revieweeList
+                          ?.filter((r) => r.decision?.startsWith("rejected")).pop()?.updatedAt!, "PPP", { locale: fr })}
+                      </p>
+                    </div>
+                    :
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {"Modifié le"}
+                      </p>
+                      <p className="font-semibold">
+                        {format(data.updatedAt, "PPP", { locale: fr })}
+                      </p>
+                    </div>
+                }
               </div>
 
               {/* Date limite */}

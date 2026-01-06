@@ -210,6 +210,8 @@ export type Review = {
   decision: string;
   validatorId: number;
   requestId: number;
+  updatedAt?: Date;
+  createdAt?: Date;
 };
 
 export type Category = {

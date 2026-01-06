@@ -13,7 +13,7 @@ import React from "react";
 const Page = () => {
   const { user, isHydrated } = useStore();
   const request = new RequestQueries();
-  
+
   // État pour tous les filtres
   const [filters, setFilters] = React.useState<TableFilters>({
     globalFilter: "",
@@ -127,12 +127,11 @@ const Page = () => {
     return filtered;
   }, [requestData.data?.data, filters]);
 
-  // Calculer les statistiques BASÉES SUR LES FILTRES
-  const soumis = getFilteredData.length ?? 0;
-  const attentes =
-    getFilteredData.filter((item) => item.state === "pending").length ?? 0;
-  const rejetes =
-    getFilteredData.filter((item) => item.state === "rejected").length ?? 0;
+  // Calcul des statistiques
+  const cancel = getFilteredData.filter((item) => item.state === "cancel").length ?? 0;
+  const soumis = getFilteredData.length - cancel || 0;
+  const attentes = getFilteredData.filter((item) => item.state === "pending").length ?? 0;
+  const rejetes = getFilteredData.filter((item) => item.state === "rejected").length ?? 0;
   const validés = soumis - attentes - rejetes;
 
   return (
@@ -169,9 +168,9 @@ const Page = () => {
           dvalueColor="text-green-600"
         />
       </div>
-      
+
       {/* Page table */}
-      <RequestList 
+      <RequestList
         dateFilter={filters.dateFilter}
         setDateFilter={(value) => setFilters(prev => ({ ...prev, dateFilter: typeof value === 'function' ? value(prev.dateFilter) : value }))}
         customDateRange={filters.customDateRange}

@@ -15,7 +15,7 @@ interface StatsCardProps {
 const StatsCard = (props: StatsCardProps) => {
   return (
     <div
-      className={`flex flex-col gap-2 p-5 rounded-[12px] shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] border ${props.className}`}
+      className={`w-full flex flex-col gap-2 p-5 rounded-[12px] shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] border ${props.className}`}
     >
       <p className={`text-sm font-medium ${props.titleColor}`}>{props.title}</p>
       <p className="text-[32px] font-medium">{props.value}</p>

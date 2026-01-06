@@ -130,12 +130,12 @@ export default function CreateUserForm() {
       >
         <FormField
           control={form.control}
-          name="firstName"
+          name="lastName"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{"Nom"}</FormLabel>
               <FormControl className="w-full">
-                <Input placeholder="ex. John Doe" type="" {...field} />
+                <Input placeholder="ex. Doe" type="" {...field} />
               </FormControl>
 
               <FormMessage />
@@ -144,14 +144,13 @@ export default function CreateUserForm() {
         />
         <FormField
           control={form.control}
-          name="lastName"
+          name="firstName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{"Nom"}</FormLabel>
+              <FormLabel>{"Prénom"}</FormLabel>
               <FormControl className="w-full">
-                <Input placeholder="ex. John Doe" type="" {...field} />
+                <Input placeholder="ex. John" type="" {...field} />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}

@@ -93,7 +93,7 @@ export function DevisModal({
 
   const getUserName = (userId: number | undefined) => {
     return (
-      usersData.data?.data?.find((u) => u.id === userId)?.name ||
+      usersData.data?.data?.find((u) => u.id === userId)?.firstName + " " + usersData.data?.data?.find((u) => u.id === userId)?.lastName ||
       "Non spécifique"
     );
   };
