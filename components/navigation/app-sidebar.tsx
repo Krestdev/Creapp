@@ -9,18 +9,35 @@ import { ProviderQueries } from "@/queries/providers";
 import { PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
 import { RequestQueries } from "@/queries/requestModule";
+<<<<<<< HEAD
 import { Category, NavigationItemProps, RequestModelT, Role, User } from "@/types/types";
+=======
+import {
+  Category,
+  NavigationItemProps,
+  RequestModelT,
+  Role,
+  User,
+} from "@/types/types";
+>>>>>>> 2503b255343403f948d381f6ba833fd46dc5240d
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
   ClipboardList,
+<<<<<<< HEAD
   DollarSign,
   EllipsisVertical,
   LandmarkIcon,
+=======
+  Coins,
+  CreditCardIcon,
+  DollarSign,
+  EllipsisVertical,
+>>>>>>> 2503b255343403f948d381f6ba833fd46dc5240d
   ScrollText,
   Ticket,
   Truck,
-  UsersRound
+  UsersRound,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -42,12 +59,12 @@ function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
 
   function getRoleName(roles: Array<Role>): string {
-    if (roles.some(r => r.label === "ADMIN")) return "Administrateur";
-    if (roles.some(r => r.label === "VOLT_MANAGER")) return "DO Décaissement";
-    if (roles.some(r => r.label === "VOLT")) return "Trésorier";
-    if (roles.some(r => r.label === "SALES_MANAGER")) return "DO d'Achats";
-    if (roles.some(r => r.label === "SALES")) return "Responsable d'Achats";
-    if (roles.some(r => r.label === "ACCOUNTING")) return "Comptable";
+    if (roles.some((r) => r.label === "ADMIN")) return "Administrateur";
+    if (roles.some((r) => r.label === "VOLT_MANAGER")) return "DO Décaissement";
+    if (roles.some((r) => r.label === "VOLT")) return "Trésorier";
+    if (roles.some((r) => r.label === "SALES_MANAGER")) return "DO d'Achats";
+    if (roles.some((r) => r.label === "SALES")) return "Responsable d'Achats";
+    if (roles.some((r) => r.label === "ACCOUNTING")) return "Comptable";
     return "Employé";
   }
 
@@ -71,12 +88,26 @@ function AppSidebar() {
 
   const providers = useFetchQuery(["providers"], providersQuery.getAll);
 
-  const purchase = getPurchases.data?.data.filter(c => c.status === "IN-REVIEW" || c.status === "PENDING")
+  const purchase = getPurchases.data?.data.filter(
+    (c) => c.status === "IN-REVIEW" || c.status === "PENDING"
+  );
 
-  const devisTraite = getPurchases.isSuccess && quotationsData?.data.filter(c => c.status === "APPROVED" && !getPurchases.data.data.some(a => a.deviId === c.id))
+  const devisTraite =
+    getPurchases.isSuccess &&
+    quotationsData?.data.filter(
+      (c) =>
+        c.status === "APPROVED" &&
+        !getPurchases.data.data.some((a) => a.deviId === c.id)
+    );
 
-  const approbationDevis = providers?.data?.data && cotation?.data && quotationsData?.data ?
-    groupQuotationsByCommandRequest(cotation?.data!, quotationsData?.data!, providers?.data?.data!).filter(c => c.status === "NOT_PROCESSED") : []
+  const approbationDevis =
+    providers?.data?.data && cotation?.data && quotationsData?.data
+      ? groupQuotationsByCommandRequest(
+          cotation?.data!,
+          quotationsData?.data!,
+          providers?.data?.data!
+        ).filter((c) => c.status === "NOT_PROCESSED")
+      : [];
 
   // Récupérer toutes les catégories avec leurs validateurs
   const categoriesData = useQuery({
@@ -355,7 +386,9 @@ function AppSidebar() {
           href: "/tableau-de-bord/commande/devis/approbation",
           authorized: ["ADMIN", "SALES_MANAGER"],
           badgeValue:
-            approbationDevis && approbationDevis.length > 0 ? approbationDevis?.length : undefined,
+            approbationDevis && approbationDevis.length > 0
+              ? approbationDevis?.length
+              : undefined,
         },
         // {
         //   pageId: "PG-03-03",
@@ -369,7 +402,9 @@ function AppSidebar() {
           href: "/tableau-de-bord/commande/bon-de-commande",
           authorized: ["ADMIN", "SALES"],
           badgeValue:
-            devisTraite && devisTraite.length > 0 ? devisTraite?.length : undefined,
+            devisTraite && devisTraite.length > 0
+              ? devisTraite?.length
+              : undefined,
           // badge:
           //   newDevis && newDevis?.length > 0 ? newDevis?.length : undefined,
         },
@@ -486,7 +521,7 @@ function AppSidebar() {
           href: "/tableau-de-bord/banques/transactions",
           authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
         },
-      ]
+      ],
     },
     // {
     //   pageId: "PG-05",
@@ -551,6 +586,21 @@ function AppSidebar() {
         },
       ],
     },
+    {
+      pageId: "PG-09",
+      icon: Coins,
+      href: "/tableau-de-bord/spending",
+      authorized: ["ADMIN"],
+      title: "Depense",
+      // items: [
+      //   {
+      //     pageId: "PG-09-01",
+      //     title: "Créer un fournisseur",
+      //     href: "/tableau-de-bord/spending/",
+      //     authorized: ["ADMIN"],
+      //   }
+      // ],
+    },
     // {
     //   pageId: "PG-09",
     //   icon: Building,
@@ -589,7 +639,7 @@ function AppSidebar() {
 
   // Filtrer les liens de navigation selon les rôles de l'utilisateur
   const filteredNavLinks = navLinks.filter((navLink) =>
-   navLink.authorized.some((role) => userRoles.includes(role))
+    navLink.authorized.some((role) => userRoles.includes(role))
   );
 
   return (
@@ -615,7 +665,7 @@ function AppSidebar() {
           <DropdownMenuTrigger className="w-full h-auto border-none shadow-none p-2 flex items-center gap-2 justify-between cursor-pointer hover:shadow-sm transition-all duration-300 ease-out">
             <div className="flex flex-col gap-1 text-left flex-start">
               <span className="text-sm font-medium leading-[120%] text-gray-900 capitalize">
-                {user?.name || "Utilisateur"}
+                {user?.lastName + " " + user?.firstName || "Utilisateur"}
               </span>
               <span className="text-xs leading-[120%] text-gray-500">
                 {getRoleName(user?.role || [])}

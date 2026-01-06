@@ -66,7 +66,7 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8">
           <DialogTitle className="text-xl font-semibold text-white flex items-center gap-2">
             <UserIcon className="h-5 w-5" />
-            {user.name}
+            {user.lastName + " " + user.firstName}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Détails du compte utilisateur"}

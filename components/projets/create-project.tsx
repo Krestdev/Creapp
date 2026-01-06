@@ -66,7 +66,7 @@ export function ProjectCreateForm() {
 
   const projectQueries = new ProjectQueries();
   const userQueries = new UserQueries();
-  const { isHydrated } = useStore();
+  const { isHydrated, user } = useStore();
 
   const projectApi = useMutation({
     mutationFn: (
@@ -102,6 +102,7 @@ export function ProjectCreateForm() {
       budget: values.budget ?? 0,
       chiefId: parseInt(values.chiefid, 10),
       status: "planning",
+      userId: user?.id!
     };
     projectApi.mutate(data);
   };
@@ -134,9 +135,9 @@ export function ProjectCreateForm() {
           render={({ field }) => {
             const options = userApi.data
               ? userApi.data.data.map((user) => ({
-                  value: user.id,
-                  label: user.name,
-                }))
+                value: user.id,
+                label: user.lastName + " " + user.firstName,
+              }))
               : [];
             return (
               <FormItem>
@@ -172,7 +173,7 @@ export function ProjectCreateForm() {
                     options={
                       userApi.data?.data.map((user) => ({
                         value: String(user.id),
-                        label: user.name,
+                        label: user.lastName + " " + user.firstName,
                       })) || []
                     }
                     {...field}

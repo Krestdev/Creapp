@@ -9,7 +9,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { XAF } from "@/lib/utils";
+import { UserQueries } from "@/queries/baseModule";
 import { ProjectT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -26,6 +28,7 @@ import {
   LucideSquareUserRound,
   PauseCircle,
   PlayCircle,
+  UserRound,
   XCircle,
 } from "lucide-react";
 
@@ -66,6 +69,17 @@ export function DetailProject({
       default:
         return { label: status, variant: "outline" };
     }
+  };
+
+  const users = new UserQueries();
+  const usersData = useQuery({
+    queryKey: ["usersList"],
+    queryFn: () => users.getAll(),
+  })
+
+  const getUserName = (id: number) => {
+    const user = usersData.data?.data.find((user) => user.id === id);
+    return user?.lastName + " " + user?.firstName || "";
   };
 
   const statusBadge = getStatusBadge(data.status);
@@ -130,6 +144,17 @@ export function DetailProject({
                   <p className="font-semibold">
                     {data.chief?.name || "Non assigné"}
                   </p>
+                </div>
+              </div>
+
+              {/* Crée par */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <UserRound className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">{"Crée par"}</p>
+                  <p className="font-semibold">{getUserName(data.userId)}</p>
                 </div>
               </div>
             </div>

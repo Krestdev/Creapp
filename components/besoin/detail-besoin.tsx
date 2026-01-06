@@ -13,6 +13,7 @@ import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
 import { CategoryQueries } from "@/queries/categoryModule";
 import { DepartmentQueries } from "@/queries/departmentModule";
+import { PaymentQueries } from "@/queries/payment";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
@@ -26,6 +27,7 @@ import {
   CheckCircle,
   Clock,
   DollarSign,
+  FileIcon,
   FileText,
   FolderOpen,
   FolderTree,
@@ -37,6 +39,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import Link from "next/link";
 
 interface DetailModalProps {
   open: boolean;
@@ -53,8 +56,15 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   const projects = new ProjectQueries();
   const category = new CategoryQueries();
   const department = new DepartmentQueries();
+  const payments = new PaymentQueries();
+
 
   // Récupération des données
+  const paymentsData = useQuery({
+    queryKey: ["payments"],
+    queryFn: async () => payments.getAll(),
+  });
+
   const usersData = useQuery({
     queryKey: ["users"],
     queryFn: async () => users.getAll(),
@@ -94,7 +104,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
   const getUserName = (userId: string) => {
     const user = usersData.data?.data?.find((u) => u.id === Number(userId));
-    return user?.name || userId;
+    return user?.lastName + " " + user?.firstName || userId;
   };
 
   // Trouver la catégorie du besoin pour récupérer les validateurs configurés
@@ -105,6 +115,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   // Récupérer les validateurs configurés pour cette catégorie, triés par rank
   const configuredValidators =
     categoryOfRequest?.validators?.sort((a, b) => a.rank - b.rank) || [];
+
+  const paiement = paymentsData.data?.data.find(
+    (x) => x.requestId === data?.id
+  );
 
   const statusConfig = {
     pending: {
@@ -188,7 +202,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
           history.push({
             step: i + 1,
             validatorName:
-              validatorUser?.name || `Validateur ${validator.rank}`,
+              validatorUser?.firstName + " " + validatorUser?.lastName || `Validateur ${validator.rank}`,
             userId: validator.userId,
             status,
             statusText,
@@ -223,7 +237,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
       history.push({
         step: i + 1,
-        validatorName: validatorUser?.name || `Validateur ${validator.rank}`,
+        validatorName: validatorUser?.firstName + " " + validatorUser?.lastName || `Validateur ${validator.rank}`,
         userId: validator.userId,
         status,
         statusText,
@@ -276,19 +290,20 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
 
               {/* Projet - MAJ */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <FolderOpen className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {"Projet"}
-                  </p>
-                  <p className="font-semibold">
-                    {getProjectName(String(data.projectId))}
-                  </p>
-                </div>
-              </div>
+              {data.projectId !== null &&
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <FolderOpen className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {"Projet"}
+                    </p>
+                    <p className="font-semibold">
+                      {getProjectName(String(data.projectId))}
+                    </p>
+                  </div>
+                </div>}
 
               {/* Description */}
               <div className="flex items-start gap-3">
@@ -375,63 +390,94 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               </div>
 
-              {/* Historique de validation - NOUVELLE VERSION */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <UserCheck className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {"Historique de validation"}
-                  </p>
-
-                  {data.state !== "cancel" ? (
-                    <div className="flex flex-col gap-3">
-                      {validationHistory.length === 0 ? (
-                        <div className="text-center py-4 border rounded-lg bg-gray-50">
-                          <AlertCircle className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600">
-                            Aucun validateur configuré pour cette catégorie
+              {/* Justificatif */}
+              <div className="view-group">
+                <span className="view-icon">
+                  <FileIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Justificatif"}</p>
+                  <div className="space-y-1">
+                    {!!paiement?.proof ?
+                      paiement?.proof.split(";").map((proof, index) => (
+                        <Link
+                          key={index}
+                          href={`${process.env.NEXT_PUBLIC_API
+                            }/uploads/${encodeURIComponent(proof)}`}
+                          target="_blank"
+                          className="flex gap-0.5 items-center"
+                        >
+                          <img
+                            src="/images/pdf.png"
+                            alt="justificatif"
+                            className="h-7 w-auto aspect-square"
+                          />
+                          <p className="text-foreground font-medium">
+                            {`Fichier_${index + 1}`}
                           </p>
-                        </div>
-                      ) : (
-                        validationHistory.map((item) => {
-                          return (
-                            <div
-                              key={item.step}
-                              className={`border rounded-lg p-2 ${item.bgColor}`}
-                            >
-                              {/* Nom du validateur - Style similaire à l'image */}
-                              <div>
-                                <div className="text-[10px] text-gray-500 tracking-wide">
-                                  {item.status === "approved"
-                                    ? `Étape ${item.step} : Approuvé par`
-                                    : item.status === "rejected"
-                                      ? `Étape ${item.step} : Rejeté par`
-                                      : `Étape ${item.step} : En attente de l'approbation de`}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="flex-1">
-                                    <p className="font-semibold text-[16px]">
-                                      {item.validatorName}
-                                    </p>
+                        </Link>)) : <p className="italic">{"Aucun justificatif"}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Historique de validation - NOUVELLE VERSION */}
+              {data.type === "RH" || data.type === "SPECIAL" ? null :
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <UserCheck className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {"Historique de validation"}
+                    </p>
+
+                    {data.state !== "cancel" ? (
+                      <div className="flex flex-col gap-3">
+                        {validationHistory.length === 0 ? (
+                          <div className="text-center py-4 border rounded-lg bg-gray-50">
+                            <AlertCircle className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                            <p className="text-sm text-gray-600">
+                              Aucun validateur configuré pour cette catégorie
+                            </p>
+                          </div>
+                        ) : (
+                          validationHistory.map((item) => {
+                            return (
+                              <div
+                                key={item.step}
+                                className={`border rounded-lg p-2 ${item.bgColor}`}
+                              >
+                                {/* Nom du validateur - Style similaire à l'image */}
+                                <div>
+                                  <div className="text-[10px] text-gray-500 tracking-wide">
+                                    {item.status === "approved"
+                                      ? `Étape ${item.step} : Approuvé par`
+                                      : item.status === "rejected"
+                                        ? `Étape ${item.step} : Rejeté par`
+                                        : `Étape ${item.step} : En attente de l'approbation de`}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1">
+                                      <p className="font-semibold text-[16px]">
+                                        {item.validatorName}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 border rounded-lg bg-gray-50 max-w-[300px]">
-                      {
-                        "Historique de validation non disponible car vous avez annulé le besoin"
-                      }
-                    </div>
-                  )}
-                </div>
-              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 border rounded-lg bg-gray-50 max-w-[300px]">
+                        {
+                          "Historique de validation non disponible car vous avez annulé le besoin"
+                        }
+                      </div>
+                    )}
+                  </div>
+                </div>}
 
               {/* Motif de rejet */}
               {data.state === "rejected" && (
@@ -482,47 +528,50 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
 
               {/* Bénéficiaires */}
-              {<div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {data.categoryId === 0
-                      ? "Recepteur pour compte"
-                      : "Bénéficiaires"}
-                  </p>
-                  {data.categoryId === 0 ? (
-                    <p className="font-semibold capitalize">
-                      {
-                        usersData.data?.data?.find(
-                          (u) => u.id === Number(data.beneficiary)
-                        )?.name
-                      }
+              {data.type !== "SPECIAL" &&
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <Users className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {data.type === "FAC"
+                        ? "Recepteur pour compte"
+                        : "Bénéficiaires"}
                     </p>
-                  ) : (
-                    <div className="flex flex-col">
-                      {data.beneficiary === "me" ? (
-                        <p className="font-semibold capitalize">{user?.name}</p>
-                      ) : (
-                        <div className="flex flex-col">
-                          {data.beficiaryList?.map((ben) => {
-                            const beneficiary = usersData.data?.data?.find(
-                              (x) => x.id === ben.id
-                            );
-                            return (
-                              <p
-                                key={ben.id}
-                                className="font-semibold capitalize"
-                              >{`${beneficiary?.name || ben.id}`}</p>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>}
+                    {data.type === "FAC" ? (
+                      <p className="font-semibold capitalize">
+                        {
+                          usersData.data?.data?.find(
+                            (u) => u.id === Number(data.beneficiary)
+                          )?.firstName + " " + usersData.data?.data?.find(
+                            (u) => u.id === Number(data.beneficiary)
+                          )?.lastName
+                        }
+                      </p>
+                    ) : (
+                      <div className="flex flex-col">
+                        {data.beneficiary === "me" ? (
+                          <p className="font-semibold capitalize">{user?.lastName + " " + user?.firstName}</p>
+                        ) : (
+                          <div className="flex flex-col">
+                            {data.beficiaryList?.map((ben) => {
+                              const beneficiary = usersData.data?.data?.find(
+                                (x) => x.id === ben.id
+                              );
+                              return (
+                                <p
+                                  key={ben.id}
+                                  className="font-semibold capitalize"
+                                >{`${beneficiary?.firstName + " " + beneficiary?.lastName || ben.id}`}</p>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>}
 
               {data.type === "FAC" &&
                 <div className="flex items-start gap-3">

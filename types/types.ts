@@ -78,7 +78,8 @@ export type PaymentRequest = {
 export type User = {
   id: number;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   phone?: string;
   post?: string;
   password?: string;
@@ -135,6 +136,7 @@ export type Member = {
 export type ProjectT = {
   id?: number;
   reference: string;
+  userId: number;
   createdAt?: Date;
   updatedAt?: Date;
   label: string;

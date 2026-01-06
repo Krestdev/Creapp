@@ -25,6 +25,7 @@ import {
   Eye,
   LucideBan,
   LucidePen,
+  Paperclip,
   XCircle,
 } from "lucide-react";
 import * as React from "react";
@@ -84,6 +85,7 @@ import { Pagination } from "./pagination";
 import { ModalWarning } from "../modals/modal-warning";
 import UpdateRequestFac from "../besoin/UpdateRequestFac";
 import { VariantProps } from "class-variance-authority";
+import { PaymentQueries } from "@/queries/payment";
 
 const statusConfig = {
   pending: {
@@ -199,6 +201,12 @@ export function DataTable({
     queryFn: async () => {
       return projects.getAll();
     },
+  });
+
+  const payments = new PaymentQueries();
+  const paymentsData = useQuery({
+    queryKey: ["payments"],
+    queryFn: async () => payments.getAll(),
   });
 
   const category = new CategoryQueries();
@@ -608,54 +616,61 @@ export function DataTable({
       header: () => <span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
+        const paiement = paymentsData.data?.data.find(
+          (x) => x.requestId === item?.id
+        );
+        const isAttach = (item.type === "FAC" || item.type === "RH") && paiement?.proof !== null;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant={"outline"}>
-                {"Actions"}
-                <ChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedItem(item);
-                  setIsModalOpen(true);
-                }}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                {"Voir"}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedItem(item);
-                  console.log(item.type);
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant={"outline"}>
+                  {"Actions"}
+                  <ChevronDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(item);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  {"Voir"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(item);
+                    console.log(item.type);
 
-                  item.type === "FAC" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true);
-                }}
-                disabled={item.state !== "pending"}
-              >
-                <LucidePen className="mr-2 h-4 w-4" />
-                {"Modifier"}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedItem(item);
-                  setIsCancelModalOpen(true);
-                }}
-                disabled={
-                  item.state !== "pending" ||
-                  (item.revieweeList?.length ?? 0) > 0
-                }
-              >
-                <LucideBan className="mr-2 h-4 w-4 text-red-500" />
-                {"Annuler"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                    item.type === "FAC" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true);
+                  }}
+                  disabled={item.state !== "pending"}
+                >
+                  <LucidePen className="mr-2 h-4 w-4" />
+                  {"Modifier"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(item);
+                    setIsCancelModalOpen(true);
+                  }}
+                  disabled={
+                    item.state !== "pending" ||
+                    (item.revieweeList?.length ?? 0) > 0
+                  }
+                >
+                  <LucideBan className="mr-2 h-4 w-4 text-red-500" />
+                  {"Annuler"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {isAttach ? <Paperclip /> : ""}
+          </div>
         );
       },
     },

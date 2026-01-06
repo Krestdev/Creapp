@@ -242,7 +242,7 @@ export function DetailTicket({
                       <div className="flex flex-col">
                         {request?.beneficiary === "me" ? (
                           <p className="font-semibold capitalize">
-                            {user?.name}
+                            {user?.lastName + " " + user?.firstName}
                           </p>
                         ) : (
                           <div className="flex flex-col">
@@ -254,7 +254,7 @@ export function DetailTicket({
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${beneficiary?.name || ben.id}`}</p>
+                                >{`${beneficiary?.firstName + " " + beneficiary?.lastName || ben.id}`}</p>
                               );
                             })}
                           </div>
@@ -280,13 +280,15 @@ export function DetailTicket({
                       {
                         usersData.data?.data?.find(
                           (u) => u.id === Number(request?.beneficiary)
-                        )?.name
+                        )?.firstName + " " + usersData.data?.data?.find(
+                          (u) => u.id === Number(request?.beneficiary)
+                        )?.lastName
                       }
                     </p>
                   ) : (
                     <div className="flex flex-col">
                       {request?.beneficiary === "me" ? (
-                        <p className="font-semibold capitalize">{user?.name}</p>
+                        <p className="font-semibold capitalize">{user?.lastName + " " + user?.firstName}</p>
                       ) : (
                         <div className="flex flex-col">
                           {request?.beficiaryList?.map((ben) => {
@@ -297,7 +299,7 @@ export function DetailTicket({
                               <p
                                 key={ben.id}
                                 className="font-semibold capitalize"
-                              >{`${beneficiary?.name || ben.id}`}</p>
+                              >{`${beneficiary?.firstName + " " + beneficiary?.lastName || ben.id}`}</p>
                             );
                           })}
                         </div>

@@ -29,7 +29,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
-  name: z.string().min(1),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
   email: z.string().min(1),
   password: z
     .string()
@@ -45,7 +46,8 @@ export default function CreateUserForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
       cpassword: "",
@@ -68,7 +70,8 @@ export default function CreateUserForm() {
     onSuccess: (data: ResponseT<User>) => {
       toast.success("Utilisateur créé avec succès.");
       form.reset({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
         password: "",
         cpassword: "",
@@ -103,7 +106,8 @@ export default function CreateUserForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const data = {
-        name: values.name,
+        firstName: values.firstName,
+        lastName: values.lastName,
         email: values.email,
         password: values.password,
         phone: values.phone,
@@ -126,7 +130,21 @@ export default function CreateUserForm() {
       >
         <FormField
           control={form.control}
-          name="name"
+          name="firstName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Nom"}</FormLabel>
+              <FormControl className="w-full">
+                <Input placeholder="ex. John Doe" type="" {...field} />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="lastName"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{"Nom"}</FormLabel>

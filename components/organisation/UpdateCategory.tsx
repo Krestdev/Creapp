@@ -205,7 +205,7 @@ export function UpdateCategory({
   const getUserName = (userId: number) => {
     const users = usersData.data?.data || [];
     const user = users.find((u) => u.id === userId);
-    return user?.name || `Utilisateur #${userId}`;
+    return user?.lastName + " " + user?.firstName || `Utilisateur #${userId}`;
   };
 
   // Fonction pour obtenir les utilisateurs disponibles (non sélectionnés)
@@ -420,7 +420,7 @@ export function UpdateCategory({
                                         key={user.id}
                                         value={user.id!.toString()}
                                       >
-                                        {user.name}
+                                        {user.lastName + " " + user.firstName}
                                       </SelectItem>
                                     ))
                                   ) : (

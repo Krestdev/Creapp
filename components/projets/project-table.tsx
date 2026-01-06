@@ -57,7 +57,7 @@ import {
 } from "@/components/ui/table";
 import { ProjectQueries } from "@/queries/projectModule";
 import { ProjectT } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
@@ -66,6 +66,7 @@ import { DetailProject } from "./detail-project";
 import UpdateProject from "./UpdateProject";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { UserQueries } from "@/queries/baseModule";
 
 // Interface pour tous les filtres
 export interface ProjectFilters {
@@ -195,6 +196,12 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
 
   const queryClient = useQueryClient();
 
+  const users = new UserQueries();
+  const usersData = useQuery({
+    queryKey: ["usersList"],
+    queryFn: () => users.getAll(),
+  })
+
   const project = new ProjectQueries();
   const projectMutationData = useMutation({
     mutationKey: ["projectsStatus"],
@@ -219,6 +226,10 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
       ...prev,
       [filterName]: value,
     }));
+  };
+  const getUserName = (id: number) => {
+    const user = usersData.data?.data.find((user) => user.id === id);
+    return user?.lastName + " " + user?.firstName || "";
   };
 
   // Fonction pour normaliser le texte (ignorer accents)
@@ -402,6 +413,25 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
         cell: ({ row }) => {
           const chief = row.getValue("chief") as { id: number; name: string };
           return <div>{chief ? chief.name : "Pas de chef"}</div>;
+        },
+      },
+      {
+        accessorKey: "userId",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Créer par"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          return <div>{getUserName(row.getValue("userId"))}</div>;
         },
       },
       {

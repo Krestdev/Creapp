@@ -275,7 +275,7 @@ export default function FacilitationRequestForm() {
                   <SelectContent>
                     {usersData.data?.data.map((user) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
-                        {user.name}
+                        {user.lastName + " " + user.firstName}
                       </SelectItem>
                     ))}
                   </SelectContent>

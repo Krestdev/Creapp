@@ -95,6 +95,7 @@ export const formSchema = z
     hasPenalties: z.boolean(),
     amountBase: z.coerce.number().optional(),
     penaltyMode: z.string().optional(),
+    providerId: z.coerce.number({ message: "Veuillez définir un fournisseur" }),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -138,7 +139,8 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
       hasPenalties: purchaseOrder.hasPenalties,
       penaltyMode: purchaseOrder.penaltyMode,
       paymentMethod: purchaseOrder.paymentMethod,
-      deviId: purchaseOrder.deviId
+      deviId: purchaseOrder.deviId,
+      providerId: purchaseOrder.providerId
     },
   });
 
@@ -183,7 +185,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
   const penalty = form.watch("hasPenalties");
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className='sm:max-w-3xl sm:w-[90%]'>
+      <DialogContent className='sm:max-w-4xl! sm:w-[90%]'>
         <DialogHeader variant={"secondary"}>
           <DialogTitle>{`Bon de commande - ${purchaseOrder.provider.name}`}</DialogTitle>
           <DialogDescription>{"Mettre à jour les informations liées au bon de commande"}</DialogDescription>
@@ -211,7 +213,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                       <SelectContent>
                         {getQuotations.data && getQuotations.data.data.filter(c => c.status === "APPROVED").map((quote) => (
                           <SelectItem key={quote.id} value={String(quote.id)} className="line-clamp-1" >
-                            {`${quote.commandRequest.title} - ${formatToShortName(getProviders.data?.data.find(p => p.id === quote.providerId)?.name)}`}
+                            {`${quote.commandRequest.title}`}
                           </SelectItem>
                         ))}
                         {
@@ -229,7 +231,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
             />
             <FormField
               control={form.control}
-              name="deviId"
+              name="providerId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{"Fournisseur"}</FormLabel>
