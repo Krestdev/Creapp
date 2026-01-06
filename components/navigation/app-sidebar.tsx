@@ -9,31 +9,15 @@ import { ProviderQueries } from "@/queries/providers";
 import { PurchaseOrder } from "@/queries/purchase-order";
 import { QuotationQueries } from "@/queries/quotation";
 import { RequestQueries } from "@/queries/requestModule";
-<<<<<<< HEAD
 import { Category, NavigationItemProps, RequestModelT, Role, User } from "@/types/types";
-=======
-import {
-  Category,
-  NavigationItemProps,
-  RequestModelT,
-  Role,
-  User,
-} from "@/types/types";
->>>>>>> 2503b255343403f948d381f6ba833fd46dc5240d
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
   ClipboardList,
-<<<<<<< HEAD
-  DollarSign,
-  EllipsisVertical,
   LandmarkIcon,
-=======
   Coins,
-  CreditCardIcon,
   DollarSign,
   EllipsisVertical,
->>>>>>> 2503b255343403f948d381f6ba833fd46dc5240d
   ScrollText,
   Ticket,
   Truck,
