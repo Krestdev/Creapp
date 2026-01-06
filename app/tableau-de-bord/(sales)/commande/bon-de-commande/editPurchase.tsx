@@ -229,6 +229,40 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
             />
             <FormField
               control={form.control}
+              name="deviId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Fournisseur"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={String(field.value)}
+                      onValueChange={field.onChange}
+                      disabled
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getQuotations.data && getQuotations.data.data.filter(c => c.status === "APPROVED").map((quote) => (
+                          <SelectItem key={quote.id} value={String(quote.id)} className="line-clamp-1" >
+                            {`${formatToShortName(getProviders.data?.data.find(p => p.id === quote.providerId)?.name)}`}
+                          </SelectItem>
+                        ))}
+                        {
+                          getQuotations.data && getQuotations.data.data.length === 0 &&
+                          <SelectItem value="-" disabled>
+                            {"Aucun devis disponible"}
+                          </SelectItem>
+                        }
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="deliveryLocation"
               render={({ field }) => (
                 <FormItem>
