@@ -66,7 +66,14 @@ import { UserQueries } from "@/queries/baseModule";
 import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
-import { Category, PAYMENT_TYPES, PaymentRequest, ProjectT, RequestModelT, User } from "@/types/types";
+import {
+  Category,
+  PAYMENT_TYPES,
+  PaymentRequest,
+  ProjectT,
+  RequestModelT,
+  User,
+} from "@/types/types";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
@@ -175,10 +182,14 @@ export function DataVal({
   >("approve");
 
   // États pour les actions de groupe
-  const [isGroupActionDialogOpen, setIsGroupActionDialogOpen] = React.useState(false);
-  const [groupActionType, setGroupActionType] = React.useState<"approve" | "reject">("approve");
+  const [isGroupActionDialogOpen, setIsGroupActionDialogOpen] =
+    React.useState(false);
+  const [groupActionType, setGroupActionType] = React.useState<
+    "approve" | "reject"
+  >("approve");
   const [rejectionReason, setRejectionReason] = React.useState("");
-  const [isProcessingGroupAction, setIsProcessingGroupAction] = React.useState(false);
+  const [isProcessingGroupAction, setIsProcessingGroupAction] =
+    React.useState(false);
 
   // Fonction pour obtenir la position de l'utilisateur pour un besoin donné
   const getUserPositionForRequest = (request: RequestModelT) => {
@@ -289,9 +300,7 @@ export function DataVal({
   };
 
   const getProjectName = (projectId: string) => {
-    const project = projectsData?.find(
-      (proj) => proj.id === Number(projectId)
-    );
+    const project = projectsData?.find((proj) => proj.id === Number(projectId));
     return project?.label || projectId;
   };
 
@@ -514,12 +523,12 @@ export function DataVal({
       decision?: string;
       validatorId?: number;
       validator?:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => {
       await request.review(id, {
         validated: validated,
@@ -642,18 +651,22 @@ export function DataVal({
     }
 
     // Vérifier que l'utilisateur peut valider tous les besoins sélectionnés
-    const cannotValidateItems = selectedRows.filter(row => {
+    const cannotValidateItems = selectedRows.filter((row) => {
       const item = row.original;
       const validationInfo = getValidationInfo(item);
       const userHasValidated = hasUserAlreadyValidated(item);
 
-      return !validationInfo.canValidate ||
+      return (
+        !validationInfo.canValidate ||
         item.state !== "pending" ||
-        userHasValidated;
+        userHasValidated
+      );
     });
 
     if (cannotValidateItems.length > 0) {
-      toast.error(`Vous ne pouvez pas valider ${cannotValidateItems.length} besoin(s) sélectionné(s)`);
+      toast.error(
+        `Vous ne pouvez pas valider ${cannotValidateItems.length} besoin(s) sélectionné(s)`
+      );
       return;
     }
 
@@ -661,15 +674,14 @@ export function DataVal({
 
     try {
       const validatorss = user?.id ? { userId: user.id, rank: 1 } : undefined;
-      const selectedIds = selectedRows.map(row => Number(row.original.id));
+      const selectedIds = selectedRows.map((row) => Number(row.original.id));
 
       const validator = categoriesData
         ?.find((cat) => cat.id === selectedRows[0].original.categoryId)
         ?.validators?.find((v) => v.userId === user?.id);
 
-
       // Vérifier si l'utilisateur est le dernier validateur pour TOUS les besoins sélectionnés
-      const isLastValidatorForAll = selectedRows.every(row => {
+      const isLastValidatorForAll = selectedRows.every((row) => {
         const item = row.original;
         const validationInfo = getValidationInfo(item);
         return validationInfo.isLastValidator;
@@ -736,8 +748,7 @@ export function DataVal({
         totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
       canValidate:
         // !hasUserAlreadyValidated(request) &&
-        request.state === "pending"
-        && userPosition !== null,
+        request.state === "pending" && userPosition !== null,
     };
   };
 
@@ -753,26 +764,30 @@ export function DataVal({
 
   // Fonction pour sélectionner uniquement les éléments validables
   const selectOnlyValidatable = () => {
-    const validatableRows = table.getRowModel().rows.filter(row => {
+    const validatableRows = table.getRowModel().rows.filter((row) => {
       const item = row.original;
       const validationInfo = getValidationInfo(item);
       const userHasValidated = hasUserAlreadyValidated(item);
 
-      return validationInfo.canValidate &&
+      return (
+        validationInfo.canValidate &&
         item.state === "pending" &&
-        !userHasValidated;
+        !userHasValidated
+      );
     });
 
     // Désélectionner tout d'abord
     deselectAll();
 
     // Sélectionner uniquement les lignes validables
-    validatableRows.forEach(row => row.toggleSelected(true));
+    validatableRows.forEach((row) => row.toggleSelected(true));
   };
 
-  function getTypeBadge(type: "SPECIAL" | "RH" | "FAC" | "PURCHASE" | undefined): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-    const typeData = PAYMENT_TYPES.find(t => t.value === type);
-    const label = typeData?.name ?? "Inconnu"
+  function getTypeBadge(
+    type: "SPECIAL" | "RH" | "FAC" | "PURCHASE" | undefined
+  ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+    const typeData = PAYMENT_TYPES.find((t) => t.value === type);
+    const label = typeData?.name ?? "Inconnu";
     switch (type) {
       case "FAC":
         return { label, variant: "lime" };
@@ -785,7 +800,7 @@ export function DataVal({
       default:
         return { label: type || "Inconnu", variant: "outline" };
     }
-  };
+  }
 
   // Define columns avec colonne conditionnelle
   const columns: ColumnDef<RequestModelT>[] = React.useMemo(() => {
@@ -855,7 +870,9 @@ export function DataVal({
           return (
             <span
               className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
               {"Type"}
               <ArrowUpDown />
@@ -910,7 +927,9 @@ export function DataVal({
 
           return (
             <div>
-              <div className="font-medium text-sm first-letter:uppercase lowercase">{categoryName}</div>
+              <div className="font-medium text-sm first-letter:uppercase lowercase">
+                {categoryName}
+              </div>
             </div>
           );
         },
@@ -931,7 +950,9 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="text-sm first-letter:uppercase lowercase">{getUserName(row.getValue("userId"))}</div>
+          <div className="text-sm first-letter:uppercase lowercase">
+            {getUserName(row.getValue("userId"))}
+          </div>
         ),
       },
       {
@@ -1049,15 +1070,15 @@ export function DataVal({
       header: () => <span className="tablehead">Actions</span>,
       cell: ({ row }) => {
         const item = row.original;
+
         const validationInfo = getValidationInfo(item);
         const userHasValidated = hasUserAlreadyValidated(item);
-        const paiement = paymentsData?.find(
-          (x) => x.requestId === item?.id
-        );
-        const isAttach = (item.type === "FAC" || item.type === "RH") && paiement?.proof !== null;
+        const paiement = paymentsData?.find((x) => x.requestId === item?.id);
+        const isAttach =
+          (item.type === "FAC" || item.type === "RH") &&
+          paiement?.proof !== null;
 
         console.log(paiement);
-
 
         return (
           <div className="flex items-center gap-2">
@@ -1156,7 +1177,6 @@ export function DataVal({
 
   return (
     <div className="w-full">
-
       <div className="flex flex-wrap items-center gap-3 py-4">
         {/* Global search */}
         <Input
@@ -1330,50 +1350,52 @@ export function DataVal({
                     {column.id === "select"
                       ? "Sélection"
                       : column.id === "label"
-                        ? "Titres"
-                        : column.id === "projectId"
-                          ? "Projets"
-                          : column.id === "categoryId"
-                            ? "Catégories"
-                            : column.id === "userId"
-                              ? "Émetteurs"
-                              : column.id === "beneficiary"
-                                ? "Bénéficiaires"
-                                : column.id === "createdAt"
-                                  ? "Date d'émission"
-                                  : column.id === "state"
-                                    ? "Statuts"
-                                    : column.id === "validationProgress"
-                                      ? "Validation"
-                                      : column.id}
+                      ? "Titres"
+                      : column.id === "projectId"
+                      ? "Projets"
+                      : column.id === "categoryId"
+                      ? "Catégories"
+                      : column.id === "userId"
+                      ? "Émetteurs"
+                      : column.id === "beneficiary"
+                      ? "Bénéficiaires"
+                      : column.id === "createdAt"
+                      ? "Date d'émission"
+                      : column.id === "state"
+                      ? "Statuts"
+                      : column.id === "validationProgress"
+                      ? "Validation"
+                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      {isCheckable && selectedCount > 1 && <div className="flex items-center gap-2 pb-4">
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => openGroupActionDialog("approve")}
-          className="h-8 bg-green-600 hover:bg-green-700"
-          disabled={!canValidateSelected}
-        >
-          <CheckCheck className="h-4 w-4 mr-2" />
-          Approuver ({selectedCount})
-        </Button>
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => openGroupActionDialog("reject")}
-          className="h-8 bg-red-600 hover:bg-red-700"
-          disabled={!canValidateSelected}
-        >
-          <LucideBan className="h-4 w-4 mr-2" />
-          Rejeter ({selectedCount})
-        </Button>
-      </div>}
+      {isCheckable && selectedCount > 1 && (
+        <div className="flex items-center gap-2 pb-4">
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => openGroupActionDialog("approve")}
+            className="h-8 bg-green-600 hover:bg-green-700"
+            disabled={!canValidateSelected}
+          >
+            <CheckCheck className="h-4 w-4 mr-2" />
+            Approuver ({selectedCount})
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => openGroupActionDialog("reject")}
+            className="h-8 bg-red-600 hover:bg-red-700"
+            disabled={!canValidateSelected}
+          >
+            <LucideBan className="h-4 w-4 mr-2" />
+            Rejeter ({selectedCount})
+          </Button>
+        </div>
+      )}
       {/* Table */}
       {filteredData.length > 0 ? (
         <div className="rounded-md border overflow-hidden">
@@ -1390,9 +1412,9 @@ export function DataVal({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
                     );
                   })}
@@ -1417,7 +1439,9 @@ export function DataVal({
                       validationInfo.userPosition === 2 && "border-l-green-400",
                       validationInfo.userPosition === 3 && "border-l-red-400",
                       validationInfo.isLastValidator && "border-l-red-400",
-                      isSelected && isCheckable && "bg-blue-50 hover:bg-blue-100"
+                      isSelected &&
+                        isCheckable &&
+                        "bg-blue-50 hover:bg-blue-100"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -1557,7 +1581,10 @@ export function DataVal({
 
       {/* Dialog pour les actions de groupe - seulement si isCheckable est true */}
       {isCheckable && (
-        <Dialog open={isGroupActionDialogOpen} onOpenChange={setIsGroupActionDialogOpen}>
+        <Dialog
+          open={isGroupActionDialogOpen}
+          onOpenChange={setIsGroupActionDialogOpen}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -1566,7 +1593,9 @@ export function DataVal({
                 ) : (
                   <LucideBan className="h-5 w-5 text-red-600" />
                 )}
-                {groupActionType === "approve" ? "Approuver plusieurs besoins" : "Rejeter plusieurs besoins"}
+                {groupActionType === "approve"
+                  ? "Approuver plusieurs besoins"
+                  : "Rejeter plusieurs besoins"}
               </DialogTitle>
               <DialogDescription>
                 {groupActionType === "approve"
@@ -1584,7 +1613,10 @@ export function DataVal({
             </div>
             {groupActionType === "reject" && (
               <div className="space-y-2">
-                <Label htmlFor="rejectionReason" className="text-sm font-medium">
+                <Label
+                  htmlFor="rejectionReason"
+                  className="text-sm font-medium"
+                >
                   {"Motif du rejet"} <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
@@ -1611,10 +1643,14 @@ export function DataVal({
               </Button>
               <Button
                 onClick={handleGroupAction}
-                disabled={isProcessingGroupAction || (groupActionType === "reject" && !rejectionReason.trim())}
-                className={groupActionType === "approve"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-red-600 hover:bg-red-700"
+                disabled={
+                  isProcessingGroupAction ||
+                  (groupActionType === "reject" && !rejectionReason.trim())
+                }
+                className={
+                  groupActionType === "approve"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
                 }
               >
                 {isProcessingGroupAction ? (

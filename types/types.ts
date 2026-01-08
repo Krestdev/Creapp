@@ -11,10 +11,19 @@ export interface NavigationItemProps {
   badgeValue?: number;
   items?: {
     pageId: string;
+    icon?: LucideIcon;
     title: string;
     href: string;
     authorized: string[];
     badgeValue?: number;
+    items?: {
+      pageId: string;
+      icon?: LucideIcon;
+      title: string;
+      href: string;
+      authorized: string[];
+      badgeValue?: number;
+    }[];
   }[];
 }
 
@@ -38,6 +47,7 @@ export const PAYMENT_TYPES = [
   { value: "RH", name: "Ressources Humaines" },
   { value: "SPECIAL", name: "Spécial" },
   { value: "PURCHASE", name: "Achat" },
+  { value: "CURRENT", name: "Dépenses Courantes" },
 ] as const;
 
 export const PAYMENT_METHOD = [

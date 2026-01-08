@@ -486,7 +486,9 @@ export function DataValidation({
               table.getIsAllPageRowsSelected() ||
               (table.getIsSomeRowsSelected() && "indeterminate")
             }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Sélectionner toutes les lignes"
           />
         ),
@@ -668,6 +670,14 @@ export function DataValidation({
       header: () => <span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
+
+        console.log(
+          "checking",
+          item.state !== "pending" ||
+            item.revieweeList?.some((x) => x.validatorId === user?.id),
+          item.state,
+          item.revieweeList?.some((x) => x.validatorId === user?.id)
+        );
 
         return (
           <DropdownMenu>
@@ -970,18 +980,18 @@ export function DataValidation({
                     {column.id === "label"
                       ? "Titres"
                       : column.id === "projectId"
-                        ? "Projets"
-                        : column.id === "categoryId"
-                          ? "Catégories"
-                          : column.id === "userId"
-                            ? "Emetteurs"
-                            : column.id === "beneficiary"
-                              ? "Beneficiaires"
-                              : column.id === "createdAt"
-                                ? "Date d'émission"
-                                : column.id === "state"
-                                  ? "Statuts"
-                                  : column.id}
+                      ? "Projets"
+                      : column.id === "categoryId"
+                      ? "Catégories"
+                      : column.id === "userId"
+                      ? "Emetteurs"
+                      : column.id === "beneficiary"
+                      ? "Beneficiaires"
+                      : column.id === "createdAt"
+                      ? "Date d'émission"
+                      : column.id === "state"
+                      ? "Statuts"
+                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -1005,9 +1015,9 @@ export function DataValidation({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
                     );
                   })}

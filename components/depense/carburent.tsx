@@ -142,7 +142,7 @@ export function CarburentForm() {
       benefId: Number(data.Beneficier),
       justification: data.Justificatif,
       status: "paid",
-      type: "PURCHASE",
+      type: "CURRENT",
       method: "cash",
       priority: "medium",
       isPartial: false,
@@ -176,6 +176,7 @@ export function CarburentForm() {
                       {...field}
                       id="title"
                       type="text"
+                      disabled={true}
                       onChange={(e) => {
                         field.onChange(e.target.value);
                       }}
@@ -433,7 +434,7 @@ export function CarburentForm() {
           <ViewDepense
             open={view}
             openChange={setView}
-            depense={paymentsData.data.data}
+            paymentRequest={paymentsData.data.data}
           />
         )}
         <SuccessModal

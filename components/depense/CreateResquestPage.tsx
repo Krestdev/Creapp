@@ -52,18 +52,6 @@ const CreateDepensePage = () => {
               <SelectItem value="Carburent">
                 {"Depense de Carburent"}
               </SelectItem>
-
-              {/* RH uniquement */}
-              {hasRole("RH") && (
-                <SelectItem value="ressource_humaine">
-                  {"Depense Ressource humaine"}
-                </SelectItem>
-              )}
-
-              {/* VOLT-MANAGER uniquement */}
-              {hasRole("VOLT_MANAGER") && (
-                <SelectItem value="speciaux">{"Depense spéciaux"}</SelectItem>
-              )}
             </SelectGroup>
           </SelectContent>
         </Select>

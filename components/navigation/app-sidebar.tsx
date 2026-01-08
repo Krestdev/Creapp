@@ -29,6 +29,7 @@ import {
   Truck,
   UsersRound,
   LayoutDashboardIcon,
+  SettingsIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -94,10 +95,10 @@ function AppSidebar() {
   const approbationDevis =
     providers?.data?.data && cotation?.data && quotationsData?.data
       ? groupQuotationsByCommandRequest(
-        cotation?.data!,
-        quotationsData?.data!,
-        providers?.data?.data!
-      ).filter((c) => c.status === "NOT_PROCESSED")
+          cotation?.data!,
+          quotationsData?.data!,
+          providers?.data?.data!
+        ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
 
   // Récupérer toutes les catégories avec leurs validateurs
@@ -433,43 +434,52 @@ function AppSidebar() {
     },
     {
       pageId: "PG-08",
-      icon: UsersRound,
-      href: "/tableau-de-bord/utilisateurs",
+      icon: SettingsIcon,
+      href: "/tableau-de-bord/settings",
       authorized: ["ADMIN"],
-      title: "Utilisateurs",
+      title: "Parametre",
       items: [
         {
-          pageId: "PG-08-02",
-          title: "Liste",
-          href: "/tableau-de-bord/utilisateurs/liste",
+          pageId: "PG-08",
+          icon: UsersRound,
+          href: "/tableau-de-bord/utilisateurs",
           authorized: ["ADMIN"],
+          title: "Utilisateurs",
+          items: [
+            {
+              pageId: "PG-08-02",
+              title: "Liste",
+              href: "/tableau-de-bord/utilisateurs/liste",
+              authorized: ["ADMIN"],
+            },
+            {
+              pageId: "PG-09-5",
+              title: "Rôles",
+              href: "/tableau-de-bord/utilisateurs/roles",
+              authorized: ["ADMIN"],
+            },
+          ],
         },
         {
-          pageId: "PG-09-5",
-          title: "Rôles",
-          href: "/tableau-de-bord/utilisateurs/roles",
+          pageId: "PG-08",
+          icon: Truck,
+          href: "/tableau-de-bord/provider",
           authorized: ["ADMIN"],
-        },
-      ],
-    },
-    {
-      pageId: "PG-08",
-      icon: Truck,
-      href: "/tableau-de-bord/provider",
-      authorized: ["ADMIN"],
-      title: "Fournisseurs",
-      items: [
-        {
-          pageId: "PG-08-01",
-          title: "Créer un fournisseur",
-          href: "/tableau-de-bord/provider/create",
-          authorized: ["ADMIN"],
-        },
-        {
-          pageId: "PG-08-02",
-          title: "Liste des fournisseurs",
-          href: "/tableau-de-bord/provider/liste",
-          authorized: ["ADMIN"],
+          title: "Fournisseurs",
+          items: [
+            {
+              pageId: "PG-08-01",
+              title: "Créer un fournisseur",
+              href: "/tableau-de-bord/provider/create",
+              authorized: ["ADMIN"],
+            },
+            {
+              pageId: "PG-08-02",
+              title: "Liste des fournisseurs",
+              href: "/tableau-de-bord/provider/liste",
+              authorized: ["ADMIN"],
+            },
+          ],
         },
       ],
     },
