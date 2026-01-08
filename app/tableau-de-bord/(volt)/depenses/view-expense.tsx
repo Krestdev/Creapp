@@ -118,7 +118,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               <p className="view-group-title">{"Justificatif"}</p>
               <Link
                 href={`${process.env.NEXT_PUBLIC_API
-                  }/uploads/${encodeURIComponent(payment.proof)}`}
+                  }/uploads/${encodeURIComponent(payment.proof as string)}`}
                 target="_blank"
                 className="flex gap-0.5 items-center"
               >
