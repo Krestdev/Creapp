@@ -56,7 +56,7 @@ export const PAY_STATUS = [
 export type PaymentRequest = {
   id: number;
   reference: string;
-  proof: string;
+  proof: File | string | undefined;
   account?: string;
   justification?: (string | File)[];
   status: (typeof PAY_STATUS)[number]["value"];

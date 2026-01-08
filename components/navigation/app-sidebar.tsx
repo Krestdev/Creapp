@@ -28,6 +28,7 @@ import {
   Ticket,
   Truck,
   UsersRound,
+  LayoutDashboardIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -276,6 +277,13 @@ function AppSidebar() {
   }
 
   const navLinks: NavigationItemProps[] = [
+    {
+      pageId: "PG-00-00",
+      icon: LayoutDashboardIcon,
+      href: "/tableau-de-bord",
+      authorized: ["USER"],
+      title: "Tableau de bord",
+    },
     {
       pageId: "PG-00",
       icon: BriefcaseBusiness,

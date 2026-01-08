@@ -27,6 +27,9 @@ interface ChartAreaInteractiveProps {
   filteredData?: RequestModelT[];
   dateFilter?: string;
   customDateRange?: { from: Date; to: Date };
+  title?: string;
+  description?: string;
+  type?: string;
 }
 
 const chartConfig = {
@@ -43,7 +46,10 @@ const chartConfig = {
 export function ChartAreaInteractive({
   filteredData = [],
   dateFilter,
-  customDateRange
+  customDateRange,
+  title,
+  description,
+  type
 }: ChartAreaInteractiveProps) {
 
 
@@ -96,26 +102,10 @@ export function ChartAreaInteractive({
     });
   };
 
-  // DEBUG: Afficher les données reçues
-  React.useEffect(() => {
-    console.log('📊 ChartAreaInteractive - Données reçues:', {
-      nbDonnées: filteredData.length,
-      filtreDate: dateFilter,
-      plagePerso: customDateRange,
-      statutsUniques: [...new Set(filteredData.map(item => item.state))],
-      datesMinMax: filteredData.length > 0 ? {
-        min: new Date(Math.min(...filteredData.map(d => new Date(d.createdAt).getTime()))),
-        max: new Date(Math.max(...filteredData.map(d => new Date(d.createdAt).getTime())))
-      } : null
-    });
-  }, [filteredData, dateFilter, customDateRange]);
-
   // Fonction pour générer les données du graphique
   const chartData = React.useMemo(() => {
-    console.log('🔄 Génération des données du graphique...');
 
     if (filteredData.length === 0) {
-      console.log('⚠️ Aucune donnée filtrée disponible');
       return [];
     }
 
@@ -125,20 +115,17 @@ export function ChartAreaInteractive({
 
     // CAS 1: "Toutes les périodes" (dateFilter est undefined)
     if (!dateFilter) {
-      console.log('📅 Mode: Toutes les périodes');
 
       startDate = subDays(now, 29); // 30 derniers jours
       startDate.setHours(0, 0, 0, 0);
     }
     // CAS 2: Plage personnalisée
     else if (dateFilter === "custom" && customDateRange) {
-      console.log('📅 Mode: Plage personnalisée');
       startDate = customDateRange.from;
       endDate = customDateRange.to;
     }
     // CAS 3: Filtres prédéfinis
     else {
-      console.log(`📅 Mode: ${dateFilter}`);
       switch (dateFilter) {
         case "today":
           startDate = new Date(now);
@@ -167,7 +154,6 @@ export function ChartAreaInteractive({
     // Si c'est une année, on utilise les données mensuelles déjà générées
     if (dateFilter === "year") {
       const yearlyData = generateMonthlyData(filteredData, now.getFullYear());
-      console.log('📊 Données annuelles générées:', yearlyData);
       return yearlyData;
     }
 
@@ -176,11 +162,8 @@ export function ChartAreaInteractive({
       [startDate, endDate] = [endDate, startDate];
     }
 
-    console.log(`📅 Plage: ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`);
-
     // Générer les dates pour la période
     const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
-    console.log(`📊 ${dateRange.length} jours dans la plage`);
 
     // Initialiser les données du graphique
     const data: Array<{ date: string, approuvé: number, rejetté: number, total: number }> = dateRange.map(date => {
@@ -197,11 +180,6 @@ export function ChartAreaInteractive({
           return false;
         }
       });
-
-      // Vérifier les valeurs exactes des statuts pour debug
-      if (dayData.length > 0 && dateRange.length <= 10) {
-        console.log(`📈 ${dateStr}: ${dayData.length} besoins - Statuts:`, dayData.map(d => d.state));
-      }
 
       // Correspondance flexible des statuts
       const approuvé = dayData.filter(item => {
@@ -222,11 +200,6 @@ export function ChartAreaInteractive({
           state === 'rejetée';
       }).length;
 
-      // Pour le debug
-      if (approuvé > 0 || rejetté > 0) {
-        console.log(`✅ ${dateStr}: ${approuvé} approuvé(s), ${rejetté} rejeté(s)`);
-      }
-
       return {
         date: dateStr,
         approuvé,
@@ -234,45 +207,9 @@ export function ChartAreaInteractive({
         total: dayData.length
       };
     });
-
-    // Calculer les totaux pour debug
-    const totalApprouvé = data.reduce((sum, item) => sum + item.approuvé, 0);
-    const totalRejeté = data.reduce((sum, item) => sum + item.rejetté, 0);
-    const totalBesoins = data.reduce((sum, item) => sum + item.total, 0);
-
-    console.log('📊 Résumé données graphique:', {
-      totalPoints: data.length,
-      totalApprouvé,
-      totalRejeté,
-      totalBesoins,
-      pointsAvecDonnées: data.filter(d => d.total > 0).length
-    });
-
     return data;
   }, [filteredData, dateFilter, customDateRange]);
 
-
-  // Générer le texte du sous-titre en fonction du filtre
-  const getSubtitle = () => {
-    if (dateFilter === "custom" && customDateRange) {
-      const fromStr = format(customDateRange.from, 'dd/MM/yyyy', { locale: fr });
-      const toStr = format(customDateRange.to, 'dd/MM/yyyy', { locale: fr });
-      return `Consulter mes besoins du ${fromStr} au ${toStr}`;
-    }
-
-    switch (dateFilter) {
-      case "today":
-        return "Consulter mes besoins d'aujourd'hui";
-      case "week":
-        return "Consulter mes besoins des 7 derniers jours";
-      case "month":
-        return "Consulter mes besoins du mois en cours";
-      case "year":
-        return "Consulter mes besoins de l'année en cours";
-      default:
-        return "Consulter mes besoins (30 derniers jours)";
-    }
-  };
 
   // Formater la date pour l'axe X en fonction du filtre
   const formatXAxisTick = (value: string) => {
@@ -309,14 +246,6 @@ export function ChartAreaInteractive({
     }
   };
 
-  // DEBUG: Log des données finales
-  React.useEffect(() => {
-    if (chartData.length > 0) {
-      console.log('📈 Données finales pour le graphique:', chartData);
-      console.log('📊 Points avec données:', chartData.filter(d => d.total > 0).length);
-    }
-  }, [chartData]);
-
   const total = chartData.reduce((acc, item) => {
     acc.approuvé += item.approuvé;
     acc.rejetté += item.rejetté;
@@ -328,8 +257,8 @@ export function ChartAreaInteractive({
     return (
       <Card>
         <CardHeader className="border-b py-5">
-          <CardTitle>Mes besoins</CardTitle>
-          <CardDescription>{getSubtitle()}</CardDescription>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
           <div className="h-[250px] w-full flex items-center justify-center text-muted-foreground">
@@ -344,9 +273,9 @@ export function ChartAreaInteractive({
     <Card className="pt-0">
       <CardHeader className="flex flex-col items-stretch border-b sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
-          <CardTitle>Mes besoins</CardTitle>
+          <CardTitle>{title}</CardTitle>
           <CardDescription>
-            {getSubtitle()}
+            {description}
           </CardDescription>
         </div>
 
@@ -423,8 +352,8 @@ export function ChartAreaInteractive({
                 type="monotone"
                 dataKey="rejetté"
                 stackId="a"
-                stroke="hsl(var(--chart-1))"
-                fill="url(#fillRejete)"
+                stroke="red"
+                fill={type === "my" ? "url(#fillRejete)" : "none"}
                 strokeWidth={2}
                 fillOpacity={1}
               />
@@ -433,8 +362,8 @@ export function ChartAreaInteractive({
                 type="monotone"
                 dataKey="approuvé"
                 stackId="a"
-                stroke="hsl(var(--chart-2))"
-                fill="url(#fillApprouve)"
+                stroke="green"
+                fill={type === "my" ? "url(#fillApprouve)" : "none"}
                 strokeWidth={2}
                 fillOpacity={1}
               />

@@ -8,15 +8,20 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from "@/components/ui/card"
 import {
   ChartContainer,
+  ChartLegend,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
 import { PaymentRequest } from "@/types/types"
 import { XAF } from "@/lib/utils"
+import { ProjectQueries } from "@/queries/projectModule"
+import { useFetchQuery } from "@/hooks/useData"
+import { PurchaseOrder } from "@/queries/purchase-order"
 
 interface ChartPieLabelListProps {
   data?: PaymentRequest[];
@@ -33,24 +38,60 @@ const PAYMENT_TYPES = {
 } as const;
 
 const CHART_COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-  "var(--chart-6)",
-  "var(--chart-7)",
-  "var(--chart-8)",
-  "var(--chart-9)",
-  "var(--chart-10)",
+  "#2563EB", // bleu
+  "#14B8A6", // turquoise
+  "#16A34A", // vert
+  "#F97316", // orange vif
+  "#059669", // vert émeraude
+  "#DC2626", // rouge
+  "#F59E0B", // orange
+  "#7C3AED", // violet
+  "#0EA5E9", // cyan
+  "#DB2777", // rose
+  "#65A30D", // vert olive
+  "#9333EA", // violet foncé
+  "#EA580C", // orange foncé
+  "#0284C7", // bleu clair
+  "#B91C1C", // rouge foncé
+  "#A16207", // moutarde
+  "#1F2937", // gris foncé
+  "#84CC16", // vert lime
+  "#6366F1", // indigo
+  "#EC4899", // rose vif
 ];
+
+
 
 export function ChartPieLabelList({
   data = [],
   chartType,
   title = "Répartition des dépenses",
-  description = "Répartition des montants payés"
 }: ChartPieLabelListProps) {
+
+  const project = new ProjectQueries();
+
+  const { data: projectData } = useFetchQuery(
+    ["projectsList"],
+    project.getAll,
+    30000
+  );
+
+  const purchaseOrderQuery = new PurchaseOrder();
+  const { data: commandData } = useFetchQuery(
+    ["purchaseOrders"],
+    purchaseOrderQuery.getAll
+  );
+
+  // les commandes (liste des IDs)
+  const commandIds = data.flatMap(x => x.commandId);
+
+  // Je vais chercher les fournisseurs des commandes qui appartiennent à commandIds
+  const providerData = commandData?.data.filter(command =>
+    commandIds.includes(command.id)
+  );
+
+  console.log(data.filter(x => x.status === 'paid'));
+
 
   // Préparer les données
   const prepareChartData = () => {
@@ -68,10 +109,10 @@ export function ChartPieLabelList({
           key = PAYMENT_TYPES[type as keyof typeof PAYMENT_TYPES] || type;
           break;
         case 'project':
-          key = payment.projectId ? `Projet ${payment.projectId}` : 'Sans projet';
+          key = payment.projectId ? `Projet ${projectData?.data.find(p => p.id === payment.projectId)?.label}` : 'Sans projet';
           break;
         case 'fournisseur':
-          const provider = payment.title || payment.reference || 'Inconnu';
+          const provider = providerData?.find(p => p.id === payment.commandId)?.provider.name || 'Inconnu';
           key = provider.length > 12 ? `${provider.substring(0, 10)}...` : provider;
           break;
       }
@@ -111,10 +152,29 @@ export function ChartPieLabelList({
   const chartData = prepareChartData();
   const totalAmount = chartData.reduce((sum, item) => sum + item.amount, 0);
 
-  // Calculer les pourcentages pour les labels
+  const translateType = (type: string) => {
+    switch (type) {
+      case 'FAC':
+        return 'Facilitation';
+      case 'RH':
+        return 'RH';
+      case 'SPECIAL':
+        return 'Special';
+      case 'PURCHASE':
+        return 'Achat';
+      case 'Autre':
+        return 'Autre';
+      default:
+        return type;
+    }
+  };
+
+  // Calculer les pourcentages pour les labels - 2 chiffres après la virgule
   const chartDataWithPercent = chartData.map(item => ({
     ...item,
-    percent: totalAmount > 0 ? Math.round(item.amount / totalAmount * 100) : 0
+    name: translateType(item.name),
+    // CORRECTION : utiliser toFixed(2) au lieu de Math.round
+    percent: totalAmount > 0 ? parseFloat(((item.amount / totalAmount) * 100).toFixed(2)) : 0
   }));
 
   // Config du graphique
@@ -147,7 +207,8 @@ export function ChartPieLabelList({
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    const displayPercent = Math.round(percent * 100);
+    // CORRECTION : multiplier par 100 et formater avec 2 décimales
+    const displayPercent = (percent).toFixed(2);
 
     return (
       <text
@@ -160,7 +221,7 @@ export function ChartPieLabelList({
         fontWeight="bold"
         className="drop-shadow-sm pointer-events-none text-[10px]"
       >
-        {`${displayPercent / 100}%`}
+        {`${displayPercent}%`}
       </text>
     );
   };
@@ -170,7 +231,6 @@ export function ChartPieLabelList({
       <Card className="h-full">
         <CardHeader>
           <CardTitle className="text-sm">{title}</CardTitle>
-          <CardDescription className="text-xs">{description}</CardDescription>
         </CardHeader>
         <CardContent className="h-48 flex items-center justify-center">
           <p className="text-muted-foreground">Aucune donnée disponible</p>
@@ -184,7 +244,6 @@ export function ChartPieLabelList({
       <Card className="h-full">
         <CardHeader>
           <CardTitle className="text-sm">{title}</CardTitle>
-          <CardDescription className="text-xs">{description}</CardDescription>
         </CardHeader>
         <CardContent className="h-48 flex items-center justify-center">
           <p className="text-muted-foreground">Pas de données pour ce type</p>
@@ -197,60 +256,72 @@ export function ChartPieLabelList({
     <Card className="h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm">{title}</CardTitle>
-        <CardDescription className="text-xs">
-          {description}
-          <div className="mt-1 font-semibold text-foreground">
-            Total: {XAF.format(totalAmount)}
-          </div>
-        </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-48">
-          <PieChart>
-            <ChartTooltip
-              cursor={{ fill: 'transparent' }}
-              content={
-                <ChartTooltipContent
-                  nameKey="name"
-                  labelKey="name"
-                  formatter={(value, name, props) => {
-                    const item = props.payload as any;
-                    const percent = item?.percent || 0;
-                    return [
-                      <div key="value" className="font-semibold">
-                        {XAF.format(Number(value))}
-                      </div>,
-                      <div key="details" className="text-xs text-muted-foreground">
-                        {name} • {percent}% du total
-                      </div>
-                    ];
-                  }}
-                />
-              }
-            />
-            <Pie
-              data={chartDataWithPercent}
-              dataKey="amount"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              innerRadius={40}
-              outerRadius={80}
-              paddingAngle={2}
-              label={renderCustomizedLabel}
-              labelLine={false}
-            >
-              {chartDataWithPercent.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.fill}
-                  className="transition-opacity hover:opacity-90 cursor-pointer"
-                />
-              ))}
-            </Pie>
-          </PieChart>
-        </ChartContainer>
+        {/* Graphique en haut */}
+        <div className="mb-4">
+          <ChartContainer style={{ height: '350px', width: '100%' }} config={chartConfig}>
+            <PieChart>
+              <ChartTooltip
+                cursor={{ fill: 'transparent' }}
+                content={
+                  <ChartTooltipContent
+                    nameKey="name"
+                    labelKey="name"
+                    formatter={(value, name, props) => {
+                      const item = props.payload as any;
+                      // Afficher le pourcentage avec 2 décimales
+                      const percent = totalAmount > 0
+                        ? parseFloat(((Number(value) / totalAmount) * 100).toFixed(2))
+                        : 0;
+                      return [
+                        <div key="tooltip" className="space-y-1 min-w-[160px]">
+                          <div className="font-semibold text-sm">{name}</div>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <span className="text-muted-foreground">Montant:</span>
+                            <span className="font-semibold text-right">{XAF.format(Number(value))}</span>
+                            <span className="text-muted-foreground">Part:</span>
+                            <span className="font-semibold text-right">{percent.toFixed(2)}%</span>
+                          </div>
+                        </div>
+                      ];
+                    }}
+                  />
+                }
+              />
+              <Pie
+                data={chartDataWithPercent}
+                dataKey="amount"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                label={renderCustomizedLabel}
+                labelLine={false}
+              >
+                {chartDataWithPercent.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.fill}
+                    className="transition-opacity hover:opacity-90 cursor-pointer"
+                  />
+                ))}
+              </Pie>
+              <ChartLegend
+                layout="vertical"
+                verticalAlign="middle"
+                align="right"
+                spacing={20}
+              />
+            </PieChart>
+          </ChartContainer>
+        </div>
       </CardContent>
+      <CardFooter>
+        <div className="mx-auto text-gray-500">
+          Total: {XAF.format(totalAmount)}
+        </div>
+      </CardFooter>
     </Card>
   );
 }
