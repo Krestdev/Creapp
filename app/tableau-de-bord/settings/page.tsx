@@ -45,6 +45,20 @@ export default function SettingsPage() {
           icon: Users,
           href: "/tableau-de-bord/settings/utilisateurs",
           color: "from-purple-500 to-purple-600",
+          items: [
+            {
+              pageId: "PG-08-02",
+              title: "Liste",
+              href: "/tableau-de-bord/settings/utilisateurs/liste",
+              authorized: ["ADMIN"],
+            },
+            {
+              pageId: "PG-08-02",
+              title: "Cree un utilisateur",
+              href: "/tableau-de-bord/settings/utilisateurs/create",
+              authorized: ["ADMIN"],
+            },
+          ],
         },
         {
           title: "Fournisseur",
@@ -52,6 +66,20 @@ export default function SettingsPage() {
           icon: Building2,
           href: "/tableau-de-bord/settings/provider",
           color: "from-amber-500 to-amber-600",
+          items: [
+            {
+              pageId: "PG-08-01",
+              title: "Créer un fournisseur",
+              href: "/tableau-de-bord/settings/provider/create",
+              authorized: ["ADMIN"],
+            },
+            {
+              pageId: "PG-08-02",
+              title: "Liste des fournisseurs",
+              href: "/tableau-de-bord/settings/provider/liste",
+              authorized: ["ADMIN"],
+            },
+          ],
         },
         {
           title: "Roles & Permissions",
@@ -72,27 +100,27 @@ export default function SettingsPage() {
           href: "/tableau-de-bord/settings/notifications",
           color: "from-cyan-500 to-cyan-600",
         },
-        {
-          title: "Appearance",
-          description: "Theme and display preferences",
-          icon: Palette,
-          href: "/tableau-de-bord/settings/appearance",
-          color: "from-pink-500 to-pink-600",
-        },
-        {
-          title: "Billing",
-          description: "Plans, invoices, and payments",
-          icon: CreditCard,
-          href: "/tableau-de-bord/settings/billing",
-          color: "from-emerald-500 to-emerald-600",
-        },
-        {
-          title: "Data & Privacy",
-          description: "Data management and export options",
-          icon: Database,
-          href: "/tableau-de-bord/settings/data-privacy",
-          color: "from-indigo-500 to-indigo-600",
-        },
+        // {
+        //   title: "Appearance",
+        //   description: "Theme and display preferences",
+        //   icon: Palette,
+        //   href: "/tableau-de-bord/settings/appearance",
+        //   color: "from-pink-500 to-pink-600",
+        // },
+        // {
+        //   title: "Billing",
+        //   description: "Plans, invoices, and payments",
+        //   icon: CreditCard,
+        //   href: "/tableau-de-bord/settings/billing",
+        //   color: "from-emerald-500 to-emerald-600",
+        // },
+        // {
+        //   title: "Data & Privacy",
+        //   description: "Data management and export options",
+        //   icon: Database,
+        //   href: "/tableau-de-bord/settings/data-privacy",
+        //   color: "from-indigo-500 to-indigo-600",
+        // },
       ],
     },
   ];
@@ -122,7 +150,7 @@ export default function SettingsPage() {
               <h2 className="text-2xl font-semibold text-foreground mb-6 pb-3 border-b border-border">
                 {group.category}
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {group.items.map((item) => (
                   <SettingsCard
                     key={item.title}
@@ -131,19 +159,12 @@ export default function SettingsPage() {
                     icon={item.icon}
                     href={item.href}
                     color={item.color}
+                    sublinks={item.items}
                   />
                 ))}
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Sign Out */}
-        <div className="mt-16 pt-8 border-t border-border">
-          <button className="flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors font-medium">
-            <LogOut className="w-5 h-5" />
-            Sign Out
-          </button>
         </div>
       </div>
     </main>

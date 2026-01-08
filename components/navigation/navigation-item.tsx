@@ -52,7 +52,6 @@ function NavigationItem(
             {item.items.map((subItem, id) => (
               <NavigationLink
                 key={id}
-                icon={subItem.icon}
                 href={subItem.href}
                 title={subItem.title}
                 badgeValue={subItem.badgeValue}

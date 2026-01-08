@@ -671,14 +671,6 @@ export function DataValidation({
       cell: ({ row }) => {
         const item = row.original;
 
-        console.log(
-          "checking",
-          item.state !== "pending" ||
-            item.revieweeList?.some((x) => x.validatorId === user?.id),
-          item.state,
-          item.revieweeList?.some((x) => x.validatorId === user?.id)
-        );
-
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
