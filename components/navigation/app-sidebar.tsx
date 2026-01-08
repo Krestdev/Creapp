@@ -29,6 +29,8 @@ import {
   Truck,
   UsersRound,
   LayoutDashboardIcon,
+  LogOutIcon,
+  LockIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -36,6 +38,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import {
@@ -518,8 +522,12 @@ function AppSidebar() {
             <EllipsisVertical size={16} className="text-gray-900!" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={logout}>
-              {"Déconnexion"}
+            <DropdownMenuLabel className="flex flex-col gap-0.5"><span>{"Mon Compte"}</span><span className="text-xs font-normal text-gray-600">{user?.email}</span></DropdownMenuLabel>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItem><Link href={"/tableau-de-bord/changer-mot-de-passe"} className="inline-flex gap-2 items-center"><LockIcon/>{"Changer de mot de passe"}</Link></DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" onClick={logout}>
+              <LogOutIcon/>
+              {"Se déconnecter"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

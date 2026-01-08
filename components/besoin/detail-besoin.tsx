@@ -44,7 +44,7 @@ import Link from "next/link";
 interface DetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: RequestModelT | null;
+  data: RequestModelT;
   action: () => void;
   actionButton: string;
 }

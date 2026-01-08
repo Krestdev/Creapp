@@ -77,7 +77,7 @@ const formSchema = z.object({
 interface UpdateFacilitationRequestProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  requestData: RequestModelT | null;
+  requestData: RequestModelT;
   onSuccess?: () => void;
 }
 

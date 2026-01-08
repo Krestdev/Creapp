@@ -70,7 +70,7 @@ const formSchema = z.object({
 interface UpdateRequestProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  requestData: RequestModelT | null;
+  requestData: RequestModelT;
   onSuccess?: () => void;
 }
 
