@@ -1162,18 +1162,20 @@ export function DataValidation({
       </Dialog>
 
       {/* Modals */}
-      <DetailBesoin
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        data={selectedItem}
-        actionButton="Approuver"
-        action={() =>
-          isLastValidator
-            ? (setIsModalOpen(false), setIsLastValModalOpen(true))
-            : (setIsModalOpen(false),
-              openValidationModal("approve", selectedItem!))
-        }
-      />
+      {selectedItem && (
+        <DetailBesoin
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          data={selectedItem}
+          actionButton="Approuver"
+          action={() =>
+            isLastValidator
+              ? (setIsModalOpen(false), setIsLastValModalOpen(true))
+              : (setIsModalOpen(false),
+                openValidationModal("approve", selectedItem!))
+          }
+        />
+      )}
 
       <ValidationModal
         isMotifRequired={true}
