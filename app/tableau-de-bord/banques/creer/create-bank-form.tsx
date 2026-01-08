@@ -41,14 +41,8 @@ const formSchema = z
     ),
     balance: z.coerce.number({ message: "Solde invalide" }),
     justification: z
-      .array(
-        z.union([
-          z.instanceof(File, { message: "Doit être un fichier valide" }),
-          z.string(),
-        ])
-      )
-      .min(1, "Veuillez ajouter un élément")
-      .max(1, "Un seul justificatif autorisé"),
+      .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
+      .min(0),
 
     // BANK
     accountNumber: z.string().optional(),
@@ -68,6 +62,13 @@ const formSchema = z
           code: z.ZodIssueCode.custom,
           path: ["accountNumber"],
           message: "Numéro de compte requis",
+        });
+      }
+      if (data.justification.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["justification"],
+          message: "Veuillez ajouter une pièce justificative",
         });
       }
       if (!data.bankCode || data.bankCode.trim().length < 2) {
@@ -92,13 +93,6 @@ const formSchema = z
           code: z.ZodIssueCode.custom,
           path: ["phoneNum"],
           message: "Numéro de téléphone requis",
-        });
-      }
-      if (!data.merchantNum || data.merchantNum.trim().length < 2) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["merchantNum"],
-          message: "Numéro marchand requis",
         });
       }
     }
@@ -144,45 +138,51 @@ function CreateBank() {
   });
 
   const onSubmit = (values: FormValues) => {
-    const { justification, atmCode, accountNumber, bankCode, phoneNum, merchantNum, key, ...rest} = values;
-    if(type === "BANK"){
-        const payload:BankPayload = {
-            ...rest,
-            Status: true,
-            justification: justification[0] as File,
-            atmCode,
-            accountNumber,
-            bankCode,
-            key
-        }
-       return createBankAccount.mutate(payload);
+    const {
+      justification,
+      atmCode,
+      accountNumber,
+      bankCode,
+      phoneNum,
+      merchantNum,
+      key,
+      ...rest
+    } = values;
+    if (type === "BANK") {
+      const payload: BankPayload = {
+        ...rest,
+        Status: true,
+        justification: justification[0] as File,
+        atmCode,
+        accountNumber,
+        bankCode,
+        key,
+      };
+      return createBankAccount.mutate(payload);
     }
-    if(type === "CASH"){
-        const payload:BankPayload = {
-            ...rest,
-            Status: true,
-            justification: justification[0] as File,
-        }
-       return createBankAccount.mutate(payload);
+    if (type === "CASH") {
+      const payload: BankPayload = {
+        ...rest,
+        Status: true,
+        justification: justification[0] as File,
+      };
+      return createBankAccount.mutate(payload);
     }
-    if(type === "MOBILE_WALLET"){
-        const payload:BankPayload = {
-            ...rest,
-            Status: true,
-            justification: justification[0] as File,
-            merchantNum,
-            phoneNum
-        }
-       return createBankAccount.mutate(payload);
+    if (type === "MOBILE_WALLET") {
+      const payload: BankPayload = {
+        ...rest,
+        Status: true,
+        justification: justification[0] as File,
+        merchantNum,
+        phoneNum,
+      };
+      return createBankAccount.mutate(payload);
     }
   };
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="form-3xl"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
         {/* Intitulé */}
         <FormField
           control={form.control}
@@ -244,7 +244,7 @@ function CreateBank() {
                     className="pr-12"
                   />
                   <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                            {"FCFA"}
+                    {"FCFA"}
                   </span>
                 </div>
               </FormControl>
@@ -320,7 +320,7 @@ function CreateBank() {
               name="merchantNum"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Numéro marchand"}</FormLabel>
+                  <FormLabel>{"Numéro marchand"}</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Ex: OM-8899" />
                   </FormControl>
@@ -337,27 +337,24 @@ function CreateBank() {
             name="atmCode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  {"Code Guichet"}
-                </FormLabel>
+                <FormLabel>{"Code Guichet"}</FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Ex: 06619"
-                  />
+                  <Input {...field} placeholder="Ex: 06619" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         )}
-         {/* Justification */}
+        {/* Justification */}
         <FormField
           control={form.control}
           name="justification"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"Justificatif"}</FormLabel>
+              <FormLabel isRequired={type === "BANK"}>
+                {"Justificatif"}
+              </FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value}
@@ -375,7 +372,12 @@ function CreateBank() {
 
         {/* Submit */}
         <div className="@min-[640px]:col-span-2 w-full flex justify-end">
-          <Button type="submit" variant="primary" isLoading={createBankAccount.isPending} disabled={createBankAccount.isPending}>
+          <Button
+            type="submit"
+            variant="primary"
+            isLoading={createBankAccount.isPending}
+            disabled={createBankAccount.isPending}
+          >
             {"Créer le compte"}
           </Button>
         </div>

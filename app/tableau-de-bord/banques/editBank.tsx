@@ -59,8 +59,7 @@ const formSchema = z
           z.string(),
         ])
       )
-      .min(1, "Veuillez ajouter un élément")
-      .max(1, "Un seul justificatif autorisé"),
+      .min(0),
     Status: z.boolean(),
 
     // BANK
@@ -81,6 +80,13 @@ const formSchema = z
           code: z.ZodIssueCode.custom,
           path: ["accountNumber"],
           message: "Numéro de compte requis",
+        });
+      }
+      if (data.justification.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["justification"],
+          message: "Veuillez ajouter une pièce justificative",
         });
       }
       if (!data.bankCode || data.bankCode.trim().length < 2) {
@@ -107,51 +113,44 @@ const formSchema = z
           message: "Numéro de téléphone requis",
         });
       }
-      if (!data.merchantNum || data.merchantNum.trim().length < 2) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["merchantNum"],
-          message: "Numéro marchand requis",
-        });
-      }
     }
   });
 
 type FormValues = z.infer<typeof formSchema>;
 
 function EditBank({ open, openChange, bank }: Props) {
-  useEffect(()=>{
-    if(open){
+  useEffect(() => {
+    if (open) {
       form.reset({
-          label: bank.label,
-          type: bank.type,
-          Status: bank.Status,
-          balance: bank.balance,
-          justification: [bank.justification],
-          accountNumber: !!bank.accountNumber ? bank.accountNumber : undefined,
-          bankCode: !!bank.bankCode ? bank.bankCode : undefined,
-          key: !!bank.key ? bank.key : undefined,
-          atmCode: !!bank.atmCode ? bank.atmCode : undefined,
-          phoneNum: !!bank.phoneNum ? bank.phoneNum : undefined,
-          merchantNum: !!bank.merchantNum ? bank.merchantNum : undefined,
-        });
-    }
-  },[open])
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
         label: bank.label,
         type: bank.type,
         Status: bank.Status,
         balance: bank.balance,
-        justification: [bank.justification],
+        justification: bank.justification.length > 0 ? [bank.justification] : [],
         accountNumber: !!bank.accountNumber ? bank.accountNumber : undefined,
         bankCode: !!bank.bankCode ? bank.bankCode : undefined,
         key: !!bank.key ? bank.key : undefined,
         atmCode: !!bank.atmCode ? bank.atmCode : undefined,
         phoneNum: !!bank.phoneNum ? bank.phoneNum : undefined,
         merchantNum: !!bank.merchantNum ? bank.merchantNum : undefined,
-      },
+      });
+    }
+  }, [open]);
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      label: bank.label,
+      type: bank.type,
+      Status: bank.Status,
+      balance: bank.balance,
+      justification: bank.justification.length > 0 ? [bank.justification] : [],
+      accountNumber: !!bank.accountNumber ? bank.accountNumber : undefined,
+      bankCode: !!bank.bankCode ? bank.bankCode : undefined,
+      key: !!bank.key ? bank.key : undefined,
+      atmCode: !!bank.atmCode ? bank.atmCode : undefined,
+      phoneNum: !!bank.phoneNum ? bank.phoneNum : undefined,
+      merchantNum: !!bank.merchantNum ? bank.merchantNum : undefined,
+    },
   });
 
   const type = form.watch("type");
@@ -171,7 +170,7 @@ function EditBank({ open, openChange, bank }: Props) {
         type: bank.type,
         Status: bank.Status,
         balance: bank.balance,
-        justification: [bank.justification],
+        justification: bank.justification.length > 0 ? [bank.justification] : [],
         accountNumber: !!bank.accountNumber ? bank.accountNumber : undefined,
         bankCode: !!bank.bankCode ? bank.bankCode : undefined,
         key: !!bank.key ? bank.key : undefined,
@@ -263,7 +262,11 @@ function EditBank({ open, openChange, bank }: Props) {
                 <FormItem>
                   <FormLabel isRequired>{"Type"}</FormLabel>
                   <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange} disabled>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled
+                    >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
@@ -309,9 +312,12 @@ function EditBank({ open, openChange, bank }: Props) {
                   <FormLabel isRequired>{"Statut"}</FormLabel>
                   <FormControl>
                     <div className="flex items-center gap-2">
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  <span>{field.value ? "Actif" : "Désactivé"}</span>
-                </div>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <span>{field.value ? "Actif" : "Désactivé"}</span>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -385,7 +391,7 @@ function EditBank({ open, openChange, bank }: Props) {
                   name="merchantNum"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel isRequired>{"Numéro marchand"}</FormLabel>
+                      <FormLabel>{"Numéro marchand"}</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Ex: OM-8899" />
                       </FormControl>
@@ -422,7 +428,7 @@ function EditBank({ open, openChange, bank }: Props) {
               name="justification"
               render={({ field }) => (
                 <FormItem className="@min-[540px]/dialog:col-span-2">
-                  <FormLabel isRequired>{"Justificatif"}</FormLabel>
+                  <FormLabel isRequired={type === "BANK"}>{"Justificatif"}</FormLabel>
                   <FormControl>
                     <FilesUpload
                       value={field.value}
