@@ -380,6 +380,12 @@ function AppSidebar() {
           href: "/tableau-de-bord/commande/paiements",
           authorized: ["ADMIN", "SALES"],
         },
+        {
+          pageId: "PG-03-07",
+          title: "Factures",
+          href: "/tableau-de-bord/commande/factures/validation",
+          authorized: ["ADMIN", "SALES"],
+        },
       ],
     },
     {
