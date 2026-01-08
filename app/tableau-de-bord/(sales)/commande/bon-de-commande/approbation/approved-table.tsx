@@ -1,23 +1,23 @@
 "use client";
 
 import {
-    type ColumnDef,
-    type ColumnFiltersState,
-    type SortingState,
-    type VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
 import {
-    ArrowUpDown,
-    ChevronDown,
-    Eye,
-    Settings2
+  ArrowUpDown,
+  ChevronDown,
+  Eye,
+  Settings2
 } from "lucide-react";
 import * as React from "react";
 
@@ -26,44 +26,44 @@ import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 
 import { formatToShortName, XAF } from "@/lib/utils";
 import {
-    BonsCommande,
-    PRIORITIES,
-    PURCHASE_ORDER_STATUS,
+  BonsCommande,
+  PRIORITIES,
+  PURCHASE_ORDER_STATUS,
 } from "@/types/types";
 import { format } from "date-fns";
 import ViewPurchase from "../viewPurchase";
@@ -111,7 +111,9 @@ const getPriorityLabel = (
 
 export function ApprovedTable({ data }: Props) {
 
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
@@ -364,7 +366,7 @@ export function ApprovedTable({ data }: Props) {
 
   return (
     <div className="w-full space-y-4">
-        <h3>{`Bons de commandes traités (${data.length})`}</h3>
+      <h3>{`Bons de commandes traités (${data.length})`}</h3>
       {/* BARRE DE FILTRES */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -394,21 +396,21 @@ export function ApprovedTable({ data }: Props) {
                   />
                 </div>
                 <div className="space-y-3">
-                                  <Label>{"Statut"}</Label>
-                                  <Select value={statusFilter} onValueChange={(v: "all" | Status) => setStatusFilter(v)}>
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Tous les statuts" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="all">{"Tous"}</SelectItem>
-                                      {PURCHASE_ORDER_STATUS.filter(o=>o.value === "REJECTED" || o.value==="APPROVED").map((s) => (
-                                        <SelectItem key={s.value} value={s.value}>
-                                          {s.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
+                  <Label>{"Statut"}</Label>
+                  <Select value={statusFilter} onValueChange={(v: "all" | Status) => setStatusFilter(v)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Tous les statuts" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {PURCHASE_ORDER_STATUS.filter(o => o.value === "REJECTED" || o.value === "APPROVED").map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-3">
                   <Label>{"Priorité"}</Label>
                   <Select value={priorityFilter} onValueChange={(v: "all" | Priority) => setPriorityFilter(v)}>

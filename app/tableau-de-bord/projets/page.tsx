@@ -1,4 +1,3 @@
-import ProjectsPage from "@/components/projets/projects";
 import PageTitle from "@/components/pageTitle";
 
 function Page() {
@@ -10,7 +9,7 @@ function Page() {
         subtitle="Consultez et gérez les projets."
         color="red"
       />
-      <ProjectsPage />
+      {/* <ProjectsPage /> */}
     </div>
   );
 }

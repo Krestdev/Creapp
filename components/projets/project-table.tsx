@@ -56,7 +56,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ProjectQueries } from "@/queries/projectModule";
-import { ProjectT } from "@/types/types";
+import { ProjectT, User } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
@@ -67,6 +67,7 @@ import UpdateProject from "./UpdateProject";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { UserQueries } from "@/queries/baseModule";
+import { useFetchQuery } from "@/hooks/useData";
 
 // Interface pour tous les filtres
 export interface ProjectFilters {
@@ -79,14 +80,17 @@ export interface ProjectFilters {
 
 interface ProjectTableProps {
   data: ProjectT[];
+  usersData: User[]
 
   // Props pour les filtres (optionnelles pour compatibilité)
   filters?: ProjectFilters;
   setFilters?: React.Dispatch<React.SetStateAction<ProjectFilters>>;
 }
 
-export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTableProps) {
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -196,12 +200,6 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
 
   const queryClient = useQueryClient();
 
-  const users = new UserQueries();
-  const usersData = useQuery({
-    queryKey: ["usersList"],
-    queryFn: () => users.getAll(),
-  })
-
   const project = new ProjectQueries();
   const projectMutationData = useMutation({
     mutationKey: ["projectsStatus"],
@@ -228,7 +226,7 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
     }));
   };
   const getUserName = (id: number) => {
-    const user = usersData.data?.data.find((user) => user.id === id);
+    const user = usersData.find((user) => user.id === id);
     return user?.lastName + " " + user?.firstName || "";
   };
 

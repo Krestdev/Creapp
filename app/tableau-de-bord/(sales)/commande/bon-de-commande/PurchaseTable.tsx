@@ -113,7 +113,9 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
   const usersQuery = new UserQueries();
   const getUsers = useFetchQuery(["users"], usersQuery.getAll);
 
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );

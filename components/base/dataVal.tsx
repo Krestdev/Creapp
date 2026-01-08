@@ -66,7 +66,7 @@ import { UserQueries } from "@/queries/baseModule";
 import { CategoryQueries } from "@/queries/categoryModule";
 import { ProjectQueries } from "@/queries/projectModule";
 import { RequestQueries } from "@/queries/requestModule";
-import { PAYMENT_TYPES, RequestModelT } from "@/types/types";
+import { Category, PAYMENT_TYPES, PaymentRequest, ProjectT, RequestModelT, User } from "@/types/types";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
@@ -93,7 +93,6 @@ import { Pagination } from "./pagination";
 import { SearchableSelect } from "./searchableSelect";
 import { Checkbox } from "../ui/checkbox";
 import { Textarea } from "../ui/textarea";
-import { PaymentQueries } from "@/queries/payment";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -116,6 +115,10 @@ interface DataTableProps {
     validatedCount?: number;
   };
   isCheckable?: boolean;
+  categoriesData?: Category[];
+  projectsData?: ProjectT[];
+  usersData?: User[];
+  paymentsData?: PaymentRequest[];
 }
 
 export function DataVal({
@@ -128,15 +131,22 @@ export function DataVal({
   setCustomDateRange,
   customProps,
   isCheckable = false,
+  categoriesData,
+  projectsData,
+  usersData,
+  paymentsData,
 }: DataTableProps) {
   const { user } = useStore();
   const queryClient = useQueryClient();
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
       createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
+  const request = new RequestQueries();
 
   // États pour les filtres
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -170,54 +180,16 @@ export function DataVal({
   const [rejectionReason, setRejectionReason] = React.useState("");
   const [isProcessingGroupAction, setIsProcessingGroupAction] = React.useState(false);
 
-  const projects = new ProjectQueries();
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => {
-      return projects.getAll();
-    },
-  });
-
-  const users = new UserQueries();
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      return users.getAll();
-    },
-  });
-
-  const payments = new PaymentQueries();
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: async () => payments.getAll(),
-  });
-
-  const request = new RequestQueries();
-  const categoryQueries = new CategoryQueries();
-
-  // Ajouter le refetch automatique pour les données de validation
-  const requestData = useQuery({
-    queryKey: ["requests"],
-    queryFn: async () => request.getAll(),
-    refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
-    refetchOnWindowFocus: true, // Rafraîchir quand la fenêtre reprend le focus
-  });
-
-  const categoriesData = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => categoryQueries.getCategories(),
-  });
-
   // Fonction pour obtenir la position de l'utilisateur pour un besoin donné
   const getUserPositionForRequest = (request: RequestModelT) => {
     if (
       request.categoryId === null ||
       user?.id === null ||
-      categoriesData.data?.data === undefined
+      categoriesData === undefined
     )
       return null;
 
-    const category = categoriesData.data.data.find(
+    const category = categoriesData.find(
       (cat) => cat.id === request.categoryId
     );
     if (!category || !category.validators) return null;
@@ -231,11 +203,11 @@ export function DataVal({
     if (
       request.categoryId === null ||
       user?.id === null ||
-      categoriesData.data?.data === undefined
+      categoriesData === undefined
     )
       return false;
 
-    const category = categoriesData.data.data.find(
+    const category = categoriesData.find(
       (cat) => cat.id === request.categoryId
     );
     if (!category || !category.validators || category.validators.length === 0) {
@@ -317,21 +289,21 @@ export function DataVal({
   };
 
   const getProjectName = (projectId: string) => {
-    const project = projectsData.data?.data?.find(
+    const project = projectsData?.find(
       (proj) => proj.id === Number(projectId)
     );
     return project?.label || projectId;
   };
 
   const getCategoryName = (categoryId: string) => {
-    const category = categoriesData.data?.data?.find(
+    const category = categoriesData?.find(
       (cat) => cat.id === Number(categoryId)
     );
     return category?.label || categoryId;
   };
 
   const getUserName = (userId: string) => {
-    const user = usersData.data?.data?.find((u) => u.id === Number(userId));
+    const user = usersData?.find((u) => u.id === Number(userId));
     return user?.lastName + " " + user?.firstName || userId;
   };
 
@@ -394,12 +366,12 @@ export function DataVal({
   ]);
 
   const uniqueCategories = React.useMemo(() => {
-    if (!data.length || !categoriesData.data?.data) return [];
+    if (!data.length || !categoriesData) return [];
 
     const categoryIds = [...new Set(data.map((req) => req.categoryId))];
 
     return categoryIds.map((categoryId) => {
-      const category = categoriesData.data.data.find(
+      const category = categoriesData.find(
         (cat) => cat.id === Number(categoryId)
       );
       return {
@@ -407,15 +379,15 @@ export function DataVal({
         name: category?.label || `Catégorie ${categoryId}`,
       };
     });
-  }, [data, categoriesData.data]);
+  }, [data, categoriesData]);
 
   const uniqueProjects = React.useMemo(() => {
-    if (!data.length || !projectsData.data?.data) return [];
+    if (!data.length || !projectsData) return [];
 
     const projectIds = [...new Set(data.map((req) => req.projectId))];
 
     return projectIds.map((projectId) => {
-      const project = projectsData.data.data.find(
+      const project = projectsData.find(
         (proj) => proj.id === Number(projectId)
       );
       return {
@@ -423,21 +395,21 @@ export function DataVal({
         name: project?.label || `Projet ${projectId}`,
       };
     });
-  }, [data, projectsData.data]);
+  }, [data, projectsData]);
 
   const uniqueUsers = React.useMemo(() => {
-    if (!data.length || !usersData.data?.data) return [];
+    if (!data.length || !usersData) return [];
 
     const userIds = [...new Set(data.map((req) => req.userId))];
 
     return userIds.map((userId) => {
-      const user = usersData.data.data.find((u) => u.id === Number(userId));
+      const user = usersData.find((u) => u.id === Number(userId));
       return {
         id: userId,
         name: user?.lastName + " " + user?.firstName || `Utilisateur ${userId}`,
       };
     });
-  }, [data, usersData.data]);
+  }, [data, usersData]);
 
   const getStatusConfig = (
     status: string
@@ -563,7 +535,6 @@ export function DataVal({
           : "Besoin rejeté avec succès !"
       );
       queryClient.invalidateQueries({ queryKey: ["requests"] });
-      requestData.refetch();
     },
     onError: () => {
       toast.error("Une erreur est survenue lors de la validation.");
@@ -571,7 +542,7 @@ export function DataVal({
   });
 
   const handleValidation = async (motif?: string): Promise<boolean> => {
-    const validator = categoriesData.data?.data
+    const validator = categoriesData
       ?.find((cat) => cat.id === selectedItem?.categoryId)
       ?.validators?.find((v) => v.userId === user?.id);
 
@@ -652,7 +623,6 @@ export function DataVal({
       );
 
       queryClient.invalidateQueries({ queryKey: ["requests"] });
-      requestData.refetch();
       setRowSelection({}); // Réinitialiser la sélection
     },
     onError: (error) => {
@@ -693,7 +663,7 @@ export function DataVal({
       const validatorss = user?.id ? { userId: user.id, rank: 1 } : undefined;
       const selectedIds = selectedRows.map(row => Number(row.original.id));
 
-      const validator = categoriesData.data?.data
+      const validator = categoriesData
         ?.find((cat) => cat.id === selectedRows[0].original.categoryId)
         ?.validators?.find((v) => v.userId === user?.id);
 
@@ -750,7 +720,7 @@ export function DataVal({
     const categoryName = getCategoryName(String(request.categoryId));
 
     // Trouver la catégorie pour obtenir le nombre total de validateurs
-    const category = categoriesData.data?.data?.find(
+    const category = categoriesData?.find(
       (cat) => cat.id === request.categoryId
     );
     const totalValidators = category?.validators?.length || 0;
@@ -1081,7 +1051,7 @@ export function DataVal({
         const item = row.original;
         const validationInfo = getValidationInfo(item);
         const userHasValidated = hasUserAlreadyValidated(item);
-        const paiement = paymentsData.data?.data.find(
+        const paiement = paymentsData?.find(
           (x) => x.requestId === item?.id
         );
         const isAttach = (item.type === "FAC" || item.type === "RH") && paiement?.proof !== null;
@@ -1151,7 +1121,7 @@ export function DataVal({
     });
 
     return baseColumns;
-  }, [type, user?.id, categoriesData.data, isCheckable]);
+  }, [type, user?.id, categoriesData, isCheckable]);
 
   // Table configuration
   const table = useReactTable({

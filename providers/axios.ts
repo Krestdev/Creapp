@@ -24,7 +24,7 @@ const api = axios.create({
 const formatErrorMessage = (error: any): string => {
   if (error.response?.data) {
     const apiError = error.response.data as ApiError;
-    
+
     if (apiError.errors) {
       // Erreurs de validation
       const validationErrors = Object.entries(apiError.errors)
@@ -32,18 +32,18 @@ const formatErrorMessage = (error: any): string => {
         .join('\n');
       return validationErrors;
     }
-    
+
     return apiError.message || apiError.error || "Une erreur est survenue";
   }
-  
+
   if (error.code === 'ECONNABORTED') {
     return "La requête a expiré. Veuillez réessayer.";
   }
-  
+
   if (error.code === 'NETWORK_ERROR' || !error.response) {
     return "Erreur réseau. Vérifiez votre connexion internet.";
   }
-  
+
   return "Une erreur inattendue est survenue";
 };
 
@@ -71,7 +71,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const errorMessage = formatErrorMessage(error);
-    
+
     // Gestion des codes d'erreur spécifiques
     switch (error.response?.status) {
       case 401:
@@ -82,35 +82,35 @@ api.interceptors.response.use(
         }
         toast.error("Session expirée. Veuillez vous reconnecter.");
         break;
-        
+
       case 403:
         toast.error("Accès refusé. Vous n'avez pas les permissions nécessaires.");
         break;
-        
+
       case 404:
         toast.error("Ressource non trouvée.");
         break;
-        
+
       case 413:
         toast.error("Fichier trop volumineux. Taille maximale: 10MB");
         break;
-        
+
       case 422:
         toast.error(`Erreur de validation:\n${errorMessage}`);
         break;
-        
+
       case 429:
         toast.error("Trop de requêtes. Veuillez patienter.");
         break;
-        
+
       case 500:
         toast.error("Erreur serveur. Veuillez réessayer plus tard.");
         break;
-        
+
       default:
         toast.error(errorMessage);
     }
-    
+
     // Vous pouvez aussi logger les erreurs
     if (process.env.NODE_ENV === "development") {
       console.error("API Error:", {
@@ -120,7 +120,7 @@ api.interceptors.response.use(
         message: errorMessage,
       });
     }
-    
+
     return Promise.reject(new Error(errorMessage));
   }
 );

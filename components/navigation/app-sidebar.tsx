@@ -381,6 +381,12 @@ function AppSidebar() {
           authorized: ["ADMIN", "SALES"],
         },
         {
+          pageId: "PG-03-07",
+          title: "Factures",
+          href: "/tableau-de-bord/commande/factures/validation",
+          authorized: ["ADMIN", "SALES"],
+        },
+        {
           pageId: "PG-03-065897",
           title: "Statistiques",
           href: "/tableau-de-bord/commande/bon-de-commande/statistiques",

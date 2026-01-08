@@ -42,6 +42,7 @@ import { Dialog } from "../ui/dialog";
 import { toast } from "sonner";
 import { useState } from "react";
 import { SuccessModal } from "../modals/success-modal";
+import ViewDepense from "./viewDepense";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -71,7 +72,6 @@ export const formSchema = z.object({
   Beneficier: z.string({ message: "This field is required" }),
   Montent: z.coerce.number({ message: "Please enter a valid number" }),
   Description: z.string({ message: "This field is required" }),
-  Project: z.string().min(1, "Please select an item"),
   Justificatif: FileSchema,
 });
 
@@ -94,6 +94,7 @@ export function CarburentForm() {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [view, setView] = useState<boolean>(false);
 
   const payments = new PaymentQueries();
   const paymentsData = useMutation({
@@ -112,9 +113,9 @@ export function CarburentForm() {
         liters: 0,
         model: "",
         Montent: 0,
-        Project: undefined,
         title: "",
       });
+      setView(true);
     },
     onError: (error: any) => {
       // console.error("Erreur lors de la soumission de depense:", error);
@@ -123,10 +124,6 @@ export function CarburentForm() {
   });
 
   const projects = new ProjectQueries();
-  const ProjectsData = useQuery({
-    queryKey: ["getProjects"],
-    queryFn: () => projects.getAll(),
-  });
 
   const users = new UserQueries();
   const usersData = useQuery({
@@ -157,10 +154,8 @@ export function CarburentForm() {
     paymentsData.mutate({ ...payment });
   });
   return (
-    !ProjectsData.isLoading &&
     !usersData.isLoading &&
-    usersData.data &&
-    ProjectsData.data && (
+    usersData.data && (
       <>
         <Form {...form}>
           <form
@@ -370,48 +365,6 @@ export function CarburentForm() {
               />
 
               <Controller
-                name="Project"
-                control={form.control}
-                render={({ field, fieldState }) => {
-                  const options = ProjectsData.data?.data.map((p) => {
-                    return { value: p.id, label: p.label };
-                  });
-                  return (
-                    <Field
-                      data-invalid={fieldState.invalid}
-                      className="gap-1 col-span-full"
-                    >
-                      <FieldLabel htmlFor="Project associer">
-                        Projet *
-                      </FieldLabel>
-
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Selectioner un projet" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {options.map((option, id) => (
-                            <SelectItem
-                              key={id}
-                              value={option.value!.toString()}
-                            >
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </Field>
-                  );
-                }}
-              />
-
-              <Controller
                 name="Justificatif"
                 control={form.control}
                 render={({ field, fieldState }) => (
@@ -476,7 +429,13 @@ export function CarburentForm() {
             </div>
           </form>
         </Form>
-
+        {paymentsData.isSuccess && (
+          <ViewDepense
+            open={view}
+            openChange={setView}
+            depense={paymentsData.data.data}
+          />
+        )}
         <SuccessModal
           open={isSuccessModalOpen}
           onOpenChange={setIsSuccessModalOpen}

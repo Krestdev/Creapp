@@ -1,19 +1,21 @@
 "use client";
-import { useStore } from "@/providers/datastore";
 import { UserQueries } from "@/queries/baseModule";
-import { useQuery } from "@tanstack/react-query";
 import { UtilisateursTable } from "./utilisateurs-table";
+import { useFetchQuery } from "@/hooks/useData";
+import LoadingPage from "../loading-page";
+import ErrorPage from "../error-page";
 
 const UserListPage = () => {
-  const { isHydrated } = useStore();
   const user = new UserQueries();
-  const userData = useQuery({
-    queryKey: ["usersList"],
-    queryFn: () => user.getAll(),
-    enabled: isHydrated,
-  });
+  const userData = useFetchQuery(["usersList"], user.getAll, 30000);
 
-  if (userData.data)
+  if (userData.isLoading)
+    return <LoadingPage />;
+
+  if (userData.isError)
+    return <ErrorPage />;
+
+  if (userData.isSuccess)
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">

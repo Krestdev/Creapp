@@ -84,7 +84,9 @@ export function QuotationGroupTable({
   requests,
   quotations,
 }: QuotationGroupTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
@@ -242,14 +244,14 @@ export function QuotationGroupTable({
     globalFilterFn: (row, columnId, filterValue) => {
       const search = String(filterValue).toLowerCase();
       const group = row.original;
-      
+
       const ref = group.commandRequest.reference?.toLowerCase() || "";
       const title = group.commandRequest.title?.toLowerCase() || "";
       const providersText = group.providers.map((p) => p.name).join(" ").toLowerCase();
-      
-      return ref.includes(search) || 
-             title.includes(search) || 
-             providersText.includes(search);
+
+      return ref.includes(search) ||
+        title.includes(search) ||
+        providersText.includes(search);
     },
     state: {
       sorting,
@@ -275,7 +277,7 @@ export function QuotationGroupTable({
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline">
-                <Settings2/>
+                <Settings2 />
                 {"Filtres"}
               </Button>
             </SheetTrigger>
@@ -333,8 +335,8 @@ export function QuotationGroupTable({
                   </Select>
                 </div>
 
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={resetAllFilters}
                   className="w-full"
                 >
@@ -410,9 +412,9 @@ export function QuotationGroupTable({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -469,7 +471,7 @@ export function QuotationGroupTable({
           {table.getFilteredSelectedRowModel().rows.length} sur{" "}
           {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
         </div>
-        
+
         {table.getPageCount() > 1 && (
           <Pagination table={table} pageSize={15} />
         )}

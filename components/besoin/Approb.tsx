@@ -11,6 +11,8 @@ import { UserQueries } from "@/queries/baseModule";
 
 import { Category, RequestModelT, User } from "@/types/types";
 import { DataVal } from "../base/dataVal";
+import { ProjectQueries } from "@/queries/projectModule";
+import { PaymentQueries } from "@/queries/payment";
 
 /* ======================================================
    TYPES
@@ -196,6 +198,33 @@ const Approb = ({
   const requestQueries = new RequestQueries();
   const categoryQueries = new CategoryQueries();
   const userQueries = new UserQueries();
+  const projects = new ProjectQueries();
+  const users = new UserQueries();
+  const payments = new PaymentQueries();
+
+  const projectsData = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      return projects.getAll();
+    },
+  });
+
+  const usersData = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      return users.getAll();
+    },
+  });
+
+  const paymentsData = useQuery({
+    queryKey: ["payments"],
+    queryFn: async () => payments.getAll(),
+  });
+
+  const categoriesData = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => categoryQueries.getCategories(),
+  });
 
   const categoryData = useQuery({
     queryKey: ["categories"],
@@ -267,6 +296,10 @@ const Approb = ({
           customDateRange={customDateRange}
           setCustomDateRange={setCustomDateRange}
           isCheckable={false}
+          projectsData={projectsData.data?.data}
+          usersData={usersData.data?.data}
+          paymentsData={paymentsData.data?.data}
+          categoriesData={categoriesData.data?.data}
         />
       </div>
     </div>
