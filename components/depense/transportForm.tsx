@@ -41,6 +41,7 @@ import { UserQueries } from "@/queries/baseModule";
 import { toast } from "sonner";
 import { useState } from "react";
 import { SuccessModal } from "../modals/success-modal";
+import ViewDepense from "./viewDepense";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -74,11 +75,19 @@ type Schema = z.infer<typeof formSchema>;
 export function TransportForm() {
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
+    defaultValues: {
+      Description: "",
+      Montent: 0,
+      title: "Transport",
+      Justificatif: [],
+    },
   });
 
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+
+  const [view, setView] = useState<boolean>(false);
 
   const payments = new PaymentQueries();
   const paymentsData = useMutation({
@@ -90,6 +99,7 @@ export function TransportForm() {
       toast.success("Depense soumis avec succès !");
       setIsSuccessModalOpen(true);
       form.reset();
+      setView(true);
     },
   });
 
@@ -125,38 +135,6 @@ export function TransportForm() {
     paymentsData.mutate({ ...payment });
   });
 
-  if (!paymentsData.isPending && paymentsData.isSuccess) {
-    return (
-      <div className="p-2 sm:p-5 md:p-8 w-full rounded-md gap-2 border">
-        <motion.div
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, stiffness: 300, damping: 25 }}
-          className="h-full py-6 px-3"
-        >
-          <motion.div
-            initial={{ scale: 0.5 }}
-            animate={{ scale: 1 }}
-            transition={{
-              delay: 0.3,
-              type: "spring",
-              stiffness: 500,
-              damping: 15,
-            }}
-            className="mb-4 flex justify-center border rounded-full w-fit mx-auto p-2"
-          >
-            <Check className="size-8" />
-          </motion.div>
-          <h2 className="text-center text-2xl text-pretty font-bold mb-2">
-            Thank you
-          </h2>
-          <p className="text-center text-lg text-pretty text-muted-foreground">
-            Form submitted successfully, we will get back to you soon
-          </p>
-        </motion.div>
-      </div>
-    );
-  }
   return (
     !ProjectsData.isLoading &&
     !usersData.isLoading &&
@@ -395,6 +373,13 @@ export function TransportForm() {
             </div>
           </form>
         </Form>
+        {paymentsData.isSuccess && (
+          <ViewDepense
+            open={view}
+            openChange={setView}
+            depense={paymentsData.data.data}
+          />
+        )}
         <SuccessModal
           open={isSuccessModalOpen}
           onOpenChange={setIsSuccessModalOpen}
