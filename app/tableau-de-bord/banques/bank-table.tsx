@@ -61,10 +61,10 @@ interface Props {
 }
 
 
-function getTypeBadge(type: Bank["type"]): {label: string; variant: VariantProps<typeof badgeVariants>["variant"]} {
-    const typeData = BANK_TYPES.find(t=>t.value === type);
-    const label = typeData?.name ?? "Inconnu"
-  switch(type) {
+function getTypeBadge(type: Bank["type"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+  const typeData = BANK_TYPES.find(t => t.value === type);
+  const label = typeData?.name ?? "Inconnu"
+  switch (type) {
     case "BANK":
       return { label, variant: "blue" };
     case "CASH":
@@ -77,201 +77,203 @@ function getTypeBadge(type: Bank["type"]): {label: string; variant: VariantProps
 };
 
 function BankTable({ data, canEdit }: Props) {
-    const [sorting, setSorting] = React.useState<SortingState>([]);
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-      []
-    );
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
-      status: false, // Masque la colonne statut par défaut
-    });
-    const [rowSelection, setRowSelection] = React.useState({});
-    const [globalFilter, setGlobalFilter] = React.useState("");
-    const [selected, setSelected] = React.useState<Bank>();
-    const [view, setView] = React.useState<boolean>(false);
-    const [edit, setEdit] = React.useState<boolean>(false);
-  
-    const columns: ColumnDef<Bank>[] = [
-      {
-        accessorKey: "id",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Référence"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original.id
-          return <span>{`BA-${value}`}</span>
-        },
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+    status: false, // Masque la colonne statut par défaut
+  });
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState("");
+  const [selected, setSelected] = React.useState<Bank>();
+  const [view, setView] = React.useState<boolean>(false);
+  const [edit, setEdit] = React.useState<boolean>(false);
+
+  const columns: ColumnDef<Bank>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Référence"}
+            <ArrowUpDown />
+          </span>
+        );
       },
-      {
-          accessorKey: "label",
-          header: ({ column }) => {
-            return (
-              <span
-                className="tablehead"
-                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      cell: ({ row }) => {
+        const value = row.original.id
+        return <span>{`BA-${value}`}</span>
+      },
+    },
+    {
+      accessorKey: "label",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Intitulé du Compte"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.label;
+        return <span className="font-medium">{value}</span>;
+      },
+    },
+    {
+      accessorKey: "balance",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Soldes"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.balance;
+        return <span>{XAF.format(value)}</span>;
+      },
+    },
+    {
+      id: "type",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Type de compte"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.type;
+        const { variant, label } = getTypeBadge(value);
+        return <Badge variant={variant}>{label}</Badge>;
+      },
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Statut"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.Status
+        return <Badge variant={value ? "success" : "destructive"}>{value ? "Actif" : "Désactivé"}</Badge>;
+      },
+    },
+    {
+      accessorKey: "updatedAt",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Dernière mise à jour"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.updatedAt;
+        return <span>{value ? format(new Date(value), "dd MMMM yyyy, p", { locale: fr }) : "--"}</span>;
+      },
+    },
+    {
+      id: "actions",
+      header: () => <span className="tablehead">{"Actions"}</span>,
+      enableHiding: false,
+      cell: ({ row }) => {
+        const item = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild className="w-fit">
+              <Button variant="ghost">
+                {"Actions"}
+                <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setView(true);
+                }}
               >
-                {"Intitulé du Compte"}
-                <ArrowUpDown />
-              </span>
-            );
-          },
-          cell: ({ row }) => {
-            const value = row.original.label;
-              return <span className="font-medium">{value}</span>;
-      },
-  },
-      {
-        accessorKey: "balance",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Soldes"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original.balance;
-          return <span>{XAF.format(value)}</span>;
-        },
-      },
-      {
-        id: "type",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Type de compte"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original.type;
-          const {variant, label} = getTypeBadge(value);
-          return <Badge variant={variant}>{label}</Badge>;
-        },
-      },
-      {
-        accessorKey: "status",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Statut"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original.Status
-          return <Badge variant={value ? "success" : "destructive"}>{value ? "Actif" : "Désactivé"}</Badge>;
-        },
-      },
-      {
-        accessorKey: "updatedAt",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Dernière mise à jour"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original.updatedAt;
-          return <span>{value ? format(new Date(value), "dd MMMM yyyy, p", {locale: fr}) : "--"}</span>;
-        },
-      },
-      {
-        id: "actions",
-        header: ()=><span className="tablehead">{"Actions"}</span>,
-        enableHiding: false,
-        cell: ({ row }) => {
-          const item = row.original;
-  
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild className="w-fit">
-                <Button variant="ghost">
-                  {"Actions"}
-                  <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelected(item);
-                    setView(true);
-                  }}
-                >
-                  <Eye />
-                  {"Voir"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
+                <Eye />
+                {"Voir"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 disabled={!canEdit}
-                  onClick={() => {
-                    setSelected(item);
-                    setEdit(true);
-                  }}
-                >
-                  <Pencil />
-                  {"Modifier"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
+                onClick={() => {
+                  setSelected(item);
+                  setEdit(true);
+                }}
+              >
+                <Pencil />
+                {"Modifier"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
       },
-    ];
-  
-    const table = useReactTable({
-      data: data,
-      columns,
-      onSortingChange: setSorting,
-      onColumnFiltersChange: setColumnFilters,
-      getCoreRowModel: getCoreRowModel(),
-      getPaginationRowModel: getPaginationRowModel(),
-      getSortedRowModel: getSortedRowModel(),
-      getFilteredRowModel: getFilteredRowModel(),
-      onColumnVisibilityChange: setColumnVisibility,
-      onRowSelectionChange: setRowSelection,
-      onGlobalFilterChange: setGlobalFilter,
-      globalFilterFn: (row, columnId, filterValue) => {
-        const searchableColumns = ["id", "label", "balance"];
-        const searchValue = filterValue.toLowerCase();
-  
-        return searchableColumns.some((column) => {
-          const value = row.getValue(column) as string;
-          return value?.toLowerCase().includes(searchValue);
-        });
-      },
-      state: {
-        sorting,
-        columnFilters,
-        columnVisibility,
-        rowSelection,
-        globalFilter,
-      },
-    });
+    },
+  ];
+
+  const table = useReactTable({
+    data: data,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const searchableColumns = ["id", "label", "balance"];
+      const searchValue = filterValue.toLowerCase();
+
+      return searchableColumns.some((column) => {
+        const value = row.getValue(column) as string;
+        return value?.toLowerCase().includes(searchValue);
+      });
+    },
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+      globalFilter,
+    },
+  });
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -327,12 +329,12 @@ function BankTable({ data, canEdit }: Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{"Toutes"}</SelectItem>
-                  <SelectItem value={"true"}>
-                    {"Actif"}
-                  </SelectItem>
-                  <SelectItem value={"false"}>
-                    {"Désactivé"}
-                  </SelectItem>
+                <SelectItem value={"true"}>
+                  {"Actif"}
+                </SelectItem>
+                <SelectItem value={"false"}>
+                  {"Désactivé"}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -380,9 +382,9 @@ function BankTable({ data, canEdit }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -426,7 +428,7 @@ function BankTable({ data, canEdit }: Props) {
       <Pagination table={table} />
       {selected && <ViewBank bank={selected} open={view} openChange={setView} />}
       {selected && <EditBank bank={selected} open={edit} openChange={setEdit} />}
-      </div>
+    </div>
   )
 }
 

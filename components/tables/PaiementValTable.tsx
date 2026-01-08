@@ -97,7 +97,9 @@ function getStatusBadge(status: PaymentRequest["status"]): { label: string; vari
 };
 
 export function PaiementValTable({ payments, purchases }: Props) {
-    const [sorting, setSorting] = React.useState<SortingState>([]);
+    const [sorting, setSorting] = React.useState<SortingState>([
+        { id: "createdAt", desc: true },
+    ]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
     );

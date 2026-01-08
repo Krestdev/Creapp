@@ -92,10 +92,13 @@ export default function CreateUserForm() {
       });
     },
     onError: (error: unknown) => {
-      toast.error(
-        "Une erreur est survenue lors de la creation de l'utilisateur."
-      );
-      console.error("Register error:", error);
+      if ((error as Error).message === "Email already in use") {
+        toast.error("Cette adresse mail est déjà utilisée");
+      } else {
+        toast.error(
+          "Une erreur est survenue lors de la creation de l'utilisateur."
+        );
+      }
     },
   });
 

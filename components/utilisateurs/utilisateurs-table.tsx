@@ -66,18 +66,21 @@ import { ShowUser } from "./show-user";
 import { TranslateRole } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { ModalWarning } from "../modals/modal-warning";
+import { format } from "date-fns";
 
 interface UtilisateursTableProps {
   data: UserT[];
 }
 
 export function UtilisateursTable({ data }: UtilisateursTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({ createdAt: false });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
@@ -149,7 +152,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       case true:
         return "bg-green-500 text-white hover:bg-green-600";
       default:
-        return "bg-gray-500 text-white hover:bg-gray-600";
+        return "bg-yellow-500 text-white hover:bg-yellow-600";
     }
   };
 
@@ -158,7 +161,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       case true:
         return "bg-green-50";
       default:
-        return "bg-gray-50";
+        return "bg-yellow-50";
     }
   };
 
@@ -379,6 +382,34 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
       },
       {
+        accessorKey: "createdAt",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Date d'ajout"}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          const dateValue = row.getValue("createdAt");
+          if (!dateValue) return <div className="text-muted-foreground">-</div>;
+
+          const date = new Date(dateValue as string);
+          return (
+            <div>
+              {format(date, "dd/MM/yyyy")}
+            </div>
+          );
+        },
+        // Vous pouvez masquer cette colonne par défaut si vous préférez
+      },
+      {
         id: "actions",
         header: () => <span className="tablehead">Action</span>,
         enableHiding: false,
@@ -594,6 +625,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 else if (column.id === "email") text = "Email";
                 else if (column.id === "role") text = "Rôles";
                 else if (column.id === "verified") text = "Statut";
+                else if (column.id === "createdAt") text = "Date d'ajout";
                 else if (column.id === "lastConnection") text = "Dernière connexion";
 
                 return (

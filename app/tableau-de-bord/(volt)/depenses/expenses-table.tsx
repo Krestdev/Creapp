@@ -57,7 +57,7 @@ import PayExpense from "./pay-expense";
 interface Props {
   payments: Array<PaymentRequest>;
   purchases: Array<BonsCommande>;
-  type: "pending"|"validated";
+  type: "pending" | "validated";
 }
 
 function getPriorityBadge(
@@ -80,13 +80,13 @@ function getPriorityBadge(
   }
 }
 
-function getStatusBadge(status: PaymentRequest["status"]): {label: string; variant: VariantProps<typeof badgeVariants>["variant"]} {
-  const statusData = PAY_STATUS.find(s=>s.value === status);
+function getStatusBadge(status: PaymentRequest["status"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+  const statusData = PAY_STATUS.find(s => s.value === status);
   const label = statusData?.name ?? "Inconnu"
 
-  switch(status) {
+  switch (status) {
     case "pending":
-      return { label, variant: "amber"};
+      return { label, variant: "amber" };
     case "validated":
       return { label, variant: "sky" };
     case "paid":
@@ -96,10 +96,10 @@ function getStatusBadge(status: PaymentRequest["status"]): {label: string; varia
   }
 };
 
-function getTypeBadge(type: PaymentRequest["type"]): {label: string; variant: VariantProps<typeof badgeVariants>["variant"]} {
-    const typeData = PAYMENT_TYPES.find(t=>t.value === type);
-    const label = typeData?.name ?? "Inconnu"
-  switch(type) {
+function getTypeBadge(type: PaymentRequest["type"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+  const typeData = PAYMENT_TYPES.find(t => t.value === type);
+  const label = typeData?.name ?? "Inconnu"
+  switch (type) {
     case "FAC":
       return { label, variant: "lime" };
     case "PURCHASE":
@@ -114,254 +114,256 @@ function getTypeBadge(type: PaymentRequest["type"]): {label: string; variant: Va
 };
 
 function ExpensesTable({ payments, purchases, type }: Props) {
-    const [sorting, setSorting] = React.useState<SortingState>([]);
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-      []
-    );
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
-      status: false, // Masque la colonne statut par défaut
-    });
-    const [rowSelection, setRowSelection] = React.useState({});
-    const [globalFilter, setGlobalFilter] = React.useState("");
-    const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
-      undefined
-    );
-    const [showDetail, setShowDetail] = React.useState<boolean>(false);
-    const [showPay, setShowPay] = React.useState<boolean>(false);
-  
-    const columns: ColumnDef<PaymentRequest>[] = [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+    status: false, // Masque la colonne statut par défaut
+  });
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState("");
+  const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
+    undefined
+  );
+  const [showDetail, setShowDetail] = React.useState<boolean>(false);
+  const [showPay, setShowPay] = React.useState<boolean>(false);
+
+  const columns: ColumnDef<PaymentRequest>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "reference",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Référence"}
+            <ArrowUpDown />
+          </span>
+        );
       },
-      {
-        accessorKey: "reference",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Référence"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("reference")}</div>
-        ),
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("reference")}</div>
+      ),
+    },
+    {
+      accessorKey: "type",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Type"}
+            <ArrowUpDown />
+          </span>
+        );
       },
-      {
-          accessorKey: "type",
-          header: ({ column }) => {
-            return (
-              <span
-                className="tablehead"
-                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      cell: ({ row }) => {
+        const value = row.original;
+        const type = getTypeBadge(value.type);
+        return <Badge variant={type.variant}>{type.label}</Badge>;
+      },
+    },
+    {
+      accessorKey: "title",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Titre"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const purchase = purchases.find(p => p.id === value.commandId);
+        const title = value.title;
+        return <div>{purchase?.devi.commandRequest.title ?? value.title ?? "--"}</div>;
+      },
+    },
+    {
+      id: "provider",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Fournisseur"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const purchase = purchases.find((p) => p.id === value.commandId);
+        return <div>{purchase?.provider?.name ?? "Creaconsult"}</div>;
+      },
+    },
+    {
+      accessorKey: "price",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Montant"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.getValue("price");
+        return <div className="font-medium">{XAF.format(Number(value))}</div>;
+      },
+    },
+    {
+      accessorKey: "priority",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Priorité"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const priority = getPriorityBadge(value.priority);
+        return <Badge variant={priority.variant}>{priority.label}</Badge>;
+      },
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Statut"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const status = getStatusBadge(value.status);
+        return (
+          <Badge variant={status.variant}>
+            {status.label}
+          </Badge>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
+      id: "actions",
+      header: () => <span className="tablehead">{"Actions"}</span>,
+      enableHiding: false,
+      cell: ({ row }) => {
+        const item = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild className="w-fit">
+              <Button variant="ghost">
+                {"Actions"}
+                <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setShowDetail(true);
+                }}
               >
-                {"Type"}
-                <ArrowUpDown />
-              </span>
-            );
-          },
-          cell: ({ row }) => {
-            const value = row.original;
-              const type = getTypeBadge(value.type);
-              return <Badge variant={type.variant}>{type.label}</Badge>;
-      },
-  },
-      {
-        accessorKey: "title",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Titre"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          const purchase = purchases.find(p=> p.id === value.commandId);
-          const title = value.title;
-          return <div>{purchase?.devi.commandRequest.title ?? value.title ?? "--"}</div>;
-        },
-      },
-      {
-        id: "provider",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Fournisseur"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          const purchase = purchases.find((p) => p.id === value.commandId);
-          return <div>{purchase?.provider?.name ?? "Creaconsult"}</div>;
-        },
-      },
-      {
-        accessorKey: "price",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Montant"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.getValue("price");
-          return <div className="font-medium">{XAF.format(Number(value))}</div>;
-        },
-      },
-      {
-        accessorKey: "priority",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Priorité"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          const priority = getPriorityBadge(value.priority);
-          return <Badge variant={priority.variant}>{priority.label}</Badge>;
-        },
-      },
-      {
-        accessorKey: "status",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              {"Statut"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          const status = getStatusBadge(value.status);
-          return (
-            <Badge variant={status.variant}>
-              {status.label}
-            </Badge>
-          );
-        },
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id));
-        },
-      },
-      {
-        id: "actions",
-        header: ()=><span className="tablehead">{"Actions"}</span>,
-        enableHiding: false,
-        cell: ({ row }) => {
-          const item = row.original;
-  
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild className="w-fit">
-                <Button variant="ghost">
-                  {"Actions"}
-                  <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelected(item);
-                    setShowDetail(true);
-                  }}
-                >
-                  <Eye />
-                  {"Voir"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
+                <Eye />
+                {"Voir"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 disabled={item.status !== "validated"}
-                  onClick={() => {
-                    setSelected(item);
-                    setShowPay(true);
-                  }}
-                >
-                  <DollarSign />
-                  {"Payer"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
+                onClick={() => {
+                  setSelected(item);
+                  setShowPay(true);
+                }}
+              >
+                <DollarSign />
+                {"Payer"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
       },
-    ];
-  
-    const table = useReactTable({
-      data: payments, // CORRECTION: 'data' au lieu de 'payments'
-      columns,
-      onSortingChange: setSorting,
-      onColumnFiltersChange: setColumnFilters,
-      getCoreRowModel: getCoreRowModel(),
-      getPaginationRowModel: getPaginationRowModel(),
-      getSortedRowModel: getSortedRowModel(),
-      getFilteredRowModel: getFilteredRowModel(),
-      onColumnVisibilityChange: setColumnVisibility,
-      onRowSelectionChange: setRowSelection,
-      onGlobalFilterChange: setGlobalFilter,
-      globalFilterFn: (row, columnId, filterValue) => {
-        const searchableColumns = ["reference", "provider", "title"];
-        const searchValue = filterValue.toLowerCase();
-  
-        return searchableColumns.some((column) => {
-          const value = row.getValue(column) as string;
-          return value?.toLowerCase().includes(searchValue);
-        });
-      },
-      state: {
-        sorting,
-        columnFilters,
-        columnVisibility,
-        rowSelection,
-        globalFilter,
-      },
-    });
+    },
+  ];
+
+  const table = useReactTable({
+    data: payments, // CORRECTION: 'data' au lieu de 'payments'
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const searchableColumns = ["reference", "provider", "title"];
+      const searchValue = filterValue.toLowerCase();
+
+      return searchableColumns.some((column) => {
+        const value = row.getValue(column) as string;
+        return value?.toLowerCase().includes(searchValue);
+      });
+    },
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+      globalFilter,
+    },
+  });
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -469,9 +471,9 @@ function ExpensesTable({ payments, purchases, type }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -522,7 +524,7 @@ function ExpensesTable({ payments, purchases, type }: Props) {
         />
       )}
       {selected && <PayExpense ticket={selected} open={showPay} onOpenChange={setShowPay} />}
-      </div>
+    </div>
   )
 }
 

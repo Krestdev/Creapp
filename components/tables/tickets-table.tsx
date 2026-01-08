@@ -167,7 +167,9 @@ const typeConfig = {
 };
 
 export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );

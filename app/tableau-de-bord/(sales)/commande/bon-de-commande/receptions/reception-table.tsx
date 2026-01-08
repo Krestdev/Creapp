@@ -90,7 +90,9 @@ export function ReceptionTable({ data }: Props) {
   const usersQuery = new UserQueries();
   const getUsers = useFetchQuery(["users"], usersQuery.getAll);
 
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -465,9 +467,9 @@ export function ReceptionTable({ data }: Props) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>

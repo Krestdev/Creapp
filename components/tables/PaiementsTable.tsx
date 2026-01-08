@@ -82,13 +82,13 @@ function getPriorityBadge(
   }
 }
 
-function getStatusBadge(status: PaymentRequest["status"]): {label: string; variant: VariantProps<typeof badgeVariants>["variant"]} {
-  const statusData = PAY_STATUS.find(s=>s.value === status);
+function getStatusBadge(status: PaymentRequest["status"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+  const statusData = PAY_STATUS.find(s => s.value === status);
   const label = statusData?.name ?? "Inconnu"
 
-  switch(status) {
+  switch (status) {
     case "pending":
-      return { label, variant: "amber"};
+      return { label, variant: "amber" };
     case "validated":
       return { label, variant: "success" };
     default:
@@ -97,7 +97,9 @@ function getStatusBadge(status: PaymentRequest["status"]): {label: string; varia
 };
 
 export function PaiementsTable({ payments, purchases }: Props) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -166,7 +168,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find(p=> p.id === value.commandId);
+        const purchase = purchases.find(p => p.id === value.commandId);
         return <div>{purchase?.devi.commandRequest.title ?? "Non défini"}</div>;
       },
     },
@@ -254,7 +256,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
     },
     {
       id: "actions",
-      header: ()=><span className="tablehead">{"Actions"}</span>,
+      header: () => <span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
@@ -282,7 +284,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
               <DropdownMenuItem
                 onClick={() => {
                   setSelected(item);
-                 setShowUpdateModal(true);
+                  setShowUpdateModal(true);
                 }}
               >
                 <LucidePen />
@@ -382,7 +384,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{"Tous"}</SelectItem>
-                {PAY_STATUS.map((status)=><SelectItem key={status.value} value={status.value}>{status.name}</SelectItem>)}
+                {PAY_STATUS.map((status) => <SelectItem key={status.value} value={status.value}>{status.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -430,9 +432,9 @@ export function PaiementsTable({ payments, purchases }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -484,7 +486,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
       )}
       {
         selected && (
-          <EditPayment open={showUpdateModal} openChange={setShowUpdateModal} payment={selected} purchases={purchases}/>
+          <EditPayment open={showUpdateModal} openChange={setShowUpdateModal} payment={selected} purchases={purchases} />
         )
       }
     </div>
