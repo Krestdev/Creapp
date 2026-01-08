@@ -45,7 +45,7 @@ export function ModalDestockage({
 
   const emetteur = usersData.data?.data.find(
     (u) => u.id === data?.userId
-  )?.name;
+  )?.firstName + " " + usersData.data?.data?.find((u) => u.id === data?.userId)?.lastName;
   const projet = projectsData.data?.data.find(
     (p) => p.id === data?.projectId
   )?.label;

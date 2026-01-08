@@ -411,8 +411,8 @@ export function ProjectTable({ data, filters, setFilters }: ProjectTableProps) {
           );
         },
         cell: ({ row }) => {
-          const chief = row.getValue("chief") as { id: number; name: string };
-          return <div>{chief ? chief.name : "Pas de chef"}</div>;
+          const chief = row.getValue("chief") as { id: number; firstName: string; lastName: string; post: string };
+          return <div>{chief ? chief.firstName + " " + chief.lastName : "Pas de chef"}</div>;
         },
       },
       {

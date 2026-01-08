@@ -143,9 +143,8 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Justificatif"}</p>
             <Link
-              href={`${
-                process.env.NEXT_PUBLIC_API
-              }/uploads/${encodeURIComponent(payment.proof)}`}
+              href={`${process.env.NEXT_PUBLIC_API
+                }/uploads/${encodeURIComponent(payment.proof as string)}`}
               target="_blank"
               className="flex gap-0.5 items-center"
             >
@@ -182,7 +181,7 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Initié par"}</p>
             <p className="font-semibold">
-              {getUsers.data?.data.find((u) => u.id === payment.userId)?.name ??
+              {getUsers.data?.data.find((u) => u.id === payment.userId)?.firstName + " " + getUsers.data?.data.find((u) => u.id === payment.userId)?.lastName ||
                 "Non défini"}
             </p>
           </div>

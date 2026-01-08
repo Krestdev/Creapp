@@ -728,9 +728,9 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -800,7 +800,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         action={() =>
           validateMutation.mutate({
             id: selectedTicket?.id!,
-            data: { price: selectedTicket?.price, status: "validated" },
+            data: { commandId: selectedTicket?.commandId, price: selectedTicket?.price, status: "validated" },
           })
         }
         buttonTexts={"Approuver"}

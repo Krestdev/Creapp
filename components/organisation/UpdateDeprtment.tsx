@@ -277,10 +277,10 @@ export default function UpdateDepartment({
                           <SelectContent>
                             {users.data
                               ? users.data.data.map((u) => (
-                                  <SelectItem key={u.id} value={String(u.id)}>
-                                    {u.name}
-                                  </SelectItem>
-                                ))
+                                <SelectItem key={u.id} value={String(u.id)}>
+                                  {u.firstName + " " + u.lastName}
+                                </SelectItem>
+                              ))
                               : null}
                           </SelectContent>
                         </Select>

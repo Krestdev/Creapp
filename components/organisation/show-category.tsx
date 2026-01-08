@@ -165,7 +165,7 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
                     const firstValidatorName =
                       usersData.data?.data?.find(
                         (u) => u.id === validators[0].userId
-                      )?.name ?? "Inconnu";
+                      )?.firstName + " " + usersData.data?.data?.find((u) => u.id === validators[0].userId)?.lastName || "Inconnu";
 
                     return (
                       <div

@@ -294,7 +294,7 @@ export default function UpdateUser({
               )}
             />
 
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-2">
               <FormLabel>Rôles *</FormLabel>
               <MultiSelectRole
                 display="Role"
