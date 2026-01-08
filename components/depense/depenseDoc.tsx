@@ -1,281 +1,260 @@
-"use client";
-import { company, formatXAF, XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
-import { PaymentRequest } from "@/types/types";
+import React from "react";
 import {
   Document,
   Page,
-  View,
   Text,
+  View,
   StyleSheet,
-  Image,
+  Font,
 } from "@react-pdf/renderer";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { PaymentRequest } from "@/types/types";
 
-// Dimensions A4 en points (1 point = 1/72 inch)
-const A4_WIDTH = 595; // Largeur A4 en points
-const A4_HEIGHT = 842; // Hauteur A4 en points
+// Register fonts if needed (optional)
+// Font.register({ family: 'Helvetica', src: '...' });
 
 const styles = StyleSheet.create({
   page: {
-    width: A4_WIDTH,
-    height: A4_HEIGHT,
-    paddingTop: 90,
-    paddingBottom: 65,
-    paddingHorizontal: 20,
-    fontSize: 10,
+    padding: 30,
     fontFamily: "Helvetica",
-    position: "relative",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
-    gap: 19,
-  },
-  backgroundImage: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: A4_WIDTH,
-    height: A4_HEIGHT,
-    zIndex: -1,
-  },
-  mainContent: {
-    width: "100%",
-    flexDirection: "column",
-    marginBottom: 200, // Maintenant ça devrait fonctionner
   },
   header: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  name: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  info: {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  leftHeader: {
-    display: "flex",
-    flexDirection: "column",
-    alignContent: "flex-start",
-    justifyContent: "flex-start",
-  },
-  rightHeaderBox: {
-    borderWidth: 1,
-    borderColor: "#000",
-    padding: 6,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-  },
-  logoBox: {
-    width: 90,
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#000",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 6,
-  },
-  companyName: { fontSize: 12, marginBottom: 4 },
-  refTitle: { fontWeight: "bold", fontSize: 11, marginBottom: 4 },
-  title: {
+    marginBottom: 20,
     textAlign: "center",
-    fontSize: 16,
+  },
+  title: {
+    fontSize: 24,
     fontWeight: "bold",
-    marginVertical: 8,
-    color: "#700032",
+    marginBottom: 10,
   },
-  metaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
   },
-  metaCol: { width: "33%" },
   table: {
+    display: "flex",
+    width: "100%",
+    borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
-    marginBottom: 8,
-    minHeight: 30,
+    marginBottom: 20,
+  },
+  tableRow: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+    minHeight: 40,
   },
   tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#eee",
-    borderBottomWidth: 1,
-    borderColor: "#000",
-  },
-  th: {
-    padding: 4,
-    borderRightWidth: 1,
-    borderColor: "#000",
-    fontSize: 9,
+    backgroundColor: "#f0f0f0",
     fontWeight: "bold",
   },
-  tr: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderColor: "#ddd",
-    minHeight: 25,
-  },
-  td: {
-    padding: 4,
+  tableCell: {
+    flex: 1,
+    padding: 8,
     borderRightWidth: 1,
-    borderColor: "#ddd",
-    fontSize: 9,
+    borderRightColor: "#000",
+    fontSize: 10,
   },
-  colDesignation: { width: "30%" },
-  colQty: { width: "6%", textAlign: "right" },
-  colPu: { width: "13%", textAlign: "right" },
-  colTva: { width: "13%", textAlign: "right" },
-  colIris: { width: "13%", textAlign: "right" },
-  colTotalHt: { width: "13%", textAlign: "right" },
-  colTotalTtc: { width: "13%", textAlign: "right" },
-  summarySection: {
-    marginTop: 1,
+  tableCellLast: {
+    borderRightWidth: 0,
   },
-  rightSummary: {
-    marginLeft: "auto",
-    width: "40%",
-    padding: 6,
-    backgroundColor: "#E4E4E7",
+  section: {
+    marginBottom: 15,
   },
-  summaryRow: {
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  infoRow: {
     flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 6,
-    paddingVertical: 2,
-  },
-  bold: { fontWeight: "bold" },
-  amountWords: {
-    marginTop: 6,
-    fontStyle: "italic",
-    fontSize: 9,
-  },
-  conditions: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    maxWidth: "70%",
-  },
-  conditionsList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 1,
-  },
-  signRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 24,
     marginBottom: 8,
   },
-  signBox: {
+  infoLabel: {
+    width: 120,
+    fontWeight: "bold",
+    fontSize: 10,
+  },
+  total: {
+    width: 120,
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  infoValue: {
+    flex: 1,
+    fontSize: 10,
+  },
+  signatureSection: {
+    marginTop: 40,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  signatureBox: {
     width: "45%",
-    height: 60,
-    borderWidth: 1,
-    borderColor: "#000",
-    alignItems: "center",
-    justifyContent: "center",
+    paddingTop: 40,
+    borderTopWidth: 1,
+    borderTopColor: "#000",
+  },
+  signatureLabel: {
+    fontSize: 10,
+    textAlign: "center",
+    marginTop: 5,
   },
   footer: {
     position: "absolute",
     bottom: 30,
+    left: 30,
     right: 30,
+    textAlign: "center",
     fontSize: 9,
     color: "#666",
   },
 });
 
-export const DepenseDocument: React.FC<{ doc: PaymentRequest }> = ({ doc }) => {
-  const itemsPerPage = 15;
-  const totalPages = 1;
+interface ReceiptPDFProps {
+  paymentRequest: PaymentRequest;
+}
 
-  const { user } = useStore();
+const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest }) => {
+  const formatDate = (dateString: string | Date) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("fr-FR");
+  };
+
+  const getBeneficiaryName = () => {
+    if (paymentRequest.beneficiary) {
+      return `${paymentRequest.beneficiary.firstName} ${paymentRequest.beneficiary.lastName}`;
+    }
+    return "N/A";
+  };
 
   return (
     <Document>
-      {Array.from({ length: totalPages }).map((_, pageIndex) => (
-        <Page key={pageIndex} size="A4" style={styles.page} wrap={false}>
-          {/* En-tête uniquement sur la première page */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{`Recu ${doc.title}`}</Text>
-            <View style={styles.info}>
-              <View style={styles.leftHeader}>
-                {doc.title == "Transport" ? (
-                  <View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"Beneficier:  "}</Text>
-                      <Text style={styles.companyName}>
-                        {doc.beneficiary?.firstName} {doc.beneficiary?.lastName}
-                      </Text>
-                    </View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"montant:  "}</Text>
-                      <Text style={styles.companyName}>{doc.price}</Text>
-                    </View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"description:  "}</Text>
-                      <Text style={styles.companyName}>{doc.description}</Text>
-                    </View>
-                  </View>
-                ) : (
-                  <View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"Chauffeur:  "}</Text>
-                      <Text style={styles.companyName}>
-                        {doc.beneficiary?.firstName} {doc.beneficiary?.lastName}
-                      </Text>
-                    </View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"Vehicule:  "}</Text>
-                      <Text style={styles.companyName}>{doc.model}</Text>
-                    </View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"kilometrage:  "}</Text>
-                      <Text style={styles.companyName}>{doc.km}</Text>
-                    </View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"Montant:  "}</Text>
-                      <Text style={styles.companyName}>{doc.price}</Text>
-                    </View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"Litres:  "}</Text>
-                      <Text style={styles.companyName}>{doc.liters}</Text>
-                    </View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"description:  "}</Text>
-                      <Text style={styles.companyName}>{doc.description}</Text>
-                    </View>
-                  </View>
-                )}
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Recu {paymentRequest.title}</Text>
+          <Text style={styles.subtitle}>Reçu de paiement transport</Text>
+        </View>
 
-                <View>
-                  <View style={styles.signRow}>
-                    <View style={styles.signBox}>
-                      <Text>{"Visa Responsable des achats"}</Text>
-                    </View>
-                    <View style={styles.signBox}>
-                      <Text>{"Signature Fournisseur"}</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </View>
+        {/* Additional Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Resume depense</Text>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Beneficier:</Text>
+            <Text style={styles.infoValue}>{getBeneficiaryName()}</Text>
           </View>
 
-          {/* Numéro de page dans le footer */}
-          <Text style={styles.footer}>
-            Page {pageIndex + 1} sur {totalPages}
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Montant:</Text>
+            <Text style={styles.infoValue}>
+              {paymentRequest.price ? `${paymentRequest.price} XAF` : "N/A"}
+            </Text>
+          </View>
+
+          {paymentRequest.model && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Vehicule:</Text>
+              <Text style={styles.infoValue}>
+                {paymentRequest.model || "N/A"}
+              </Text>
+            </View>
+          )}
+
+          {paymentRequest.km && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Kilometrage:</Text>
+              <Text style={styles.infoValue}>
+                {paymentRequest.km ? `${paymentRequest.km} km` : "N/A"}
+              </Text>
+            </View>
+          )}
+
+          {paymentRequest.liters && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Litre:</Text>
+              <Text style={styles.infoValue}>
+                {paymentRequest.liters ? `${paymentRequest.liters} L` : "N/A"}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Description Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Description</Text>
+          <View style={styles.table}>
+            <View style={[styles.tableRow, { minHeight: 100 }]}>
+              <Text style={[styles.tableCell, styles.tableCellLast]}>
+                {paymentRequest.description || "Aucune description fournie"}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Additional Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Informations Supplémentaires</Text>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Référence:</Text>
+            <Text style={styles.infoValue}>{paymentRequest.reference}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Type de paiement:</Text>
+            <Text style={styles.infoValue}>{paymentRequest.type}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Méthode de paiement:</Text>
+            <Text style={styles.infoValue}>{paymentRequest.method}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Date de création:</Text>
+            <Text style={styles.infoValue}>
+              {formatDate(paymentRequest.createdAt)}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Statut:</Text>
+            <Text style={styles.infoValue}>{paymentRequest.status}</Text>
+          </View>
+
+          {paymentRequest.deadline && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Montant:</Text>
+              <Text style={[styles.infoValue, styles.total]}>
+                {paymentRequest.price ? `${paymentRequest.price} XAF` : "N/A"}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Signature Section */}
+        <View style={styles.signatureSection}>
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureLabel}>Date</Text>
+            <Text style={styles.signatureLabel}>{formatDate(new Date())}</Text>
+          </View>
+
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureLabel}>Signature</Text>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text>
+            Document généré automatiquement - {paymentRequest.reference}
           </Text>
-        </Page>
-      ))}
+        </View>
+      </Page>
     </Document>
   );
 };
+
+export default DepenseDocument;

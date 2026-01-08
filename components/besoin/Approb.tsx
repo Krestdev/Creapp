@@ -272,6 +272,7 @@ const Approb = ({
             setCustomDateRange={setCustomDateRange}
             empty="Aucun besoin en attente"
             isCheckable={true}
+            categoriesData={categoriesData.data?.data}
           />
         ) : (
           <div className="text-center py-12 border rounded-lg bg-gray-50">

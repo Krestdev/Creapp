@@ -123,7 +123,7 @@ export function TransportForm() {
       benefId: Number(data.Beneficier),
       justification: data.Justificatif,
       status: "paid",
-      type: "PURCHASE",
+      type: "CURRENT",
       method: "cash",
       priority: "medium",
       isPartial: false,
@@ -160,6 +160,7 @@ export function TransportForm() {
                       {...field}
                       id="title"
                       type="text"
+                      disabled={true}
                       onChange={(e) => {
                         field.onChange(e.target.value);
                       }}
@@ -352,9 +353,9 @@ export function TransportForm() {
               />
             </FieldGroup>
             <div className="flex justify-end items-center w-full">
-              {/* <Button>
-              {paymentsData.isPending ? "Submitting..." : "Submit"}
-            </Button> */}
+              {/* <Button type="button" onClick={() => setView(!view)}>
+                test
+              </Button> */}
               <Button
                 variant={"primary"}
                 disabled={paymentsData.isPending}
@@ -377,7 +378,7 @@ export function TransportForm() {
           <ViewDepense
             open={view}
             openChange={setView}
-            depense={paymentsData.data.data}
+            paymentRequest={paymentsData.data.data}
           />
         )}
         <SuccessModal
