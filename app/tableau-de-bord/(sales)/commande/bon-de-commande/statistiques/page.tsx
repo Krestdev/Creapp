@@ -3,6 +3,11 @@ import {
   StatisticCard,
   StatisticProps,
 } from "@/components/base/TitleValueCard";
+import { AreaChartDataItem, ChartArea } from "@/components/Charts/area-chart";
+import {
+  ChartDataItem,
+  ChartPieDonut,
+} from "@/components/Charts/chart-pie-donut";
 import { DateRangePicker } from "@/components/dateRangePicker";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
@@ -10,11 +15,13 @@ import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useFetchQuery } from "@/hooks/useData";
-import { XAF } from "@/lib/utils";
+import { getRandomColor, XAF } from "@/lib/utils";
 import { PurchaseOrder } from "@/queries/purchase-order";
 import { BonsCommande } from "@/types/types";
 import React, { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
+import AreaPurchaseChart from "./purchase-period";
+import PieProviderPurchase from "./purchase-pie-provider";
 
 function Page() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -116,10 +123,25 @@ function Page() {
             {"Réinitialiser"}
           </Button>
         </div>
-        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
+        <div className="grid-stats-4">
           {Statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
+        </div>
+        {/**Graphics Here !! */}
+        <div className="grid-stats-4">
+          <div className="p-6 rounded-md border w-full h-full flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <h3>{"Répartition des bons de commande par période"}</h3>
+            </div>
+            <AreaPurchaseChart data={filteredData} dateFilter={dateRange}/>
+          </div>
+          <div className="p-6 rounded-md border w-full h-full flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <h3>{"Bons de commande par fournisseur"}</h3>
+            </div>
+            <PieProviderPurchase data={filteredData}/>
+          </div>
         </div>
       </div>
     );

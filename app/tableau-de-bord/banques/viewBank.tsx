@@ -98,7 +98,7 @@ function ViewBank({open, openChange, bank}:Props) {
           </span>
           <div className="flex flex-col">
             <p className="view-group-title">{"Justificatif"}</p>
-            <Link
+            {!!bank.justification ? <Link
               href={`${
                 process.env.NEXT_PUBLIC_API
               }/uploads/${encodeURIComponent(bank.justification)}`}
@@ -113,7 +113,7 @@ function ViewBank({open, openChange, bank}:Props) {
               <p className="text-foreground font-medium">
                 {bank.justification ? "Document justificatif" : "Aucun justificatif"}
               </p>
-            </Link>
+            </Link> : <p className='italic'>{"Aucun justificatif"}</p>}
           </div>
         </div>
         {/**Updated at */}

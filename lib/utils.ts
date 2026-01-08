@@ -1,5 +1,6 @@
 import { BonsCommande, Provider, Role } from "@/types/types";
 import { clsx, type ClassValue } from "clsx";
+import { DateRange } from "react-day-picker";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -138,3 +139,43 @@ export function isRole({roleList, role}:RoleCheck):boolean{
   }
   return false;
 }
+
+export function getRandomColor (id?:number){
+  const colors = [
+    "var(--primary-600)",
+    "var(--secondary-600)",
+    "#E4B363",
+    "#8963BA",
+    "#F85E00",
+    "#31CB00",
+    "#59C3C3",
+    "#2E86AB",
+    "#3A3335",
+    "#5E2BFF",
+    "#2A9D8F",
+    "#37000A",
+    "#806D40",
+    "#E4FF1A",
+    "#1BE7FF",
+    "#218380",
+    "#DBCBD8",
+    "#F4D35E",
+    "#372772"
+  ];
+  const value = !!id ? id % colors.length : Math.floor(Math.random() * colors.length);
+  return colors[value]
+}
+
+export const getPeriodType = (
+    range: DateRange | undefined
+  ): "day" | "week" | "month" => {
+    if (!range?.from || !range?.to) return "month";
+
+    const diffDays = Math.floor(
+      (range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffDays <= 7) return "day";
+    if (diffDays <= 31) return "week";
+    return "month";
+  };
