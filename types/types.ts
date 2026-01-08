@@ -565,6 +565,7 @@ export type Transaction = {
   id: number;
   label: string;
   amount: number;
+  date: Date;
   createdAt: Date;
   Type: string;
   from: Bank | { label: string; accountNumber?: string; phoneNumber?: string };

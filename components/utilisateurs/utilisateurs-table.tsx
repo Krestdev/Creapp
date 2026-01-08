@@ -67,6 +67,7 @@ import { TranslateRole } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { ModalWarning } from "../modals/modal-warning";
 import { format } from "date-fns";
+import UpdatePassword from "./updatePassword";
 
 interface UtilisateursTableProps {
   data: UserT[];
@@ -86,6 +87,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
   const [selectedItem, setSelectedItem] = React.useState<UserT | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const [isUpdatePasswordModalOpen, setIsUpdatePasswordModalOpen] = React.useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [verifiedFilter, setVerifiedFilter] = React.useState<string>("all");
@@ -210,45 +212,56 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     },
   });
 
+  const capitalizeFirstName = (value: string) =>
+    value
+      .toLocaleLowerCase("fr-FR")
+      .replace(/^\p{L}/u, (letter) =>
+        letter.toLocaleUpperCase("fr-FR")
+      );
+
+  const formatFullName = (lastName: string, firstName: string) =>
+    `${lastName.toLocaleUpperCase("fr-FR")} ${capitalizeFirstName(firstName)}`;
+
+
   const columns = React.useMemo<ColumnDef<UserT>[]>(
     () => [
+      // Colonne unique pour Nom & Prénom
       {
-        accessorKey: "lastName",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Nom
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("lastName")}</div>
+        id: "fullName",
+        header: ({ column }) => (
+          <span
+            className="tablehead cursor-pointer select-none flex items-center"
+            onClick={() =>
+              column.toggleSorting(column.getIsSorted() === "asc")
+            }
+          >
+            Utilisateur
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </span>
         ),
-      },
-      {
-        accessorKey: "firstName",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Prénom
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
+
+        accessorFn: (row) =>
+          formatFullName(row.lastName, row.firstName),
+
+        cell: ({ row }) => {
+          const fullName = row.getValue("fullName") as string;
+          return <div className="font-medium">{fullName}</div>;
         },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("firstName")}</div>
-        ),
+
+        sortingFn: (rowA, rowB) => {
+          const nameA = formatFullName(
+            rowA.original.lastName,
+            rowA.original.firstName
+          );
+          const nameB = formatFullName(
+            rowB.original.lastName,
+            rowB.original.firstName
+          );
+
+          return nameA.localeCompare(nameB, "fr", {
+            sensitivity: "base",
+          });
+        },
       },
       {
         accessorKey: "email",
@@ -407,7 +420,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             </div>
           );
         },
-        // Vous pouvez masquer cette colonne par défaut si vous préférez
       },
       {
         id: "actions",
@@ -444,6 +456,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 >
                   <LucidePen className="mr-2 h-4 w-4" />
                   Modifier
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(utilisateur);
+                    setIsUpdatePasswordModalOpen(true);
+                  }}
+                >
+                  <LucidePen className="mr-2 h-4 w-4" />
+                  Modifier le mot de passe
                 </DropdownMenuItem>
                 {utilisateur.status === "inactive" ? (
                   <DropdownMenuItem
@@ -510,12 +531,14 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       const searchValue = filterValue.toLowerCase();
       const user = row.original;
 
-      // Recherche dans les champs textuels
+      // Recherche dans le nom complet
+      const fullName = `${user.lastName} ${user.firstName}`.toLowerCase();
+
+      // Recherche dans les autres champs
       const searchFields = [
-        user.firstName,
-        user.lastName,
-        user.email,
-      ].filter(Boolean).map(f => f.toString().toLowerCase());
+        fullName,
+        user.email.toLowerCase(),
+      ];
 
       // Recherche dans les rôles
       const roleNames = user.role?.map(r =>
@@ -620,8 +643,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               .filter((column) => column.getCanHide())
               .map((column) => {
                 let text = column.id;
-                if (column.id === "firstName") text = "Prénom";
-                else if (column.id === "lastName") text = "Nom";
+                if (column.id === "fullName") text = "Nom & Prénom";
                 else if (column.id === "email") text = "Email";
                 else if (column.id === "role") text = "Rôles";
                 else if (column.id === "verified") text = "Statut";
@@ -723,6 +745,12 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           <UpdateUser
             open={isUpdateModalOpen}
             setOpen={setIsUpdateModalOpen}
+            userData={selectedItem}
+            onSuccess={handleUpdateSuccess}
+          />
+          <UpdatePassword
+            open={isUpdatePasswordModalOpen}
+            setOpen={setIsUpdatePasswordModalOpen}
             userData={selectedItem}
             onSuccess={handleUpdateSuccess}
           />
