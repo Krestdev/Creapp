@@ -41,6 +41,16 @@ export class UserQueries {
     });
   };
 
+  changePassword = async (
+    id:number,
+    password:string
+  ): Promise<User> => {
+    return api.put(`${this.route}/changePassWord/${id}`, {password: password}).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
+  };
+
   // Register (sans role)
   changeStatus = async (
     id: number,

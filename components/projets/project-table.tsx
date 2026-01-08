@@ -23,6 +23,7 @@ import {
   PauseCircle,
   PlayCircle,
   Search,
+  Settings2,
   Trash2,
   XCircle,
 } from "lucide-react";
@@ -68,6 +69,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { UserQueries } from "@/queries/baseModule";
 import { useFetchQuery } from "@/hooks/useData";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import { Label } from "../ui/label";
 
 // Interface pour tous les filtres
 export interface ProjectFilters {
@@ -324,6 +327,17 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
 
     return filtered;
   }, [data, effectiveFilters]);
+
+  // Réinitialiser tous les filtres
+  const resetAllFilters = () => {
+    setEffectiveFilters({
+    globalFilter: "",
+    statusFilter: "all",
+    chiefFilter: "all",
+    budgetOperator: "none",
+    budgetValue: "",
+  });
+  };
 
   const columns: ColumnDef<ProjectT>[] = React.useMemo(
     () => [
@@ -625,24 +639,38 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
   const selectedRows = table.getFilteredSelectedRowModel().rows;
 
   return (
-    <div className="w-full">
-      <div className="flex flex-col gap-4 py-4">
-        {/* Barre de recherche */}
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher par projet..."
-              value={effectiveFilters.globalFilter ?? ""}
-              onChange={(event) =>
-                updateFilter("globalFilter", event.target.value)
-              }
-              className="pl-8 max-w-lg w-full!"
-            />
-          </div>
-
-          {/* Sélecteur de statut - affiche uniquement les statuts existants */}
-          <Select
+    <div className="content">
+      <div className="flex flex-wrap justify-between gap-4">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant={"outline"}>
+              <Settings2 />
+              {"Filtres"}
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les fitres pour affiner les données"}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="px-5 grid gap-5">
+              <div className="grid gap-1.5">
+                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
+                <Input
+                  placeholder="Rechercher par nom"
+                  value={effectiveFilters.globalFilter ?? ""}
+                  onChange={(event) =>
+                    updateFilter("globalFilter", event.target.value)
+                  }
+                  className="w-full"
+                />
+              </div>
+              {/* Filtre par statut */}
+              <div className="grid gap-1.5">
+                <Label>{"Statut"}</Label>
+                <Select
             value={
               typeof effectiveFilters.statusFilter === "string"
                 ? effectiveFilters.statusFilter
@@ -652,11 +680,11 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
               updateFilter("statusFilter", value === "all" ? "all" : value)
             }
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Tous les statuts" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="all">{"Tous les statuts"}</SelectItem>
               {uniqueStatuses.map((status) => {
                 const badgeInfo = getBadge(status);
                 return (
@@ -670,16 +698,20 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
               })}
             </SelectContent>
           </Select>
+              </div>
 
-          <Select
+              {/* Filtre par chef de projet */}
+              <div className="grid gap-1.5">
+                <Label>{"Chef de Projet"}</Label>
+                <Select
             value={effectiveFilters.chiefFilter}
             onValueChange={(value) => updateFilter("chiefFilter", value)}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Tous les chefs" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les chefs</SelectItem>
+              <SelectItem value="all">{"Tous"}</SelectItem>
               {uniqueChiefs.map((chief) => (
                 <SelectItem key={chief} value={chief}>
                   {chief}
@@ -687,7 +719,20 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
               ))}
             </SelectContent>
           </Select>
-
+              </div>
+              {/* Bouton pour réinitialiser les filtres */}
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={resetAllFilters}
+                  className="w-full"
+                >
+                  {"Réinitialiser"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="ml-auto">
               <Button variant="outline">
@@ -727,7 +772,6 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
       </div>
 
       <div className="rounded-md border">
