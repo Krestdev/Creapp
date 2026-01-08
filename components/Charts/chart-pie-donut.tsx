@@ -76,7 +76,7 @@ const generateChartConfigFromData = (data: ChartDataItem[]): ChartConfig => {
 export function ChartPieDonut({
   data,
   chartConfig,
-  innerRadius = 40,
+  innerRadius = 60,
   maxHeight = 400,
   showLegend = false,
   tooltipConfig = {},

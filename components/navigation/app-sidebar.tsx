@@ -344,7 +344,7 @@ function AppSidebar() {
           pageId: "PG-03-02",
           title: "Devis",
           href: "/tableau-de-bord/commande/devis",
-          authorized: ["ADMIN", "SALES"],
+          authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
         },
         {
           pageId: "PG-03-45",
@@ -360,7 +360,7 @@ function AppSidebar() {
           pageId: "PG-03-5",
           title: "Bons de commande",
           href: "/tableau-de-bord/commande/bon-de-commande",
-          authorized: ["ADMIN", "SALES"],
+          authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
           badgeValue:
             devisTraite && devisTraite.length > 0
               ? devisTraite?.length
@@ -379,6 +379,12 @@ function AppSidebar() {
           title: "Paiements",
           href: "/tableau-de-bord/commande/paiements",
           authorized: ["ADMIN", "SALES"],
+        },
+        {
+          pageId: "PG-03-065897",
+          title: "Statistiques",
+          href: "/tableau-de-bord/commande/bon-de-commande/statistiques",
+          authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
         },
       ],
     },

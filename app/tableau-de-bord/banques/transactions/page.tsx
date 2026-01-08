@@ -6,6 +6,11 @@ import { useStore } from '@/providers/datastore';
 import { NavLink } from '@/types/types';
 import Link from 'next/link';
 import React from 'react'
+import TransactionTable from './transaction-table';
+import { TransactionQuery } from '@/queries/transaction';
+import { useFetchQuery } from '@/hooks/useData';
+import LoadingPage from '@/components/loading-page';
+import ErrorPage from '@/components/error-page';
 
 function Page() {
     const { user } = useStore();
@@ -22,6 +27,17 @@ function Page() {
           hide: !auth,
         },
       ];
+
+      const transactionQuery = new TransactionQuery();
+      const getTransactions = useFetchQuery(["transactions"], transactionQuery.getAll, 500000);
+
+      if(getTransactions.isLoading){
+        return <LoadingPage/>
+      }
+      if(getTransactions.isError){
+        return <ErrorPage error={getTransactions.error} />
+      }
+      if(getTransactions.isSuccess)
   return (
     <div className='content'>
         <PageTitle title="Transactions" subtitle="Consultez la liste des transactions">
@@ -49,6 +65,7 @@ function Page() {
               );
             })}
         </PageTitle>
+        <TransactionTable data={getTransactions.data.data} canEdit={true} />
     </div>
   )
 }

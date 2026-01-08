@@ -83,8 +83,8 @@ interface AreaChartProps {
 
 const defaultMargin = {
   top: 20,
-  right: 30,
-  left: 20,
+  right: 0,
+  left: 0,
   bottom: 10,
 }
 
@@ -116,7 +116,7 @@ export function ChartArea({
   tooltipIndicator = "dot",
   tooltipConfig = {},
   trend,
-  height = 300,
+  height = 400,
   margin = defaultMargin,
 }: AreaChartProps) {
   
