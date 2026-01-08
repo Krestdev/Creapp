@@ -65,6 +65,7 @@ import UpdateUser from "./UpdateUser";
 import { ShowUser } from "./show-user";
 import { TranslateRole } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
+import { ModalWarning } from "../modals/modal-warning";
 
 interface UtilisateursTableProps {
   data: UserT[];
@@ -83,6 +84,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const [selectedItem, setSelectedItem] = React.useState<UserT | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [verifiedFilter, setVerifiedFilter] = React.useState<string>("all");
 
   // Récupérer les rôles uniques des utilisateurs pour les options du filtre
@@ -442,9 +444,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 <DropdownMenuItem
                   className="text-red-600"
                   onClick={() => {
-                    if (window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
-                      userMutation.mutate(utilisateur.id ?? -1);
-                    }
+                    setSelectedItem(utilisateur);
+                    setIsDeleteModalOpen(true);
                   }}
                   disabled={utilisateur.id === user?.id}
                 >
@@ -697,6 +698,14 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             open={isDetailModalOpen}
             onOpenChange={setIsDetailModalOpen}
             user={selectedItem}
+          />
+          <ModalWarning
+            open={isDeleteModalOpen}
+            onOpenChange={setIsDeleteModalOpen}
+            title="Supprimer l'utilisateur"
+            description="Êtes-vous sûr de vouloir supprimer cet utilisateur ?"
+            variant="error"
+            onAction={() => userMutation.mutate(selectedItem?.id ?? -1)}
           />
         </>
       )}
