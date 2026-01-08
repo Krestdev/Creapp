@@ -147,7 +147,7 @@ export default function FilesUpload({
 
   useEffect(() => {
     if (files.length === 0) {
-      onChange(null);
+      onChange([]);
       return;
     }
 
@@ -174,7 +174,7 @@ export default function FilesUpload({
     if (multiple) {
       onChange(extractedItems);
     } else {
-      onChange(extractedItems.length > 0 ? [extractedItems[0]] : null);
+      onChange(extractedItems.length > 0 ? [extractedItems[0]] : []);
     }
   }, [files, onChange, multiple]);
 

@@ -56,7 +56,7 @@ export const PAY_STATUS = [
 export type PaymentRequest = {
   id: number;
   reference: string;
-  proof: string;
+  proof: File | string | undefined;
   account?: string;
   justification?: (string | File)[];
   status: (typeof PAY_STATUS)[number]["value"];
@@ -543,4 +543,21 @@ export type Bank = {
   merchantNum?: string;
   createdAt: Date;
   updatedAt?: Date;
+};
+
+export const TRANSACTION_TYPES = [
+  { value: "CREDIT", name: "Crédit" },
+  { value: "DEBIT", name: "Débit" },
+  { value: "TRANSFER", name: "Transfert" },
+] as const;
+
+export type Transaction = {
+  id: number;
+  label: string;
+  amount: number;
+  createdAt: Date;
+  Type: string;
+  from: Bank | { label: string; accountNumber?: string; phoneNumber?: string };
+  to: Bank | { label: string; accountNumber?: string; phoneNumber?: string };
+  proof?: string;
 };

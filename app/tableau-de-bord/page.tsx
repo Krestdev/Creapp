@@ -6,7 +6,7 @@ import { ChartAreaInteractive } from "@/components/Charts/BarChart";
 import { ChartPieLabelList } from "@/components/Charts/ChartPieLabelList";
 import { useStore } from "@/providers/datastore";
 import { RequestQueries } from "@/queries/requestModule";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import React, { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -41,7 +41,7 @@ import { RequestModelT } from "@/types/types";
 import { PaymentQueries } from "@/queries/payment";
 import { useFetchQuery } from "@/hooks/useData";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PaymentRequest } from "@/types/types"; // Assurez-vous d'importer le type PaymentRequest
+import { PaymentRequest } from "@/types/types";
 
 const DashboardPage = () => {
   const { user, isHydrated } = useStore();
@@ -132,9 +132,9 @@ const DashboardPage = () => {
     }));
   };
 
-  // Requête pour récupérer les données des besoins
-  const requestData = useQuery({
-    queryKey: ["requests", user?.id],
+  // Requête pour récupérer les données des besoins de l'utilisateur
+  const myRequestsData = useQuery({
+    queryKey: ["myRequests", user?.id],
     queryFn: () => {
       if (!user?.id) {
         throw new Error("ID utilisateur non disponible");
@@ -144,88 +144,108 @@ const DashboardPage = () => {
     enabled: !!user?.id && isHydrated,
   });
 
-  // Filtrer les données des besoins
-  const getFilteredData = useMemo((): RequestModelT[] => {
-    if (!requestData.data?.data) {
-      return [];
-    }
+  // Requête pour récupérer TOUS les besoins (pour "Besoins reçus")
+  const allRequestsData = useQuery({
+    queryKey: ["allRequests"],
+    queryFn: () => request.getAll(),
+    enabled: isHydrated && !!user,
+  });
 
-    let filtered: RequestModelT[] = [...requestData.data.data];
-
-    // Filtrer par date
-    if (filters.dateFilter) {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-
-      switch (filters.dateFilter) {
-        case "today":
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case "week":
-          startDate.setDate(
-            now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
-          );
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case "month":
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        case "year":
-          startDate = new Date(now.getFullYear(), 0, 1);
-          break;
-        case "custom":
-          if (filters.customDateRange?.from && filters.customDateRange?.to) {
-            startDate = filters.customDateRange.from;
-            endDate = filters.customDateRange.to;
-            // S'assurer que endDate est à la fin de la journée
-            endDate.setHours(23, 59, 59, 999);
-          } else {
-            break;
-          }
-          break;
-        default:
-          break;
+  // Hook personnalisé pour filtrer les besoins
+  const useFilteredRequests = (
+    requestData: UseQueryResult<{ data: RequestModelT[] }, Error>,
+    filters: TableFilters
+  ) => {
+    return React.useMemo(() => {
+      if (!requestData.data?.data) {
+        return [];
       }
 
-      filtered = filtered.filter((item) => {
-        const itemDate = new Date(item.createdAt);
-        return itemDate >= startDate && itemDate <= endDate;
-      });
-    }
+      let filtered: RequestModelT[] = requestData.data.data.filter((r) => r.state !== "cancel" && r.state !== "pending");
 
-    // Filtrer par statut
-    if (filters.statusFilter && filters.statusFilter !== "all") {
-      filtered = filtered.filter((item) => item.state === filters.statusFilter);
-    }
+      // Filtrer par date
+      if (filters.dateFilter) {
+        const now = new Date();
+        let startDate = new Date();
+        let endDate = now;
 
-    // Filtrer par catégorie
-    if (filters.categoryFilter && filters.categoryFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => String(item.categoryId) === String(filters.categoryFilter)
-      );
-    }
+        switch (filters.dateFilter) {
+          case "today":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "week":
+            startDate.setDate(
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+            );
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "month":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          case "custom":
+            if (filters.customDateRange?.from && filters.customDateRange?.to) {
+              startDate = filters.customDateRange.from;
+              endDate = filters.customDateRange.to;
+              endDate.setHours(23, 59, 59, 999);
+            }
+            break;
+        }
 
-    // Filtrer par recherche globale
-    if (filters.globalFilter) {
-      const searchValue = filters.globalFilter.toLowerCase();
-      filtered = filtered.filter((item) => {
-        const searchText = [item.label || "", item.ref || ""]
-          .join(" ")
-          .toLowerCase();
-        return searchText.includes(searchValue);
-      });
-    }
+        filtered = filtered.filter((item) => {
+          const itemDate = new Date(item.createdAt);
+          return itemDate >= startDate && itemDate <= endDate;
+        });
+      }
 
-    // Filtrer par projet
-    if (filters.projectFilter && filters.projectFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => String(item.projectId) === String(filters.projectFilter)
-      );
-    }
+      // Filtrer par statut
+      if (filters.statusFilter && filters.statusFilter !== "all") {
+        filtered = filtered.filter((item) => item.state === filters.statusFilter);
+      }
 
-    return filtered;
-  }, [requestData.data?.data, filters]);
+      // Filtrer par catégorie
+      if (filters.categoryFilter && filters.categoryFilter !== "all") {
+        filtered = filtered.filter(
+          (item) => String(item.categoryId) === String(filters.categoryFilter)
+        );
+      }
+
+      // Filtrer par recherche globale
+      if (filters.globalFilter) {
+        const searchValue = filters.globalFilter.toLowerCase();
+        filtered = filtered.filter((item) => {
+          const searchText = [item.label || "", item.ref || ""]
+            .join(" ")
+            .toLowerCase();
+          return searchText.includes(searchValue);
+        });
+      }
+
+      // Filtrer par projet
+      if (filters.projectFilter && filters.projectFilter !== "all") {
+        filtered = filtered.filter(
+          (item) => String(item.projectId) === String(filters.projectFilter)
+        );
+      }
+
+      // Filtrer par utilisateur (si nécessaire)
+      if (filters.userFilter && filters.userFilter !== "all") {
+        filtered = filtered.filter(
+          (item) => String(item.userId) === String(filters.userFilter)
+        );
+      }
+
+      return filtered;
+    }, [requestData.data?.data, filters]);
+  };
+
+  // Utiliser le hook avec tous les filtres pour "Mes besoins"
+  const getMyFilteredData = useFilteredRequests(myRequestsData, filters);
+
+  // Utiliser le hook avec tous les filtres pour "Besoins reçus" (tous les besoins)
+  const getAllFilteredData = useFilteredRequests(allRequestsData, filters);
 
   // Filtrer les données des paiements (dépenses payées)
   const getFilteredPayments = useMemo((): PaymentRequest[] => {
@@ -280,12 +300,59 @@ const DashboardPage = () => {
     return filtered;
   }, [paymentsData?.data, filters.dateFilter, filters.customDateRange]);
 
-  // Calcul des statistiques des besoins
-  const cancel = getFilteredData.filter((item) => item.state === "cancel").length ?? 0;
-  const soumis = getFilteredData.length - cancel || 0;
-  const attentes = getFilteredData.filter((item) => item.state === "pending").length ?? 0;
-  const rejetes = getFilteredData.filter((item) => item.state === "rejected").length ?? 0;
-  const validés = soumis - attentes - rejetes;
+  const getSubtitle = () => {
+    if (filters.dateFilter === "custom" && filters.customDateRange) {
+      const fromStr = format(filters.customDateRange.from, 'dd/MM/yyyy', { locale: fr });
+      const toStr = format(filters.customDateRange.to, 'dd/MM/yyyy', { locale: fr });
+      return `Consulter mes besoins du ${fromStr} au ${toStr}`;
+    }
+
+    switch (filters.dateFilter) {
+      case "today":
+        return "Consulter mes besoins d'aujourd'hui";
+      case "week":
+        return "Consulter mes besoins des 7 derniers jours";
+      case "month":
+        return "Consulter mes besoins du mois en cours";
+      case "year":
+        return "Consulter mes besoins de l'année en cours";
+      default:
+        return "Consulter mes besoins (30 derniers jours)";
+    }
+  };
+
+  const getReceivedSubtitle = () => {
+    if (filters.dateFilter === "custom" && filters.customDateRange) {
+      const fromStr = format(filters.customDateRange.from, 'dd/MM/yyyy', { locale: fr });
+      const toStr = format(filters.customDateRange.to, 'dd/MM/yyyy', { locale: fr });
+      return `Consulter les besoins reçus du ${fromStr} au ${toStr}`;
+    }
+
+    switch (filters.dateFilter) {
+      case "today":
+        return "Consulter les besoins reçus d'aujourd'hui";
+      case "week":
+        return "Consulter les besoins reçus des 7 derniers jours";
+      case "month":
+        return "Consulter les besoins reçus du mois en cours";
+      case "year":
+        return "Consulter les besoins reçus de l'année en cours";
+      default:
+        return "Consulter les besoins reçus (30 derniers jours)";
+    }
+  };
+
+  // Calcul des statistiques des besoins de l'utilisateur
+  const mySoumis = getMyFilteredData.length || 0;
+  const myAttentes = getMyFilteredData.filter((item) => item.state === "pending").length ?? 0;
+  const myRejetes = getMyFilteredData.filter((item) => item.state === "rejected").length ?? 0;
+  const myValidés = mySoumis - myAttentes - myRejetes;
+
+  // Calcul des statistiques de tous les besoins (reçus)
+  const allSoumis = getAllFilteredData.length || 0;
+  const allAttentes = getAllFilteredData.filter((item) => item.state === "pending").length ?? 0;
+  const allRejetes = getAllFilteredData.filter((item) => item.state === "rejected").length ?? 0;
+  const allValidés = allSoumis - allAttentes - allRejetes;
 
   // Calcul des statistiques des dépenses
   const totalDepenses = getFilteredPayments.reduce((sum, payment) => sum + (payment.price || 0), 0);
@@ -499,9 +566,9 @@ const DashboardPage = () => {
         <StatsCard
           titleColor="text-[#E4E4E7]"
           title="En attente de validation"
-          value={String(attentes)}
+          value={String(myAttentes)}
           description="Besoins rejetés :"
-          descriptionValue={String(rejetes)}
+          descriptionValue={String(myRejetes)}
           descriptionColor="red"
           dividerColor="bg-[#2262A2]"
           className="bg-[#013E7B] text-[#ffffff] border-[#2262A2]"
@@ -510,9 +577,9 @@ const DashboardPage = () => {
         <StatsCard
           title="Total besoins soumis"
           titleColor="text-[#52525B]"
-          value={String(soumis)}
+          value={String(mySoumis)}
           description="Besoins Approuvés :"
-          descriptionValue={String(validés)}
+          descriptionValue={String(myValidés)}
           descriptionColor="text-[#A1A1AA]"
           dividerColor="bg-[#DFDFDF]"
           className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
@@ -520,11 +587,49 @@ const DashboardPage = () => {
         />
       </div>
 
-      {/* Graphiques avec données filtrées */}
+      {/* Graphique 1: Mes besoins */}
       <ChartAreaInteractive
-        filteredData={getFilteredData}
+        filteredData={getMyFilteredData}
         dateFilter={filters.dateFilter}
         customDateRange={filters.customDateRange}
+        title="Mes besoins"
+        description={getSubtitle()}
+        type="my"
+      />
+
+      {/* <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
+        <StatsCard
+          titleColor="text-[#E4E4E7]"
+          title="En attente de validation"
+          value={String(allAttentes)}
+          description="Besoins rejetés :"
+          descriptionValue={String(allRejetes)}
+          descriptionColor="red"
+          dividerColor="bg-[#2262A2]"
+          className="bg-[#013E7B] text-[#ffffff] border-[#2262A2]"
+          dvalueColor="text-[#DC2626]"
+        />
+        <StatsCard
+          title="Besoins reçus"
+          titleColor="text-[#52525B]"
+          value={String(allSoumis)}
+          description="Besoins reçus approuvés :"
+          descriptionValue={String(allValidés)}
+          descriptionColor="text-[#A1A1AA]"
+          dividerColor="bg-[#DFDFDF]"
+          className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
+          dvalueColor="text-blue-600"
+        />
+      </div> */}
+
+      {/* Graphique 2: Besoins reçus */}
+      <ChartAreaInteractive
+        filteredData={getAllFilteredData}
+        dateFilter={filters.dateFilter}
+        customDateRange={filters.customDateRange}
+        title="Besoins reçus"
+        description={getReceivedSubtitle()}
+        type="all"
       />
 
       <Card className="py-4">
@@ -536,26 +641,19 @@ const DashboardPage = () => {
             </CardDescription>
           </div>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Dépense par type */}
           <ChartPieLabelList
             data={getFilteredPayments}
             chartType="type"
-            title="Dépenses par type"
+            title="Répartition par type"
             description="Répartition par type de paiement"
-          />
-          {/* Dépense par projet */}
-          <ChartPieLabelList
-            data={getFilteredPayments}
-            chartType="project"
-            title="Dépenses par projet"
-            description="Répartition par projet"
           />
           {/* Dépense par fournisseur */}
           <ChartPieLabelList
             data={getFilteredPayments}
             chartType="fournisseur"
-            title="Dépenses par fournisseur"
+            title="Répartition par fournisseur"
             description="Répartition par fournisseur"
           />
         </CardContent>

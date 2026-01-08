@@ -129,7 +129,9 @@ export function PurchaseApprovalTable({ data }: Props) {
   const purchaseOrderQuery = React.useMemo(() => new PurchaseOrder(), []);
   const queryClient = useQueryClient();
 
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
@@ -208,7 +210,7 @@ export function PurchaseApprovalTable({ data }: Props) {
       return;
     }
 
-    rejectMutation.mutate({ id: selectedValue.id, reason: rejectReason});
+    rejectMutation.mutate({ id: selectedValue.id, reason: rejectReason });
   };
 
   const columns: ColumnDef<BonsCommande>[] = [
@@ -379,7 +381,7 @@ export function PurchaseApprovalTable({ data }: Props) {
                 className="cursor-pointer"
                 onClick={() => openDecision(item, "approve")}
               >
-                <CheckCircle2 className="text-green-600"/>
+                <CheckCircle2 className="text-green-600" />
                 {"Approuver"}
               </DropdownMenuItem>
 
@@ -388,7 +390,7 @@ export function PurchaseApprovalTable({ data }: Props) {
                 className="cursor-pointer text-destructive focus:text-destructive"
                 onClick={() => openDecision(item, "reject")}
               >
-                <XCircle className="text-destructive"/>
+                <XCircle className="text-destructive" />
                 {"Rejeter"}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -638,7 +640,7 @@ export function PurchaseApprovalTable({ data }: Props) {
             </DialogDescription>
           </DialogHeader>
           {decisionType === "approve" && (
-            <p className="mb-2">{"Êtes-vous sûr de vouloir valider ce bon de commande ?"}<br/><span className="text-sm italic"><u>{"NB:"}</u>{" Cette action est irréversible"}</span></p>
+            <p className="mb-2">{"Êtes-vous sûr de vouloir valider ce bon de commande ?"}<br /><span className="text-sm italic"><u>{"NB:"}</u>{" Cette action est irréversible"}</span></p>
           )}
           {decisionType === "reject" && (
             <div className="grid gap-2">

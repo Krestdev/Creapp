@@ -9,7 +9,7 @@ const Page = () => {
   const { hasAccess, isChecking } = useAuthGuard({
     authorizedRoles: ["ADMIN", "MANAGER"],
   });
-  
+
   // État pour tous les filtres
   const [dateFilter, setDateFilter] = React.useState<
     "today" | "week" | "month" | "year" | "custom" | undefined
@@ -34,8 +34,8 @@ const Page = () => {
         subtitle="Approuvez ou rejetez les besoins."
         color="green"
       />
-      <Approb 
-        dateFilter={dateFilter} 
+      <Approb
+        dateFilter={dateFilter}
         setDateFilter={setDateFilter}
         customDateRange={customDateRange}
         setCustomDateRange={setCustomDateRange}

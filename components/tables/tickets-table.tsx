@@ -167,7 +167,9 @@ const typeConfig = {
 };
 
 export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -728,9 +730,9 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -800,7 +802,7 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
         action={() =>
           validateMutation.mutate({
             id: selectedTicket?.id!,
-            data: { price: selectedTicket?.price, status: "validated" },
+            data: { commandId: selectedTicket?.commandId, price: selectedTicket?.price, status: "validated" },
           })
         }
         buttonTexts={"Approuver"}

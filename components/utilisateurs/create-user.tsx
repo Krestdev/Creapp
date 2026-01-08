@@ -20,13 +20,15 @@ import {
 import { TranslateRole } from "@/lib/utils";
 import { UserQueries } from "@/queries/baseModule";
 import { DepartmentQueries } from "@/queries/departmentModule";
-import { ResponseT, User } from "@/types/types";
+import { ResponseT, Role, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import MultiSelectRole from "../base/multiSelectRole";
+import { useState } from "react";
 
 const formSchema = z.object({
   firstName: z.string().min(1),
@@ -37,9 +39,11 @@ const formSchema = z.object({
     .min(6, { message: "Le mot de passe doit contenir au moins 6 caractères" }),
   cpassword: z.string(),
   phone: z.string().min(1),
-  role: z.string(),
+  role: z.array(z.number()).optional(),
   poste: z.string().min(1),
-  department: z.string().optional(),
+}).refine((data) => data.password === data.cpassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["cpassword"],
 });
 
 export default function CreateUserForm() {
@@ -52,16 +56,18 @@ export default function CreateUserForm() {
       password: "",
       cpassword: "",
       phone: "",
-      role: "",
+      role: [],
       poste: "",
-      department: "",
     },
   });
+
+  const [selectedRole, setSelectedRole] = useState<
+    { id: number; label: string }[]
+  >([]);
 
   // const router = useRouter();
   const queryClient = useQueryClient();
   const userQueries = new UserQueries();
-  const deparmentQueries = new DepartmentQueries();
   const registerAPI = useMutation({
     mutationKey: ["registerNewUser"],
     mutationFn: (
@@ -76,20 +82,23 @@ export default function CreateUserForm() {
         password: "",
         cpassword: "",
         phone: "",
-        role: "",
+        role: [],
         poste: "",
-        department: "",
       });
+      setSelectedRole([]);
       queryClient.invalidateQueries({
         queryKey: ["usersList"],
         refetchType: "active",
       });
     },
     onError: (error: unknown) => {
-      toast.error(
-        "Une erreur est survenue lors de la creation de l'utilisateur."
-      );
-      console.error("Register error:", error);
+      if ((error as Error).message === "Email already in use") {
+        toast.error("Cette adresse mail est déjà utilisée");
+      } else {
+        toast.error(
+          "Une erreur est survenue lors de la creation de l'utilisateur."
+        );
+      }
     },
   });
 
@@ -98,10 +107,11 @@ export default function CreateUserForm() {
     queryFn: () => userQueries.getRoles(),
   });
 
-  const departmentData = useQuery({
-    queryKey: ["department"],
-    queryFn: () => deparmentQueries.getAll(),
-  });
+  const ROLES =
+    roleData?.data?.data.map((r: Role) => ({
+      id: r.id!,
+      label: r.label,
+    })) || [];
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -111,9 +121,8 @@ export default function CreateUserForm() {
         email: values.email,
         password: values.password,
         phone: values.phone,
-        role: Number(values.role),
+        role: values.role,
         post: values.poste,
-        department: Number(values.department),
       };
       registerAPI.mutate(data);
     } catch (error) {
@@ -189,33 +198,6 @@ export default function CreateUserForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Rôle"}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl className="w-full">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un rôle" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {roleData.data?.data
-                    .filter((role) => role.label !== "MANAGER")
-                    .map((role) => (
-                      <SelectItem key={role.id} value={role.id.toString()}>
-                        {TranslateRole(role.label)}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <FormField
           control={form.control}
@@ -249,7 +231,6 @@ export default function CreateUserForm() {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="poste"
@@ -269,35 +250,22 @@ export default function CreateUserForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="department"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Département"}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={"0"}>
-                <FormControl className="w-full">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un département" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value={"0"}>{"Pas de departement"}</SelectItem>
-                  {departmentData.data?.data.map((department) => (
-                    <SelectItem
-                      key={department.id}
-                      value={department.id.toString()}
-                    >
-                      {department.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="space-y-2 col-span-2">
+          <FormLabel>{"Rôles *"}</FormLabel>
+          <MultiSelectRole
+            display="Role"
+            roles={ROLES.filter((r) => r.label !== "MANAGER")}
+            selected={selectedRole}
+            onChange={(selected) => {
+              setSelectedRole(selected);
+              form.setValue(
+                "role",
+                selected.map((r) => r.id)
+              );
+            }}
+          />
+        </div>
 
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <Button
           variant={"primary"}
           type="submit"

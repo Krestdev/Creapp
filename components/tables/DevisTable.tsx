@@ -88,7 +88,9 @@ interface DevisTableProps {
 }
 
 export function DevisTable({ data, providers, commands }: DevisTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -124,7 +126,7 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
   // États pour le modal personnalisé
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
     React.useState(false);
-  
+
   const getProviderName = (providerId: number) => {
     const provider = providers.find((p) => p.id === providerId);
     return provider ? provider.name : "Inconnu";
@@ -585,15 +587,15 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
                     value: command.reference,
                     label: command.reference,
                   }))}
-                  width="w-full"    
+                  width="w-full"
                 />
               </div>
 
               {/* Filtre par demande de cotation */}
               <div className="grid gap-1.5">
                 <Label>{"Demande de cotation"}</Label>
-                <Select 
-                  value={commandFilter} 
+                <Select
+                  value={commandFilter}
                   onValueChange={handleCommandFilterChange}
                   disabled={commandRefFilter !== "all"}
                 >
@@ -677,9 +679,9 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy"
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            customDateRange.from,
+                            "dd/MM/yyyy"
+                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -791,9 +793,9 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

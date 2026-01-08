@@ -399,23 +399,21 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   <p className="view-group-title">{"Justificatif"}</p>
                   <div className="space-y-1">
                     {!!paiement?.proof ?
-                      paiement?.proof.split(";").map((proof, index) => (
-                        <Link
-                          key={index}
-                          href={`${process.env.NEXT_PUBLIC_API
-                            }/uploads/${encodeURIComponent(proof)}`}
-                          target="_blank"
-                          className="flex gap-0.5 items-center"
-                        >
-                          <img
-                            src="/images/pdf.png"
-                            alt="justificatif"
-                            className="h-7 w-auto aspect-square"
-                          />
-                          <p className="text-foreground font-medium">
+                      <Link
+                        href={`${process.env.NEXT_PUBLIC_API
+                          }/uploads/${encodeURIComponent(paiement?.proof as string)}`}
+                        target="_blank"
+                        className="flex gap-0.5 items-center"
+                      >
+                        <img
+                          src="/images/pdf.png"
+                          alt="justificatif"
+                          className="h-7 w-auto aspect-square"
+                        />
+                        {/* <p className="text-foreground font-medium">
                             {`Fichier_${index + 1}`}
-                          </p>
-                        </Link>)) : <p className="italic">{"Aucun justificatif"}</p>}
+                          </p> */}
+                      </Link> : <p className="italic">{"Aucun justificatif"}</p>}
                   </div>
                 </div>
               </div>

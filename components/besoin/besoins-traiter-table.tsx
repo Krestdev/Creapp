@@ -57,7 +57,9 @@ interface BesoinsTraiterTableProps {
 }
 
 export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );

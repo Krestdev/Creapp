@@ -119,7 +119,21 @@ const Page = () => {
     {
       title: "Validés",
       value: filteredData.filter((c) => c.status === "APPROVED").length,
-      variant: "success", //Ajouter les livrés plus tard
+      variant: "success",
+      more: {
+        title: "Montant Total",
+        value: XAF.format(
+          filteredData.filter((c) => c.status === "APPROVED").reduce(
+            (total, item) =>
+              total +
+              item.devi.element.filter(o=>o.status === "SELECTED").reduce(
+                (t, e) => t + e.priceProposed * e.quantity,
+                0
+              ),
+            0
+          )
+        ),
+      },
     },
   ];
 
