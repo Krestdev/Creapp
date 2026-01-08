@@ -34,13 +34,13 @@ import MultiSelectRole from "../base/multiSelectRole";
 const formSchema = z
   .object({
     email: z.string().email("Email invalide"),
-    firstName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
-    lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+    firstName: z.string().optional(),
+    lastName: z.string().min(1, "Le nom est requis"),
     phone: z.string().optional(),
     password: z.string().optional(),
     confirmPassword: z.string().optional(),
-    role: z.array(z.number()).optional(),
-    post: z.string().optional(),
+    role: z.array(z.number()).min(1, "Le rôle est requis"),
+    post: z.string().min(1, "Le poste est requis"),
   })
   .refine(
     (data) => {
@@ -154,7 +154,7 @@ export default function UpdateUser({
 
     const payload: any = {
       email: values.email,
-      firstName: values.firstName,
+      firstName: values.firstName ?? "",
       lastName: values.lastName,
       phone: values.phone || undefined,
       post: values.post || undefined,
@@ -199,7 +199,7 @@ export default function UpdateUser({
                 <FormItem>
                   <FormLabel>Nom</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder="Nom" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -213,7 +213,7 @@ export default function UpdateUser({
                 <FormItem>
                   <FormLabel>Prénom </FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder="Prénom" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -227,7 +227,7 @@ export default function UpdateUser({
                 <FormItem>
                   <FormLabel>Contact </FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} />
+                    <Input type="email" {...field} placeholder="Contact" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -241,21 +241,7 @@ export default function UpdateUser({
                 <FormItem>
                   <FormLabel>Adresse email </FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="post"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Poste </FormLabel>
-                  <FormControl>
-                    <Input type="Poste" {...field} />
+                    <Input type="email" {...field} placeholder="Adresse email" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -288,6 +274,20 @@ export default function UpdateUser({
                   <FormLabel>Confirmer le mot de passe</FormLabel>
                   <FormControl>
                     <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="post"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Poste </FormLabel>
+                  <FormControl>
+                    <Input type="Poste" placeholder="Poste" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
