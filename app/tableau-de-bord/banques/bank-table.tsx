@@ -78,7 +78,7 @@ function getTypeBadge(type: Bank["type"]): { label: string; variant: VariantProp
 
 function BankTable({ data, canEdit }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "createdAt", desc: true },
+    { id: "updatedAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

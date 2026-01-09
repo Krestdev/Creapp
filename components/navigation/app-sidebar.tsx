@@ -406,10 +406,24 @@ function AppSidebar() {
       href: "/tableau-de-bord/ticket",
       authorized: ["ADMIN", "VOLT_MANAGER"],
       title: "Tickets",
-      badgeValue:
+      items: [
+        {
+          pageId: "PG-04-01",
+          title: "Tickets",
+          href: "/tableau-de-bord/ticket",
+          authorized: ["ADMIN", "VOLT_MANAGER"],
+          badgeValue:
         pendingTicket && pendingTicket?.length > 0
           ? pendingTicket?.length
           : undefined,
+        },
+        {
+          pageId: "PG-04-02",
+          title: "Transferts",
+          href: "/tableau-de-bord/ticket/transferts",
+          authorized: ["ADMIN", "VOLT_MANAGER"],
+        }
+      ]
     },
     {
       pageId: "PG-91",
@@ -440,6 +454,12 @@ function AppSidebar() {
           title: "Transactions",
           href: "/tableau-de-bord/banques/transactions",
           authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+        },
+        {
+          pageId: "PG-23354987-02",
+          title: "Transferts",
+          href: "/tableau-de-bord/banques/transactions/transferts",
+          authorized: ["ADMIN", "VOLT"],
         },
       ],
     },

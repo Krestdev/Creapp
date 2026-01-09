@@ -561,16 +561,27 @@ export const TRANSACTION_TYPES = [
   { value: "TRANSFER", name: "Transfert" },
 ] as const;
 
+export const TRANSACTION_STATUS = [
+  { value: "APPROVED", name: "Approuvé" },
+  { value: "PENDING", name: "En attente" },
+  { value: "REJECTED", name: "Rejeté" },
+  { value: "ACCEPTED", name: "Accepté" },
+] as const;
+
 export type Transaction = {
   id: number;
   label: string;
   amount: number;
   date: Date;
   createdAt: Date;
-  Type: string;
+  status: (typeof TRANSACTION_STATUS)[number]["value"];
+  Type: (typeof TRANSACTION_TYPES)[number]["value"];
   from: Bank | { label: string; accountNumber?: string; phoneNumber?: string };
   to: Bank | { label: string; accountNumber?: string; phoneNumber?: string };
   proof?: string;
+  userId: number;
+  reason?:string;
+  validatorId?: number;
 };
 
 export interface TableFilters {

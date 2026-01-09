@@ -1,28 +1,23 @@
 'use client'
+import ErrorPage from '@/components/error-page';
+import LoadingPage from '@/components/loading-page';
 import PageTitle from '@/components/pageTitle'
 import { Button } from '@/components/ui/button';
-import { cn, isRole } from '@/lib/utils';
-import { useStore } from '@/providers/datastore';
+import { useFetchQuery } from '@/hooks/useData';
+import { cn } from '@/lib/utils';
+import { TransactionQuery } from '@/queries/transaction';
 import { NavLink } from '@/types/types';
 import Link from 'next/link';
 import React from 'react'
-import TransactionTable from './transaction-table';
-import { TransactionQuery } from '@/queries/transaction';
-import { useFetchQuery } from '@/hooks/useData';
-import LoadingPage from '@/components/loading-page';
-import ErrorPage from '@/components/error-page';
+import TransactionTable from '../transaction-table';
 
 function Page() {
-    const { user } = useStore();
-    const auth = isRole({roleList: user?.role ?? [], role: "trésorier"});
     const links: Array<NavLink> = [
         {
-          title: "Créer une transaction",
-          href: "./transactions/creer",
-          hide: !auth,
-        },
+          title: "Demande de transfert",
+          href: "./transferts/creer",
+        }
       ];
-
       const transactionQuery = new TransactionQuery();
       const getTransactions = useFetchQuery(["transactions"], transactionQuery.getAll, 500000);
 
@@ -34,8 +29,8 @@ function Page() {
       }
       if(getTransactions.isSuccess)
   return (
-    <div className='content'>
-        <PageTitle title="Transactions" subtitle="Consultez la liste des transactions">
+    <div className="content">
+        <PageTitle title="Transferts" subtitle="Historique des transferts">
             {links
             .filter((x) => (!x.hide ? true : x.hide === true && false))
             .map((link, id) => {
@@ -60,7 +55,7 @@ function Page() {
               );
             })}
         </PageTitle>
-        <TransactionTable data={getTransactions.data.data.filter(t=>t.Type !== "TRANSFER")} canEdit={true} filterByType />
+        <TransactionTable data={getTransactions.data.data.filter(t=>t.Type === "TRANSFER")} canEdit={true} />
     </div>
   )
 }

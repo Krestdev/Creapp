@@ -49,7 +49,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { XAF } from "@/lib/utils";
-import { BonsCommande, PAY_STATUS, PAYMENT_TYPES, PaymentRequest, PRIORITIES } from "@/types/types";
+import { Bank, BonsCommande, PAY_STATUS, PAYMENT_TYPES, PaymentRequest, PRIORITIES } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
 import PayExpense from "./pay-expense";
@@ -58,6 +58,7 @@ interface Props {
   payments: Array<PaymentRequest>;
   purchases: Array<BonsCommande>;
   type: "pending" | "validated";
+  banks: Array<Bank>;
 }
 
 function getPriorityBadge(
@@ -113,7 +114,7 @@ function getTypeBadge(type: PaymentRequest["type"]): { label: string; variant: V
   }
 };
 
-function ExpensesTable({ payments, purchases, type }: Props) {
+function ExpensesTable({ payments, purchases, type, banks }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -523,7 +524,7 @@ function ExpensesTable({ payments, purchases, type }: Props) {
           purchases={purchases}
         />
       )}
-      {selected && <PayExpense ticket={selected} open={showPay} onOpenChange={setShowPay} />}
+      {selected && <PayExpense ticket={selected} open={showPay} onOpenChange={setShowPay} banks={banks} />}
     </div>
   )
 }
