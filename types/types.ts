@@ -572,3 +572,13 @@ export type Transaction = {
   to: Bank | { label: string; accountNumber?: string; phoneNumber?: string };
   proof?: string;
 };
+
+export interface TableFilters {
+  globalFilter: string;
+  statusFilter: string;
+  categoryFilter: string;
+  projectFilter: string;
+  userFilter: string;
+  dateFilter?: "today" | "week" | "month" | "year" | "custom" | undefined;
+  customDateRange?: { from: Date; to: Date } | undefined;
+}

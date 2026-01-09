@@ -1,6 +1,5 @@
 "use client";
 
-import { TableFilters } from "@/components/base/data-table";
 import StatsCard from "@/components/base/StatsCard";
 import { ChartAreaInteractive } from "@/components/Charts/BarChart";
 import { ChartPieLabelList } from "@/components/Charts/ChartPieLabelList";
@@ -37,7 +36,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { RequestModelT } from "@/types/types";
+import { RequestModelT, TableFilters } from "@/types/types";
 import { PaymentQueries } from "@/queries/payment";
 import { useFetchQuery } from "@/hooks/useData";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
