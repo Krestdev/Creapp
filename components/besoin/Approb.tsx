@@ -13,6 +13,9 @@ import { Category, RequestModelT, User } from "@/types/types";
 import { DataVal } from "../base/dataVal";
 import { ProjectQueries } from "@/queries/projectModule";
 import { PaymentQueries } from "@/queries/payment";
+import LoadingPage from "../loading-page";
+import ErrorPage from "../error-page";
+import { useFetchQuery } from "@/hooks/useData";
 
 /* ======================================================
    TYPES
@@ -29,6 +32,7 @@ interface Props {
   setCustomDateRange?: React.Dispatch<
     React.SetStateAction<{ from: Date; to: Date } | undefined>
   >;
+  setData: React.Dispatch<React.SetStateAction<RequestModelT[]>>;
 }
 
 /* ======================================================
@@ -177,7 +181,7 @@ const useProceedData = (
       return (
         isUserValidatorForCategory(item.categoryId, user.id!, categories) &&
         hasUserValidatedRequest(item, user.id!, categories) &&
-        (item.state === "pending" || item.state === "validated")
+        (item.state === "pending" || item.state === "validated" || item.state === "rejected")
       );
     });
   }, [filteredData, user.id, categoryData.data?.data]);
@@ -192,57 +196,25 @@ const Approb = ({
   setDateFilter,
   customDateRange,
   setCustomDateRange,
+  setData
 }: Props) => {
   const { isHydrated, user } = useStore();
 
   const requestQueries = new RequestQueries();
   const categoryQueries = new CategoryQueries();
-  const userQueries = new UserQueries();
   const projects = new ProjectQueries();
   const users = new UserQueries();
   const payments = new PaymentQueries();
 
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => {
-      return projects.getAll();
-    },
-  });
+  const projectsData = useFetchQuery(["projects"], projects.getAll, 15000);
 
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      return users.getAll();
-    },
-  });
+  const usersData = useFetchQuery(["usersList"], users.getAll, 15000);
 
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: async () => payments.getAll(),
-  });
+  const paymentsData = useFetchQuery(["payments"], payments.getAll, 15000);
 
-  const categoriesData = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => categoryQueries.getCategories(),
-  });
+  const categoriesData = useFetchQuery(["categories"], categoryQueries.getCategories, 15000);
 
-  const categoryData = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => categoryQueries.getCategories(),
-    enabled: isHydrated,
-  });
-
-  const requestData = useQuery({
-    queryKey: ["requests"],
-    queryFn: () => requestQueries.getAll(),
-    enabled: isHydrated && !!user,
-  });
-
-  useQuery({
-    queryKey: ["users"],
-    queryFn: () => userQueries.getAll(),
-    enabled: isHydrated && !!user,
-  });
+  const requestData = useFetchQuery(["requests"], requestQueries.getAll, 15000);
 
   if (!isHydrated || !user) return null;
 
@@ -252,59 +224,79 @@ const Approb = ({
     customDateRange
   );
 
-  const pendingData = usePendingData(filteredData, user, categoryData);
-  const proceedData = useProceedData(filteredData, user, categoryData);
+  const pendingData = usePendingData(filteredData, user, categoriesData);
+  const proceedData = useProceedData(filteredData, user, categoriesData);
 
-  return (
-    <div className="flex flex-col gap-6">
-      {/* ================== PENDING ================== */}
-      <div>
-        <h2 className="text-xl font-semibold mb-3">
-          {"Besoins en attente de validation"} ({pendingData.length})
-        </h2>
+  // Utiliser useEffect pour envoyer les données au parent
+  React.useEffect(() => {
+    if (filteredData.length > 0) {
+      setData(pendingData.concat(proceedData));
+    }
+  }, [pendingData, proceedData, setData]);
 
-        {pendingData.length > 0 ? (
+  // PAge de chargement et d'erreur
+  if (projectsData.isPending || usersData.isPending || paymentsData.isPending || categoriesData.isPending || requestData.isPending) {
+    return <LoadingPage />;
+  }
+
+  if (projectsData.isError || usersData.isError || paymentsData.isError || categoriesData.isError || requestData.isError) {
+    return <ErrorPage />;
+  }
+
+  if (projectsData.data && usersData.data && paymentsData.data && categoriesData.data && requestData.data) {
+    return (
+      <div className="flex flex-col gap-6">
+        {/* ================== PENDING ================== */}
+        <div>
+          <h2 className="text-xl font-semibold mb-3">
+            {"Besoins en attente de validation"} ({pendingData.length})
+          </h2>
+
+          {pendingData.length > 0 ? (
+            <DataVal
+              data={pendingData}
+              dateFilter={dateFilter}
+              setDateFilter={setDateFilter}
+              customDateRange={customDateRange}
+              setCustomDateRange={setCustomDateRange}
+              empty="Aucun besoin en attente"
+              isCheckable={true}
+              categoriesData={categoriesData.data?.data}
+              projectsData={projectsData.data?.data}
+              usersData={usersData.data?.data}
+              paymentsData={paymentsData.data?.data}
+            />
+          ) : (
+            <div className="text-center py-12 border rounded-lg bg-gray-50">
+              <CheckCircle className="mx-auto h-8 w-8 text-green-600 mb-2" />
+              <p>{"Aucun besoin en attente"}</p>
+            </div>
+          )}
+        </div>
+
+        {/* ================== HISTORY ================== */}
+        <div>
+          <h2 className="text-xl font-semibold mb-3">
+            {"Historique des validations"} ({proceedData.length})
+          </h2>
+
           <DataVal
-            data={pendingData}
+            data={proceedData.filter(item => item.state !== "rejected")}
+            type="proceed"
+            empty="Aucun besoin traité"
             dateFilter={dateFilter}
             setDateFilter={setDateFilter}
             customDateRange={customDateRange}
             setCustomDateRange={setCustomDateRange}
-            empty="Aucun besoin en attente"
-            isCheckable={true}
+            isCheckable={false}
+            projectsData={projectsData.data?.data}
+            usersData={usersData.data?.data}
+            paymentsData={paymentsData.data?.data}
             categoriesData={categoriesData.data?.data}
           />
-        ) : (
-          <div className="text-center py-12 border rounded-lg bg-gray-50">
-            <CheckCircle className="mx-auto h-8 w-8 text-green-600 mb-2" />
-            <p>{"Aucun besoin en attente"}</p>
-          </div>
-        )}
+        </div>
       </div>
-
-      {/* ================== HISTORY ================== */}
-      <div>
-        <h2 className="text-xl font-semibold mb-3">
-          {"Historique des validations"} ({proceedData.length})
-        </h2>
-
-        <DataVal
-          data={proceedData}
-          type="proceed"
-          empty="Aucun besoin traité"
-          dateFilter={dateFilter}
-          setDateFilter={setDateFilter}
-          customDateRange={customDateRange}
-          setCustomDateRange={setCustomDateRange}
-          isCheckable={false}
-          projectsData={projectsData.data?.data}
-          usersData={usersData.data?.data}
-          paymentsData={paymentsData.data?.data}
-          categoriesData={categoriesData.data?.data}
-        />
-      </div>
-    </div>
-  );
-};
-
+    );
+  };
+}
 export default Approb;

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -12,10 +12,16 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
+  AlertCircle,
   ArrowUpDown,
+  Ban,
+  CheckCircle,
   ChevronDown,
+  Clock,
+  Coins,
   DollarSign,
-  Eye
+  Eye,
+  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
@@ -29,7 +35,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,11 +54,58 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { XAF } from "@/lib/utils";
-import { Bank, BonsCommande, PAY_STATUS, PAYMENT_TYPES, PaymentRequest, PRIORITIES } from "@/types/types";
+import { cn, XAF } from "@/lib/utils";
+import {
+  Bank, BonsCommande,
+  PAY_STATUS,
+  PAYMENT_TYPES,
+  PaymentRequest,
+  PRIORITIES,
+} from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
 import PayExpense from "./pay-expense";
+
+("paid");
+const statusConfig = {
+  pending: {
+    label: "Pending",
+    icon: Clock,
+    badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
+    rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20",
+  },
+  validated: {
+    label: "Validated",
+    icon: CheckCircle,
+    badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
+    rowClassName: "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
+  },
+  rejected: {
+    label: "Rejected",
+    icon: XCircle,
+    badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
+    rowClassName: "bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30",
+  },
+  paid: {
+    label: "paid",
+    icon: Coins,
+    badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
+    rowClassName: "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
+  },
+  pending_depense: {
+    label: "en attente",
+    icon: AlertCircle,
+    badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600 ",
+    rowClassName:
+      "bg-yellow-50 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30",
+  },
+  cancel: {
+    label: "ghost",
+    icon: Ban,
+    badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+    rowClassName: "bg-gray-50 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
+  },
+};
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -61,9 +114,10 @@ interface Props {
   banks: Array<Bank>;
 }
 
-function getPriorityBadge(
-  priority: PaymentRequest["priority"]
-): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+function getPriorityBadge(priority: PaymentRequest["priority"]): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
   const priorityData = PRIORITIES.find((p) => p.value === priority);
   const label = priorityData?.name ?? "Inconnu";
 
@@ -81,9 +135,12 @@ function getPriorityBadge(
   }
 }
 
-function getStatusBadge(status: PaymentRequest["status"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-  const statusData = PAY_STATUS.find(s => s.value === status);
-  const label = statusData?.name ?? "Inconnu"
+function getStatusBadge(status: PaymentRequest["status"]): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const statusData = PAY_STATUS.find((s) => s.value === status);
+  const label = statusData?.name ?? "Inconnu";
 
   switch (status) {
     case "pending":
@@ -92,14 +149,19 @@ function getStatusBadge(status: PaymentRequest["status"]): { label: string; vari
       return { label, variant: "sky" };
     case "paid":
       return { label, variant: "success" };
+    case "pending_depense":
+      return { label, variant: "yellow" };
     default:
       return { label, variant: "outline" };
   }
-};
+}
 
-function getTypeBadge(type: PaymentRequest["type"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-  const typeData = PAYMENT_TYPES.find(t => t.value === type);
-  const label = typeData?.name ?? "Inconnu"
+function getTypeBadge(type: PaymentRequest["type"]): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const typeData = PAYMENT_TYPES.find((t) => t.value === type);
+  const label = typeData?.name ?? "Inconnu";
   switch (type) {
     case "FAC":
       return { label, variant: "lime" };
@@ -109,10 +171,12 @@ function getTypeBadge(type: PaymentRequest["type"]): { label: string; variant: V
       return { label, variant: "purple" };
     case "RH":
       return { label, variant: "blue" };
+    case "CURRENT":
+      return { label, variant: "secondary" };
     default:
       return { label: type, variant: "outline" };
   }
-};
+}
 
 function ExpensesTable({ payments, purchases, type, banks }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -121,9 +185,10 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
-    status: false, // Masque la colonne statut par défaut
-  });
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({
+      status: false, // Masque la colonne statut par défaut
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
@@ -131,6 +196,18 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPay, setShowPay] = React.useState<boolean>(false);
+
+  const getStatusConfig = (status: string) => {
+    const config = statusConfig[status as keyof typeof statusConfig];
+    return (
+      config || {
+        label: status,
+        icon: AlertCircle,
+        badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+        rowClassName: "bg-gray-50 dark:bg-gray-950/20",
+      }
+    );
+  };
 
   const columns: ColumnDef<PaymentRequest>[] = [
     {
@@ -206,9 +283,13 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find(p => p.id === value.commandId);
+        const purchase = purchases.find((p) => p.id === value.commandId);
         const title = value.title;
-        return <div>{purchase?.devi.commandRequest.title ?? value.title ?? "--"}</div>;
+        return (
+          <div>
+            {purchase?.devi.commandRequest.title ?? value.title ?? "--"}
+          </div>
+        );
       },
     },
     {
@@ -283,11 +364,7 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
       cell: ({ row }) => {
         const value = row.original;
         const status = getStatusBadge(value.status);
-        return (
-          <Badge variant={status.variant}>
-            {status.label}
-          </Badge>
-        );
+        return <Badge variant={status.variant}>{status.label}</Badge>;
       },
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
@@ -407,7 +484,8 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
             <Label>{"Priorité"}</Label>
             <Select
               value={
-                (table.getColumn("priority")?.getFilterValue() as string) ?? "all" // CORRECTION: 'priority' au lieu de 'priorite'
+                (table.getColumn("priority")?.getFilterValue() as string) ??
+                "all" // CORRECTION: 'priority' au lieu de 'priorite'
               }
               onValueChange={(value) =>
                 table
@@ -457,7 +535,9 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${payments.length})`}</h3>
+      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${
+        payments.length
+      })`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -472,9 +552,9 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
@@ -483,24 +563,30 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const status = row.original.status;
+                const config = getStatusConfig(status);
+
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn(config.rowClassName)}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="border-r last:border-r-0"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell
@@ -524,9 +610,15 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
           purchases={purchases}
         />
       )}
-      {selected && <PayExpense ticket={selected} open={showPay} onOpenChange={setShowPay} banks={banks} />}
+      {selected && (
+        <PayExpense
+          ticket={selected}
+          open={showPay}
+          onOpenChange={setShowPay}
+        banks={banks} />
+      )}
     </div>
-  )
+  );
 }
 
-export default ExpensesTable
+export default ExpensesTable;

@@ -58,7 +58,9 @@ export class PaymentQueries {
   };
 
   createDepense = async (
-    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">
+    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> & {
+      caisseId: number;
+    }
   ): Promise<{ message: string; data: PaymentRequest }> => {
     const formData = new FormData();
 

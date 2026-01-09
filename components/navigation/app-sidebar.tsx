@@ -100,10 +100,10 @@ function AppSidebar() {
   const approbationDevis =
     providers?.data?.data && cotation?.data && quotationsData?.data
       ? groupQuotationsByCommandRequest(
-          cotation?.data!,
-          quotationsData?.data!,
-          providers?.data?.data!
-        ).filter((c) => c.status === "NOT_PROCESSED")
+        cotation?.data!,
+        quotationsData?.data!,
+        providers?.data?.data!
+      ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
 
   // Récupérer toutes les catégories avec leurs validateurs
@@ -123,6 +123,11 @@ function AppSidebar() {
     },
     enabled: isHydrated,
   });
+
+  const myList = useFetchQuery(["requests", user?.id], () => request.getMine(user!.id));
+
+
+  const besoinDéstocké = myList.data?.data.filter((x) => x.state === "store").length ?? 0;
 
   // Récupérer tous les IDs des besoins présents dans les cotations
   const besoinsDansCotation =
@@ -257,6 +262,13 @@ function AppSidebar() {
   const approvedTicket = ticketsData?.filter(
     (ticket) => ticket.status === "validated"
   );
+  const approvedDepense = ticketsData?.filter(
+    (ticket) => ticket.status === "pending_depense"
+  );
+
+  const overall = approvedDepense?.concat(approvedDepense);
+
+  console.log(approvedDepense, approvedTicket, overall);
 
   // Si en cours de vérification, afficher un loader
   if (isChecking) {
@@ -315,6 +327,7 @@ function AppSidebar() {
           title: "Mes besoins",
           href: "/tableau-de-bord/besoins/mylist",
           authorized: ["ADMIN", "MANAGER", "USER"],
+          badgeValue: besoinDéstocké,
         },
         {
           pageId: "PG-02-03",
@@ -431,10 +444,29 @@ function AppSidebar() {
       href: "/tableau-de-bord/depenses",
       authorized: ["VOLT", "ADMIN"],
       title: "Dépenses",
-      badgeValue:
-        approvedTicket && approvedTicket?.length > 0
-          ? approvedTicket?.length
-          : undefined,
+      badgeValue: overall && overall?.length > 0 ? overall?.length : undefined,
+      items: [
+        {
+          pageId: "PG-23354987-00",
+          title: "Dépenses Tickets",
+          href: "/tableau-de-bord/depenses/tickets",
+          badgeValue:
+            approvedTicket && approvedTicket?.length > 0
+              ? approvedTicket?.length
+              : undefined,
+          authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+        },
+        {
+          pageId: "PG-23354987-01",
+          title: "Dépenses Courantes",
+          href: "/tableau-de-bord/depenses/courrent",
+          badgeValue:
+            approvedDepense && approvedDepense?.length > 0
+              ? approvedDepense?.length
+              : undefined,
+          authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+        },
+      ],
     },
     {
       pageId: "PG-56489713246",

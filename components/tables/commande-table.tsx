@@ -361,7 +361,7 @@ export function CommandeTable({
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Date limite de livraison"}
+            {"Date limite de soumission"}
             <ArrowUpDown />
           </span>
         );
@@ -603,12 +603,14 @@ export function CommandeTable({
                       : column.id === "title"
                         ? "Titre"
                         : column.id === "dueDate"
-                          ? "Date limite"
+                          ? "Date limite de soumission"
                           : column.id === "state"
                             ? "Statut"
                             : column.id === "createdAt"
                               ? "Date de création"
-                              : null}
+                              : column.id === "devis"
+                                ? "Devis"
+                                : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}

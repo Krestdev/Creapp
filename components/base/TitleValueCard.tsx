@@ -3,13 +3,13 @@ import { cva, VariantProps } from 'class-variance-authority'
 import React from 'react'
 
 interface Props {
-    title: string
-    value: string
-    className: string
-    valColor: string
+  title: string
+  value: string
+  className: string
+  valColor: string
 }
 
-const TitleValueCard = ({title, value, className, valColor}: Props) => {
+const TitleValueCard = ({ title, value, className, valColor }: Props) => {
   return (
     <div className={`${className} w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px]`}>
       <p className='text-sm font-medium'>{title}</p>
@@ -24,7 +24,7 @@ export default TitleValueCard
 const statisticVariants = cva(
   "w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px]",
   {
-    variants:{
+    variants: {
       variant: {
         default: "bg-white border border-input text-foreground",
         primary: "bg-primary-600 border border-primary-200 text-white",
@@ -44,22 +44,22 @@ export interface StatisticProps {
   title: string;
   value: string | number;
   variant: VariantProps<typeof statisticVariants>["variant"];
-  className?:string;
-  more?:{
+  className?: string;
+  more?: {
     title: string;
     value: string | number;
   }
 }
 
-function getMoreClassName(variant:StatisticProps["variant"]):HTMLHRElement["className"]{
-  switch(variant){
+function getMoreClassName(variant: StatisticProps["variant"]): HTMLHRElement["className"] {
+  switch (variant) {
     case "default":
       return "text-gray-400";
     default: return "text-gray-200";
   }
 }
-function getBorderClassName(variant:StatisticProps["variant"]):HTMLHRElement["className"]{
-  switch(variant){
+function getBorderClassName(variant: StatisticProps["variant"]): HTMLHRElement["className"] {
+  switch (variant) {
     case "dark":
       return "border border-gray-600";
     case "primary":
@@ -74,14 +74,14 @@ function getBorderClassName(variant:StatisticProps["variant"]):HTMLHRElement["cl
   }
 }
 
-export const StatisticCard = ({title, value, more, className="", variant}:StatisticProps) => {
+export const StatisticCard = ({ title, value, more, className = "", variant }: StatisticProps) => {
   return (
-    <div className={cn(statisticVariants({variant: variant}), className)}>
-      <h4 className={cn("text-sm font-medium", variant==="default"? "text-gray-600" : "text-gray-200")}>{title}</h4>
+    <div className={cn(statisticVariants({ variant: variant }), className)}>
+      <h4 className={cn("text-sm font-medium", variant === "default" ? "text-gray-600" : "text-gray-200")}>{title}</h4>
       <span className="font-mono font-medium text-[32px] leading-[120%]">{value}</span>
-      {!!more && <hr className={getBorderClassName(variant)}/>}
-      {!!more && 
-      <span className={cn("font-mono text-xs", getMoreClassName(variant))}>{`${more.title} : `}<span className={cn("font-medium",variant === "default" ? "text-foreground" : "text-white")}>{more.value}</span></span>}
+      {!!more && <hr className={getBorderClassName(variant)} />}
+      {!!more &&
+        <span className={cn("font-mono text-xs", getMoreClassName(variant))}>{`${more.title} : `}<span className={cn("font-medium", variant === "default" ? "text-foreground" : "text-white")}>{more.value}</span></span>}
     </div>
   )
 }

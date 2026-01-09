@@ -1,16 +1,17 @@
 "use client";
-import ProviderListPage from "@/components/provider/liste";
+import UtilisateursPage from "@/components/utilisateurs/utilisateurs";
 import PageTitle from "@/components/pageTitle";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import VehiclePage from "@/components/vehicle/vehiclePage";
 
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Créer une dépense",
-      href: "./utilisateurs/create",
+      title: "Créer une vehicule",
+      href: "./vehicule/create",
       hide: false,
       disabled: false,
     },
@@ -19,8 +20,8 @@ function Page() {
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Fournisseurs"
-        subtitle="Consultez la liste des fournisseurs."
+        title="Vehicle"
+        subtitle="Consultez et gérez les vehicle."
         color="red"
       >
         {links
@@ -47,7 +48,7 @@ function Page() {
             );
           })}
       </PageTitle>
-      <ProviderListPage />
+      <VehiclePage />
     </div>
   );
 }
