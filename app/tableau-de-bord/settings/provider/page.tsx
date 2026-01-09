@@ -1,3 +1,4 @@
+"use client";
 import ProviderListPage from "@/components/provider/liste";
 import PageTitle from "@/components/pageTitle";
 import { NavLink } from "@/types/types";
