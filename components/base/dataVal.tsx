@@ -122,10 +122,10 @@ interface DataTableProps {
     validatedCount?: number;
   };
   isCheckable?: boolean;
-  categoriesData?: Category[];
-  projectsData?: ProjectT[];
-  usersData?: User[];
-  paymentsData?: PaymentRequest[];
+  categoriesData: Category[];
+  projectsData: ProjectT[];
+  usersData: User[];
+  paymentsData: PaymentRequest[];
 }
 
 export function DataVal({
@@ -142,6 +142,7 @@ export function DataVal({
   usersData,
   paymentsData,
 }: DataTableProps) {
+
   const { user } = useStore();
   const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -312,8 +313,6 @@ export function DataVal({
 
   const getUserName = (userId: string) => {
     const user = usersData?.find((u) => u.id === Number(userId));
-    console.log(usersData);
-
     return user?.lastName + " " + user?.firstName || userId;
   };
 
@@ -1078,9 +1077,6 @@ export function DataVal({
         const isAttach =
           (item.type === "FAC" || item.type === "RH") &&
           paiement?.proof !== null;
-
-        console.log(paiement);
-
         return (
           <div className="flex items-center gap-2">
             <DropdownMenu>

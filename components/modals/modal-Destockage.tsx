@@ -9,9 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { UserQueries } from "@/queries/baseModule";
 import { ProjectQueries } from "@/queries/projectModule";
+import { RequestQueries } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, CalendarFold, Hash, UserRound } from "lucide-react";
+import { toast } from "sonner";
 
 interface DetailOrderProps {
   open: boolean;
@@ -38,10 +40,27 @@ export function ModalDestockage({
     queryFn: async () => projects.getAll(),
   });
 
-  // const categories = useQuery({
-  //   queryKey: ["categories"],
-  //   queryFn: async () => request.getCategories(),
-  // });
+  const queryClient = useQueryClient();
+  const request = new RequestQueries();
+
+  const requestMutation = useMutation({
+    mutationKey: ["requests"],
+    mutationFn: async (data: Partial<RequestModelT>) => {
+      const id = data?.id;
+      if (!id) throw new Error("ID de besoin manquant");
+      await request.update(Number(id), { state: "store" });
+      return { id: Number(id) };
+    },
+    onSuccess: (res) => {
+      toast.success("Le besoin a été déstocké.");
+      onOpenChange(false);
+      queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" });
+    },
+    onError: (error) => {
+      toast.error("Une erreur est survenue.");
+      console.log(error);
+    },
+  });
 
   const emetteur = usersData.data?.data.find(
     (u) => u.id === data?.userId
@@ -49,6 +68,10 @@ export function ModalDestockage({
   const projet = projectsData.data?.data.find(
     (p) => p.id === data?.projectId
   )?.label;
+
+  const handleDestockage = () => {
+    requestMutation.mutate({ id: data?.id });
+  };
 
   if (!data) return null;
 
@@ -146,7 +169,7 @@ export function ModalDestockage({
 
         {/* Footer buttons */}
         <div className="flex w-full justify-end gap-3 p-6 pt-0">
-          <Button className="bg-primary hover:bg-primary/80 text-white">
+          <Button onClick={handleDestockage} className="bg-primary hover:bg-primary/80 text-white">
             {"Déstocker"}
           </Button>
           <Button

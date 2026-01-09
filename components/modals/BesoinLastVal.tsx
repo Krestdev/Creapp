@@ -38,6 +38,7 @@ import { z } from "zod";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { CategoryQueries } from "@/queries/categoryModule";
+import { units } from "@/data/unit";
 
 // Validation Zod
 const formSchema = z.object({
@@ -48,6 +49,7 @@ const formSchema = z.object({
   }),
   quantite: z.string().min(1, "La quantité est obligatoire"),
   description: z.string().optional(),
+  unite: z.string().min(1, "L'unité est obligatoire"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -78,6 +80,7 @@ export function BesoinLastVal({
       priorite: data?.priority as "medium" | "high" | "low" | "urgent",
       quantite: String(data?.quantity) || "",
       description: data?.description || "",
+      unite: data?.unit || "",
     },
   });
 
@@ -174,6 +177,7 @@ export function BesoinLastVal({
         priorite: data?.priority,
         quantite: String(data?.quantity) || "",
         description: data?.description || "",
+        unite: data?.unit || "",
       });
     }
   }, [open, data, form]);
@@ -187,6 +191,7 @@ export function BesoinLastVal({
         priority: values.priorite,
         quantity: Number(values.quantite),
         dueDate: values.limiteDate,
+        unit: values.unite,
       });
     } catch {
       toast.error("Une erreur est survenue");
@@ -196,13 +201,6 @@ export function BesoinLastVal({
   const handleRetry = () => {
     requestMutation.reset();
   };
-
-  /** Header dynamique */
-  const headerColor = isError
-    ? "from-red-500 to-[#581114]"
-    : isSuccess
-      ? "from-[#15803D] to-[#0B411F]"
-      : "from-[#15803D] to-[#0B411F]";
 
   const headerTitle = isError ? "Erreur ❌" : isSuccess ? "Succès ✅" : titre;
 
@@ -222,6 +220,7 @@ export function BesoinLastVal({
         priorite: data?.priority as "medium" | "high" | "low" | "urgent",
         quantite: String(data?.quantity || ""),
         description: data?.description || "",
+        unite: data?.unit || "",
       });
 
       // Reset des mutations
@@ -232,24 +231,22 @@ export function BesoinLastVal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none">
-        {/* HEADER */}
-        <DialogHeader
-          className={`bg-linear-to-r ${headerColor} text-white p-6 m-4 rounded-lg pb-8`}
-        >
+      <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
+        {/* HEADER - Fixé en haut */}
+        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
             {headerTitle}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">{headerDescription}</p>
         </DialogHeader>
 
-        {/* FORM - Only if not success/error */}
+        {/* FORM - Zone scrollable */}
         {!isSuccess && !isError && (
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto px-6 pb-4">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(submitForm)}
-                className="px-6 pb-4 space-y-4"
+                className="space-y-4 pb-4"
               >
                 {/* Titre */}
                 <FormField
@@ -257,7 +254,7 @@ export function BesoinLastVal({
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Titre *</FormLabel>
+                      <FormLabel>Titre <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
                         <Input placeholder="Titre..." {...field} disabled />
                       </FormControl>
@@ -310,7 +307,7 @@ export function BesoinLastVal({
                   name="priorite"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Priorité *</FormLabel>
+                      <FormLabel>Priorité <span className="text-destructive">*</span></FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -339,7 +336,7 @@ export function BesoinLastVal({
                   name="quantite"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Quantité *</FormLabel>
+                      <FormLabel>Quantité <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Quantité..."
@@ -352,13 +349,42 @@ export function BesoinLastVal({
                   )}
                 />
 
+                {/* UNITE */}
+                <FormField
+                  control={form.control}
+                  name="unite"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {"Unité"}
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
+                            <SelectValue placeholder="Sélectionner l'unité" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {units.map((unit, id) => (
+                            <SelectItem key={unit.value} value={unit.value}>
+                              {unit.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 {/* Description */}
                 <FormField
                   control={form.control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description *</FormLabel>
+                      <FormLabel>Description <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
                         <Textarea
                           rows={4}
@@ -374,7 +400,7 @@ export function BesoinLastVal({
                 />
 
                 {/* Boutons */}
-                <div className="flex justify-end gap-3 pt-4">
+                <div className="flex justify-end gap-3 pt-4 sticky bottom-0 bg-white pb-4">
                   <Button
                     type="submit"
                     className="bg-green-600 hover:bg-green-700 text-white"
@@ -406,7 +432,7 @@ export function BesoinLastVal({
 
         {/* Footer Success/Error */}
         {(isSuccess || isError) && (
-          <div className="flex justify-end gap-3 p-6 pt-0">
+          <div className="shrink-0 flex gap-3 p-6 pt-0 ml-auto">
             {/* Bouton pour réessayer */}
             {isError && (
               <Button type="button" variant={"primary"} onClick={handleRetry}>

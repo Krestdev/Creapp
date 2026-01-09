@@ -139,6 +139,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
       label: "Annulé",
       color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
     },
+    store: {
+      label: "Déstocké",
+      color: "bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    },
     "in-review": {
       label: "En révision",
       color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",

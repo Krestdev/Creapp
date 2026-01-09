@@ -582,3 +582,12 @@ export interface TableFilters {
   dateFilter?: "today" | "week" | "month" | "year" | "custom" | undefined;
   customDateRange?: { from: Date; to: Date } | undefined;
 }
+
+export type RequestType = {
+  id: number;
+  label: string;
+  description: string;
+  type: string;
+  createdAt: Date;
+  updatedAt?: Date;
+};

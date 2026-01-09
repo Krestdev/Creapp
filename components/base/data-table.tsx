@@ -103,6 +103,12 @@ const statusConfig = {
     badgeClassName: "bg-blue-200 text-blue-500 outline outline-blue-600 ",
     rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
   },
+  store: {
+    label: "Store",
+    icon: AlertCircle,
+    badgeClassName: "bg-blue-200 text-blue-500 outline outline-blue-600 ",
+    rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
+  },
   cancel: {
     label: "Cancel",
     icon: Ban,
@@ -145,10 +151,10 @@ export function DataTable({
   // États pour le modal personnalisé
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
     React.useState(false);
-  const [dateFilter, setDateFilter]= React.useState<DateFilter>();
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [customDateRange, setCustomDateRange] = React.useState<
-      { from: Date; to: Date } | undefined
-    >();
+    { from: Date; to: Date } | undefined
+  >();
   const queryClient = useQueryClient();
 
   const projects = new ProjectQueries();
@@ -224,6 +230,7 @@ export function DataTable({
       Rejected: "Refusé",
       "In Review": "En révision",
       Cancel: "Annulé",
+      Store: "Déstocké",
     };
     return translations[label] || label;
   };
@@ -284,7 +291,7 @@ export function DataTable({
     return project?.label || projectId;
   };
 
-    // Réinitialiser tous les filtres
+  // Réinitialiser tous les filtres
   const resetAllFilters = () => {
     setDateFilter(undefined);
     setCustomDateRange(undefined);
@@ -585,10 +592,10 @@ export function DataTable({
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue)=>{
+    globalFilterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
       const reference = row.getValue("ref") as string;
-      if(reference.toLocaleLowerCase().includes(searchValue)) return true;
+      if (reference.toLocaleLowerCase().includes(searchValue)) return true;
       return false;
     },
     state: {
@@ -619,81 +626,81 @@ export function DataTable({
             </SheetHeader>
             <div className="px-5 grid gap-5">
               <div className="grid gap-1.5">
-          <Label htmlFor="search">{"Rechercher"}</Label>
-          <Input
-            placeholder="Titre, référence, ou projet"
-            name="search"
-            type="search"
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="w-full"
-          />
-        </div>
+                <Label htmlFor="search">{"Rechercher"}</Label>
+                <Input
+                  placeholder="Titre, référence, ou projet"
+                  name="search"
+                  type="search"
+                  value={globalFilter ?? ""}
+                  onChange={(event) => setGlobalFilter(event.target.value)}
+                  className="w-full"
+                />
+              </div>
               {/* Category filter */}
-        <div className="grid gap-1.5">
-          <Label htmlFor="category">{"Catégorie"}</Label>
-          <Select
-            name="category"
-            value={categoryFilter}
-            onValueChange={(v)=>setCategoryFilter(String(v))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Sélectionner une Catégorie" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Toutes"}</SelectItem>
-              {uniqueCategories.map((category) => (
-                <SelectItem key={category.id} value={String(category.id)}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="category">{"Catégorie"}</Label>
+                <Select
+                  name="category"
+                  value={categoryFilter}
+                  onValueChange={(v) => setCategoryFilter(String(v))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner une Catégorie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Toutes"}</SelectItem>
+                    {uniqueCategories.map((category) => (
+                      <SelectItem key={category.id} value={String(category.id)}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Project filter */}
-        <div className="grid gap-1.5">
-          <Label htmlFor="project">{"Projet"}</Label>
-          <Select
-            name="project"
-            value={projectFilter}
-            onValueChange={(v)=>setProjectFilter(String(v))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Sélectionner un projet" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Tous"}</SelectItem>
-              {uniqueProjects.map((project) => (
-                <SelectItem key={project.id} value={String(project.id)}>
-                  {project.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="project">{"Projet"}</Label>
+                <Select
+                  name="project"
+                  value={projectFilter}
+                  onValueChange={(v) => setProjectFilter(String(v))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un projet" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {uniqueProjects.map((project) => (
+                      <SelectItem key={project.id} value={String(project.id)}>
+                        {project.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Status filter */}
-        <div className="grid gap-1.5">
-          <Label htmlFor="status">{"Statut"}</Label>
-          <Select
-            name="status"
-            value={statusFilter}
-            onValueChange={(v)=>setStatusFilter(String(v))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Sélectionner" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Tous"}</SelectItem>
-              {uniqueStatuses.map((state) => (
-                <SelectItem key={state.id} value={String(state.id)}>
-                  {getTranslatedLabel(state.name)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="status">{"Statut"}</Label>
+                <Select
+                  name="status"
+                  value={statusFilter}
+                  onValueChange={(v) => setStatusFilter(String(v))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {uniqueStatuses.map((state) => (
+                      <SelectItem key={state.id} value={String(state.id)}>
+                        {getTranslatedLabel(state.name)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               {/* Filtre par période */}
               <div className="grid gap-1.5">
                 <Label>{"Période"}</Label>
@@ -816,15 +823,17 @@ export function DataTable({
                       ? "Références"
                       : column.id === "label"
                         ? "Titres"
-                        : column.id === "state"
-                          ? "Statuts"
-                          : column.id === "projectId"
-                            ? "Projets"
-                            : column.id === "categoryId"
-                              ? "Catégories"
-                              : column.id === "createdAt"
-                                ? "Date d'émission"
-                                : null}
+                        : column.id === "type"
+                          ? "Type"
+                          : column.id === "state"
+                            ? "Statuts"
+                            : column.id === "projectId"
+                              ? "Projets"
+                              : column.id === "categoryId"
+                                ? "Catégories"
+                                : column.id === "createdAt"
+                                  ? "Date d'émission"
+                                  : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -898,26 +907,26 @@ export function DataTable({
       {
         selectedItem &&
         <>
-        <DetailBesoin
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        data={selectedItem}
-        actionButton="Modifier"
-        action={() => {
-          setIsModalOpen(false);
-          { selectedItem?.type === "FAC" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true) };
-        }}
-      />
-      <UpdateRequest
-        open={isUpdateModalOpen}
-        setOpen={setIsUpdateModalOpen}
-        requestData={selectedItem}
-      />
-      <UpdateRequestFac
-        open={isUpdateFacModalOpen}
-        setOpen={setIsUpdateFacModalOpen}
-        requestData={selectedItem}
-      />
+          <DetailBesoin
+            open={isModalOpen}
+            onOpenChange={setIsModalOpen}
+            data={selectedItem}
+            actionButton="Modifier"
+            action={() => {
+              setIsModalOpen(false);
+              { selectedItem?.type === "FAC" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true) };
+            }}
+          />
+          <UpdateRequest
+            open={isUpdateModalOpen}
+            setOpen={setIsUpdateModalOpen}
+            requestData={selectedItem}
+          />
+          <UpdateRequestFac
+            open={isUpdateFacModalOpen}
+            setOpen={setIsUpdateFacModalOpen}
+            requestData={selectedItem}
+          />
         </>
       }
       <ModalWarning
