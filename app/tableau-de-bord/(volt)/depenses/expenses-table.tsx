@@ -11,7 +11,18 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, DollarSign, Eye } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowUpDown,
+  Ban,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  Coins,
+  DollarSign,
+  Eye,
+  XCircle,
+} from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
@@ -43,7 +54,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { XAF } from "@/lib/utils";
+import { cn, XAF } from "@/lib/utils";
 import {
   BonsCommande,
   PAY_STATUS,
@@ -54,6 +65,47 @@ import {
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
 import PayExpense from "./pay-expense";
+
+("paid");
+const statusConfig = {
+  pending: {
+    label: "Pending",
+    icon: Clock,
+    badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
+    rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20",
+  },
+  validated: {
+    label: "Validated",
+    icon: CheckCircle,
+    badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
+    rowClassName: "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
+  },
+  rejected: {
+    label: "Rejected",
+    icon: XCircle,
+    badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
+    rowClassName: "bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30",
+  },
+  paid: {
+    label: "paid",
+    icon: Coins,
+    badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
+    rowClassName: "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
+  },
+  pending_depense: {
+    label: "en attente",
+    icon: AlertCircle,
+    badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600 ",
+    rowClassName:
+      "bg-yellow-50 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30",
+  },
+  cancel: {
+    label: "ghost",
+    icon: Ban,
+    badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+    rowClassName: "bg-gray-50 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
+  },
+};
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -96,6 +148,8 @@ function getStatusBadge(status: PaymentRequest["status"]): {
       return { label, variant: "sky" };
     case "paid":
       return { label, variant: "success" };
+    case "pending_depense":
+      return { label, variant: "yellow" };
     default:
       return { label, variant: "outline" };
   }
@@ -141,6 +195,18 @@ function ExpensesTable({ payments, purchases, type }: Props) {
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPay, setShowPay] = React.useState<boolean>(false);
+
+  const getStatusConfig = (status: string) => {
+    const config = statusConfig[status as keyof typeof statusConfig];
+    return (
+      config || {
+        label: status,
+        icon: AlertCircle,
+        badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+        rowClassName: "bg-gray-50 dark:bg-gray-950/20",
+      }
+    );
+  };
 
   const columns: ColumnDef<PaymentRequest>[] = [
     {
@@ -496,24 +562,30 @@ function ExpensesTable({ payments, purchases, type }: Props) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const status = row.original.status;
+                const config = getStatusConfig(status);
+
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn(config.rowClassName)}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="border-r last:border-r-0"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell
