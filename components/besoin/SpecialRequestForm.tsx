@@ -112,7 +112,7 @@ export default function SpecialRequestForm() {
       unit: "unit",
       beneficiary: user?.id!.toString() ?? "",
       userId: Number(user?.id),
-      type: "SPECIAL",
+      type: "speciaux",
       state: "pending",
       priority: "medium",
       categoryId: 0,

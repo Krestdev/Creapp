@@ -423,7 +423,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
 
               {/* Historique de validation - NOUVELLE VERSION */}
-              {data.type === "RH" || data.type === "SPECIAL" ? null :
+              {data.type === "ressource_humaine" || data.type === "speciaux" ? null :
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <UserCheck className="h-5 w-5 text-muted-foreground" />
@@ -531,18 +531,18 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
 
               {/* Bénéficiaires */}
-              {data.type !== "SPECIAL" &&
+              {data.type !== "speciaux" &&
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <Users className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground mb-1">
-                      {data.type === "FAC"
+                      {data.type === "facilitation"
                         ? "Recepteur pour compte"
                         : "Bénéficiaires"}
                     </p>
-                    {data.type === "FAC" ? (
+                    {data.type === "facilitation" ? (
                       <p className="font-semibold capitalize">
                         {
                           usersData.data?.data?.find(
@@ -576,7 +576,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   </div>
                 </div>}
 
-              {data.type === "FAC" &&
+              {data.type === "facilitation" &&
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <Users className="h-5 w-5 text-muted-foreground" />
@@ -603,7 +603,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               }
 
-              {(data.type === "FAC" || data.type === "RH") &&
+              {(data.type === "facilitation" || data.type === "ressource_humaine") &&
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <DollarSign className="h-5 w-5 text-muted-foreground" />

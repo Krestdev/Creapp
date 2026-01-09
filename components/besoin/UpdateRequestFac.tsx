@@ -177,7 +177,7 @@ export default function UpdateRequestFac({
           form.reset({
             beneficiaire: requestData.beneficiary?.toString() || "",
             projet: requestData.projectId?.toString() || "",
-            category: requestData.type === "FAC" ? "facilitation" : "",
+            category: requestData.type === "facilitation" ? "facilitation" : "",
             delai: requestData.dueDate
               ? new Date(requestData.dueDate)
               : new Date(),
@@ -264,7 +264,7 @@ export default function UpdateRequestFac({
       projectId: Number(values.projet),
       proof: values.justificatif,
       amount: beneficiairesList.reduce((total, b) => total + b.montant, 0),
-      type: "FAC",
+      type: "facilitation",
       // Garder les valeurs originales pour les champs non modifiables
       state: requestData?.state || "pending",
       priority: requestData?.priority || "medium",
