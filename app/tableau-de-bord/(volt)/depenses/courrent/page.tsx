@@ -9,7 +9,7 @@ import { PaymentQueries } from "@/queries/payment";
 import { PurchaseOrder } from "@/queries/purchase-order";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
-import ExpensesTable from "./expenses-table";
+import ExpensesTable from "../expenses-table";
 import {
   StatisticCard,
   StatisticProps,
@@ -19,7 +19,7 @@ function Page() {
   const links: Array<NavLink> = [
     {
       title: "Créer une dépense",
-      href: "./depenses/creer",
+      href: "./creer",
       hide: false,
       disabled: false,
     },
@@ -46,26 +46,32 @@ function Page() {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente",
-        value: data.data.filter((p) => p.status === "validated").length,
+        value: data.data.filter(
+          (p) => p.status === "pending_depense" && p.type === "CURRENT"
+        ).length,
         variant: "primary",
         more: {
           title: "Montant total",
           value: XAF.format(
             data.data
-              .filter((p) => p.status === "validated")
+              .filter(
+                (p) => p.status === "pending_depense" && p.type === "CURRENT"
+              )
               .reduce((total, el) => total + el.price, 0)
           ),
         },
       },
       {
         title: "Tickets payés",
-        value: data.data.filter((p) => p.status === "paid").length,
+        value: data.data.filter(
+          (p) => p.status === "paid" && p.type === "CURRENT"
+        ).length,
         variant: "secondary",
         more: {
           title: "Montant total",
           value: XAF.format(
             data.data
-              .filter((p) => p.status === "paid")
+              .filter((p) => p.status === "paid" && p.type === "CURRENT")
               .reduce((total, el) => total + el.price, 0)
           ),
         },
@@ -75,8 +81,8 @@ function Page() {
     return (
       <div className="content">
         <PageTitle
-          title="Dépenses"
-          subtitle="Consulter et traiter les dépenses."
+          title="Dépenses Courantes"
+          subtitle="Consulter et traiter les dépenses courantes"
           color="red"
         >
           {links
@@ -109,12 +115,16 @@ function Page() {
           ))}
         </div>
         <ExpensesTable
-          payments={data.data.filter((p) => p.status === "validated")}
+          payments={data.data.filter(
+            (p) => p.status === "pending_depense" && p.type === "CURRENT"
+          )}
           type="pending"
           purchases={getPurchases.data.data}
         />
         <ExpensesTable
-          payments={data.data.filter((p) => p.status === "paid")}
+          payments={data.data.filter(
+            (p) => p.status === "paid" && p.type === "CURRENT"
+          )}
           type="validated"
           purchases={getPurchases.data.data}
         />

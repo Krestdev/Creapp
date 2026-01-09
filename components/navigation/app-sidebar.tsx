@@ -257,6 +257,13 @@ function AppSidebar() {
   const approvedTicket = ticketsData?.filter(
     (ticket) => ticket.status === "validated"
   );
+  const approvedDepense = ticketsData?.filter(
+    (ticket) => ticket.status === "pending_depense"
+  );
+
+  const overall = approvedDepense?.concat(approvedDepense);
+
+  console.log(approvedDepense, approvedTicket, overall);
 
   // Si en cours de vérification, afficher un loader
   if (isChecking) {
@@ -417,10 +424,29 @@ function AppSidebar() {
       href: "/tableau-de-bord/depenses",
       authorized: ["VOLT", "ADMIN"],
       title: "Dépenses",
-      badgeValue:
-        approvedTicket && approvedTicket?.length > 0
-          ? approvedTicket?.length
-          : undefined,
+      badgeValue: overall && overall?.length > 0 ? overall?.length : undefined,
+      items: [
+        {
+          pageId: "PG-23354987-00",
+          title: "Dépenses Tickets",
+          href: "/tableau-de-bord/depenses/tickets",
+          badgeValue:
+            approvedTicket && approvedTicket?.length > 0
+              ? approvedTicket?.length
+              : undefined,
+          authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+        },
+        {
+          pageId: "PG-23354987-01",
+          title: "Dépenses Courantes",
+          href: "/tableau-de-bord/depenses/courrent",
+          badgeValue:
+            approvedDepense && approvedDepense?.length > 0
+              ? approvedDepense?.length
+              : undefined,
+          authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+        },
+      ],
     },
     {
       pageId: "PG-56489713246",
