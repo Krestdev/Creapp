@@ -15,73 +15,86 @@ import {
 } from "@/components/ui/select";
 import { Label } from "../ui/label";
 import { useStore } from "@/providers/datastore";
+import { RequestTypeQueries } from "@/queries/requestType";
+import { useFetchQuery } from "@/hooks/useData";
+import LoadingPage from "../loading-page";
+import ErrorPage from "../error-page";
 
 const CreateResquestPage = () => {
   const { user } = useStore();
   const [typeBesoin, setTypeBesoin] = React.useState<string>("");
-
   const userRoles = user?.role?.flatMap((x) => x.label) || [];
-
   const hasRole = (role: string) => userRoles.includes(role);
 
-  const renderForm = () => {
-    switch (typeBesoin) {
-      case "achat":
-        return <CreateRequest />;
-      case "speciaux":
-        return <SpecialRequestForm />;
-      case "facilitation":
-        return <FacilitationRequestForm />;
-      case "ressource_humaine":
-        return <RHRequestForm />;
-      default:
-        return null;
-    }
-  };
+  const requestTypeQueries = new RequestTypeQueries();
+  const getRequestType = useFetchQuery(["requestType"], requestTypeQueries.getAll);
 
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-2 mx-12">
-        <Label>{"Type de besoin"}</Label>
+  if (getRequestType.isLoading || getRequestType.data?.data.length === 0) {
+    return <LoadingPage />;
+  }
 
-        <Select onValueChange={setTypeBesoin}>
-          <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
-            <SelectValue placeholder="Sélectionner le type de besoin" />
-          </SelectTrigger>
+  if (getRequestType.isError) {
+    return <ErrorPage />;
+  }
 
-          <SelectContent>
-            <SelectGroup>
-              {/* Visible par tous */}
-              <SelectItem value="achat">
-                {"Besoin achat"}
-              </SelectItem>
+  if (getRequestType.isSuccess && getRequestType.data?.data.length > 0) {
+    const renderForm = () => {
+      switch (typeBesoin) {
+        case getRequestType.data?.data.find((x) => x.type === "achat")?.type:
+          return <CreateRequest />;
+        case getRequestType.data?.data.find((x) => x.type === "speciaux")?.type:
+          return <SpecialRequestForm />;
+        case getRequestType.data?.data.find((x) => x.type === "facilitation")?.type:
+          return <FacilitationRequestForm />;
+        case getRequestType.data?.data.find((x) => x.type === "ressource_humaine")?.type:
+          return <RHRequestForm />;
+        default:
+          return null;
+      }
+    };
 
-              {/* Visible par tous (modifiable si besoin) */}
-              <SelectItem value="facilitation">
-                {"Besoin de facilitation"}
-              </SelectItem>
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-2 mx-12">
+          <Label>{"Type de besoin"}</Label>
+          <Select onValueChange={setTypeBesoin}>
+            <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
+              <SelectValue placeholder="Sélectionner le type de besoin" />
+            </SelectTrigger>
 
-              {/* RH uniquement */}
-              {hasRole("RH") && (
-                <SelectItem value="ressource_humaine">
-                  {"Besoin Ressource humaine"}
+            <SelectContent>
+              <SelectGroup>
+                {/* Visible par tous */}
+                <SelectItem value={getRequestType.data?.data.find((x) => x.type === "achat")?.type!}>
+                  {getRequestType.data?.data.find((x) => x.type === "achat")?.label}
                 </SelectItem>
-              )}
 
-              {/* VOLT-MANAGER uniquement */}
-              {hasRole("VOLT_MANAGER") && (
-                <SelectItem value="speciaux">
-                  {"Besoin spéciaux"}
+                {/* Visible par tous (modifiable si besoin) */}
+                <SelectItem value={getRequestType.data?.data.find((x) => x.type === "facilitation")?.type!}>
+                  {getRequestType.data?.data.find((x) => x.type === "facilitation")?.label}
                 </SelectItem>
-              )}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+
+                {/* RH uniquement */}
+                {hasRole("RH") && (
+                  <SelectItem value={getRequestType.data?.data.find((x) => x.type === "ressource_humaine")?.type!}>
+                    {getRequestType.data?.data.find((x) => x.type === "ressource_humaine")?.label}
+                  </SelectItem>
+                )}
+
+                {/* VOLT-MANAGER uniquement */}
+                {hasRole("VOLT_MANAGER") && (
+                  <SelectItem value={getRequestType.data?.data.find((x) => x.type === "speciaux")?.type!}>
+                    {getRequestType.data?.data.find((x) => x.type === "speciaux")?.label}
+                  </SelectItem>
+                )}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {renderForm()}
       </div>
-
-      {renderForm()}
-    </div>
-  );
-};
-
+    );
+  };
+}
 export default CreateResquestPage;

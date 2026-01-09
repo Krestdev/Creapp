@@ -122,10 +122,10 @@ interface DataTableProps {
     validatedCount?: number;
   };
   isCheckable?: boolean;
-  categoriesData?: Category[];
-  projectsData?: ProjectT[];
-  usersData?: User[];
-  paymentsData?: PaymentRequest[];
+  categoriesData: Category[];
+  projectsData: ProjectT[];
+  usersData: User[];
+  paymentsData: PaymentRequest[];
 }
 
 export function DataVal({
@@ -136,13 +136,13 @@ export function DataVal({
   setDateFilter,
   customDateRange,
   setCustomDateRange,
-  customProps,
   isCheckable = false,
   categoriesData,
   projectsData,
   usersData,
   paymentsData,
 }: DataTableProps) {
+
   const { user } = useStore();
   const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -523,12 +523,12 @@ export function DataVal({
       decision?: string;
       validatorId?: number;
       validator?:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     }) => {
       await request.review(id, {
         validated: validated,
@@ -1077,9 +1077,6 @@ export function DataVal({
         const isAttach =
           (item.type === "FAC" || item.type === "RH") &&
           paiement?.proof !== null;
-
-        console.log(paiement);
-
         return (
           <div className="flex items-center gap-2">
             <DropdownMenu>
@@ -1350,22 +1347,22 @@ export function DataVal({
                     {column.id === "select"
                       ? "Sélection"
                       : column.id === "label"
-                      ? "Titres"
-                      : column.id === "projectId"
-                      ? "Projets"
-                      : column.id === "categoryId"
-                      ? "Catégories"
-                      : column.id === "userId"
-                      ? "Émetteurs"
-                      : column.id === "beneficiary"
-                      ? "Bénéficiaires"
-                      : column.id === "createdAt"
-                      ? "Date d'émission"
-                      : column.id === "state"
-                      ? "Statuts"
-                      : column.id === "validationProgress"
-                      ? "Validation"
-                      : column.id}
+                        ? "Titres"
+                        : column.id === "projectId"
+                          ? "Projets"
+                          : column.id === "categoryId"
+                            ? "Catégories"
+                            : column.id === "userId"
+                              ? "Émetteurs"
+                              : column.id === "beneficiary"
+                                ? "Bénéficiaires"
+                                : column.id === "createdAt"
+                                  ? "Date d'émission"
+                                  : column.id === "state"
+                                    ? "Statuts"
+                                    : column.id === "validationProgress"
+                                      ? "Validation"
+                                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -1412,9 +1409,9 @@ export function DataVal({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                       </TableHead>
                     );
                   })}
@@ -1440,8 +1437,8 @@ export function DataVal({
                       validationInfo.userPosition === 3 && "border-l-red-400",
                       validationInfo.isLastValidator && "border-l-red-400",
                       isSelected &&
-                        isCheckable &&
-                        "bg-blue-50 hover:bg-blue-100"
+                      isCheckable &&
+                      "bg-blue-50 hover:bg-blue-100"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (

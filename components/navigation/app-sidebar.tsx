@@ -100,10 +100,10 @@ function AppSidebar() {
   const approbationDevis =
     providers?.data?.data && cotation?.data && quotationsData?.data
       ? groupQuotationsByCommandRequest(
-          cotation?.data!,
-          quotationsData?.data!,
-          providers?.data?.data!
-        ).filter((c) => c.status === "NOT_PROCESSED")
+        cotation?.data!,
+        quotationsData?.data!,
+        providers?.data?.data!
+      ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
 
   // Récupérer toutes les catégories avec leurs validateurs
@@ -123,6 +123,11 @@ function AppSidebar() {
     },
     enabled: isHydrated,
   });
+
+  const myList = useFetchQuery(["requests", user?.id], () => request.getMine(user!.id));
+
+
+  const besoinDéstocké = myList.data?.data.filter((x) => x.state === "store").length ?? 0;
 
   // Récupérer tous les IDs des besoins présents dans les cotations
   const besoinsDansCotation =
@@ -322,6 +327,7 @@ function AppSidebar() {
           title: "Mes besoins",
           href: "/tableau-de-bord/besoins/mylist",
           authorized: ["ADMIN", "MANAGER", "USER"],
+          badgeValue: besoinDéstocké,
         },
         {
           pageId: "PG-02-03",

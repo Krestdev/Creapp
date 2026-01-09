@@ -17,7 +17,6 @@ const UtilisateursPage = () => {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
-          {/* <UtilisateursTable data={utilisateursData} /> */}
           <UtilisateursTable data={userData.data.data} />
         </div>
       </div>

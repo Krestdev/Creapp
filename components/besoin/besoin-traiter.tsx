@@ -200,6 +200,9 @@ export function BesoinsTraiter({
     });
   }, [data, categories]);
 
+  const qteunt = (qte: number, unt: string) =>
+    `${qte} ${unt}`;
+
   const columns: ColumnDef<RequestModelT>[] = [
     {
       id: "select",
@@ -280,6 +283,43 @@ export function BesoinsTraiter({
         const filterValueStr = String(filterValue);
 
         return rowValueStr === filterValueStr;
+      },
+    },
+    {
+      id: "fullName",
+      header: ({ column }) => (
+        <span
+          className="tablehead cursor-pointer select-none flex items-center"
+          onClick={() =>
+            column.toggleSorting(column.getIsSorted() === "asc")
+          }
+        >
+          {"Quantité"}
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </span>
+      ),
+
+      accessorFn: (row) =>
+        qteunt(row.quantity, row.unit),
+
+      cell: ({ row }) => {
+        const fullName = row.getValue("fullName") as string;
+        return <div className="font-medium text-center">{fullName}</div>;
+      },
+
+      sortingFn: (rowA, rowB) => {
+        const nameA = qteunt(
+          rowA.original.quantity,
+          rowA.original.unit
+        );
+        const nameB = qteunt(
+          rowB.original.quantity,
+          rowB.original.unit
+        );
+
+        return nameA.localeCompare(nameB, "fr", {
+          sensitivity: "base",
+        });
       },
     },
     {

@@ -592,3 +592,13 @@ export type Vehicle = {
   createdAt: string;
   updatedAt: string;
 };
+
+
+export type RequestType = {
+  id: number;
+  label: string;
+  description: string;
+  type: string;
+  createdAt: Date;
+  updatedAt?: Date;
+};
