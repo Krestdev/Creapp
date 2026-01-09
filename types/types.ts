@@ -189,7 +189,7 @@ export type RequestModelT = {
   category?: number | null;
   revieweeList?: Review[] | null;
   proof?: (string | File)[] | null | undefined;
-  type?: "SPECIAL" | "RH" | "FAC" | "PURCHASE";
+  type?: "speciaux" | "ressource_humaine" | "facilitation" | "achat";
   amount?: number;
   benFac?: { list: { id: number; name: string; amount: number }[] } | null;
 };

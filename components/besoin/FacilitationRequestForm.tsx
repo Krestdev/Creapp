@@ -167,7 +167,7 @@ export default function FacilitationRequestForm() {
       projectId: Number(values.projet),
       proof: values.justificatif,
       amount: beneficiairesList.reduce((total, b) => total + b.montant, 0),
-      type: "FAC",
+      type: "facilitation",
       state: "pending",
       priority: "medium",
       benFac: { list: beneficiairesList.map((b) => ({ id: b.id, name: b.nom, amount: b.montant })) },

@@ -184,7 +184,7 @@ export default function RHRequestForm() {
       quantity: 1,
       unit: "unit",
       userId: Number(user?.id),
-      type: "RH",
+      type: "ressource_humaine",
       state: "pending",
       priority: "medium",
       period: { from: values.periode.from, to: values.periode.to },

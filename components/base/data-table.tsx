@@ -77,6 +77,8 @@ import { Label } from "../ui/label";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
+import { RequestTypeQueries } from "@/queries/requestType";
+import { useFetchQuery } from "@/hooks/useData";
 
 const statusConfig = {
   pending: {
@@ -156,6 +158,10 @@ export function DataTable({
     { from: Date; to: Date } | undefined
   >();
   const queryClient = useQueryClient();
+
+  const requestTypeQueries = new RequestTypeQueries();
+  const getRequestType = useFetchQuery(["requestType"], requestTypeQueries.getAll);
+
 
   const projects = new ProjectQueries();
   const projectsData = useQuery({
@@ -345,17 +351,17 @@ export function DataTable({
     return filtered;
   }, [data, projectFilter, categoryFilter, statusFilter, globalFilter]);
 
-  function getTypeBadge(type: "SPECIAL" | "RH" | "FAC" | "PURCHASE" | undefined): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-    const typeData = PAYMENT_TYPES.find(t => t.value === type);
-    const label = typeData?.name ?? "Inconnu"
+  function getTypeBadge(type: "achat" | "ressource_humaine" | "facilitation" | "speciaux" | undefined): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+    const typeData = getRequestType.data?.data.find(t => t.type === type);
+    const label = typeData?.label ?? "Inconnu"
     switch (type) {
-      case "FAC":
+      case "facilitation":
         return { label, variant: "lime" };
-      case "PURCHASE":
+      case "achat":
         return { label, variant: "sky" };
-      case "SPECIAL":
+      case "speciaux":
         return { label, variant: "purple" };
-      case "RH":
+      case "ressource_humaine":
         return { label, variant: "blue" };
       default:
         return { label: type || "Inconnu", variant: "outline" };
@@ -523,7 +529,7 @@ export function DataTable({
         const paiement = paymentsData.data?.data.find(
           (x) => x.requestId === item?.id
         );
-        const isAttach = (item.type === "FAC" || item.type === "RH") && paiement?.proof !== null;
+        const isAttach = (item.type === "facilitation" || item.type === "ressource_humaine") && paiement?.proof !== null;
 
         return (
           <div className="flex items-center gap-2">
@@ -551,7 +557,7 @@ export function DataTable({
                     setSelectedItem(item);
                     console.log(item.type);
 
-                    item.type === "FAC" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true);
+                    item.type === "facilitation" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true);
                   }}
                   disabled={item.state !== "pending"}
                 >
@@ -914,7 +920,7 @@ export function DataTable({
             actionButton="Modifier"
             action={() => {
               setIsModalOpen(false);
-              { selectedItem?.type === "FAC" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true) };
+              { selectedItem?.type === "facilitation" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true) };
             }}
           />
           <UpdateRequest
