@@ -22,7 +22,7 @@ import { PaymentQueries } from "@/queries/payment";
 import { ProjectQueries } from "@/queries/projectModule";
 import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -39,6 +39,7 @@ import {
   FormMessage,
 } from "../ui/form";
 import ViewDepense from "./viewDepense";
+import { BankQuery } from "@/queries/bank";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -65,6 +66,7 @@ export const formSchema = z.object({
   Description: z.string({ message: "This field is required" }),
   Project: z.string().min(1, "Please select an item"),
   Justificatif: FileSchema,
+  caisseId: z.string({ message: "selectioner une caisse" }),
 });
 
 type Schema = z.infer<typeof formSchema>;
@@ -90,7 +92,9 @@ export function TransportForm() {
   const paymentsData = useMutation({
     mutationKey: ["payments-Depense"],
     mutationFn: async (
-      data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">
+      data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> & {
+        caisseId: number;
+      }
     ) => payments.createDepense(data),
     onSuccess: () => {
       toast.success("Depense soumis avec succès !");
@@ -112,6 +116,12 @@ export function TransportForm() {
     queryFn: () => users.getAll(),
   });
 
+  const bankQuery = new BankQuery();
+  const bankData = useQuery({
+    queryKey: ["getbanks"],
+    queryFn: bankQuery.getAll,
+  });
+
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
     const payment: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> = {
       title: data.title,
@@ -129,12 +139,14 @@ export function TransportForm() {
       proof: "",
       reference: "",
     };
-    paymentsData.mutate({ ...payment });
+    paymentsData.mutate({ ...payment, caisseId: Number(data.caisseId) });
   });
 
   return (
     !ProjectsData.isLoading &&
     !usersData.isLoading &&
+    !bankData.isLoading &&
+    bankData.data &&
     usersData.data &&
     ProjectsData.data && (
       <>
@@ -170,6 +182,48 @@ export function TransportForm() {
                     )}
                   </Field>
                 )}
+              />
+
+              <Controller
+                name="caisseId"
+                control={form.control}
+                render={({ field, fieldState }) => {
+                  const options = bankData.data.data
+                    .filter((x) => x.type === "CASH")
+                    .map((bank) => {
+                      return { value: bank.id, label: bank.label };
+                    });
+                  return (
+                    <Field
+                      data-invalid={fieldState.invalid}
+                      className="gap-1 col-span-full"
+                    >
+                      <FieldLabel htmlFor="caisseId">Caisse *</FieldLabel>
+
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Selectioner une Caisse" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.map((option) => (
+                            <SelectItem
+                              key={option.value}
+                              value={option.value.toString()}
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  );
+                }}
               />
 
               <Controller

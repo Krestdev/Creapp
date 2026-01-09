@@ -44,6 +44,7 @@ import { useState } from "react";
 import { SuccessModal } from "../modals/success-modal";
 import ViewDepense from "./viewDepense";
 import { VehicleQueries } from "@/queries/vehicule";
+import { BankQuery } from "@/queries/bank";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -74,6 +75,7 @@ export const formSchema = z.object({
   Montent: z.coerce.number({ message: "Please enter a valid number" }),
   Description: z.string({ message: "This field is required" }),
   Justificatif: FileSchema,
+  caisseId: z.string({ message: "selectioner une caisse" }),
 });
 
 type Schema = z.infer<typeof formSchema>;
@@ -109,6 +111,8 @@ export function CarburentForm() {
     mutationFn: async (
       data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> & {
         vehiclesId: number;
+      } & {
+        caisseId: number;
       }
     ) => payments.createDepense(data),
     onSuccess: () => {
@@ -140,6 +144,12 @@ export function CarburentForm() {
     queryFn: () => users.getAll(),
   });
 
+  const bankQuery = new BankQuery();
+  const bankData = useQuery({
+    queryKey: ["getbanks"],
+    queryFn: bankQuery.getAll,
+  });
+
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
     const payment: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> = {
       title: data.title,
@@ -159,10 +169,16 @@ export function CarburentForm() {
       proof: "",
       reference: "",
     };
-    paymentsData.mutate({ ...payment, vehiclesId: Number(data.model) });
+    paymentsData.mutate({
+      ...payment,
+      vehiclesId: Number(data.model),
+      caisseId: Number(data.caisseId),
+    });
   });
   return (
     !usersData.isLoading &&
+    !bankData.isLoading &&
+    bankData.data &&
     usersData.data && (
       <>
         <Form {...form}>
@@ -197,6 +213,48 @@ export function CarburentForm() {
                     )}
                   </Field>
                 )}
+              />
+
+              <Controller
+                name="caisseId"
+                control={form.control}
+                render={({ field, fieldState }) => {
+                  const options = bankData.data.data
+                    .filter((x) => x.type === "CASH")
+                    .map((bank) => {
+                      return { value: bank.id, label: bank.label };
+                    });
+                  return (
+                    <Field
+                      data-invalid={fieldState.invalid}
+                      className="gap-1 col-span-full"
+                    >
+                      <FieldLabel htmlFor="caisseId">Caisse *</FieldLabel>
+
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Selectioner une Caisse" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.map((option) => (
+                            <SelectItem
+                              key={option.value}
+                              value={option.value.toString()}
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  );
+                }}
               />
 
               <Controller
