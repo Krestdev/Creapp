@@ -13,6 +13,8 @@ import { Category, RequestModelT, User } from "@/types/types";
 import { DataVal } from "../base/dataVal";
 import { ProjectQueries } from "@/queries/projectModule";
 import { PaymentQueries } from "@/queries/payment";
+import LoadingPage from "../loading-page";
+import ErrorPage from "../error-page";
 
 /* ======================================================
    TYPES
@@ -210,7 +212,7 @@ const Approb = ({
   });
 
   const usersData = useQuery({
-    queryKey: ["users"],
+    queryKey: ["usersList"],
     queryFn: async () => {
       return users.getAll();
     },
@@ -252,59 +254,72 @@ const Approb = ({
     customDateRange
   );
 
+  console.log(usersData.data?.data);
+
+
   const pendingData = usePendingData(filteredData, user, categoryData);
   const proceedData = useProceedData(filteredData, user, categoryData);
 
-  return (
-    <div className="flex flex-col gap-6">
-      {/* ================== PENDING ================== */}
-      <div>
-        <h2 className="text-xl font-semibold mb-3">
-          {"Besoins en attente de validation"} ({pendingData.length})
-        </h2>
+  // PAge de chargement et d'erreur
+  if (projectsData.isPending || usersData.isPending || paymentsData.isPending || categoriesData.isPending || requestData.isPending) {
+    return <LoadingPage />;
+  }
 
-        {pendingData.length > 0 ? (
+  if (projectsData.isError || usersData.isError || paymentsData.isError || categoriesData.isError || requestData.isError) {
+    return <ErrorPage />;
+  }
+
+  if (projectsData.isSuccess && usersData.isSuccess && paymentsData.isSuccess && categoriesData.isSuccess && requestData.isSuccess) {
+    return (
+      <div className="flex flex-col gap-6">
+        {/* ================== PENDING ================== */}
+        <div>
+          <h2 className="text-xl font-semibold mb-3">
+            {"Besoins en attente de validation"} ({pendingData.length})
+          </h2>
+
+          {pendingData.length > 0 ? (
+            <DataVal
+              data={pendingData}
+              dateFilter={dateFilter}
+              setDateFilter={setDateFilter}
+              customDateRange={customDateRange}
+              setCustomDateRange={setCustomDateRange}
+              empty="Aucun besoin en attente"
+              isCheckable={true}
+              categoriesData={categoriesData.data?.data}
+            />
+          ) : (
+            <div className="text-center py-12 border rounded-lg bg-gray-50">
+              <CheckCircle className="mx-auto h-8 w-8 text-green-600 mb-2" />
+              <p>{"Aucun besoin en attente"}</p>
+            </div>
+          )}
+        </div>
+
+        {/* ================== HISTORY ================== */}
+        <div>
+          <h2 className="text-xl font-semibold mb-3">
+            {"Historique des validations"} ({proceedData.length})
+          </h2>
+
           <DataVal
-            data={pendingData}
+            data={proceedData}
+            type="proceed"
+            empty="Aucun besoin traité"
             dateFilter={dateFilter}
             setDateFilter={setDateFilter}
             customDateRange={customDateRange}
             setCustomDateRange={setCustomDateRange}
-            empty="Aucun besoin en attente"
-            isCheckable={true}
+            isCheckable={false}
+            projectsData={projectsData.data?.data}
+            usersData={usersData.data?.data}
+            paymentsData={paymentsData.data?.data}
             categoriesData={categoriesData.data?.data}
           />
-        ) : (
-          <div className="text-center py-12 border rounded-lg bg-gray-50">
-            <CheckCircle className="mx-auto h-8 w-8 text-green-600 mb-2" />
-            <p>{"Aucun besoin en attente"}</p>
-          </div>
-        )}
+        </div>
       </div>
-
-      {/* ================== HISTORY ================== */}
-      <div>
-        <h2 className="text-xl font-semibold mb-3">
-          {"Historique des validations"} ({proceedData.length})
-        </h2>
-
-        <DataVal
-          data={proceedData}
-          type="proceed"
-          empty="Aucun besoin traité"
-          dateFilter={dateFilter}
-          setDateFilter={setDateFilter}
-          customDateRange={customDateRange}
-          setCustomDateRange={setCustomDateRange}
-          isCheckable={false}
-          projectsData={projectsData.data?.data}
-          usersData={usersData.data?.data}
-          paymentsData={paymentsData.data?.data}
-          categoriesData={categoriesData.data?.data}
-        />
-      </div>
-    </div>
-  );
-};
-
-export default Approb;
+    );
+  };
+}
+export default Approb

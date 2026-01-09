@@ -331,12 +331,12 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
     setEffectiveFilters({
-    globalFilter: "",
-    statusFilter: "all",
-    chiefFilter: "all",
-    budgetOperator: "none",
-    budgetValue: "",
-  });
+      globalFilter: "",
+      statusFilter: "all",
+      chiefFilter: "all",
+      budgetOperator: "none",
+      budgetValue: "",
+    });
   };
 
   const columns: ColumnDef<ProjectT>[] = React.useMemo(
@@ -671,54 +671,54 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
               <div className="grid gap-1.5">
                 <Label>{"Statut"}</Label>
                 <Select
-            value={
-              typeof effectiveFilters.statusFilter === "string"
-                ? effectiveFilters.statusFilter
-                : "multiple"
-            }
-            onValueChange={(value) =>
-              updateFilter("statusFilter", value === "all" ? "all" : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Tous les statuts" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-              {uniqueStatuses.map((status) => {
-                const badgeInfo = getBadge(status);
-                return (
-                  <SelectItem key={status} value={status}>
-                    <div className="flex items-center gap-2">
-                      {badgeInfo.icon && <badgeInfo.icon className="h-4 w-4" />}
-                      {badgeInfo.label}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+                  value={
+                    typeof effectiveFilters.statusFilter === "string"
+                      ? effectiveFilters.statusFilter
+                      : "multiple"
+                  }
+                  onValueChange={(value) =>
+                    updateFilter("statusFilter", value === "all" ? "all" : value)
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Tous les statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous les statuts"}</SelectItem>
+                    {uniqueStatuses.map((status) => {
+                      const badgeInfo = getBadge(status);
+                      return (
+                        <SelectItem key={status} value={status}>
+                          <div className="flex items-center gap-2">
+                            {badgeInfo.icon && <badgeInfo.icon className="h-4 w-4" />}
+                            {badgeInfo.label}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Filtre par chef de projet */}
               <div className="grid gap-1.5">
                 <Label>{"Chef de Projet"}</Label>
                 <Select
-            value={effectiveFilters.chiefFilter}
-            onValueChange={(value) => updateFilter("chiefFilter", value)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Tous les chefs" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Tous"}</SelectItem>
-              {uniqueChiefs.map((chief) => (
-                <SelectItem key={chief} value={chief}>
-                  {chief}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                  value={effectiveFilters.chiefFilter}
+                  onValueChange={(value) => updateFilter("chiefFilter", value)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Tous les chefs" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {uniqueChiefs.map((chief) => (
+                      <SelectItem key={chief} value={chief}>
+                        {chief}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               {/* Bouton pour réinitialiser les filtres */}
               <div className="flex items-end">
@@ -733,45 +733,47 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
             </div>
           </SheetContent>
         </Sheet>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="ml-auto">
-              <Button variant="outline">
-                {"Colonnes"}
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id === "reference"
-                        ? "Référence"
-                        : column.id === "label"
-                          ? "Projet"
-                          : column.id === "chief"
-                            ? "Chef Projet"
-                            : column.id === "budget"
-                              ? "Budget prévisionnel"
-                              : column.id === "status"
-                                ? "Statut"
-                                : column.id === "createdAt"
-                                  ? "Date de création"
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="ml-auto">
+            <Button variant="outline">
+              {"Colonnes"}
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id === "reference"
+                      ? "Référence"
+                      : column.id === "label"
+                        ? "Projet"
+                        : column.id === "chief"
+                          ? "Chef Projet"
+                          : column.id === "budget"
+                            ? "Budget prévisionnel"
+                            : column.id === "status"
+                              ? "Statut"
+                              : column.id === "createdAt"
+                                ? "Date de création"
+                                : column.id === "userId"
+                                  ? "Créé par"
                                   : column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="rounded-md border">
