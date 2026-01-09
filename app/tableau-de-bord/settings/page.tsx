@@ -48,8 +48,8 @@ export default function SettingsPage() {
           items: [
             {
               pageId: "PG-08-02",
-              title: "Liste",
-              href: "/tableau-de-bord/settings/utilisateurs/liste",
+              title: "Liste de utilisateur",
+              href: "/tableau-de-bord/settings/utilisateurs",
               authorized: ["ADMIN"],
             },
             {
@@ -68,15 +68,15 @@ export default function SettingsPage() {
           color: "from-amber-500 to-amber-600",
           items: [
             {
-              pageId: "PG-08-01",
-              title: "Créer un fournisseur",
-              href: "/tableau-de-bord/settings/provider/create",
+              pageId: "PG-08-02",
+              title: "Liste des fournisseurs",
+              href: "/tableau-de-bord/settings/provider",
               authorized: ["ADMIN"],
             },
             {
-              pageId: "PG-08-02",
-              title: "Liste des fournisseurs",
-              href: "/tableau-de-bord/settings/provider/liste",
+              pageId: "PG-08-01",
+              title: "Créer un fournisseur",
+              href: "/tableau-de-bord/settings/provider/create",
               authorized: ["ADMIN"],
             },
           ],
