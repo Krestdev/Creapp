@@ -43,6 +43,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { SuccessModal } from "../modals/success-modal";
 import ViewDepense from "./viewDepense";
+import { VehicleQueries } from "@/queries/vehicule";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -87,7 +88,7 @@ export function CarburentForm() {
       liters: 0,
       model: "",
       Montent: 0,
-      title: "",
+      title: "Carburent",
     },
   });
 
@@ -96,11 +97,19 @@ export function CarburentForm() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [view, setView] = useState<boolean>(false);
 
+  const vehicles = new VehicleQueries();
+  const vehicleData = useQuery({
+    queryKey: ["getvehicles"],
+    queryFn: vehicles.getAll,
+  });
+
   const payments = new PaymentQueries();
   const paymentsData = useMutation({
     mutationKey: ["payments-Depense"],
     mutationFn: async (
-      data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">
+      data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> & {
+        vehiclesId: number;
+      }
     ) => payments.createDepense(data),
     onSuccess: () => {
       toast.success("Depense soumis avec succès !");
@@ -113,7 +122,7 @@ export function CarburentForm() {
         liters: 0,
         model: "",
         Montent: 0,
-        title: "",
+        title: "Carburent",
       });
       setView(true);
     },
@@ -134,7 +143,6 @@ export function CarburentForm() {
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
     const payment: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> = {
       title: data.title,
-      model: data.model,
       km: data.km,
       liters: data.liters,
       price: data.Montent,
@@ -151,7 +159,7 @@ export function CarburentForm() {
       proof: "",
       reference: "",
     };
-    paymentsData.mutate({ ...payment });
+    paymentsData.mutate({ ...payment, vehiclesId: Number(data.model) });
   });
   return (
     !usersData.isLoading &&
@@ -194,28 +202,43 @@ export function CarburentForm() {
               <Controller
                 name="model"
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field
-                    data-invalid={fieldState.invalid}
-                    className="gap-1 col-span-full"
-                  >
-                    <FieldLabel htmlFor="model">Model *</FieldLabel>
-                    <Input
-                      {...field}
-                      id="model"
-                      type="text"
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                      }}
-                      aria-invalid={fieldState.invalid}
-                      placeholder="Le mode de voiture"
-                    />
+                render={({ field, fieldState }) => {
+                  const options = usersData.data.data.map((user) => {
+                    return { value: user.id, label: user.firstName };
+                  });
+                  return (
+                    <Field
+                      data-invalid={fieldState.invalid}
+                      className="gap-1 col-span-full"
+                    >
+                      <FieldLabel htmlFor="model">
+                        Model du vehicule *
+                      </FieldLabel>
 
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Selectioner un vehicule" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vehicleData.data?.data.map((option) => (
+                            <SelectItem
+                              key={option.id}
+                              value={option.id.toString()}
+                            >
+                              {`${option.label} - ${option.mark} - ${option.matricule}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  );
+                }}
               />
 
               <Controller

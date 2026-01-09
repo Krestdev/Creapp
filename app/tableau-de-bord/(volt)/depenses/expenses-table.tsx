@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -11,12 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  DollarSign,
-  Eye
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, DollarSign, Eye } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
@@ -29,7 +24,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,7 +44,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { XAF } from "@/lib/utils";
-import { BonsCommande, PAY_STATUS, PAYMENT_TYPES, PaymentRequest, PRIORITIES } from "@/types/types";
+import {
+  BonsCommande,
+  PAY_STATUS,
+  PAYMENT_TYPES,
+  PaymentRequest,
+  PRIORITIES,
+} from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
 import PayExpense from "./pay-expense";
@@ -60,9 +61,10 @@ interface Props {
   type: "pending" | "validated";
 }
 
-function getPriorityBadge(
-  priority: PaymentRequest["priority"]
-): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+function getPriorityBadge(priority: PaymentRequest["priority"]): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
   const priorityData = PRIORITIES.find((p) => p.value === priority);
   const label = priorityData?.name ?? "Inconnu";
 
@@ -80,9 +82,12 @@ function getPriorityBadge(
   }
 }
 
-function getStatusBadge(status: PaymentRequest["status"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-  const statusData = PAY_STATUS.find(s => s.value === status);
-  const label = statusData?.name ?? "Inconnu"
+function getStatusBadge(status: PaymentRequest["status"]): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const statusData = PAY_STATUS.find((s) => s.value === status);
+  const label = statusData?.name ?? "Inconnu";
 
   switch (status) {
     case "pending":
@@ -94,11 +99,14 @@ function getStatusBadge(status: PaymentRequest["status"]): { label: string; vari
     default:
       return { label, variant: "outline" };
   }
-};
+}
 
-function getTypeBadge(type: PaymentRequest["type"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-  const typeData = PAYMENT_TYPES.find(t => t.value === type);
-  const label = typeData?.name ?? "Inconnu"
+function getTypeBadge(type: PaymentRequest["type"]): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const typeData = PAYMENT_TYPES.find((t) => t.value === type);
+  const label = typeData?.name ?? "Inconnu";
   switch (type) {
     case "FAC":
       return { label, variant: "lime" };
@@ -108,10 +116,12 @@ function getTypeBadge(type: PaymentRequest["type"]): { label: string; variant: V
       return { label, variant: "purple" };
     case "RH":
       return { label, variant: "blue" };
+    case "CURRENT":
+      return { label, variant: "secondary" };
     default:
       return { label: type, variant: "outline" };
   }
-};
+}
 
 function ExpensesTable({ payments, purchases, type }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -120,9 +130,10 @@ function ExpensesTable({ payments, purchases, type }: Props) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
-    status: false, // Masque la colonne statut par défaut
-  });
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({
+      status: false, // Masque la colonne statut par défaut
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
@@ -205,9 +216,13 @@ function ExpensesTable({ payments, purchases, type }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find(p => p.id === value.commandId);
+        const purchase = purchases.find((p) => p.id === value.commandId);
         const title = value.title;
-        return <div>{purchase?.devi.commandRequest.title ?? value.title ?? "--"}</div>;
+        return (
+          <div>
+            {purchase?.devi.commandRequest.title ?? value.title ?? "--"}
+          </div>
+        );
       },
     },
     {
@@ -282,11 +297,7 @@ function ExpensesTable({ payments, purchases, type }: Props) {
       cell: ({ row }) => {
         const value = row.original;
         const status = getStatusBadge(value.status);
-        return (
-          <Badge variant={status.variant}>
-            {status.label}
-          </Badge>
-        );
+        return <Badge variant={status.variant}>{status.label}</Badge>;
       },
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
@@ -406,7 +417,8 @@ function ExpensesTable({ payments, purchases, type }: Props) {
             <Label>{"Priorité"}</Label>
             <Select
               value={
-                (table.getColumn("priority")?.getFilterValue() as string) ?? "all" // CORRECTION: 'priority' au lieu de 'priorite'
+                (table.getColumn("priority")?.getFilterValue() as string) ??
+                "all" // CORRECTION: 'priority' au lieu de 'priorite'
               }
               onValueChange={(value) =>
                 table
@@ -456,7 +468,9 @@ function ExpensesTable({ payments, purchases, type }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${payments.length})`}</h3>
+      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${
+        payments.length
+      })`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -471,9 +485,9 @@ function ExpensesTable({ payments, purchases, type }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
@@ -523,9 +537,15 @@ function ExpensesTable({ payments, purchases, type }: Props) {
           purchases={purchases}
         />
       )}
-      {selected && <PayExpense ticket={selected} open={showPay} onOpenChange={setShowPay} />}
+      {selected && (
+        <PayExpense
+          ticket={selected}
+          open={showPay}
+          onOpenChange={setShowPay}
+        />
+      )}
     </div>
-  )
+  );
 }
 
-export default ExpensesTable
+export default ExpensesTable;

@@ -157,7 +157,8 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest }) => {
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Vehicule:</Text>
               <Text style={styles.infoValue}>
-                {paymentRequest.model || "N/A"}
+                {`${paymentRequest.model.label} - ${paymentRequest.model.mark} - ${paymentRequest.model.matricule}` ||
+                  "N/A"}
               </Text>
             </View>
           )}

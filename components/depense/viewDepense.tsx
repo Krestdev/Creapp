@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { Button } from "../ui/button";
 
 interface Props {
   open: boolean;
@@ -53,10 +54,25 @@ const PaymentReceipt: React.FC<Props> = ({
   //   updatedAt: new Date().toISOString(),
   // });
 
+  const handleDownloadClick = () => {
+    // Close the dialog after download is triggered
+    setTimeout(() => {
+      openChange(false);
+    }, 500);
+  };
+
   return (
     <div>
       <h2>Reçu de Transport</h2>
-      <Dialog open={open} onOpenChange={openChange}>
+      <Dialog
+        open={open}
+        onOpenChange={(newOpen) => {
+          // Prevent closing via ESC key or clicking outside
+          if (!newOpen) {
+            return;
+          }
+        }}
+      >
         <DialogContent className="max-h-[750px] max-w-4xl! gap-0 overflow-hidden border-none flex flex-col">
           {/* Header with burgundy background */}
           <DialogHeader className="bg-[#8B1538] text-white mb-2 rounded-lg relative">
@@ -80,11 +96,12 @@ const PaymentReceipt: React.FC<Props> = ({
             <PDFDownloadLink
               document={<DepenseDocument paymentRequest={paymentRequest} />}
               fileName={`recu-transport-${paymentRequest.reference}.pdf`}
+              onClick={handleDownloadClick}
             >
               {({ loading }) => (
-                <button disabled={loading}>
+                <Button disabled={loading}>
                   {loading ? "Génération du PDF..." : "Télécharger le PDF"}
-                </button>
+                </Button>
               )}
             </PDFDownloadLink>
           </DialogFooter>

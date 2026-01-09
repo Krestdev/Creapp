@@ -78,7 +78,7 @@ export type PaymentRequest = {
   beneficiary?: User;
   benefId?: number;
 
-  model?: string;
+  model?: Vehicle;
   km?: number;
   liters?: number;
 
@@ -582,6 +582,16 @@ export interface TableFilters {
   dateFilter?: "today" | "week" | "month" | "year" | "custom" | undefined;
   customDateRange?: { from: Date; to: Date } | undefined;
 }
+
+export type Vehicle = {
+  id: number;
+  label: string;
+  mark: string;
+  matricule: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 
 export type RequestType = {
   id: number;
