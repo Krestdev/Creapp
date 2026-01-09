@@ -15,12 +15,13 @@ import {
   Database,
   Car,
   BookCopy,
+  Type,
 } from "lucide-react";
 
 export default function SettingsPage() {
   const settingsGroups = [
     {
-      category: "Management",
+      category: "Gestion",
       items: [
         {
           title: "Utilisateurs",
@@ -44,7 +45,7 @@ export default function SettingsPage() {
           ],
         },
         {
-          title: "Fournisseur",
+          title: "Fournisseurs",
           description: "Geres les fourniseur",
           icon: Building2,
           href: "/tableau-de-bord/settings/provider",
@@ -65,11 +66,25 @@ export default function SettingsPage() {
           ],
         },
         {
-          title: "Cathegory",
-          description: "Gere les diferente categories",
-          icon: BookCopy,
-          href: "/tableau-de-bord/settings/categories",
-          color: "from-pink-500 to-pink-600",
+          title: "Besoins",
+          description: "Geres les besoins",
+          icon: Building2,
+          href: "/tableau-de-bord/settings/besoins",
+          color: "from-amber-500 to-amber-600",
+          items: [
+            {
+              pageId: "PG-08-02",
+              title: "Types de besoins",
+              href: "/tableau-de-bord/settings/type-de-besoins",
+              authorized: ["ADMIN"],
+            },
+            {
+              pageId: "PG-08-01",
+              title: "Liste des catégories",
+              href: "/tableau-de-bord/settings/categories",
+              authorized: ["ADMIN"],
+            },
+          ],
         },
         {
           title: "Roles & Permissions",
@@ -81,7 +96,7 @@ export default function SettingsPage() {
       ],
     },
     {
-      category: "System",
+      category: "Système",
       items: [
         {
           title: "Notifications",
@@ -112,7 +127,7 @@ export default function SettingsPage() {
         //   color: "from-indigo-500 to-indigo-600",
         // },
         {
-          title: "Vehicule",
+          title: "Véhicule",
           description: "Enregistrement des vehicule",
           icon: Car,
           href: "/tableau-de-bord/settings/vehicule",
