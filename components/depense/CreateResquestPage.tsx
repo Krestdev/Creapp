@@ -16,7 +16,7 @@ import { CarburentForm } from "./carburent";
 
 const CreateDepensePage = () => {
   const { user } = useStore();
-  const [typeDepense, setTypeDepense] = React.useState<string>("");
+  const [typeDepense, setTypeDepense] = React.useState<string>("Transport");
 
   const userRoles = user?.role?.flatMap((x) => x.label) || [];
 
@@ -40,7 +40,7 @@ const CreateDepensePage = () => {
 
         <Select onValueChange={setTypeDepense}>
           <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
-            <SelectValue placeholder="Sélectionner le type de depense" />
+            <SelectValue placeholder="Transport" />
           </SelectTrigger>
 
           <SelectContent>
