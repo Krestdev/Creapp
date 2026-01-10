@@ -51,7 +51,7 @@ import {
 } from "@/components/ui/table";
 import { cn, company } from "@/lib/utils";
 import { Pagination } from "../base/pagination";
-import { BonsCommande, PaymentRequest } from "@/types/types";
+import { BonsCommande, PaymentRequest, RequestType } from "@/types/types";
 import { DetailTicket } from "../modals/detail-ticket";
 import { ApproveTicket } from "../modals/ApproveTicket";
 import { PurchaseOrder } from "@/queries/purchase-order";
@@ -65,11 +65,13 @@ import { PRIORITIES } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { get } from "http";
 import { useStore } from "@/providers/datastore";
+import { format } from "date-fns";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
   isAdmin: boolean;
   isManaged?: boolean;
+  requestTypeData: RequestType[];
 }
 
 // const priorityConfig = {
@@ -159,14 +161,30 @@ const statusConfig = {
   },
 };
 
-const typeConfig = {
-  FAC: { label: "Facilitation" },
-  RH: { label: "Ressources Humaines" },
-  SPECIAL: { label: "Special" },
-  PURCHASE: { label: "Besoin Normal" },
-};
+export function TicketsTable({ data, isAdmin, isManaged, requestTypeData }: TicketsTableProps) {
 
-export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
+  function getTypeBadge(type: PaymentRequest["type"]): {
+    label: string;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+  } {
+    const typeData = requestTypeData.find(t => t.type === type);
+    const label = typeData?.label ?? "Inconnu"
+    switch (type) {
+      case "facilitation":
+        return { label, variant: "lime" };
+      case "achat":
+        return { label, variant: "sky" };
+      case "speciaux":
+        return { label, variant: "purple" };
+      case "ressource_humaine":
+        return { label, variant: "blue" };
+      case "CURRENT":
+        return { label, variant: "secondary" };
+      default:
+        return { label: type, variant: "outline" };
+    }
+  }
+
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -174,7 +192,9 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      createdAt: false,
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [openDetailModal, setOpenDetailModal] = React.useState(false);
@@ -276,19 +296,6 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
   // État pour suivre la priorité sélectionnée dans le Select
   const [selectedPriority, setSelectedPriority] = React.useState<string>("all");
 
-  const getType = (key: string) => {
-    switch (key) {
-      case "FAC":
-        return "Facilitation";
-      case "RH":
-        return "Ressources Humaines";
-      case "SPECIAL":
-        return "Special";
-      default:
-        return "Besoin Normal";
-    }
-  };
-
   const columns: ColumnDef<PaymentRequest>[] = [
     {
       accessorKey: "type",
@@ -303,9 +310,11 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div className="font-medium">{getType(row.getValue("type"))}</div>
-      ),
+      cell: ({ row }) => {
+        const value = row.original;
+        const type = getTypeBadge(value.type);
+        return <Badge variant={type.variant}>{type.label}</Badge>;
+      },
     },
     {
       accessorKey: "fournisseur",
@@ -460,6 +469,23 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
       },
     },
     {
+      accessorKey: "createdAt",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Date de creation"}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        return <div className="font-medium">{format(row.getValue("createdAt"), "dd/MM/yyyy")}</div>;
+      },
+    },
+    {
       id: "actions",
       header: () => <span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
@@ -558,15 +584,6 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
     }
     const config = statusConfig[selectedStatus as keyof typeof statusConfig];
     return config?.label || selectedStatus;
-  };
-
-  // Fonction pour obtenir le libellé à afficher dans le SelectValue pour les types
-  const getTypeDisplayValue = () => {
-    if (selectedType === "all") {
-      return "Tous les types";
-    }
-    const config = typeConfig[selectedType as keyof typeof typeConfig];
-    return config?.label || selectedType;
   };
 
   // Fonction pour obtenir le libellé à afficher dans le SelectValue pour les priorités
@@ -669,22 +686,26 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
           </Select>
         )}
 
-        <Select value={selectedType} onValueChange={setSelectedType}>
+        <Select
+          value={
+            (table.getColumn("type")?.getFilterValue() as string) ?? "all" // CORRECTION: 'priority' au lieu de 'priorite'
+          }
+          onValueChange={(value) =>
+            table
+              .getColumn("type")
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
+        >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder={getTypeDisplayValue()}>
-              {getTypeDisplayValue()}
-            </SelectValue>
+            <SelectValue placeholder="Filtrer par type" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{"Tous les types"}</SelectItem>
-            {uniqueTypes.map((type) => {
-              const config = typeConfig[type as keyof typeof typeConfig];
-              return (
-                <SelectItem key={type} value={type}>
-                  {config?.label || type}
-                </SelectItem>
-              );
-            })}
+            {requestTypeData.map((p) => (
+              <SelectItem key={p.type} value={p.type}>
+                {p.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -708,7 +729,22 @@ export function TicketsTable({ data, isAdmin, isManaged }: TicketsTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "createdAt" ?
+                      "Date de creation" :
+                      column.id === "priority" ?
+                        "Priorité" :
+                        column.id === "status" ? "Statut" :
+                          column.id === "type" ? "Type" :
+                            column.id === "amount" ? "Montant" :
+                              column.id === "description" ? "Description" :
+                                column.id === "reference" ? "Reference" :
+                                  column.id === "createdAt" ? "Date de creation" :
+                                    column.id === "updatedAt" ? "Date de modification" :
+                                      column.id === "actions" ? "Actions" :
+                                        column.id === "title" ? "Titre" :
+                                          column.id === "category" ? "Categorie" :
+                                            column.id === "price" ? "Montant" :
+                                              column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
