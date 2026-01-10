@@ -14,6 +14,12 @@ function Page() {
       hide: false,
       disabled: false,
     },
+    {
+      title: "Roles d'utilisateur",
+      href: "./utilisateurs/roles",
+      hide: false,
+      disabled: false,
+    },
   ];
   return (
     <div className="flex flex-col gap-6">
