@@ -22,7 +22,7 @@ export default TitleValueCard
 
 
 const statisticVariants = cva(
-  "w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px]",
+  "w-full h-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px]",
   {
     variants: {
       variant: {
@@ -44,6 +44,7 @@ export interface StatisticProps {
   title: string;
   value: string | number;
   variant: VariantProps<typeof statisticVariants>["variant"];
+  valueClassName?: string;
   className?: string;
   more?: {
     title: string;
@@ -74,11 +75,11 @@ function getBorderClassName(variant: StatisticProps["variant"]): HTMLHRElement["
   }
 }
 
-export const StatisticCard = ({ title, value, more, className = "", variant }: StatisticProps) => {
+export const StatisticCard = ({ title, value, more, className = "", variant, valueClassName="" }: StatisticProps) => {
   return (
     <div className={cn(statisticVariants({ variant: variant }), className)}>
       <h4 className={cn("text-sm font-medium", variant === "default" ? "text-gray-600" : "text-gray-200")}>{title}</h4>
-      <span className="font-mono font-medium text-[32px] leading-[120%]">{value}</span>
+      <span className={cn("font-mono font-medium text-[32px] leading-[120%] tracking-tight", valueClassName)}>{value}</span>
       {!!more && <hr className={getBorderClassName(variant)} />}
       {!!more &&
         <span className={cn("font-mono text-xs", getMoreClassName(variant))}>{`${more.title} : `}<span className={cn("font-medium", variant === "default" ? "text-foreground" : "text-white")}>{more.value}</span></span>}
