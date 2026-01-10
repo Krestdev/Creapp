@@ -10,6 +10,7 @@ import { NavLink } from '@/types/types';
 import Link from 'next/link';
 import React from 'react'
 import TransactionTable from '../transaction-table';
+import { BankQuery } from '@/queries/bank';
 
 function Page() {
     const links: Array<NavLink> = [
@@ -19,15 +20,17 @@ function Page() {
         }
       ];
       const transactionQuery = new TransactionQuery();
-      const getTransactions = useFetchQuery(["transactions"], transactionQuery.getAll, 500000);
+      const getTransactions = useFetchQuery(["transactions"], transactionQuery.getAll, 30000);
+      const bank = new BankQuery();
+      const getBanks = useFetchQuery(["transactions"], bank.getAll, 50000);
 
-      if(getTransactions.isLoading){
+      if(getTransactions.isLoading || getBanks.isLoading){
         return <LoadingPage/>
       }
-      if(getTransactions.isError){
-        return <ErrorPage error={getTransactions.error} />
+      if(getTransactions.isError || getBanks.isError){
+        return <ErrorPage error={getTransactions.error || getBanks.error || undefined} />
       }
-      if(getTransactions.isSuccess)
+      if(getTransactions.isSuccess && getBanks.isSuccess)
   return (
     <div className="content">
         <PageTitle title="Transferts" subtitle="Historique des transferts">
@@ -55,7 +58,7 @@ function Page() {
               );
             })}
         </PageTitle>
-        <TransactionTable data={getTransactions.data.data.filter(t=>t.Type === "TRANSFER")} canEdit={true} />
+        <TransactionTable data={getTransactions.data.data.filter(t=>t.Type === "TRANSFER")} canEdit={true} banks={getBanks.data.data} />
     </div>
   )
 }
