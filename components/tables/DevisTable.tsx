@@ -123,10 +123,6 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
     string | undefined
   >(undefined);
 
-  // États pour le modal personnalisé
-  const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
-    React.useState(false);
-
   const getProviderName = (providerId: number) => {
     const provider = providers.find((p) => p.id === providerId);
     return provider ? provider.name : "Inconnu";
@@ -679,9 +675,9 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                            customDateRange.from,
-                            "dd/MM/yyyy"
-                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy"
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -793,9 +789,9 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}

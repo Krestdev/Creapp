@@ -14,22 +14,13 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  CheckCircle,
   ChevronDown,
-  Eye,
   LucidePen,
   Search,
-  Shield,
   Trash2,
-  User,
-  UserCheck,
-  UserX,
-  Users,
-  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -56,17 +47,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserQueries } from "@/queries/baseModule";
+import { useStore } from "@/providers/datastore";
+import { vehicleQ } from "@/queries/vehicule";
 import { Role, Vehicle } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
-import { TranslateRole } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import { ModalWarning } from "../modals/modal-warning";
-import { format } from "date-fns";
 import UpdateVehicle from "./UpdateUser";
-import { VehicleQueries } from "@/queries/vehicule";
 
 interface VehiclesTableProps {
   data: Vehicle[];
@@ -89,87 +77,12 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [verifiedFilter, setVerifiedFilter] = React.useState<string>("all");
 
-  // Récupérer les rôles uniques des vehicles pour les options du filtre
-  const uniqueRoles = React.useMemo(() => {
-    const allRoles: string[] = [];
-
-    // Trier les rôles par ordre alphabétique
-    return allRoles.sort((a, b) => a.localeCompare(b));
-  }, [data]);
-
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "admin":
-        return <Shield className="h-3 w-3" />;
-      case "manager":
-        return <Users className="h-3 w-3" />;
-      case "user":
-        return <User className="h-3 w-3" />;
-      case "viewer":
-        return <Eye className="h-3 w-3" />;
-      default:
-        return <User className="h-3 w-3" />;
-    }
-  };
-
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "bg-purple-500 text-white hover:bg-purple-600";
-      case "manager":
-        return "bg-blue-500 text-white hover:bg-blue-600";
-      case "user":
-        return "bg-green-500 text-white hover:bg-green-600";
-      case "viewer":
-        return "bg-gray-500 text-white hover:bg-gray-600";
-      default:
-        return "bg-gray-500 text-white hover:bg-gray-600";
-    }
-  };
-
-  const getStatutIcon = (statut: boolean) => {
-    switch (statut) {
-      case true:
-        return <CheckCircle className="h-3 w-3" />;
-      default:
-        return <XCircle className="h-3 w-3" />;
-    }
-  };
-
-  const getStatutBadgeColor = (statut: boolean) => {
-    switch (statut) {
-      case true:
-        return "bg-green-500 text-white hover:bg-green-600";
-      default:
-        return "bg-yellow-500 text-white hover:bg-yellow-600";
-    }
-  };
-
-  const getRowColor = (statut: boolean) => {
-    switch (statut) {
-      case true:
-        return "bg-green-50";
-      default:
-        return "bg-yellow-50";
-    }
-  };
-
-  const TranslateStatus = (statut: boolean) => {
-    switch (statut) {
-      case true:
-        return "Vérifié";
-      default:
-        return "Non vérifié";
-    }
-  };
-
   const { user } = useStore();
   const queryClient = useQueryClient();
 
-  const vehicleQueries = new VehicleQueries();
   const vehicleMutation = useMutation({
     mutationKey: ["vehicleUpdate"],
-    mutationFn: async (data: number) => vehicleQueries.delete(Number(data)),
+    mutationFn: async (data: number) => vehicleQ.delete(Number(data)),
 
     onSuccess: () => {
       toast.success("Vehicle supprimé avec succès !");
@@ -352,20 +265,10 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
     },
   });
 
-  const markFilter =
-    (table.getColumn("mark")?.getFilterValue() as string) ?? "all";
-
   // Gestion des succès
   const handleUpdateSuccess = () => {
     setIsUpdateModalOpen(false);
     setSelectedItem(null);
-    queryClient.invalidateQueries({
-      queryKey: ["usersList"],
-      refetchType: "active",
-    });
-  };
-
-  const handleDeleteSuccess = () => {
     queryClient.invalidateQueries({
       queryKey: ["usersList"],
       refetchType: "active",

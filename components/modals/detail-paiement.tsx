@@ -30,7 +30,7 @@ import { VariantProps } from "class-variance-authority";
 import { Badge, badgeVariants } from "../ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { useFetchQuery } from "@/hooks/useData";
 import { Button } from "../ui/button";
 import { XAF } from "@/lib/utils";
@@ -61,8 +61,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
 }
 
 function DetailPaiement({ payment, open, openChange, purchases }: Props) {
-  const userQuery = new UserQueries();
-  const getUsers = useFetchQuery(["users"], userQuery.getAll, 50000);
+  const getUsers = useFetchQuery(["users"], userQ.getAll, 50000);
   const purchase = purchases.find((p) => p.id === payment.commandId);
   return (
     <Dialog open={open} onOpenChange={openChange}>
@@ -143,8 +142,9 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Justificatif"}</p>
             <Link
-              href={`${process.env.NEXT_PUBLIC_API
-                }/uploads/${encodeURIComponent(payment.proof as string)}`}
+              href={`${
+                process.env.NEXT_PUBLIC_API
+              }/uploads/${encodeURIComponent(payment.proof as string)}`}
               target="_blank"
               className="flex gap-0.5 items-center"
             >
@@ -181,8 +181,11 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Initié par"}</p>
             <p className="font-semibold">
-              {getUsers.data?.data.find((u) => u.id === payment.userId)?.firstName + " " + getUsers.data?.data.find((u) => u.id === payment.userId)?.lastName ||
-                "Non défini"}
+              {getUsers.data?.data.find((u) => u.id === payment.userId)
+                ?.firstName +
+                " " +
+                getUsers.data?.data.find((u) => u.id === payment.userId)
+                  ?.lastName || "Non défini"}
             </p>
           </div>
         </div>

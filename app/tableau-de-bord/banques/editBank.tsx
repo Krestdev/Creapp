@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { BankPayload, BankQuery } from "@/queries/bank";
+import { BankPayload, bankQ, BankQuery } from "@/queries/bank";
 import { Bank, BANK_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -126,7 +126,8 @@ function EditBank({ open, openChange, bank }: Props) {
         type: bank.type,
         Status: bank.Status,
         balance: bank.balance,
-        justification: bank.justification.length > 0 ? [bank.justification] : [],
+        justification:
+          bank.justification.length > 0 ? [bank.justification] : [],
         accountNumber: !!bank.accountNumber ? bank.accountNumber : undefined,
         bankCode: !!bank.bankCode ? bank.bankCode : undefined,
         key: !!bank.key ? bank.key : undefined,
@@ -155,10 +156,8 @@ function EditBank({ open, openChange, bank }: Props) {
 
   const type = form.watch("type");
   const queryClient = useQueryClient();
-  const bankQuery = new BankQuery();
   const update = useMutation({
-    mutationFn: async (payload: BankPayload) =>
-      bankQuery.update(bank.id, payload),
+    mutationFn: async (payload: BankPayload) => bankQ.update(bank.id, payload),
     onSuccess: () => {
       toast.success("Compte mis à jour avec succès !");
       queryClient.invalidateQueries({
@@ -170,7 +169,8 @@ function EditBank({ open, openChange, bank }: Props) {
         type: bank.type,
         Status: bank.Status,
         balance: bank.balance,
-        justification: bank.justification.length > 0 ? [bank.justification] : [],
+        justification:
+          bank.justification.length > 0 ? [bank.justification] : [],
         accountNumber: !!bank.accountNumber ? bank.accountNumber : undefined,
         bankCode: !!bank.bankCode ? bank.bankCode : undefined,
         key: !!bank.key ? bank.key : undefined,
@@ -428,7 +428,9 @@ function EditBank({ open, openChange, bank }: Props) {
               name="justification"
               render={({ field }) => (
                 <FormItem className="@min-[540px]/dialog:col-span-2">
-                  <FormLabel isRequired={type === "BANK"}>{"Justificatif"}</FormLabel>
+                  <FormLabel isRequired={type === "BANK"}>
+                    {"Justificatif"}
+                  </FormLabel>
                   <FormControl>
                     <FilesUpload
                       value={field.value}

@@ -10,11 +10,10 @@ import {
 } from "@/components/ui/dialog";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { DepartmentQueries } from "@/queries/departmentModule";
-import { PaymentQueries } from "@/queries/payment";
-import { ProjectQueries } from "@/queries/projectModule";
+import { userQ } from "@/queries/baseModule";
+import { categoryQ } from "@/queries/categoryModule";
+import { paymentQ } from "@/queries/payment";
+import { projectQ } from "@/queries/projectModule";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -52,37 +51,25 @@ interface DetailModalProps {
 export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   const { user } = useStore();
 
-  const users = new UserQueries();
-  const projects = new ProjectQueries();
-  const category = new CategoryQueries();
-  const department = new DepartmentQueries();
-  const payments = new PaymentQueries();
-
-
   // Récupération des données
   const paymentsData = useQuery({
     queryKey: ["payments"],
-    queryFn: async () => payments.getAll(),
+    queryFn: async () => paymentQ.getAll(),
   });
 
   const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => users.getAll(),
+    queryKey: ["userQ"],
+    queryFn: async () => userQ.getAll(),
   });
 
   const projectsData = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => projects.getAll(),
+    queryFn: async () => projectQ.getAll(),
   });
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => category.getCategories(),
-  });
-
-  const departmentData = useQuery({
-    queryKey: ["departments"],
-    queryFn: async () => department.getAll(),
+    queryFn: async () => categoryQ.getCategories(),
   });
 
   if (!data) return null;
@@ -156,10 +143,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
     data.priority === "urgent"
       ? "Urgent"
       : data.priority === "medium"
-        ? "Moyen"
-        : data.priority === "low"
-          ? "Faible"
-          : "Elevé";
+      ? "Moyen"
+      : data.priority === "low"
+      ? "Faible"
+      : "Elevé";
 
   // Fonction pour obtenir l'historique de validation formaté
   const getValidationHistory = () => {
@@ -206,7 +193,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
           history.push({
             step: i + 1,
             validatorName:
-              validatorUser?.firstName + " " + validatorUser?.lastName || `Validateur ${validator.rank}`,
+              validatorUser?.firstName + " " + validatorUser?.lastName ||
+              `Validateur ${validator.rank}`,
             userId: validator.userId,
             status,
             statusText,
@@ -226,22 +214,24 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
       // 🔹 Étape suivante possible seulement s'il n'y a pas encore de review
       const isNextStep = false;
 
-      if (!review) {
-        const previousValidators = configuredValidators.slice(0, i);
+      // if (!review) {
+      //   const previousValidators = configuredValidators.slice(0, i);
 
-        const allPreviousApproved = previousValidators.every(
-          (prevValidator) => {
-            const prevReview = data.revieweeList?.find(
-              (r) => r.validatorId === prevValidator.userId
-            );
-            return prevReview?.decision?.startsWith("validated");
-          }
-        );
-      }
+      //   const allPreviousApproved = previousValidators.every(
+      //     (prevValidator) => {
+      //       const prevReview = data.revieweeList?.find(
+      //         (r) => r.validatorId === prevValidator.userId
+      //       );
+      //       return prevReview?.decision?.startsWith("validated");
+      //     }
+      //   );
+      // }
 
       history.push({
         step: i + 1,
-        validatorName: validatorUser?.firstName + " " + validatorUser?.lastName || `Validateur ${validator.rank}`,
+        validatorName:
+          validatorUser?.firstName + " " + validatorUser?.lastName ||
+          `Validateur ${validator.rank}`,
         userId: validator.userId,
         status,
         statusText,
@@ -293,7 +283,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
 
               {/* Projet - MAJ */}
-              {data.projectId !== null &&
+              {data.projectId !== null && (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <FolderOpen className="h-5 w-5 text-muted-foreground" />
@@ -307,7 +297,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     </p>
                   </div>
                 </div>
-              }
+              )}
 
               {/* Description */}
               <div className="flex items-start gap-3">
@@ -373,14 +363,15 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Priorité"}
                   </p>
                   <Badge
-                    className={`${data.priority === "urgent"
-                      ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                      : data.priority === "medium"
+                    className={`${
+                      data.priority === "urgent"
+                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                        : data.priority === "medium"
                         ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                         : data.priority === "low"
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                      }`}
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                        : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    }`}
                   >
                     {data.priority === "urgent" ? (
                       <X className="h-3 w-3 mr-1" />
@@ -402,10 +393,13 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Justificatif"}</p>
                   <div className="space-y-1">
-                    {!!paiement?.proof ?
+                    {!!paiement?.proof ? (
                       <Link
-                        href={`${process.env.NEXT_PUBLIC_API
-                          }/uploads/${encodeURIComponent(paiement?.proof as string)}`}
+                        href={`${
+                          process.env.NEXT_PUBLIC_API
+                        }/uploads/${encodeURIComponent(
+                          paiement?.proof as string
+                        )}`}
                         target="_blank"
                         className="flex gap-0.5 items-center"
                       >
@@ -417,13 +411,17 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                         {/* <p className="text-foreground font-medium">
                             {`Fichier_${index + 1}`}
                           </p> */}
-                      </Link> : <p className="italic">{"Aucun justificatif"}</p>}
+                      </Link>
+                    ) : (
+                      <p className="italic">{"Aucun justificatif"}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Historique de validation - NOUVELLE VERSION */}
-              {data.type === "ressource_humaine" || data.type === "speciaux" ? null :
+              {data.type === "ressource_humaine" ||
+              data.type === "speciaux" ? null : (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <UserCheck className="h-5 w-5 text-muted-foreground" />
@@ -455,8 +453,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                                     {item.status === "approved"
                                       ? `Étape ${item.step} : Approuvé par`
                                       : item.status === "rejected"
-                                        ? `Étape ${item.step} : Rejeté par`
-                                        : `Étape ${item.step} : En attente de l'approbation de`}
+                                      ? `Étape ${item.step} : Rejeté par`
+                                      : `Étape ${item.step} : En attente de l'approbation de`}
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <div className="flex-1">
@@ -480,7 +478,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     )}
                   </div>
                 </div>
-              }
+              )}
 
               {/* Motif de rejet */}
               {data.state === "rejected" && (
@@ -531,7 +529,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
 
               {/* Bénéficiaires */}
-              {data.type !== "speciaux" &&
+              {data.type !== "speciaux" && (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <Users className="h-5 w-5 text-muted-foreground" />
@@ -544,18 +542,20 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     </p>
                     {data.type === "facilitation" ? (
                       <p className="font-semibold capitalize">
-                        {
+                        {usersData.data?.data?.find(
+                          (u) => u.id === Number(data.beneficiary)
+                        )?.firstName +
+                          " " +
                           usersData.data?.data?.find(
                             (u) => u.id === Number(data.beneficiary)
-                          )?.firstName + " " + usersData.data?.data?.find(
-                            (u) => u.id === Number(data.beneficiary)
-                          )?.lastName
-                        }
+                          )?.lastName}
                       </p>
                     ) : (
                       <div className="flex flex-col">
                         {data.beneficiary === "me" ? (
-                          <p className="font-semibold capitalize">{user?.lastName + " " + user?.firstName}</p>
+                          <p className="font-semibold capitalize">
+                            {user?.lastName + " " + user?.firstName}
+                          </p>
                         ) : (
                           <div className="flex flex-col">
                             {data.beficiaryList?.map((ben) => {
@@ -566,7 +566,11 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${beneficiary?.firstName + " " + beneficiary?.lastName || ben.id}`}</p>
+                                >{`${
+                                  beneficiary?.firstName +
+                                    " " +
+                                    beneficiary?.lastName || ben.id
+                                }`}</p>
                               );
                             })}
                           </div>
@@ -574,9 +578,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                       </div>
                     )}
                   </div>
-                </div>}
+                </div>
+              )}
 
-              {data.type === "facilitation" &&
+              {data.type === "facilitation" && (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <Users className="h-5 w-5 text-muted-foreground" />
@@ -601,9 +606,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     }
                   </div>
                 </div>
-              }
+              )}
 
-              {(data.type === "facilitation" || data.type === "ressource_humaine") &&
+              {(data.type === "facilitation" ||
+                data.type === "ressource_humaine") && (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <DollarSign className="h-5 w-5 text-muted-foreground" />
@@ -615,7 +621,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     <p>{XAF.format(data.amount!)}</p>
                   </div>
                 </div>
-              }
+              )}
 
               {/* Quantité */}
               <div className="flex items-start gap-3">
@@ -667,27 +673,31 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <div className="mt-1">
                   <Calendar className="h-5 w-5 text-muted-foreground" />
                 </div>
-                {
-                  data.state === "rejected" ?
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {"Supprimé le"}
-                      </p>
-                      <p className="font-semibold">
-                        {format(data.revieweeList
-                          ?.filter((r) => r.decision?.startsWith("rejected")).pop()?.updatedAt!, "PPP", { locale: fr })}
-                      </p>
-                    </div>
-                    :
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {"Modifié le"}
-                      </p>
-                      <p className="font-semibold">
-                        {format(data.updatedAt, "PPP", { locale: fr })}
-                      </p>
-                    </div>
-                }
+                {data.state === "rejected" ? (
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {"Supprimé le"}
+                    </p>
+                    <p className="font-semibold">
+                      {format(
+                        data.revieweeList
+                          ?.filter((r) => r.decision?.startsWith("rejected"))
+                          .pop()?.updatedAt!,
+                        "PPP",
+                        { locale: fr }
+                      )}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {"Modifié le"}
+                    </p>
+                    <p className="font-semibold">
+                      {format(data.updatedAt, "PPP", { locale: fr })}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Date limite */}

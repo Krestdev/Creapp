@@ -1,15 +1,14 @@
 "use client";
 import { DepartementTable } from "./departement-table";
 import { useStore } from "@/providers/datastore";
-import { DepartmentQueries } from "@/queries/departmentModule";
+import { departmentQ } from "@/queries/departmentModule";
 import { useQuery } from "@tanstack/react-query";
 
 const DepartementPage = () => {
   const { isHydrated } = useStore();
-  const department = new DepartmentQueries();
   const departmentData = useQuery({
     queryKey: ["departmentList"],
-    queryFn: () => department.getAll(),
+    queryFn: () => departmentQ.getAll(),
     enabled: isHydrated,
   });
   if (departmentData.data)

@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { Category, User } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, FileText, Hash, Link, Tag } from "lucide-react";
@@ -20,10 +20,9 @@ interface ShowCategoryProps {
 }
 
 export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
-  const users = new UserQueries();
   const usersData = useQuery({
     queryKey: ["usersList"],
-    queryFn: async () => users.getAll(),
+    queryFn: async () => userQ.getAll(),
   });
 
   const [validatorStats, setValidatorStats] = useState<{
@@ -120,7 +119,9 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
                   <p className="text-sm text-muted-foreground">
                     Nom de la catégorie
                   </p>
-                  <p className="font-semibold text-lg uppercase">{data?.label || "-"}</p>
+                  <p className="font-semibold text-lg uppercase">
+                    {data?.label || "-"}
+                  </p>
                 </div>
               </div>
 
@@ -165,26 +166,32 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
                     const firstValidatorName =
                       usersData.data?.data?.find(
                         (u) => u.id === validators[0].userId
-                      )?.firstName + " " + usersData.data?.data?.find((u) => u.id === validators[0].userId)?.lastName || "Inconnu";
+                      )?.firstName +
+                        " " +
+                        usersData.data?.data?.find(
+                          (u) => u.id === validators[0].userId
+                        )?.lastName || "Inconnu";
 
                     return (
                       <div
                         key={position}
-                        className={`flex flex-col items-center p-3 rounded-lg border ${isActive
-                          ? isLast
-                            ? "bg-red-50 border-red-200"
-                            : "bg-green-50 border-green-200"
-                          : "bg-gray-50 border-gray-200"
-                          }`}
+                        className={`flex flex-col items-center p-3 rounded-lg border ${
+                          isActive
+                            ? isLast
+                              ? "bg-red-50 border-red-200"
+                              : "bg-green-50 border-green-200"
+                            : "bg-gray-50 border-gray-200"
+                        }`}
                       >
                         {/* Cercle position */}
                         <div
-                          className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold ${isActive
-                            ? isLast
-                              ? "bg-red-100 text-red-600"
-                              : "bg-green-100 text-green-600"
-                            : "bg-gray-100 text-gray-400"
-                            }`}
+                          className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold ${
+                            isActive
+                              ? isLast
+                                ? "bg-red-100 text-red-600"
+                                : "bg-green-100 text-green-600"
+                              : "bg-gray-100 text-gray-400"
+                          }`}
                         >
                           {position}
                         </div>

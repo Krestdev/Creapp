@@ -1,13 +1,16 @@
 "use client";
 
-import { StatisticCard, StatisticProps } from "@/components/base/TitleValueCard";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 import Approb from "@/components/besoin/Approb";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { CategoryQueries } from "@/queries/categoryModule";
+import { categoryQ } from "@/queries/categoryModule";
 import { RequestModelT } from "@/types/types";
 import React from "react";
 
@@ -18,12 +21,15 @@ const Page = () => {
 
   const { user } = useStore();
 
-  const categoryQueries = new CategoryQueries();
-  const categoriesData = useFetchQuery(["categories"], categoryQueries.getCategories, 15000);
+  const categoriesData = useFetchQuery(
+    ["categories"],
+    categoryQ.getCategories,
+    15000
+  );
 
-  const validator = categoriesData.data?.data.find(c => c.validators.some(v => v.userId === user?.id))?.validators.find(v => v.userId === user?.id);
-
-
+  const validator = categoriesData.data?.data
+    .find((c) => c.validators.some((v) => v.userId === user?.id))
+    ?.validators.find((v) => v.userId === user?.id);
 
   // État pour tous les filtres
   const [dateFilter, setDateFilter] = React.useState<
@@ -37,11 +43,11 @@ const Page = () => {
 
   // Calcul des statistiques à partir des données filtrées
   const pending = React.useMemo(() => {
-    return data.filter(item => item.state === "pending").length;
+    return data.filter((item) => item.state === "pending").length;
   }, [data]);
 
   const approved = React.useMemo(() => {
-    return data.filter(item => item.state === "validated").length;
+    return data.filter((item) => item.state === "validated").length;
   }, [data]);
 
   const received = React.useMemo(() => {
@@ -49,11 +55,11 @@ const Page = () => {
   }, [data]);
 
   const rejected = React.useMemo(() => {
-    return data.filter(item => item.state === "rejected").length;
+    return data.filter((item) => item.state === "rejected").length;
   }, [data]);
 
   if (isChecking) {
-    return <LoadingPage />
+    return <LoadingPage />;
   }
 
   if (!hasAccess) {
@@ -90,11 +96,9 @@ const Page = () => {
         color="green"
       />
       <div className="grid-stats-4">
-        {
-          Statistics.map((statistic, id) => (
-            <StatisticCard key={id} {...statistic} />
-          ))
-        }
+        {Statistics.map((statistic, id) => (
+          <StatisticCard key={id} {...statistic} />
+        ))}
       </div>
       <Approb
         setData={setData}

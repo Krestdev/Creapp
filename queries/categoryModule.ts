@@ -52,3 +52,5 @@ export class CategoryQueries {
     return api.delete(`${this.route}/category/${id}`).then((res) => res.data);
   };
 }
+
+export const categoryQ = new CategoryQueries();

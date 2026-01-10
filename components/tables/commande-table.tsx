@@ -28,7 +28,6 @@ import {
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -47,17 +46,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useFetchQuery } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { quotationQ } from "@/queries/quotation";
 import { CommandRequestT } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import { DownloadButton } from "../bdcommande/TéléchargeButton";
 import { UpdateCotationModal } from "../bdcommande/UpdateCotationModal";
 import { DetailOrder } from "../modals/detail-order";
+import { ModalWarning } from "../modals/modal-warning";
 import { badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
 import {
@@ -70,10 +73,6 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { QuotationQueries } from "@/queries/quotation";
-import { useFetchQuery } from "@/hooks/useData";
-import { ModalWarning } from "../modals/modal-warning";
-import { toast } from "sonner";
 
 interface CommandeTableProps {
   data: CommandRequestT[] | undefined;
@@ -111,20 +110,18 @@ export function CommandeTable({
   const [showOrder, setShowOrder] = React.useState(false);
   const queryClient = useQueryClient();
 
-  const command = new CommandRqstQueries();
   const commandData = useQuery({
     queryKey: ["commands"],
-    queryFn: async () => command.getAll(),
+    queryFn: async () => commandRqstQ.getAll(),
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
 
-  const quotationQuery = new QuotationQueries();
-  const { data: devis } = useFetchQuery(["quotations"], quotationQuery.getAll);
+  const { data: devis } = useFetchQuery(["quotations"], quotationQ.getAll);
 
   const cancelDevis = useMutation({
     mutationKey: ["cancelDevis"],
-    mutationFn: (id: number) => command.delete(id),
+    mutationFn: (id: number) => commandRqstQ.delete(id),
     onSuccess: () => {
       toast.success("Demande de cotation annulée avec succès.");
       queryClient.invalidateQueries({
@@ -601,16 +598,16 @@ export function CommandeTable({
                     {column.id === "reference"
                       ? "Référence"
                       : column.id === "title"
-                        ? "Titre"
-                        : column.id === "dueDate"
-                          ? "Date limite de soumission"
-                          : column.id === "state"
-                            ? "Statut"
-                            : column.id === "createdAt"
-                              ? "Date de création"
-                              : column.id === "devis"
-                                ? "Devis"
-                                : null}
+                      ? "Titre"
+                      : column.id === "dueDate"
+                      ? "Date limite de soumission"
+                      : column.id === "state"
+                      ? "Statut"
+                      : column.id === "createdAt"
+                      ? "Date de création"
+                      : column.id === "devis"
+                      ? "Devis"
+                      : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -633,9 +630,9 @@ export function CommandeTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}

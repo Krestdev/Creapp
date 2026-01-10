@@ -1,23 +1,18 @@
 "use client";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form";
-import { motion } from "motion/react";
-import { Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldGroup,
-  FieldContent,
-  FieldLabel,
-  FieldDescription,
   FieldError,
-  FieldSeparator,
+  FieldGroup,
+  FieldLabel,
 } from "@/components/ui/field";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { VehicleQueries } from "@/queries/vehicule";
+import { vehicleQ } from "@/queries/vehicule";
 import { Vehicle } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { Controller, useForm } from "react-hook-form";
+import * as z from "zod";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -40,12 +35,10 @@ export function VehicleForm() {
     resolver: zodResolver(formSchema as any),
   });
 
-  const vehiculeQuery = new VehicleQueries();
-
   const vehiculeData = useMutation({
     mutationKey: ["vehicle"],
     mutationFn: (data: Omit<Vehicle, "id" | "createdAt" | "updatedAt">) =>
-      vehiculeQuery.create(data),
+      vehicleQ.create(data),
     onSuccess: () => {
       form.reset({
         label: "",

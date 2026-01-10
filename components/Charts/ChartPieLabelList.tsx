@@ -1,31 +1,30 @@
-"use client"
+"use client";
 
-import { Pie, PieChart, Cell } from "recharts"
+import { Cell, Pie, PieChart } from "recharts";
 
 import {
   Card,
   CardContent,
-  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartLegend,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/components/ui/chart"
-import { PaymentRequest } from "@/types/types"
-import { XAF } from "@/lib/utils"
-import { ProjectQueries } from "@/queries/projectModule"
-import { useFetchQuery } from "@/hooks/useData"
-import { PurchaseOrder } from "@/queries/purchase-order"
+} from "@/components/ui/chart";
+import { useFetchQuery } from "@/hooks/useData";
+import { XAF } from "@/lib/utils";
+import { projectQ } from "@/queries/projectModule";
+import { purchaseQ } from "@/queries/purchase-order";
+import { PaymentRequest } from "@/types/types";
 
 interface ChartPieLabelListProps {
   data?: PaymentRequest[];
-  chartType: 'type' | 'project' | 'fournisseur';
+  chartType: "type" | "project" | "fournisseur";
   title?: string;
   description?: string;
 }
@@ -34,7 +33,7 @@ const PAYMENT_TYPES = {
   salary: "Salaire",
   invoice: "Facture",
   expense: "Dépense",
-  other: "Autre"
+  other: "Autre",
 } as const;
 
 const CHART_COLORS = [
@@ -60,38 +59,31 @@ const CHART_COLORS = [
   "#EC4899", // rose vif
 ];
 
-
-
 export function ChartPieLabelList({
   data = [],
   chartType,
   title = "Répartition des dépenses",
 }: ChartPieLabelListProps) {
-
-  const project = new ProjectQueries();
-
   const { data: projectData } = useFetchQuery(
     ["projectsList"],
-    project.getAll,
+    projectQ.getAll,
     30000
   );
 
-  const purchaseOrderQuery = new PurchaseOrder();
   const { data: commandData } = useFetchQuery(
     ["purchaseOrders"],
-    purchaseOrderQuery.getAll
+    purchaseQ.getAll
   );
 
   // les commandes (liste des IDs)
-  const commandIds = data.flatMap(x => x.commandId);
+  const commandIds = data.flatMap((x) => x.commandId);
 
   // Je vais chercher les fournisseurs des commandes qui appartiennent à commandIds
-  const providerData = commandData?.data.filter(command =>
+  const providerData = commandData?.data.filter((command) =>
     commandIds.includes(command.id)
   );
 
-  console.log(data.filter(x => x.status === 'paid'));
-
+  console.log(data.filter((x) => x.status === "paid"));
 
   // Préparer les données
   const prepareChartData = () => {
@@ -99,21 +91,28 @@ export function ChartPieLabelList({
 
     const groups: Record<string, number> = {};
 
-    data.forEach(payment => {
-      let key = '';
+    data.forEach((payment) => {
+      let key = "";
       const price = payment.price || 0;
 
       switch (chartType) {
-        case 'type':
-          const type = payment.type || 'other';
+        case "type":
+          const type = payment.type || "other";
           key = PAYMENT_TYPES[type as keyof typeof PAYMENT_TYPES] || type;
           break;
-        case 'project':
-          key = payment.projectId ? `Projet ${projectData?.data.find(p => p.id === payment.projectId)?.label}` : 'Sans projet';
+        case "project":
+          key = payment.projectId
+            ? `Projet ${
+                projectData?.data.find((p) => p.id === payment.projectId)?.label
+              }`
+            : "Sans projet";
           break;
-        case 'fournisseur':
-          const provider = providerData?.find(p => p.id === payment.commandId)?.provider.name || 'Inconnu';
-          key = provider.length > 12 ? `${provider.substring(0, 10)}...` : provider;
+        case "fournisseur":
+          const provider =
+            providerData?.find((p) => p.id === payment.commandId)?.provider
+              .name || "Inconnu";
+          key =
+            provider.length > 12 ? `${provider.substring(0, 10)}...` : provider;
           break;
       }
 
@@ -126,7 +125,7 @@ export function ChartPieLabelList({
       .map(([name, amount], index) => ({
         name,
         amount: Math.round(amount * 100) / 100,
-        fill: CHART_COLORS[index % CHART_COLORS.length]
+        fill: CHART_COLORS[index % CHART_COLORS.length],
       }))
       .sort((a, b) => b.amount - a.amount);
 
@@ -139,10 +138,10 @@ export function ChartPieLabelList({
       return [
         ...top,
         {
-          name: 'Autres',
+          name: "Autres",
           amount: Math.round(othersTotal * 100) / 100,
-          fill: CHART_COLORS[5]
-        }
+          fill: CHART_COLORS[5],
+        },
       ];
     }
 
@@ -154,41 +153,47 @@ export function ChartPieLabelList({
 
   const translateType = (type: string) => {
     switch (type) {
-      case 'FAC':
-        return 'Facilitation';
-      case 'RH':
-        return 'RH';
-      case 'SPECIAL':
-        return 'Special';
-      case 'PURCHASE':
-        return 'Achat';
-      case 'Autre':
-        return 'Autre';
+      case "FAC":
+        return "Facilitation";
+      case "RH":
+        return "RH";
+      case "SPECIAL":
+        return "Special";
+      case "PURCHASE":
+        return "Achat";
+      case "Autre":
+        return "Autre";
       default:
         return type;
     }
   };
 
   // Calculer les pourcentages pour les labels - 2 chiffres après la virgule
-  const chartDataWithPercent = chartData.map(item => ({
+  const chartDataWithPercent = chartData.map((item) => ({
     ...item,
     name: translateType(item.name),
     // CORRECTION : utiliser toFixed(2) au lieu de Math.round
-    percent: totalAmount > 0 ? parseFloat(((item.amount / totalAmount) * 100).toFixed(2)) : 0
+    percent:
+      totalAmount > 0
+        ? parseFloat(((item.amount / totalAmount) * 100).toFixed(2))
+        : 0,
   }));
 
   // Config du graphique
-  const chartConfig = chartDataWithPercent.reduce((config, item) => {
-    config[item.name] = {
-      label: item.name,
-      color: item.fill
-    };
-    return config;
-  }, {
-    amount: {
-      label: "Montant",
+  const chartConfig = chartDataWithPercent.reduce(
+    (config, item) => {
+      config[item.name] = {
+        label: item.name,
+        color: item.fill,
+      };
+      return config;
     },
-  } as ChartConfig);
+    {
+      amount: {
+        label: "Montant",
+      },
+    } as ChartConfig
+  );
 
   // Fonction pour afficher les pourcentages sur les portions
   const renderCustomizedLabel = ({
@@ -197,7 +202,7 @@ export function ChartPieLabelList({
     midAngle,
     innerRadius,
     outerRadius,
-    percent
+    percent,
   }: any) => {
     // Ne pas afficher de label si le pourcentage est trop petit
     if (percent < 0.05) return null;
@@ -208,7 +213,7 @@ export function ChartPieLabelList({
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
     // CORRECTION : multiplier par 100 et formater avec 2 décimales
-    const displayPercent = (percent).toFixed(2);
+    const displayPercent = percent.toFixed(2);
 
     return (
       <text
@@ -260,30 +265,41 @@ export function ChartPieLabelList({
       <CardContent>
         {/* Graphique en haut */}
         <div className="mb-4">
-          <ChartContainer style={{ height: '350px', width: '100%' }} config={chartConfig}>
+          <ChartContainer
+            style={{ height: "350px", width: "100%" }}
+            config={chartConfig}
+          >
             <PieChart>
               <ChartTooltip
-                cursor={{ fill: 'transparent' }}
+                cursor={{ fill: "transparent" }}
                 content={
                   <ChartTooltipContent
                     nameKey="name"
                     labelKey="name"
                     formatter={(value, name, props) => {
-                      const item = props.payload as any;
                       // Afficher le pourcentage avec 2 décimales
-                      const percent = totalAmount > 0
-                        ? parseFloat(((Number(value) / totalAmount) * 100).toFixed(2))
-                        : 0;
+                      const percent =
+                        totalAmount > 0
+                          ? parseFloat(
+                              ((Number(value) / totalAmount) * 100).toFixed(2)
+                            )
+                          : 0;
                       return [
                         <div key="tooltip" className="space-y-1 min-w-[160px]">
                           <div className="font-semibold text-sm">{name}</div>
                           <div className="grid grid-cols-2 gap-2 text-sm">
-                            <span className="text-muted-foreground">Montant:</span>
-                            <span className="font-semibold text-right">{XAF.format(Number(value))}</span>
+                            <span className="text-muted-foreground">
+                              Montant:
+                            </span>
+                            <span className="font-semibold text-right">
+                              {XAF.format(Number(value))}
+                            </span>
                             <span className="text-muted-foreground">Part:</span>
-                            <span className="font-semibold text-right">{percent.toFixed(2)}%</span>
+                            <span className="font-semibold text-right">
+                              {percent.toFixed(2)}%
+                            </span>
                           </div>
-                        </div>
+                        </div>,
                       ];
                     }}
                   />

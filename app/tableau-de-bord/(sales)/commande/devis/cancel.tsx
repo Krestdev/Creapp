@@ -1,7 +1,13 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog";
-import { QuotationQueries } from "@/queries/quotation";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
+import { quotationQ } from "@/queries/quotation";
 import { Quotation } from "@/types/types";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,38 +21,49 @@ interface Props {
 }
 
 function CancelQuotation({ open, openChange, quotation }: Props) {
-    const queryClient = useQueryClient();
-    const quotationQuery = new QuotationQueries();
-    const {mutate, isPending} = useMutation({
-        mutationFn: async()=>quotationQuery.cancel(quotation.id),
-        onSuccess: ()=>{
-            toast.success("Devis annulé avec succès !");
-            queryClient.invalidateQueries({
-                queryKey: ["quotations"],
-                refetchType: "active",
-            });
-            openChange(false);
-        },
-        onError: (error)=>{
-            console.error(error);
-            toast.error("Une erreur est survenue lors de l'annulation du devis.");
-        }
-    })
-  return <Dialog open={open} onOpenChange={openChange}>
-    <DialogContent>
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => quotationQ.cancel(quotation.id),
+    onSuccess: () => {
+      toast.success("Devis annulé avec succès !");
+      queryClient.invalidateQueries({
+        queryKey: ["quotations"],
+        refetchType: "active",
+      });
+      openChange(false);
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Une erreur est survenue lors de l'annulation du devis.");
+    },
+  });
+  return (
+    <Dialog open={open} onOpenChange={openChange}>
+      <DialogContent>
         <DialogHeader variant={"error"}>
-            <DialogTitle>{"Annuler le devis"}</DialogTitle>
-            <DialogDescription>{`Devis - ${quotation.ref}`}</DialogDescription>
+          <DialogTitle>{"Annuler le devis"}</DialogTitle>
+          <DialogDescription>{`Devis - ${quotation.ref}`}</DialogDescription>
         </DialogHeader>
-            <p className="italic">{`Êtes-vous sûr de vouloir annuler ce devis ?`}</p>
-            <DialogFooter>
-                    <Button onClick={()=>mutate()} variant={"destructive"} disabled={isPending} isLoading={isPending}>{"Annuler le Devis"}</Button>
-                <DialogClose asChild>
-                    <Button variant={"outline"} disabled={isPending}>{"Fermer"}</Button>
-                </DialogClose>
-            </DialogFooter>
-    </DialogContent>
-  </Dialog>;
+        <p className="italic">{`Êtes-vous sûr de vouloir annuler ce devis ?`}</p>
+        <DialogFooter>
+          <Button
+            onClick={() => mutate()}
+            variant={"destructive"}
+            disabled={isPending}
+            isLoading={isPending}
+          >
+            {"Annuler le Devis"}
+          </Button>
+          <DialogClose asChild>
+            <Button variant={"outline"} disabled={isPending}>
+              {"Fermer"}
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default CancelQuotation;

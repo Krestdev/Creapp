@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { RequestQueries } from "@/queries/requestModule";
+import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,10 +31,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { SearchableSelect } from "../base/searchableSelect";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import FilesUpload from "../comp-547";
 import MultiSelectUsers from "../base/multiSelectUsers";
-import { ProjectQueries } from "@/queries/projectModule";
+import { projectQ } from "@/queries/projectModule";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -105,19 +105,19 @@ export default function RHRequestForm() {
   // ----------------------------------------------------------------------
   // QUERY PROJECTS
   // ----------------------------------------------------------------------
-  const projects = new ProjectQueries();
+
   const projectsData = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => projects.getAll(),
+    queryFn: async () => projectQ.getAll(),
   });
 
   // ----------------------------------------------------------------------
   // QUERY USERS
   // ----------------------------------------------------------------------
-  const users = new UserQueries();
+
   const usersData = useQuery({
     queryKey: ["users"],
-    queryFn: async () => users.getAll(),
+    queryFn: async () => userQ.getAll(),
   });
 
   const USERS =
@@ -129,12 +129,12 @@ export default function RHRequestForm() {
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
-  const request = new RequestQueries();
+
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (
       data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
-    ) => request.special(data),
+    ) => requestQ.special(data),
 
     onSuccess: () => {
       toast.success("Besoin soumis avec succès !");

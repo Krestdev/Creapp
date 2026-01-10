@@ -40,7 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CategoryQueries } from "@/queries/categoryModule";
+import { categoryQ } from "@/queries/categoryModule";
 import { Category } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -73,12 +73,11 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [showDetail, setShowDetail] = React.useState(false);
 
-  const categoryQueries = new CategoryQueries();
   const queryClient = useQueryClient();
 
   const categoryData = useMutation({
     mutationKey: ["deleteCategory"],
-    mutationFn: (id: number) => categoryQueries.deleteCategory(id),
+    mutationFn: (id: number) => categoryQ.deleteCategory(id),
     onSuccess: () => {
       // invalidate and refetch
       queryClient.invalidateQueries({
@@ -132,7 +131,11 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         },
         cell: ({ row }) => {
           return (
-            <div className={`${row.getValue("description") ? "" : "italic"} first-letter:uppercase lowercase`}>
+            <div
+              className={`${
+                row.getValue("description") ? "" : "italic"
+              } first-letter:uppercase lowercase`}
+            >
               {row.getValue("description")
                 ? row.getValue("description")
                 : "aucune description"}
@@ -247,8 +250,8 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                   column.id == "label"
                     ? "Nom catégorie"
                     : column.id == "description"
-                      ? "Description"
-                      : "";
+                    ? "Description"
+                    : "";
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -281,9 +284,9 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
@@ -296,7 +299,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                // className={getRowClassName(row.original.status)}
+                  // className={getRowClassName(row.original.status)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
                     <TableCell

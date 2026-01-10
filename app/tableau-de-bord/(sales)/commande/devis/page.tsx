@@ -7,9 +7,9 @@ import { DevisTable } from "@/components/tables/DevisTable";
 import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { ProviderQueries } from "@/queries/providers";
-import { QuotationQueries } from "@/queries/quotation";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { providerQ } from "@/queries/providers";
+import { quotationQ } from "@/queries/quotation";
 import Link from "next/link";
 
 const Page = () => {
@@ -29,17 +29,16 @@ const Page = () => {
     },
   ];
   /**Quotation fetch */
-  const quotationQuery = new QuotationQueries();
+
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
     ["quotations"],
-    quotationQuery.getAll
+    quotationQ.getAll
   );
   /**Providers fetch */
-  const providersQuery = new ProviderQueries();
-  const providers = useFetchQuery(["providers"], providersQuery.getAll, 500000);
+
+  const providers = useFetchQuery(["providers"], providerQ.getAll, 500000);
   /**Commands fetch */
-  const commandsQuery = new CommandRqstQueries();
-  const commands = useFetchQuery(["commands"], commandsQuery.getAll, 30000);
+  const commands = useFetchQuery(["commands"], commandRqstQ.getAll, 30000);
   if (isLoading || providers.isLoading || commands.isLoading) {
     return <LoadingPage />;
   }

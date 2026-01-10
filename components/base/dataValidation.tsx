@@ -54,10 +54,10 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
+import { userQ } from "@/queries/baseModule";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
+import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -70,6 +70,7 @@ import { BesoinLastVal } from "../modals/BesoinLastVal";
 import { ValidationModal } from "../modals/ValidationModal";
 import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
+import { Checkbox } from "../ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -83,7 +84,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { SearchableSelect } from "./searchableSelect";
-import { Checkbox } from "../ui/checkbox";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -154,36 +154,31 @@ export function DataValidation({
     "approve" | "reject"
   >("approve");
 
-  const projects = new ProjectQueries();
   const projectsData = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
-      return projects.getAll();
+      return projectQ.getAll();
     },
   });
 
-  const users = new UserQueries();
   const usersData = useQuery({
-    queryKey: ["users"],
+    queryKey: ["user"],
     queryFn: async () => {
-      return users.getAll();
+      return userQ.getAll();
     },
   });
-
-  const request = new RequestQueries();
-  const category = new CategoryQueries();
 
   // Ajouter le refetch automatique pour les données de validation
   const requestData = useQuery({
     queryKey: ["requests"],
-    queryFn: async () => request.getAll(),
+    queryFn: async () => requestQ.getAll(),
     refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
     refetchOnWindowFocus: true, // Rafraîchir quand la fenêtre reprend le focus
   });
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => category.getCategories(),
+    queryFn: async () => categoryQ.getCategories(),
   });
 
   // Fonction pour obtenir le texte d'affichage du filtre de date
@@ -409,7 +404,7 @@ export function DataValidation({
       validated: boolean;
       decision?: string;
     }) => {
-      await request.review(id, {
+      await requestQ.review(id, {
         validated: validated,
         decision: decision,
         userId: user?.id ?? -1,

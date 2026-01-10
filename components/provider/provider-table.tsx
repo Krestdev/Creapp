@@ -55,7 +55,7 @@ import { Pagination } from "../base/pagination";
 import { Badge } from "../ui/badge";
 import UpdateProvider from "./UpdateProvider";
 import { ShowProvider } from "./show-provider";
-import { ProviderQueries } from "@/queries/providers";
+import { providerQ } from "@/queries/providers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ModalWarning } from "../modals/modal-warning";
@@ -86,10 +86,9 @@ export function ProviderTable({ data }: ProvidersTableProps) {
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
   const queryClient = useQueryClient();
 
-  const provider = new ProviderQueries();
   const providerMutation = useMutation({
     mutationKey: ["providerUpdate"],
-    mutationFn: (id: number) => provider.delete(id),
+    mutationFn: (id: number) => providerQ.delete(id),
     onSuccess: () => {
       toast.success("Fournisseur supprimé avec succès !");
       queryClient.invalidateQueries({ queryKey: ["providersList"] });
@@ -509,9 +508,9 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}

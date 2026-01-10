@@ -56,7 +56,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { Role, User as UserT } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -87,7 +87,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
   const [selectedItem, setSelectedItem] = React.useState<UserT | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
-  const [isUpdatePasswordModalOpen, setIsUpdatePasswordModalOpen] = React.useState(false);
+  const [isUpdatePasswordModalOpen, setIsUpdatePasswordModalOpen] =
+    React.useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [verifiedFilter, setVerifiedFilter] = React.useState<string>("all");
@@ -178,12 +179,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
   const { user } = useStore();
   const queryClient = useQueryClient();
-  const users = new UserQueries();
 
   const userMutationData = useMutation({
     mutationKey: ["usersStatus"],
     mutationFn: (data: { id: number; status: string }) =>
-      users.changeStatus(data.id, { status: data.status }),
+      userQ.changeStatus(data.id, { status: data.status }),
     onSuccess: () => {
       toast.success("Statut mis à jour avec succès !");
       queryClient.invalidateQueries({
@@ -193,10 +193,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     },
   });
 
-  const userQueries = new UserQueries();
   const userMutation = useMutation({
     mutationKey: ["userUpdate"],
-    mutationFn: async (data: number) => userQueries.delete(Number(data)),
+    mutationFn: async (data: number) => userQ.delete(Number(data)),
 
     onSuccess: () => {
       toast.success("Utilisateur supprimé avec succès !");
@@ -215,13 +214,10 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const capitalizeFirstName = (value: string) =>
     value
       .toLocaleLowerCase("fr-FR")
-      .replace(/^\p{L}/u, (letter) =>
-        letter.toLocaleUpperCase("fr-FR")
-      );
+      .replace(/^\p{L}/u, (letter) => letter.toLocaleUpperCase("fr-FR"));
 
   const formatFullName = (lastName: string, firstName: string) =>
     `${lastName.toLocaleUpperCase("fr-FR")} ${capitalizeFirstName(firstName)}`;
-
 
   const columns = React.useMemo<ColumnDef<UserT>[]>(
     () => [
@@ -231,17 +227,14 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         header: ({ column }) => (
           <span
             className="tablehead cursor-pointer select-none flex items-center"
-            onClick={() =>
-              column.toggleSorting(column.getIsSorted() === "asc")
-            }
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Utilisateur
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         ),
 
-        accessorFn: (row) =>
-          formatFullName(row.lastName, row.firstName),
+        accessorFn: (row) => formatFullName(row.lastName, row.firstName),
 
         cell: ({ row }) => {
           const fullName = row.getValue("fullName") as string;
@@ -380,7 +373,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
         cell: ({ row }) => {
           const dateValue = row.getValue("lastConnection");
-          if (!dateValue) return <div className="text-muted-foreground">Jamais</div>;
+          if (!dateValue)
+            return <div className="text-muted-foreground">Jamais</div>;
 
           const date = new Date(dateValue as string);
           return (
@@ -414,11 +408,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           if (!dateValue) return <div className="text-muted-foreground">-</div>;
 
           const date = new Date(dateValue as string);
-          return (
-            <div>
-              {format(date, "dd/MM/yyyy")}
-            </div>
-          );
+          return <div>{format(date, "dd/MM/yyyy")}</div>;
         },
       },
       {
@@ -487,7 +477,10 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                         status: "inactive",
                       })
                     }
-                    disabled={utilisateur.status === "inactive" || utilisateur.id === user?.id}
+                    disabled={
+                      utilisateur.status === "inactive" ||
+                      utilisateur.id === user?.id
+                    }
                   >
                     <UserX className="mr-2 h-4 w-4" />
                     Suspendre
@@ -535,18 +528,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       const fullName = `${user.lastName} ${user.firstName}`.toLowerCase();
 
       // Recherche dans les autres champs
-      const searchFields = [
-        fullName,
-        user.email.toLowerCase(),
-      ];
+      const searchFields = [fullName, user.email.toLowerCase()];
 
       // Recherche dans les rôles
-      const roleNames = user.role?.map(r =>
-        TranslateRole(r.label?.toLowerCase() || "")
-      ) || [];
+      const roleNames =
+        user.role?.map((r) => TranslateRole(r.label?.toLowerCase() || "")) ||
+        [];
 
       // Vérifier si le terme de recherche correspond à n'importe quel champ
-      return [...searchFields, ...roleNames].some(field =>
+      return [...searchFields, ...roleNames].some((field) =>
         field.includes(searchValue)
       );
     },
@@ -566,13 +556,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const handleUpdateSuccess = () => {
     setIsUpdateModalOpen(false);
     setSelectedItem(null);
-    queryClient.invalidateQueries({
-      queryKey: ["usersList"],
-      refetchType: "active",
-    });
-  };
-
-  const handleDeleteSuccess = () => {
     queryClient.invalidateQueries({
       queryKey: ["usersList"],
       refetchType: "active",
@@ -648,7 +631,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 else if (column.id === "role") text = "Rôles";
                 else if (column.id === "verified") text = "Statut";
                 else if (column.id === "createdAt") text = "Date d'ajout";
-                else if (column.id === "lastConnection") text = "Dernière connexion";
+                else if (column.id === "lastConnection")
+                  text = "Dernière connexion";
 
                 return (
                   <DropdownMenuCheckboxItem
@@ -670,7 +654,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       {table.getFilteredSelectedRowModel().rows.length > 0 && (
         <div className="flex items-center justify-between gap-2 py-2">
           <span className="text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} utilisateur(s) sélectionné(s)
+            {table.getFilteredSelectedRowModel().rows.length} utilisateur(s)
+            sélectionné(s)
           </span>
           <Button variant="outline" size="sm">
             Actions groupées
@@ -692,9 +677,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}

@@ -29,10 +29,10 @@ import { units } from "@/data/unit";
 import { cn } from "@/lib/utils";
 
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
+import { userQ } from "@/queries/baseModule";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
+import { requestQ } from "@/queries/requestModule";
 
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -104,42 +104,42 @@ export default function MyForm() {
   // ----------------------------------------------------------------------
   // QUERY PROJECTS
   // ----------------------------------------------------------------------
-  const projects = new ProjectQueries();
   const projectsData = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => projects.getAll(),
+    queryFn: async () => projectQ.getAll(),
   });
 
   // ----------------------------------------------------------------------
   // QUERY USERS
   // ----------------------------------------------------------------------
-  const users = new UserQueries();
   const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => users.getAll(),
+    queryKey: ["userQ"],
+    queryFn: async () => userQ.getAll(),
   });
 
   const USERS =
-    usersData.data?.data.map((u) => ({ id: u.id!, name: u.firstName + " " + u.lastName })) || [];
+    usersData.data?.data.map((u) => ({
+      id: u.id!,
+      name: u.firstName + " " + u.lastName,
+    })) || [];
 
   // ----------------------------------------------------------------------
   // QUERY CATEGORIES
   // ----------------------------------------------------------------------
-  const category = new CategoryQueries();
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => category.getCategories(),
+    queryFn: async () => categoryQ.getCategories(),
   });
 
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
-  const request = new RequestQueries();
+
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (
       data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
-    ) => request.create(data),
+    ) => requestQ.create(data),
 
     onSuccess: () => {
       toast.success("Besoin soumis avec succès !");
@@ -253,10 +253,12 @@ export default function MyForm() {
                   width="w-full"
                   allLabel=""
                   options={
-                    categoriesData.data?.data?.filter((c) => c.id !== 0).map((c) => ({
-                      value: c.id!.toString(),
-                      label: c.label,
-                    })) ?? []
+                    categoriesData.data?.data
+                      ?.filter((c) => c.id !== 0)
+                      .map((c) => ({
+                        value: c.id!.toString(),
+                        label: c.label,
+                      })) ?? []
                   }
                   value={field.value?.toString() || ""}
                   onChange={(value) => field.onChange(value)}
@@ -320,13 +322,11 @@ export default function MyForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {
-                      units.map((unit, id) =>
-                        <SelectItem key={unit.value} value={unit.value}>
-                          {unit.name}
-                        </SelectItem>
-                      )
-                    }
+                    {units.map((unit, id) => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {unit.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -431,7 +431,6 @@ export default function MyForm() {
               )}
             />
           )}
-
 
           {/* DESCRIPTION */}
           <FormField

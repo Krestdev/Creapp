@@ -24,9 +24,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DepartmentT, DepartmentUpdateInput } from "@/types/types";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DepartmentQueries } from "@/queries/departmentModule";
+import { departmentQ } from "@/queries/departmentModule";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -99,18 +99,15 @@ export default function UpdateDepartment({
   //   { id: 1, name: "John Doe" },
   //   { id: 2, name: "Anna Smith" },
   // ];
-
-  const usersQuery = new UserQueries();
   const users = useQuery({
     queryKey: ["users"],
-    queryFn: async () => usersQuery.getAll(),
+    queryFn: async () => userQ.getAll(),
   });
 
-  const departmentQueries = new DepartmentQueries();
   const departmentMutation = useMutation({
     mutationKey: ["departmentUpdate"],
     mutationFn: async (data: Partial<DepartmentUpdateInput>) =>
-      departmentQueries.update(Number(departmentData?.id), data),
+      departmentQ.update(Number(departmentData?.id), data),
 
     onSuccess: () => {
       toast.success("Département mis à jour avec succès !");
@@ -277,10 +274,10 @@ export default function UpdateDepartment({
                           <SelectContent>
                             {users.data
                               ? users.data.data.map((u) => (
-                                <SelectItem key={u.id} value={String(u.id)}>
-                                  {u.firstName + " " + u.lastName}
-                                </SelectItem>
-                              ))
+                                  <SelectItem key={u.id} value={String(u.id)}>
+                                    {u.firstName + " " + u.lastName}
+                                  </SelectItem>
+                                ))
                               : null}
                           </SelectContent>
                         </Select>
@@ -353,7 +350,11 @@ export default function UpdateDepartment({
           </form>
           <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
             {/* SUBMIT */}
-            <Button type="submit" className="w-fit" onClick={form.handleSubmit(onSubmit)}>
+            <Button
+              type="submit"
+              className="w-fit"
+              onClick={form.handleSubmit(onSubmit)}
+            >
               {"Enregistrer"}
             </Button>
             <Button

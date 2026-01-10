@@ -1,21 +1,13 @@
 "use client";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form";
-import { motion } from "motion/react";
-import { Check, LoaderIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldGroup,
-  FieldContent,
-  FieldLabel,
   FieldDescription,
   FieldError,
-  FieldSeparator,
+  FieldGroup,
+  FieldLabel,
 } from "@/components/ui/field";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -23,6 +15,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useStore } from "@/providers/datastore";
+import { bankQ } from "@/queries/bank";
+import { userQ } from "@/queries/baseModule";
+import { paymentQ } from "@/queries/payment";
+import { vehicleQ } from "@/queries/vehicule";
+import { PaymentRequest } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { LoaderIcon } from "lucide-react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import FilesUpload from "../comp-547";
+import { SuccessModal } from "../modals/success-modal";
 import {
   Form,
   FormControl,
@@ -31,20 +39,7 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import FilesUpload from "../comp-547";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { PaymentQueries } from "@/queries/payment";
-import { PaymentRequest } from "@/types/types";
-import { useStore } from "@/providers/datastore";
-import { ProjectQueries } from "@/queries/projectModule";
-import { UserQueries } from "@/queries/baseModule";
-import { Dialog } from "../ui/dialog";
-import { toast } from "sonner";
-import { useState } from "react";
-import { SuccessModal } from "../modals/success-modal";
 import ViewDepense from "./viewDepense";
-import { VehicleQueries } from "@/queries/vehicule";
-import { BankQuery } from "@/queries/bank";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -99,13 +94,11 @@ export function CarburentForm() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [view, setView] = useState<boolean>(false);
 
-  const vehicles = new VehicleQueries();
   const vehicleData = useQuery({
     queryKey: ["getvehicles"],
-    queryFn: vehicles.getAll,
+    queryFn: vehicleQ.getAll,
   });
 
-  const payments = new PaymentQueries();
   const paymentsData = useMutation({
     mutationKey: ["payments-Depense"],
     mutationFn: async (
@@ -114,7 +107,7 @@ export function CarburentForm() {
       } & {
         caisseId: number;
       }
-    ) => payments.createDepense(data),
+    ) => paymentQ.createDepense(data),
     onSuccess: () => {
       toast.success("Depense soumis avec succès !");
       setIsSuccessModalOpen(true);
@@ -136,18 +129,14 @@ export function CarburentForm() {
     },
   });
 
-  const projects = new ProjectQueries();
-
-  const users = new UserQueries();
   const usersData = useQuery({
     queryKey: ["getUsers"],
-    queryFn: () => users.getAll(),
+    queryFn: () => userQ.getAll(),
   });
 
-  const bankQuery = new BankQuery();
   const bankData = useQuery({
     queryKey: ["getbanks"],
-    queryFn: bankQuery.getAll,
+    queryFn: bankQ.getAll,
   });
 
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
@@ -261,9 +250,6 @@ export function CarburentForm() {
                 name="model"
                 control={form.control}
                 render={({ field, fieldState }) => {
-                  const options = usersData.data.data.map((user) => {
-                    return { value: user.id, label: user.firstName };
-                  });
                   return (
                     <Field
                       data-invalid={fieldState.invalid}
@@ -449,7 +435,7 @@ export function CarburentForm() {
               <Controller
                 name="Justificatif"
                 control={form.control}
-                render={({ field, fieldState }) => (
+                render={({ fieldState }) => (
                   <div>
                     <FormField
                       control={form.control}

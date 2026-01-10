@@ -20,17 +20,12 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronRight,
+  Circle,
   Eye,
   Hourglass,
+  LoaderIcon,
   LucideBan,
   LucideIcon,
-  UserCheck,
-  X,
-  CheckSquare,
-  Square,
-  Users,
-  Circle,
-  LoaderIcon,
   Paperclip,
 } from "lucide-react";
 import * as React from "react";
@@ -62,21 +57,16 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
+import { requestQ } from "@/queries/requestModule";
 import {
   Category,
-  PAYMENT_TYPES,
   PaymentRequest,
   ProjectT,
   RequestModelT,
   RequestType,
   User,
 } from "@/types/types";
-import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -86,6 +76,7 @@ import { BesoinLastVal } from "../modals/BesoinLastVal";
 import { ValidationModal } from "../modals/ValidationModal";
 import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
+import { Checkbox } from "../ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -96,13 +87,10 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Textarea } from "../ui/textarea";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { SearchableSelect } from "./searchableSelect";
-import { Checkbox } from "../ui/checkbox";
-import { Textarea } from "../ui/textarea";
-import { RequestTypeQueries } from "@/queries/requestType";
-import { useFetchQuery } from "@/hooks/useData";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -147,7 +135,6 @@ export function DataVal({
   paymentsData,
   requestTypeData,
 }: DataTableProps) {
-
   const { user } = useStore();
   const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -158,7 +145,6 @@ export function DataVal({
       createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
-  const request = new RequestQueries();
 
   // États pour les filtres
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -528,14 +514,14 @@ export function DataVal({
       decision?: string;
       validatorId?: number;
       validator?:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => {
-      await request.review(id, {
+      await requestQ.review(id, {
         validated: validated,
         decision: decision,
         userId: validatorId ?? -1,
@@ -614,13 +600,13 @@ export function DataVal({
     }) => {
       if (isLastValidator) {
         // Utiliser validateBulk pour le dernier validateur
-        return request.validateBulk({
+        return requestQ.validateBulk({
           ids,
           validatorId: validatorId ?? -1,
         });
       } else {
         // Utiliser reviewBulk pour les validateurs ascendants
-        return request.reviewBulk({
+        return requestQ.reviewBulk({
           ids,
           validated,
           decision,
@@ -678,7 +664,6 @@ export function DataVal({
     setIsProcessingGroupAction(true);
 
     try {
-      const validatorss = user?.id ? { userId: user.id, rank: 1 } : undefined;
       const selectedIds = selectedRows.map((row) => Number(row.original.id));
 
       const validator = categoriesData
@@ -757,11 +742,6 @@ export function DataVal({
     };
   };
 
-  // Fonction pour sélectionner toutes les lignes de la page actuelle
-  const selectAllOnPage = () => {
-    table.toggleAllPageRowsSelected(true);
-  };
-
   // Fonction pour désélectionner toutes les lignes
   const deselectAll = () => {
     table.toggleAllPageRowsSelected(false);
@@ -789,7 +769,12 @@ export function DataVal({
   };
 
   function getTypeBadge(
-    type: "speciaux" | "ressource_humaine" | "facilitation" | "achat" | undefined
+    type:
+      | "speciaux"
+      | "ressource_humaine"
+      | "facilitation"
+      | "achat"
+      | undefined
   ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
     const typeData = requestTypeData?.find((t) => t.type === type);
     const label = typeData?.label ?? "Inconnu";
@@ -1169,14 +1154,6 @@ export function DataVal({
   const selectedCount = Object.keys(rowSelection).length;
   const canValidateSelected = selectedCount > 0 && isCheckable;
 
-  // Vérifier si des filtres sont actifs
-  const hasActiveFilters =
-    globalFilter ||
-    statusFilter !== "all" ||
-    categoryFilter !== "all" ||
-    projectFilter !== "all" ||
-    userFilter !== "all";
-
   return (
     <div className="w-full">
       <div className="flex flex-wrap items-center gap-3 py-4">
@@ -1352,22 +1329,22 @@ export function DataVal({
                     {column.id === "select"
                       ? "Sélection"
                       : column.id === "label"
-                        ? "Titres"
-                        : column.id === "projectId"
-                          ? "Projets"
-                          : column.id === "categoryId"
-                            ? "Catégories"
-                            : column.id === "userId"
-                              ? "Émetteurs"
-                              : column.id === "beneficiary"
-                                ? "Bénéficiaires"
-                                : column.id === "createdAt"
-                                  ? "Date d'émission"
-                                  : column.id === "state"
-                                    ? "Statuts"
-                                    : column.id === "validationProgress"
-                                      ? "Validation"
-                                      : column.id}
+                      ? "Titres"
+                      : column.id === "projectId"
+                      ? "Projets"
+                      : column.id === "categoryId"
+                      ? "Catégories"
+                      : column.id === "userId"
+                      ? "Émetteurs"
+                      : column.id === "beneficiary"
+                      ? "Bénéficiaires"
+                      : column.id === "createdAt"
+                      ? "Date d'émission"
+                      : column.id === "state"
+                      ? "Statuts"
+                      : column.id === "validationProgress"
+                      ? "Validation"
+                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -1414,9 +1391,9 @@ export function DataVal({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
                     );
                   })}
@@ -1442,8 +1419,8 @@ export function DataVal({
                       validationInfo.userPosition === 3 && "border-l-red-400",
                       validationInfo.isLastValidator && "border-l-red-400",
                       isSelected &&
-                      isCheckable &&
-                      "bg-blue-50 hover:bg-blue-100"
+                        isCheckable &&
+                        "bg-blue-50 hover:bg-blue-100"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (

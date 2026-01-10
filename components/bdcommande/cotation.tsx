@@ -2,7 +2,7 @@
 
 import { CommandeTable } from "@/components/tables/commande-table";
 import { useFetchQuery } from "@/hooks/useData";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { commandRqstQ } from "@/queries/commandRqstModule";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import LoadingPage from "../loading-page";
@@ -13,10 +13,9 @@ const Cotation = () => {
     "today" | "week" | "month" | "year" | "custom" | undefined
   >();
 
-  const command = new CommandRqstQueries();
   const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
     ["commands"],
-    command.getAll
+    commandRqstQ.getAll
   );
 
   if (isLoading) {

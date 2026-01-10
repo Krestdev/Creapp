@@ -1,16 +1,15 @@
-"use client"
+"use client";
 
 import { TicketsTable } from "@/components/tables/tickets-table";
 import { useFetchQuery } from "@/hooks/useData";
-import { PaymentQueries } from "@/queries/payment";
+import { paymentQ } from "@/queries/payment";
 import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
 
 const Liste = () => {
-  const paymentsQuery = new PaymentQueries();
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
     ["payments"],
-    paymentsQuery.getAll,
+    paymentQ.getAll,
     30000
   );
 
@@ -21,7 +20,6 @@ const Liste = () => {
     return <ErrorPage error={error} />;
   }
   if (isSuccess)
-
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">

@@ -1,37 +1,39 @@
-'use client'
-import ErrorPage from '@/components/error-page';
-import LoadingPage from '@/components/loading-page';
-import PageTitle from '@/components/pageTitle'
-import { Button } from '@/components/ui/button';
-import { useFetchQuery } from '@/hooks/useData';
-import { cn } from '@/lib/utils';
-import { TransactionQuery } from '@/queries/transaction';
-import { NavLink } from '@/types/types';
-import Link from 'next/link';
-import React from 'react'
-import TransactionTable from '../transaction-table';
+"use client";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
+import PageTitle from "@/components/pageTitle";
+import { Button } from "@/components/ui/button";
+import { useFetchQuery } from "@/hooks/useData";
+import { cn } from "@/lib/utils";
+import { transactionQ } from "@/queries/transaction";
+import { NavLink } from "@/types/types";
+import Link from "next/link";
+import TransactionTable from "../transaction-table";
 
 function Page() {
-    const links: Array<NavLink> = [
-        {
-          title: "Demande de transfert",
-          href: "./transferts/creer",
-        }
-      ];
-      const transactionQuery = new TransactionQuery();
-      const getTransactions = useFetchQuery(["transactions"], transactionQuery.getAll, 500000);
+  const links: Array<NavLink> = [
+    {
+      title: "Demande de transfert",
+      href: "./transferts/creer",
+    },
+  ];
+  const getTransactions = useFetchQuery(
+    ["transactions"],
+    transactionQ.getAll,
+    500000
+  );
 
-      if(getTransactions.isLoading){
-        return <LoadingPage/>
-      }
-      if(getTransactions.isError){
-        return <ErrorPage error={getTransactions.error} />
-      }
-      if(getTransactions.isSuccess)
-  return (
-    <div className="content">
+  if (getTransactions.isLoading) {
+    return <LoadingPage />;
+  }
+  if (getTransactions.isError) {
+    return <ErrorPage error={getTransactions.error} />;
+  }
+  if (getTransactions.isSuccess)
+    return (
+      <div className="content">
         <PageTitle title="Transferts" subtitle="Historique des transferts">
-            {links
+          {links
             .filter((x) => (!x.hide ? true : x.hide === true && false))
             .map((link, id) => {
               const isLast = links.length > 1 ? id === links.length - 1 : false;
@@ -55,9 +57,12 @@ function Page() {
               );
             })}
         </PageTitle>
-        <TransactionTable data={getTransactions.data.data.filter(t=>t.Type === "TRANSFER")} canEdit={true} />
-    </div>
-  )
+        <TransactionTable
+          data={getTransactions.data.data.filter((t) => t.Type === "TRANSFER")}
+          canEdit={true}
+        />
+      </div>
+    );
 }
 
-export default Page
+export default Page;

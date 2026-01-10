@@ -1,18 +1,15 @@
 "use client";
+import FilesUpload from "@/components/comp-547";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import React from "react";
-import { Bank, PaymentRequest } from "@/types/types";
-import z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
@@ -22,6 +19,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -29,24 +32,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ACCOUNTS } from "@/data/accounts";
-import FilesUpload from "@/components/comp-547";
-import { Button } from "@/components/ui/button";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { PaymentQueries, PayPayload } from "@/queries/payment";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { TransactionProps, TransactionQuery } from "@/queries/transaction";
-import { useRouter } from "next/navigation";
 import { useStore } from "@/providers/datastore";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { TransactionProps, transactionQ } from "@/queries/transaction";
+import { Bank, PaymentRequest } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import z from "zod";
 
 interface Props {
   ticket: PaymentRequest;
@@ -82,7 +79,6 @@ type FormValues = z.infer<typeof formSchema>;
 function PayExpense({ ticket, open, onOpenChange, banks }: Props) {
   const { user } = useStore();
   const router = useRouter();
-  const transactionQuery = new TransactionQuery();
   const queryClient = useQueryClient();
   const [openDate, setOpenDate] = React.useState<boolean>(false);
   const form = useForm<FormValues>({
@@ -97,7 +93,7 @@ function PayExpense({ ticket, open, onOpenChange, banks }: Props) {
 
   const pay = useMutation({
     mutationFn: async (payload: TransactionProps) =>
-      transactionQuery.create(payload),
+      transactionQ.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["banks", "transactions"],

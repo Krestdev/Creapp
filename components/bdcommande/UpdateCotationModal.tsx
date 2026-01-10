@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { RequestQueries } from "@/queries/requestModule";
+import { requestQ } from "@/queries/requestModule";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CommandRequestT, RequestModelT } from "@/types/types";
 import { useStore } from "@/providers/datastore";
@@ -39,7 +39,7 @@ import { toast } from "sonner";
 import { SuccessModal } from "@/components/modals/success-modal";
 import MultiSelectUsers from "@/components/base/multiSelectUsers";
 import Besoins from "./besoins";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { commandRqstQ } from "@/queries/commandRqstModule";
 
 const formSchema = z.object({
   name: z.string().min(1, "Le nom est obligatoire"),
@@ -95,13 +95,11 @@ export function UpdateCotationModal({
     },
   });
 
-  const command = new CommandRqstQueries();
-
   // Mutation pour la mise à jour
   const updateCommand = useMutation({
     mutationKey: ["update-command", commandId],
     mutationFn: (data: Partial<CommandRequestT>) =>
-      command.update(commandId, data),
+      commandRqstQ.update(commandId, data),
     onSuccess: () => {
       toast.success("Demande de cotation mise à jour avec succès");
       setSuccessOpen(true);
@@ -136,10 +134,9 @@ export function UpdateCotationModal({
     },
   });
 
-  const request = new RequestQueries();
   const requestData = useQuery({
     queryKey: ["requests"],
-    queryFn: () => request.getAll(),
+    queryFn: () => requestQ.getAll(),
     enabled: open,
   });
 

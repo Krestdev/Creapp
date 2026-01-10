@@ -17,12 +17,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { PaymentQueries } from "@/queries/payment";
-import { ProjectQueries } from "@/queries/projectModule";
+import { bankQ } from "@/queries/bank";
+import { userQ } from "@/queries/baseModule";
+import { paymentQ } from "@/queries/payment";
+import { projectQ } from "@/queries/projectModule";
 import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -39,7 +40,6 @@ import {
   FormMessage,
 } from "../ui/form";
 import ViewDepense from "./viewDepense";
-import { BankQuery } from "@/queries/bank";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -88,14 +88,13 @@ export function TransportForm() {
 
   const [view, setView] = useState<boolean>(false);
 
-  const payments = new PaymentQueries();
   const paymentsData = useMutation({
     mutationKey: ["payments-Depense"],
     mutationFn: async (
       data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> & {
         caisseId: number;
       }
-    ) => payments.createDepense(data),
+    ) => paymentQ.createDepense(data),
     onSuccess: () => {
       toast.success("Depense soumis avec succès !");
       setIsSuccessModalOpen(true);
@@ -104,22 +103,19 @@ export function TransportForm() {
     },
   });
 
-  const projects = new ProjectQueries();
   const ProjectsData = useQuery({
     queryKey: ["getProjects"],
-    queryFn: () => projects.getAll(),
+    queryFn: () => projectQ.getAll(),
   });
 
-  const users = new UserQueries();
   const usersData = useQuery({
     queryKey: ["getUsers"],
-    queryFn: () => users.getAll(),
+    queryFn: () => userQ.getAll(),
   });
 
-  const bankQuery = new BankQuery();
   const bankData = useQuery({
     queryKey: ["getbanks"],
-    queryFn: bankQuery.getAll,
+    queryFn: bankQ.getAll,
   });
 
   const handleSubmit = form.handleSubmit(async (data: Schema) => {

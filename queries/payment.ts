@@ -204,3 +204,5 @@ export class PaymentQueries {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
   };
 }
+
+export const paymentQ = new PaymentQueries();

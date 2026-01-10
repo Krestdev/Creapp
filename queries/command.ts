@@ -9,7 +9,10 @@ export class CommandQueries {
   // --------------------------------------
 
   create = async (
-    data: Omit<BonsCommande, "id" | "createdAt" | "updatedAt" | "reference" | "hasPenalties" >
+    data: Omit<
+      BonsCommande,
+      "id" | "createdAt" | "updatedAt" | "reference" | "hasPenalties"
+    >
   ): Promise<{ data: BonsCommande }> => {
     return api.post(this.route, data).then((response) => {
       console.log(response.data);
@@ -60,3 +63,5 @@ export class CommandQueries {
     });
   };
 }
+
+export const commadQ = new CommandQueries();

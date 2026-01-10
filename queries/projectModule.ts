@@ -2,7 +2,7 @@ import api from "@/providers/axios";
 import { ProjectT, User } from "@/types/types";
 
 // Project Queries
-export class ProjectQueries {
+class ProjectQueries {
   route = "/project/management";
 
   create = async (
@@ -55,3 +55,5 @@ export class ProjectQueries {
     });
   };
 }
+
+export const projectQ = new ProjectQueries();

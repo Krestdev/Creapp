@@ -4,7 +4,7 @@ import StatsCard from "@/components/base/StatsCard";
 import { ChartAreaInteractive } from "@/components/Charts/BarChart";
 import { ChartPieLabelList } from "@/components/Charts/ChartPieLabelList";
 import { useStore } from "@/providers/datastore";
-import { RequestQueries } from "@/queries/requestModule";
+import { requestQ } from "@/queries/requestModule";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import React, { useState, useMemo } from "react";
 import { format } from "date-fns";
@@ -20,7 +20,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, CalendarDays, CalendarIcon } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  CalendarDays,
+  CalendarIcon,
+} from "lucide-react";
 import { cn, XAF } from "@/lib/utils";
 import {
   Dialog,
@@ -37,20 +42,24 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { RequestModelT, TableFilters } from "@/types/types";
-import { PaymentQueries } from "@/queries/payment";
+import { paymentQ } from "@/queries/payment";
 import { useFetchQuery } from "@/hooks/useData";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { PaymentRequest } from "@/types/types";
 
 const DashboardPage = () => {
   const { user, isHydrated } = useStore();
-  const request = new RequestQueries();
-  const paymentsQuery = new PaymentQueries();
 
   // Récupérer les paiements
   const { data: paymentsData } = useFetchQuery(
     ["payments"],
-    paymentsQuery.getAll,
+    paymentQ.getAll,
     30000
   );
 
@@ -74,7 +83,11 @@ const DashboardPage = () => {
   const getDateFilterText = () => {
     if (filters.dateFilter === "custom" && filters.customDateRange) {
       const { from, to } = filters.customDateRange;
-      return `${format(from, "dd/MM/yyyy", { locale: fr })} - ${format(to, "dd/MM/yyyy", { locale: fr })}`;
+      return `${format(from, "dd/MM/yyyy", { locale: fr })} - ${format(
+        to,
+        "dd/MM/yyyy",
+        { locale: fr }
+      )}`;
     }
 
     switch (filters.dateFilter) {
@@ -138,7 +151,7 @@ const DashboardPage = () => {
       if (!user?.id) {
         throw new Error("ID utilisateur non disponible");
       }
-      return request.getMine(user.id);
+      return requestQ.getMine(user.id);
     },
     enabled: !!user?.id && isHydrated,
   });
@@ -146,7 +159,7 @@ const DashboardPage = () => {
   // Requête pour récupérer TOUS les besoins (pour "Besoins reçus")
   const allRequestsData = useQuery({
     queryKey: ["allRequests"],
-    queryFn: () => request.getAll(),
+    queryFn: () => requestQ.getAll(),
     enabled: isHydrated && !!user,
   });
 
@@ -160,7 +173,9 @@ const DashboardPage = () => {
         return [];
       }
 
-      let filtered: RequestModelT[] = requestData.data.data.filter((r) => r.state !== "cancel" && r.state !== "pending");
+      let filtered: RequestModelT[] = requestData.data.data.filter(
+        (r) => r.state !== "cancel" && r.state !== "pending"
+      );
 
       // Filtrer par date
       if (filters.dateFilter) {
@@ -201,7 +216,9 @@ const DashboardPage = () => {
 
       // Filtrer par statut
       if (filters.statusFilter && filters.statusFilter !== "all") {
-        filtered = filtered.filter((item) => item.state === filters.statusFilter);
+        filtered = filtered.filter(
+          (item) => item.state === filters.statusFilter
+        );
       }
 
       // Filtrer par catégorie
@@ -253,7 +270,9 @@ const DashboardPage = () => {
     }
 
     // Filtrer uniquement les paiements payés
-    let filtered: PaymentRequest[] = paymentsData.data.filter((p: PaymentRequest) => p.status === "paid");
+    let filtered: PaymentRequest[] = paymentsData.data.filter(
+      (p: PaymentRequest) => p.status === "paid"
+    );
 
     // Filtrer par date si un filtre est appliqué
     if (filters.dateFilter) {
@@ -301,8 +320,12 @@ const DashboardPage = () => {
 
   const getSubtitle = () => {
     if (filters.dateFilter === "custom" && filters.customDateRange) {
-      const fromStr = format(filters.customDateRange.from, 'dd/MM/yyyy', { locale: fr });
-      const toStr = format(filters.customDateRange.to, 'dd/MM/yyyy', { locale: fr });
+      const fromStr = format(filters.customDateRange.from, "dd/MM/yyyy", {
+        locale: fr,
+      });
+      const toStr = format(filters.customDateRange.to, "dd/MM/yyyy", {
+        locale: fr,
+      });
       return `Consulter mes besoins du ${fromStr} au ${toStr}`;
     }
 
@@ -322,8 +345,12 @@ const DashboardPage = () => {
 
   const getReceivedSubtitle = () => {
     if (filters.dateFilter === "custom" && filters.customDateRange) {
-      const fromStr = format(filters.customDateRange.from, 'dd/MM/yyyy', { locale: fr });
-      const toStr = format(filters.customDateRange.to, 'dd/MM/yyyy', { locale: fr });
+      const fromStr = format(filters.customDateRange.from, "dd/MM/yyyy", {
+        locale: fr,
+      });
+      const toStr = format(filters.customDateRange.to, "dd/MM/yyyy", {
+        locale: fr,
+      });
       return `Consulter les besoins reçus du ${fromStr} au ${toStr}`;
     }
 
@@ -343,18 +370,25 @@ const DashboardPage = () => {
 
   // Calcul des statistiques des besoins de l'utilisateur
   const mySoumis = getMyFilteredData.length || 0;
-  const myAttentes = getMyFilteredData.filter((item) => item.state === "pending").length ?? 0;
-  const myRejetes = getMyFilteredData.filter((item) => item.state === "rejected").length ?? 0;
+  const myAttentes =
+    getMyFilteredData.filter((item) => item.state === "pending").length ?? 0;
+  const myRejetes =
+    getMyFilteredData.filter((item) => item.state === "rejected").length ?? 0;
   const myValidés = mySoumis - myAttentes - myRejetes;
 
   // Calcul des statistiques de tous les besoins (reçus)
   const allSoumis = getAllFilteredData.length || 0;
-  const allAttentes = getAllFilteredData.filter((item) => item.state === "pending").length ?? 0;
-  const allRejetes = getAllFilteredData.filter((item) => item.state === "rejected").length ?? 0;
+  const allAttentes =
+    getAllFilteredData.filter((item) => item.state === "pending").length ?? 0;
+  const allRejetes =
+    getAllFilteredData.filter((item) => item.state === "rejected").length ?? 0;
   const allValidés = allSoumis - allAttentes - allRejetes;
 
   // Calcul des statistiques des dépenses
-  const totalDepenses = getFilteredPayments.reduce((sum, payment) => sum + (payment.price || 0), 0);
+  const totalDepenses = getFilteredPayments.reduce(
+    (sum, payment) => sum + (payment.price || 0),
+    0
+  );
   const nombreDepenses = getFilteredPayments.length;
 
   return (
@@ -386,44 +420,60 @@ const DashboardPage = () => {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => setFilters(prev => ({ ...prev, dateFilter: "today" }))}
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, dateFilter: "today" }))
+                }
                 className={cn(
                   "flex items-center justify-between",
                   filters.dateFilter === "today" && "bg-accent"
                 )}
               >
                 <span>Aujourd'hui</span>
-                {filters.dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
+                {filters.dateFilter === "today" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => setFilters(prev => ({ ...prev, dateFilter: "week" }))}
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, dateFilter: "week" }))
+                }
                 className={cn(
                   "flex items-center justify-between",
                   filters.dateFilter === "week" && "bg-accent"
                 )}
               >
                 <span>Cette semaine</span>
-                {filters.dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
+                {filters.dateFilter === "week" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => setFilters(prev => ({ ...prev, dateFilter: "month" }))}
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, dateFilter: "month" }))
+                }
                 className={cn(
                   "flex items-center justify-between",
                   filters.dateFilter === "month" && "bg-accent"
                 )}
               >
                 <span>Ce mois</span>
-                {filters.dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
+                {filters.dateFilter === "month" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => setFilters(prev => ({ ...prev, dateFilter: "year" }))}
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, dateFilter: "year" }))
+                }
                 className={cn(
                   "flex items-center justify-between",
                   filters.dateFilter === "year" && "bg-accent"
                 )}
               >
                 <span>Cette année</span>
-                {filters.dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
+                {filters.dateFilter === "year" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

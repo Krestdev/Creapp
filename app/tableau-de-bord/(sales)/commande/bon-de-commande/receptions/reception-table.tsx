@@ -55,12 +55,16 @@ import {
 } from "@/components/ui/table";
 
 import { useFetchQuery } from "@/hooks/useData";
-import { UserQueries } from "@/queries/baseModule";
-import { PURCHASE_ORDER_STATUS, Reception, RECEPTION_STATUS } from "@/types/types";
+import { userQ } from "@/queries/baseModule";
+import {
+  PURCHASE_ORDER_STATUS,
+  Reception,
+  RECEPTION_STATUS,
+} from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import ViewReception from "./view-reception";
 import UpdateReception from "./update-reception";
+import ViewReception from "./view-reception";
 
 interface Props {
   data: Array<Reception>;
@@ -87,8 +91,7 @@ const getStatusBadge = (
 };
 
 export function ReceptionTable({ data }: Props) {
-  const usersQuery = new UserQueries();
-  const getUsers = useFetchQuery(["users"], usersQuery.getAll);
+  const getUsers = useFetchQuery(["users"], userQ.getAll);
 
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -102,7 +105,9 @@ export function ReceptionTable({ data }: Props) {
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   // filtres spécifiques
-  const [statusFilter, setStatusFilter] = React.useState<"all" | Reception["Status"]>("all");
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | Reception["Status"]
+  >("all");
 
   //ViewModal
   const [view, setView] = React.useState<boolean>(false);
@@ -227,9 +232,7 @@ export function ReceptionTable({ data }: Props) {
         const value = row.original.Deliverables;
         const amount = value.filter((el) => el.isDelivered === true).length;
         const length = value.length;
-        return (
-          `${amount}/${length} livré${amount > 1 ? "s" : ""}`
-        );
+        return `${amount}/${length} livré${amount > 1 ? "s" : ""}`;
       },
     },
 
@@ -370,7 +373,9 @@ export function ReceptionTable({ data }: Props) {
                   <Label>{"Statut"}</Label>
                   <Select
                     value={statusFilter}
-                    onValueChange={(v: "all" | Reception["Status"]) => setStatusFilter(v)}
+                    onValueChange={(v: "all" | Reception["Status"]) =>
+                      setStatusFilter(v)
+                    }
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Tous les statuts" />
@@ -467,9 +472,9 @@ export function ReceptionTable({ data }: Props) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -533,8 +538,20 @@ export function ReceptionTable({ data }: Props) {
 
         {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       </div>
-      {selectedValue && <ViewReception open={view} onOpenChange={setView} reception={selectedValue} />}
-      {selectedValue && <UpdateReception open={edit} onOpenChange={setEdit} reception={selectedValue} />}
+      {selectedValue && (
+        <ViewReception
+          open={view}
+          onOpenChange={setView}
+          reception={selectedValue}
+        />
+      )}
+      {selectedValue && (
+        <UpdateReception
+          open={edit}
+          onOpenChange={setEdit}
+          reception={selectedValue}
+        />
+      )}
     </div>
   );
 }

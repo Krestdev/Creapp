@@ -21,13 +21,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { UserQueries } from "@/queries/baseModule";
-import { VehicleQueries } from "@/queries/vehicule";
-import { Role, User as UserT, Vehicle } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { vehicleQ } from "@/queries/vehicule";
+import { Vehicle } from "@/types/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { toast } from "sonner";
-import MultiSelectRole from "../base/multiSelectRole";
 
 /* =========================
    SCHEMA ZOD
@@ -54,10 +52,6 @@ export default function UpdateVehicle({
 }: UpdateRequestProps) {
   const queryClient = useQueryClient();
 
-  const [selectedRole, setSelectedRole] = useState<
-    { id: number; label: string }[]
-  >([]);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -83,11 +77,10 @@ export default function UpdateVehicle({
   /* =========================
      MUTATION
   ========================= */
-  const vehicleQuesries = new VehicleQueries();
 
   const vehicleMutation = useMutation({
     mutationFn: (data: { id: number; vehicle: Partial<Vehicle> }) =>
-      vehicleQuesries.update(data.id, data.vehicle),
+      vehicleQ.update(data.id, data.vehicle),
 
     onSuccess: () => {
       toast.success("Utilisateur modifié avec succès !");

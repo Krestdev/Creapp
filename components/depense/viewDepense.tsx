@@ -1,7 +1,7 @@
-import React, { Dispatch, SetStateAction, useState } from "react";
-import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
 import { PaymentRequest } from "@/types/types";
-import DepenseDocument from "./depenseDoc";
+import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
+import React, { Dispatch, SetStateAction } from "react";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { Button } from "../ui/button";
+import DepenseDocument from "./depenseDoc";
 
 interface Props {
   open: boolean;
@@ -54,25 +54,24 @@ const PaymentReceipt: React.FC<Props> = ({
   //   updatedAt: new Date().toISOString(),
   // });
 
-  const handleDownloadClick = () => {
-    // Close the dialog after download is triggered
-    setTimeout(() => {
-      openChange(false);
-    }, 500);
-  };
+  // const handleDownloadClick = () => {
+  //   // Close the dialog after download is triggered
+  //   setTimeout(() => {
+  //     openChange(false);
+  //   }, 500);
+  // };
+
+  // (newOpen) => {
+  //         // Prevent closing via ESC key or clicking outside
+  //         if (!newOpen) {
+  //           return;
+  //         }
+  //       }
 
   return (
     <div>
       <h2>Reçu de Transport</h2>
-      <Dialog
-        open={open}
-        onOpenChange={(newOpen) => {
-          // Prevent closing via ESC key or clicking outside
-          if (!newOpen) {
-            return;
-          }
-        }}
-      >
+      <Dialog open={open} onOpenChange={openChange}>
         <DialogContent className="max-h-[750px] max-w-4xl! gap-0 overflow-hidden border-none flex flex-col">
           {/* Header with burgundy background */}
           <DialogHeader className="bg-[#8B1538] text-white mb-2 rounded-lg relative">
@@ -96,7 +95,6 @@ const PaymentReceipt: React.FC<Props> = ({
             <PDFDownloadLink
               document={<DepenseDocument paymentRequest={paymentRequest} />}
               fileName={`recu-transport-${paymentRequest.reference}.pdf`}
-              onClick={handleDownloadClick}
             >
               {({ loading }) => (
                 <Button disabled={loading}>

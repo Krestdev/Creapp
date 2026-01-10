@@ -1,17 +1,14 @@
 "use client";
-import { useStore } from "@/providers/datastore";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { useQuery } from "@tanstack/react-query";
-import { CategoriesTable } from "./categories-table";
 import { useFetchQuery } from "@/hooks/useData";
-import LoadingPage from "../loading-page";
+import { categoryQ } from "@/queries/categoryModule";
 import ErrorPage from "../error-page";
+import LoadingPage from "../loading-page";
+import { CategoriesTable } from "./categories-table";
 
 const CategoriesPage = () => {
-  const category = new CategoryQueries();
   const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
     ["categoryList"],
-    category.getCategories
+    categoryQ.getCategories
   );
 
   if (isLoading) {

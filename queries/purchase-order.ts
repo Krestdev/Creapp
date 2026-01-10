@@ -12,11 +12,11 @@ export type CreatePurchasePayload = {
     | "reference"
     | "provider"
     | "instalments"
-  >&{
+  > & {
     instalments: Array<{
       percentage: number;
       deadLine?: string;
-    }>
+    }>;
   };
   ids: Array<number>;
 };
@@ -33,7 +33,7 @@ export type updatePoPayload = Omit<
   | "providerId"
 >;
 
-export class PurchaseOrder {
+class PurchaseOrder {
   route = "/request/command";
 
   getAll = async (): Promise<{ data: Array<BonsCommande> }> => {
@@ -57,19 +57,23 @@ export class PurchaseOrder {
       return response.data;
     });
   };
-  approve = async (
-    id: number
-  ): Promise<{ data: BonsCommande }> => {
-    return api.put(`${this.route}/${id}`, {status: "APPROVED"}).then((response) => {
-      return response.data
-    })
+  approve = async (id: number): Promise<{ data: BonsCommande }> => {
+    return api
+      .put(`${this.route}/${id}`, { status: "APPROVED" })
+      .then((response) => {
+        return response.data;
+      });
   };
   reject = async (
     id: number,
     reason: string
   ): Promise<{ data: BonsCommande }> => {
-    return api.put(`${this.route}/${id}`, {status: "REJECTED", motif: reason }).then((response) => {
-      return response.data
-    })
+    return api
+      .put(`${this.route}/${id}`, { status: "REJECTED", motif: reason })
+      .then((response) => {
+        return response.data;
+      });
   };
 }
+
+export const purchaseQ = new PurchaseOrder();

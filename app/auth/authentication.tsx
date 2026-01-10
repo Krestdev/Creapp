@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
 
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,12 +36,14 @@ function maskEmail(email: string) {
 export default function VerifyEmailClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userQuery = React.useMemo(() => new UserQueries(), []);
+  const userQuery = React.useMemo(() => userQ, []);
 
   const emailFromUrl = searchParams.get("email") ?? "";
   const otpFromUrl = searchParams.get("otp") ?? "";
 
-  const [otp, setOtp] = React.useState(otpFromUrl.replace(/\D/g, "").slice(0, 6));
+  const [otp, setOtp] = React.useState(
+    otpFromUrl.replace(/\D/g, "").slice(0, 6)
+  );
 
   const canSubmit = emailFromUrl.includes("@") && otp.length === 6;
 
@@ -49,9 +51,7 @@ export default function VerifyEmailClient() {
     mutationFn: async ({ otp, email }: { otp: number; email: string }) =>
       userQuery.getVerificationOtp(otp, email),
     onSuccess: (data) => {
-      toast.success(
-        `Votre adresse email a été vérifiée ✅`
-      );
+      toast.success(`Votre adresse email a été vérifiée ✅`);
       router.push("/connexion");
       router.refresh();
     },
@@ -73,7 +73,6 @@ export default function VerifyEmailClient() {
   React.useEffect(() => {
     if (!canSubmit || verifyMutation.isPending) return;
     verifyMutation.mutate({ otp: Number(otp), email: emailFromUrl });
-     
   }, [canSubmit]);
 
   const invalidLink = !emailFromUrl;
@@ -93,10 +92,7 @@ export default function VerifyEmailClient() {
             ) : (
               <>
                 {"Nous avons envoyé un code de vérification à "}
-                <span className="font-medium">
-                  {maskEmail(emailFromUrl)}
-                </span>
-                .
+                <span className="font-medium">{maskEmail(emailFromUrl)}</span>.
               </>
             )}
           </CardDescription>
@@ -114,9 +110,7 @@ export default function VerifyEmailClient() {
               <InputOTP
                 maxLength={6}
                 value={otp}
-                onChange={(v) =>
-                  setOtp(v.replace(/\D/g, "").slice(0, 6))
-                }
+                onChange={(v) => setOtp(v.replace(/\D/g, "").slice(0, 6))}
                 inputMode="numeric"
                 autoComplete="one-time-code"
               >

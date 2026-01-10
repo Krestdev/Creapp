@@ -26,12 +26,12 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { totalAmountPurchase } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { PaymentQueries, UpdatePayment } from "@/queries/payment";
+import { paymentQ, UpdatePayment } from "@/queries/payment";
 import {
   BonsCommande,
   PAYMENT_METHOD,
   PaymentRequest,
-  PRIORITIES
+  PRIORITIES,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
@@ -86,7 +86,7 @@ interface Props {
 function EditPaymentForm({ payment, purchases, openChange }: Props) {
   /**Data states */
   const { user } = useStore();
-  const paymentQuery = new PaymentQueries();
+
   const queryClient = useQueryClient();
   const [dueDate, setDueDate] = React.useState<boolean>(false);
   const today = new Date(); //On part sur 3 jours de delai de base :)
@@ -108,7 +108,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
 
   const updatePayment = useMutation({
     mutationFn: async (data: Partial<UpdatePayment>) =>
-      paymentQuery.update(payment.id, data),
+      paymentQ.update(payment.id, data),
     onSuccess: () => {
       toast.success("Votre paiement a été modifié avec succès !");
       queryClient.invalidateQueries({

@@ -33,11 +33,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
+import { userQ } from "@/queries/baseModule";
+import { requestQ } from "@/queries/requestModule";
 
-import { CategoryQueries } from "@/queries/categoryModule";
+import { categoryQ } from "@/queries/categoryModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -49,6 +48,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { units } from "@/data/unit";
+import { projectQ } from "@/queries/projectModule";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -91,27 +91,29 @@ export default function UpdateRequest({
   // ----------------------------------------------------------------------
   // QUERY PROJECTS
   // ----------------------------------------------------------------------
-  const projects = new ProjectQueries();
   const projectsData = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => projects.getAll(),
+    queryFn: async () => projectQ.getAll(),
   });
 
   // ----------------------------------------------------------------------
   // QUERY USERS
   // ----------------------------------------------------------------------
-  const users = new UserQueries();
+
   const usersData = useQuery({
     queryKey: ["users"],
-    queryFn: async () => users.getAll(),
+    queryFn: async () => userQ.getAll(),
   });
 
   const USERS =
-    usersData.data?.data.map((u) => ({ id: u.id!, name: u.firstName + " " + u.lastName })) || [];
+    usersData.data?.data.map((u) => ({
+      id: u.id!,
+      name: u.firstName + " " + u.lastName,
+    })) || [];
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => category.getCategories(),
+    queryFn: async () => categoryQ.getCategories(),
   });
 
   // ----------------------------------------------------------------------
@@ -236,13 +238,12 @@ export default function UpdateRequest({
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
   const queryClient = useQueryClient();
-  const request = new RequestQueries();
-  const category = new CategoryQueries();
+
   const requestMutation = useMutation({
     mutationKey: ["requests", "update"],
     mutationFn: async (data: Partial<RequestModelT>) => {
       if (!requestData?.id) throw new Error("ID du besoin manquant");
-      return request.update(Number(requestData.id), data);
+      return requestQ.update(Number(requestData.id), data);
     },
 
     onSuccess: () => {

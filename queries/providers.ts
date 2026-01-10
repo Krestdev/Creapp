@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { Provider } from "@/types/types";
 
-export class ProviderQueries {
+class ProviderQueries {
   route = "/request/provider";
 
   // --------------------------------------
@@ -110,3 +110,5 @@ export class ProviderQueries {
     });
   };
 }
+
+export const providerQ = new ProviderQueries();

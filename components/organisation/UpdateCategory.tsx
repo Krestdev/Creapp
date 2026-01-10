@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
-import { CategoryQueries } from "@/queries/categoryModule";
+import { categoryQ } from "@/queries/categoryModule";
 import { Category, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,7 +28,7 @@ import {
 import { Trash2, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import {
   Dialog,
   DialogContent,
@@ -77,7 +77,6 @@ export function UpdateCategory({
   categoryData,
   onSuccess,
 }: UpdateCategoryProps) {
-
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -93,15 +92,14 @@ export function UpdateCategory({
     name: "validators",
   });
 
-  const categoryQueries = new CategoryQueries();
   const { isHydrated } = useStore();
   const queryClient = useQueryClient();
 
   // Récupérer la liste des utilisateurs
-  const userQueries = new UserQueries();
+
   const usersData = useQuery({
     queryKey: ["users-list"],
-    queryFn: () => userQueries.getAll(),
+    queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
 
@@ -123,10 +121,7 @@ export function UpdateCategory({
   const categoryApi = useMutation({
     mutationKey: ["updateCategory"],
     mutationFn: async (data: Partial<Category>) => {
-      const response = await categoryQueries.updateCategory(
-        categoryData?.id!,
-        data
-      );
+      const response = await categoryQ.updateCategory(categoryData?.id!, data);
       return {
         message: "Category updated successfully",
         data: response.data,
@@ -225,7 +220,6 @@ export function UpdateCategory({
   };
 
   const onsubmit = (values: z.infer<typeof formSchema>) => {
-
     if (categoryData?.id === undefined) {
       console.log(categoryData?.id);
       toast.error("ID de catégorie manquant");

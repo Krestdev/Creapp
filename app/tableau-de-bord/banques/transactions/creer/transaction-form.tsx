@@ -12,9 +12,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TransactionProps, TransactionQuery } from "@/queries/transaction";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Bank, TRANSACTION_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,7 +41,9 @@ interface Props {
   userId: number;
 }
 
-const TX_TYPES = TRANSACTION_TYPES.filter(c=> c.value !== "TRANSFER").map((t) => t.value) as [
+const TX_TYPES = TRANSACTION_TYPES.filter((c) => c.value !== "TRANSFER").map(
+  (t) => t.value
+) as [
   (typeof TRANSACTION_TYPES)[number]["value"],
   ...(typeof TRANSACTION_TYPES)[number]["value"][]
 ];
@@ -45,15 +57,18 @@ const sourceSchema = z.object({
 export const formSchema = z
   .object({
     label: z.string().min(2, "Libellé trop court"),
-    amount: z.coerce.number({ message: "Montant invalide" }).gt(0, "Montant > 0 requis"),
+    amount: z.coerce
+      .number({ message: "Montant invalide" })
+      .gt(0, "Montant > 0 requis"),
 
     // ⚠️ si tu veux autoriser une date passée, change la condition
-    date: z
-      .string({ message: "Veuillez définir une date" })
-      .refine((val) => {
+    date: z.string({ message: "Veuillez définir une date" }).refine(
+      (val) => {
         const d = new Date(val);
         return !isNaN(d.getTime());
-      }, { message: "Date invalide" }),
+      },
+      { message: "Date invalide" }
+    ),
 
     Type: z.enum(TX_TYPES),
 
@@ -68,14 +83,14 @@ export const formSchema = z
       .min(0),
   })
   .superRefine((data, ctx) => {
-
     // ✅ règles selon type
     if (data.Type === "DEBIT") {
       if (isNaN(Number(data.fromBankId))) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["fromBankId"],
-          message: "Source obligatoire pour un débit (compte source ou source externe)",
+          message:
+            "Source obligatoire pour un débit (compte source ou source externe)",
         });
       }
     }
@@ -85,7 +100,8 @@ export const formSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["toBankId"],
-          message: "Destination obligatoire pour un crédit (compte destination ou destination externe)",
+          message:
+            "Destination obligatoire pour un crédit (compte destination ou destination externe)",
         });
       }
     }
@@ -94,7 +110,7 @@ export const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 function TransactionForm({ banks, userId }: Props) {
-    const [openDate, setOpenDate] = React.useState<boolean>(false);
+  const [openDate, setOpenDate] = React.useState<boolean>(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -111,11 +127,10 @@ function TransactionForm({ banks, userId }: Props) {
   });
 
   const router = useRouter();
-  const transactionQuery = new TransactionQuery();
   const queryClient = useQueryClient();
   const create = useMutation({
     mutationFn: async (payload: TransactionProps) =>
-      transactionQuery.create(payload),
+      transactionQ.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["banks", "transactions"],
@@ -132,27 +147,27 @@ function TransactionForm({ banks, userId }: Props) {
   const type = form.watch("Type");
 
   function onSubmit(values: FormValues) {
-    const {Type, from, to, fromBankId, toBankId, date, ...rest} = values;
-    if(Type === "CREDIT"){
-        const payload: TransactionProps = {
-          Type: values.Type,
-          ...rest,
-          date: new Date(date),
-          from: values.from,
-          toBankId: values.toBankId,
-          userId
-        };
-        return create.mutate(payload);
+    const { Type, from, to, fromBankId, toBankId, date, ...rest } = values;
+    if (Type === "CREDIT") {
+      const payload: TransactionProps = {
+        Type: values.Type,
+        ...rest,
+        date: new Date(date),
+        from: values.from,
+        toBankId: values.toBankId,
+        userId,
+      };
+      return create.mutate(payload);
     } else {
-        const payload: TransactionProps = {
-          Type: values.Type,
-          ...rest,
-          date: new Date(date),
-          fromBankId: values.fromBankId,
-          to: values.to,
-          userId
-        };
-        return create.mutate(payload);
+      const payload: TransactionProps = {
+        Type: values.Type,
+        ...rest,
+        date: new Date(date),
+        fromBankId: values.fromBankId,
+        to: values.to,
+        userId,
+      };
+      return create.mutate(payload);
     }
   }
   return (
@@ -195,69 +210,69 @@ function TransactionForm({ banks, userId }: Props) {
           )}
         />
         <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel isRequired>{"Date de la transaction"}</FormLabel>
-                <FormControl>
-                  <div className="relative flex gap-2">
-                    <Input
-                      id={field.name}
-                      value={field.value}
-                      placeholder="Sélectionner une date"
-                      className="bg-background pr-10"
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "ArrowDown") {
-                          e.preventDefault();
-                          setOpenDate(true);
-                        }
-                      }}
-                    />
-                    <Popover open={openDate} onOpenChange={setOpenDate}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="date-picker"
-                          variant="ghost"
-                          className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
-                        >
-                          <CalendarIcon className="size-3.5" />
-                          <span className="sr-only">
-                            {"Sélectionner une date"}
-                          </span>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-auto overflow-hidden p-0"
-                        align="end"
-                        alignOffset={-8}
-                        sideOffset={10}
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Date de la transaction"}</FormLabel>
+              <FormControl>
+                <div className="relative flex gap-2">
+                  <Input
+                    id={field.name}
+                    value={field.value}
+                    placeholder="Sélectionner une date"
+                    className="bg-background pr-10"
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setOpenDate(true);
+                      }
+                    }}
+                  />
+                  <Popover open={openDate} onOpenChange={setOpenDate}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="date-picker"
+                        variant="ghost"
+                        className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
                       >
-                        <Calendar
-                          mode="single"
-                          selected={
-                            field.value ? new Date(field.value) : undefined
-                          }
-                          captionLayout="dropdown"
-                          onSelect={(date) => {
-                            if (!date) return;
-                            const value = format(date, "yyyy-MM-dd");
-                            field.onChange(value);
-                            setOpenDate(false);
-                          }}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
+                        <CalendarIcon className="size-3.5" />
+                        <span className="sr-only">
+                          {"Sélectionner une date"}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto overflow-hidden p-0"
+                      align="end"
+                      alignOffset={-8}
+                      sideOffset={10}
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={
+                          field.value ? new Date(field.value) : undefined
+                        }
+                        captionLayout="dropdown"
+                        onSelect={(date) => {
+                          if (!date) return;
+                          const value = format(date, "yyyy-MM-dd");
+                          field.onChange(value);
+                          setOpenDate(false);
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
           control={form.control}
           name="Type"
           render={({ field }) => (
@@ -269,7 +284,9 @@ function TransactionForm({ banks, userId }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {TRANSACTION_TYPES.filter(c=>c.value !== "TRANSFER").map((t) => (
+                    {TRANSACTION_TYPES.filter(
+                      (c) => c.value !== "TRANSFER"
+                    ).map((t) => (
                       <SelectItem key={t.value} value={t.value}>
                         {t.name}
                       </SelectItem>
@@ -282,143 +299,212 @@ function TransactionForm({ banks, userId }: Props) {
           )}
         />
         <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
-            <h3 className="@min-[640px]:col-span-2">{"Source"}</h3>
-            {
-            type === "DEBIT" ?
-            <FormField control={form.control} name="fromBankId" render={({field})=>(
-            <FormItem>
-                <FormLabel isRequired>{"Compte source"}</FormLabel>
-                <FormControl>
-                    <Select value={!!field.value ? String(field.value) : undefined} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionner un compte"/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {banks.map((bank)=>(
-                                <SelectItem key={bank.id} value={String(bank.id)}>{bank.label}</SelectItem>
-                            ))}
-                        </SelectContent>
+          <h3 className="@min-[640px]:col-span-2">{"Source"}</h3>
+          {type === "DEBIT" ? (
+            <FormField
+              control={form.control}
+              name="fromBankId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Compte source"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={!!field.value ? String(field.value) : undefined}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner un compte" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {banks.map((bank) => (
+                          <SelectItem key={bank.id} value={String(bank.id)}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
-                </FormControl>
-                <FormMessage/>
-            </FormItem>
-        )} />
-        :
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : (
             <>
-                <FormField control={form.control} name="from.label" render={({field})=>(
-                    <FormItem>
-                        <FormLabel isRequired>{"Nom de la source"}</FormLabel>
-                        <FormControl>
-                            <Input {...field} placeholder="Ex. Krest Holding" />
-                        </FormControl>
-                        <FormMessage/>
-                    </FormItem>
-                )} />
-                <FormField control={form.control} name="from.accountNumber" render={({field})=>(
-                    <FormItem>
-                        <FormLabel>{"Compte bancaire source"}</FormLabel>
-                        <FormControl>
-                            <Input type="number" {...field} placeholder="Ex. 2350 0054" />
-                        </FormControl>
-                        <FormDescription>{"Numéro de Compte Bancaire du client si applicable"}</FormDescription>
-                        <FormMessage/>
-                    </FormItem>
-                )} />
-                <FormField control={form.control} name="from.phoneNumber" render={({field})=>(
-                    <FormItem>
-                        <FormLabel>{"Numéro de téléphone source"}</FormLabel>
-                        <FormControl>
-                            <Input type="number" {...field} placeholder="Ex. 694 562 002" />
-                        </FormControl>
-                        <FormDescription>{"Numéro de téléphone du si applicable"}</FormDescription>
-                        <FormMessage/>
-                    </FormItem>
-                )} />
+              <FormField
+                control={form.control}
+                name="from.label"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Nom de la source"}</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ex. Krest Holding" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="from.accountNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Compte bancaire source"}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        placeholder="Ex. 2350 0054"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {"Numéro de Compte Bancaire du client si applicable"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="from.phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Numéro de téléphone source"}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        placeholder="Ex. 694 562 002"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {"Numéro de téléphone du si applicable"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </>
-        }
+          )}
         </div>
         <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
-            <h3 className="@min-[640px]:col-span-2">{"Destinataire"}</h3>
-                {
-                    type === "CREDIT" ?
-                    <FormField control={form.control} name="toBankId" render={({field})=>(
-                        <FormItem>
-                            <FormLabel isRequired>{"Compte destinataire"}</FormLabel>
-                            <FormControl>
-                                <Select value={!!field.value ? String(field.value) : undefined} onValueChange={field.onChange}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Sélectionner un compte"/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {banks.map((bank)=>(
-                                            <SelectItem key={bank.id} value={String(bank.id)}>{bank.label}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </FormControl>
-                            <FormMessage/>
-                        </FormItem>
-                    )} />
-                    :
-                    <>
-                        <FormField control={form.control} name="to.label" render={({field})=>(
-                            <FormItem>
-                                <FormLabel isRequired>{"Nom du destinataire"}</FormLabel>
-                                <FormControl>
-                                    <Input {...field} placeholder="Ex. Krest Holding" />
-                                </FormControl>
-                                <FormMessage/>
-                            </FormItem>
-                        )} />
-                        <FormField control={form.control} name="to.accountNumber" render={({field})=>(
-                            <FormItem>
-                                <FormLabel>{"Compte bancaire destinataire"}</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} placeholder="Ex. 2350 0054" />
-                                </FormControl>
-                                <FormDescription>{"Numéro de Compte Bancaire du client si applicable"}</FormDescription>
-                                <FormMessage/>
-                            </FormItem>
-                        )} />
-                        <FormField control={form.control} name="to.phoneNumber" render={({field})=>(
-                            <FormItem>
-                                <FormLabel>{"Numéro de téléphone destinataire"}</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} placeholder="Ex. 694 562 002" />
-                                </FormControl>
-                                <FormDescription>{"Numéro de téléphone si applicable"}</FormDescription>
-                                <FormMessage/>
-                            </FormItem>
-                        )} />
-                    </>
-                }
+          <h3 className="@min-[640px]:col-span-2">{"Destinataire"}</h3>
+          {type === "CREDIT" ? (
+            <FormField
+              control={form.control}
+              name="toBankId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Compte destinataire"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={!!field.value ? String(field.value) : undefined}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner un compte" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {banks.map((bank) => (
+                          <SelectItem key={bank.id} value={String(bank.id)}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : (
+            <>
+              <FormField
+                control={form.control}
+                name="to.label"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Nom du destinataire"}</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ex. Krest Holding" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="to.accountNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Compte bancaire destinataire"}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        placeholder="Ex. 2350 0054"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {"Numéro de Compte Bancaire du client si applicable"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="to.phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Numéro de téléphone destinataire"}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        placeholder="Ex. 694 562 002"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {"Numéro de téléphone si applicable"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
         </div>
-        
+
         <FormField
-                  control={form.control}
-                  name="proof"
-                  render={({ field }) => (
-                    <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel isRequired>
-                        {"Justificatif"}
-                      </FormLabel>
-                      <FormControl>
-                        <FilesUpload
-                          value={field.value}
-                          onChange={field.onChange}
-                          name={field.name}
-                          acceptTypes="images"
-                          multiple={true}
-                          maxFiles={4}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+          control={form.control}
+          name="proof"
+          render={({ field }) => (
+            <FormItem className="@min-[640px]:col-span-2">
+              <FormLabel isRequired>{"Justificatif"}</FormLabel>
+              <FormControl>
+                <FilesUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  name={field.name}
+                  acceptTypes="images"
+                  multiple={true}
+                  maxFiles={4}
                 />
-                <div className="@min-[640px]:col-span-2 w-full inline-flex justify-end">
-                    <Button type="submit" variant={"primary"} disabled={create.isPending} isLoading={create.isPending}>{"Enregistrer"}</Button>
-                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="@min-[640px]:col-span-2 w-full inline-flex justify-end">
+          <Button
+            type="submit"
+            variant={"primary"}
+            disabled={create.isPending}
+            isLoading={create.isPending}
+          >
+            {"Enregistrer"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

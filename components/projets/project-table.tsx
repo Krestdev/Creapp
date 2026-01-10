@@ -22,7 +22,6 @@ import {
   LucidePen,
   PauseCircle,
   PlayCircle,
-  Search,
   Settings2,
   Trash2,
   XCircle,
@@ -56,21 +55,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ProjectQueries } from "@/queries/projectModule";
+import { projectQ } from "@/queries/projectModule";
 import { ProjectT, User } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
+import { Label } from "../ui/label";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
 import { DetailProject } from "./detail-project";
 import UpdateProject from "./UpdateProject";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { UserQueries } from "@/queries/baseModule";
-import { useFetchQuery } from "@/hooks/useData";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
-import { Label } from "../ui/label";
 
 // Interface pour tous les filtres
 export interface ProjectFilters {
@@ -83,14 +87,19 @@ export interface ProjectFilters {
 
 interface ProjectTableProps {
   data: ProjectT[];
-  usersData: User[]
+  usersData: User[];
 
   // Props pour les filtres (optionnelles pour compatibilité)
   filters?: ProjectFilters;
   setFilters?: React.Dispatch<React.SetStateAction<ProjectFilters>>;
 }
 
-export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTableProps) {
+export function ProjectTable({
+  data,
+  usersData,
+  filters,
+  setFilters,
+}: ProjectTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -203,11 +212,10 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
 
   const queryClient = useQueryClient();
 
-  const project = new ProjectQueries();
   const projectMutationData = useMutation({
     mutationKey: ["projectsStatus"],
     mutationFn: (data: { id: number; status: string }) =>
-      project.update(data.id, { status: data.status }),
+      projectQ.update(data.id, { status: data.status }),
     onSuccess: () => {
       // invalidate and refetch
       toast.success("Projet mis à jour avec succès !");
@@ -375,7 +383,9 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
             </span>
           );
         },
-        cell: ({ row }) => <div className="uppercase">{row.getValue("label")}</div>,
+        cell: ({ row }) => (
+          <div className="uppercase">{row.getValue("label")}</div>
+        ),
       },
       {
         accessorKey: "budget",
@@ -423,8 +433,17 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
           );
         },
         cell: ({ row }) => {
-          const chief = row.getValue("chief") as { id: number; firstName: string; lastName: string; post: string };
-          return <div>{chief ? chief.firstName + " " + chief.lastName : "Pas de chef"}</div>;
+          const chief = row.getValue("chief") as {
+            id: number;
+            firstName: string;
+            lastName: string;
+            post: string;
+          };
+          return (
+            <div>
+              {chief ? chief.firstName + " " + chief.lastName : "Pas de chef"}
+            </div>
+          );
         },
       },
       {
@@ -636,8 +655,6 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
     },
   });
 
-  const selectedRows = table.getFilteredSelectedRowModel().rows;
-
   return (
     <div className="content">
       <div className="flex flex-wrap justify-between gap-4">
@@ -677,7 +694,10 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
                       : "multiple"
                   }
                   onValueChange={(value) =>
-                    updateFilter("statusFilter", value === "all" ? "all" : value)
+                    updateFilter(
+                      "statusFilter",
+                      value === "all" ? "all" : value
+                    )
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -690,7 +710,9 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
                       return (
                         <SelectItem key={status} value={status}>
                           <div className="flex items-center gap-2">
-                            {badgeInfo.icon && <badgeInfo.icon className="h-4 w-4" />}
+                            {badgeInfo.icon && (
+                              <badgeInfo.icon className="h-4 w-4" />
+                            )}
                             {badgeInfo.label}
                           </div>
                         </SelectItem>
@@ -757,18 +779,18 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
                     {column.id === "reference"
                       ? "Référence"
                       : column.id === "label"
-                        ? "Projet"
-                        : column.id === "chief"
-                          ? "Chef Projet"
-                          : column.id === "budget"
-                            ? "Budget prévisionnel"
-                            : column.id === "status"
-                              ? "Statut"
-                              : column.id === "createdAt"
-                                ? "Date de création"
-                                : column.id === "userId"
-                                  ? "Créé par"
-                                  : column.id}
+                      ? "Projet"
+                      : column.id === "chief"
+                      ? "Chef Projet"
+                      : column.id === "budget"
+                      ? "Budget prévisionnel"
+                      : column.id === "status"
+                      ? "Statut"
+                      : column.id === "createdAt"
+                      ? "Date de création"
+                      : column.id === "userId"
+                      ? "Créé par"
+                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -792,9 +814,9 @@ export function ProjectTable({ data, usersData, filters, setFilters }: ProjectTa
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}

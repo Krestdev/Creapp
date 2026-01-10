@@ -7,9 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { UserQueries } from "@/queries/baseModule";
-import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
+import { userQ } from "@/queries/baseModule";
+import { projectQ } from "@/queries/projectModule";
+import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, CalendarFold, Hash, UserRound } from "lucide-react";
@@ -26,35 +26,34 @@ export function ModalDestockage({
   onOpenChange,
   data,
 }: DetailOrderProps) {
-  const users = new UserQueries();
-  const projects = new ProjectQueries();
-
   // Récupération des données
   const usersData = useQuery({
     queryKey: ["users"],
-    queryFn: async () => users.getAll(),
+    queryFn: async () => userQ.getAll(),
   });
 
   const projectsData = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => projects.getAll(),
+    queryFn: async () => projectQ.getAll(),
   });
 
   const queryClient = useQueryClient();
-  const request = new RequestQueries();
 
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (data: Partial<RequestModelT>) => {
       const id = data?.id;
       if (!id) throw new Error("ID de besoin manquant");
-      await request.update(Number(id), { state: "store" });
+      await requestQ.update(Number(id), { state: "store" });
       return { id: Number(id) };
     },
     onSuccess: (res) => {
       toast.success("Le besoin a été déstocké.");
       onOpenChange(false);
-      queryClient.invalidateQueries({ queryKey: ["requests"], refetchType: "active" });
+      queryClient.invalidateQueries({
+        queryKey: ["requests"],
+        refetchType: "active",
+      });
     },
     onError: (error) => {
       toast.error("Une erreur est survenue.");
@@ -62,9 +61,10 @@ export function ModalDestockage({
     },
   });
 
-  const emetteur = usersData.data?.data.find(
-    (u) => u.id === data?.userId
-  )?.firstName + " " + usersData.data?.data?.find((u) => u.id === data?.userId)?.lastName;
+  const emetteur =
+    usersData.data?.data.find((u) => u.id === data?.userId)?.firstName +
+    " " +
+    usersData.data?.data?.find((u) => u.id === data?.userId)?.lastName;
   const projet = projectsData.data?.data.find(
     (p) => p.id === data?.projectId
   )?.label;
@@ -169,7 +169,10 @@ export function ModalDestockage({
 
         {/* Footer buttons */}
         <div className="flex w-full justify-end gap-3 p-6 pt-0">
-          <Button onClick={handleDestockage} className="bg-primary hover:bg-primary/80 text-white">
+          <Button
+            onClick={handleDestockage}
+            className="bg-primary hover:bg-primary/80 text-white"
+          >
             {"Déstocker"}
           </Button>
           <Button

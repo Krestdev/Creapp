@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { CommandRequestT } from "@/types/types";
 
-export class CommandRqstQueries {
+class CommandRqstQueries {
   route = "/request/cmdrqst";
 
   // --------------------------------------
@@ -9,7 +9,10 @@ export class CommandRqstQueries {
   // --------------------------------------
 
   create = async (
-    data: Omit<CommandRequestT, "id" | "createdAt" | "updatedAt" | "reference" | "besoins" >
+    data: Omit<
+      CommandRequestT,
+      "id" | "createdAt" | "updatedAt" | "reference" | "besoins"
+    >
   ): Promise<{ data: CommandRequestT }> => {
     return api.post(this.route, data).then((response) => {
       console.log(response.data);
@@ -116,3 +119,5 @@ export class CommandRqstQueries {
       });
   };
 }
+
+export const commandRqstQ = new CommandRqstQueries();

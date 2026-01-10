@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { PurchaseOrder } from "@/queries/purchase-order";
+import { purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande, NavLink } from "@/types/types";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -26,14 +26,16 @@ const Page = () => {
     to: undefined,
   });
 
-  const purchaseOrderQuery = new PurchaseOrder();
   const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
     ["purchaseOrders"],
-    purchaseOrderQuery.getAll
+    purchaseQ.getAll
   );
 
   const { user } = useStore();
-  const auth = isRole({ roleList: user?.role || [], role: "Donner d'ordre achat" });
+  const auth = isRole({
+    roleList: user?.role || [],
+    role: "Donner d'ordre achat",
+  });
 
   const filteredData: Array<BonsCommande> = useMemo(() => {
     const list = data?.data ?? [];
@@ -83,7 +85,6 @@ const Page = () => {
   ];
 
   console.log(filteredData);
-  
 
   const Statistics: Array<StatisticProps> = [
     {
@@ -123,15 +124,16 @@ const Page = () => {
       more: {
         title: "Montant Total",
         value: XAF.format(
-          filteredData.filter((c) => c.status === "APPROVED").reduce(
-            (total, item) =>
-              total +
-              item.devi.element.filter(o=>o.status === "SELECTED").reduce(
-                (t, e) => t + e.priceProposed * e.quantity,
-                0
-              ),
-            0
-          )
+          filteredData
+            .filter((c) => c.status === "APPROVED")
+            .reduce(
+              (total, item) =>
+                total +
+                item.devi.element
+                  .filter((o) => o.status === "SELECTED")
+                  .reduce((t, e) => t + e.priceProposed * e.quantity, 0),
+              0
+            )
         ),
       },
     },

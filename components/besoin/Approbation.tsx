@@ -2,8 +2,8 @@
 
 import { DataValidation } from "@/components/base/dataValidation";
 import { useStore } from "@/providers/datastore";
-import { DepartmentQueries } from "@/queries/departmentModule";
-import { RequestQueries } from "@/queries/requestModule";
+import { departmentQ } from "@/queries/departmentModule";
+import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
@@ -159,13 +159,11 @@ const Approbation = ({
   setCustomDateRange,
 }: Props) => {
   const { isHydrated, user } = useStore();
-  const request = new RequestQueries();
 
-  const department = new DepartmentQueries();
   const departmentData = useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
-      return department.getAll();
+      return departmentQ.getAll();
     },
     enabled: isHydrated,
   });
@@ -173,7 +171,7 @@ const Approbation = ({
   const requestData = useQuery({
     queryKey: ["requests-validation"],
     queryFn: () => {
-      return request.getAll();
+      return requestQ.getAll();
     },
     enabled: isHydrated,
   });
@@ -194,7 +192,6 @@ const Approbation = ({
   const proceedData = useProceedData(filteredData, user, isLastValidator);
 
   console.log(pendingData);
-  
 
   return (
     <div className="flex flex-col gap-4">

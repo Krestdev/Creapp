@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/select";
 
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { ProjectQueries } from "@/queries/projectModule";
+import { userQ } from "@/queries/baseModule";
+import { projectQ } from "@/queries/projectModule";
 
 import { ProjectT, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -65,8 +65,6 @@ export default function UpdateProject({
     },
   });
 
-  const projectQueries = new ProjectQueries();
-  const userQueries = new UserQueries();
   const { isHydrated, user } = useStore();
   const queryClient = useQueryClient();
 
@@ -76,13 +74,16 @@ export default function UpdateProject({
         ProjectT,
         "reference" | "updatedAt" | "createdAt" | "id" | "chief"
       > & { chiefId: number }
-    ) => projectQueries.update(projectData?.id || 0, data),
+    ) => projectQ.update(projectData?.id || 0, data),
     onSuccess: (data: ResponseT<ProjectT>) => {
       toast.success("Projet mis à jour avec succès !");
       console.log("created successful:", data);
       form.reset();
       setOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["projectsList"], refetchType: "active" });
+      queryClient.invalidateQueries({
+        queryKey: ["projectsList"],
+        refetchType: "active",
+      });
     },
     onError: (error: any) => {
       toast.error("Une erreur est survenue lors de la mise à jour du projet.");
@@ -92,7 +93,7 @@ export default function UpdateProject({
 
   const userApi = useQuery({
     queryKey: ["usersList"],
-    queryFn: () => userQueries.getAll(),
+    queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
 
@@ -115,7 +116,7 @@ export default function UpdateProject({
       budget: values.budget,
       chiefId: parseInt(values.chiefid, 10),
       status: projectData?.status || "ongoing",
-      userId: user?.id!
+      userId: user?.id!,
     };
     projectApi.mutate(data);
   };
@@ -148,7 +149,8 @@ export default function UpdateProject({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-1">
                     <FieldLabel htmlFor="label">
-                      {"Titre du projet"} <span className="text-destructive">*</span>
+                      {"Titre du projet"}{" "}
+                      <span className="text-destructive">*</span>
                     </FieldLabel>
                     <Input
                       {...field}
@@ -174,7 +176,8 @@ export default function UpdateProject({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-1">
                     <FieldLabel htmlFor="description">
-                      {"Description"} <span className="text-destructive">*</span>
+                      {"Description"}{" "}
+                      <span className="text-destructive">*</span>
                     </FieldLabel>
                     <Textarea
                       {...field}
@@ -199,14 +202,15 @@ export default function UpdateProject({
                 render={({ field, fieldState }) => {
                   const options = userApi.data
                     ? userApi.data.data.map((user) => ({
-                      value: user.id,
-                      label: user.lastName + " " + user.firstName,
-                    }))
+                        value: user.id,
+                        label: user.lastName + " " + user.firstName,
+                      }))
                     : [];
                   return (
                     <Field data-invalid={fieldState.invalid} className="gap-1">
                       <FieldLabel htmlFor="chiefid">
-                        {"Chef de projet"} <span className="text-destructive">*</span>
+                        {"Chef de projet"}{" "}
+                        <span className="text-destructive">*</span>
                       </FieldLabel>
 
                       <Select

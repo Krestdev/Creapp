@@ -1,14 +1,13 @@
-'use client'
-import PageTitle from '@/components/pageTitle'
-import React from 'react'
-import { QuotationGroupTable } from '../quotation-group'
-import { useStore } from '@/providers/datastore'
-import ErrorPage from '@/components/error-page'
-import { QuotationQueries } from '@/queries/quotation'
-import { useFetchQuery } from '@/hooks/useData'
-import { ProviderQueries } from '@/queries/providers'
-import { CommandRqstQueries } from '@/queries/commandRqstModule'
-import LoadingPage from '@/components/loading-page'
+"use client";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
+import PageTitle from "@/components/pageTitle";
+import { useFetchQuery } from "@/hooks/useData";
+import { useStore } from "@/providers/datastore";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { providerQ } from "@/queries/providers";
+import { quotationQ } from "@/queries/quotation";
+import { QuotationGroupTable } from "../quotation-group";
 
 function Page() {
   const { user } = useStore();
@@ -16,36 +15,35 @@ function Page() {
     (r) => r.label === "SALES_MANAGER" || r.label === "ADMIN"
   );
 
-  const quotationQuery = new QuotationQueries();
-  const quotations = useFetchQuery(
-    ["quotations"],
-    quotationQuery.getAll
-  );
+  const quotations = useFetchQuery(["quotations"], quotationQ.getAll);
   /**Providers fetch */
-  const providersQuery = new ProviderQueries();
-  const providers = useFetchQuery(["providers"], providersQuery.getAll);
+
+  const providers = useFetchQuery(["providers"], providerQ.getAll);
   /**Commands fetch */
-  const commandsQuery = new CommandRqstQueries();
-  const commands = useFetchQuery(["commands"], commandsQuery.getAll, 30000);
+  const commands = useFetchQuery(["commands"], commandRqstQ.getAll, 30000);
 
   if (!isAdmin) {
-    return <ErrorPage statusCode={401} />
+    return <ErrorPage statusCode={401} />;
   }
   if (quotations.isError || providers.isError || commands.isError) {
-    return <ErrorPage />
+    return <ErrorPage />;
   }
   if (quotations.isSuccess && providers.isSuccess && commands.isSuccess)
     return (
       <div className="content">
-        <PageTitle title="Approbation des devis" subtitle="Sélectionnez les éléments des devis à valider" color="green" />
+        <PageTitle
+          title="Approbation des devis"
+          subtitle="Sélectionnez les éléments des devis à valider"
+          color="green"
+        />
         <QuotationGroupTable
           providers={providers.data.data}
           quotations={quotations.data.data}
           requests={commands.data.data}
         />
       </div>
-    )
-  return <LoadingPage />
+    );
+  return <LoadingPage />;
 }
 
-export default Page
+export default Page;

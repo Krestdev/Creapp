@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ProviderQueries } from "@/queries/providers";
+import { providerQ } from "@/queries/providers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -44,10 +44,9 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
     },
   });
 
-  const providerQueries = new ProviderQueries();
   const { mutate: registerProvider, isPending } = useMutation({
     mutationKey: ["registerNewProvider"],
-    mutationFn: (data: { name: string }) => providerQueries.create(data),
+    mutationFn: (data: { name: string }) => providerQ.create(data),
     // Dans ProviderDialog, modifiez le onSuccess :
     onSuccess: () => {
       toast.success("Fournisseur ajouté avec succès !");

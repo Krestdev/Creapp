@@ -18,6 +18,7 @@ import {
   Type,
   Box,
   LucideProps,
+  Stamp,
 } from "lucide-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
@@ -66,6 +67,27 @@ export default function SettingsPage() {
               pageId: "PG-08-03",
               title: "Roles d'utilisateur",
               href: "/tableau-de-bord/settings/utilisateurs/roles",
+              authorized: ["ADMIN"],
+            },
+          ],
+        },
+        {
+          title: "Signatairs",
+          description: "Geres les fourniseur",
+          icon: Stamp,
+          href: "/tableau-de-bord/settings/signatairs",
+          color: "from-green-500 to-green-600",
+          items: [
+            {
+              pageId: "PG-08-02",
+              title: "Liste des Signatairs",
+              href: "/tableau-de-bord/settings/signatairs",
+              authorized: ["ADMIN"],
+            },
+            {
+              pageId: "PG-08-01",
+              title: "Assigner un Signatair",
+              href: "/tableau-de-bord/settings/signatairs/create",
               authorized: ["ADMIN"],
             },
           ],

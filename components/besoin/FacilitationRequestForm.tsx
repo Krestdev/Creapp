@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
-import { RequestQueries } from "@/queries/requestModule";
+import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,8 +22,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { SearchableSelect } from "../base/searchableSelect";
-import { ProjectQueries } from "@/queries/projectModule";
-import { UserQueries } from "@/queries/baseModule";
+import { projectQ } from "@/queries/projectModule";
+import { userQ } from "@/queries/baseModule";
 import FilesUpload from "../comp-547";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { format } from "date-fns";
@@ -94,30 +94,30 @@ export default function FacilitationRequestForm() {
   // ----------------------------------------------------------------------
   // QUERY PROJECTS
   // ----------------------------------------------------------------------
-  const projects = new ProjectQueries();
+
   const projectsData = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => projects.getAll(),
+    queryFn: async () => projectQ.getAll(),
   });
 
   // ----------------------------------------------------------------------
   // QUERY USERS
   // ----------------------------------------------------------------------
-  const users = new UserQueries();
+
   const usersData = useQuery({
     queryKey: ["users"],
-    queryFn: async () => users.getAll(),
+    queryFn: async () => userQ.getAll(),
   });
 
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
-  const request = new RequestQueries();
+
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (
       data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
-    ) => request.special(data),
+    ) => requestQ.special(data),
 
     onSuccess: () => {
       toast.success("Besoin soumis avec succès !");
@@ -170,7 +170,13 @@ export default function FacilitationRequestForm() {
       type: "facilitation",
       state: "pending",
       priority: "medium",
-      benFac: { list: beneficiairesList.map((b) => ({ id: b.id, name: b.nom, amount: b.montant })) },
+      benFac: {
+        list: beneficiairesList.map((b) => ({
+          id: b.id,
+          name: b.nom,
+          amount: b.montant,
+        })),
+      },
     };
     requestMutation.mutate(requestData);
   }
@@ -343,7 +349,10 @@ export default function FacilitationRequestForm() {
             )}
           />
 
-          <BeneficiairesList initialBeneficiaires={beneficiairesList} onBeneficiairesChange={setBeneficiairesList} />
+          <BeneficiairesList
+            initialBeneficiaires={beneficiairesList}
+            onBeneficiairesChange={setBeneficiairesList}
+          />
 
           {/* JUSTIFICATIF */}
           <FormField

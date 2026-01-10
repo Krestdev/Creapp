@@ -20,8 +20,6 @@ const CreateDepensePage = () => {
 
   const userRoles = user?.role?.flatMap((x) => x.label) || [];
 
-  const hasRole = (role: string) => userRoles.includes(role);
-
   const renderForm = () => {
     switch (typeDepense) {
       case "Transport":
