@@ -28,12 +28,16 @@ const CreateResquestPage = () => {
 
   const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll);
 
-  if (getRequestType.isLoading || getRequestType.data?.data.length === 0) {
+  if (getRequestType.isLoading) {
     return <LoadingPage />;
   }
 
   if (getRequestType.isError) {
     return <ErrorPage />;
+  }
+
+  if (getRequestType.data?.data.length === 0) {
+    return <ErrorPage message={"Aucun type de besoin trouvé"} />;
   }
 
   if (getRequestType.isSuccess && getRequestType.data?.data.length > 0) {

@@ -29,6 +29,7 @@ import {
   ScrollText,
   SettingsIcon,
   Ticket,
+  ReceiptIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -310,7 +311,7 @@ function AppSidebar() {
           title: "Mes besoins",
           href: "/tableau-de-bord/besoins/mylist",
           authorized: ["ADMIN", "MANAGER", "USER"],
-          badgeValue: besoinDéstocké,
+          badgeValue: besoinDéstocké > 0 ? besoinDéstocké : undefined,
         },
         {
           pageId: "PG-02-03",
@@ -319,12 +320,12 @@ function AppSidebar() {
           authorized: ["ADMIN", "MANAGER"],
           badgeValue: pendingData?.length > 0 ? pendingData?.length : undefined,
         },
-        {
-          pageId: "PG-09-03",
-          title: "Catégories",
-          href: "/tableau-de-bord/besoins/categories",
-          authorized: ["ADMIN"],
-        },
+        // {
+        //   pageId: "PG-09-03",
+        //   title: "Catégories",
+        //   href: "/tableau-de-bord/besoins/categories",
+        //   authorized: ["ADMIN"],
+        // },
       ],
     },
     {
@@ -383,18 +384,19 @@ function AppSidebar() {
           authorized: ["ADMIN", "SALES"],
         },
         {
-          pageId: "PG-03-07",
-          title: "Factures",
-          href: "/tableau-de-bord/commande/factures/validation",
-          authorized: ["ADMIN", "SALES"],
-        },
-        {
           pageId: "PG-03-065897",
           title: "Statistiques",
           href: "/tableau-de-bord/commande/bon-de-commande/statistiques",
           authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
         },
       ],
+    },
+    {
+      pageId: "PG-03-07",
+      title: "Factures",
+      href: "/tableau-de-bord/factures",
+      authorized: ["ADMIN", "ACCOUNTING"],
+      icon: ReceiptIcon,
     },
     {
       pageId: "PG-04",

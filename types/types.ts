@@ -43,10 +43,10 @@ export type UserRole = "admin" | "user";
 //   role: UserRole;
 // };
 export const PAYMENT_TYPES = [
-  { value: "FAC", name: "Facilitation" },
-  { value: "RH", name: "Ressources Humaines" },
-  { value: "SPECIAL", name: "Spécial" },
-  { value: "PURCHASE", name: "Achat" },
+  { value: "facilitation", name: "Facilitation" },
+  { value: "ressource_humaine", name: "Ressources Humaines" },
+  { value: "speciaux", name: "Spécial" },
+  { value: "achat", name: "Achat" },
   { value: "CURRENT", name: "Dépenses Courantes" },
 ] as const;
 
@@ -569,7 +569,7 @@ export const TRANSACTION_STATUS = [
   { value: "ACCEPTED", name: "Accepté" },
 ] as const;
 
-export type Transaction = {
+export type TransactionBase = {
   id: number;
   label: string;
   amount: number;
@@ -577,13 +577,31 @@ export type Transaction = {
   createdAt: Date;
   status: (typeof TRANSACTION_STATUS)[number]["value"];
   Type: (typeof TRANSACTION_TYPES)[number]["value"];
-  from: Bank | { label: string; accountNumber?: string; phoneNumber?: string };
-  to: Bank | { label: string; accountNumber?: string; phoneNumber?: string };
   proof?: string;
   userId: number;
-  reason?:string;
+  reason?: string;
   validatorId?: number;
 };
+
+export type DebitTransaction = TransactionBase & {
+  Type: "DEBIT";
+  from: Bank;
+  to: { label: string; accountNumber?: string; phoneNumber?: string };
+};
+
+export type CreditTransaction = TransactionBase & {
+  Type: "CREDIT";
+  from: { label: string; accountNumber?: string; phoneNumber?: string };
+  to: Bank;
+};
+
+export type TransferTransaction = TransactionBase & {
+  Type: "TRANSFER";
+  from: Bank;
+  to: Bank;
+};
+
+export type Transaction = DebitTransaction | CreditTransaction | TransferTransaction;
 
 export interface TableFilters {
   globalFilter: string;

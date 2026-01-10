@@ -26,7 +26,7 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Trash2, Plus, ChevronUp, ChevronDown } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { userQ } from "@/queries/baseModule";
 import {
@@ -56,9 +56,8 @@ export const formSchema = z.object({
         rank: z.number().min(1).max(3),
       })
     )
-    .max(3, "Maximum 3 ascendants autorisés")
-    .optional()
-    .default([]),
+    .min(1, "Au moins un ascendant est requis") // MODIFICATION: minimum 1 validateur
+    .max(3, "Maximum 3 ascendants autorisés"),
   description: z.string().optional(),
 });
 
@@ -77,6 +76,7 @@ export function UpdateCategory({
   categoryData,
   onSuccess,
 }: UpdateCategoryProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -106,14 +106,23 @@ export function UpdateCategory({
   // Réinitialiser le formulaire quand les données changent
   useEffect(() => {
     if (categoryData) {
+      const validators = categoryData.validators || [];
+
+      // S'assurer qu'il y a au moins un validateur
+      if (validators.length === 0 && categoryData.id !== 0) {
+        toast.warning(
+          "Cette catégorie n'a pas d'ascendant. Veuillez en ajouter au moins un."
+        );
+      }
+
       form.reset({
         label: categoryData.label || "",
         description: categoryData.description || "",
-        validators:
-          categoryData.validators?.map((validator) => ({
-            userId: validator.userId,
-            rank: validator.rank,
-          })) || [],
+        validators: validators.map((validator) => ({
+          id: validator.id,
+          userId: validator.userId,
+          rank: validator.rank,
+        })),
       });
     }
   }, [categoryData, form]);
@@ -121,11 +130,19 @@ export function UpdateCategory({
   const categoryApi = useMutation({
     mutationKey: ["updateCategory"],
     mutationFn: async (data: Partial<Category>) => {
-      const response = await categoryQ.updateCategory(categoryData?.id!, data);
-      return {
-        message: "Category updated successfully",
-        data: response.data,
-      } as ResponseT<Category>;
+      setIsLoading(true);
+      try {
+        const response = await categoryQueries.updateCategory(
+          categoryData?.id!,
+          data
+        );
+        return {
+          message: "Category updated successfully",
+          data: response.data,
+        } as ResponseT<Category>;
+      } finally {
+        setIsLoading(false);
+      }
     },
     onSuccess: (data: ResponseT<Category>) => {
       toast.success("Catégorie mise à jour avec succès !");
@@ -196,6 +213,30 @@ export function UpdateCategory({
     }
   };
 
+  // MODIFICATION: Fonction pour supprimer un ascendant avec vérification
+  const removeValidator = (index: number) => {
+    // Vérifier qu'on ne supprime pas le dernier ascendant
+    if (fields.length <= 1) {
+      toast.error("Au moins un ascendant doit être présent");
+      return;
+    }
+
+    // Vérifier si c'est un ascendant existant (avec ID)
+    const validator = fields[index];
+    if (validator.id) {
+      // C'est un ascendant existant, demander confirmation
+      const userName = getUserName(validator.userId);
+      if (
+        confirm(`Êtes-vous sûr de vouloir supprimer l'ascendant ${userName} ?`)
+      ) {
+        remove(index);
+      }
+    } else {
+      // C'est un nouvel ascendant, suppression directe
+      remove(index);
+    }
+  };
+
   // Fonction pour obtenir le nom d'un utilisateur par son ID
   const getUserName = (userId: number) => {
     const users = usersData.data?.data || [];
@@ -220,32 +261,28 @@ export function UpdateCategory({
   };
 
   const onsubmit = (values: z.infer<typeof formSchema>) => {
+    // Vérifier qu'il y a au moins un ascendant
+    if (!values.validators || values.validators.length === 0) {
+      toast.error("Au moins un ascendant est requis");
+      return;
+    }
     if (categoryData?.id === undefined) {
-      console.log(categoryData?.id);
       toast.error("ID de catégorie manquant");
       return;
     }
 
     // Préparer les ascendants avec les rangs mis à jour
-    const validators =
-      values.validators?.map((validator, index) => ({
-        userId: validator.userId,
-        rank: index + 1,
-      })) || [];
+    const validators = values.validators.map((validator, index) => ({
+      id: validator.id, // Conserver l'ID existant si présent
+      userId: validator.userId,
+      rank: index + 1,
+    }));
 
-    const data: Partial<Category> & {
-      validators?: { id?: number; userId: number; rank: number }[];
-    } = {
+    const data: Partial<Category> = {
       label: values.label,
       description: values.description || undefined,
+      validators: validators,
     };
-
-    // Toujours inclure les validators, même si le tableau est vide
-    // Conversion explicite pour résoudre l'erreur TypeScript
-    data.validators = validators.map((v) => ({
-      userId: v.userId,
-      rank: v.rank,
-    }));
 
     categoryApi.mutate(data);
   };
@@ -322,16 +359,26 @@ export function UpdateCategory({
                     {`Ajoutez jusqu'à 3 ascendants dans l'ordre d'approbation souhaité`}
                   </p>
                 </div>
-                {/* <Button
+                <Button
                   type="button"
                   variant="outline"
                   onClick={addValidator}
-                  disabled={fields.length >= 3}
+                  disabled={fields.length >= 3 || isLoading}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter un ascendant
-                </Button> */}
+                </Button>
               </div>
+
+              {/* Message d'information */}
+              {fields.length === 1 && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-sm text-blue-700">
+                    ⓘ Au moins un ascendant doit être présent. Vous ne pouvez
+                    pas supprimer le dernier ascendant.
+                  </p>
+                </div>
+              )}
 
               {/* Liste des ascendants */}
               {fields.length > 0 ? (
@@ -356,7 +403,7 @@ export function UpdateCategory({
                             variant="ghost"
                             size="icon"
                             onClick={() => moveUp(index)}
-                            disabled={index === 0}
+                            disabled={index === 0 || isLoading}
                             title="Déplacer vers le haut"
                           >
                             <ChevronUp className="h-4 w-4" />
@@ -366,7 +413,7 @@ export function UpdateCategory({
                             variant="ghost"
                             size="icon"
                             onClick={() => moveDown(index)}
-                            disabled={index === fields.length - 1}
+                            disabled={index === fields.length - 1 || isLoading}
                             title="Déplacer vers le bas"
                           >
                             <ChevronDown className="h-4 w-4" />
@@ -375,9 +422,18 @@ export function UpdateCategory({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            onClick={() => remove(index)}
-                            className="text-red-500 hover:text-red-700"
-                            title="Supprimer"
+                            onClick={() => removeValidator(index)}
+                            disabled={fields.length <= 1 || isLoading} // MODIFICATION: désactivé si seul ascendant
+                            className={`text-red-500 hover:text-red-700 ${
+                              fields.length <= 1
+                                ? "opacity-50 cursor-not-allowed"
+                                : ""
+                            }`}
+                            title={
+                              fields.length <= 1
+                                ? "Au moins un ascendant est requis"
+                                : "Supprimer"
+                            }
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -397,6 +453,7 @@ export function UpdateCategory({
                                 onValueChange={(value) =>
                                   field.onChange(parseInt(value))
                                 }
+                                disabled={isLoading}
                               >
                                 <FormControl>
                                   <SelectTrigger>
@@ -449,41 +506,25 @@ export function UpdateCategory({
                       )}
                     </div>
                   ))}
-                  {/* Je vérifie qu'il y'a encore des utilisateurs disponible  */}
-                  {getAvailableUsers(fields.length - 1).length > 0 && (
-                    <div className="flex flex-col items-center justify-center mt-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={addValidator}
-                        disabled={fields.length >= 3}
-                        className="h-12 w-12 rounded-full bg-muted flex items-center justify-center"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      {"Ajouter un ascendant"}
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="text-center py-6 border rounded-lg bg-muted/10">
-                  <div className="flex flex-col items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addValidator}
-                      disabled={fields.length >= 3}
-                      className="h-12 w-12 rounded-full bg-muted flex items-center justify-center"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                    <p className="text-muted-foreground">
-                      {"Aucun ascendant configuré"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {`Cliquez sur "Ajouter un ascendant" pour configurer la chaîne d'approbation`}
-                    </p>
-                  </div>
+                  <p className="text-muted-foreground">
+                    {"Aucun ascendant configuré"}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {`Vous devez ajouter au moins un ascendant`}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addValidator}
+                    disabled={isLoading}
+                    className="mt-4"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter le premier ascendant
+                  </Button>
                 </div>
               )}
             </div>
@@ -495,15 +536,20 @@ export function UpdateCategory({
               type="submit"
               className="w-fit"
               onClick={form.handleSubmit(onsubmit)}
-              disabled={categoryApi.isPending}
+              disabled={
+                categoryApi.isPending || isLoading || fields.length === 0
+              }
             >
-              {categoryApi.isPending ? "Mise à jour..." : "Enregistrer"}
+              {categoryApi.isPending || isLoading
+                ? "Mise à jour..."
+                : "Enregistrer"}
             </Button>
             <Button
               type="button"
               className="w-fit"
               onClick={() => setOpen(false)}
               variant={"outline"}
+              disabled={isLoading}
             >
               {"Annuler"}
             </Button>

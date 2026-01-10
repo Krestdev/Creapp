@@ -15,6 +15,7 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
 import ExpensesTable from "../expenses-table";
+import { RequestTypeQueries } from "@/queries/requestType";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -31,23 +32,52 @@ function Page() {
     paymentQ.getAll,
     30000
   );
+
+  const requestTypeQueries = new RequestTypeQueries();
+  const getRequestType = useFetchQuery(
+    ["requestType"],
+    requestTypeQueries.getAll,
+    30000
+  );
+
   const getPurchases = useFetchQuery(
     ["purchaseOrders"],
     purchaseQ.getAll,
     30000
   );
   const getBanks = useFetchQuery(["banks"], bankQ.getAll, 30000);
-  if (isLoading || getPurchases.isLoading || getBanks.isLoading) {
+  if (
+    isLoading ||
+    getPurchases.isLoading ||
+    getBanks.isLoading ||
+    getRequestType.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (isError || getPurchases.isError || getBanks.isError) {
+  if (
+    isError ||
+    getPurchases.isError ||
+    getBanks.isError ||
+    getRequestType.isError
+  ) {
     return (
       <ErrorPage
-        error={error || getPurchases.error || getBanks.error || undefined}
+        error={
+          error ||
+          getPurchases.error ||
+          getBanks.error ||
+          getRequestType.error ||
+          undefined
+        }
       />
     );
   }
-  if (isSuccess && getPurchases.isSuccess && getBanks.isSuccess) {
+  if (
+    isSuccess &&
+    getPurchases.isSuccess &&
+    getBanks.isSuccess &&
+    getRequestType.isSuccess
+  ) {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente",
@@ -126,6 +156,7 @@ function Page() {
           banks={getBanks.data.data}
           type="pending"
           purchases={getPurchases.data.data}
+          requestTypes={getRequestType.data.data}
         />
         <ExpensesTable
           payments={data.data.filter(
@@ -134,6 +165,7 @@ function Page() {
           type="validated"
           banks={getBanks.data.data}
           purchases={getPurchases.data.data}
+          requestTypes={getRequestType.data.data}
         />
       </div>
     );

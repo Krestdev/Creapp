@@ -9,6 +9,7 @@ import Tickets from "@/components/ticket/tickets";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
+import { RequestTypeQueries } from "@/queries/requestType";
 
 function Page() {
   const { user } = useStore();
@@ -19,13 +20,20 @@ function Page() {
     30000
   );
 
-  if (isLoading) {
+  const requestTypeQueries = new RequestTypeQueries();
+  const getRequestType = useFetchQuery(
+    ["requestType"],
+    requestTypeQueries.getAll,
+    30000
+  );
+
+  if (isLoading || getRequestType.isLoading) {
     return <LoadingPage />;
   }
-  if (isError) {
-    return <ErrorPage error={error} />;
+  if (isError || getRequestType.isError) {
+    return <ErrorPage error={error || getRequestType.error!} />;
   }
-  if (isSuccess) {
+  if (isSuccess && getRequestType.isSuccess) {
     const ticketsData = data?.data.filter(
       (ticket) => ticket.status !== "ghost"
     );
@@ -80,7 +88,10 @@ function Page() {
           </>
         )}
         {ticketsData.length > 0 ? (
-          <Tickets ticketsData={ticketsData.reverse()} />
+          <Tickets
+            ticketsData={ticketsData.reverse()}
+            requestTypeData={getRequestType.data?.data}
+          />
         ) : (
           <Empty message={"Aucun ticket disponible"} />
         )}

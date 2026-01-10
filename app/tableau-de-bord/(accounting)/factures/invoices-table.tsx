@@ -47,9 +47,9 @@ import {
 import { XAF } from "@/lib/utils";
 import { BonsCommande, PAY_STATUS, PaymentRequest } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
-import { Pagination } from "../base/pagination";
-import DetailPaiement from "../modals/detail-paiement";
-import { Label } from "../ui/label";
+import { Pagination } from "@/components//base/pagination";
+import DetailPaiement from "@/components/modals/detail-paiement";
+import { Label } from "@/components/ui/label";
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -73,7 +73,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-export function PaiementValTable({ payments, purchases }: Props) {
+export function InvoicesTable({ payments, purchases }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);

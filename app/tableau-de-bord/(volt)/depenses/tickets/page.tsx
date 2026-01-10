@@ -15,6 +15,7 @@ import {
   StatisticProps,
 } from "@/components/base/TitleValueCard";
 import { bankQ, BankQuery } from "@/queries/bank";
+import { RequestTypeQueries } from "@/queries/requestType";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
@@ -27,18 +28,46 @@ function Page() {
     purchaseQ.getAll,
     30000
   );
+  const requestTypeQueries = new RequestTypeQueries();
+  const getRequestType = useFetchQuery(
+    ["requestType"],
+    requestTypeQueries.getAll,
+    30000
+  );
+
   const getBanks = useFetchQuery(["banks"], bankQ.getAll, 35000);
-  if (isLoading || getPurchases.isLoading || getBanks.isLoading) {
+  if (
+    isLoading ||
+    getPurchases.isLoading ||
+    getRequestType.isLoading ||
+    getBanks.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (isError || getPurchases.isError || getBanks.isError) {
+  if (
+    isError ||
+    getPurchases.isError ||
+    getRequestType.isError ||
+    getBanks.isError
+  ) {
     return (
       <ErrorPage
-        error={error || getPurchases.error || getBanks.error || undefined}
+        error={
+          error ||
+          getPurchases.error ||
+          getRequestType.error ||
+          getBanks.error ||
+          undefined
+        }
       />
     );
   }
-  if (isSuccess && getPurchases.isSuccess && getBanks.isSuccess) {
+  if (
+    isSuccess &&
+    getPurchases.isSuccess &&
+    getRequestType.isSuccess &&
+    getBanks.isSuccess
+  ) {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente",
@@ -92,6 +121,7 @@ function Page() {
           type="pending"
           purchases={getPurchases.data.data}
           banks={getBanks.data.data}
+          requestTypes={getRequestType.data.data}
         />
         <ExpensesTable
           payments={data.data.filter(
@@ -100,6 +130,7 @@ function Page() {
           type="validated"
           purchases={getPurchases.data.data}
           banks={getBanks.data.data}
+          requestTypes={getRequestType.data.data}
         />
       </div>
     );

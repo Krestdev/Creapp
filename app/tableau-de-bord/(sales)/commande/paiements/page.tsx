@@ -68,7 +68,7 @@ function Page() {
           ))}
         </PageTitle>
         <PaiementsTable
-          payments={getPayments.data.data.filter((p) => p.type === "PURCHASE")}
+          payments={getPayments.data.data.filter((p) => p.type === "achat")}
           purchases={getPurchases.data.data}
         />
       </div>

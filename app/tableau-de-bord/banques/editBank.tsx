@@ -127,7 +127,9 @@ function EditBank({ open, openChange, bank }: Props) {
         Status: bank.Status,
         balance: bank.balance,
         justification:
-          bank.justification.length > 0 ? [bank.justification] : [],
+          !!bank.justification && bank.justification.length > 0
+            ? [bank.justification]
+            : [],
         accountNumber: !!bank.accountNumber ? bank.accountNumber : undefined,
         bankCode: !!bank.bankCode ? bank.bankCode : undefined,
         key: !!bank.key ? bank.key : undefined,
@@ -144,7 +146,10 @@ function EditBank({ open, openChange, bank }: Props) {
       type: bank.type,
       Status: bank.Status,
       balance: bank.balance,
-      justification: bank.justification.length > 0 ? [bank.justification] : [],
+      justification:
+        !!bank.justification && bank.justification.length > 0
+          ? [bank.justification]
+          : [],
       accountNumber: !!bank.accountNumber ? bank.accountNumber : undefined,
       bankCode: !!bank.bankCode ? bank.bankCode : undefined,
       key: !!bank.key ? bank.key : undefined,

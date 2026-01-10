@@ -42,9 +42,8 @@ export const formSchema = z.object({
         rank: z.number().min(1).max(3),
       })
     )
-    .min(1, "Sélectionnez au moins un utilisateur")
+    .min(1, "Definissez au minimum un ascendant")
     .max(3, "Maximum 3 ascendants autorisés")
-    .optional()
     .default([]),
   description: z.string().min(1, { message: "Ce champ est obligatoire" }),
 });

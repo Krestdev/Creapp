@@ -10,6 +10,7 @@ import { transactionQ } from "@/queries/transaction";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
 import TransactionTable from "./transaction-table";
+import { BankQuery } from "@/queries/bank";
 
 function Page() {
   const { user } = useStore();
@@ -27,14 +28,18 @@ function Page() {
     transactionQ.getAll,
     500000
   );
+  const bankQuery = new BankQuery();
+  const getBanks = useFetchQuery(["banks"], bankQuery.getAll, 50000);
 
-  if (getTransactions.isLoading) {
+  if (getTransactions.isLoading || getBanks.isLoading) {
     return <LoadingPage />;
   }
-  if (getTransactions.isError) {
-    return <ErrorPage error={getTransactions.error} />;
+  if (getTransactions.isError || getBanks.isError) {
+    return (
+      <ErrorPage error={getTransactions.error || getBanks.error || undefined} />
+    );
   }
-  if (getTransactions.isSuccess)
+  if (getTransactions.isSuccess && getBanks.isSuccess)
     return (
       <div className="content">
         <PageTitle
@@ -68,6 +73,7 @@ function Page() {
         <TransactionTable
           data={getTransactions.data.data.filter((t) => t.Type !== "TRANSFER")}
           canEdit={true}
+          banks={getBanks.data.data}
           filterByType
         />
       </div>
