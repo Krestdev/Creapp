@@ -16,10 +16,30 @@ import {
   Car,
   BookCopy,
   Type,
+  Box,
+  LucideProps,
 } from "lucide-react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export default function SettingsPage() {
-  const settingsGroups = [
+  const settingsGroups: {
+    category: string;
+    items: {
+      title: string;
+      description: string;
+      icon: ForwardRefExoticComponent<
+        Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
+      >;
+      href: string;
+      color: string;
+      items?: {
+        pageId: string;
+        title: string;
+        href: string;
+        authorized: string[];
+      }[];
+    }[];
+  }[] = [
     {
       category: "Gestion",
       items: [
@@ -31,7 +51,7 @@ export default function SettingsPage() {
           color: "from-purple-500 to-purple-600",
           items: [
             {
-              pageId: "PG-08-02",
+              pageId: "PG-08-01",
               title: "Liste de utilisateur",
               href: "/tableau-de-bord/settings/utilisateurs",
               authorized: ["ADMIN"],
@@ -40,6 +60,12 @@ export default function SettingsPage() {
               pageId: "PG-08-02",
               title: "Cree un utilisateur",
               href: "/tableau-de-bord/settings/utilisateurs/create",
+              authorized: ["ADMIN"],
+            },
+            {
+              pageId: "PG-08-03",
+              title: "Roles d'utilisateur",
+              href: "/tableau-de-bord/settings/utilisateurs/roles",
               authorized: ["ADMIN"],
             },
           ],
@@ -68,9 +94,9 @@ export default function SettingsPage() {
         {
           title: "Besoins",
           description: "Geres les besoins",
-          icon: Building2,
+          icon: Box,
           href: "/tableau-de-bord/settings/besoins",
-          color: "from-amber-500 to-amber-600",
+          color: "from-yellow-500 to-yellow-600",
           items: [
             {
               pageId: "PG-08-02",
@@ -86,13 +112,13 @@ export default function SettingsPage() {
             },
           ],
         },
-        {
-          title: "Roles & Permissions",
-          description: "Configure access levels and roles",
-          icon: Shield,
-          href: "/tableau-de-bord/settings/roles",
-          color: "from-green-500 to-green-600",
-        },
+        // {
+        //   title: "Roles & Permissions",
+        //   description: "Configure access levels and roles",
+        //   icon: Shield,
+        //   href: "/tableau-de-bord/settings/utilisateurs/roles",
+        //   color: "from-green-500 to-green-600",
+        // },
       ],
     },
     {
