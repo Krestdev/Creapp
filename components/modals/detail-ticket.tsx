@@ -204,7 +204,7 @@ export function DetailTicket({
               </div>
 
               {/* Periode */}
-              {data?.type === "RH" && (
+              {data?.type === "ressource_humaine" && (
                 <>
                   <div className="flex items-start gap-3">
                     <div className="mt-1">
@@ -265,7 +265,7 @@ export function DetailTicket({
                 </>
               )}
 
-              {data?.type !== "RH" && <div className="flex items-start gap-3">
+              {data?.type !== "ressource_humaine" && <div className="flex items-start gap-3">
                 <div className="mt-1">
                   <Users className="h-5 w-5 text-muted-foreground" />
                 </div>
@@ -309,7 +309,7 @@ export function DetailTicket({
                 </div>
               </div>}
 
-              {data?.type === "FAC" &&
+              {data?.type === "facilitation" &&
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <Users className="h-5 w-5 text-muted-foreground" />

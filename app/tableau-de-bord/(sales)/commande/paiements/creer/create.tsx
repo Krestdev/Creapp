@@ -40,11 +40,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
-const METHOD = PAYMENT_METHOD.map(m=> m.value) as [
+const METHOD = PAYMENT_METHOD.map(m => m.value) as [
   (typeof PAYMENT_METHOD)[number]["value"],
   ...(typeof PAYMENT_METHOD)[number]["value"][]
 ];
-const PAY_PRIORITY = PRIORITIES.map(m=> m.value) as [
+const PAY_PRIORITY = PRIORITIES.map(m => m.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][]
 ];
@@ -63,11 +63,11 @@ const formSchema = z.object({
   method: z.enum(METHOD),
   priority: z.enum(PAY_PRIORITY),
   proof: z.array(
-      z.union([
-        z.instanceof(File, { message: "Doit être un fichier valide" }),
-        z.string(),
-      ])
-    ).min(1, "Veuillez ajouter un élément")
+    z.union([
+      z.instanceof(File, { message: "Doit être un fichier valide" }),
+      z.string(),
+    ])
+  ).min(1, "Veuillez ajouter un élément")
     .max(1, "Un seul justificatif autorisé")
 });
 
@@ -92,9 +92,9 @@ function CreatePaiement({ purchases }: Props) {
     defaultValues: {
       commandId: undefined,
       deadline: format(new Date(), "yyyy-MM-dd"),
-      isPartial:  false,
+      isPartial: false,
       price: 0,
-      method: "bank-transfer" ,
+      method: "bank-transfer",
       priority: "high",
       proof: [],
     },
@@ -104,37 +104,37 @@ function CreatePaiement({ purchases }: Props) {
   const isPartial = form.watch("isPartial");
 
   const createPayment = useMutation({
-    mutationFn: async(payload:NewPayment) => paymentQuery.new(payload),
-    onSuccess: ()=>{
+    mutationFn: async (payload: NewPayment) => paymentQuery.new(payload),
+    onSuccess: () => {
       toast.success("Votre paiement a été initié avec succès !");
-      queryClient.invalidateQueries({queryKey:["payments","purchaseOrders"], refetchType: "active"});
+      queryClient.invalidateQueries({ queryKey: ["payments", "purchaseOrders"], refetchType: "active" });
       router.push("./");
     },
-    onError:(error:Error)=>{
+    onError: (error: Error) => {
       toast.error(error.message);
     }
   })
 
   function onSubmit(values: FormValues) {
-    const purchase = purchases.find(p=>p.id === values.commandId);
-    if(!purchase){
+    const purchase = purchases.find(p => p.id === values.commandId);
+    if (!purchase) {
       form.setError("commandId", { message: "Bon de commande invalide" })
       return toast.error("Bon de commande invalide");
     }
-    if(!(values.proof[0] instanceof File)){
+    if (!(values.proof[0] instanceof File)) {
       return toast.error("La preuve doit être un fichier")
     }
-    if(!values.isPartial && values.price !== totalAmountPurchase(purchase)){
+    if (!values.isPartial && values.price !== totalAmountPurchase(purchase)) {
       toast.error("Montant incorrect !");
-      return form.setError("price", {message: "Le montant doit être égale au montant total du Bon de commande"});
+      return form.setError("price", { message: "Le montant doit être égale au montant total du Bon de commande" });
     }
-    if(values.isPartial && values.price >= totalAmountPurchase(purchase) || !values.isPartial && values.price > totalAmountPurchase(purchase)){
+    if (values.isPartial && values.price >= totalAmountPurchase(purchase) || !values.isPartial && values.price > totalAmountPurchase(purchase)) {
       toast.error("Montant invalide !");
-      return form.setError("price", {message: "Votre montant est supérieur ou égal au montant total du bon de commande"})
+      return form.setError("price", { message: "Votre montant est supérieur ou égal au montant total du bon de commande" })
     }
     const payload: NewPayment = {
       method: values.method,
-      type: "PURCHASE",
+      type: "achat",
       deadline: new Date(values.deadline),
       title: purchase.devi.commandRequest.title,
       price: values.price,
@@ -147,16 +147,16 @@ function CreatePaiement({ purchases }: Props) {
     createPayment.mutate(payload)
   }
 
-  useEffect(()=>{
-    if(!!commandId){
-      const purchase = purchases.find(p=>p.id === commandId)
-      if(!purchase){
+  useEffect(() => {
+    if (!!commandId) {
+      const purchase = purchases.find(p => p.id === commandId)
+      if (!purchase) {
         toast.error("Bon de commande invalide");
-        return form.setError("commandId", {message: "Bon de commande invalide"});
+        return form.setError("commandId", { message: "Bon de commande invalide" });
       }
       form.setValue("price", totalAmountPurchase(purchase))
     }
-  },[commandId])
+  }, [commandId])
 
   return (
     <Form {...form}>

@@ -42,7 +42,7 @@ function Page() {
                     }
                     color={"red"}
                 />
-                <PaiementValTable payments={getPayments.data.data.filter(p => p.type === "PURCHASE")} purchases={getPurchases.data.data} />
+                <PaiementValTable payments={getPayments.data.data.filter(p => p.type === "achat")} purchases={getPurchases.data.data} />
             </div>
         );
 };

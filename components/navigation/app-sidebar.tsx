@@ -327,7 +327,7 @@ function AppSidebar() {
           title: "Mes besoins",
           href: "/tableau-de-bord/besoins/mylist",
           authorized: ["ADMIN", "MANAGER", "USER"],
-          badgeValue: besoinDéstocké,
+          badgeValue: besoinDéstocké > 0 ? besoinDéstocké : undefined,
         },
         {
           pageId: "PG-02-03",
@@ -426,9 +426,9 @@ function AppSidebar() {
           href: "/tableau-de-bord/ticket",
           authorized: ["ADMIN", "VOLT_MANAGER"],
           badgeValue:
-        pendingTicket && pendingTicket?.length > 0
-          ? pendingTicket?.length
-          : undefined,
+            pendingTicket && pendingTicket?.length > 0
+              ? pendingTicket?.length
+              : undefined,
         },
         {
           pageId: "PG-04-02",

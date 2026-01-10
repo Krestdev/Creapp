@@ -61,6 +61,7 @@ import {
   PAYMENT_TYPES,
   PaymentRequest,
   PRIORITIES,
+  RequestType,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
@@ -112,6 +113,7 @@ interface Props {
   purchases: Array<BonsCommande>;
   type: "pending" | "validated";
   banks: Array<Bank>;
+  requestTypes: Array<RequestType>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -156,29 +158,40 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function getTypeBadge(type: PaymentRequest["type"]): {
-  label: string;
-  variant: VariantProps<typeof badgeVariants>["variant"];
-} {
-  const typeData = PAYMENT_TYPES.find((t) => t.value === type);
-  const label = typeData?.name ?? "Inconnu";
-  switch (type) {
-    case "FAC":
-      return { label, variant: "lime" };
-    case "PURCHASE":
-      return { label, variant: "sky" };
-    case "SPECIAL":
-      return { label, variant: "purple" };
-    case "RH":
-      return { label, variant: "blue" };
-    case "CURRENT":
-      return { label, variant: "secondary" };
-    default:
-      return { label: type, variant: "outline" };
-  }
-}
 
-function ExpensesTable({ payments, purchases, type, banks }: Props) {
+function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props) {
+
+  function getTypeBadge(
+    type: PaymentRequest["type"]
+  ): {
+    label: string;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+  } {
+    // Cas spécial
+    if (type === "CURRENT") {
+      return {
+        label: "Dépenses courantes",
+        variant: "teal",
+      };
+    }
+
+    const typeData = requestTypes.find(t => t.type === type);
+    const label = typeData?.label ?? "Inconnu";
+
+    switch (type) {
+      case "facilitation":
+        return { label, variant: "lime" };
+      case "achat":
+        return { label, variant: "sky" };
+      case "speciaux":
+        return { label, variant: "purple" };
+      case "ressource_humaine":
+        return { label, variant: "blue" };
+      default:
+        return { label, variant: "outline" };
+    }
+  }
+
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -188,6 +201,7 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
       status: false, // Masque la colonne statut par défaut
+      createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -264,6 +278,7 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original;
+        console.log(value.type);
         const type = getTypeBadge(value.type);
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
@@ -371,6 +386,23 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
       },
     },
     {
+      accessorKey: "createdAt",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Date de création"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("createdAt")}</div>
+      ),
+    },
+    {
       id: "actions",
       header: () => <span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
@@ -459,7 +491,7 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
             <Label>{"Type de ticket"}</Label>
             <Select
               value={
-                (table.getColumn("type")?.getFilterValue() as string) ?? "all" // CORRECTION: 'priority' au lieu de 'priorite'
+                (table.getColumn("type")?.getFilterValue() as string) ?? "all"
               }
               onValueChange={(value) =>
                 table
@@ -471,10 +503,10 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
                 <SelectValue placeholder="Filtrer par type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{"Tous"}</SelectItem>
-                {PAYMENT_TYPES.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>
-                    {p.name}
+                <SelectItem value="all">{"Tous les types"}</SelectItem>
+                {requestTypes.map((p) => (
+                  <SelectItem key={p.type} value={p.type}>
+                    {p.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -528,16 +560,37 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "createdAt" ?
+                      "Date de création" :
+                      column.id === "updatedAt" ?
+                        "Date de modification" :
+                        column.id === "reference" ?
+                          "Référence" :
+                          column.id === "title" ?
+                            "Titre" :
+                            column.id === "price" ?
+                              "Montant" :
+                              column.id === "status" ?
+                                "Statut" :
+                                column.id === "priority" ?
+                                  "Priorité" :
+                                  column.id === "provider" ?
+                                    "Fournisseur" :
+                                    column.id === "type" ?
+                                      "Type" :
+                                      column.id === "createdAt" ?
+                                        "Date de création" :
+                                        column.id === "updatedAt" ?
+                                          "Date de modification" :
+                                          column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${
-        payments.length
-      })`}</h3>
+      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${payments.length
+        })`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -552,9 +605,9 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -615,7 +668,7 @@ function ExpensesTable({ payments, purchases, type, banks }: Props) {
           ticket={selected}
           open={showPay}
           onOpenChange={setShowPay}
-        banks={banks} />
+          banks={banks} />
       )}
     </div>
   );

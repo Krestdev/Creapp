@@ -150,7 +150,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
       const payload: Partial<UpdatePayment> = {
         method: values.method,
         commandId: payment.commandId,
-        type: "PURCHASE",
+        type: "achat",
         deadline: new Date(values.deadline),
         title: purchase.devi.commandRequest.title,
         price: values.price,
@@ -164,7 +164,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
     const payload: Partial<UpdatePayment> = {
       method: values.method,
       commandId: payment.commandId,
-      type: "PURCHASE",
+      type: "achat",
       deadline: new Date(values.deadline),
       title: purchase.devi.commandRequest.title,
       price: values.price,

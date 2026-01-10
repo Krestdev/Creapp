@@ -1,12 +1,14 @@
 import { TicketsTable } from "@/components/tables/tickets-table";
 import { useStore } from "@/providers/datastore";
 import { PaymentRequest } from "@/types/types";
+import { RequestType } from "@/types/types";
 
 interface Props {
   ticketsData: PaymentRequest[];
+  requestTypeData: RequestType[];
 }
 
-const Tickets = ({ ticketsData }: Props) => {
+const Tickets = ({ ticketsData, requestTypeData }: Props) => {
   const approved = ticketsData.filter(
     (ticket) => ticket.status === "validated"
   );
@@ -22,18 +24,18 @@ const Tickets = ({ ticketsData }: Props) => {
           <>
             <div className="flex flex-col">
               <h2>{"Tickets en attentes de paiement"}</h2>
-              <TicketsTable data={approved} isAdmin={false} />
+              <TicketsTable data={approved} isAdmin={false} requestTypeData={requestTypeData} />
             </div>
             <div className="flex flex-col">
               <h2>{"Tickets payés"}</h2>
-              <TicketsTable data={paid} isAdmin={false} />
+              <TicketsTable data={paid} isAdmin={false} requestTypeData={requestTypeData} />
             </div>
           </>
         ) : (
           <>
             <div className="flex flex-col">
               <h2>{"En attentes d'approbation"}</h2>
-              <TicketsTable data={pending.reverse()} isAdmin={true} />
+              <TicketsTable data={pending.reverse()} isAdmin={true} requestTypeData={requestTypeData} />
             </div>
             <div className="flex flex-col">
               <h2>{"Tickets traités"}</h2>
@@ -41,6 +43,7 @@ const Tickets = ({ ticketsData }: Props) => {
                 data={paid.concat(approved)}
                 isAdmin={true}
                 isManaged={true}
+                requestTypeData={requestTypeData}
               />
             </div>
           </>
