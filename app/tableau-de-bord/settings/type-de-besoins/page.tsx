@@ -39,7 +39,7 @@ const Page = () => {
                 />
                 <div className="grid-stats-4">
                     {getRequestType.data?.data.map((item) => (
-                        <Card className="h-full">
+                        <Card className="h-full justify-between">
                             <CardHeader className="flex justify-between">
                                 <CardTitle className="text-lg">{item.label}</CardTitle>
                             </CardHeader>
@@ -51,7 +51,7 @@ const Page = () => {
                                     onClick={() => { setSelect(item); setIsModalOpenEdit(true); }}
                                     variant={"primary"} className="rounded-[4px] ml-auto">
                                     <LucidePen />
-                                    Modifier
+                                    {"Modifier"}
                                 </Button>
                             </CardFooter>
                         </Card>
