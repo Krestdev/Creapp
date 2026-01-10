@@ -44,7 +44,7 @@ const Page = () => {
                                 <CardTitle className="text-lg">{item.label}</CardTitle>
                             </CardHeader>
                             <div className="px-4">
-                                <p>{item.description}</p>
+                                <p className="text-gray-400">{item.description}</p>
                             </div>
                             <CardFooter>
                                 <Button
