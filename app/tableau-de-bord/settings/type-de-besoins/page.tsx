@@ -39,7 +39,7 @@ const Page = () => {
                 />
                 <div className="grid-stats-4">
                     {getRequestType.data?.data.map((item) => (
-                        <Card>
+                        <Card className="h-full">
                             <CardHeader className="flex justify-between">
                                 <CardTitle>{item.label}</CardTitle>
                                 <Button
