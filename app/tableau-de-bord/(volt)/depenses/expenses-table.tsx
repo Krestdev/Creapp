@@ -56,7 +56,7 @@ import {
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
 import {
-  BonsCommande,
+  Bank, BonsCommande,
   PAY_STATUS,
   PAYMENT_TYPES,
   PaymentRequest,
@@ -111,6 +111,7 @@ interface Props {
   payments: Array<PaymentRequest>;
   purchases: Array<BonsCommande>;
   type: "pending" | "validated";
+  banks: Array<Bank>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -177,7 +178,7 @@ function getTypeBadge(type: PaymentRequest["type"]): {
   }
 }
 
-function ExpensesTable({ payments, purchases, type }: Props) {
+function ExpensesTable({ payments, purchases, type, banks }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -614,7 +615,7 @@ function ExpensesTable({ payments, purchases, type }: Props) {
           ticket={selected}
           open={showPay}
           onOpenChange={setShowPay}
-        />
+        banks={banks} />
       )}
     </div>
   );

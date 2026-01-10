@@ -523,8 +523,8 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
   });
 
   return (
-    <div className="w-full">
-      <div className="flex flex-wrap items-end gap-4 py-4">
+    <div className="content">
+      <div className="flex flex-wrap items-end gap-4">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant={"outline"}>

@@ -1,11 +1,12 @@
-import { Badge } from '@/components/ui/badge';
+import { Badge, badgeVariants } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { XAF } from '@/lib/utils';
-import { Transaction, TRANSACTION_TYPES } from '@/types/types';
+import { Transaction, TRANSACTION_STATUS, TRANSACTION_TYPES } from '@/types/types';
+import { VariantProps } from 'class-variance-authority';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowRightLeft, Calendar, DollarSign, HelpCircle, LucideHash, Receipt, Tag } from 'lucide-react';
+import { ArrowDownToLineIcon, ArrowRightLeft, ArrowUpToLineIcon, Calendar, CircleHelpIcon, DollarSign, FileIcon, LucideHash, Tag } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
@@ -52,6 +53,20 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
     }
   };
 
+  const getStatusBadge = (status: Transaction["status"]):{label: string; variant: VariantProps<typeof badgeVariants>["variant"]} =>{
+    const label = TRANSACTION_STATUS.find(t=> t.value === status)?.name ?? "Inconnu";
+    switch (status) {
+      case "APPROVED":
+        return { label, variant: "success" };
+      case "REJECTED":
+        return { label, variant: "destructive" };
+      case "PENDING":
+        return { label, variant: "amber" };
+      default:
+        return { label, variant: "outline" };
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
@@ -83,7 +98,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Montant"}</p>
-              <p className={`font-semibold ${transaction.Type === "CREDIT" ? "text-green-600" : "text-red-600"}`}>
+              <p className={`font-semibold ${transaction.Type === "CREDIT" ? "text-green-600" : transaction.Type==="DEBIT" && "text-red-600"}`}>
                 {XAF.format(transaction.amount)}
               </p>
             </div>
@@ -115,10 +130,24 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             </div>
           </div>
 
+          {/** Status */}
+          <div className="view-group">
+            <span className="view-icon">
+              <CircleHelpIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Statut"}</p>
+              <p className="font-semibold">
+                <Badge variant={getStatusBadge(transaction.status).variant}>{getStatusBadge(transaction.status).label}</Badge>
+                {!!transaction.reason && <p className='mt-1 text-xs text-destructive font-normal'>{`Motif: ${transaction.reason}`}</p>}
+              </p>
+            </div>
+          </div>
+
           {/** Source */}
           <div className="view-group">
             <span className="view-icon">
-              <HelpCircle />
+              <ArrowUpToLineIcon />
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">
@@ -137,7 +166,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
           {/** Destination */}
           <div className="view-group">
             <span className="view-icon">
-              <HelpCircle />
+              <ArrowDownToLineIcon />
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">
@@ -156,7 +185,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
           {/** Preuve */}
           <div className="view-group">
             <span className="view-icon">
-              <Receipt />
+              <FileIcon />
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Preuve de transaction"}</p>

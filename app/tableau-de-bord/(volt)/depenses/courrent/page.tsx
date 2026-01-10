@@ -14,6 +14,7 @@ import {
   StatisticCard,
   StatisticProps,
 } from "@/components/base/TitleValueCard";
+import { BankQuery } from "@/queries/bank";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -36,13 +37,15 @@ function Page() {
     purchasesQuery.getAll,
     30000
   );
-  if (isLoading || getPurchases.isLoading) {
+  const bankQuery = new BankQuery();
+  const getBanks = useFetchQuery(["banks"], bankQuery.getAll, 30000);
+  if (isLoading || getPurchases.isLoading || getBanks.isLoading) {
     return <LoadingPage />;
   }
-  if (isError || getPurchases.isError) {
-    return <ErrorPage error={error || getPurchases.error || undefined} />;
+  if (isError || getPurchases.isError || getBanks.isError) {
+    return <ErrorPage error={error || getPurchases.error || getBanks.error || undefined} />;
   }
-  if (isSuccess && getPurchases.isSuccess) {
+  if (isSuccess && getPurchases.isSuccess && getBanks.isSuccess) {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente",
@@ -118,6 +121,7 @@ function Page() {
           payments={data.data.filter(
             (p) => p.status === "pending_depense" && p.type === "CURRENT"
           )}
+          banks = {getBanks.data.data}
           type="pending"
           purchases={getPurchases.data.data}
         />
@@ -126,6 +130,7 @@ function Page() {
             (p) => p.status === "paid" && p.type === "CURRENT"
           )}
           type="validated"
+          banks = {getBanks.data.data}
           purchases={getPurchases.data.data}
         />
       </div>

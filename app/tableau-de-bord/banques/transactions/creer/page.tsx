@@ -7,8 +7,10 @@ import { BankQuery } from '@/queries/bank'
 import { useFetchQuery } from '@/hooks/useData'
 import LoadingPage from '@/components/loading-page'
 import ErrorPage from '@/components/error-page'
+import { useStore } from '@/providers/datastore'
 
 function Page() {
+  const { user } = useStore();
     const bankQuery = new BankQuery();
     const {data: banks, isError, error, isLoading, isSuccess} = useFetchQuery(["banks"], bankQuery.getAll, 20000);
     if(isLoading){
@@ -21,7 +23,7 @@ function Page() {
   return (
     <div className='content'>
         <PageTitle title='Créer une transaction' subtitle='Complétez le formulaire pour enregistrer une nouvelle transaction' color="blue"/>
-        <TransactionForm banks={banks.data} />
+        <TransactionForm banks={banks.data} userId={user?.id ?? 0} />
     </div>
   )
 }

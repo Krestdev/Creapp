@@ -72,6 +72,7 @@ import {
   PaymentRequest,
   ProjectT,
   RequestModelT,
+  RequestType,
   User,
 } from "@/types/types";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
@@ -100,6 +101,8 @@ import { Pagination } from "./pagination";
 import { SearchableSelect } from "./searchableSelect";
 import { Checkbox } from "../ui/checkbox";
 import { Textarea } from "../ui/textarea";
+import { RequestTypeQueries } from "@/queries/requestType";
+import { useFetchQuery } from "@/hooks/useData";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -126,6 +129,7 @@ interface DataTableProps {
   projectsData: ProjectT[];
   usersData: User[];
   paymentsData: PaymentRequest[];
+  requestTypeData: RequestType[] | undefined;
 }
 
 export function DataVal({
@@ -141,6 +145,7 @@ export function DataVal({
   projectsData,
   usersData,
   paymentsData,
+  requestTypeData,
 }: DataTableProps) {
 
   const { user } = useStore();
@@ -784,18 +789,18 @@ export function DataVal({
   };
 
   function getTypeBadge(
-    type: "SPECIAL" | "RH" | "FAC" | "PURCHASE" | undefined
+    type: "speciaux" | "ressource_humaine" | "facilitation" | "achat" | undefined
   ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-    const typeData = PAYMENT_TYPES.find((t) => t.value === type);
-    const label = typeData?.name ?? "Inconnu";
+    const typeData = requestTypeData?.find((t) => t.type === type);
+    const label = typeData?.label ?? "Inconnu";
     switch (type) {
-      case "FAC":
+      case "facilitation":
         return { label, variant: "lime" };
-      case "PURCHASE":
+      case "achat":
         return { label, variant: "sky" };
-      case "SPECIAL":
+      case "speciaux":
         return { label, variant: "purple" };
-      case "RH":
+      case "ressource_humaine":
         return { label, variant: "blue" };
       default:
         return { label: type || "Inconnu", variant: "outline" };
@@ -1075,7 +1080,7 @@ export function DataVal({
         const userHasValidated = hasUserAlreadyValidated(item);
         const paiement = paymentsData?.find((x) => x.requestId === item?.id);
         const isAttach =
-          (item.type === "FAC" || item.type === "RH") &&
+          (item.type === "facilitation" || item.type === "ressource_humaine") &&
           paiement?.proof !== null;
         return (
           <div className="flex items-center gap-2">

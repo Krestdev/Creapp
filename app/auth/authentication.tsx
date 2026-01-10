@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
 
-import { formatToShortName } from "@/lib/utils";
 import { UserQueries } from "@/queries/baseModule";
 
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
-import { AxiosError } from "axios";
 
 function maskEmail(email: string) {
   const [name, domain] = email.split("@");
@@ -57,7 +55,7 @@ export default function VerifyEmailClient() {
       router.push("/connexion");
       router.refresh();
     },
-    onError: (error: AxiosError) => {
+    onError: (error: Error) => {
       toast.error(
         `Échec de la vérification : ${error?.message ?? "Erreur inconnue"}`
       );

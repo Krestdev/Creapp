@@ -1,4 +1,6 @@
 "use client";
+import { DateFilter, Transaction } from "@/types/types";
+import React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -11,18 +13,18 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Eye, Pencil, Settings2 } from "lucide-react";
-import * as React from "react";
-
+import {
+  ArrowUpDown,
+  CheckCircleIcon,
+  ChevronDown,
+  Eye,
+  Pencil,
+  Settings2,
+  TrashIcon,
+} from "lucide-react";
 import { Pagination } from "@/components/base/pagination";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -41,14 +43,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
   Table,
   TableBody,
   TableCell,
@@ -57,45 +51,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
-import {
-  DateFilter,
-  Transaction,
-  TRANSACTION_STATUS,
-  TRANSACTION_TYPES,
-} from "@/types/types";
-import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import ViewTransaction from "./view-transaction";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Calendar } from "@/components/ui/calendar";
+import RejectDialog from "./reject-dialog";
+import { useStore } from "@/providers/datastore";
+import { TransactionQuery } from "@/queries/transaction";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface Props {
   data: Array<Transaction>;
-  canEdit: boolean;
-  filterByType?: boolean;
 }
 
-function getTypeBadge(type: Transaction["Type"]): {
-  label: string;
-  variant: VariantProps<typeof badgeVariants>["variant"];
-} {
-  const typeData = TRANSACTION_TYPES.find((t) => t.value === type);
-  const label = typeData?.name ?? "Inconnu";
-
-  switch (type) {
-    case "CREDIT":
-      return { label, variant: "success" };
-    case "DEBIT":
-      return { label, variant: "destructive" };
-    case "TRANSFER":
-      return { label, variant: "blue" };
-    default:
-      return { label: type, variant: "outline" };
-  }
-}
-
-function TransactionTable({ data, canEdit, filterByType=false }: Props) {
-  const { user } = useStore();
+function TransferTable({ data }: Props) {
+    const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -105,40 +77,80 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [selected, setSelected] = React.useState<Transaction>();
-  const [view, setView] = React.useState<boolean>(false);
-  const [edit, setEdit] = React.useState<boolean>(false);
+  const [reject, setReject] = React.useState<boolean>(false);
 
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-  const [amountFilter, setAmountFilter] = React.useState<number>(0);
-  const [amountTypeFilter, setAmountTypeFilter] = React.useState<"greater"| "inferior" | "equal">("greater");
+  const [amountMinFilter, setAmountMinFilter] = React.useState<number>();
+  const [amountMaxFilter, setAmountMaxFilter] = React.useState<number>();
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-  const [statusFilter, setStatusFilter] = React.useState<
-    "all" | Transaction["status"]
-  >("all");
-  const [typeFilter, setTypeFilter] = React.useState<"all" | Transaction["Type"]>("all");
 
-  const getBadge = (
-    status: Transaction["status"]
-  ): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } => {
-    const label =
-      TRANSACTION_STATUS.find((t) => t.value === status)?.name ?? "Inconnu";
-    switch (status) {
-      case "APPROVED":
-        return { label, variant: "success" };
-      case "REJECTED":
-        return { label, variant: "destructive" };
-      case "PENDING":
-        return { label, variant: "amber" };
-      default:
-        return { label, variant: "outline" };
+    const transactionQuery = new TransactionQuery();
+    const queryClient = useQueryClient();
+    const approve = useMutation({
+      mutationFn: async({id}:{id:number})=>transactionQuery.approve({id, status: "APPROVED", validatorId: user?.id ?? 0}),
+      onSuccess: ()=>{
+        toast.success("Demande approuvée !");
+        queryClient.invalidateQueries({queryKey: ["banks", "transactions"], refetchType: "active"});
+      },
+      onError: (error: Error)=>{
+        toast.error(error.message);
+      }
+    });
+
+  const filteredData = React.useMemo(()=>{
+    return data.filter((transaction)=>{
+      const now = new Date();
+      let startDate = new Date();
+      let endDate = now;
+      // Filter amount minimum
+        const matchMinAmount = 
+        !amountMinFilter ? true : transaction.amount >= amountMinFilter;
+        
+        // Filter amount maximum
+        const matchMaxAmount =
+        !amountMaxFilter ? true : transaction.amount <= amountMaxFilter;
+
+        // Filtre par date
+        let matchDate = true;
+            if (dateFilter) {
+      switch (dateFilter) {
+        case "today":
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case "week":
+          startDate.setDate(
+            now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+          );
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case "month":
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case "year":
+          startDate = new Date(now.getFullYear(), 0, 1);
+          break;
+        case "custom":
+          if (customDateRange?.from && customDateRange?.to) {
+            startDate = customDateRange.from;
+            endDate = customDateRange.to;
+          }
+          break;
+      }
+
+      if (
+        dateFilter !== "custom" ||
+        (customDateRange?.from && customDateRange?.to)
+      ) {
+        matchDate = transaction.createdAt >= startDate && transaction.createdAt <= endDate;
+        ;
+      }
     }
-  };
+    return matchDate && matchMaxAmount && matchMinAmount;
+    })
+  },[data, dateFilter, customDateRange, amountMaxFilter, amountMinFilter]);
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -146,69 +158,10 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
     if (setCustomDateRange) {
       setCustomDateRange(undefined);
     }
-    setAmountFilter(0);
-    setAmountTypeFilter("greater");
+    setAmountMaxFilter(undefined);
+    setAmountMinFilter(undefined);
     setGlobalFilter("");
-    setStatusFilter("all");
-    setTypeFilter("all");
   };
-
-  const filteredData = React.useMemo(() => {
-    return data.filter((transaction) => {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      //Status Filter
-      const matchStatus =
-      statusFilter === "all" ? true : transaction.status === statusFilter;
-      //Type Filter
-      const matchType =
-      typeFilter === "all" ? true : transaction.Type === typeFilter;
-      // Filter amount
-      const matchAmount = amountTypeFilter === "greater" ? transaction.amount > amountFilter 
-      :
-      amountTypeFilter === "equal" ? transaction.amount === amountFilter :
-      transaction.amount < amountFilter;
-
-      // Filtre par date
-      let matchDate = true;
-      if (dateFilter) {
-        switch (dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (customDateRange?.from && customDateRange?.to) {
-              startDate = customDateRange.from;
-              endDate = customDateRange.to;
-            }
-            break;
-        }
-
-        if (
-          dateFilter !== "custom" ||
-          (customDateRange?.from && customDateRange?.to)
-        ) {
-          matchDate =
-            transaction.createdAt >= startDate &&
-            transaction.createdAt <= endDate;
-        }
-      }
-      return matchStatus && matchType && matchDate && matchAmount;
-    });
-  }, [data, dateFilter, customDateRange, amountFilter, amountTypeFilter, statusFilter, typeFilter]);
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -266,25 +219,6 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
         return (
           <span className={cn("font-bold", type === "CREDIT" ? "text-green-600" : type === "DEBIT" && "text-red-600")}>{XAF.format(value)}</span>
         );
-      },
-    },
-    {
-      id: "type",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Type"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original.Type;
-        const { variant, label } = getTypeBadge(value);
-        return <Badge variant={variant}>{label}</Badge>;
       },
     },
     {
@@ -346,25 +280,6 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
       },
     },
     {
-      accessorKey: "status",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Statut"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original.status;
-        const { variant, label } = getBadge(value);
-        return <Badge variant={variant}>{label}</Badge>;
-      },
-    },
-    {
       id: "actions",
       header: () => <span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
@@ -381,27 +296,20 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
+              <DropdownMenuItem disabled={approve.isPending} onClick={() =>approve.mutate({id:item.id})}>
+                <CheckCircleIcon />
+                {"Valider"}
+              </DropdownMenuItem>
               <DropdownMenuItem
+                variant="destructive"
                 onClick={() => {
                   setSelected(item);
-                  setView(true);
+                  setReject(true);
                 }}
               >
-                <Eye />
-                {"Voir"}
+                <TrashIcon />
+                {"Rejeter"}
               </DropdownMenuItem>
-              {
-                canEdit &&
-                <DropdownMenuItem
-                onClick={() => {
-                  setSelected(item);
-                  setEdit(true);
-                }}
-              >
-                <Pencil />
-                {"Modifier"}
-              </DropdownMenuItem>
-              }
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -422,7 +330,7 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["id", "label", "amount", "type", "from", "to"];
+      const searchableColumns = ["id", "label", "amount", "from", "to"];
       const searchValue = filterValue.toLowerCase();
 
       return searchableColumns.some((column) => {
@@ -474,87 +382,38 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
                   className="max-w-sm"
                 />
               </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="statusFilter">{"Statut"}</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(v) =>
-                    setStatusFilter(v as "all" | Transaction["status"])
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                    {TRANSACTION_STATUS.map((t, id) => (
-                      <SelectItem key={id} value={t.value}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {/**Type Filter */}
-              {
-                !!filterByType &&
-                <div className="grid gap-1.5">
-                <Label htmlFor="statusFilter">{"Type de Transaction"}</Label>
-                <Select
-                  value={typeFilter}
-                  onValueChange={(v) =>
-                    setTypeFilter(v as "all" | Transaction["Type"])
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                    {TRANSACTION_TYPES.filter(t=> t.value !== "TRANSFER").map((t, id) => (
-                      <SelectItem key={id} value={t.value}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              }
 
               {/* Filtre par montant */}
               <div className="grid gap-1.5">
-                <Label>{"Comparer le montant"}</Label>
-                <Select
-                  value={amountTypeFilter}
-                  onValueChange={(v) =>
-                    setAmountTypeFilter(v as "greater" | "inferior" | "equal")
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="greater">{"Supérieur"}</SelectItem>
-                    <SelectItem value="equal">{"Égal"}</SelectItem>
-                    <SelectItem value="inferior">{"Inférieur"}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-1.5">
-                <Label>{"Montant"}</Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Ex. 250 000"
-                    value={amountFilter ?? 0}
-                    onChange={(e) => setAmountFilter(Number(e.target.value))}
-                    className="w-full pr-12"
-                  />
-                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+            <Label>{"Montant min"}</Label>
+            <div className="relative">
+                <Input
+                type="number"
+                placeholder="Montant minimim"
+                value={amountMinFilter}
+                onChange={(e)=>setAmountMinFilter(Number(e.target.value))}
+                className="w-full"
+                />
+                <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
                     {"FCFA"}
                   </span>
-                </div>
-              </div>
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>{"Montant maximum"}</Label>
+            <div className="relative">
+                <Input
+                type="number"
+                placeholder="Montant max"
+                value={amountMaxFilter}
+                onChange={(e)=>setAmountMaxFilter(Number(e.target.value))}
+                className="w-full"
+                />
+                <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                    {"FCFA"}
+                  </span>
+            </div>
+          </div>
 
               {/* Filtre par période */}
               <div className="grid gap-1.5">
@@ -690,7 +549,7 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Transactions (${data.length})`}</h3>
+      <h3>{`Transferts en attente (${data.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -749,16 +608,9 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
       </div>
 
       <Pagination table={table} />
-      {selected && (
-        <ViewTransaction
-          transaction={selected}
-          open={view}
-          openChange={setView}
-        />
-      )}
-      {/* {selected && <EditTransaction transaction={selected} open={edit} openChange={setEdit} />} */}
+      {selected && <RejectDialog transaction={selected} open={reject} openChange={setReject} userId={user?.id ?? 0} />}
     </div>
   );
 }
 
-export default TransactionTable;
+export default TransferTable;

@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TransactionProps, TransactionQuery } from "@/queries/transaction";
-import { Bank, Transaction, TRANSACTION_TYPES } from "@/types/types";
+import { Bank, TRANSACTION_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -28,6 +28,7 @@ import z from "zod";
 
 interface Props {
   banks: Array<Bank>;
+  userId: number;
 }
 
 const TX_TYPES = TRANSACTION_TYPES.filter(c=> c.value !== "TRANSFER").map((t) => t.value) as [
@@ -92,7 +93,7 @@ export const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>;
 
-function TransactionForm({ banks }: Props) {
+function TransactionForm({ banks, userId }: Props) {
     const [openDate, setOpenDate] = React.useState<boolean>(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -139,6 +140,7 @@ function TransactionForm({ banks }: Props) {
           date: new Date(date),
           from: values.from,
           toBankId: values.toBankId,
+          userId
         };
         return create.mutate(payload);
     } else {
@@ -148,6 +150,7 @@ function TransactionForm({ banks }: Props) {
           date: new Date(date),
           fromBankId: values.fromBankId,
           to: values.to,
+          userId
         };
         return create.mutate(payload);
     }

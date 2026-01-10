@@ -16,6 +16,7 @@ import { PaymentQueries } from "@/queries/payment";
 import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
 import { useFetchQuery } from "@/hooks/useData";
+import { RequestTypeQueries } from "@/queries/requestType";
 
 /* ======================================================
    TYPES
@@ -227,6 +228,10 @@ const Approb = ({
   const pendingData = usePendingData(filteredData, user, categoriesData);
   const proceedData = useProceedData(filteredData, user, categoriesData);
 
+  const requestTypeQueries = new RequestTypeQueries();
+  const getRequestType = useFetchQuery(["requestType"], requestTypeQueries.getAll);
+
+
   // Utiliser useEffect pour envoyer les données au parent
   React.useEffect(() => {
     if (filteredData.length > 0) {
@@ -235,15 +240,15 @@ const Approb = ({
   }, [pendingData, proceedData, setData]);
 
   // PAge de chargement et d'erreur
-  if (projectsData.isPending || usersData.isPending || paymentsData.isPending || categoriesData.isPending || requestData.isPending) {
+  if (projectsData.isPending || usersData.isPending || paymentsData.isPending || categoriesData.isPending || requestData.isPending || getRequestType.isPending) {
     return <LoadingPage />;
   }
 
-  if (projectsData.isError || usersData.isError || paymentsData.isError || categoriesData.isError || requestData.isError) {
+  if (projectsData.isError || usersData.isError || paymentsData.isError || categoriesData.isError || requestData.isError || getRequestType.isError) {
     return <ErrorPage />;
   }
 
-  if (projectsData.data && usersData.data && paymentsData.data && categoriesData.data && requestData.data) {
+  if (projectsData.data && usersData.data && paymentsData.data && categoriesData.data && requestData.data && getRequestType.data) {
     return (
       <div className="flex flex-col gap-6">
         {/* ================== PENDING ================== */}
@@ -265,6 +270,7 @@ const Approb = ({
               projectsData={projectsData.data?.data}
               usersData={usersData.data?.data}
               paymentsData={paymentsData.data?.data}
+              requestTypeData={getRequestType.data?.data}
             />
           ) : (
             <div className="text-center py-12 border rounded-lg bg-gray-50">
@@ -293,6 +299,7 @@ const Approb = ({
             usersData={usersData.data?.data}
             paymentsData={paymentsData.data?.data}
             categoriesData={categoriesData.data?.data}
+            requestTypeData={getRequestType.data?.data}
           />
         </div>
       </div>
