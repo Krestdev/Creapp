@@ -39,17 +39,22 @@ const Page = () => {
                 />
                 <div className="grid-stats-4">
                     {getRequestType.data?.data.map((item) => (
-                        <Card>
-                            <CardHeader className="flex justify-between">
-                                <CardTitle>{item.label}</CardTitle>
+                        <Card className="h-full justify-between">
+                            <div>
+                                <CardHeader className="flex justify-between">
+                                    <CardTitle className="text-lg">{item.label}</CardTitle>
+                                </CardHeader>
+                                <div className="px-6">
+                                    <p className="text-gray-400">{item.description}</p>
+                                </div>
+                            </div>
+                            <CardFooter>
                                 <Button
                                     onClick={() => { setSelect(item); setIsModalOpenEdit(true); }}
-                                    variant={"outline"} className="px-2">
+                                    variant={"primary"} className="rounded-[4px] ml-auto">
                                     <LucidePen />
+                                    {"Modifier"}
                                 </Button>
-                            </CardHeader>
-                            <CardFooter>
-                                <p>{item.description}</p>
                             </CardFooter>
                         </Card>
                     ))}
