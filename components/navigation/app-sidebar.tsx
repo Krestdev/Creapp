@@ -33,6 +33,7 @@ import {
   LogOutIcon,
   LockIcon,
   UserLock,
+  ReceiptIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -400,12 +401,6 @@ function AppSidebar() {
           authorized: ["ADMIN", "SALES"],
         },
         {
-          pageId: "PG-03-07",
-          title: "Factures",
-          href: "/tableau-de-bord/commande/factures/validation",
-          authorized: ["ADMIN", "SALES"],
-        },
-        {
           pageId: "PG-03-065897",
           title: "Statistiques",
           href: "/tableau-de-bord/commande/bon-de-commande/statistiques",
@@ -413,6 +408,13 @@ function AppSidebar() {
         },
       ],
     },
+     {
+          pageId: "PG-03-07",
+          title: "Factures",
+          href: "/tableau-de-bord/factures",
+          authorized: ["ADMIN", "ACCOUNTING"],
+          icon: ReceiptIcon
+        },
     {
       pageId: "PG-04",
       icon: Ticket,

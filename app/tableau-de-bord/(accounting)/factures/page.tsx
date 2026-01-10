@@ -2,23 +2,12 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { PaiementsTable } from "@/components/tables/PaiementsTable";
-import { PaiementValTable } from "@/components/tables/PaiementValTable";
-import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
-import { useStore } from "@/providers/datastore";
 import { PaymentQueries } from "@/queries/payment";
 import { PurchaseOrder } from "@/queries/purchase-order";
-import Link from "next/link";
+import { InvoicesTable } from "./invoices-table";
 
 function Page() {
-    const { user } = useStore();
-    const isAuth: boolean = user?.role.some(r => r.label === "ADMIN" || r.label === "SALES" || r.label === "SALES_MANAGER") ?? false
-
-    if (!isAuth) {
-        return <ErrorPage statusCode={401} message="Vous n'avez pas accès à cette page" />
-    }
-
     const paymentQuery = new PaymentQueries();
     const commandQuery = new PurchaseOrder();
     const getPayments = useFetchQuery(["payments"], paymentQuery.getAll, 15000);
@@ -38,11 +27,11 @@ function Page() {
                 <PageTitle
                     title={"Factures"}
                     subtitle={
-                        "Validez la conformité des factures relatives aux paiements"
+                        "Vérification de la conformité des factures"
                     }
                     color={"red"}
                 />
-                <PaiementValTable payments={getPayments.data.data.filter(p => p.type === "achat")} purchases={getPurchases.data.data} />
+                <InvoicesTable payments={getPayments.data.data.filter(p => p.type === "achat")} purchases={getPurchases.data.data} />
             </div>
         );
 };
