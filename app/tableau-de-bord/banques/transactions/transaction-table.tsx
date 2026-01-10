@@ -59,6 +59,7 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
+  Bank,
   DateFilter,
   Transaction,
   TRANSACTION_STATUS,
@@ -73,6 +74,7 @@ interface Props {
   data: Array<Transaction>;
   canEdit: boolean;
   filterByType?: boolean;
+  banks: Array<Bank>;
 }
 
 function getTypeBadge(type: Transaction["Type"]): {
@@ -94,7 +96,7 @@ function getTypeBadge(type: Transaction["Type"]): {
   }
 }
 
-function TransactionTable({ data, canEdit, filterByType=false }: Props) {
+function TransactionTable({ data, canEdit, banks,filterByType = false }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -110,7 +112,10 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
 
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [amountFilter, setAmountFilter] = React.useState<number>(0);
-  const [amountTypeFilter, setAmountTypeFilter] = React.useState<"greater"| "inferior" | "equal">("greater");
+  const [bankFilter, setBankFilter] = React.useState<string>("all");
+  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
+    "greater" | "inferior" | "equal"
+  >("greater");
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
@@ -118,7 +123,9 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | Transaction["status"]
   >("all");
-  const [typeFilter, setTypeFilter] = React.useState<"all" | Transaction["Type"]>("all");
+  const [typeFilter, setTypeFilter] = React.useState<
+    "all" | Transaction["Type"]
+  >("all");
 
   const getBadge = (
     status: Transaction["status"]
@@ -151,6 +158,7 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
     setGlobalFilter("");
     setStatusFilter("all");
     setTypeFilter("all");
+    setBankFilter("all");
   };
 
   const filteredData = React.useMemo(() => {
@@ -160,15 +168,44 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
       let endDate = now;
       //Status Filter
       const matchStatus =
-      statusFilter === "all" ? true : transaction.status === statusFilter;
+        statusFilter === "all" ? true : transaction.status === statusFilter;
+      // Bank Filter - selon le type de transaction
+      let matchBank = bankFilter === "all" ? true : false;
+
+      if (bankFilter !== "all") {
+        // Vérifier selon le type de transaction
+        switch (transaction.Type) {
+          case "DEBIT":
+            // Pour DEBIT, 'from' est une Bank
+            matchBank = transaction.from.id.toString() === bankFilter;
+            break;
+
+          case "CREDIT":
+            // Pour CREDIT, 'to' est une Bank
+            matchBank = transaction.to.id.toString() === bankFilter;
+            break;
+
+          case "TRANSFER":
+            // Pour TRANSFER, les deux sont des Banks
+            matchBank =
+              transaction.from.id.toString() === bankFilter ||
+              transaction.to.id.toString() === bankFilter;
+            break;
+
+          default:
+            matchBank = false;
+        }
+      }
       //Type Filter
       const matchType =
-      typeFilter === "all" ? true : transaction.Type === typeFilter;
+        typeFilter === "all" ? true : transaction.Type === typeFilter;
       // Filter amount
-      const matchAmount = amountTypeFilter === "greater" ? transaction.amount > amountFilter 
-      :
-      amountTypeFilter === "equal" ? transaction.amount === amountFilter :
-      transaction.amount < amountFilter;
+      const matchAmount =
+        amountTypeFilter === "greater"
+          ? transaction.amount > amountFilter
+          : amountTypeFilter === "equal"
+          ? transaction.amount === amountFilter
+          : transaction.amount < amountFilter;
 
       // Filtre par date
       let matchDate = true;
@@ -206,9 +243,18 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
             transaction.createdAt <= endDate;
         }
       }
-      return matchStatus && matchType && matchDate && matchAmount;
+      return matchStatus && matchType && matchDate && matchAmount && matchBank;
     });
-  }, [data, dateFilter, customDateRange, amountFilter, amountTypeFilter, statusFilter, typeFilter]);
+  }, [
+    data,
+    dateFilter,
+    customDateRange,
+    amountFilter,
+    amountTypeFilter,
+    statusFilter,
+    typeFilter,
+    bankFilter
+  ]);
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -264,7 +310,16 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
         const value = row.original.amount;
         const type = row.original.Type;
         return (
-          <span className={cn("font-bold", type === "CREDIT" ? "text-green-600" : type === "DEBIT" && "text-red-600")}>{XAF.format(value)}</span>
+          <span
+            className={cn(
+              "font-bold",
+              type === "CREDIT"
+                ? "text-green-600"
+                : type === "DEBIT" && "text-red-600"
+            )}
+          >
+            {XAF.format(value)}
+          </span>
         );
       },
     },
@@ -390,18 +445,17 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
-              {
-                canEdit &&
+              {canEdit && (
                 <DropdownMenuItem
-                onClick={() => {
-                  setSelected(item);
-                  setEdit(true);
-                }}
-              >
-                <Pencil />
-                {"Modifier"}
-              </DropdownMenuItem>
-              }
+                  onClick={() => {
+                    setSelected(item);
+                    setEdit(true);
+                  }}
+                >
+                  <Pencil />
+                  {"Modifier"}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -462,6 +516,7 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
               </SheetDescription>
             </SheetHeader>
             <div className="px-5 grid gap-5">
+              {/**Global Filter (Search) */}
               <div className="grid gap-1.5">
                 <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
                 <Input
@@ -496,32 +551,53 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
                 </Select>
               </div>
               {/**Type Filter */}
-              {
-                !!filterByType &&
+              {!!filterByType && (
                 <div className="grid gap-1.5">
-                <Label htmlFor="statusFilter">{"Type de Transaction"}</Label>
+                  <Label htmlFor="statusFilter">{"Type de Transaction"}</Label>
+                  <Select
+                    value={typeFilter}
+                    onValueChange={(v) =>
+                      setTypeFilter(v as "all" | Transaction["Type"])
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={"all"}>{"Tous"}</SelectItem>
+                      {TRANSACTION_TYPES.filter(
+                        (t) => t.value !== "TRANSFER"
+                      ).map((t, id) => (
+                        <SelectItem key={id} value={t.value}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Filter par Compte(Bank) */}
+              <div className="grid gap-1.5">
+                <Label>{"Compte"}</Label>
                 <Select
-                  value={typeFilter}
-                  onValueChange={(v) =>
-                    setTypeFilter(v as "all" | Transaction["Type"])
-                  }
+                  value={bankFilter}
+                  onValueChange={setBankFilter}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un statut" />
+                    <SelectValue placeholder="Sélectionner un Compte" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                    {TRANSACTION_TYPES.filter(t=> t.value !== "TRANSFER").map((t, id) => (
-                      <SelectItem key={id} value={t.value}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {
+                      banks.map((bank)=>(
+                        <SelectItem key={bank.id} value={String(bank.id)}>{bank.label}</SelectItem>
+                      ))
+                    }
                   </SelectContent>
                 </Select>
               </div>
-              }
-
-              {/* Filtre par montant */}
+              {/* Filter by amount */}
               <div className="grid gap-1.5">
                 <Label>{"Comparer le montant"}</Label>
                 <Select
@@ -556,7 +632,7 @@ function TransactionTable({ data, canEdit, filterByType=false }: Props) {
                 </div>
               </div>
 
-              {/* Filtre par période */}
+              {/* Filter by Date */}
               <div className="grid gap-1.5">
                 <Label>{"Période"}</Label>
                 <Select
