@@ -2,29 +2,28 @@
 import { ProjectTable } from "@/components/projets/project-table";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { ProjectQueries } from "@/queries/projectModule";
-import { useQuery } from "@tanstack/react-query";
-import LoadingPage from "../loading-page";
+import { userQ } from "@/queries/baseModule";
+import { projectQ } from "@/queries/projectModule";
 import ErrorPage from "../error-page";
+import LoadingPage from "../loading-page";
 
 const ProjectListPage = () => {
   const { isHydrated } = useStore();
-  const project = new ProjectQueries();
 
-  const projectData = useFetchQuery(["projectsList"], project.getAll, 30000);
-  const users = new UserQueries();
-  const usersData = useFetchQuery(["usersList"], users.getAll, 30000);
+  const projectData = useFetchQuery(["projectsList"], projectQ.getAll, 30000);
 
-  if (projectData.isLoading || usersData.isLoading)
-    return <LoadingPage />;
-  if (projectData.isError || usersData.isError)
-    return <ErrorPage />;
+  const usersData = useFetchQuery(["usersList"], userQ.getAll, 30000);
+
+  if (projectData.isLoading || usersData.isLoading) return <LoadingPage />;
+  if (projectData.isError || usersData.isError) return <ErrorPage />;
 
   if (projectData.data && usersData.data)
     return (
       <div className="content">
-        <ProjectTable data={projectData.data?.data.filter((x) => x.status !== "cancelled")} usersData={usersData.data?.data} />
+        <ProjectTable
+          data={projectData.data?.data.filter((x) => x.status !== "cancelled")}
+          usersData={usersData.data?.data}
+        />
       </div>
     );
 };

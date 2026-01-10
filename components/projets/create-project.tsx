@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { ProjectQueries } from "@/queries/projectModule";
+import { userQ } from "@/queries/baseModule";
+import { projectQ } from "@/queries/projectModule";
 import { ProjectCreateResponse, ProjectT, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -64,8 +64,6 @@ export function ProjectCreateForm() {
     },
   });
 
-  const projectQueries = new ProjectQueries();
-  const userQueries = new UserQueries();
   const { isHydrated, user } = useStore();
 
   const projectApi = useMutation({
@@ -74,7 +72,7 @@ export function ProjectCreateForm() {
         ProjectT,
         "reference" | "updatedAt" | "createdAt" | "id" | "chief"
       > & { chiefId: number }
-    ) => projectQueries.create(data),
+    ) => projectQ.create(data),
     onSuccess: (data: ResponseT<ProjectCreateResponse>) => {
       toast.success("Projet créé avec succès !");
       console.log("created successful:", data);
@@ -88,7 +86,7 @@ export function ProjectCreateForm() {
 
   const userApi = useQuery({
     queryKey: ["usersList"],
-    queryFn: () => userQueries.getAll(),
+    queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
 
@@ -102,7 +100,7 @@ export function ProjectCreateForm() {
       budget: values.budget ?? 0,
       chiefId: parseInt(values.chiefid, 10),
       status: "planning",
-      userId: user?.id!
+      userId: user?.id!,
     };
     projectApi.mutate(data);
   };
@@ -135,9 +133,9 @@ export function ProjectCreateForm() {
           render={({ field }) => {
             const options = userApi.data
               ? userApi.data.data.map((user) => ({
-                value: user.id,
-                label: user.lastName + " " + user.firstName,
-              }))
+                  value: user.id,
+                  label: user.lastName + " " + user.firstName,
+                }))
               : [];
             return (
               <FormItem>
@@ -190,7 +188,10 @@ export function ProjectCreateForm() {
           name="description"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel>{"Description du Projet"} <span className="text-destructive">*</span></FormLabel>
+              <FormLabel>
+                {"Description du Projet"}{" "}
+                <span className="text-destructive">*</span>
+              </FormLabel>
               <FormControl>
                 <Textarea {...field} placeholder="Décrivez le projet" />
               </FormControl>
@@ -222,7 +223,11 @@ export function ProjectCreateForm() {
           )}
         />
         <div className="@min-[640px]:col-span-2 ml-auto">
-          <Button disabled={projectApi.isPending} type="submit" variant={"primary"}>
+          <Button
+            disabled={projectApi.isPending}
+            type="submit"
+            variant={"primary"}
+          >
             {"Enrégistrer"}
             {projectApi.isPending && <Loader2 className="ml-2 animate-spin" />}
           </Button>

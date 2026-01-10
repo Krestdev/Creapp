@@ -2,8 +2,8 @@
 
 import Empty from "@/components/base/empty";
 import { CommandeTable } from "@/components/tables/commande-table";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { RequestQueries } from "@/queries/requestModule";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { requestQ } from "@/queries/requestModule";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
@@ -12,17 +12,15 @@ const Bdcommande = () => {
     "today" | "week" | "month" | "year" | "custom" | undefined
   >();
   // const router = useRouter();
-  const request = new RequestQueries();
-  const command = new CommandRqstQueries();
 
   const commandData = useQuery({
     queryKey: ["commands"],
-    queryFn: async () => command.getAll(),
+    queryFn: async () => commandRqstQ.getAll(),
   });
 
   const requestData = useQuery({
     queryKey: ["requests"],
-    queryFn: () => request.getAll(),
+    queryFn: () => requestQ.getAll(),
   });
 
   const cotation = commandData.data?.data ?? [];

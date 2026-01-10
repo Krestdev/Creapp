@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "../ui/label";
 import { useStore } from "@/providers/datastore";
-import { RequestTypeQueries } from "@/queries/requestType";
+import { requestTypeQ } from "@/queries/requestType";
 import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
@@ -26,8 +26,7 @@ const CreateResquestPage = () => {
   const userRoles = user?.role?.flatMap((x) => x.label) || [];
   const hasRole = (role: string) => userRoles.includes(role);
 
-  const requestTypeQueries = new RequestTypeQueries();
-  const getRequestType = useFetchQuery(["requestType"], requestTypeQueries.getAll);
+  const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll);
 
   if (getRequestType.isLoading) {
     return <LoadingPage />;
@@ -48,9 +47,12 @@ const CreateResquestPage = () => {
           return <CreateRequest />;
         case getRequestType.data?.data.find((x) => x.type === "speciaux")?.type:
           return <SpecialRequestForm />;
-        case getRequestType.data?.data.find((x) => x.type === "facilitation")?.type:
+        case getRequestType.data?.data.find((x) => x.type === "facilitation")
+          ?.type:
           return <FacilitationRequestForm />;
-        case getRequestType.data?.data.find((x) => x.type === "ressource_humaine")?.type:
+        case getRequestType.data?.data.find(
+          (x) => x.type === "ressource_humaine"
+        )?.type:
           return <RHRequestForm />;
         default:
           return null;
@@ -69,26 +71,64 @@ const CreateResquestPage = () => {
             <SelectContent>
               <SelectGroup>
                 {/* Visible par tous */}
-                <SelectItem value={getRequestType.data?.data.find((x) => x.type === "achat")?.type!}>
-                  {getRequestType.data?.data.find((x) => x.type === "achat")?.label}
+                <SelectItem
+                  value={
+                    getRequestType.data?.data.find((x) => x.type === "achat")
+                      ?.type!
+                  }
+                >
+                  {
+                    getRequestType.data?.data.find((x) => x.type === "achat")
+                      ?.label
+                  }
                 </SelectItem>
 
                 {/* Visible par tous (modifiable si besoin) */}
-                <SelectItem value={getRequestType.data?.data.find((x) => x.type === "facilitation")?.type!}>
-                  {getRequestType.data?.data.find((x) => x.type === "facilitation")?.label}
+                <SelectItem
+                  value={
+                    getRequestType.data?.data.find(
+                      (x) => x.type === "facilitation"
+                    )?.type!
+                  }
+                >
+                  {
+                    getRequestType.data?.data.find(
+                      (x) => x.type === "facilitation"
+                    )?.label
+                  }
                 </SelectItem>
 
                 {/* RH uniquement */}
                 {hasRole("RH") && (
-                  <SelectItem value={getRequestType.data?.data.find((x) => x.type === "ressource_humaine")?.type!}>
-                    {getRequestType.data?.data.find((x) => x.type === "ressource_humaine")?.label}
+                  <SelectItem
+                    value={
+                      getRequestType.data?.data.find(
+                        (x) => x.type === "ressource_humaine"
+                      )?.type!
+                    }
+                  >
+                    {
+                      getRequestType.data?.data.find(
+                        (x) => x.type === "ressource_humaine"
+                      )?.label
+                    }
                   </SelectItem>
                 )}
 
                 {/* VOLT-MANAGER uniquement */}
                 {hasRole("VOLT_MANAGER") && (
-                  <SelectItem value={getRequestType.data?.data.find((x) => x.type === "speciaux")?.type!}>
-                    {getRequestType.data?.data.find((x) => x.type === "speciaux")?.label}
+                  <SelectItem
+                    value={
+                      getRequestType.data?.data.find(
+                        (x) => x.type === "speciaux"
+                      )?.type!
+                    }
+                  >
+                    {
+                      getRequestType.data?.data.find(
+                        (x) => x.type === "speciaux"
+                      )?.label
+                    }
                   </SelectItem>
                 )}
               </SelectGroup>
@@ -99,6 +139,6 @@ const CreateResquestPage = () => {
         {renderForm()}
       </div>
     );
-  };
-}
+  }
+};
 export default CreateResquestPage;

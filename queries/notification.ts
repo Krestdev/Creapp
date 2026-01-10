@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { ResponseT, Notification } from "@/types/types";
 
-export class NotificationQueries {
+class NotificationQueries {
   route = "/notification";
 
   // --------------------------------------
@@ -59,22 +59,18 @@ export class NotificationQueries {
 
   // Notifications d’un utilisateur
   getByUser = async (userId: number): Promise<{ data: Notification[] }> => {
-    return api
-      .get(`${this.route}/user/${userId}`)
-      .then((response) => {
-        console.log(response.data);
-        return response.data;
-      });
+    return api.get(`${this.route}/user/${userId}`).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
   // Marquer comme lue
   markAsRead = async (id: number): Promise<{ data: Notification }> => {
-    return api
-      .patch(`${this.route}/${id}/read`)
-      .then((response) => {
-        console.log(response.data);
-        return response.data;
-      });
+    return api.patch(`${this.route}/${id}/read`).then((response) => {
+      console.log(response.data);
+      return response.data;
+    });
   };
 
   // Marquer toutes comme lues (par utilisateur)
@@ -87,3 +83,5 @@ export class NotificationQueries {
       });
   };
 }
+
+export const notificationQ = new NotificationQueries();

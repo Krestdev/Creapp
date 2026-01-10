@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { Role } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -57,11 +57,10 @@ export default function UpdateRole({
     });
   }, [departmentData, form]);
 
-  const userQueries = new UserQueries();
   const departmentMutation = useMutation({
     mutationKey: ["departmentUpdate"],
     mutationFn: async (data: Partial<Role>) =>
-      userQueries.updateRole(Number(departmentData?.id), data),
+      userQ.updateRole(Number(departmentData?.id), data),
 
     onSuccess: () => {
       toast.success("Besoin modifié avec succès !");

@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { RequestModelT } from "@/types/types";
 
-export class RequestQueries {
+class RequestQueries {
   route = "/request/object";
 
   // ============================
@@ -10,7 +10,10 @@ export class RequestQueries {
 
   // Créer une demande
   create = async (
-    data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "project">
+    data: Omit<
+      RequestModelT,
+      "id" | "createdAt" | "updatedAt" | "ref" | "project"
+    >
   ): Promise<{ data: RequestModelT }> => {
     return api.post(this.route, data).then((res) => res.data);
   };
@@ -62,7 +65,7 @@ export class RequestQueries {
   specialUpdate = async (
     data: Partial<RequestModelT>,
     id: number
-  ): Promise<{ data: RequestModelT, id: number }> => {
+  ): Promise<{ data: RequestModelT; id: number }> => {
     const formData = new FormData();
 
     Object.entries(data).forEach(([key, value]) => {
@@ -142,10 +145,10 @@ export class RequestQueries {
     validatorId: number,
     validator:
       | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
+          id?: number | undefined;
+          userId: number;
+          rank: number;
+        }
       | undefined
   ): Promise<{ data: RequestModelT }> => {
     return api
@@ -161,12 +164,12 @@ export class RequestQueries {
       userId: number;
       decision?: string;
       validator?:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }
   ): Promise<{ data: RequestModelT }> => {
     return api
@@ -193,17 +196,15 @@ export class RequestQueries {
    * Route: PUT /request/object/validateBulk
    * Utilisé lorsque l'utilisateur est le dernier validateur de la chaîne
    */
-  validateBulk = async (
-    data: {
-      ids: number[];
-      validatorId: number;
-      validator?: {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      };
-    }
-  ): Promise<{ data: { success: boolean; count: number } }> => {
+  validateBulk = async (data: {
+    ids: number[];
+    validatorId: number;
+    validator?: {
+      id?: number | undefined;
+      userId: number;
+      rank: number;
+    };
+  }): Promise<{ data: { success: boolean; count: number } }> => {
     return api
       .put(`${this.route}/validateBulk`, {
         ids: data.ids,
@@ -218,14 +219,14 @@ export class RequestQueries {
    * Route: PUT /request/object/reviewBulk
    * Utilisé lorsque l'utilisateur n'est pas le dernier validateur
    */
-  reviewBulk = async (
-    data: {
-      ids: number[];
-      validated: boolean;
-      validatorId: number;
-      decision?: string;
-    }
-  ): Promise<{ data: { success: boolean; count: number; errors?: any[] } }> => {
+  reviewBulk = async (data: {
+    ids: number[];
+    validated: boolean;
+    validatorId: number;
+    decision?: string;
+  }): Promise<{
+    data: { success: boolean; count: number; errors?: any[] };
+  }> => {
     // Construire le body exact selon le format requis
     const body = {
       decision: data.decision || "",
@@ -234,9 +235,7 @@ export class RequestQueries {
       ids: data.ids,
     };
 
-    return api
-      .put(`${this.route}/reviewBulk`, body)
-      .then((res) => res.data);
+    return api.put(`${this.route}/reviewBulk`, body).then((res) => res.data);
   };
 
   // ============================
@@ -258,3 +257,5 @@ export class RequestQueries {
     return api.put(`${this.route}/submit/${id}`).then((res) => res.data);
   };
 }
+
+export const requestQ = new RequestQueries();

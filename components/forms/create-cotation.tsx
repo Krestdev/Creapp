@@ -17,11 +17,13 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { RequestQueries } from "@/queries/requestModule";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { requestQ } from "@/queries/requestModule";
 import { CommandRequestT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -29,8 +31,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import Besoins from "../bdcommande/besoins";
 import { SuccessModal } from "../modals/success-modal";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { fr } from "date-fns/locale";
 
 const formSchema = z.object({
   name: z.string().min(1, "Le nom est obligatoire"),
@@ -67,7 +67,6 @@ export default function CreateCotationForm() {
     },
   });
 
-  const command = new CommandRqstQueries();
   const createCommand = useMutation({
     mutationKey: ["command"],
     mutationFn: (
@@ -75,7 +74,7 @@ export default function CreateCotationForm() {
         CommandRequestT,
         "id" | "createdAt" | "updatedAt" | "reference" | "besoins"
       >
-    ) => command.create(data),
+    ) => commandRqstQ.create(data),
     onSuccess: () => {
       setSuccessOpen(true);
       // Invalider TOUTES les requêtes pertinentes
@@ -100,15 +99,14 @@ export default function CreateCotationForm() {
     },
   });
 
-  const request = new RequestQueries();
   const requestData = useQuery({
     queryKey: ["requests"],
-    queryFn: () => request.getAll(),
+    queryFn: () => requestQ.getAll(),
   });
 
   const commandData = useQuery({
     queryKey: ["commands"],
-    queryFn: async () => command.getAll(),
+    queryFn: async () => commandRqstQ.getAll(),
   });
 
   const cotation = commandData.data?.data ?? [];

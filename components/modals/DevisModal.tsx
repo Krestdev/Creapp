@@ -31,10 +31,10 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { useQuery } from "@tanstack/react-query";
-import { ProviderQueries } from "@/queries/providers";
-import { RequestQueries } from "@/queries/requestModule";
+import { providerQ } from "@/queries/providers";
+import { requestQ } from "@/queries/requestModule";
 import React from "react";
 import ShowFile from "../base/show-file";
 import { DownloadFile } from "../base/downLoadFile";
@@ -58,22 +58,19 @@ export function DevisModal({
   const [page, setPage] = React.useState(1);
   const [file, setFile] = React.useState<string | File | undefined>(undefined);
 
-  const users = new UserQueries();
   const usersData = useQuery({
     queryKey: ["usersList"],
-    queryFn: () => users.getAll(),
+    queryFn: () => userQ.getAll(),
   });
 
-  const providers = new ProviderQueries();
   const providersData = useQuery({
     queryKey: ["providersList"],
-    queryFn: () => providers.getAll(),
+    queryFn: () => providerQ.getAll(),
   });
 
-  const request = new RequestQueries();
   const requestsData = useQuery({
     queryKey: ["requestsList"],
-    queryFn: () => request.getAll(),
+    queryFn: () => requestQ.getAll(),
   });
 
   // Récupérer les informations de l'utilisateur (à adapter selon votre structure)
@@ -93,7 +90,9 @@ export function DevisModal({
 
   const getUserName = (userId: number | undefined) => {
     return (
-      usersData.data?.data?.find((u) => u.id === userId)?.firstName + " " + usersData.data?.data?.find((u) => u.id === userId)?.lastName ||
+      usersData.data?.data?.find((u) => u.id === userId)?.firstName +
+        " " +
+        usersData.data?.data?.find((u) => u.id === userId)?.lastName ||
       "Non spécifique"
     );
   };
@@ -290,12 +289,20 @@ export function DevisModal({
                     {data?.element?.map((el, index) => (
                       <TableRow
                         key={index}
-                        className={cn(index % 2 === 0 ? "bg-white" : "bg-gray-50", el.status === "SELECTED" && "bg-green-50!", el.status === "REJECTED" && "bg-red-50!")}
+                        className={cn(
+                          index % 2 === 0 ? "bg-white" : "bg-gray-50",
+                          el.status === "SELECTED" && "bg-green-50!",
+                          el.status === "REJECTED" && "bg-red-50!"
+                        )}
                       >
                         <TableCell className="font-medium inline-flex gap-1 items-center">
                           {getRequestTitle(el.requestModelId) || "N/A"}
-                          {el.status === "SELECTED" && <CheckCircle size={12} className="text-green-600" />}
-                          {el.status === "REJECTED" && <XCircle size={12} className="text-destructive" />}
+                          {el.status === "SELECTED" && (
+                            <CheckCircle size={12} className="text-green-600" />
+                          )}
+                          {el.status === "REJECTED" && (
+                            <XCircle size={12} className="text-destructive" />
+                          )}
                         </TableCell>
                         <TableCell>{el.title || "N/A"}</TableCell>
                         <TableCell>

@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ProviderQueries } from "@/queries/providers";
+import { providerQ } from "@/queries/providers";
 import { Provider } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
@@ -35,13 +35,6 @@ import {
 
 // Définir un type pour les fichiers
 type FileValue = File | string;
-
-// Schéma de validation corrigé
-const SingleFileSchema = z
-  .union([z.instanceof(File), z.string().url("Doit être une URL valide")])
-  .optional()
-  .nullable()
-  .transform((val) => val ?? null);
 
 const FileSchema = z.union([z.instanceof(File), z.string()]).nullable();
 
@@ -130,7 +123,6 @@ export default function UpdateProvider({
   }, [open, providerData, form, defaultValues]);
 
   const queryClient = useQueryClient();
-  const providerQueries = new ProviderQueries();
 
   const providerMutation = useMutation({
     mutationKey: ["providerUpdate", providerData?.id],
@@ -138,14 +130,17 @@ export default function UpdateProvider({
       if (!providerData?.id) {
         throw new Error("ID du fournisseur manquant");
       }
-      return providerQueries.update(providerData.id, data);
+      return providerQ.update(providerData.id, data);
     },
     onSuccess: () => {
       toast.success("Fournisseur modifié avec succès !");
       setOpen(false);
       form.reset(defaultValues);
       onSuccess?.();
-      queryClient.invalidateQueries({ queryKey: ["providersList"], refetchType: "active" });
+      queryClient.invalidateQueries({
+        queryKey: ["providersList"],
+        refetchType: "active",
+      });
     },
     onError: (error: Error) => {
       console.error("Erreur de mise à jour:", error);

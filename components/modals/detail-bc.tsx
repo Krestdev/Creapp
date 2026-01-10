@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
+import { commandRqstQ } from "@/queries/commandRqstModule";
 import { BonsCommande } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -70,12 +70,11 @@ interface DetailBCProps {
 }
 
 export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
-  const cotation = new CommandRqstQueries();
   const {
     data: devis,
     isSuccess,
     // isLoading,
-  } = useFetchQuery(["commandes"], cotation.getAll, 30000);
+  } = useFetchQuery(["commandes"], commandRqstQ.getAll, 30000);
   if (!data || !isSuccess) return null;
 
   const devisTitle = devis?.data.find(
@@ -148,23 +147,24 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Priorité"}</p>
                 <Badge
-                  className={` text-white ${data.priority === "high"
+                  className={` text-white ${
+                    data.priority === "high"
                       ? "bg-[#ff6900]"
                       : data.priority === "medium"
-                        ? "bg-[#2b7fff]"
-                        : data.priority === "urgent"
-                          ? "bg-[#fb2c36]"
-                          : "bg-[#6a7282]"
-                    }`}
+                      ? "bg-[#2b7fff]"
+                      : data.priority === "urgent"
+                      ? "bg-[#fb2c36]"
+                      : "bg-[#6a7282]"
+                  }`}
                 >
                   <LucideFlag />
                   {data.priority === "high"
                     ? "Haute"
                     : data.priority === "medium"
-                      ? "Moyenne"
-                      : data.priority === "urgent"
-                        ? "Urgente"
-                        : "Normale"}
+                    ? "Moyenne"
+                    : data.priority === "urgent"
+                    ? "Urgente"
+                    : "Normale"}
                 </Badge>
               </div>
             </div>
@@ -177,10 +177,11 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{"Statut"}</p>
                 <Badge
-                  className={` text-white ${data.status === "APPROVED"
+                  className={` text-white ${
+                    data.status === "APPROVED"
                       ? "bg-[#DCFCE7] border-[#BBF7D0] text-[#16A34A]"
                       : "bg-[#FED7D7] border-[#FCA5A5] text-[#DC2626]"
-                    }`}
+                  }`}
                 >
                   {data.status === "APPROVED" ? (
                     <LucideCheckCheck />

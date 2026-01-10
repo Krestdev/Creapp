@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { DepartmentT, DepartmentUpdateInput, Member } from "@/types/types";
 
-export class DepartmentQueries {
+class DepartmentQueries {
   route = "/base/department";
 
   // -------------------- CRUD DEPARTMENT --------------------
@@ -187,3 +187,5 @@ export class DepartmentQueries {
       });
   };
 }
+
+export const departmentQ = new DepartmentQueries();

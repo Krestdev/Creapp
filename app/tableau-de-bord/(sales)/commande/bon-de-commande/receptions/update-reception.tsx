@@ -17,7 +17,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 
 import FilesUpload from "@/components/comp-547";
-import { ReceptionCompletion, ReceptionQuery } from "@/queries/reception";
+import { ReceptionCompletion, receptionQ } from "@/queries/reception";
 import type { Reception } from "@/types/types";
 
 interface Props {
@@ -32,14 +32,17 @@ export default function UpdateReception({
   reception,
 }: Props) {
   const queryClient = useQueryClient();
-  const receptionQuery = new ReceptionQuery();
 
-  const defaultFiles:Array<string> = !!reception.Proof ? reception.Proof.split(";") : [];
+  const defaultFiles: Array<string> = !!reception.Proof
+    ? reception.Proof.split(";")
+    : [];
   // local state (tu évites de modifier l’objet reception direct)
   const [deliverables, setDeliverables] = React.useState<
     Reception["Deliverables"]
   >(reception?.Deliverables ?? []);
-  const [proof, setProof] = React.useState<Array<File | string>| null>(defaultFiles);
+  const [proof, setProof] = React.useState<Array<File | string> | null>(
+    defaultFiles
+  );
 
   React.useEffect(() => {
     // reset quand on ouvre / change de réception
@@ -50,7 +53,7 @@ export default function UpdateReception({
 
   const markReception = useMutation({
     mutationFn: ({ id, Deliverables, proof }: ReceptionCompletion) =>
-      receptionQuery.completeReception({ id, Deliverables, proof }),
+      receptionQ.completeReception({ id, Deliverables, proof }),
     onSuccess: () => {
       toast.success("Réception mise à jour");
       onOpenChange(false);

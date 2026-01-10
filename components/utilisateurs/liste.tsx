@@ -1,19 +1,16 @@
 "use client";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { UtilisateursTable } from "./utilisateurs-table";
 import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
 
 const UserListPage = () => {
-  const user = new UserQueries();
-  const userData = useFetchQuery(["usersList"], user.getAll, 30000);
+  const userData = useFetchQuery(["usersList"], userQ.getAll, 30000);
 
-  if (userData.isLoading)
-    return <LoadingPage />;
+  if (userData.isLoading) return <LoadingPage />;
 
-  if (userData.isError)
-    return <ErrorPage />;
+  if (userData.isError) return <ErrorPage />;
 
   if (userData.isSuccess)
     return (

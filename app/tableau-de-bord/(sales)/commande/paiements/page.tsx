@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
@@ -6,16 +6,27 @@ import { PaiementsTable } from "@/components/tables/PaiementsTable";
 import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { PaymentQueries } from "@/queries/payment";
-import { PurchaseOrder } from "@/queries/purchase-order";
+import { paymentQ } from "@/queries/payment";
+import { purchaseQ } from "@/queries/purchase-order";
 import Link from "next/link";
 
 function Page() {
   const { user } = useStore();
-  const isAuth: boolean = user?.role.some(r => r.label === "ADMIN" || r.label === "SALES" || r.label === "SALES_MANAGER") ?? false
+  const isAuth: boolean =
+    user?.role.some(
+      (r) =>
+        r.label === "ADMIN" ||
+        r.label === "SALES" ||
+        r.label === "SALES_MANAGER"
+    ) ?? false;
 
   if (!isAuth) {
-    return <ErrorPage statusCode={401} message="Vous n'avez pas accès à cette page" />
+    return (
+      <ErrorPage
+        statusCode={401}
+        message="Vous n'avez pas accès à cette page"
+      />
+    );
   }
 
   const links = [
@@ -25,17 +36,19 @@ function Page() {
     },
   ];
 
-  const paymentQuery = new PaymentQueries();
-  const commandQuery = new PurchaseOrder();
-  const getPayments = useFetchQuery(["payments"], paymentQuery.getAll, 15000);
-  const getPurchases = useFetchQuery(["purchaseOrders"], commandQuery.getAll, 15000);
+  const getPayments = useFetchQuery(["payments"], paymentQ.getAll, 15000);
+  const getPurchases = useFetchQuery(
+    ["purchaseOrders"],
+    purchaseQ.getAll,
+    15000
+  );
 
   if (getPayments.isLoading || getPurchases.isLoading) {
-    return <LoadingPage />
+    return <LoadingPage />;
   }
 
   if (getPayments.isError || getPurchases.isError) {
-    return <ErrorPage />
+    return <ErrorPage />;
   }
 
   if (getPayments.isSuccess && getPurchases.isSuccess)
@@ -54,9 +67,12 @@ function Page() {
             </Link>
           ))}
         </PageTitle>
-        <PaiementsTable payments={getPayments.data.data.filter(p => p.type === "achat")} purchases={getPurchases.data.data} />
+        <PaiementsTable
+          payments={getPayments.data.data.filter((p) => p.type === "achat")}
+          purchases={getPurchases.data.data}
+        />
       </div>
     );
-};
+}
 
 export default Page;

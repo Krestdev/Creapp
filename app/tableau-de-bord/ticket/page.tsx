@@ -1,32 +1,30 @@
 "use client";
 
-import TitleValueCard from "@/components/base/TitleValueCard";
-import Tickets from "@/components/ticket/tickets";
-import PageTitle from "@/components/pageTitle";
-import { useStore } from "@/providers/datastore";
-import { TicketsData } from "@/types/types";
-import ErrorPage from "@/components/error-page";
-import LoadingPage from "@/components/loading-page";
-import { useFetchQuery } from "@/hooks/useData";
-import { PaymentQueries } from "@/queries/payment";
 import Empty from "@/components/base/empty";
 import StatsCard from "@/components/base/StatsCard";
-import { RequestTypeQueries } from "@/queries/requestType";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
+import PageTitle from "@/components/pageTitle";
+import Tickets from "@/components/ticket/tickets";
+import { useFetchQuery } from "@/hooks/useData";
+import { useStore } from "@/providers/datastore";
+import { paymentQ } from "@/queries/payment";
+import { requestTypeQ } from "@/queries/requestType";
 
 function Page() {
   const { user } = useStore();
 
-  const paymentsQuery = new PaymentQueries();
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
     ["payments"],
-    paymentsQuery.getAll,
+    paymentQ.getAll,
     30000
   );
 
-
-  const requestTypeQueries = new RequestTypeQueries();
-  const getRequestType = useFetchQuery(["requestType"], requestTypeQueries.getAll, 30000);
-
+  const getRequestType = useFetchQuery(
+    ["requestType"],
+    requestTypeQ.getAll,
+    30000
+  );
 
   if (isLoading || getRequestType.isLoading) {
     return <LoadingPage />;
@@ -42,8 +40,9 @@ function Page() {
     const approved = ticketsData.filter(
       (ticket) => ticket.status !== "pending"
     );
-    const paid = ticketsData.filter((ticket) => ticket.status === "paid");
-    const unPaid = ticketsData.filter((ticket) => ticket.status !== "paid" && ticket.status !== "pending");
+    const unPaid = ticketsData.filter(
+      (ticket) => ticket.status !== "paid" && ticket.status !== "pending"
+    );
 
     return (
       <div className="flex flex-col gap-6">
@@ -88,7 +87,10 @@ function Page() {
           </>
         )}
         {ticketsData.length > 0 ? (
-          <Tickets ticketsData={ticketsData.reverse()} requestTypeData={getRequestType.data?.data} />
+          <Tickets
+            ticketsData={ticketsData.reverse()}
+            requestTypeData={getRequestType.data?.data}
+          />
         ) : (
           <Empty message={"Aucun ticket disponible"} />
         )}

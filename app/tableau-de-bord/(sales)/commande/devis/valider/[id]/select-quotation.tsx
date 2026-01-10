@@ -9,10 +9,10 @@ import { useFetchQuery } from "@/hooks/useData";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { ProviderQueries } from "@/queries/providers";
-import { PurchaseOrder } from "@/queries/purchase-order";
-import { QuotationQueries } from "@/queries/quotation";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { providerQ } from "@/queries/providers";
+import { purchaseQ } from "@/queries/purchase-order";
+import { quotationQ } from "@/queries/quotation";
 import type { Provider, QuotationGroup } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notFound, useRouter } from "next/navigation";
@@ -21,12 +21,10 @@ import { toast } from "sonner";
 
 type SubmitPayload = Array<{
   deviId: number;
-  userId:number;
+  userId: number;
   commandRequestId: number;
   elements: Array<{ name: string; elementIds: number[] }>;
 }>;
-
-
 
 /**
  * ✅ Preload:
@@ -54,57 +52,57 @@ function SelectQuotation({ id }: { id: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const {user} = useStore();
+  const { user } = useStore();
 
-const buildSubmitPayload = (
-  quotationGroup: QuotationGroup,
-  selected: Record<number, number>
-): SubmitPayload => {
-  const byDevi = new Map<number, SubmitPayload[number]>();
+  const buildSubmitPayload = (
+    quotationGroup: QuotationGroup,
+    selected: Record<number, number>
+  ): SubmitPayload => {
+    const byDevi = new Map<number, SubmitPayload[number]>();
 
-  for (const besoin of quotationGroup.commandRequest.besoins) {
-    const providerId = selected[besoin.id];
-    if (!providerId) continue;
+    for (const besoin of quotationGroup.commandRequest.besoins) {
+      const providerId = selected[besoin.id];
+      if (!providerId) continue;
 
-    const quote = quotationGroup.quotations.find(
-      (q) => q.providerId === providerId
-    );
-    if (!quote) continue;
+      const quote = quotationGroup.quotations.find(
+        (q) => q.providerId === providerId
+      );
+      if (!quote) continue;
 
-    const elementIds = (quote.element || [])
-      .filter((el) => el.requestModelId === besoin.id)
-      .map((el) => el.id);
+      const elementIds = (quote.element || [])
+        .filter((el) => el.requestModelId === besoin.id)
+        .map((el) => el.id);
 
-    if (elementIds.length === 0) continue;
+      if (elementIds.length === 0) continue;
 
-    const existing = byDevi.get(quote.id);
-    const groupItem = { name: besoin.label, elementIds };
+      const existing = byDevi.get(quote.id);
+      const groupItem = { name: besoin.label, elementIds };
 
-    if (existing) {
-      const already = existing.elements.some((e) => e.name === groupItem.name);
-      if (!already) existing.elements.push(groupItem);
-    } else {
-      byDevi.set(quote.id, { deviId: quote.id, userId: user?.id ?? 0, commandRequestId: quote.commandRequestId, elements: [groupItem] });
+      if (existing) {
+        const already = existing.elements.some(
+          (e) => e.name === groupItem.name
+        );
+        if (!already) existing.elements.push(groupItem);
+      } else {
+        byDevi.set(quote.id, {
+          deviId: quote.id,
+          userId: user?.id ?? 0,
+          commandRequestId: quote.commandRequestId,
+          elements: [groupItem],
+        });
+      }
     }
-  }
 
-  return Array.from(byDevi.values());
-};
+    return Array.from(byDevi.values());
+  };
 
-  const quotationQuery = new QuotationQueries();
-  const quotations = useFetchQuery(["quotations"], quotationQuery.getAll);
+  const quotations = useFetchQuery(["quotations"], quotationQ.getAll);
 
-  const providersQuery = new ProviderQueries();
-  const providers = useFetchQuery(["providers"], providersQuery.getAll, 500000);
+  const providers = useFetchQuery(["providers"], providerQ.getAll, 500000);
 
-  const commandsQuery = new CommandRqstQueries();
-  const commands = useFetchQuery(["commands"], commandsQuery.getAll, 30000);
+  const commands = useFetchQuery(["commands"], commandRqstQ.getAll, 30000);
 
-  const purchaseOrderQuery = new PurchaseOrder();
-    const purchaseOrder = useFetchQuery(
-      ["purchaseOrders"],
-      purchaseOrderQuery.getAll
-    );
+  const purchaseOrder = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
 
   // besoinId -> providerId
   const [selected, setSelected] = React.useState<Record<number, number>>({});
@@ -151,7 +149,7 @@ const buildSubmitPayload = (
   }, [selected]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (value: SubmitPayload) => quotationQuery.validate(value),
+    mutationFn: async (value: SubmitPayload) => quotationQ.validate(value),
     onSuccess: () => {
       toast.success("Décision enregistrée !");
       queryClient.invalidateQueries({ queryKey: ["quotations"] });
@@ -175,23 +173,45 @@ const buildSubmitPayload = (
   };
 
   const toggleSelection = (besoinId: number, providerId: number) => {
-  setSelected((prev) => {
-    // si on clique sur le même provider déjà choisi => déselection
-    if (prev[besoinId] === providerId) {
-      const next = { ...prev };
-      delete next[besoinId];
-      return next;
-    }
-    // sinon, on sélectionne / remplace
-    return { ...prev, [besoinId]: providerId };
-  });
-};
+    setSelected((prev) => {
+      // si on clique sur le même provider déjà choisi => déselection
+      if (prev[besoinId] === providerId) {
+        const next = { ...prev };
+        delete next[besoinId];
+        return next;
+      }
+      // sinon, on sélectionne / remplace
+      return { ...prev, [besoinId]: providerId };
+    });
+  };
 
-
-  if (quotations.isLoading || providers.isLoading || commands.isLoading || purchaseOrder.isLoading)
+  if (
+    quotations.isLoading ||
+    providers.isLoading ||
+    commands.isLoading ||
+    purchaseOrder.isLoading
+  )
     return <LoadingPage />;
-  if(quotations.isError || providers.isError || commands.isError || purchaseOrder.isError) return <ErrorPage/>
-  if(purchaseOrder.data && quotationGroup && purchaseOrder.data.data.find(x=> quotationGroup.quotations.some(y=> y.id === x.deviId))) return <ErrorPage statusCode={401} message="Un bon de commande a déjà été crée avec un devis appartenant à ce groupe"/>
+  if (
+    quotations.isError ||
+    providers.isError ||
+    commands.isError ||
+    purchaseOrder.isError
+  )
+    return <ErrorPage />;
+  if (
+    purchaseOrder.data &&
+    quotationGroup &&
+    purchaseOrder.data.data.find((x) =>
+      quotationGroup.quotations.some((y) => y.id === x.deviId)
+    )
+  )
+    return (
+      <ErrorPage
+        statusCode={401}
+        message="Un bon de commande a déjà été crée avec un devis appartenant à ce groupe"
+      />
+    );
   if (!quotationGroup) return notFound();
 
   return (
@@ -212,7 +232,9 @@ const buildSubmitPayload = (
                 const checked = selected[besoin.id] === quote.providerId;
 
                 // ✅ indique si ce fournisseur est déjà validé pour ce besoin
-                const alreadyValidated = elements.some((e) => e.status === "SELECTED");
+                const alreadyValidated = elements.some(
+                  (e) => e.status === "SELECTED"
+                );
 
                 return (
                   <div
@@ -243,9 +265,7 @@ const buildSubmitPayload = (
                           {provider?.name ?? "Introuvable"}
                         </span>
                         {alreadyValidated && (
-                          <Badge variant={"primary"}>
-                            {"Déjà validé"}
-                          </Badge>
+                          <Badge variant={"primary"}>{"Déjà validé"}</Badge>
                         )}
                       </div>
                       <div className="flex flex-col gap-2">

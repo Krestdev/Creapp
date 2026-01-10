@@ -30,9 +30,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
+import { userQ } from "@/queries/baseModule";
+import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -47,7 +46,8 @@ import FilesUpload from "../comp-547";
 import { SearchableSelect } from "../base/searchableSelect";
 import { Calendar } from "../ui/calendar";
 import BeneficiairesList from "./AddBenef";
-import { PaymentQueries } from "@/queries/payment";
+import { paymentQ } from "@/queries/payment";
+import { projectQ } from "@/queries/projectModule";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -98,28 +98,26 @@ export default function UpdateRequestFac({
   // ----------------------------------------------------------------------
   // QUERY PROJECTS
   // ----------------------------------------------------------------------
-  const projects = new ProjectQueries();
   const projectsData = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => projects.getAll(),
+    queryFn: async () => projectQ.getAll(),
   });
 
   // ----------------------------------------------------------------------
   // QUERY PAYMENTS
   // ----------------------------------------------------------------------
-  const payments = new PaymentQueries();
   const paymentsData = useQuery({
     queryKey: ["payments"],
-    queryFn: async () => payments.getAll(),
+    queryFn: async () => paymentQ.getAll(),
   });
 
   // ----------------------------------------------------------------------
   // QUERY USERS
   // ----------------------------------------------------------------------
-  const users = new UserQueries();
+
   const usersData = useQuery({
     queryKey: ["users"],
-    queryFn: async () => users.getAll(),
+    queryFn: async () => userQ.getAll(),
   });
 
   const USERS = usersData.data?.data || [];
@@ -205,12 +203,12 @@ export default function UpdateRequestFac({
   // ----------------------------------------------------------------------
   // UPDATE MUTATION
   // ----------------------------------------------------------------------
-  const request = new RequestQueries();
+
   const updateMutation = useMutation({
     mutationKey: ["requests", "update", "facilitation"],
     mutationFn: async (data: Partial<RequestModelT>) => {
       if (!requestData?.id) throw new Error("ID de la demande manquant");
-      return request.specialUpdate(data, Number(requestData.id));
+      return requestQ.specialUpdate(data, Number(requestData.id));
     },
 
     onSuccess: () => {

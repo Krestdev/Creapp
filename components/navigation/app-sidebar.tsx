@@ -2,13 +2,13 @@ import useAuthGuard from "@/hooks/useAuthGuard";
 import { useFetchQuery } from "@/hooks/useData";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { useStore } from "@/providers/datastore";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { PaymentQueries } from "@/queries/payment";
-import { ProviderQueries } from "@/queries/providers";
-import { PurchaseOrder } from "@/queries/purchase-order";
-import { QuotationQueries } from "@/queries/quotation";
-import { RequestQueries } from "@/queries/requestModule";
+import { categoryQ } from "@/queries/categoryModule";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { paymentQ } from "@/queries/payment";
+import { providerQ } from "@/queries/providers";
+import { purchaseQ } from "@/queries/purchase-order";
+import { quotationQ } from "@/queries/quotation";
+import { requestQ } from "@/queries/requestModule";
 import {
   Category,
   NavigationItemProps,
@@ -20,19 +20,16 @@ import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
   ClipboardList,
-  LandmarkIcon,
-  Coins,
   DollarSign,
   EllipsisVertical,
-  ScrollText,
-  Ticket,
-  Truck,
-  UsersRound,
+  LandmarkIcon,
   LayoutDashboardIcon,
-  SettingsIcon,
-  LogOutIcon,
   LockIcon,
-  UserLock,
+  LogOutIcon,
+  ScrollText,
+  SettingsIcon,
+  Ticket,
+  ReceiptIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -65,25 +62,15 @@ function AppSidebar() {
     return "Employé";
   }
 
-  const request = new RequestQueries();
-  const category = new CategoryQueries();
-  const command = new CommandRqstQueries();
-  const quotationQuery = new QuotationQueries();
-  const purchaseOrderQuery = new PurchaseOrder();
-  const providersQuery = new ProviderQueries();
-
-  const { data: cotation } = useFetchQuery(["commands"], command.getAll);
+  const { data: cotation } = useFetchQuery(["commands"], commandRqstQ.getAll);
   const { data: quotationsData } = useFetchQuery(
     ["quotations"],
-    quotationQuery.getAll
+    quotationQ.getAll
   );
 
-  const getPurchases = useFetchQuery(
-    ["purchaseOrders"],
-    purchaseOrderQuery.getAll
-  );
+  const getPurchases = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
 
-  const providers = useFetchQuery(["providers"], providersQuery.getAll);
+  const providers = useFetchQuery(["providers"], providerQ.getAll);
 
   const purchase = getPurchases.data?.data.filter(
     (c) => c.status === "IN-REVIEW" || c.status === "PENDING"
@@ -100,17 +87,17 @@ function AppSidebar() {
   const approbationDevis =
     providers?.data?.data && cotation?.data && quotationsData?.data
       ? groupQuotationsByCommandRequest(
-        cotation?.data!,
-        quotationsData?.data!,
-        providers?.data?.data!
-      ).filter((c) => c.status === "NOT_PROCESSED")
+          cotation?.data!,
+          quotationsData?.data!,
+          providers?.data?.data!
+        ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
 
   // Récupérer toutes les catégories avec leurs validateurs
   const categoriesData = useQuery({
     queryKey: ["categoryList"],
     queryFn: async () => {
-      return category.getCategories();
+      return categoryQ.getCategories();
     },
     enabled: isHydrated,
   });
@@ -119,15 +106,17 @@ function AppSidebar() {
   const requestData = useQuery({
     queryKey: ["requests"],
     queryFn: () => {
-      return request.getAll();
+      return requestQ.getAll();
     },
     enabled: isHydrated,
   });
 
-  const myList = useFetchQuery(["requests", user?.id], () => request.getMine(user!.id));
+  const myList = useFetchQuery(["requests", user?.id], () =>
+    requestQ.getMine(user!.id)
+  );
 
-
-  const besoinDéstocké = myList.data?.data.filter((x) => x.state === "store").length ?? 0;
+  const besoinDéstocké =
+    myList.data?.data.filter((x) => x.state === "store").length ?? 0;
 
   // Récupérer tous les IDs des besoins présents dans les cotations
   const besoinsDansCotation =
@@ -229,8 +218,8 @@ function AppSidebar() {
       const data =
         requestData.data?.data.filter((r) => r.state !== "cancel") ?? [];
 
-      let start = new Date(0);
-      let end = new Date();
+      const start = new Date(0);
+      const end = new Date();
 
       return data.filter((item) => {
         const d = new Date(item.createdAt);
@@ -248,12 +237,7 @@ function AppSidebar() {
     authorizedRoles: [],
   });
 
-  const paymentsQuery = new PaymentQueries();
-  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
-    ["payments"],
-    paymentsQuery.getAll,
-    30000
-  );
+  const { data } = useFetchQuery(["payments"], paymentQ.getAll, 30000);
 
   const ticketsData = data?.data.filter((ticket) => ticket.status !== "ghost");
   const pendingTicket = ticketsData?.filter(
@@ -400,18 +384,19 @@ function AppSidebar() {
           authorized: ["ADMIN", "SALES"],
         },
         {
-          pageId: "PG-03-07",
-          title: "Factures",
-          href: "/tableau-de-bord/commande/factures/validation",
-          authorized: ["ADMIN", "SALES"],
-        },
-        {
           pageId: "PG-03-065897",
           title: "Statistiques",
           href: "/tableau-de-bord/commande/bon-de-commande/statistiques",
           authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
         },
       ],
+    },
+    {
+      pageId: "PG-03-07",
+      title: "Factures",
+      href: "/tableau-de-bord/factures",
+      authorized: ["ADMIN", "ACCOUNTING"],
+      icon: ReceiptIcon,
     },
     {
       pageId: "PG-04",
@@ -435,8 +420,8 @@ function AppSidebar() {
           title: "Transferts",
           href: "/tableau-de-bord/ticket/transferts",
           authorized: ["ADMIN", "VOLT_MANAGER"],
-        }
-      ]
+        },
+      ],
     },
     {
       pageId: "PG-91",

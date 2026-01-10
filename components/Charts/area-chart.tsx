@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import {
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-    type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
 } from "@/components/ui/chart";
 
 export interface AreaChartDataItem {
@@ -86,30 +86,33 @@ const defaultMargin = {
   right: 0,
   left: 0,
   bottom: 10,
-}
+};
 
-const generateChartConfigFromSeries = (series: AreaChartSeries[]): ChartConfig => {
-  const config: ChartConfig = {}
-  
+const generateChartConfigFromSeries = (
+  series: AreaChartSeries[]
+): ChartConfig => {
+  const config: ChartConfig = {};
+
   series.forEach((serie) => {
     config[serie.key] = {
       label: serie.label,
       color: serie.color,
-    }
-  })
-  
-  return config
-}
+    };
+  });
+
+  return config;
+};
 
 export function ChartArea({
   data,
   series,
   chartConfig,
-  xAxisFormatter = (value) => value.length > 6 ? `${value.slice(0, 3)}` : value,
+  xAxisFormatter = (value) =>
+    value.length > 6 ? `${value.slice(0, 3)}` : value,
   yAxisFormatter = (value) => {
-    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`
-    if (value >= 1000) return `${(value / 1000).toFixed(0)}k`
-    return value.toString()
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `${(value / 1000).toFixed(0)}k`;
+    return value.toString();
   },
   showYAxis = false,
   showGrid = true,
@@ -119,93 +122,90 @@ export function ChartArea({
   height = 400,
   margin = defaultMargin,
 }: AreaChartProps) {
-  
   // Utiliser le chartConfig fourni ou en générer un à partir des séries
-  const finalChartConfig = chartConfig || generateChartConfigFromSeries(series)
-
+  const finalChartConfig = chartConfig || generateChartConfigFromSeries(series);
 
   // Calculer la tendance si non fournie
   const calculateTrend = () => {
-    if (trend) return trend
-    
+    if (trend) return trend;
+
     if (data.length > 1 && series.length > 0) {
-      const firstValue = Number(data[0][series[0].key]) || 0
-      const lastValue = Number(data[data.length - 1][series[0].key]) || 0
-      
+      const firstValue = Number(data[0][series[0].key]) || 0;
+      const lastValue = Number(data[data.length - 1][series[0].key]) || 0;
+
       if (firstValue > 0) {
-        const trendValue = ((lastValue - firstValue) / firstValue) * 100
+        const trendValue = ((lastValue - firstValue) / firstValue) * 100;
         return {
           value: trendValue,
           label: trendValue > 0 ? "Hausse de" : "Baisse de",
           period: `sur ${data.length} périodes`,
-        }
+        };
       }
     }
-    
-    return null
-  }
 
-  const calculatedTrend = trend || calculateTrend()
-
+    return null;
+  };
 
   return (
-        <ChartContainer config={finalChartConfig}>
-          <AreaChart
-            accessibilityLayer
-            data={data}
-            margin={margin}
-            height={height}
-          >
-            {showGrid && <CartesianGrid vertical={false} strokeDasharray="3 3" />}
-            
-            <XAxis
-              dataKey="period"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={xAxisFormatter}
-            />
-            
-            {showYAxis && (
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={yAxisFormatter}
-              />
-            )}
-            
-            <ChartTooltip
-              cursor={{ stroke: 'var(--color-border)', strokeWidth: 1, strokeDasharray: '3 3' }}
-              content={
-                <ChartTooltipContent 
-                  indicator={tooltipIndicator}
-                  hideLabel={tooltipConfig.hideLabel}
-                  formatter={(value, name) => {
-                    const formattedValue = tooltipConfig.valueFormatter?.(Number(value), String(name)) 
-                      || Number(value).toLocaleString('fr-FR')
-                    return [formattedValue, finalChartConfig[name]?.label || name]
-                  }}
-                  labelFormatter={tooltipConfig.labelFormatter || ((label) => `Période: ${label}`)}
-                />
+    <ChartContainer config={finalChartConfig}>
+      <AreaChart accessibilityLayer data={data} margin={margin} height={height}>
+        {showGrid && <CartesianGrid vertical={false} strokeDasharray="3 3" />}
+
+        <XAxis
+          dataKey="period"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          tickFormatter={xAxisFormatter}
+        />
+
+        {showYAxis && (
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            tickFormatter={yAxisFormatter}
+          />
+        )}
+
+        <ChartTooltip
+          cursor={{
+            stroke: "var(--color-border)",
+            strokeWidth: 1,
+            strokeDasharray: "3 3",
+          }}
+          content={
+            <ChartTooltipContent
+              indicator={tooltipIndicator}
+              hideLabel={tooltipConfig.hideLabel}
+              formatter={(value, name) => {
+                const formattedValue =
+                  tooltipConfig.valueFormatter?.(Number(value), String(name)) ||
+                  Number(value).toLocaleString("fr-FR");
+                return [formattedValue, finalChartConfig[name]?.label || name];
+              }}
+              labelFormatter={
+                tooltipConfig.labelFormatter || ((label) => `Période: ${label}`)
               }
             />
-            
-            {series.map((serie) => (
-              <Area
-                key={serie.key}
-                dataKey={serie.key}
-                type={serie.type || "natural"}
-                fill={serie.strokeOnly ? "transparent" : serie.color}
-                fillOpacity={serie.fillOpacity || (serie.strokeOnly ? 0 : 0.4)}
-                stroke={serie.color}
-                strokeWidth={2}
-                stackId={serie.showGradient ? "1" : undefined}
-                activeDot={{ r: 6, strokeWidth: 2, stroke: serie.color }}
-                connectNulls
-              />
-            ))}
-          </AreaChart>
-        </ChartContainer>
-  )
+          }
+        />
+
+        {series.map((serie) => (
+          <Area
+            key={serie.key}
+            dataKey={serie.key}
+            type={serie.type || "natural"}
+            fill={serie.strokeOnly ? "transparent" : serie.color}
+            fillOpacity={serie.fillOpacity || (serie.strokeOnly ? 0 : 0.4)}
+            stroke={serie.color}
+            strokeWidth={2}
+            stackId={serie.showGradient ? "1" : undefined}
+            activeDot={{ r: 6, strokeWidth: 2, stroke: serie.color }}
+            connectNulls
+          />
+        ))}
+      </AreaChart>
+    </ChartContainer>
+  );
 }

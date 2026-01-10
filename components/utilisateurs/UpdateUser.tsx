@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { Role, User as UserT } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -110,11 +110,10 @@ export default function UpdateUser({
   /* =========================
      MUTATION
   ========================= */
-  const userQueries = new UserQueries();
 
   const userMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<UserT> }) =>
-      userQueries.update(id, data),
+      userQ.update(id, data),
 
     onSuccess: () => {
       toast.success("Utilisateur modifié avec succès !");
@@ -134,10 +133,9 @@ export default function UpdateUser({
   /* =========================
      ROLES
   ========================= */
-  const rolesQuery = new UserQueries();
   const { data: rolesData } = useQuery({
     queryKey: ["roles"],
-    queryFn: async () => rolesQuery.getRoles(),
+    queryFn: async () => userQ.getRoles(),
   });
 
   const ROLES =
@@ -191,7 +189,6 @@ export default function UpdateUser({
             onSubmit={form.handleSubmit(onSubmit)}
             className="w-full grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 px-6"
           >
-
             <FormField
               control={form.control}
               name="lastName"
@@ -241,7 +238,11 @@ export default function UpdateUser({
                 <FormItem>
                   <FormLabel>Adresse email </FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} placeholder="Adresse email" />
+                    <Input
+                      type="email"
+                      {...field}
+                      placeholder="Adresse email"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

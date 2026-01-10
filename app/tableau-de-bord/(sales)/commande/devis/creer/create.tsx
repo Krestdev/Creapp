@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import FilesUpload from "@/components/comp-547";
 import LoadingPage from "@/components/loading-page";
 import { ProviderDialog } from "@/components/modals/ProviderDialog";
@@ -25,14 +26,16 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { useFetchQuery } from "@/hooks/useData";
+import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { ProviderQueries } from "@/queries/providers";
-import { QuotationQueries } from "@/queries/quotation";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { providerQ } from "@/queries/providers";
+import { quotationQ } from "@/queries/quotation";
 import { Quotation, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { CalendarIcon, FolderX, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -40,9 +43,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import AddElement from "./addElement";
-import { format } from "date-fns";
-import { SearchableSelect } from "@/components/base/searchableSelect";
-import { XAF } from "@/lib/utils";
 
 const formSchema = z.object({
   commandRequestId: z.number({ message: "Requis" }),
@@ -95,20 +95,14 @@ function CreateQuotation({ quotation, openChange }: Props) {
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const { user } = useStore();
 
-
   /**Demandes de cotation */
-  const cmdRqstQuery = new CommandRqstQueries();
-  const cmdRqstData = useFetchQuery(["commands"], cmdRqstQuery.getAll, 500000);
+  const cmdRqstData = useFetchQuery(["commands"], commandRqstQ.getAll, 500000);
   /**Devis */
-  const quotationQuery = new QuotationQueries();
-  const quotationsData = useFetchQuery(["quotations"], quotationQuery.getAll);
+
+  const quotationsData = useFetchQuery(["quotations"], quotationQ.getAll);
   /**Fournisseurs */
-  const providerQuery = new ProviderQueries();
-  const providersData = useFetchQuery(
-    ["providers"],
-    providerQuery.getAll,
-    15000
-  );
+
+  const providersData = useFetchQuery(["providers"], providerQ.getAll, 15000);
 
   /**Data states */
   const [dueDate, setDueDate] = React.useState<boolean>(false);
@@ -156,11 +150,11 @@ function CreateQuotation({ quotation, openChange }: Props) {
 
       if (!id) {
         // CREATE
-        return quotationQuery.create(payload);
+        return quotationQ.create(payload);
       }
 
       // UPDATE
-      return quotationQuery.update(id, payload);
+      return quotationQ.update(id, payload);
     },
     onSuccess: (_data, variables) => {
       const intent = intentRef.current;
@@ -273,7 +267,11 @@ function CreateQuotation({ quotation, openChange }: Props) {
                         .filter(
                           (w) =>
                             !quotationsData.data.data
-                              .filter((c) => c.status === "APPROVED" || c.status === "REJECTED")
+                              .filter(
+                                (c) =>
+                                  c.status === "APPROVED" ||
+                                  c.status === "REJECTED"
+                              )
                               .some((d) => d.commandRequestId === w.id)
                         )
                         .map((request) => ({
@@ -503,10 +501,11 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                       }}
                                     >
                                       <span className="truncate">
-                                        {`${item.designation} - ${item.quantity
-                                          } ${item.unit} - ${XAF.format(
-                                            item.price
-                                          )}`}
+                                        {`${item.designation} - ${
+                                          item.quantity
+                                        } ${item.unit} - ${XAF.format(
+                                          item.price
+                                        )}`}
                                       </span>
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
                                         {"Modifier"}
@@ -595,16 +594,18 @@ function CreateQuotation({ quotation, openChange }: Props) {
             )}
           />
           <div className="flex justify-end col-span-3 w-full gap-2">
-            {quotation && <Button
-              type="submit"
-              disabled={isPending}
-              isLoading={isPending}
-              className="w-fit"
-              variant={"primary"}
-              onClick={() => (intentRef.current = "save")}
-            >
-              {!!quotation ? "Modifier le devis" : "Enregistrer"}
-            </Button>}
+            {quotation && (
+              <Button
+                type="submit"
+                disabled={isPending}
+                isLoading={isPending}
+                className="w-fit"
+                variant={"primary"}
+                onClick={() => (intentRef.current = "save")}
+              >
+                {!!quotation ? "Modifier le devis" : "Enregistrer"}
+              </Button>
+            )}
             {!quotation && (
               <Button
                 type="submit"

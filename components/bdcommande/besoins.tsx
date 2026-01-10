@@ -2,9 +2,9 @@
 
 import Empty from "@/components/base/empty";
 import { BesoinsTraiter } from "@/components/besoin/besoin-traiter";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { RequestQueries } from "@/queries/requestModule";
+import { categoryQ } from "@/queries/categoryModule";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import React, { Dispatch, SetStateAction } from "react";
@@ -22,28 +22,29 @@ interface Props {
   isHome?: boolean;
 }
 
-const Besoins = ({ selected, setSelected, dataSup = [], isHome=false }: Props) => {
-  const command = new CommandRqstQueries();
-  const request = new RequestQueries();
-  const category = new CategoryQueries();
-
+const Besoins = ({
+  selected,
+  setSelected,
+  dataSup = [],
+  isHome = false,
+}: Props) => {
   const commandData = useQuery({
     queryKey: ["commands"],
-    queryFn: async () => command.getAll(),
+    queryFn: async () => commandRqstQ.getAll(),
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
 
   const requestData = useQuery({
     queryKey: ["requests"],
-    queryFn: () => request.getAll(),
+    queryFn: () => requestQ.getAll(),
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => category.getCategories(),
+    queryFn: async () => categoryQ.getCategories(),
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
@@ -78,7 +79,7 @@ const Besoins = ({ selected, setSelected, dataSup = [], isHome=false }: Props) =
       {filteredData.length > 0 ? (
         <div className="flex flex-col">
           <BesoinsTraiter
-            data={filteredData.filter(x => x.categoryId !== 0)}
+            data={filteredData.filter((x) => x.categoryId !== 0)}
             selected={selected}
             setSelected={setSelected}
             categories={categoriesData.data?.data ?? []}

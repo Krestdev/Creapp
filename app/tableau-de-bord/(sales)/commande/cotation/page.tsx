@@ -7,11 +7,10 @@ import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { RequestQueries } from "@/queries/requestModule";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { requestQ } from "@/queries/requestModule";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import React from "react";
 
 const Page = () => {
   const { user, isHydrated } = useStore();
@@ -22,18 +21,15 @@ const Page = () => {
     },
   ];
 
-  const request = new RequestQueries();
-  const command = new CommandRqstQueries();
-
   const requestData = useQuery({
     queryKey: ["requests"],
     queryFn: () => {
-      return request.getAll();
+      return requestQ.getAll();
     },
     enabled: isHydrated,
   });
 
-  const { data: cotation } = useFetchQuery(["commands"], command.getAll);
+  const { data: cotation } = useFetchQuery(["commands"], commandRqstQ.getAll);
 
   const besoinsDansCotation =
     cotation?.data.flatMap((item) => item.besoins.map((b) => b.id)) ?? [];

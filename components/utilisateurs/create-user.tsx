@@ -10,41 +10,33 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { TranslateRole } from "@/lib/utils";
-import { UserQueries } from "@/queries/baseModule";
-import { DepartmentQueries } from "@/queries/departmentModule";
+import { userQ } from "@/queries/baseModule";
 import { ResponseT, Role, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import MultiSelectRole from "../base/multiSelectRole";
-import { useState } from "react";
 
-const formSchema = z.object({
-  firstName: z.string().optional(),
-  lastName: z.string().min(1, { message: "Le nom est requis" }),
-  email: z.string().min(1, { message: "L'adresse mail est requise" }),
-  password: z
-    .string()
-    .min(6, { message: "Le mot de passe doit contenir au moins 6 caractères" }),
-  cpassword: z.string(),
-  phone: z.string().min(1, { message: "Le numéro de téléphone est requis" }),
-  role: z.array(z.number()).optional(),
-  poste: z.string().min(1, { message: "Le poste est requis" }),
-}).refine((data) => data.password === data.cpassword, {
-  message: "Les mots de passe ne correspondent pas",
-  path: ["cpassword"],
-});
+const formSchema = z
+  .object({
+    firstName: z.string().optional(),
+    lastName: z.string().min(1, { message: "Le nom est requis" }),
+    email: z.string().min(1, { message: "L'adresse mail est requise" }),
+    password: z.string().min(6, {
+      message: "Le mot de passe doit contenir au moins 6 caractères",
+    }),
+    cpassword: z.string(),
+    phone: z.string().min(1, { message: "Le numéro de téléphone est requis" }),
+    role: z.array(z.number()).optional(),
+    poste: z.string().min(1, { message: "Le poste est requis" }),
+  })
+  .refine((data) => data.password === data.cpassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["cpassword"],
+  });
 
 export default function CreateUserForm() {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -67,12 +59,12 @@ export default function CreateUserForm() {
 
   // const router = useRouter();
   const queryClient = useQueryClient();
-  const userQueries = new UserQueries();
+
   const registerAPI = useMutation({
     mutationKey: ["registerNewUser"],
     mutationFn: (
       data: Omit<User, "status" | "lastConnection" | "role" | "members" | "id">
-    ) => userQueries.create(data),
+    ) => userQ.create(data),
     onSuccess: (data: ResponseT<User>) => {
       toast.success("Utilisateur créé avec succès.");
       form.reset({
@@ -104,7 +96,7 @@ export default function CreateUserForm() {
 
   const roleData = useQuery({
     queryKey: ["roles"],
-    queryFn: () => userQueries.getRoles(),
+    queryFn: () => userQ.getRoles(),
   });
 
   const ROLES =
@@ -197,7 +189,6 @@ export default function CreateUserForm() {
             </FormItem>
           )}
         />
-
 
         <FormField
           control={form.control}

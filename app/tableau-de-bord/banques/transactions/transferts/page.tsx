@@ -1,40 +1,43 @@
-'use client'
-import ErrorPage from '@/components/error-page';
-import LoadingPage from '@/components/loading-page';
-import PageTitle from '@/components/pageTitle'
-import { Button } from '@/components/ui/button';
-import { useFetchQuery } from '@/hooks/useData';
-import { cn } from '@/lib/utils';
-import { TransactionQuery } from '@/queries/transaction';
-import { NavLink } from '@/types/types';
-import Link from 'next/link';
-import React from 'react'
-import TransactionTable from '../transaction-table';
-import { BankQuery } from '@/queries/bank';
+"use client";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
+import PageTitle from "@/components/pageTitle";
+import { Button } from "@/components/ui/button";
+import { useFetchQuery } from "@/hooks/useData";
+import { cn } from "@/lib/utils";
+import { transactionQ } from "@/queries/transaction";
+import { NavLink } from "@/types/types";
+import Link from "next/link";
+import TransactionTable from "../transaction-table";
+import { bankQ } from "@/queries/bank";
 
 function Page() {
-    const links: Array<NavLink> = [
-        {
-          title: "Demande de transfert",
-          href: "./transferts/creer",
-        }
-      ];
-      const transactionQuery = new TransactionQuery();
-      const getTransactions = useFetchQuery(["transactions"], transactionQuery.getAll, 30000);
-      const bank = new BankQuery();
-      const getBanks = useFetchQuery(["transactions"], bank.getAll, 50000);
+  const links: Array<NavLink> = [
+    {
+      title: "Demande de transfert",
+      href: "./transferts/creer",
+    },
+  ];
+  const getTransactions = useFetchQuery(
+    ["transactions"],
+    transactionQ.getAll,
+    30000
+  );
+  const getBanks = useFetchQuery(["transactions"], bankQ.getAll, 50000);
 
-      if(getTransactions.isLoading || getBanks.isLoading){
-        return <LoadingPage/>
-      }
-      if(getTransactions.isError || getBanks.isError){
-        return <ErrorPage error={getTransactions.error || getBanks.error || undefined} />
-      }
-      if(getTransactions.isSuccess && getBanks.isSuccess)
-  return (
-    <div className="content">
+  if (getTransactions.isLoading || getBanks.isLoading) {
+    return <LoadingPage />;
+  }
+  if (getTransactions.isError || getBanks.isError) {
+    return (
+      <ErrorPage error={getTransactions.error || getBanks.error || undefined} />
+    );
+  }
+  if (getTransactions.isSuccess && getBanks.isSuccess)
+    return (
+      <div className="content">
         <PageTitle title="Transferts" subtitle="Historique des transferts">
-            {links
+          {links
             .filter((x) => (!x.hide ? true : x.hide === true && false))
             .map((link, id) => {
               const isLast = links.length > 1 ? id === links.length - 1 : false;
@@ -58,9 +61,13 @@ function Page() {
               );
             })}
         </PageTitle>
-        <TransactionTable data={getTransactions.data.data.filter(t=>t.Type === "TRANSFER")} canEdit={true} banks={getBanks.data.data} />
-    </div>
-  )
+        <TransactionTable
+          data={getTransactions.data.data.filter((t) => t.Type === "TRANSFER")}
+          canEdit={true}
+          banks={getBanks.data.data}
+        />
+      </div>
+    );
 }
 
-export default Page
+export default Page;

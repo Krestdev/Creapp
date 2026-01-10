@@ -1,22 +1,22 @@
 "use client";
 
-import React from "react";
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { UseQueryResult } from "@tanstack/react-query";
 import { CheckCircle } from "lucide-react";
+import React from "react";
 
 import { useStore } from "@/providers/datastore";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { RequestQueries } from "@/queries/requestModule";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
+import { categoryQ } from "@/queries/categoryModule";
+import { requestQ } from "@/queries/requestModule";
 
+import { useFetchQuery } from "@/hooks/useData";
+import { paymentQ } from "@/queries/payment";
+import { projectQ } from "@/queries/projectModule";
+import { requestTypeQ } from "@/queries/requestType";
 import { Category, RequestModelT, User } from "@/types/types";
 import { DataVal } from "../base/dataVal";
-import { ProjectQueries } from "@/queries/projectModule";
-import { PaymentQueries } from "@/queries/payment";
-import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
-import { useFetchQuery } from "@/hooks/useData";
-import { RequestTypeQueries } from "@/queries/requestType";
+import LoadingPage from "../loading-page";
 
 /* ======================================================
    TYPES
@@ -182,7 +182,9 @@ const useProceedData = (
       return (
         isUserValidatorForCategory(item.categoryId, user.id!, categories) &&
         hasUserValidatedRequest(item, user.id!, categories) &&
-        (item.state === "pending" || item.state === "validated" || item.state === "rejected")
+        (item.state === "pending" ||
+          item.state === "validated" ||
+          item.state === "rejected")
       );
     });
   }, [filteredData, user.id, categoryData.data?.data]);
@@ -197,25 +199,23 @@ const Approb = ({
   setDateFilter,
   customDateRange,
   setCustomDateRange,
-  setData
+  setData,
 }: Props) => {
   const { isHydrated, user } = useStore();
 
-  const requestQueries = new RequestQueries();
-  const categoryQueries = new CategoryQueries();
-  const projects = new ProjectQueries();
-  const users = new UserQueries();
-  const payments = new PaymentQueries();
+  const projectsData = useFetchQuery(["projects"], projectQ.getAll, 15000);
 
-  const projectsData = useFetchQuery(["projects"], projects.getAll, 15000);
+  const usersData = useFetchQuery(["usersList"], userQ.getAll, 15000);
 
-  const usersData = useFetchQuery(["usersList"], users.getAll, 15000);
+  const paymentsData = useFetchQuery(["payments"], paymentQ.getAll, 15000);
 
-  const paymentsData = useFetchQuery(["payments"], payments.getAll, 15000);
+  const categoriesData = useFetchQuery(
+    ["categories"],
+    categoryQ.getCategories,
+    15000
+  );
 
-  const categoriesData = useFetchQuery(["categories"], categoryQueries.getCategories, 15000);
-
-  const requestData = useFetchQuery(["requests"], requestQueries.getAll, 15000);
+  const requestData = useFetchQuery(["requests"], requestQ.getAll, 15000);
 
   if (!isHydrated || !user) return null;
 
@@ -228,9 +228,7 @@ const Approb = ({
   const pendingData = usePendingData(filteredData, user, categoriesData);
   const proceedData = useProceedData(filteredData, user, categoriesData);
 
-  const requestTypeQueries = new RequestTypeQueries();
-  const getRequestType = useFetchQuery(["requestType"], requestTypeQueries.getAll);
-
+  const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll);
 
   // Utiliser useEffect pour envoyer les données au parent
   React.useEffect(() => {
@@ -240,15 +238,36 @@ const Approb = ({
   }, [pendingData, proceedData, setData]);
 
   // PAge de chargement et d'erreur
-  if (projectsData.isPending || usersData.isPending || paymentsData.isPending || categoriesData.isPending || requestData.isPending || getRequestType.isPending) {
+  if (
+    projectsData.isPending ||
+    usersData.isPending ||
+    paymentsData.isPending ||
+    categoriesData.isPending ||
+    requestData.isPending ||
+    getRequestType.isPending
+  ) {
     return <LoadingPage />;
   }
 
-  if (projectsData.isError || usersData.isError || paymentsData.isError || categoriesData.isError || requestData.isError || getRequestType.isError) {
+  if (
+    projectsData.isError ||
+    usersData.isError ||
+    paymentsData.isError ||
+    categoriesData.isError ||
+    requestData.isError ||
+    getRequestType.isError
+  ) {
     return <ErrorPage />;
   }
 
-  if (projectsData.data && usersData.data && paymentsData.data && categoriesData.data && requestData.data && getRequestType.data) {
+  if (
+    projectsData.data &&
+    usersData.data &&
+    paymentsData.data &&
+    categoriesData.data &&
+    requestData.data &&
+    getRequestType.data
+  ) {
     return (
       <div className="flex flex-col gap-6">
         {/* ================== PENDING ================== */}
@@ -287,7 +306,7 @@ const Approb = ({
           </h2>
 
           <DataVal
-            data={proceedData.filter(item => item.state !== "rejected")}
+            data={proceedData.filter((item) => item.state !== "rejected")}
             type="proceed"
             empty="Aucun besoin traité"
             dateFilter={dateFilter}
@@ -304,6 +323,6 @@ const Approb = ({
         </div>
       </div>
     );
-  };
-}
+  }
+};
 export default Approb;

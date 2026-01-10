@@ -71,8 +71,9 @@ export default function MultiSelectUsers({
       ref={dropdownRef}
     >
       <div
-        className={`relative ${display === "user" && "p-3 border"
-          } rounded-lg flex flex-wrap gap-2 items-center`}
+        className={`relative ${
+          display === "user" && "p-3 border"
+        } rounded-lg flex flex-wrap gap-2 items-center`}
       >
         {/* Tags */}
         {display === "user" &&
@@ -100,8 +101,9 @@ export default function MultiSelectUsers({
           variant={"ghost"}
           type="button"
           onClick={() => setOpen(!open)}
-          className={`${display === "user" ? "ml-auto" : "mx-auto w-full border"
-            }`}
+          className={`${
+            display === "user" ? "ml-auto" : "mx-auto w-full border"
+          }`}
         >
           {display === "request" ? "Ajouter un besoin" : ""}
           <LucidePlus

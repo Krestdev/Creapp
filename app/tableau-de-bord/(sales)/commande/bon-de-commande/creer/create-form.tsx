@@ -26,9 +26,9 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useFetchQuery } from "@/hooks/useData";
 import { formatToShortName, isProviderValid } from "@/lib/utils";
-import { ProviderQueries } from "@/queries/providers";
-import { CreatePurchasePayload, PurchaseOrder } from "@/queries/purchase-order";
-import { QuotationQueries } from "@/queries/quotation";
+import { providerQ } from "@/queries/providers";
+import { CreatePurchasePayload, purchaseQ } from "@/queries/purchase-order";
+import { quotationQ } from "@/queries/quotation";
 import { PAYMENT_METHOD, PENALITY_MODE, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,49 +39,57 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
-const PO_PRIORITIES = PRIORITIES.map(s => s.value) as [
+const PO_PRIORITIES = PRIORITIES.map((s) => s.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][]
 ];
 
-const METHOD = PAYMENT_METHOD.map(m=> m.value) as [
+const METHOD = PAYMENT_METHOD.map((m) => m.value) as [
   (typeof PAYMENT_METHOD)[number]["value"],
   ...(typeof PAYMENT_METHOD)[number]["value"][]
 ];
 
 const paymentSchema = z.object({
-        percentage: z.coerce.number({message: "Valeur invalide"}).refine((val)=> val <= 100 && val > 0, {message: "Doit être entre 0 et 100"}),
-        deadLine: z.string()
-        .refine(
+  percentage: z.coerce
+    .number({ message: "Valeur invalide" })
+    .refine((val) => val <= 100 && val > 0, {
+      message: "Doit être entre 0 et 100",
+    }),
+  deadLine: z
+    .string()
+    .refine(
       (val) => {
         const d = new Date(val);
-        const now = new Date()
+        const now = new Date();
         return !isNaN(d.getTime()) && d >= now;
       },
       { message: "Date invalide" }
-    ).optional(),
-      });
+    )
+    .optional(),
+});
 
 export const formSchema = z
   .object({
     deviId: z.coerce.number({ message: "Veuillez définir un devis" }),
-    deliveryDelay: z
-    .string({ message: "Veuillez définir une date" })
-    .refine(
+    deliveryDelay: z.string({ message: "Veuillez définir une date" }).refine(
       (val) => {
         const d = new Date(val);
-        const now = new Date()
+        const now = new Date();
         return !isNaN(d.getTime()) && d >= now;
       },
       { message: "Date invalide" }
     ),
     paymentTerms: z.string().min(1, "Ce champ est requis"),
-    instalments:z.array(
-      paymentSchema
-    ).refine((data) => {
-        const total = data.reduce((sum, payment) => sum + payment.percentage, 0);
-        return total === 100
-      }, {message: "Le total des paiements doit être égal à 100%"}),
+    instalments: z.array(paymentSchema).refine(
+      (data) => {
+        const total = data.reduce(
+          (sum, payment) => sum + payment.percentage,
+          0
+        );
+        return total === 100;
+      },
+      { message: "Le total des paiements doit être égal à 100%" }
+    ),
     paymentMethod: z.enum(METHOD),
     priority: z.enum(PO_PRIORITIES),
     deliveryLocation: z.string().min(1, "Ce champ est requis"),
@@ -92,10 +100,7 @@ export const formSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
-      if (
-        data.amountBase == null ||
-        Number.isNaN(data.amountBase)
-      ) {
+      if (data.amountBase == null || Number.isNaN(data.amountBase)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["amountBase"],
@@ -110,18 +115,18 @@ export const formSchema = z
       }
     }
   });
-  
+
 function CreateForm() {
-  const [selectDate, setSelectDate] = React.useState(false); 
-  const [duePopovers, setDuePopovers] = React.useState<Record<number, boolean>>({});
-  const quotationQuery = new QuotationQueries();
-  const providerQuery = new ProviderQueries();
-  const purchaseOrderQuery = new PurchaseOrder();
+  const [selectDate, setSelectDate] = React.useState(false);
+  const [duePopovers, setDuePopovers] = React.useState<Record<number, boolean>>(
+    {}
+  );
+
   const queryClient = useQueryClient();
 
-  const getQuotations = useFetchQuery(["quotations"],quotationQuery.getAll);
-  const getProviders = useFetchQuery(["providers"],providerQuery.getAll);
-  const getPurchases = useFetchQuery(["purchaseOrders"], purchaseOrderQuery.getAll);
+  const getQuotations = useFetchQuery(["quotations"], quotationQ.getAll);
+  const getProviders = useFetchQuery(["providers"], providerQ.getAll);
+  const getPurchases = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -133,7 +138,7 @@ function CreateForm() {
       amountBase: 0,
       hasPenalties: false,
       penaltyMode: "",
-      instalments: [{percentage: 100, deadLine: undefined}],
+      instalments: [{ percentage: 100, deadLine: undefined }],
       paymentMethod: "bank-transfer",
     },
   });
@@ -144,82 +149,85 @@ function CreateForm() {
   });
 
   const instalments = form.watch("instalments");
-  const totalAmount = instalments.reduce((sum, payment) => sum + payment.percentage, 0); //total amount
+  const totalAmount = instalments.reduce(
+    (sum, payment) => sum + payment.percentage,
+    0
+  ); //total amount
   const paymentsError = form.formState.errors.instalments?.root?.message;
 
-  const {mutate, isPending} = useMutation({
-    mutationFn: (payload:CreatePurchasePayload)=>purchaseOrderQuery.create(payload),
-    onSuccess: ()=>{
+  const { mutate, isPending } = useMutation({
+    mutationFn: (payload: CreatePurchasePayload) => purchaseQ.create(payload),
+    onSuccess: () => {
       toast.success("Votre Bon de Commande a été créé avec succès !");
       form.reset({
-      priority: "medium",
-      deviId: -1,
-      paymentTerms: "",
-      deliveryDelay: format(new Date(), "yyyy-MM-dd"),
-      deliveryLocation: "",
-      amountBase: 0,
-      hasPenalties: false,
-      penaltyMode: "",
-      instalments: [{percentage: 100, deadLine: undefined}],
-      paymentMethod: "bank-transfer",
-    });
-    queryClient.invalidateQueries({
+        priority: "medium",
+        deviId: -1,
+        paymentTerms: "",
+        deliveryDelay: format(new Date(), "yyyy-MM-dd"),
+        deliveryLocation: "",
+        amountBase: 0,
+        hasPenalties: false,
+        penaltyMode: "",
+        instalments: [{ percentage: 100, deadLine: undefined }],
+        paymentMethod: "bank-transfer",
+      });
+      queryClient.invalidateQueries({
         queryKey: ["purchaseOrders"],
         refetchType: "active",
       });
-      
     },
-    onError: (error:Error)=>{
+    onError: (error: Error) => {
       toast.error(error.message ?? "Une erreur est survenue");
-    }
-  })
+    },
+  });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-  const quotation = getQuotations.data?.data.find(
-    (q) => q.id === values.deviId
-  );
-  
-  if (!quotation) {
-    toast.error("Devis introuvable");
-    return;
+    const quotation = getQuotations.data?.data.find(
+      (q) => q.id === values.deviId
+    );
+
+    if (!quotation) {
+      toast.error("Devis introuvable");
+      return;
+    }
+    const provider = getProviders.data?.data.find(
+      (p) => p.id === quotation.providerId
+    );
+    const result = provider ? isProviderValid(provider) : false;
+
+    if (!result) {
+      toast.error(
+        "Fournisseur Invalide ! Veuillez compléter les informations relatives au fournisseurs"
+      );
+      return;
+    }
+
+    const ids = quotation?.commandRequest.besoins.map((b) => b.id);
+
+    const payload: CreatePurchasePayload = {
+      command: {
+        deviId: values.deviId,
+        providerId: quotation.providerId,
+        amountBase: values.amountBase ?? 0,
+        priority: values.priority,
+        paymentMethod: values.paymentMethod,
+        paymentTerms: values.paymentTerms,
+        deliveryDelay: new Date(values.deliveryDelay),
+        deliveryLocation: values.deliveryLocation,
+        hasPenalties: values.hasPenalties,
+        penaltyMode: values.penaltyMode,
+        instalments: values.instalments,
+      },
+      ids: ids,
+    };
+
+    mutate(payload);
   }
-   const provider = getProviders.data?.data.find((p)=> p.id === quotation.providerId);
-   const result = provider ? isProviderValid(provider) : false;
 
-   if(!result){
-    toast.error("Fournisseur Invalide ! Veuillez compléter les informations relatives au fournisseurs");
-    return;
-   }
-
-  const ids = quotation?.commandRequest.besoins.map(b=> b.id);
-
-  const payload: CreatePurchasePayload = {
-    command: {
-      deviId: values.deviId,
-      providerId: quotation.providerId,
-      amountBase: values.amountBase ?? 0,
-      priority: values.priority,
-      paymentMethod: values.paymentMethod,
-      paymentTerms: values.paymentTerms,
-      deliveryDelay: new Date(values.deliveryDelay),
-      deliveryLocation: values.deliveryLocation,
-      hasPenalties: values.hasPenalties,
-      penaltyMode: values.penaltyMode,
-      instalments: values.instalments,
-    },
-    ids: ids
-  };
-
-  mutate(payload);
-}
-
-const penalty = form.watch("hasPenalties");
+  const penalty = form.watch("hasPenalties");
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="form-3xl"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
         <FormField
           control={form.control}
           name="deviId"
@@ -235,21 +243,41 @@ const penalty = form.watch("hasPenalties");
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getQuotations.isSuccess && getPurchases.isSuccess && getQuotations.data.data.filter(c=>c.status ==="APPROVED" && !getPurchases.data.data.some(a=>a.deviId === c.id)).map((quote)=>(
-                      <SelectItem key={quote.id} value={String(quote.id)} className="line-clamp-1" >
-                      {`${quote.commandRequest.title} - ${formatToShortName(getProviders.data?.data.find(p=> p.id === quote.providerId)?.name)}`}
-                    </SelectItem>
-                    ))}
-                    {
-                      getQuotations.data && getQuotations.data.data.length === 0 &&
-                      <SelectItem value="-" disabled>
-                        {"Aucun devis disponible"}
-                      </SelectItem>
-                    }
+                    {getQuotations.isSuccess &&
+                      getPurchases.isSuccess &&
+                      getQuotations.data.data
+                        .filter(
+                          (c) =>
+                            c.status === "APPROVED" &&
+                            !getPurchases.data.data.some(
+                              (a) => a.deviId === c.id
+                            )
+                        )
+                        .map((quote) => (
+                          <SelectItem
+                            key={quote.id}
+                            value={String(quote.id)}
+                            className="line-clamp-1"
+                          >
+                            {`${
+                              quote.commandRequest.title
+                            } - ${formatToShortName(
+                              getProviders.data?.data.find(
+                                (p) => p.id === quote.providerId
+                              )?.name
+                            )}`}
+                          </SelectItem>
+                        ))}
+                    {getQuotations.data &&
+                      getQuotations.data.data.length === 0 && (
+                        <SelectItem value="-" disabled>
+                          {"Aucun devis disponible"}
+                        </SelectItem>
+                      )}
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -262,7 +290,7 @@ const penalty = form.watch("hasPenalties");
               <FormControl>
                 <Input {...field} placeholder="Ex. Creaconsult" />
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -274,17 +302,19 @@ const penalty = form.watch("hasPenalties");
               <FormLabel isRequired>{"Moyen de Paiement"}</FormLabel>
               <FormControl>
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {
-                      PAYMENT_METHOD.map(({name, value}, id)=>
-                        <SelectItem key={id} value={value}>{name}</SelectItem>
-                      )
-                    }
+                    {PAYMENT_METHOD.map(({ name, value }, id) => (
+                      <SelectItem key={id} value={value}>
+                        {name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -347,7 +377,7 @@ const penalty = form.watch("hasPenalties");
                   </Popover>
                 </div>
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -355,13 +385,23 @@ const penalty = form.watch("hasPenalties");
           <div className="flex items-center justify-between">
             <FormLabel isRequired>{"Échelonnement des paiements"}</FormLabel>
             <div className="text-sm text-muted-foreground">
-              {"Total: "}<span className={totalAmount === 100 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>{`${totalAmount}%`}</span>
+              {"Total: "}
+              <span
+                className={
+                  totalAmount === 100
+                    ? "text-green-600 font-medium"
+                    : "text-red-600 font-medium"
+                }
+              >{`${totalAmount}%`}</span>
             </div>
           </div>
 
           <div className="space-y-4">
             {fields.map((field, index) => (
-              <div key={field.id} className="p-4 rounded-md border grid grid-cols-1 @min-[560px]:grid-cols-2 gap-3 place-items-start">
+              <div
+                key={field.id}
+                className="p-4 rounded-md border grid grid-cols-1 @min-[560px]:grid-cols-2 gap-3 place-items-start"
+              >
                 <FormField
                   control={form.control}
                   name={`instalments.${index}.percentage`}
@@ -374,7 +414,10 @@ const penalty = form.watch("hasPenalties");
                           type="number"
                           placeholder="Ex. 30"
                           onChange={(e) => {
-                            const value = e.target.value === "" ? 0 : parseFloat(e.target.value);
+                            const value =
+                              e.target.value === ""
+                                ? 0
+                                : parseFloat(e.target.value);
                             field.onChange(value);
                           }}
                         />
@@ -391,59 +434,67 @@ const penalty = form.watch("hasPenalties");
                     <FormItem>
                       <FormLabel>{`Date d'échéance (optionnel)`}</FormLabel>
                       <FormControl>
-                       <div className="relative flex gap-2">
-                  <Input
-                    id={field.name}
-                    value={field.value}
-                    placeholder="Sélectionner une date"
-                    className="bg-background pr-10"
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "ArrowDown") {
-                        e.preventDefault();
-                        setDuePopovers((p) => ({ ...p, [index]: true }))
-                      }
-                    }}
-                  />
-                  <Popover open={!!duePopovers[index]} onOpenChange={(open) =>
+                        <div className="relative flex gap-2">
+                          <Input
+                            id={field.name}
+                            value={field.value}
+                            placeholder="Sélectionner une date"
+                            className="bg-background pr-10"
+                            onChange={(e) => {
+                              field.onChange(e.target.value);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "ArrowDown") {
+                                e.preventDefault();
+                                setDuePopovers((p) => ({
+                                  ...p,
+                                  [index]: true,
+                                }));
+                              }
+                            }}
+                          />
+                          <Popover
+                            open={!!duePopovers[index]}
+                            onOpenChange={(open) =>
                               setDuePopovers((p) => ({ ...p, [index]: open }))
-                            }>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="date-picker"
-                        variant="ghost"
-                        className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
-                      >
-                        <CalendarIcon className="size-3.5" />
-                        <span className="sr-only">
-                          {"Sélectionner une date"}
-                        </span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      className="w-auto overflow-hidden p-0"
-                      align="end"
-                      alignOffset={-8}
-                      sideOffset={10}
-                    >
-                      <Calendar
-                        mode="single"
-                        selected={
-                          field.value ? new Date(field.value) : undefined
-                        }
-                        captionLayout="dropdown"
-                        onSelect={(date) => {
-                          if (!date) return;
-                          const value = format(date, "yyyy-MM-dd");
-                          field.onChange(value);
-                          setSelectDate(false);
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                            }
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                id="date-picker"
+                                variant="ghost"
+                                className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                              >
+                                <CalendarIcon className="size-3.5" />
+                                <span className="sr-only">
+                                  {"Sélectionner une date"}
+                                </span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-auto overflow-hidden p-0"
+                              align="end"
+                              alignOffset={-8}
+                              sideOffset={10}
+                            >
+                              <Calendar
+                                mode="single"
+                                selected={
+                                  field.value
+                                    ? new Date(field.value)
+                                    : undefined
+                                }
+                                captionLayout="dropdown"
+                                onSelect={(date) => {
+                                  if (!date) return;
+                                  const value = format(date, "yyyy-MM-dd");
+                                  field.onChange(value);
+                                  setSelectDate(false);
+                                }}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -475,15 +526,20 @@ const penalty = form.watch("hasPenalties");
 
           <div className="text-sm text-muted-foreground">
             <p className="mt-2">
-              <strong>{"Note : "}</strong>{"La somme de tous les paiements doit être égale à 100%."}
+              <strong>{"Note : "}</strong>
+              {"La somme de tous les paiements doit être égale à 100%."}
               {totalAmount !== 100 && (
                 <span className="text-destructive ml-2">
-                  {`Total actuel: ${totalAmount}% (il manque ${100 - totalAmount}%)`}
+                  {`Total actuel: ${totalAmount}% (il manque ${
+                    100 - totalAmount
+                  }%)`}
                 </span>
               )}
             </p>
             {paymentsError && (
-              <p className="text-sm font-medium text-destructive">{paymentsError}</p>
+              <p className="text-sm font-medium text-destructive">
+                {paymentsError}
+              </p>
             )}
           </div>
         </div>
@@ -494,9 +550,12 @@ const penalty = form.watch("hasPenalties");
             <FormItem className="@min-[560px]:col-span-2">
               <FormLabel isRequired>{"Conditions de paiement"}</FormLabel>
               <FormControl>
-                <Textarea {...field} placeholder="Définissez les conditions relatives bon de commande" />
+                <Textarea
+                  {...field}
+                  placeholder="Définissez les conditions relatives bon de commande"
+                />
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -508,17 +567,19 @@ const penalty = form.watch("hasPenalties");
               <FormLabel isRequired>{"Priorité"}</FormLabel>
               <FormControl>
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {
-                      PRIORITIES.map((priority)=>
-                        <SelectItem key={priority.value} value={priority.value}>{priority.name}</SelectItem>
-                      )
-                    }
+                    {PRIORITIES.map((priority) => (
+                      <SelectItem key={priority.value} value={priority.value}>
+                        {priority.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -530,11 +591,14 @@ const penalty = form.watch("hasPenalties");
               <FormLabel>{"Pénalités"}</FormLabel>
               <FormControl>
                 <div className="flex items-center gap-2">
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                   <span>{field.value ? "Oui" : "Non"}</span>
                 </div>
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -545,18 +609,24 @@ const penalty = form.watch("hasPenalties");
             <FormItem>
               <FormLabel>{"Mode de pénalité"}</FormLabel>
               <FormControl>
-                <Select value={field.value} onValueChange={field.onChange} disabled={!penalty}>
-                  <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner"/></SelectTrigger>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={!penalty}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {
-                      PENALITY_MODE.map((penalty)=>
-                        <SelectItem key={penalty.value} value={penalty.value}>{penalty.name}</SelectItem>
-                      )
-                    }
+                    {PENALITY_MODE.map((penalty) => (
+                      <SelectItem key={penalty.value} value={penalty.value}>
+                        {penalty.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -567,13 +637,25 @@ const penalty = form.watch("hasPenalties");
             <FormItem>
               <FormLabel>{"Montant des pénalités"}</FormLabel>
               <FormControl>
-                <Input type="number" {...field} placeholder="Ex. 150 000" disabled={!penalty}/>
+                <Input
+                  type="number"
+                  {...field}
+                  placeholder="Ex. 150 000"
+                  disabled={!penalty}
+                />
               </FormControl>
             </FormItem>
           )}
         />
         <div className="@min-[560px]:col-span-2">
-          <Button type="submit" variant={"primary"} disabled={isPending} isLoading={isPending}>{"Créer le bon de commande"}</Button>
+          <Button
+            type="submit"
+            variant={"primary"}
+            disabled={isPending}
+            isLoading={isPending}
+          >
+            {"Créer le bon de commande"}
+          </Button>
         </div>
       </form>
     </Form>

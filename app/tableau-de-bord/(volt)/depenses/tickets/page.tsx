@@ -3,42 +3,69 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { useFetchQuery } from "@/hooks/useData";
-import { XAF } from "@/lib/utils";
-import { PaymentQueries } from "@/queries/payment";
-import { PurchaseOrder } from "@/queries/purchase-order";
+import { cn, XAF } from "@/lib/utils";
+import { paymentQ } from "@/queries/payment";
+import { purchaseQ } from "@/queries/purchase-order";
+import { NavLink } from "@/types/types";
+import Link from "next/link";
 import ExpensesTable from "../expenses-table";
 import {
   StatisticCard,
   StatisticProps,
 } from "@/components/base/TitleValueCard";
-import { BankQuery } from "@/queries/bank";
-import { RequestTypeQueries } from "@/queries/requestType";
+import { bankQ } from "@/queries/bank";
+import { requestTypeQ } from "@/queries/requestType";
 
 function Page() {
-  const paymentsQuery = new PaymentQueries();
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
     ["payments"],
-    paymentsQuery.getAll,
+    paymentQ.getAll,
     30000
   );
-  const purchasesQuery = new PurchaseOrder();
   const getPurchases = useFetchQuery(
     ["purchaseOrders"],
-    purchasesQuery.getAll,
+    purchaseQ.getAll,
     30000
   );
-  const requestTypeQueries = new RequestTypeQueries();
-  const getRequestType = useFetchQuery(["requestType"], requestTypeQueries.getAll, 30000);
+  const getRequestType = useFetchQuery(
+    ["requestType"],
+    requestTypeQ.getAll,
+    30000
+  );
 
-  const bankQuery = new BankQuery();
-  const getBanks = useFetchQuery(["banks"], bankQuery.getAll, 35000);
-  if (isLoading || getPurchases.isLoading || getRequestType.isLoading || getBanks.isLoading) {
+  const getBanks = useFetchQuery(["banks"], bankQ.getAll, 35000);
+  if (
+    isLoading ||
+    getPurchases.isLoading ||
+    getRequestType.isLoading ||
+    getBanks.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (isError || getPurchases.isError || getRequestType.isError || getBanks.isError) {
-    return <ErrorPage error={error || getPurchases.error || getRequestType.error || getBanks.error || undefined} />;
+  if (
+    isError ||
+    getPurchases.isError ||
+    getRequestType.isError ||
+    getBanks.isError
+  ) {
+    return (
+      <ErrorPage
+        error={
+          error ||
+          getPurchases.error ||
+          getRequestType.error ||
+          getBanks.error ||
+          undefined
+        }
+      />
+    );
   }
-  if (isSuccess && getPurchases.isSuccess && getRequestType.isSuccess && getBanks.isSuccess) {
+  if (
+    isSuccess &&
+    getPurchases.isSuccess &&
+    getRequestType.isSuccess &&
+    getBanks.isSuccess
+  ) {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente",

@@ -30,7 +30,7 @@ interface UpdateQuotation {
   >;
 }
 
-export class QuotationQueries {
+class QuotationQueries {
   route = "/request/devi";
 
   // CREATE — POST multipart
@@ -98,3 +98,5 @@ export class QuotationQueries {
       .then((response) => response.data);
   };
 }
+
+export const quotationQ = new QuotationQueries();

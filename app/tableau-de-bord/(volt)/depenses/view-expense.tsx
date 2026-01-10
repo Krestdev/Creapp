@@ -1,18 +1,41 @@
-import ErrorPage from '@/components/error-page';
-import LoadingPage from '@/components/loading-page';
-import { Badge, badgeVariants } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useFetchQuery } from '@/hooks/useData';
-import { XAF } from '@/lib/utils';
-import { UserQueries } from '@/queries/baseModule';
-import { BonsCommande, PAY_STATUS, PAYMENT_METHOD, PaymentRequest } from '@/types/types';
-import { VariantProps } from 'class-variance-authority';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Calendar, CalendarFold, DollarSign, FileIcon, HelpCircle, LucideHash, SquareUser, User, Wallet } from 'lucide-react';
-import Link from 'next/link';
-import React from 'react'
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
+import { Badge, badgeVariants } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useFetchQuery } from "@/hooks/useData";
+import { XAF } from "@/lib/utils";
+import { userQ } from "@/queries/baseModule";
+import {
+  BonsCommande,
+  PAY_STATUS,
+  PAYMENT_METHOD,
+  PaymentRequest,
+} from "@/types/types";
+import { VariantProps } from "class-variance-authority";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import {
+  Calendar,
+  CalendarFold,
+  DollarSign,
+  FileIcon,
+  HelpCircle,
+  LucideHash,
+  SquareUser,
+  User,
+  Wallet,
+} from "lucide-react";
+import Link from "next/link";
+import React from "react";
 
 interface Props {
   open: boolean;
@@ -39,8 +62,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
 }
 
 function ViewExpense({ open, openChange, payment, purchases }: Props) {
-  const userQuery = new UserQueries();
-  const getUsers = useFetchQuery(["users"], userQuery.getAll, 50000);
+  const getUsers = useFetchQuery(["users"], userQ.getAll, 50000);
   const purchase = purchases.find((p) => p.id === payment.commandId);
 
   if (getUsers.isLoading) {
@@ -55,10 +77,12 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
       <Dialog open={open} onOpenChange={openChange}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader variant={"default"}>
-            <DialogTitle>{`Ticket - ${payment.title ?? "Non défini"}`}</DialogTitle>
+            <DialogTitle>{`Ticket - ${
+              payment.title ?? "Non défini"
+            }`}</DialogTitle>
             <DialogDescription>{`Voir les informations du ticket`}</DialogDescription>
           </DialogHeader>
-          <div className='grid gap-4 @min-[540px]/dialog:grid-cols-2'>
+          <div className="grid gap-4 @min-[540px]/dialog:grid-cols-2">
             {/**Reference */}
             <div className="view-group">
               <span className="view-icon">
@@ -103,8 +127,8 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Méthode de paiement"}</p>
                 <p className="font-semibold">
-                  {PAYMENT_METHOD.find((p) => p.value === payment.method)?.name ??
-                    "Non défini"}
+                  {PAYMENT_METHOD.find((p) => p.value === payment.method)
+                    ?.name ?? "Non défini"}
                 </p>
               </div>
             </div>
@@ -128,8 +152,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Justificatif"}</p>
                 <Link
-                  href={`${process.env.NEXT_PUBLIC_API
-                    }/uploads/${encodeURIComponent(payment.proof as string)}`}
+                  href={`${
+                    process.env.NEXT_PUBLIC_API
+                  }/uploads/${encodeURIComponent(payment.proof as string)}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >
@@ -139,7 +164,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                     className="h-7 w-auto aspect-square"
                   />
                   <p className="text-foreground font-medium">
-                    {payment.proof ? "Document justificatif" : "Aucun justificatif"}
+                    {payment.proof
+                      ? "Document justificatif"
+                      : "Aucun justificatif"}
                   </p>
                 </Link>
               </div>
@@ -159,7 +186,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               </div>
             </div>
             {/**Created by */}
-            {payment.userId &&
+            {payment.userId && (
               <div className="view-group">
                 <span className="view-icon">
                   <User />
@@ -167,11 +194,15 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Initié par"}</p>
                   <p className="font-semibold">
-                    {getUsers.data?.data.find((u) => u.id === payment.userId)?.firstName + " " + getUsers.data?.data.find((u) => u.id === payment.userId)?.lastName ||
-                      "Non défini"}
+                    {getUsers.data?.data.find((u) => u.id === payment.userId)
+                      ?.firstName +
+                      " " +
+                      getUsers.data?.data.find((u) => u.id === payment.userId)
+                        ?.lastName || "Non défini"}
                   </p>
                 </div>
-              </div>}
+              </div>
+            )}
             {/**Created at */}
             <div className="view-group">
               <span className="view-icon">
@@ -194,8 +225,8 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 }
 
-export default ViewExpense
+export default ViewExpense;

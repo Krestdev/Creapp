@@ -24,7 +24,7 @@ import {
   LucidePen,
   Paperclip,
   Settings2,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
@@ -54,13 +54,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useFetchQuery } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { PaymentQueries } from "@/queries/payment";
-import { ProjectQueries } from "@/queries/projectModule";
-import { RequestQueries } from "@/queries/requestModule";
-import { DateFilter, PAYMENT_TYPES, RequestModelT } from "@/types/types";
+import { categoryQ } from "@/queries/categoryModule";
+import { paymentQ } from "@/queries/payment";
+import { requestQ } from "@/queries/requestModule";
+import { requestTypeQ } from "@/queries/requestType";
+import { DateFilter, RequestModelT } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -72,13 +73,23 @@ import UpdateRequestFac from "../besoin/UpdateRequestFac";
 import { ModalWarning } from "../modals/modal-warning";
 import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
 import { Label } from "../ui/label";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
-import { RequestTypeQueries } from "@/queries/requestType";
-import { useFetchQuery } from "@/hooks/useData";
+import { projectQ } from "@/queries/projectModule";
 
 const statusConfig = {
   pending: {
@@ -120,12 +131,10 @@ const statusConfig = {
 };
 
 interface Props {
-  data: Array<RequestModelT>
+  data: Array<RequestModelT>;
 }
 
-export function DataTable({
-  data
-}: Props) {
+export function DataTable({ data }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -159,39 +168,32 @@ export function DataTable({
   >();
   const queryClient = useQueryClient();
 
-  const requestTypeQueries = new RequestTypeQueries();
-  const getRequestType = useFetchQuery(["requestType"], requestTypeQueries.getAll);
+  const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll);
 
-
-  const projects = new ProjectQueries();
   const projectsData = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
-      return projects.getAll();
+      return projectQ.getAll();
     },
   });
 
-  const payments = new PaymentQueries();
   const paymentsData = useQuery({
     queryKey: ["payments"],
-    queryFn: async () => payments.getAll(),
+    queryFn: async () => paymentQ.getAll(),
   });
-
-  const category = new CategoryQueries();
   const categoryData = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
-      return category.getCategories();
+      return categoryQ.getCategories();
     },
   });
 
-  const request = new RequestQueries();
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (data: Partial<RequestModelT>) => {
       const id = selectedItem?.id;
       if (!id) throw new Error("ID de besoin manquant");
-      await request.update(Number(id), data);
+      await requestQ.update(Number(id), data);
     },
     onSuccess: () => {
       toast.success("Besoin annulé avec succès !");
@@ -214,7 +216,6 @@ export function DataTable({
       return false;
     }
   };
-
 
   // Fonction sécurisée pour obtenir la configuration du statut
   const getStatusConfig = (status: string) => {
@@ -313,16 +314,13 @@ export function DataTable({
 
     // Filtrer par statut local
     if (statusFilter && statusFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => item.state === statusFilter
-      );
+      filtered = filtered.filter((item) => item.state === statusFilter);
     }
 
     // Filtrer par catégorie locale
     if (categoryFilter && categoryFilter !== "all") {
       filtered = filtered.filter(
-        (item) =>
-          String(item.categoryId) === String(categoryFilter)
+        (item) => String(item.categoryId) === String(categoryFilter)
       );
     }
 
@@ -351,9 +349,16 @@ export function DataTable({
     return filtered;
   }, [data, projectFilter, categoryFilter, statusFilter, globalFilter]);
 
-  function getTypeBadge(type: "achat" | "ressource_humaine" | "facilitation" | "speciaux" | undefined): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-    const typeData = getRequestType.data?.data.find(t => t.type === type);
-    const label = typeData?.label ?? "Inconnu"
+  function getTypeBadge(
+    type:
+      | "achat"
+      | "ressource_humaine"
+      | "facilitation"
+      | "speciaux"
+      | undefined
+  ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+    const typeData = getRequestType.data?.data.find((t) => t.type === type);
+    const label = typeData?.label ?? "Inconnu";
     switch (type) {
       case "facilitation":
         return { label, variant: "lime" };
@@ -366,7 +371,7 @@ export function DataTable({
       default:
         return { label: type || "Inconnu", variant: "outline" };
     }
-  };
+  }
 
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
@@ -529,7 +534,9 @@ export function DataTable({
         const paiement = paymentsData.data?.data.find(
           (x) => x.requestId === item?.id
         );
-        const isAttach = (item.type === "facilitation" || item.type === "ressource_humaine") && paiement?.proof !== null;
+        const isAttach =
+          (item.type === "facilitation" || item.type === "ressource_humaine") &&
+          paiement?.proof !== null;
 
         return (
           <div className="flex items-center gap-2">
@@ -557,7 +564,9 @@ export function DataTable({
                     setSelectedItem(item);
                     console.log(item.type);
 
-                    item.type === "facilitation" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true);
+                    item.type === "facilitation"
+                      ? setIsUpdateFacModalOpen(true)
+                      : setIsUpdateModalOpen(true);
                   }}
                   disabled={item.state !== "pending"}
                 >
@@ -747,9 +756,9 @@ export function DataTable({
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                            customDateRange.from,
-                            "dd/MM/yyyy"
-                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy"
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -828,18 +837,18 @@ export function DataTable({
                     {column.id === "ref"
                       ? "Références"
                       : column.id === "label"
-                        ? "Titres"
-                        : column.id === "type"
-                          ? "Type"
-                          : column.id === "state"
-                            ? "Statuts"
-                            : column.id === "projectId"
-                              ? "Projets"
-                              : column.id === "categoryId"
-                                ? "Catégories"
-                                : column.id === "createdAt"
-                                  ? "Date d'émission"
-                                  : column.id}
+                      ? "Titres"
+                      : column.id === "type"
+                      ? "Type"
+                      : column.id === "state"
+                      ? "Statuts"
+                      : column.id === "projectId"
+                      ? "Projets"
+                      : column.id === "categoryId"
+                      ? "Catégories"
+                      : column.id === "createdAt"
+                      ? "Date d'émission"
+                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -863,9 +872,9 @@ export function DataTable({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
                     );
                   })}
@@ -910,8 +919,7 @@ export function DataTable({
       )}
 
       {/* Modals existants */}
-      {
-        selectedItem &&
+      {selectedItem && (
         <>
           <DetailBesoin
             open={isModalOpen}
@@ -920,7 +928,11 @@ export function DataTable({
             actionButton="Modifier"
             action={() => {
               setIsModalOpen(false);
-              { selectedItem?.type === "facilitation" ? setIsUpdateFacModalOpen(true) : setIsUpdateModalOpen(true) };
+              {
+                selectedItem?.type === "facilitation"
+                  ? setIsUpdateFacModalOpen(true)
+                  : setIsUpdateModalOpen(true);
+              }
             }}
           />
           <UpdateRequest
@@ -934,15 +946,14 @@ export function DataTable({
             requestData={selectedItem}
           />
         </>
-      }
+      )}
       <ModalWarning
         open={isCancelModalOpen}
         onOpenChange={setIsCancelModalOpen}
         title="Annuler le besoin"
         description="Êtes-vous sûr de vouloir annuler ce besoin ?"
         actionText="Annuler"
-        onAction={() => handleCancel()
-        }
+        onAction={() => handleCancel()}
         name={selectedItem?.label}
         variant="error"
       />

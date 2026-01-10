@@ -1,13 +1,6 @@
-import React from "react";
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  Font,
-} from "@react-pdf/renderer";
 import { PaymentRequest } from "@/types/types";
+import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import React from "react";
 
 // Register fonts if needed (optional)
 // Font.register({ family: 'Helvetica', src: '...' });

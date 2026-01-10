@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { XAF } from "@/lib/utils";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { ProjectT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
@@ -71,11 +71,10 @@ export function DetailProject({
     }
   };
 
-  const users = new UserQueries();
   const usersData = useQuery({
     queryKey: ["usersList"],
-    queryFn: () => users.getAll(),
-  })
+    queryFn: () => userQ.getAll(),
+  });
 
   const getUserName = (id: number) => {
     const user = usersData.data?.data.find((user) => user.id === id);

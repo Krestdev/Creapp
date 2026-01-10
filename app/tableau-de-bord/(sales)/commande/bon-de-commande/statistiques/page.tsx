@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useFetchQuery } from "@/hooks/useData";
 import { getRandomColor, XAF } from "@/lib/utils";
-import { PurchaseOrder } from "@/queries/purchase-order";
+import { purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande } from "@/types/types";
 import React, { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
@@ -29,10 +29,9 @@ function Page() {
     to: undefined,
   });
 
-  const purchaseOrderQuery = new PurchaseOrder();
   const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
     ["purchaseOrders"],
-    purchaseOrderQuery.getAll
+    purchaseQ.getAll
   );
 
   const filteredData: Array<BonsCommande> = useMemo(() => {
@@ -134,13 +133,13 @@ function Page() {
             <div className="flex flex-col gap-1">
               <h3>{"Répartition des bons de commande par période"}</h3>
             </div>
-            <AreaPurchaseChart data={filteredData} dateFilter={dateRange}/>
+            <AreaPurchaseChart data={filteredData} dateFilter={dateRange} />
           </div>
           <div className="p-6 rounded-md border w-full h-full flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <h3>{"Bons de commande par fournisseur"}</h3>
             </div>
-            <PieProviderPurchase data={filteredData}/>
+            <PieProviderPurchase data={filteredData} />
           </div>
         </div>
       </div>

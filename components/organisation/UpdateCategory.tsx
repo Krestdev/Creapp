@@ -1,6 +1,13 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,10 +17,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
-import { CategoryQueries } from "@/queries/categoryModule";
+import { userQ } from "@/queries/baseModule";
+import { categoryQ } from "@/queries/categoryModule";
 import { Category, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -25,16 +35,6 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import { Trash2, Plus, ChevronUp, ChevronDown } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { UserQueries } from "@/queries/baseModule";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Textarea } from "../ui/textarea";
 
 export interface ActionResponse<T = any> {
@@ -77,7 +77,6 @@ export function UpdateCategory({
   onSuccess,
 }: UpdateCategoryProps) {
   const [isLoading, setIsLoading] = useState(false);
-
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -93,15 +92,14 @@ export function UpdateCategory({
     name: "validators",
   });
 
-  const categoryQueries = new CategoryQueries();
   const { isHydrated } = useStore();
   const queryClient = useQueryClient();
 
   // Récupérer la liste des utilisateurs
-  const userQueries = new UserQueries();
+
   const usersData = useQuery({
     queryKey: ["users-list"],
-    queryFn: () => userQueries.getAll(),
+    queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
 
@@ -112,7 +110,9 @@ export function UpdateCategory({
 
       // S'assurer qu'il y a au moins un validateur
       if (validators.length === 0 && categoryData.id !== 0) {
-        toast.warning("Cette catégorie n'a pas d'ascendant. Veuillez en ajouter au moins un.");
+        toast.warning(
+          "Cette catégorie n'a pas d'ascendant. Veuillez en ajouter au moins un."
+        );
       }
 
       form.reset({
@@ -132,7 +132,7 @@ export function UpdateCategory({
     mutationFn: async (data: Partial<Category>) => {
       setIsLoading(true);
       try {
-        const response = await categoryQueries.updateCategory(
+        const response = await categoryQ.updateCategory(
           categoryData?.id!,
           data
         );
@@ -226,7 +226,9 @@ export function UpdateCategory({
     if (validator.id) {
       // C'est un ascendant existant, demander confirmation
       const userName = getUserName(validator.userId);
-      if (confirm(`Êtes-vous sûr de vouloir supprimer l'ascendant ${userName} ?`)) {
+      if (
+        confirm(`Êtes-vous sûr de vouloir supprimer l'ascendant ${userName} ?`)
+      ) {
         remove(index);
       }
     } else {
@@ -264,7 +266,6 @@ export function UpdateCategory({
       toast.error("Au moins un ascendant est requis");
       return;
     }
-
     if (categoryData?.id === undefined) {
       toast.error("ID de catégorie manquant");
       return;
@@ -373,7 +374,8 @@ export function UpdateCategory({
               {fields.length === 1 && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                   <p className="text-sm text-blue-700">
-                    ⓘ Au moins un ascendant doit être présent. Vous ne pouvez pas supprimer le dernier ascendant.
+                    ⓘ Au moins un ascendant doit être présent. Vous ne pouvez
+                    pas supprimer le dernier ascendant.
                   </p>
                 </div>
               )}
@@ -422,8 +424,11 @@ export function UpdateCategory({
                             size="icon"
                             onClick={() => removeValidator(index)}
                             disabled={fields.length <= 1 || isLoading} // MODIFICATION: désactivé si seul ascendant
-                            className={`text-red-500 hover:text-red-700 ${fields.length <= 1 ? "opacity-50 cursor-not-allowed" : ""
-                              }`}
+                            className={`text-red-500 hover:text-red-700 ${
+                              fields.length <= 1
+                                ? "opacity-50 cursor-not-allowed"
+                                : ""
+                            }`}
                             title={
                               fields.length <= 1
                                 ? "Au moins un ascendant est requis"
@@ -531,9 +536,13 @@ export function UpdateCategory({
               type="submit"
               className="w-fit"
               onClick={form.handleSubmit(onsubmit)}
-              disabled={categoryApi.isPending || isLoading || fields.length === 0}
+              disabled={
+                categoryApi.isPending || isLoading || fields.length === 0
+              }
             >
-              {categoryApi.isPending || isLoading ? "Mise à jour..." : "Enregistrer"}
+              {categoryApi.isPending || isLoading
+                ? "Mise à jour..."
+                : "Enregistrer"}
             </Button>
             <Button
               type="button"

@@ -43,7 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DepartmentQueries } from "@/queries/departmentModule";
+import { departmentQ } from "@/queries/departmentModule";
 import { DepartmentT, Member } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
@@ -79,10 +79,9 @@ export function DepartementTable({ data }: DepartementTableProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isShowModalOpen, setIsShowModalOpen] = React.useState(false);
 
-  const departmentQueries = new DepartmentQueries();
   const departmentMutation = useMutation({
     mutationKey: ["departmentUpdate"],
-    mutationFn: async (data: number) => departmentQueries.delete(Number(data)),
+    mutationFn: async (data: number) => departmentQ.delete(Number(data)),
 
     onSuccess: () => {
       toast.success("Besoin modifié avec succès !");
@@ -197,7 +196,10 @@ export function DepartementTable({ data }: DepartementTableProps) {
           const members = row.getValue("members") as Member[];
           return (
             <div>
-              {members.find((user) => user.chief === true)?.user?.firstName + " " + members.find((user) => user.chief === true)?.user?.lastName || "Non défini"}
+              {members.find((user) => user.chief === true)?.user?.firstName +
+                " " +
+                members.find((user) => user.chief === true)?.user?.lastName ||
+                "Non défini"}
             </div>
           );
         },
@@ -439,9 +441,9 @@ export function DepartementTable({ data }: DepartementTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { RequestQueries } from "@/queries/requestModule";
+import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -37,7 +37,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CategoryQueries } from "@/queries/categoryModule";
+import { categoryQ } from "@/queries/categoryModule";
 import { units } from "@/data/unit";
 
 // Validation Zod
@@ -84,14 +84,12 @@ export function BesoinLastVal({
     },
   });
 
-  const request = new RequestQueries();
-  const categories = new CategoryQueries();
   const queryClient = useQueryClient();
 
   const requestData = useQuery({
     queryKey: ["requests-validation"],
     queryFn: () => {
-      return request.getAll();
+      return requestQ.getAll();
     },
     enabled: isHydrated,
   });
@@ -99,7 +97,7 @@ export function BesoinLastVal({
   const categoriesData = useQuery({
     queryKey: ["categoryList"],
     queryFn: () => {
-      return categories.getCategories();
+      return categoryQ.getCategories();
     },
     enabled: isHydrated,
   });
@@ -116,14 +114,14 @@ export function BesoinLastVal({
     }: {
       id: number;
       validator:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => {
-      await request.validate(id, validator?.id!, validator);
+      await requestQ.validate(id, validator?.id!, validator);
     },
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
@@ -149,7 +147,7 @@ export function BesoinLastVal({
 
       if (!id) throw new Error("ID de besoin manquant");
 
-      await request.update(Number(id), data);
+      await requestQ.update(Number(id), data);
       return { id: Number(id) };
     },
     onSuccess: (res) => {
@@ -207,8 +205,8 @@ export function BesoinLastVal({
   const headerDescription = isError
     ? "Une erreur est survenue. Vous pouvez réessayer."
     : isSuccess
-      ? "Les modifications ont bien été enregistrées."
-      : description;
+    ? "Les modifications ont bien été enregistrées."
+    : description;
 
   // Reset complet quand le modal se ferme
   useEffect(() => {
@@ -254,7 +252,9 @@ export function BesoinLastVal({
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Titre <span className="text-destructive">*</span></FormLabel>
+                      <FormLabel>
+                        Titre <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Titre..." {...field} disabled />
                       </FormControl>
@@ -307,7 +307,9 @@ export function BesoinLastVal({
                   name="priorite"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Priorité <span className="text-destructive">*</span></FormLabel>
+                      <FormLabel>
+                        Priorité <span className="text-destructive">*</span>
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -336,7 +338,9 @@ export function BesoinLastVal({
                   name="quantite"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Quantité <span className="text-destructive">*</span></FormLabel>
+                      <FormLabel>
+                        Quantité <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Quantité..."
@@ -359,7 +363,10 @@ export function BesoinLastVal({
                         {"Unité"}
                         <span className="text-red-500">*</span>
                       </FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
                             <SelectValue placeholder="Sélectionner l'unité" />
@@ -384,7 +391,9 @@ export function BesoinLastVal({
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description <span className="text-destructive">*</span></FormLabel>
+                      <FormLabel>
+                        Description <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           rows={4}

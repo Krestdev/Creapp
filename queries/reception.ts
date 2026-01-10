@@ -7,7 +7,7 @@ export interface ReceptionCompletion {
   proof?: Array<File>;
 }
 
-export class ReceptionQuery {
+class ReceptionQuery {
   route = "/request/reception";
 
   getAll = async (): Promise<{ data: Array<Reception> }> => {
@@ -24,7 +24,11 @@ export class ReceptionQuery {
       return response.data;
     });
   };
-  completeReception = async ({id, Deliverables, proof}:ReceptionCompletion): Promise<{ data: Reception }> => {
+  completeReception = async ({
+    id,
+    Deliverables,
+    proof,
+  }: ReceptionCompletion): Promise<{ data: Reception }> => {
     const formData = new FormData();
     formData.append("Deliverables", JSON.stringify(Deliverables));
     if (proof && proof.length > 0) {
@@ -32,10 +36,14 @@ export class ReceptionQuery {
         formData.append("Proof", file);
       });
     }
-    return api.put(`${this.route}/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }).then((response) => {
-      return response.data;
-    });
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
   };
 }
+
+export const receptionQ = new ReceptionQuery();

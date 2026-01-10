@@ -1,30 +1,12 @@
 "use client";
-import { DateFilter, Transaction } from "@/types/types";
-import React from "react";
-import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  CheckCircleIcon,
-  ChevronDown,
-  Eye,
-  Pencil,
-  Settings2,
-  TrashIcon,
-} from "lucide-react";
 import { Pagination } from "@/components/base/pagination";
-import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -43,6 +25,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
   Table,
   TableBody,
   TableCell,
@@ -51,23 +41,41 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
+import { transactionQ } from "@/queries/transaction";
+import { DateFilter, Transaction } from "@/types/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Calendar } from "@/components/ui/calendar";
-import RejectDialog from "./reject-dialog";
-import { useStore } from "@/providers/datastore";
-import { TransactionQuery } from "@/queries/transaction";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  ArrowUpDown,
+  CheckCircleIcon,
+  ChevronDown,
+  Settings2,
+  TrashIcon,
+} from "lucide-react";
+import React from "react";
 import { toast } from "sonner";
+import RejectDialog from "./reject-dialog";
 
 interface Props {
   data: Array<Transaction>;
 }
 
 function TransferTable({ data }: Props) {
-    const { user } = useStore();
+  const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -87,70 +95,80 @@ function TransferTable({ data }: Props) {
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
 
-    const transactionQuery = new TransactionQuery();
-    const queryClient = useQueryClient();
-    const approve = useMutation({
-      mutationFn: async({id}:{id:number})=>transactionQuery.approve({id, status: "APPROVED", validatorId: user?.id ?? 0}),
-      onSuccess: ()=>{
-        toast.success("Demande approuvée !");
-        queryClient.invalidateQueries({queryKey: ["banks", "transactions"], refetchType: "active"});
-      },
-      onError: (error: Error)=>{
-        toast.error(error.message);
-      }
-    });
+  const queryClient = useQueryClient();
+  const approve = useMutation({
+    mutationFn: async ({ id }: { id: number }) =>
+      transactionQ.approve({
+        id,
+        status: "APPROVED",
+        validatorId: user?.id ?? 0,
+      }),
+    onSuccess: () => {
+      toast.success("Demande approuvée !");
+      queryClient.invalidateQueries({
+        queryKey: ["banks", "transactions"],
+        refetchType: "active",
+      });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
 
-  const filteredData = React.useMemo(()=>{
-    return data.filter((transaction)=>{
+  const filteredData = React.useMemo(() => {
+    return data.filter((transaction) => {
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
       // Filter amount minimum
-        const matchMinAmount = 
-        !amountMinFilter ? true : transaction.amount >= amountMinFilter;
-        
-        // Filter amount maximum
-        const matchMaxAmount =
-        !amountMaxFilter ? true : transaction.amount <= amountMaxFilter;
+      const matchMinAmount = !amountMinFilter
+        ? true
+        : transaction.amount >= amountMinFilter;
 
-        // Filtre par date
-        let matchDate = true;
-            if (dateFilter) {
-      switch (dateFilter) {
-        case "today":
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case "week":
-          startDate.setDate(
-            now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
-          );
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case "month":
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        case "year":
-          startDate = new Date(now.getFullYear(), 0, 1);
-          break;
-        case "custom":
-          if (customDateRange?.from && customDateRange?.to) {
-            startDate = customDateRange.from;
-            endDate = customDateRange.to;
-          }
-          break;
-      }
+      // Filter amount maximum
+      const matchMaxAmount = !amountMaxFilter
+        ? true
+        : transaction.amount <= amountMaxFilter;
 
-      if (
-        dateFilter !== "custom" ||
-        (customDateRange?.from && customDateRange?.to)
-      ) {
-        matchDate = transaction.createdAt >= startDate && transaction.createdAt <= endDate;
-        ;
+      // Filtre par date
+      let matchDate = true;
+      if (dateFilter) {
+        switch (dateFilter) {
+          case "today":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "week":
+            startDate.setDate(
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+            );
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "month":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          case "custom":
+            if (customDateRange?.from && customDateRange?.to) {
+              startDate = customDateRange.from;
+              endDate = customDateRange.to;
+            }
+            break;
+        }
+
+        if (
+          dateFilter !== "custom" ||
+          (customDateRange?.from && customDateRange?.to)
+        ) {
+          matchDate =
+            transaction.createdAt >= startDate &&
+            transaction.createdAt <= endDate;
+        }
       }
-    }
-    return matchDate && matchMaxAmount && matchMinAmount;
-    })
-  },[data, dateFilter, customDateRange, amountMaxFilter, amountMinFilter]);
+      return matchDate && matchMaxAmount && matchMinAmount;
+    });
+  }, [data, dateFilter, customDateRange, amountMaxFilter, amountMinFilter]);
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -217,7 +235,16 @@ function TransferTable({ data }: Props) {
         const value = row.original.amount;
         const type = row.original.Type;
         return (
-          <span className={cn("font-bold", type === "CREDIT" ? "text-green-600" : type === "DEBIT" && "text-red-600")}>{XAF.format(value)}</span>
+          <span
+            className={cn(
+              "font-bold",
+              type === "CREDIT"
+                ? "text-green-600"
+                : type === "DEBIT" && "text-red-600"
+            )}
+          >
+            {XAF.format(value)}
+          </span>
         );
       },
     },
@@ -296,7 +323,10 @@ function TransferTable({ data }: Props) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-              <DropdownMenuItem disabled={approve.isPending} onClick={() =>approve.mutate({id:item.id})}>
+              <DropdownMenuItem
+                disabled={approve.isPending}
+                onClick={() => approve.mutate({ id: item.id })}
+              >
                 <CheckCircleIcon />
                 {"Valider"}
               </DropdownMenuItem>
@@ -385,35 +415,35 @@ function TransferTable({ data }: Props) {
 
               {/* Filtre par montant */}
               <div className="grid gap-1.5">
-            <Label>{"Montant min"}</Label>
-            <div className="relative">
-                <Input
-                type="number"
-                placeholder="Montant minimim"
-                value={amountMinFilter}
-                onChange={(e)=>setAmountMinFilter(Number(e.target.value))}
-                className="w-full"
-                />
-                <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                <Label>{"Montant min"}</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Montant minimim"
+                    value={amountMinFilter}
+                    onChange={(e) => setAmountMinFilter(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
                     {"FCFA"}
                   </span>
-            </div>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{"Montant maximum"}</Label>
-            <div className="relative">
-                <Input
-                type="number"
-                placeholder="Montant max"
-                value={amountMaxFilter}
-                onChange={(e)=>setAmountMaxFilter(Number(e.target.value))}
-                className="w-full"
-                />
-                <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                </div>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>{"Montant maximum"}</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Montant max"
+                    value={amountMaxFilter}
+                    onChange={(e) => setAmountMaxFilter(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
                     {"FCFA"}
                   </span>
-            </div>
-          </div>
+                </div>
+              </div>
 
               {/* Filtre par période */}
               <div className="grid gap-1.5">
@@ -608,7 +638,14 @@ function TransferTable({ data }: Props) {
       </div>
 
       <Pagination table={table} />
-      {selected && <RejectDialog transaction={selected} open={reject} openChange={setReject} userId={user?.id ?? 0} />}
+      {selected && (
+        <RejectDialog
+          transaction={selected}
+          open={reject}
+          openChange={setReject}
+          userId={user?.id ?? 0}
+        />
+      )}
     </div>
   );
 }

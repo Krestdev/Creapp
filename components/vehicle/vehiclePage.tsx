@@ -1,15 +1,14 @@
 "use client";
 import { useStore } from "@/providers/datastore";
+import { vehicleQ } from "@/queries/vehicule";
 import { useQuery } from "@tanstack/react-query";
 import { VehiclesTable } from "./vehicle-table";
-import { VehicleQueries } from "@/queries/vehicule";
 
 const VehiclePage = () => {
   const { isHydrated } = useStore();
-  const vehicle = new VehicleQueries();
   const vehicleData = useQuery({
     queryKey: ["vehiclesList"],
-    queryFn: () => vehicle.getAll(),
+    queryFn: () => vehicleQ.getAll(),
     enabled: isHydrated,
   });
 

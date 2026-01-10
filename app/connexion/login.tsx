@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { LoginResponse, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -37,11 +37,9 @@ function Login() {
     },
   });
 
-  const userQueries = new UserQueries();
-
   const loginAPI = useMutation({
     mutationFn: (data: { email: string; password: string }) =>
-      userQueries.login(data),
+      userQ.login(data),
     onSuccess: (data: ResponseT<LoginResponse>) => {
       const user = data.data.user;
       const res = NextResponse.json({ success: true, user });

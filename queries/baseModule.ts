@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { LoginResponse, ResponseT, User, Role } from "@/types/types";
 
-export class UserQueries {
+class UserQueries {
   route = "/base/user";
 
   // --------------------------------------
@@ -41,14 +41,13 @@ export class UserQueries {
     });
   };
 
-  changePassword = async (
-    id:number,
-    password:string
-  ): Promise<User> => {
-    return api.put(`${this.route}/changePassWord/${id}`, {password: password}).then((response) => {
-      console.log(response.data);
-      return response.data;
-    });
+  changePassword = async (id: number, password: string): Promise<User> => {
+    return api
+      .put(`${this.route}/changePassWord/${id}`, { password: password })
+      .then((response) => {
+        console.log(response.data);
+        return response.data;
+      });
   };
 
   // Register (sans role)
@@ -73,7 +72,8 @@ export class UserQueries {
       .then((response) => {
         console.log(response.data);
         return response.data;
-      }).catch((error) => {
+      })
+      .catch((error) => {
         console.log(error);
         return error.response.data;
       });
@@ -206,3 +206,5 @@ export class UserQueries {
     });
   };
 }
+
+export const userQ = new UserQueries();

@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { DepartmentQueries } from "@/queries/departmentModule";
+import { userQ } from "@/queries/baseModule";
+import { departmentQ } from "@/queries/departmentModule";
 import { DepartmentT, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -44,8 +44,6 @@ export function DepartmentCreateForm() {
     },
   });
 
-  const departmentQueries = new DepartmentQueries();
-  const userQueries = new UserQueries();
   const { isHydrated } = useStore();
 
   const departmentApi = useMutation({
@@ -60,7 +58,7 @@ export function DepartmentCreateForm() {
         | "reference"
         | "members"
       > & { chiefId: number }
-    ) => departmentQueries.create(data),
+    ) => departmentQ.create(data),
     onSuccess: (data: ResponseT<DepartmentT>) => {
       toast.success("Département créé avec succès !");
       console.log("created successful:", data);
@@ -76,7 +74,7 @@ export function DepartmentCreateForm() {
 
   const userApi = useQuery({
     queryKey: ["usersList"],
-    queryFn: () => userQueries.getAll(),
+    queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
 
@@ -161,9 +159,9 @@ export function DepartmentCreateForm() {
             render={({ field, fieldState }) => {
               const options = userApi.data
                 ? userApi.data.data.map((user) => ({
-                  value: user.id,
-                  label: user.lastName + " " + user.firstName,
-                }))
+                    value: user.id,
+                    label: user.lastName + " " + user.firstName,
+                  }))
                 : [];
               return (
                 <Field data-invalid={fieldState.invalid} className="gap-1">

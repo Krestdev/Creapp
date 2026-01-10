@@ -8,30 +8,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useFetchQuery } from "@/hooks/useData";
+import { XAF } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
+import { requestQ } from "@/queries/requestModule";
+import { BonsCommande, PaymentRequest } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   AlertCircle,
+  Building,
   Calendar,
+  CalendarClock,
   CreditCard,
   FolderOpen,
-  FolderTree,
   Hash,
-  Building,
-  Receipt,
-  CalendarClock,
-  Users,
   LucideFile,
+  Receipt,
+  Users,
 } from "lucide-react";
-import { BonsCommande, PaymentRequest } from "@/types/types";
-import { useStore } from "@/providers/datastore";
-import { useFetchQuery } from "@/hooks/useData";
-import { RequestQueries } from "@/queries/requestModule";
-import { UserQueries } from "@/queries/baseModule";
 import { useState } from "react";
-import ShowFile from "../base/show-file";
 import { DownloadFile } from "../base/downLoadFile";
-import { XAF } from "@/lib/utils";
+import ShowFile from "../base/show-file";
 
 interface DetailTicketProps {
   open: boolean;
@@ -55,11 +54,8 @@ export function DetailTicket({
   };
   const { user } = useStore();
 
-  const requests = new RequestQueries();
-  const users = new UserQueries();
-
-  const usersData = useFetchQuery(["users"], users.getAll, 30000);
-  const requestData = useFetchQuery(["requests"], requests.getAll, 30000);
+  const usersData = useFetchQuery(["users"], userQ.getAll, 30000);
+  const requestData = useFetchQuery(["requests"], requestQ.getAll, 30000);
 
   const [page, setPage] = useState(1);
   const [file, setFile] = useState<string | File | undefined>(undefined);
@@ -254,7 +250,11 @@ export function DetailTicket({
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${beneficiary?.firstName + " " + beneficiary?.lastName || ben.id}`}</p>
+                                >{`${
+                                  beneficiary?.firstName +
+                                    " " +
+                                    beneficiary?.lastName || ben.id
+                                }`}</p>
                               );
                             })}
                           </div>
@@ -265,51 +265,59 @@ export function DetailTicket({
                 </>
               )}
 
-              {data?.type !== "ressource_humaine" && <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {request?.categoryId === 0
-                      ? "Recepteur pour compte"
-                      : "Bénéficiaires"}
-                  </p>
-                  {request?.categoryId === 0 ? (
-                    <p className="font-semibold capitalize">
-                      {
-                        usersData.data?.data?.find(
-                          (u) => u.id === Number(request?.beneficiary)
-                        )?.firstName + " " + usersData.data?.data?.find(
-                          (u) => u.id === Number(request?.beneficiary)
-                        )?.lastName
-                      }
+              {data?.type !== "ressource_humaine" && (
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <Users className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {request?.categoryId === 0
+                        ? "Recepteur pour compte"
+                        : "Bénéficiaires"}
                     </p>
-                  ) : (
-                    <div className="flex flex-col">
-                      {request?.beneficiary === "me" ? (
-                        <p className="font-semibold capitalize">{user?.lastName + " " + user?.firstName}</p>
-                      ) : (
-                        <div className="flex flex-col">
-                          {request?.beficiaryList?.map((ben) => {
-                            const beneficiary = usersData.data?.data?.find(
-                              (x) => x.id === ben.id
-                            );
-                            return (
-                              <p
-                                key={ben.id}
-                                className="font-semibold capitalize"
-                              >{`${beneficiary?.firstName + " " + beneficiary?.lastName || ben.id}`}</p>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    {request?.categoryId === 0 ? (
+                      <p className="font-semibold capitalize">
+                        {usersData.data?.data?.find(
+                          (u) => u.id === Number(request?.beneficiary)
+                        )?.firstName +
+                          " " +
+                          usersData.data?.data?.find(
+                            (u) => u.id === Number(request?.beneficiary)
+                          )?.lastName}
+                      </p>
+                    ) : (
+                      <div className="flex flex-col">
+                        {request?.beneficiary === "me" ? (
+                          <p className="font-semibold capitalize">
+                            {user?.lastName + " " + user?.firstName}
+                          </p>
+                        ) : (
+                          <div className="flex flex-col">
+                            {request?.beficiaryList?.map((ben) => {
+                              const beneficiary = usersData.data?.data?.find(
+                                (x) => x.id === ben.id
+                              );
+                              return (
+                                <p
+                                  key={ben.id}
+                                  className="font-semibold capitalize"
+                                >{`${
+                                  beneficiary?.firstName +
+                                    " " +
+                                    beneficiary?.lastName || ben.id
+                                }`}</p>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>}
+              )}
 
-              {data?.type === "facilitation" &&
+              {data?.type === "facilitation" && (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <Users className="h-5 w-5 text-muted-foreground" />
@@ -334,7 +342,7 @@ export function DetailTicket({
                     }
                   </div>
                 </div>
-              }
+              )}
 
               <div className="flex items-start gap-3">
                 <div className="mt-1">

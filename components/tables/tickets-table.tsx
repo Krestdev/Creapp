@@ -1,29 +1,7 @@
 "use client";
 
-import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Eye,
-  Flag,
-  LucideCheck,
-  LucideDollarSign,
-} from "lucide-react";
-import * as React from "react";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -49,23 +27,46 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, company } from "@/lib/utils";
-import { Pagination } from "../base/pagination";
-import { BonsCommande, PaymentRequest, RequestType } from "@/types/types";
-import { DetailTicket } from "../modals/detail-ticket";
-import { ApproveTicket } from "../modals/ApproveTicket";
-import { PurchaseOrder } from "@/queries/purchase-order";
 import { useFetchQuery } from "@/hooks/useData";
-import { QuotationQueries } from "@/queries/quotation";
-import { CommandRqstQueries } from "@/queries/commandRqstModule";
-import { PaymentQueries, UpdatePayment } from "@/queries/payment";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { PRIORITIES } from "@/types/types";
-import { VariantProps } from "class-variance-authority";
-import { get } from "http";
+import { cn, company } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
+import {} from "@/queries/commandRqstModule";
+import { paymentQ, UpdatePayment } from "@/queries/payment";
+import { purchaseQ } from "@/queries/purchase-order";
+import {
+  BonsCommande,
+  PRIORITIES,
+  PaymentRequest,
+  RequestType,
+} from "@/types/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Eye,
+  Flag,
+  LucideCheck,
+  LucideDollarSign,
+} from "lucide-react";
+import * as React from "react";
+import { toast } from "sonner";
+import { Pagination } from "../base/pagination";
+import { ApproveTicket } from "../modals/ApproveTicket";
+import { DetailTicket } from "../modals/detail-ticket";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
@@ -73,33 +74,6 @@ interface TicketsTableProps {
   isManaged?: boolean;
   requestTypeData: RequestType[];
 }
-
-// const priorityConfig = {
-//   low: {
-//     label: "Basse",
-//     badgeClassName: "bg-gray-500 text-white hover:bg-gray-600",
-//     rowClassName:
-//       "bg-gray-50 hover:bg-gray-100 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
-//   },
-//   medium: {
-//     label: "Moyenne",
-//     badgeClassName: "bg-blue-500 text-white hover:bg-blue-600",
-//     rowClassName:
-//       "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
-//   },
-//   high: {
-//     label: "Haute",
-//     badgeClassName: "bg-orange-500 text-white hover:bg-orange-600",
-//     rowClassName:
-//       "bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/20 dark:hover:bg-orange-950/30",
-//   },
-//   urgent: {
-//     label: "Urgente",
-//     badgeClassName: "bg-red-500 text-white hover:bg-red-600",
-//     rowClassName:
-//       "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
-//   },
-// };
 
 const getPriorityBadge = (
   priority: PaymentRequest["priority"]
@@ -161,14 +135,18 @@ const statusConfig = {
   },
 };
 
-export function TicketsTable({ data, isAdmin, isManaged, requestTypeData }: TicketsTableProps) {
-
+export function TicketsTable({
+  data,
+  isAdmin,
+  isManaged,
+  requestTypeData,
+}: TicketsTableProps) {
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
   } {
-    const typeData = requestTypeData.find(t => t.type === type);
-    const label = typeData?.label ?? "Inconnu"
+    const typeData = requestTypeData.find((t) => t.type === type);
+    const label = typeData?.label ?? "Inconnu";
     switch (type) {
       case "facilitation":
         return { label, variant: "lime" };
@@ -207,17 +185,12 @@ export function TicketsTable({ data, isAdmin, isManaged, requestTypeData }: Tick
 
   const { user } = useStore();
 
-  const purchaseOrderQuery = new PurchaseOrder();
-  const { data: bons } = useFetchQuery(
-    ["purchaseOrders"],
-    purchaseOrderQuery.getAll
-  );
+  const { data: bons } = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
 
-  const payementQuery = new PaymentQueries();
   const paymentMutation = useMutation({
     mutationKey: ["payment"],
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
-      return payementQuery.update(id, data);
+      return paymentQ.update(id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -237,7 +210,7 @@ export function TicketsTable({ data, isAdmin, isManaged, requestTypeData }: Tick
   const validateMutation = useMutation({
     mutationKey: ["payment"],
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
-      return payementQuery.vaidate(id, data);
+      return paymentQ.vaidate(id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -413,10 +386,14 @@ export function TicketsTable({ data, isAdmin, isManaged, requestTypeData }: Tick
                 {PRIORITIES.map((level) => {
                   return (
                     <DropdownMenuItem
+                      key={level.value}
                       onClick={() => {
                         paymentMutation.mutate({
                           id: row.original.id!,
-                          data: { priority: level.value, price: row.original.price },
+                          data: {
+                            priority: level.value,
+                            price: row.original.price,
+                          },
                         });
                       }}
                     >
@@ -482,7 +459,11 @@ export function TicketsTable({ data, isAdmin, isManaged, requestTypeData }: Tick
         );
       },
       cell: ({ row }) => {
-        return <div className="font-medium">{format(row.getValue("createdAt"), "dd/MM/yyyy")}</div>;
+        return (
+          <div className="font-medium">
+            {format(row.getValue("createdAt"), "dd/MM/yyyy")}
+          </div>
+        );
       },
     },
     {
@@ -729,22 +710,33 @@ export function TicketsTable({ data, isAdmin, isManaged, requestTypeData }: Tick
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === "createdAt" ?
-                      "Date de creation" :
-                      column.id === "priority" ?
-                        "Priorité" :
-                        column.id === "status" ? "Statut" :
-                          column.id === "type" ? "Type" :
-                            column.id === "amount" ? "Montant" :
-                              column.id === "description" ? "Description" :
-                                column.id === "reference" ? "Reference" :
-                                  column.id === "createdAt" ? "Date de creation" :
-                                    column.id === "updatedAt" ? "Date de modification" :
-                                      column.id === "actions" ? "Actions" :
-                                        column.id === "title" ? "Titre" :
-                                          column.id === "category" ? "Categorie" :
-                                            column.id === "price" ? "Montant" :
-                                              column.id}
+                    {column.id === "createdAt"
+                      ? "Date de creation"
+                      : column.id === "priority"
+                      ? "Priorité"
+                      : column.id === "status"
+                      ? "Statut"
+                      : column.id === "type"
+                      ? "Type"
+                      : column.id === "amount"
+                      ? "Montant"
+                      : column.id === "description"
+                      ? "Description"
+                      : column.id === "reference"
+                      ? "Reference"
+                      : column.id === "createdAt"
+                      ? "Date de creation"
+                      : column.id === "updatedAt"
+                      ? "Date de modification"
+                      : column.id === "actions"
+                      ? "Actions"
+                      : column.id === "title"
+                      ? "Titre"
+                      : column.id === "category"
+                      ? "Categorie"
+                      : column.id === "price"
+                      ? "Montant"
+                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -766,9 +758,9 @@ export function TicketsTable({ data, isAdmin, isManaged, requestTypeData }: Tick
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
@@ -838,7 +830,11 @@ export function TicketsTable({ data, isAdmin, isManaged, requestTypeData }: Tick
         action={() =>
           validateMutation.mutate({
             id: selectedTicket?.id!,
-            data: { commandId: selectedTicket?.commandId, price: selectedTicket?.price, status: "validated" },
+            data: {
+              commandId: selectedTicket?.commandId,
+              price: selectedTicket?.price,
+              status: "validated",
+            },
           })
         }
         buttonTexts={"Approuver"}

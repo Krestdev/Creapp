@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,21 +8,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TranslateRole } from "@/lib/utils";
 import { User } from "@/types/types";
-import { Badge } from "@/components/ui/badge";
 import {
-  Mail,
-  Phone,
-  User as UserIcon,
   Calendar,
-  Shield,
   CheckCircle,
-  XCircle,
   Clock,
   Edit,
   LucideShieldAlert,
+  Mail,
+  Phone,
+  Shield,
+  User as UserIcon,
+  XCircle,
 } from "lucide-react";
-import { TranslateRole } from "@/lib/utils";
 
 interface ShowUserProps {
   open: boolean;
@@ -43,19 +43,6 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
       });
     } catch {
       return dateString;
-    }
-  };
-
-  const TranslateStatus = (statut: string) => {
-    switch (statut) {
-      case "active":
-        return "Vérifié";
-      case "inactive":
-        return "Non vérifié";
-      case "suspended":
-        return "Suspendu";
-      default:
-        return "Inconnu";
     }
   };
 

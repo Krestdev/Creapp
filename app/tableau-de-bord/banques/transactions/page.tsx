@@ -1,45 +1,51 @@
-'use client'
-import PageTitle from '@/components/pageTitle'
-import { Button } from '@/components/ui/button';
-import { cn, isRole } from '@/lib/utils';
-import { useStore } from '@/providers/datastore';
-import { NavLink } from '@/types/types';
-import Link from 'next/link';
-import React from 'react'
-import TransactionTable from './transaction-table';
-import { TransactionQuery } from '@/queries/transaction';
-import { useFetchQuery } from '@/hooks/useData';
-import LoadingPage from '@/components/loading-page';
-import ErrorPage from '@/components/error-page';
-import { BankQuery } from '@/queries/bank';
+"use client";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
+import PageTitle from "@/components/pageTitle";
+import { Button } from "@/components/ui/button";
+import { useFetchQuery } from "@/hooks/useData";
+import { cn, isRole } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
+import { transactionQ } from "@/queries/transaction";
+import { NavLink } from "@/types/types";
+import Link from "next/link";
+import TransactionTable from "./transaction-table";
+import { bankQ } from "@/queries/bank";
 
 function Page() {
-    const { user } = useStore();
-    const auth = isRole({roleList: user?.role ?? [], role: "trésorier"});
-    const links: Array<NavLink> = [
-        {
-          title: "Créer une transaction",
-          href: "./transactions/creer",
-          hide: !auth,
-        },
-      ];
+  const { user } = useStore();
+  const auth = isRole({ roleList: user?.role ?? [], role: "trésorier" });
+  const links: Array<NavLink> = [
+    {
+      title: "Créer une transaction",
+      href: "./transactions/creer",
+      hide: !auth,
+    },
+  ];
 
-      const transactionQuery = new TransactionQuery();
-      const getTransactions = useFetchQuery(["transactions"], transactionQuery.getAll, 500000);
-      const bankQuery = new BankQuery();
-      const getBanks = useFetchQuery(["banks"], bankQuery.getAll, 50000);
+  const getTransactions = useFetchQuery(
+    ["transactions"],
+    transactionQ.getAll,
+    500000
+  );
+  const getBanks = useFetchQuery(["banks"], bankQ.getAll, 50000);
 
-      if(getTransactions.isLoading || getBanks.isLoading){
-        return <LoadingPage/>
-      }
-      if(getTransactions.isError || getBanks.isError){
-        return <ErrorPage error={getTransactions.error || getBanks.error || undefined} />
-      }
-      if(getTransactions.isSuccess && getBanks.isSuccess)
-  return (
-    <div className='content'>
-        <PageTitle title="Transactions" subtitle="Consultez la liste des transactions">
-            {links
+  if (getTransactions.isLoading || getBanks.isLoading) {
+    return <LoadingPage />;
+  }
+  if (getTransactions.isError || getBanks.isError) {
+    return (
+      <ErrorPage error={getTransactions.error || getBanks.error || undefined} />
+    );
+  }
+  if (getTransactions.isSuccess && getBanks.isSuccess)
+    return (
+      <div className="content">
+        <PageTitle
+          title="Transactions"
+          subtitle="Consultez la liste des transactions"
+        >
+          {links
             .filter((x) => (!x.hide ? true : x.hide === true && false))
             .map((link, id) => {
               const isLast = links.length > 1 ? id === links.length - 1 : false;
@@ -63,9 +69,14 @@ function Page() {
               );
             })}
         </PageTitle>
-        <TransactionTable data={getTransactions.data.data.filter(t=>t.Type !== "TRANSFER")} canEdit={true} banks={getBanks.data.data} filterByType />
-    </div>
-  )
+        <TransactionTable
+          data={getTransactions.data.data.filter((t) => t.Type !== "TRANSFER")}
+          canEdit={true}
+          banks={getBanks.data.data}
+          filterByType
+        />
+      </div>
+    );
 }
 
-export default Page
+export default Page;

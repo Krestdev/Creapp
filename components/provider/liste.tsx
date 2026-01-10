@@ -1,15 +1,14 @@
 "use client";
 import { useStore } from "@/providers/datastore";
-import { ProviderQueries } from "@/queries/providers";
+import { providerQ } from "@/queries/providers";
 import { useQuery } from "@tanstack/react-query";
 import { ProviderTable } from "./provider-table";
 
 const ProviderListPage = () => {
   const { isHydrated } = useStore();
-  const provider = new ProviderQueries();
   const providerDate = useQuery({
     queryKey: ["providersList"],
-    queryFn: () => provider.getAll(),
+    queryFn: () => providerQ.getAll(),
     enabled: isHydrated,
   });
 

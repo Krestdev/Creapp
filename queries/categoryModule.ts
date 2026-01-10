@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { Category } from "@/types/types";
 
-export class CategoryQueries {
+class CategoryQueries {
   route = "/request";
 
   // ============================
@@ -52,3 +52,5 @@ export class CategoryQueries {
     return api.delete(`${this.route}/category/${id}`).then((res) => res.data);
   };
 }
+
+export const categoryQ = new CategoryQueries();

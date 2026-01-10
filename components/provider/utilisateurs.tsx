@@ -1,15 +1,14 @@
 "use client";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
+import { userQ } from "@/queries/baseModule";
 import { useQuery } from "@tanstack/react-query";
 import { UtilisateursTable } from "../utilisateurs/utilisateurs-table";
 
 const UtilisateursPage = () => {
   const { isHydrated } = useStore();
-  const user = new UserQueries();
   const userData = useQuery({
     queryKey: ["usersList"],
-    queryFn: () => user.getAll(),
+    queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
 

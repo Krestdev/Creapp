@@ -42,9 +42,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserQueries } from "@/queries/baseModule";
-import { CategoryQueries } from "@/queries/categoryModule";
-import { ProjectQueries } from "@/queries/projectModule";
+import { userQ } from "@/queries/baseModule";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { Pagination } from "../base/pagination";
@@ -80,23 +80,19 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [modalDestockage, setModalDestockage] = React.useState(false);
 
-  const projects = new ProjectQueries();
-  const category = new CategoryQueries();
-  const users = new UserQueries();
-
   const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => users.getAll(),
+    queryKey: ["userQ"],
+    queryFn: async () => userQ.getAll(),
   });
 
   const projectsData = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => projects.getAll(),
+    queryFn: async () => projectQ.getAll(),
   });
 
   const categoriesData = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => category.getCategories(),
+    queryFn: async () => categoryQ.getCategories(),
   });
 
   const getProjectName = (projectId: string) => {
@@ -441,14 +437,14 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
                     {column.id === "label"
                       ? "Titre"
                       : column.id === "projectId"
-                        ? "Projet"
-                        : column.id === "categoryId"
-                          ? "Catégorie"
-                          : column.id === "userId"
-                            ? "Emetteur"
-                            : column.id === "beneficiary"
-                              ? "Beneficiaire"
-                              : null}
+                      ? "Projet"
+                      : column.id === "categoryId"
+                      ? "Catégorie"
+                      : column.id === "userId"
+                      ? "Emetteur"
+                      : column.id === "beneficiary"
+                      ? "Beneficiaire"
+                      : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -470,9 +466,9 @@ export function BesoinsTraiterTable({ data }: BesoinsTraiterTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}

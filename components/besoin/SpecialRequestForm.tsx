@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { RequestQueries } from "@/queries/requestModule";
+import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -65,12 +65,12 @@ export default function SpecialRequestForm() {
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
-  const request = new RequestQueries();
+
   const requestMutation = useMutation({
     mutationKey: ["requests"],
     mutationFn: async (
       data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
-    ) => request.special(data),
+    ) => requestQ.special(data),
 
     onSuccess: () => {
       toast.success("Besoin soumis avec succès !");
@@ -116,7 +116,7 @@ export default function SpecialRequestForm() {
       state: "pending",
       priority: "medium",
       categoryId: 0,
-      proof: undefined
+      proof: undefined,
     };
     requestMutation.mutate(requestData);
   }

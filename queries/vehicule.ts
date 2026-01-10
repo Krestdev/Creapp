@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { ResponseT, Vehicle } from "@/types/types";
 
-export class VehicleQueries {
+class VehicleQueries {
   route = "/request/vehicle";
 
   // --------------------------------------
@@ -83,3 +83,5 @@ export class VehicleQueries {
       });
   };
 }
+
+export const vehicleQ = new VehicleQueries();

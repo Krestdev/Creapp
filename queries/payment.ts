@@ -18,7 +18,8 @@ export type PayPayload = Omit<
   PaymentRequest,
   "id" | "createdAt" | "updatedAt" | "status" | "justification"
 > & { justification: File };
-export class PaymentQueries {
+
+class PaymentQueries {
   route = "/request/payment";
 
   // --------------------------------------
@@ -204,3 +205,5 @@ export class PaymentQueries {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
   };
 }
+
+export const paymentQ = new PaymentQueries();

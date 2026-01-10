@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ProviderQueries } from "@/queries/providers";
+import { providerQ } from "@/queries/providers";
 import { Provider, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -72,7 +72,6 @@ export default function CreateProviderForm() {
     },
   });
 
-  const providerQueries = new ProviderQueries();
   const registerAPI = useMutation({
     mutationKey: ["registerNewProvider"],
     mutationFn: (
@@ -80,7 +79,7 @@ export default function CreateProviderForm() {
         Provider,
         "status" | "lastConnection" | "role" | "members" | "id" | "createdAt"
       >
-    ) => providerQueries.create(data),
+    ) => providerQ.create(data),
     onSuccess: (data: ResponseT<Provider>) => {
       toast.success("Fournisseur créé avec succès.");
       console.log("Register successful:", data);
@@ -118,10 +117,7 @@ export default function CreateProviderForm() {
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="form-3xl"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
         <FormField
           control={form.control}
           name="name"
@@ -158,10 +154,7 @@ export default function CreateProviderForm() {
             <FormItem>
               <FormLabel isRequired>{"Adresse mail"}</FormLabel>
               <FormControl className="w-full">
-                <Input
-                  placeholder="ex. johndoe@gemail.com"
-                  {...field}
-                />
+                <Input placeholder="ex. johndoe@gemail.com" {...field} />
               </FormControl>
 
               <FormMessage />
@@ -207,7 +200,9 @@ export default function CreateProviderForm() {
               <FormControl className="w-full">
                 <Input placeholder="QA123..." {...field} />
               </FormControl>
-              <FormDescription>{"Numéro d'Identification Unique"}</FormDescription>
+              <FormDescription>
+                {"Numéro d'Identification Unique"}
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -218,9 +213,7 @@ export default function CreateProviderForm() {
           name="regem"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>
-                {"Régime"}
-              </FormLabel>
+              <FormLabel isRequired>{"Régime"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">

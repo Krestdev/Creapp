@@ -3,8 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
-import { UserQueries } from "@/queries/baseModule";
-import { CategoryQueries } from "@/queries/categoryModule";
+import { userQ } from "@/queries/baseModule";
+import { categoryQ } from "@/queries/categoryModule";
 import { Category, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -67,14 +67,12 @@ export function CategoryCreateForm() {
     name: "validators",
   });
 
-  const categoryQueries = new CategoryQueries();
   const { isHydrated } = useStore();
 
   // Récupérer la liste des utilisateurs
-  const userQueries = new UserQueries();
   const usersData = useQuery({
     queryKey: ["users-list"],
-    queryFn: () => userQueries.getAll(),
+    queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
 
@@ -86,7 +84,7 @@ export function CategoryCreateForm() {
         description?: string;
         validators?: { userId: number; rank: number }[];
       }
-    ) => categoryQueries.createCategory(data),
+    ) => categoryQ.createCategory(data),
     onSuccess: (data: ResponseT<Category>) => {
       toast.success("Catégorie créée avec succès !");
       console.log("created successful:", data);
@@ -367,9 +365,9 @@ export function CategoryCreateForm() {
                             options={
                               availableUsers.length > 0
                                 ? availableUsers.map((user) => ({
-                                  value: user.id!.toString(),
-                                  label: user.lastName + " " + user.firstName,
-                                }))
+                                    value: user.id!.toString(),
+                                    label: user.lastName + " " + user.firstName,
+                                  }))
                                 : []
                             }
                             value={field.value?.toString() || ""}
