@@ -17,10 +17,29 @@ import {
   BookCopy,
   Type,
   Box,
+  LucideProps,
 } from "lucide-react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export default function SettingsPage() {
-  const settingsGroups = [
+  const settingsGroups: {
+    category: string;
+    items: {
+      title: string;
+      description: string;
+      icon: ForwardRefExoticComponent<
+        Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
+      >;
+      href: string;
+      color: string;
+      items?: {
+        pageId: string;
+        title: string;
+        href: string;
+        authorized: string[];
+      }[];
+    }[];
+  }[] = [
     {
       category: "Gestion",
       items: [
@@ -93,13 +112,13 @@ export default function SettingsPage() {
             },
           ],
         },
-        {
-          title: "Roles & Permissions",
-          description: "Configure access levels and roles",
-          icon: Shield,
-          href: "/tableau-de-bord/settings/utilisateurs/roles",
-          color: "from-green-500 to-green-600",
-        },
+        // {
+        //   title: "Roles & Permissions",
+        //   description: "Configure access levels and roles",
+        //   icon: Shield,
+        //   href: "/tableau-de-bord/settings/utilisateurs/roles",
+        //   color: "from-green-500 to-green-600",
+        // },
       ],
     },
     {
