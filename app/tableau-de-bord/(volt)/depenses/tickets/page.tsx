@@ -2,13 +2,10 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
-import { cn, XAF } from "@/lib/utils";
+import { XAF } from "@/lib/utils";
 import { PaymentQueries } from "@/queries/payment";
 import { PurchaseOrder } from "@/queries/purchase-order";
-import { NavLink } from "@/types/types";
-import Link from "next/link";
 import ExpensesTable from "../expenses-table";
 import {
   StatisticCard,

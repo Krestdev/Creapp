@@ -171,7 +171,7 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
     if (type === "CURRENT") {
       return {
         label: "Dépenses courantes",
-        variant: "teal",
+        variant: "yellow",
       };
     }
 
