@@ -41,15 +41,18 @@ const Page = () => {
                     {getRequestType.data?.data.map((item) => (
                         <Card className="h-full">
                             <CardHeader className="flex justify-between">
-                                <CardTitle>{item.label}</CardTitle>
+                                <CardTitle className="text-lg">{item.label}</CardTitle>
+                            </CardHeader>
+                            <div className="px-4">
+                                <p>{item.description}</p>
+                            </div>
+                            <CardFooter>
                                 <Button
                                     onClick={() => { setSelect(item); setIsModalOpenEdit(true); }}
-                                    variant={"outline"} className="px-2">
+                                    variant={"primary"} className="rounded-[4px] ml-auto">
                                     <LucidePen />
+                                    Modifier
                                 </Button>
-                            </CardHeader>
-                            <CardFooter>
-                                <p>{item.description}</p>
                             </CardFooter>
                         </Card>
                     ))}
