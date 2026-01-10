@@ -336,12 +336,12 @@ function AppSidebar() {
           authorized: ["ADMIN", "MANAGER"],
           badgeValue: pendingData?.length > 0 ? pendingData?.length : undefined,
         },
-        {
-          pageId: "PG-09-03",
-          title: "Catégories",
-          href: "/tableau-de-bord/besoins/categories",
-          authorized: ["ADMIN"],
-        },
+        // {
+        //   pageId: "PG-09-03",
+        //   title: "Catégories",
+        //   href: "/tableau-de-bord/besoins/categories",
+        //   authorized: ["ADMIN"],
+        // },
       ],
     },
     {
