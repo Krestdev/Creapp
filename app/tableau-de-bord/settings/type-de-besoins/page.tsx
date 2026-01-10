@@ -40,11 +40,13 @@ const Page = () => {
                 <div className="grid-stats-4">
                     {getRequestType.data?.data.map((item) => (
                         <Card className="h-full justify-between">
-                            <CardHeader className="flex justify-between">
-                                <CardTitle className="text-lg">{item.label}</CardTitle>
-                            </CardHeader>
-                            <div className="px-4">
-                                <p className="text-gray-400">{item.description}</p>
+                            <div>
+                                <CardHeader className="flex justify-between">
+                                    <CardTitle className="text-lg">{item.label}</CardTitle>
+                                </CardHeader>
+                                <div className="px-6">
+                                    <p className="text-gray-400">{item.description}</p>
+                                </div>
                             </div>
                             <CardFooter>
                                 <Button
