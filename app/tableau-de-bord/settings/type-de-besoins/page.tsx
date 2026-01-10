@@ -7,9 +7,18 @@ import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "@/components/loading-page";
 import ErrorPage from "@/components/error-page";
 import Empty from "@/components/base/empty";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { LucidePen } from "lucide-react";
+import { UpdateRequestType } from "./UpdateRequestType";
+import { useState } from "react";
+import { RequestType } from "@/types/types";
 
 const Page = () => {
 
+
+    const [isOpenModalEdit, setIsModalOpenEdit] = useState(false);
+    const [select, setSelect] = useState<RequestType>();
     const requestTypeQueries = new RequestTypeQueries();
     const getRequestType = useFetchQuery(["requestType"], requestTypeQueries.getAll);
 
@@ -28,7 +37,29 @@ const Page = () => {
                     title="Types de besoins"
                     subtitle="Consulter et gérez les types de besoins"
                 />
-                <TypeTable data={getRequestType.data?.data || []} />
+                <div className="grid-stats-4">
+                    {getRequestType.data?.data.map((item) => (
+                        <Card>
+                            <CardHeader className="flex justify-between">
+                                <CardTitle>{item.label}</CardTitle>
+                                <Button
+                                    onClick={() => { setSelect(item); setIsModalOpenEdit(true); }}
+                                    variant={"outline"} className="px-2">
+                                    <LucidePen />
+                                </Button>
+                            </CardHeader>
+                            <CardFooter>
+                                <p>{item.description}</p>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+
+                <UpdateRequestType
+                    open={isOpenModalEdit}
+                    onOpenChange={setIsModalOpenEdit}
+                    data={select}
+                />
             </div>
         );
     }
