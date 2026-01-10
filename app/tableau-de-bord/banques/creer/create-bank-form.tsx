@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BankPayload, bankQ, BankQuery } from "@/queries/bank";
+import { BankPayload, bankQ } from "@/queries/bank";
 import { QueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";

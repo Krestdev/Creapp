@@ -2,7 +2,7 @@
 import PageTitle from "@/components/pageTitle";
 import React from "react";
 import TransactionForm from "./transaction-form";
-import { bankQ, BankQuery } from "@/queries/bank";
+import { bankQ } from "@/queries/bank";
 import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "@/components/loading-page";
 import ErrorPage from "@/components/error-page";

@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { BankPayload, bankQ, BankQuery } from "@/queries/bank";
+import { BankPayload, bankQ } from "@/queries/bank";
 import { Bank, BANK_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { bankQ, BankQuery } from "@/queries/bank";
+import { bankQ } from "@/queries/bank";
 import { transactionQ, TransferProps } from "@/queries/transaction";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

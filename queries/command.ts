@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { BonsCommande } from "@/types/types";
 
-export class CommandQueries {
+class CommandQueries {
   route = "/request/command";
 
   // --------------------------------------

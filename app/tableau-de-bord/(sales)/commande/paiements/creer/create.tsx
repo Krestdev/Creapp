@@ -112,7 +112,7 @@ function CreatePaiement({ purchases }: Props) {
   const isPartial = form.watch("isPartial");
 
   const createPayment = useMutation({
-    mutationFn: async (payload: NewPayment) => paymentQuery.new(payload),
+    mutationFn: async (payload: NewPayment) => paymentQ.new(payload),
     onSuccess: () => {
       toast.success("Votre paiement a été initié avec succès !");
       queryClient.invalidateQueries({

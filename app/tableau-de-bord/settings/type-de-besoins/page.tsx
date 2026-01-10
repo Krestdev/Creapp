@@ -22,11 +22,7 @@ import { RequestType } from "@/types/types";
 const Page = () => {
   const [isOpenModalEdit, setIsModalOpenEdit] = useState(false);
   const [select, setSelect] = useState<RequestType>();
-  const requestTypeQueries = new RequestTypeQueries();
-  const getRequestType = useFetchQuery(
-    ["requestType"],
-    requestTypeQueries.getAll
-  );
+  const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll);
 
   if (getRequestType.isLoading) {
     return <LoadingPage />;

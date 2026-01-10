@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { Category } from "@/types/types";
 
-export class CategoryQueries {
+class CategoryQueries {
   route = "/request";
 
   // ============================

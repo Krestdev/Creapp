@@ -27,19 +27,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, company } from "@/lib/utils";
-import { Pagination } from "../base/pagination";
-import { BonsCommande, PaymentRequest, RequestType } from "@/types/types";
-import { DetailTicket } from "../modals/detail-ticket";
-import { ApproveTicket } from "../modals/ApproveTicket";
-import { PurchaseOrder } from "@/queries/purchase-order";
 import { useFetchQuery } from "@/hooks/useData";
 import { cn, company } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {} from "@/queries/commandRqstModule";
-import { PaymentQueries, UpdatePayment } from "@/queries/payment";
+import { paymentQ, UpdatePayment } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
-import { BonsCommande, PRIORITIES, PaymentRequest } from "@/types/types";
+import {
+  BonsCommande,
+  PRIORITIES,
+  PaymentRequest,
+  RequestType,
+} from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   type ColumnDef,
@@ -54,6 +53,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
+import { format } from "date-fns";
 import {
   ArrowUpDown,
   ChevronDown,
@@ -67,7 +67,6 @@ import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import { ApproveTicket } from "../modals/ApproveTicket";
 import { DetailTicket } from "../modals/detail-ticket";
-import { format } from "date-fns";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
@@ -188,11 +187,10 @@ export function TicketsTable({
 
   const { data: bons } = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
 
-  const payementQuery = new PaymentQueries();
   const paymentMutation = useMutation({
     mutationKey: ["payment"],
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
-      return payementQuery.update(id, data);
+      return paymentQ.update(id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -212,7 +210,7 @@ export function TicketsTable({
   const validateMutation = useMutation({
     mutationKey: ["payment"],
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
-      return payementQuery.vaidate(id, data);
+      return paymentQ.vaidate(id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

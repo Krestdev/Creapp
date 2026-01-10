@@ -9,7 +9,7 @@ import Tickets from "@/components/ticket/tickets";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
-import { RequestTypeQueries } from "@/queries/requestType";
+import { requestTypeQ } from "@/queries/requestType";
 
 function Page() {
   const { user } = useStore();
@@ -20,10 +20,9 @@ function Page() {
     30000
   );
 
-  const requestTypeQueries = new RequestTypeQueries();
   const getRequestType = useFetchQuery(
     ["requestType"],
-    requestTypeQueries.getAll,
+    requestTypeQ.getAll,
     30000
   );
 

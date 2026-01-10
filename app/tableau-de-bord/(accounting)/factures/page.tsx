@@ -3,19 +3,13 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { useFetchQuery } from "@/hooks/useData";
+import { commadQ } from "@/queries/command";
 import { paymentQ } from "@/queries/payment";
-import { purchaseQ } from "@/queries/purchase-order";
 import { InvoicesTable } from "./invoices-table";
 
 function Page() {
-  const paymentQuery = new PaymentQueries();
-  const commandQuery = new PurchaseOrder();
-  const getPayments = useFetchQuery(["payments"], paymentQuery.getAll, 15000);
-  const getPurchases = useFetchQuery(
-    ["purchaseOrders"],
-    commandQuery.getAll,
-    15000
-  );
+  const getPayments = useFetchQuery(["payments"], paymentQ.getAll, 15000);
+  const getPurchases = useFetchQuery(["purchaseOrders"], commadQ.getAll, 15000);
 
   if (getPayments.isLoading || getPurchases.isLoading) {
     return <LoadingPage />;

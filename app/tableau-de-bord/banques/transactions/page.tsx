@@ -10,7 +10,7 @@ import { transactionQ } from "@/queries/transaction";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
 import TransactionTable from "./transaction-table";
-import { BankQuery } from "@/queries/bank";
+import { bankQ } from "@/queries/bank";
 
 function Page() {
   const { user } = useStore();
@@ -28,8 +28,7 @@ function Page() {
     transactionQ.getAll,
     500000
   );
-  const bankQuery = new BankQuery();
-  const getBanks = useFetchQuery(["banks"], bankQuery.getAll, 50000);
+  const getBanks = useFetchQuery(["banks"], bankQ.getAll, 50000);
 
   if (getTransactions.isLoading || getBanks.isLoading) {
     return <LoadingPage />;

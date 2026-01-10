@@ -1,6 +1,13 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,10 +17,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { Category, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -25,16 +35,6 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import { Trash2, Plus, ChevronUp, ChevronDown } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { userQ } from "@/queries/baseModule";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Textarea } from "../ui/textarea";
 
 export interface ActionResponse<T = any> {
@@ -132,7 +132,7 @@ export function UpdateCategory({
     mutationFn: async (data: Partial<Category>) => {
       setIsLoading(true);
       try {
-        const response = await categoryQueries.updateCategory(
+        const response = await categoryQ.updateCategory(
           categoryData?.id!,
           data
         );

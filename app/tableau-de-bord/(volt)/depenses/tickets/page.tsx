@@ -14,8 +14,8 @@ import {
   StatisticCard,
   StatisticProps,
 } from "@/components/base/TitleValueCard";
-import { bankQ, BankQuery } from "@/queries/bank";
-import { RequestTypeQueries } from "@/queries/requestType";
+import { bankQ } from "@/queries/bank";
+import { requestTypeQ } from "@/queries/requestType";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
@@ -28,10 +28,9 @@ function Page() {
     purchaseQ.getAll,
     30000
   );
-  const requestTypeQueries = new RequestTypeQueries();
   const getRequestType = useFetchQuery(
     ["requestType"],
-    requestTypeQueries.getAll,
+    requestTypeQ.getAll,
     30000
   );
 

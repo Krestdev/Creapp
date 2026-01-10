@@ -5,7 +5,7 @@ import { useFetchQuery } from "@/hooks/useData";
 import { paymentQ } from "@/queries/payment";
 import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
-import { RequestTypeQueries } from "@/queries/requestType";
+import { requestTypeQ } from "@/queries/requestType";
 
 const Liste = () => {
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
@@ -13,10 +13,9 @@ const Liste = () => {
     paymentQ.getAll,
     30000
   );
-  const requestTypeQueries = new RequestTypeQueries();
   const getRequestType = useFetchQuery(
     ["requestType"],
-    requestTypeQueries.getAll,
+    requestTypeQ.getAll,
     30000
   );
 

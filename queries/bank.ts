@@ -5,7 +5,7 @@ export interface BankPayload
   extends Omit<Bank, "id" | "createdAt" | "updatedAt" | "justification"> {
   justification?: File | string;
 }
-export class BankQuery {
+class BankQuery {
   route = "/request/bank";
 
   getAll = async (): Promise<{ data: Array<Bank> }> => {

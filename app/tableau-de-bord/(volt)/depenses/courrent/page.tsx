@@ -15,7 +15,7 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
 import ExpensesTable from "../expenses-table";
-import { RequestTypeQueries } from "@/queries/requestType";
+import { requestTypeQ } from "@/queries/requestType";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -33,10 +33,9 @@ function Page() {
     30000
   );
 
-  const requestTypeQueries = new RequestTypeQueries();
   const getRequestType = useFetchQuery(
     ["requestType"],
-    requestTypeQueries.getAll,
+    requestTypeQ.getAll,
     30000
   );
 

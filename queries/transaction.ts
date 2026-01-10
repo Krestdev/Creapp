@@ -31,7 +31,7 @@ export interface StatusUpdateProps {
   validatorId: number;
 }
 
-export class TransactionQuery {
+class TransactionQuery {
   route = "/request/transaction";
 
   getAll = async (): Promise<{ data: Array<Transaction> }> => {

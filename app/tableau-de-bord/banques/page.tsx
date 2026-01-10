@@ -6,7 +6,7 @@ import { useStore } from "@/providers/datastore";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
 import BankTable from "./bank-table";
-import { bankQ, BankQuery } from "@/queries/bank";
+import { bankQ } from "@/queries/bank";
 import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "@/components/loading-page";
 import ErrorPage from "@/components/error-page";

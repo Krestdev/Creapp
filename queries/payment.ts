@@ -18,7 +18,8 @@ export type PayPayload = Omit<
   PaymentRequest,
   "id" | "createdAt" | "updatedAt" | "status" | "justification"
 > & { justification: File };
-export class PaymentQueries {
+
+class PaymentQueries {
   route = "/request/payment";
 
   // --------------------------------------
