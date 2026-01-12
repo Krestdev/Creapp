@@ -152,6 +152,7 @@ export function DevisGroup({
                                             devis?.quotations.map(devi => {
                                                 return (
                                                     <Button
+                                                    key={devi.id}
                                                         variant={"ghost"}
                                                         className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
                                                         disabled={!devi?.proof}

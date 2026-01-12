@@ -274,8 +274,13 @@ export function InvoicesTable({ payments, purchases }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = row.original.proof as string;
-        const elements = value.split(";").filter((x) => !!x);
+        const proofField = row.original.proof;
+        const elements =
+          typeof proofField === "string" && proofField.length > 0
+            ? proofField.split(";").filter(Boolean)
+            : Array.isArray(proofField)
+            ? proofField.map(String).filter(Boolean)
+            : [];
         return (
           <div className="font-medium flex flex-wrap gap-1.5">
             {elements.map((proof, index) => (

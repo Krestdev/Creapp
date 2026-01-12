@@ -45,7 +45,7 @@ interface Props {
 function ViewInvoice({ payment, open, openChange, purchases }: Props) {
   const getUsers = useFetchQuery(["users"], userQ.getAll, 50000);
   const purchase = purchases.find((p) => p.id === payment.commandId);
-  const files = payment.proof as string;
+  const files = typeof payment.proof === "string" ? payment.proof : "";
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
