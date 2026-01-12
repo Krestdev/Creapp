@@ -35,7 +35,7 @@ const Tickets = ({ ticketsData, requestTypeData }: Props) => {
           <>
             <div className="flex flex-col">
               <h2>{"En attentes d'approbation"}</h2>
-              <TicketsTable data={pending.reverse()} isAdmin={true} requestTypeData={requestTypeData} />
+              <TicketsTable data={ticketsData.filter(t=> t.status === "accepted")} isAdmin={true} requestTypeData={requestTypeData} />
             </div>
             <div className="flex flex-col">
               <h2>{"Tickets traités"}</h2>

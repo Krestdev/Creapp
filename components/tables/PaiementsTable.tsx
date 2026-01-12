@@ -89,7 +89,15 @@ function getStatusBadge(status: PaymentRequest["status"]): { label: string; vari
   switch (status) {
     case "pending":
       return { label, variant: "amber" };
+    case "accepted":
+      return {label, variant: "sky"};
+    case "rejected":
+      return {label, variant: "destructive"};
     case "validated":
+      return { label, variant: "primary" };
+    case "signed":
+      return { label, variant: "lime" };
+    case "paid":
       return { label, variant: "success" };
     default:
       return { label, variant: "outline" };

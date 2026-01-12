@@ -82,6 +82,15 @@ class TransactionQuery {
       return response.data;
     });
   };
+  complete = async({id, proof}:{id:number, proof: File}):Promise<{data: Transaction}> => {
+    const formData = new FormData();
+    formData.append("status", "APPROVED");
+    formData.append("proof", proof);
+    return api.put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response)=>response.data)
+  }
   createTransaction = async (
     data: TransferProps
   ): Promise<{ data: Transaction }> => {

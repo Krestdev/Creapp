@@ -158,6 +158,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
         userId: user?.id ?? 0,
         proof: values.proof[0],
         isPartial: values.isPartial,
+        status: "pending"
       };
       return updatePayment.mutate(payload);
     }
@@ -171,6 +172,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
       priority: values.priority,
       userId: user?.id ?? 0,
       isPartial: values.isPartial,
+      status: "pending"
     };
     return updatePayment.mutate(payload);
   }
