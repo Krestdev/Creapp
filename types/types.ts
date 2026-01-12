@@ -568,7 +568,7 @@ export const TRANSACTION_TYPES = [
 ] as const;
 
 export const TRANSACTION_STATUS = [
-  { value: "APPROVED", name: "Approuvé" },
+  { value: "APPROVED", name: "Complété" },
   { value: "PENDING", name: "En attente" },
   { value: "REJECTED", name: "Rejeté" },
   { value: "ACCEPTED", name: "Accepté" },

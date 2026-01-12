@@ -5,11 +5,11 @@ import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
 import { useFetchQuery } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
+import { bankQ } from "@/queries/bank";
 import { transactionQ } from "@/queries/transaction";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
-import TransactionTable from "../transaction-table";
-import { bankQ } from "@/queries/bank";
+import TransferTable from "./transfer-table";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -61,9 +61,8 @@ function Page() {
               );
             })}
         </PageTitle>
-        <TransactionTable
+        <TransferTable
           data={getTransactions.data.data.filter((t) => t.Type === "TRANSFER")}
-          canEdit={true}
           banks={getBanks.data.data}
         />
       </div>
