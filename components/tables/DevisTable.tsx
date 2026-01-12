@@ -103,6 +103,7 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
   // États pour les filtres spécifiques
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
   const [commandFilter, setCommandFilter] = React.useState<string>("all");
+  const [statusFilter, setStatusFilter] = React.useState<string>("all");
   const [montantFilter, setMontantFilter] = React.useState<
     "all" | "lt100000" | "100000-500000" | "gt500000"
   >("all");
@@ -122,6 +123,18 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
   const [selectedQuotation, setSelectedQuotation] = React.useState<
     string | undefined
   >(undefined);
+
+  // Liste des statuts uniques pour le filtre
+  const getUniqueStatuses = React.useMemo(() => {
+    if (!data) return [];
+    const statusSet = new Set<QuotationStatus>();
+    data.forEach((item) => {
+      if (item.status) {
+        statusSet.add(item.status);
+      }
+    });
+    return Array.from(statusSet);
+  }, [data]);
 
   const getProviderName = (providerId: number) => {
     const provider = providers.find((p) => p.id === providerId);
@@ -157,11 +170,11 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
       case "PENDING":
         return { label: "En attente", variant: "amber" };
       case "APPROVED":
-        return { label: "Traité", variant: "success" };
+        return { label: "Approuvé", variant: "success" };
       case "REJECTED":
         return { label: "Rejeté", variant: "destructive" };
       case "SUBMITTED":
-        return { label: "Traité", variant: "primary" };
+        return { label: "Soumis", variant: "primary" };
       default:
         return { label: "Inconnu", variant: "outline" };
     }
@@ -246,6 +259,11 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
       filtered = filtered.filter((item) => item.commandRequestId === commandId);
     }
 
+    // Filtre par statut
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((item) => item.status === statusFilter);
+    }
+
     // Filtre par montant
     if (montantFilter !== "all") {
       filtered = filtered.filter((item) => {
@@ -263,11 +281,10 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
       });
     }
 
-    // Filtre par référence de commande - CORRECTION ICI
+    // Filtre par référence de commande
     if (commandRefFilter !== "all") {
       filtered = filtered.filter((item) => {
         const commandRef = getQuotationRef(item.commandRequestId);
-        // Comparaison exacte des références
         return commandRef === commandRefFilter;
       });
     }
@@ -279,8 +296,9 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
     customDateRange,
     providerFilter,
     commandFilter,
+    statusFilter,
     montantFilter,
-    commandRefFilter, // AJOUTÉ: Inclure commandRefFilter dans les dépendances
+    commandRefFilter,
   ]);
 
   // Réinitialiser tous les filtres
@@ -292,6 +310,7 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
     setProviderFilter("all");
     setCommandFilter("all");
     setCommandRefFilter("all");
+    setStatusFilter("all");
     setMontantFilter("all");
     setGlobalFilter("");
   };
@@ -388,8 +407,16 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
     },
     {
       accessorKey: "status",
-      header: () => {
-        return <span className="tablehead">{"Statut"}</span>;
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Statut"}
+            <ArrowUpDown />
+          </span>
+        );
       },
       cell: ({ row }) => {
         const value = row.getValue("status") as QuotationStatus;
@@ -532,7 +559,7 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
             <SheetHeader>
               <SheetTitle>{"Filtres"}</SheetTitle>
               <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
+                {"Configurer les filtres pour affiner les données"}
               </SheetDescription>
             </SheetHeader>
             <div className="px-5 grid gap-5">
@@ -587,6 +614,27 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
                 />
               </div>
 
+              {/* Filtre par statut */}
+              <div className="grid gap-1.5">
+                <Label>{"Statut"}</Label>
+                <Select
+                  value={statusFilter}
+                  onValueChange={setStatusFilter}
+                >
+                  <SelectTrigger className="min-w-40 w-full">
+                    <SelectValue placeholder="Tous les statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    {getUniqueStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {getStatusLabel(status).label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Filtre par demande de cotation */}
               <div className="grid gap-1.5">
                 <Label>{"Demande de cotation"}</Label>
@@ -628,7 +676,7 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
                     <SelectItem value="all">{"Tous les montants"}</SelectItem>
                     <SelectItem value="lt100000">{`< 100 000 XAF`}</SelectItem>
                     <SelectItem value="100000-500000">
-                      {" 0 0000 - 500 000 XAF"}
+                      {"100 000 - 500 000 XAF"}
                     </SelectItem>
                     <SelectItem value="gt500000">{`> 500 000 XAF`}</SelectItem>
                   </SelectContent>
@@ -675,9 +723,9 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy"
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            customDateRange.from,
+                            "dd/MM/yyyy"
+                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -752,7 +800,7 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
                   else if (column.id === "providerId")
                     columnName = "Fournisseur";
                   else if (column.id === "montant") columnName = "Montant";
-                  else if (column.id === "status") columnName = "Statuts";
+                  else if (column.id === "status") columnName = "Statut";
                   else if (column.id === "createdAt")
                     columnName = "Date de création";
 
@@ -789,9 +837,9 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

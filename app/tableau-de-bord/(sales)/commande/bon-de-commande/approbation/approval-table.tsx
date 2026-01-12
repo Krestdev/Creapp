@@ -233,28 +233,28 @@ export function PurchaseApprovalTable({ data }: Props) {
   };
 
   const columns: ColumnDef<BonsCommande>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Sélectionner tout"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Sélectionner la ligne"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    // {
+    //   id: "select",
+    //   header: ({ table }) => (
+    //     <Checkbox
+    //       checked={
+    //         table.getIsAllPageRowsSelected() ||
+    //         (table.getIsSomePageRowsSelected() && "indeterminate")
+    //       }
+    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //       aria-label="Sélectionner tout"
+    //     />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Checkbox
+    //       checked={row.getIsSelected()}
+    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //       aria-label="Sélectionner la ligne"
+    //     />
+    //   ),
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
 
     {
       accessorKey: "reference",
@@ -638,9 +638,9 @@ export function PurchaseApprovalTable({ data }: Props) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -681,14 +681,14 @@ export function PurchaseApprovalTable({ data }: Props) {
                     {(priorityFilter !== "all" ||
                       penaltyFilter !== "all" ||
                       globalFilter) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={resetAllFilters}
-                      >
-                        {"Réinitialiser les filtres"}
-                      </Button>
-                    )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={resetAllFilters}
+                        >
+                          {"Réinitialiser les filtres"}
+                        </Button>
+                      )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -699,10 +699,10 @@ export function PurchaseApprovalTable({ data }: Props) {
 
       {/* PAGINATION */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-muted-foreground">
+        {/* <div className="text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} sur{" "}
           {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
-        </div>
+        </div> */}
         {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       </div>
 

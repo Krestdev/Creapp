@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Check, ChevronDown, Settings2 } from "lucide-react";
+import { ArrowUpDown, Check, ChevronDown, Eye, Settings2 } from "lucide-react";
 import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -52,11 +52,15 @@ import {
   CommandRequestT,
   Provider,
   Quotation,
+  QuotationGroup,
   QuotationGroupStatus,
   QuotationGroup as QuotationGroupT,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { DevisModal } from "@/components/modals/DevisModal";
+import { DevisGroup } from "./DevisGroup";
 
 interface QuotationGroupTableProps {
   providers: Array<Provider>;
@@ -88,7 +92,9 @@ export function QuotationGroupTable({
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+    createdAt: false,
+  });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const router = useRouter();
@@ -96,6 +102,8 @@ export function QuotationGroupTable({
   // Filtres spécifiques
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
   const [statusFilter, setStatusFilter] = React.useState<"all" | QuotationGroupStatus>("all");
+  const [openView, setOpenView] = React.useState(false);
+  const [selectedItem, setSelectedItem] = React.useState<QuotationGroup | null>(null);
 
   const data = React.useMemo(() => {
     return groupQuotationsByCommandRequest(requests, quotations, providers);
@@ -121,28 +129,28 @@ export function QuotationGroupTable({
   }, [data, providerFilter, statusFilter]);
 
   const columns: ColumnDef<QuotationGroupT>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Sélectionner tout"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Sélectionner la ligne"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    // {
+    //   id: "select",
+    //   header: ({ table }) => (
+    //     <Checkbox
+    //       checked={
+    //         table.getIsAllPageRowsSelected() ||
+    //         (table.getIsSomePageRowsSelected() && "indeterminate")
+    //       }
+    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //       aria-label="Sélectionner tout"
+    //     />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Checkbox
+    //       checked={row.getIsSelected()}
+    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //       aria-label="Sélectionner la ligne"
+    //     />
+    //   ),
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
     {
       id: "commandRequest",
       accessorFn: (row) => row.commandRequest.reference,
@@ -159,7 +167,7 @@ export function QuotationGroupTable({
         const group = row.original;
         return (
           <div className="font-medium">
-            {group.commandRequest.title}
+            {group.commandRequest.title} - <span className="text-red-500">{group.commandRequest.reference}</span>
           </div>
         );
       },
@@ -199,6 +207,13 @@ export function QuotationGroupTable({
       },
     },
     {
+      accessorKey: "createdAt",
+      header: () => <span className="tablehead">{"Date de création"}</span>,
+      cell: ({ row }) => {
+        return <div>{format(row.getValue("createdAt"), "dd/MM/yyyy")}</div>;
+      },
+    },
+    {
       id: "actions",
       header: () => <span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
@@ -215,6 +230,16 @@ export function QuotationGroupTable({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions du groupe"}</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedItem(group);
+                  setOpenView(true);
+                }}
+                className="cursor-pointer"
+              >
+                <Eye />
+                {"Voir"}
+              </DropdownMenuItem>
               <DropdownMenuItem disabled={group.status === "PROCESSED"}
                 onClick={() => router.push(`./valider/${group.commandRequest.id}`)}
                 className="cursor-pointer"
@@ -386,6 +411,7 @@ export function QuotationGroupTable({
                 if (column.id === "commandRequest") columnName = "Demande de cotation";
                 else if (column.id === "providers") columnName = "Fournisseurs";
                 else if (column.id === "status") columnName = "Statut";
+                else if (column.id === "createdAt") columnName = "Date de création";
 
                 return (
                   <DropdownMenuCheckboxItem
@@ -467,15 +493,21 @@ export function QuotationGroupTable({
 
       {/* PAGINATION ET INFORMATIONS */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-muted-foreground">
+        {/* <div className="text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} sur{" "}
           {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
-        </div>
+        </div> */}
 
         {table.getPageCount() > 1 && (
           <Pagination table={table} pageSize={15} />
         )}
       </div>
+
+      <DevisGroup
+        open={openView}
+        onOpenChange={setOpenView}
+        devis={selectedItem}
+      />
     </div>
   );
 }

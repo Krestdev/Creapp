@@ -87,10 +87,10 @@ function AppSidebar() {
   const approbationDevis =
     providers?.data?.data && cotation?.data && quotationsData?.data
       ? groupQuotationsByCommandRequest(
-          cotation?.data!,
-          quotationsData?.data!,
-          providers?.data?.data!
-        ).filter((c) => c.status === "NOT_PROCESSED")
+        cotation?.data!,
+        quotationsData?.data!,
+        providers?.data?.data!
+      ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
 
   // Récupérer toutes les catégories avec leurs validateurs
@@ -251,8 +251,6 @@ function AppSidebar() {
   );
 
   const overall = approvedDepense?.concat(approvedDepense);
-
-  console.log(approvedDepense, approvedTicket, overall);
 
   // Si en cours de vérification, afficher un loader
   if (isChecking) {

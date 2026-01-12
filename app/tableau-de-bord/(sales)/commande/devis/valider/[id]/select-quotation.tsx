@@ -154,7 +154,7 @@ function SelectQuotation({ id }: { id: string }) {
       toast.success("Décision enregistrée !");
       queryClient.invalidateQueries({ queryKey: ["quotations"] });
       queryClient.invalidateQueries({ queryKey: ["commands"] });
-      router.push("../");
+      router.push("/tableau-de-bord/commande/devis/approbation");
     },
     onError: (error: Error) => {
       toast.error(error.message ?? "Une erreur est survenue");
@@ -254,9 +254,7 @@ function SelectQuotation({ id }: { id: string }) {
                   >
                     <Checkbox
                       checked={checked}
-                      onCheckedChange={() =>
-                        toggleSelection(besoin.id, quote.providerId)
-                      }
+                      className="z-10"
                     />
 
                     <div className="grid gap-3">

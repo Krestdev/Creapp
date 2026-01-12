@@ -8,7 +8,6 @@ import ErrorPage from "../error-page";
 import LoadingPage from "../loading-page";
 
 const ProjectListPage = () => {
-  const { isHydrated } = useStore();
 
   const projectData = useFetchQuery(["projectsList"], projectQ.getAll, 30000);
 
