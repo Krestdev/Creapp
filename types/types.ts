@@ -61,6 +61,7 @@ export const PAY_STATUS = [
   { value: "accepted", name: "Accepté" },
   { value: "rejected", name: "Rejeté" },
   { value: "validated", name: "Approuvé" },
+  { value: "signed", name: "Signé" },
   { value: "ghost", name: "Fantome" },
   { value: "paid", name: "Payé" },
   { value: "pending_depense", name: "en attente" },

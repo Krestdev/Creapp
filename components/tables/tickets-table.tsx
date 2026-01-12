@@ -35,6 +35,7 @@ import { paymentQ, UpdatePayment } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import {
   BonsCommande,
+  PAY_STATUS,
   PRIORITIES,
   PaymentRequest,
   RequestType,
@@ -82,31 +83,32 @@ const getPriorityBadge = (
   variant: VariantProps<typeof badgeVariants>["variant"];
   rowClassName?: string;
 } => {
+  const label = PRIORITIES.find(c=> c.value === priority)?.name ?? "Inconnu"
   switch (priority) {
     case "low":
       return {
-        label: "Basse",
+        label,
         variant: "amber",
         rowClassName:
           "bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/20 dark:hover:bg-orange-950/30",
       };
     case "medium":
       return {
-        label: "Normale",
+        label,
         variant: "success",
         rowClassName:
           "bg-green-50 hover:bg-green-100 dark:bg-green-950/20 dark:hover:bg-green-950/30",
       };
     case "high":
       return {
-        label: "Élevée",
+        label,
         variant: "destructive",
         rowClassName:
           "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
       };
     case "urgent":
       return {
-        label: "urgent",
+        label,
         variant: "primary",
         rowClassName:
           "bg-primary-50 hover:bg-primary-100 dark:bg-primary-950/20 dark:hover:bg-primary-950/30",
@@ -120,19 +122,15 @@ const getPriorityBadge = (
       };
   }
 };
-const statusConfig = {
-  pending: {
-    label: "En attente",
-    badgeClassName: "bg-[#FEF3C7] border-[#FEE685] text-[#E17100]",
-  },
-  validated: {
-    label: "Non payé",
-    badgeClassName: "bg-purple-100 border-purple-500 text-purple-500",
-  },
-  paid: {
-    label: "Payé",
-    badgeClassName: "bg-[#DCFCE7] border-[#BBF7D0] text-[#16A34A]",
-  },
+const getStatusVariant = (status:PaymentRequest["status"]):{label: string; variant: VariantProps<typeof badgeVariants>["variant"]} => {
+  switch(status){
+    case "accepted":
+      return {label: "En attente", variant: "amber"};
+    case "validated":
+      return {label: "Approuvé", variant: "success"};
+    default: 
+    return {label:"Payé", variant: "purple"}
+  }
 };
 
 export function TicketsTable({
@@ -431,16 +429,12 @@ export function TicketsTable({
         );
       },
       cell: ({ row }) => {
-        const statut = row.getValue("status") as keyof typeof statusConfig;
-        const config = statusConfig[statut] || {
-          label: statut,
-          badgeClassName: "bg-gray-100 text-gray-800",
-        };
+        const status = row.original.status;
+        const {label, variant} = getStatusVariant(status);
 
         return (
-          <Badge className={cn("gap-1", config.badgeClassName)}>
-            <Flag className="h-3 w-3" />
-            {config.label}
+          <Badge variant={variant}>
+            {label}
           </Badge>
         );
       },
@@ -558,14 +552,6 @@ export function TicketsTable({
     },
   });
 
-  // Fonction pour obtenir le libellé à afficher dans le SelectValue pour les statuts
-  const getStatusDisplayValue = () => {
-    if (selectedStatus === "all") {
-      return "Tous les statuts";
-    }
-    const config = statusConfig[selectedStatus as keyof typeof statusConfig];
-    return config?.label || selectedStatus;
-  };
 
   // Fonction pour obtenir le libellé à afficher dans le SelectValue pour les priorités
   const getPriorityDisplayValue = () => {
@@ -648,21 +634,15 @@ export function TicketsTable({
         {isAdmin && (
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={getStatusDisplayValue()}>
-                {getStatusDisplayValue()}
-              </SelectValue>
+              <SelectValue placeholder="Sélectionner"/>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-              {uniqueStatuses.map((status) => {
-                const config =
-                  statusConfig[status as keyof typeof statusConfig];
-                return (
-                  <SelectItem key={status} value={status}>
-                    {config?.label || status}
+              {PAY_STATUS.filter(c=> c.value === "accepted" || c.value === "validated").map((status) =>
+                  <SelectItem key={status.value} value={status.value}>
+                    {getStatusVariant(status.value).label}
                   </SelectItem>
-                );
-              })}
+              )}
             </SelectContent>
           </Select>
         )}
