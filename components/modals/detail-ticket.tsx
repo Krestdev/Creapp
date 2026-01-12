@@ -168,11 +168,11 @@ export function DetailTicket({
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            {"Détails du ticket"}
+            {"Ticket" + " - " + data?.title}
           </DialogTitle>
           <h4 className="text-sm text-white/80 mt-1">
             {page === 1
-              ? `${typePaiment(data?.type)} - ${data?.title || "N/A"}`
+              ? `Détail du ticket`
               : `Justificatif du ticket ${data?.title}`}
           </h4>
         </DialogHeader>
@@ -250,11 +250,10 @@ export function DetailTicket({
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${
-                                  beneficiary?.firstName +
-                                    " " +
-                                    beneficiary?.lastName || ben.id
-                                }`}</p>
+                                >{`${beneficiary?.firstName +
+                                  " " +
+                                  beneficiary?.lastName || ben.id
+                                  }`}</p>
                               );
                             })}
                           </div>
@@ -302,11 +301,10 @@ export function DetailTicket({
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${
-                                  beneficiary?.firstName +
-                                    " " +
-                                    beneficiary?.lastName || ben.id
-                                }`}</p>
+                                >{`${beneficiary?.firstName +
+                                  " " +
+                                  beneficiary?.lastName || ben.id
+                                  }`}</p>
                               );
                             })}
                           </div>

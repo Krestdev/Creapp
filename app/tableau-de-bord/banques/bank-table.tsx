@@ -360,7 +360,13 @@ function BankTable({ data, canEdit }: Props) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "label" ? "Libélé"
+                      : column.id === "type" ? "Type"
+                        : column.id === "balance" ? "Solde"
+                          : column.id === "status" ? "Statut"
+                            : column.id === "updatedAt" ? "Dernière mise à jour"
+                              : column.id === "actions" ? "Actions"
+                                : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
