@@ -22,11 +22,7 @@ const Page = () => {
     {
       title: "Créer un devis",
       href: "./devis/creer",
-    },
-    {
-      title: "Approbation devis",
-      href: "./devis/approbation",
-    },
+    }
   ];
   /**Quotation fetch */
 

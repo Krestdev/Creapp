@@ -4,6 +4,8 @@ import { Quotation } from "@/types/types";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import React from "react";
 import CreateQuotation from "./creer/create";
+import { useFetchQuery } from "@/hooks/useData";
+import { providerQ } from "@/queries/providers";
 
 interface Props {
   open: boolean;
@@ -12,6 +14,8 @@ interface Props {
 }
 
 function EditQuotation({ open, openChange, quotation }: Props) {
+  const providers = useFetchQuery(["providers"], providerQ.getAll, 500000);
+
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl w-full max-h-[80vh] p-0 gap-0 flex flex-col">
@@ -21,10 +25,10 @@ function EditQuotation({ open, openChange, quotation }: Props) {
           className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0"
         >
           <DialogTitle className="uppercase">
-            {"Modifier le Devis"}
+            {`Devis - ${providers.data?.data.find((p) => p.id === quotation.providerId)?.name}`}
           </DialogTitle>
           <DialogDescription className="text-white/80">
-            {`Modifiez les informations du devis ${quotation.ref}`}
+            {`Modifiez les informations du devis`}
           </DialogDescription>
         </DialogHeader>
 

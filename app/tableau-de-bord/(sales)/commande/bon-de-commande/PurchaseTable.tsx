@@ -161,28 +161,28 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
   }, [data, statusFilter, priorityFilter, penaltyFilter]);
 
   const columns: ColumnDef<BonsCommande>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Sélectionner tout"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Sélectionner la ligne"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    // {
+    //   id: "select",
+    //   header: ({ table }) => (
+    //     <Checkbox
+    //       checked={
+    //         table.getIsAllPageRowsSelected() ||
+    //         (table.getIsSomePageRowsSelected() && "indeterminate")
+    //       }
+    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //       aria-label="Sélectionner tout"
+    //     />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Checkbox
+    //       checked={row.getIsSelected()}
+    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //       aria-label="Sélectionner la ligne"
+    //     />
+    //   ),
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
 
     {
       accessorKey: "reference",
@@ -207,7 +207,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
           className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          {"Titre"}
+          {"Cotation"}
           <ArrowUpDown />
         </span>
       ),
@@ -215,7 +215,7 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
         const name: BonsCommande["devi"] = row.getValue("devi");
         return (
           <div className="font-medium uppercase">
-            {name.commandRequest.title}
+            {name.commandRequest.title} - <span className="text-red-500 lowercase">{name.commandRequest.reference}</span>
           </div>
         );
       },
@@ -528,34 +528,34 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
             priorityFilter !== "all" ||
             penaltyFilter !== "all" ||
             globalFilter) && (
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <span>Filtres actifs:</span>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <span>Filtres actifs:</span>
 
-              {statusFilter !== "all" && (
-                <Badge variant="default" className="font-normal">
-                  {`Statut: ${getStatusLabel(statusFilter).label}`}
-                </Badge>
-              )}
+                {statusFilter !== "all" && (
+                  <Badge variant="default" className="font-normal">
+                    {`Statut: ${getStatusLabel(statusFilter).label}`}
+                  </Badge>
+                )}
 
-              {priorityFilter !== "all" && (
-                <Badge variant="outline" className="font-normal">
-                  {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
-                </Badge>
-              )}
+                {priorityFilter !== "all" && (
+                  <Badge variant="outline" className="font-normal">
+                    {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
+                  </Badge>
+                )}
 
-              {penaltyFilter !== "all" && (
-                <Badge variant="outline" className="font-normal">
-                  {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
-                </Badge>
-              )}
+                {penaltyFilter !== "all" && (
+                  <Badge variant="outline" className="font-normal">
+                    {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
+                  </Badge>
+                )}
 
-              {globalFilter && (
-                <Badge variant="outline" className="font-normal">
-                  {`Recherche: "${globalFilter}"`}
-                </Badge>
-              )}
-            </div>
-          )}
+                {globalFilter && (
+                  <Badge variant="outline" className="font-normal">
+                    {`Recherche: "${globalFilter}"`}
+                  </Badge>
+                )}
+              </div>
+            )}
         </div>
 
         {/* Menu colonnes */}
@@ -574,9 +574,10 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
               .map((column) => {
                 let columnName = column.id;
                 if (column.id === "id") columnName = "#";
-                else if (column.id === "deviId") columnName = "Devis";
-                else if (column.id === "providerId") columnName = "Fournisseur";
-                else if (column.id === "amountBase") columnName = "Montant";
+                else if (column.id === "devi") columnName = "Devis";
+                else if (column.id === "reference") columnName = "Référence";
+                else if (column.id === "provider") columnName = "Fournisseur";
+                else if (column.id === "amount") columnName = "Montant";
                 else if (column.id === "priority") columnName = "Priorité";
                 else if (column.id === "status") columnName = "Statut";
                 else if (column.id === "createdAt") columnName = "Créé le";
@@ -612,9 +613,9 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -656,14 +657,14 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
                       priorityFilter !== "all" ||
                       penaltyFilter !== "all" ||
                       globalFilter) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={resetAllFilters}
-                      >
-                        {"Réinitialiser les filtres"}
-                      </Button>
-                    )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={resetAllFilters}
+                        >
+                          {"Réinitialiser les filtres"}
+                        </Button>
+                      )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -674,10 +675,10 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
 
       {/* PAGINATION + INFOS */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-muted-foreground">
+        {/* <div className="text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} sur{" "}
           {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
-        </div>
+        </div> */}
 
         {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       </div>

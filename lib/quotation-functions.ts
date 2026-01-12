@@ -57,6 +57,7 @@ export const groupQuotationsByCommandRequest = (
         quotations: requestQuotations,
         providers: groupProviders,
         status: computeQuotationGroupStatus(requestQuotations),
+        createdAt: cr.createdAt,
       };
     })
     .filter((g): g is QuotationGroup => g !== null);

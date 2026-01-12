@@ -170,8 +170,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
       if (!!openChange) {
         openChange(false);
       }
-      if (intent === "save") {
-        router.push("./");
+      if (intent === "save" && !!openChange) {
+        openChange(false);
       } else {
         form.reset(defaultValues);
         form.resetField("commandRequestId");
@@ -501,11 +501,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                       }}
                                     >
                                       <span className="truncate">
-                                        {`${item.designation} - ${
-                                          item.quantity
-                                        } ${item.unit} - ${XAF.format(
-                                          item.price
-                                        )}`}
+                                        {`${item.designation} - ${item.quantity
+                                          } ${item.unit} - ${XAF.format(
+                                            item.price
+                                          )}`}
                                       </span>
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
                                         {"Modifier"}

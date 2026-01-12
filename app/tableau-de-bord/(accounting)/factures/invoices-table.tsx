@@ -91,28 +91,28 @@ export function InvoicesTable({ payments, purchases }: Props) {
   const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
 
   const columns: ColumnDef<PaymentRequest>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    // {
+    //   id: "select",
+    //   header: ({ table }) => (
+    //     <Checkbox
+    //       checked={
+    //         table.getIsAllPageRowsSelected() ||
+    //         (table.getIsSomePageRowsSelected() && "indeterminate")
+    //       }
+    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //       aria-label="Select all"
+    //     />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Checkbox
+    //       checked={row.getIsSelected()}
+    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //       aria-label="Select row"
+    //     />
+    //   ),
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
     {
       accessorKey: "reference",
       header: ({ column }) => {
@@ -184,9 +184,8 @@ export function InvoicesTable({ payments, purchases }: Props) {
       cell: ({ row }) => {
         const value = row.getValue("proof") as string[];
         return (
-          <div className="font-medium">{`${
-            value !== null ? 1 : 0
-          } document`}</div>
+          <div className="font-medium">{`${value !== null ? 1 : 0
+            } document`}</div>
         );
       },
     },
@@ -389,9 +388,9 @@ export function InvoicesTable({ payments, purchases }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

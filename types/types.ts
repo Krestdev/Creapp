@@ -352,6 +352,7 @@ export interface QuotationGroup {
   quotations: Array<Quotation>;
   providers: Array<Provider>;
   status: QuotationGroupStatus;
+  createdAt: Date;
 }
 export type DepartmentUpdateInput = Partial<{
   label: string;

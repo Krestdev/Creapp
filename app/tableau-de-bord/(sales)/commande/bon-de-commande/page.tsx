@@ -73,11 +73,6 @@ const Page = () => {
       disabled: false,
     },
     {
-      title: "Approbation",
-      href: "./bon-de-commande/approbation",
-      hide: !auth,
-    },
-    {
       title: "Receptions",
       href: "./bon-de-commande/receptions",
       disabled: false,
