@@ -1,7 +1,7 @@
 'use client'
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { paymentQ } from '@/queries/payment';
 import { BonsCommande, PaymentRequest } from '@/types/types';
@@ -55,13 +55,14 @@ function RejectInvoice({open, openChange, payment, purchases}:Props) {
                 <DialogTitle>{purchase?.devi.commandRequest.title ?? `Paiement`}</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-                <form className="flex flex-col gap-3">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
                     <FormField control={form.control} name="reason" render={({field})=>(
                         <FormItem>
                             <FormLabel isRequired>{"Motif"}</FormLabel>
                             <FormControl>
                                 <Textarea {...field} placeholder="Ex. Le justificatif est illisible" />
                             </FormControl>
+                            <FormMessage/>
                         </FormItem>
                     )} />
                     <DialogFooter>

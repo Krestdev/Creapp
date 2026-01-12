@@ -19,6 +19,7 @@ import {
   Box,
   LucideProps,
   Stamp,
+  UserPenIcon,
 } from "lucide-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
@@ -134,13 +135,13 @@ export default function SettingsPage() {
             },
           ],
         },
-        // {
-        //   title: "Roles & Permissions",
-        //   description: "Configure access levels and roles",
-        //   icon: Shield,
-        //   href: "/tableau-de-bord/settings/utilisateurs/roles",
-        //   color: "from-green-500 to-green-600",
-        // },
+        {
+          title: "Signatair",
+          description: "Assigner les signatair",
+          icon: UserPenIcon,
+          href: "/tableau-de-bord/settings/signatairs",
+          color: "from-red-500 to-red-600",
+        },
       ],
     },
     {
@@ -153,27 +154,6 @@ export default function SettingsPage() {
           href: "/tableau-de-bord/settings/notifications",
           color: "from-cyan-500 to-cyan-600",
         },
-        // {
-        //   title: "Appearance",
-        //   description: "Theme and display preferences",
-        //   icon: Palette,
-        //   href: "/tableau-de-bord/settings/appearance",
-        //   color: "from-pink-500 to-pink-600",
-        // },
-        // {
-        //   title: "Billing",
-        //   description: "Plans, invoices, and payments",
-        //   icon: CreditCard,
-        //   href: "/tableau-de-bord/settings/billing",
-        //   color: "from-emerald-500 to-emerald-600",
-        // },
-        // {
-        //   title: "Data & Privacy",
-        //   description: "Data management and export options",
-        //   icon: Database,
-        //   href: "/tableau-de-bord/settings/data-privacy",
-        //   color: "from-indigo-500 to-indigo-600",
-        // },
         {
           title: "Véhicule",
           description: "Enregistrement des vehicule",

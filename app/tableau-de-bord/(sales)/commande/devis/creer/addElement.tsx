@@ -387,12 +387,12 @@ function AddElement({
                     {editingElement ? (
                       <>
                         <Pencil className="w-4 h-4 mr-2" />
-                        Modifier l'élément
+                        {"Modifier l'élément"}
                       </>
                     ) : (
                       <>
                         <Plus className="w-4 h-4 mr-2" />
-                        Ajouter à la liste
+                        {"Ajouter à la liste"}
                       </>
                     )}
                   </Button>
@@ -426,9 +426,9 @@ function AddElement({
           <div className="border rounded-lg overflow-hidden flex flex-col">
             <div className="p-3 border-b bg-gray-50">
               <div className="flex justify-between items-center">
-                <h3 className="font-semibold">Éléments ajoutés</h3>
+                <h3 className="font-semibold">{"Éléments ajoutés"}</h3>
                 <Badge variant="secondary">
-                  {tempElements.length} élément(s)
+                  {`${tempElements.length} élément(s)`}
                 </Badge>
               </div>
             </div>
@@ -436,9 +436,9 @@ function AddElement({
             <div className="flex-1 overflow-y-auto p-3">
               {tempElements.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <div className="text-sm">Aucun élément ajouté</div>
+                  <div className="text-sm">{"Aucun élément ajouté"}</div>
                   <div className="text-xs mt-1">
-                    Remplissez le formulaire et cliquez sur "Ajouter à la liste"
+                    {`Remplissez le formulaire et cliquez sur "Ajouter à la liste"`}
                   </div>
                 </div>
               ) : (

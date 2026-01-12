@@ -5,11 +5,12 @@ import { NavLink } from "@/types/types";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import SignatairPage from "@/components/signatair/signatair";
 
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Créer une dépense",
+      title: "Assigner un signatair",
       href: "./signatairs/create",
       hide: false,
       disabled: false,
@@ -47,7 +48,7 @@ function Page() {
             );
           })}
       </PageTitle>
-      <UtilisateursPage />
+      <SignatairPage />
     </div>
   );
 }
