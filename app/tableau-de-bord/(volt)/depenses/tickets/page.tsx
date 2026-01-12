@@ -3,11 +3,9 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { useFetchQuery } from "@/hooks/useData";
-import { cn, XAF } from "@/lib/utils";
+import { XAF } from "@/lib/utils";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
-import { NavLink } from "@/types/types";
-import Link from "next/link";
 import ExpensesTable from "../expenses-table";
 import {
   StatisticCard,

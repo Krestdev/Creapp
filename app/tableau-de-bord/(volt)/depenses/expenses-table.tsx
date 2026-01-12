@@ -67,44 +67,57 @@ import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
 import PayExpense from "./pay-expense";
 
-("paid");
+// Configuration des couleurs pour les priorités
+const priorityConfig = {
+  low: {
+    label: "Basse",
+    rowClassName: "bg-gray-50 hover:bg-gray-100 dark:bg-gray-950/20",
+  },
+  medium: {
+    label: "Moyenne",
+    rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20",
+  },
+  high: {
+    label: "Haute",
+    rowClassName: "bg-red-50 hover:bg-red-100 dark:bg-red-950/20",
+  },
+  urgent: {
+    label: "Urgente",
+    rowClassName: "bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/20",
+  },
+};
+
+// Configuration des statuts (gardé pour les badges si besoin)
 const statusConfig = {
   pending: {
     label: "Pending",
     icon: Clock,
     badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
-    rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20",
   },
   validated: {
     label: "Validated",
     icon: CheckCircle,
     badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
-    rowClassName: "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
   },
   rejected: {
     label: "Rejected",
     icon: XCircle,
     badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
-    rowClassName: "bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30",
   },
   paid: {
     label: "paid",
     icon: Coins,
     badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
-    rowClassName: "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
   },
   pending_depense: {
     label: "en attente",
     icon: AlertCircle,
     badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600 ",
-    rowClassName:
-      "bg-yellow-50 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30",
   },
   cancel: {
     label: "ghost",
     icon: Ban,
     badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
-    rowClassName: "bg-gray-50 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
   },
 };
 
@@ -137,6 +150,16 @@ function getPriorityBadge(priority: PaymentRequest["priority"]): {
   }
 }
 
+function getPriorityConfig(priority: PaymentRequest["priority"]) {
+  const config = priorityConfig[priority as keyof typeof priorityConfig];
+  return (
+    config || {
+      label: "Inconnu",
+      rowClassName: "bg-gray-50 dark:bg-gray-950/20",
+    }
+  );
+}
+
 function getStatusBadge(status: PaymentRequest["status"]): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
@@ -157,7 +180,6 @@ function getStatusBadge(status: PaymentRequest["status"]): {
       return { label, variant: "outline" };
   }
 }
-
 
 function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props) {
 
@@ -200,7 +222,7 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
-      status: false, // Masque la colonne statut par défaut
+      status: false,
       createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
@@ -210,18 +232,6 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPay, setShowPay] = React.useState<boolean>(false);
-
-  const getStatusConfig = (status: string) => {
-    const config = statusConfig[status as keyof typeof statusConfig];
-    return (
-      config || {
-        label: status,
-        icon: AlertCircle,
-        badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
-        rowClassName: "bg-gray-50 dark:bg-gray-950/20",
-      }
-    );
-  };
 
   const columns: ColumnDef<PaymentRequest>[] = [
     {
@@ -349,11 +359,11 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
       header: ({ column }) => {
         return (
           <span
-            className="tablehead"
+            className="tablehead cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Priorité"}
-            <ArrowUpDown />
+            <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         );
       },
@@ -361,6 +371,25 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
         const value = row.original;
         const priority = getPriorityBadge(value.priority);
         return <Badge variant={priority.variant}>{priority.label}</Badge>;
+      },
+      // Ajoutez cette fonction pour définir l'ordre de tri personnalisé
+      sortingFn: (rowA, rowB, columnId) => {
+        // Définir l'ordre de priorité logique
+        const priorityOrder = {
+          low: 1,
+          medium: 2,
+          high: 3,
+          urgent: 4
+        };
+
+        const priorityA = priorityOrder[rowA.getValue(columnId) as keyof typeof priorityOrder] || 0;
+        const priorityB = priorityOrder[rowB.getValue(columnId) as keyof typeof priorityOrder] || 0;
+
+        return priorityA - priorityB;
+      },
+      // Optionnel: Ajouter un filtre pour que le sélecteur fonctionne
+      filterFn: (row, id, value) => {
+        return value === "" || value === "all" || row.getValue(id) === value;
       },
     },
     {
@@ -474,6 +503,7 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
       globalFilter,
     },
   });
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -517,7 +547,7 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
             <Select
               value={
                 (table.getColumn("priority")?.getFilterValue() as string) ??
-                "all" // CORRECTION: 'priority' au lieu de 'priorite'
+                "all"
               }
               onValueChange={(value) =>
                 table
@@ -617,8 +647,9 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
-                const status = row.original.status;
-                const config = getStatusConfig(status);
+                // Utilisation de la priorité pour styliser la ligne
+                const priority = row.original.priority;
+                const config = getPriorityConfig(priority);
 
                 return (
                   <TableRow
