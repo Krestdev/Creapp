@@ -143,10 +143,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
     data.priority === "urgent"
       ? "Urgent"
       : data.priority === "medium"
-      ? "Moyen"
-      : data.priority === "low"
-      ? "Faible"
-      : "Elevé";
+        ? "Moyen"
+        : data.priority === "low"
+          ? "Faible"
+          : "Elevé";
 
   // Fonction pour obtenir l'historique de validation formaté
   const getValidationHistory = () => {
@@ -213,19 +213,6 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
       // 🔹 Étape suivante possible seulement s'il n'y a pas encore de review
       const isNextStep = false;
-
-      // if (!review) {
-      //   const previousValidators = configuredValidators.slice(0, i);
-
-      //   const allPreviousApproved = previousValidators.every(
-      //     (prevValidator) => {
-      //       const prevReview = data.revieweeList?.find(
-      //         (r) => r.validatorId === prevValidator.userId
-      //       );
-      //       return prevReview?.decision?.startsWith("validated");
-      //     }
-      //   );
-      // }
 
       history.push({
         step: i + 1,
@@ -363,15 +350,14 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Priorité"}
                   </p>
                   <Badge
-                    className={`${
-                      data.priority === "urgent"
-                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                        : data.priority === "medium"
+                    className={`${data.priority === "urgent"
+                      ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                      : data.priority === "medium"
                         ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                         : data.priority === "low"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                        : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    }`}
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      }`}
                   >
                     {data.priority === "urgent" ? (
                       <X className="h-3 w-3 mr-1" />
@@ -395,11 +381,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   <div className="space-y-1">
                     {!!paiement?.proof ? (
                       <Link
-                        href={`${
-                          process.env.NEXT_PUBLIC_API
-                        }/uploads/${encodeURIComponent(
-                          paiement?.proof as string
-                        )}`}
+                        href={`${process.env.NEXT_PUBLIC_API
+                          }/uploads/${encodeURIComponent(
+                            paiement?.proof as string
+                          )}`}
                         target="_blank"
                         className="flex gap-0.5 items-center"
                       >
@@ -421,7 +406,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
               {/* Historique de validation - NOUVELLE VERSION */}
               {data.type === "ressource_humaine" ||
-              data.type === "speciaux" ? null : (
+                data.type === "speciaux" ? null : (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <UserCheck className="h-5 w-5 text-muted-foreground" />
@@ -453,8 +438,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                                     {item.status === "approved"
                                       ? `Étape ${item.step} : Approuvé par`
                                       : item.status === "rejected"
-                                      ? `Étape ${item.step} : Rejeté par`
-                                      : `Étape ${item.step} : En attente de l'approbation de`}
+                                        ? `Étape ${item.step} : Rejeté par`
+                                        : `Étape ${item.step} : En attente de l'approbation de`}
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <div className="flex-1">
@@ -506,27 +491,28 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
             <div className="flex flex-col space-y-4 pb-4">
               {/* Priorité */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <CalendarClock className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {"Période"}
-                  </p>
-                  {data.period ? (
-                    <p className="font-semibold">{`Du ${format(
-                      data.period.from!,
-                      "PPP",
-                      { locale: fr }
-                    )} au ${format(data.period.to!, "PPP", {
-                      locale: fr,
-                    })}`}</p>
-                  ) : (
-                    <p>Non renseigné</p>
-                  )}
-                </div>
-              </div>
+              {data.type === "ressource_humaine" &&
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <CalendarClock className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {"Période"}
+                    </p>
+                    {data.period ? (
+                      <p className="font-semibold">{`Du ${format(
+                        data.period.from!,
+                        "PPP",
+                        { locale: fr }
+                      )} au ${format(data.period.to!, "PPP", {
+                        locale: fr,
+                      })}`}</p>
+                    ) : (
+                      <p>Non renseigné</p>
+                    )}
+                  </div>
+                </div>}
 
               {/* Bénéficiaires */}
               {data.type !== "speciaux" && (
@@ -566,11 +552,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${
-                                  beneficiary?.firstName +
-                                    " " +
-                                    beneficiary?.lastName || ben.id
-                                }`}</p>
+                                >{`${beneficiary?.firstName +
+                                  " " +
+                                  beneficiary?.lastName || ben.id
+                                  }`}</p>
                               );
                             })}
                           </div>
@@ -610,18 +595,18 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
               {(data.type === "facilitation" ||
                 data.type === "ressource_humaine") && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <DollarSign className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      <DollarSign className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {"Montant"}
+                      </p>
+                      <p>{XAF.format(data.amount!)}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {"Montant"}
-                    </p>
-                    <p>{XAF.format(data.amount!)}</p>
-                  </div>
-                </div>
-              )}
+                )}
 
               {/* Quantité */}
               <div className="flex items-start gap-3">
