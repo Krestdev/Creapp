@@ -5,8 +5,8 @@ const Page = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
-        title="Créer un Utilisateur"
-        subtitle="Formulaire de création d'utilisateur"
+        title="Assigner des signatair"
+        subtitle="Formulaire d'assignation"
         color="blue"
       />
       <CreateSignatairForm />
