@@ -34,7 +34,7 @@ function Page() {
   }
   if (isSuccess && getRequestType.isSuccess) {
     const ticketsData = data?.data.filter(
-      (ticket) => ticket.status !== "ghost"
+      (ticket) => ticket.status !== "ghost" && ticket.status !== "pending" && ticket.status !== "rejected"
     );
     const pending = ticketsData.filter((ticket) => ticket.status === "pending");
     const approved = ticketsData.filter(
