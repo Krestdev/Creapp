@@ -605,7 +605,10 @@ export type TransferTransaction = TransactionBase & {
   to: Bank;
 };
 
-export type Transaction = DebitTransaction | CreditTransaction | TransferTransaction;
+export type Transaction =
+  | DebitTransaction
+  | CreditTransaction
+  | TransferTransaction;
 
 export interface TableFilters {
   globalFilter: string;
@@ -626,7 +629,6 @@ export type Vehicle = {
   updatedAt: string;
 };
 
-
 export type RequestType = {
   id: number;
   label: string;
@@ -634,4 +636,21 @@ export type RequestType = {
   type: string;
   createdAt: Date;
   updatedAt?: Date;
+};
+
+export type Signatair = {
+  id: number;
+  userIds: number[];
+  createdAt: Date;
+  updatedAt: Date;
+  bankId: number;
+  payTypeId: number;
+  user?: User[];
+  payTypes?: PayType;
+  Bank?: Bank;
+};
+
+export type PayType = {
+  id: number;
+  label: string | null;
 };
