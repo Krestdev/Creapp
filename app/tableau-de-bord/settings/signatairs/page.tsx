@@ -10,7 +10,7 @@ import SignatairPage from "@/components/signatair/signatair";
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Assigner un signatair",
+      title: "Configurer",
       href: "./signatairs/create",
       hide: false,
       disabled: false,
@@ -20,8 +20,8 @@ function Page() {
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Signatairs"
-        subtitle="Consultez et gérez les Signatairs."
+        title="Signataires"
+        subtitle="Consultez et gérez les Signataires."
         color="red"
       >
         {links

@@ -625,6 +625,7 @@ export type Vehicle = {
   label: string;
   mark: string;
   matricule: string;
+  image: string;
   createdAt: string;
   updatedAt: string;
 };

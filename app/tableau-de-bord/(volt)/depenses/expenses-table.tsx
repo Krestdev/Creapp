@@ -475,7 +475,7 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
   ];
 
   const table = useReactTable({
-    data: payments, // CORRECTION: 'data' au lieu de 'payments'
+    data: payments,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

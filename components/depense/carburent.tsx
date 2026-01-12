@@ -85,7 +85,7 @@ export function CarburentForm() {
       liters: 0,
       model: "",
       Montent: 0,
-      title: "Carburent",
+      title: "Carburant",
     },
   });
 
@@ -119,7 +119,7 @@ export function CarburentForm() {
         liters: 0,
         model: "",
         Montent: 0,
-        title: "Carburent",
+        title: "Carburant",
       });
       setView(true);
     },
@@ -175,16 +175,16 @@ export function CarburentForm() {
             onSubmit={handleSubmit}
             className="p-2 sm:p-5 md:p-8 w-full rounded-md gap-2 max-w-3xl"
           >
-            <FieldGroup className="grid md:grid-cols-6 gap-4 mb-6">
+            <FieldGroup className="grid grid-cols-1 @min-[640px]:grid-cols-2 gap-4 mb-6">
               <Controller
                 name="title"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field
                     data-invalid={fieldState.invalid}
-                    className="gap-1 col-span-full"
+                    className="gap-1"
                   >
-                    <FieldLabel htmlFor="title">Titre *</FieldLabel>
+                    <FieldLabel htmlFor="title">Titre <span className="text-destructive">*</span></FieldLabel>
                     <Input
                       {...field}
                       id="title"
@@ -216,9 +216,9 @@ export function CarburentForm() {
                   return (
                     <Field
                       data-invalid={fieldState.invalid}
-                      className="gap-1 col-span-full"
+                      className="gap-1"
                     >
-                      <FieldLabel htmlFor="caisseId">Caisse *</FieldLabel>
+                      <FieldLabel htmlFor="caisseId">Caisse <span className="text-destructive">*</span></FieldLabel>
 
                       <Select
                         value={field.value}
@@ -253,10 +253,10 @@ export function CarburentForm() {
                   return (
                     <Field
                       data-invalid={fieldState.invalid}
-                      className="gap-1 col-span-full"
+                      className="gap-1"
                     >
                       <FieldLabel htmlFor="model">
-                        Model du vehicule *
+                        Modèle du véhicule <span className="text-destructive">*</span>
                       </FieldLabel>
 
                       <Select
@@ -291,9 +291,9 @@ export function CarburentForm() {
                 render={({ field, fieldState }) => (
                   <Field
                     data-invalid={fieldState.invalid}
-                    className="gap-1 col-span-full"
+                    className="gap-1"
                   >
-                    <FieldLabel htmlFor="km">Kilometrage *</FieldLabel>
+                    <FieldLabel htmlFor="km">Kilométrage <span className="text-destructive">*</span></FieldLabel>
                     <Input
                       {...field}
                       id="km"
@@ -318,9 +318,9 @@ export function CarburentForm() {
                 render={({ field, fieldState }) => (
                   <Field
                     data-invalid={fieldState.invalid}
-                    className="gap-1 col-span-full"
+                    className="gap-1"
                   >
-                    <FieldLabel htmlFor="liters">N# Litres *</FieldLabel>
+                    <FieldLabel htmlFor="liters">Nombre de litres <span className="text-destructive">*</span></FieldLabel>
                     <Input
                       {...field}
                       id="liters"
@@ -350,9 +350,9 @@ export function CarburentForm() {
                   return (
                     <Field
                       data-invalid={fieldState.invalid}
-                      className="gap-1 col-span-full"
+                      className="gap-1"
                     >
-                      <FieldLabel htmlFor="Beneficier">Beneficier *</FieldLabel>
+                      <FieldLabel htmlFor="Beneficier">Beneficiaire <span className="text-destructive">*</span></FieldLabel>
 
                       <Select
                         value={field.value}
@@ -386,9 +386,9 @@ export function CarburentForm() {
                 render={({ field, fieldState }) => (
                   <Field
                     data-invalid={fieldState.invalid}
-                    className="gap-1 col-span-full"
+                    className="gap-1"
                   >
-                    <FieldLabel htmlFor="Montent">Montent *</FieldLabel>
+                    <FieldLabel htmlFor="Montent">Montant <span className="text-destructive">*</span></FieldLabel>
                     <Input
                       {...field}
                       id="Montent"
@@ -415,7 +415,7 @@ export function CarburentForm() {
                     data-invalid={fieldState.invalid}
                     className="gap-1 col-span-full"
                   >
-                    <FieldLabel htmlFor="Description">Description *</FieldLabel>
+                    <FieldLabel htmlFor="Description">Description <span className="text-destructive">*</span></FieldLabel>
                     <Textarea
                       {...field}
                       aria-invalid={fieldState.invalid}

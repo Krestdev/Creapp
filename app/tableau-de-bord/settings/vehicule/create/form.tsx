@@ -1,4 +1,5 @@
 "use client";
+import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -23,9 +24,10 @@ export interface ActionResponse<T = any> {
   inputs?: T;
 }
 export const formSchema = z.object({
-  label: z.string({ message: "This field is required" }),
-  mark: z.string({ message: "This field is required" }),
-  matricule: z.string({ message: "This field is required" }),
+  label: z.string({ message: "Ce champs est obligatoire" }),
+  mark: z.string({ message: "Ce champs est obligatoire" }),
+  matricule: z.string().optional(),
+  image: z.string({ message: "Ce champs est obligatoire" }),
 });
 
 type Schema = z.infer<typeof formSchema>;
@@ -44,6 +46,7 @@ export function VehicleForm() {
         label: "",
         mark: "",
         matricule: "",
+        image: "",
       });
     },
   });
@@ -52,7 +55,8 @@ export function VehicleForm() {
     vehiculeData.mutate({
       label: data.label,
       mark: data.mark,
-      matricule: data.matricule,
+      matricule: data.matricule!,
+      image: data.image,
     });
   });
 
@@ -70,7 +74,7 @@ export function VehicleForm() {
               data-invalid={fieldState.invalid}
               className="gap-1 col-span-full"
             >
-              <FieldLabel htmlFor="label">Model du vehicule *</FieldLabel>
+              <FieldLabel htmlFor="label">Modèle du véhicule <span className="text-destructive">*</span></FieldLabel>
               <Input
                 {...field}
                 id="label"
@@ -95,7 +99,7 @@ export function VehicleForm() {
               data-invalid={fieldState.invalid}
               className="gap-1 col-span-full"
             >
-              <FieldLabel htmlFor="mark">Marque *</FieldLabel>
+              <FieldLabel htmlFor="mark">Marque <span className="text-destructive">*</span></FieldLabel>
               <Input
                 {...field}
                 id="mark"
@@ -136,9 +140,33 @@ export function VehicleForm() {
             </Field>
           )}
         />
+
+        <Controller
+          name="image"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field
+              data-invalid={fieldState.invalid}
+              className="gap-1 col-span-full"
+            >
+              <FieldLabel htmlFor="color">Image <span className="text-destructive">*</span></FieldLabel>
+              <FilesUpload
+                value={field.value}
+                onChange={field.onChange}
+                name={field.name}
+                acceptTypes="all"
+                multiple={false}
+                maxFiles={1}
+              />
+
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
       </FieldGroup>
       <div className="flex justify-end items-center w-full">
-        <Button>{vehiculeData.isPending ? "Submitting..." : "Submit"}</Button>
+        <Button variant={"primary"}>{vehiculeData.isPending ? "Ajout en cours..." : "Ajouter"}</Button>
       </div>
     </form>
   );

@@ -151,16 +151,16 @@ export function TransportForm() {
             onSubmit={handleSubmit}
             className="p-2 sm:p-5 md:p-8 w-full rounded-md gap-2 max-w-3xl"
           >
-            <FieldGroup className="grid md:grid-cols-6 gap-4 mb-6">
+            <FieldGroup className="grid grid-cols-1 @min-[640px]:grid-cols-2 gap-4 mb-6">
               <Controller
                 name="title"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field
                     data-invalid={fieldState.invalid}
-                    className="gap-1 col-span-full"
+                    className="gap-1"
                   >
-                    <FieldLabel htmlFor="title">Titre *</FieldLabel>
+                    <FieldLabel htmlFor="title">Titre <span className="text-destructive">*</span></FieldLabel>
                     <Input
                       {...field}
                       id="title"
@@ -192,9 +192,9 @@ export function TransportForm() {
                   return (
                     <Field
                       data-invalid={fieldState.invalid}
-                      className="gap-1 col-span-full"
+                      className="gap-1"
                     >
-                      <FieldLabel htmlFor="caisseId">Caisse *</FieldLabel>
+                      <FieldLabel htmlFor="caisseId">Caisse <span className="text-destructive">*</span></FieldLabel>
 
                       <Select
                         value={field.value}
@@ -232,9 +232,9 @@ export function TransportForm() {
                   return (
                     <Field
                       data-invalid={fieldState.invalid}
-                      className="gap-1 col-span-full"
+                      className="gap-1"
                     >
-                      <FieldLabel htmlFor="Beneficier">Beneficier *</FieldLabel>
+                      <FieldLabel htmlFor="Beneficier">Beneficiaire <span className="text-destructive">*</span></FieldLabel>
 
                       <Select
                         value={field.value}
@@ -268,9 +268,9 @@ export function TransportForm() {
                 render={({ field, fieldState }) => (
                   <Field
                     data-invalid={fieldState.invalid}
-                    className="gap-1 col-span-full"
+                    className="gap-1"
                   >
-                    <FieldLabel htmlFor="Montent">Montent *</FieldLabel>
+                    <FieldLabel htmlFor="Montent">Montant <span className="text-destructive">*</span></FieldLabel>
                     <Input
                       {...field}
                       id="Montent"
@@ -290,31 +290,6 @@ export function TransportForm() {
               />
 
               <Controller
-                name="Description"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field
-                    data-invalid={fieldState.invalid}
-                    className="gap-1 col-span-full"
-                  >
-                    <FieldLabel htmlFor="Description">Description *</FieldLabel>
-                    <Textarea
-                      {...field}
-                      aria-invalid={fieldState.invalid}
-                      id="Description"
-                      placeholder="Description"
-                    />
-                    <FieldDescription>
-                      Description de la depense
-                    </FieldDescription>
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-
-              <Controller
                 name="Project"
                 control={form.control}
                 render={({ field, fieldState }) => {
@@ -324,10 +299,10 @@ export function TransportForm() {
                   return (
                     <Field
                       data-invalid={fieldState.invalid}
-                      className="gap-1 col-span-full"
+                      className="gap-1"
                     >
                       <FieldLabel htmlFor="Project associer">
-                        Projet *
+                        Projet <span className="text-destructive">*</span>
                       </FieldLabel>
 
                       <Select
@@ -357,30 +332,50 @@ export function TransportForm() {
               />
 
               <Controller
+                name="Description"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field
+                    data-invalid={fieldState.invalid}
+                    className="gap-1 col-span-full"
+                  >
+                    <FieldLabel htmlFor="Description">Description <span className="text-destructive">*</span></FieldLabel>
+                    <Textarea
+                      {...field}
+                      aria-invalid={fieldState.invalid}
+                      id="Description"
+                      placeholder="Description"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
                 name="Justificatif"
                 control={form.control}
                 render={({ field, fieldState }) => (
-                  <div>
-                    <FormField
-                      control={form.control}
-                      name="Justificatif"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Justificatif"}</FormLabel>
-                          <FormControl>
-                            <FilesUpload
-                              value={field.value || []}
-                              onChange={field.onChange}
-                              name={field.name}
-                              acceptTypes="all"
-                              multiple={false}
-                              maxFiles={1}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <div className="col-span-full">
+                    <Field
+                      data-invalid={fieldState.invalid}
+                      className="gap-1 col-span-full"
+                    >
+                      <FieldLabel>{"Justificatif"}</FieldLabel>
+                      <FormControl>
+                        <FilesUpload
+                          value={field.value || []}
+                          onChange={field.onChange}
+                          name={field.name}
+                          acceptTypes="all"
+                          multiple={false}
+                          maxFiles={1}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </Field>
+
                     {Array.isArray(fieldState.error) ? (
                       fieldState.error?.map((error, i) => (
                         <p

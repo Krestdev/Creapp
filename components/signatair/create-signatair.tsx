@@ -127,11 +127,11 @@ export default function CreateSignatairForm() {
                   data-invalid={fieldState.invalid}
                   className="gap-1 col-span-full"
                 >
-                  <FieldLabel htmlFor="bank">Bank *</FieldLabel>
+                  <FieldLabel htmlFor="bank">{"Banque"} <span className="text-destructive">*</span></FieldLabel>
 
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selectione une bank" />
+                      <SelectValue placeholder="Sélectionner une banque" />
                     </SelectTrigger>
                     <SelectContent>
                       {bankData.data?.data
@@ -161,25 +161,26 @@ export default function CreateSignatairForm() {
               return (
                 <Field
                   data-invalid={fieldState.invalid}
-                  className="gap-1 [&_p]:pb-2 col-span-full"
+                  className="gap-1 col-span-full"
                 >
-                  <FieldLabel htmlFor="type">Type de payement *</FieldLabel>
+                  <FieldLabel htmlFor="bank">{"Type de document"} <span className="text-destructive">*</span></FieldLabel>
 
-                  <RadioGroup
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    aria-invalid={fieldState.invalid}
-                  >
-                    {paytypeData.data?.data.map((pt) => (
-                      <div key={pt.id} className="flex items-center gap-x-2">
-                        <RadioGroupItem
-                          value={pt.id.toString()}
-                          id={pt.id.toString()}
-                        />
-                        <Label htmlFor={pt.id.toString()}>{pt.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un type de document" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {paytypeData.data?.data
+                        .map((option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.id.toString()}
+                          >
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -189,11 +190,12 @@ export default function CreateSignatairForm() {
           />
 
           <div className="space-y-2 col-span-2">
-            <FormLabel>{"Signatair *"}</FormLabel>
+            <FormLabel>{"Signataire"} <span className="text-destructive">*</span></FormLabel>
             <MultiSelectUser
               display="user"
               users={userData?.data?.data || []}
               selected={selectedUser}
+              placeholder="Aucun signataire selectionné"
               onChange={(selected) => {
                 setSelectedUser(selected);
                 form.setValue(

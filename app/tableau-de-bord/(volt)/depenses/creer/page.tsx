@@ -5,9 +5,9 @@ const Page = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
-        title="Créer une Depense"
+        title="Créer une Dépense"
         color="blue"
-        subtitle="Renseignez les informations relatives à votre depense."
+        subtitle="Renseignez les informations relatives à votre dépense."
       />
       <CreateDepensePage />
     </div>
