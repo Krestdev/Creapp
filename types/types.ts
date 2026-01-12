@@ -58,6 +58,8 @@ export const PAYMENT_METHOD = [
 
 export const PAY_STATUS = [
   { value: "pending", name: "En cours" },
+  { value: "accepted", name: "Accepté" },
+  { value: "rejected", name: "Rejeté" },
   { value: "validated", name: "Approuvé" },
   { value: "ghost", name: "Fantome" },
   { value: "paid", name: "Payé" },
@@ -86,6 +88,7 @@ export type PaymentRequest = {
   price: number;
   priority: (typeof PRIORITIES)[number]["value"];
   isPartial: boolean;
+  reason?: string;
   userId: number;
   commandId?: number | null;
   requestId?: number | null;
