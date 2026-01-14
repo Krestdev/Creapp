@@ -57,30 +57,32 @@ export const PAYMENT_METHOD = [
 ] as const;
 
 export const PAY_STATUS = [
-  { value: "pending", name: "En cours" },
+  { value: "pending", name: "En attente" },
   { value: "accepted", name: "Accepté" },
   { value: "rejected", name: "Rejeté" },
   { value: "validated", name: "Approuvé" },
-  { value: "signed", name: "Signé" },
   { value: "ghost", name: "Fantome" },
   { value: "paid", name: "Payé" },
   { value: "pending_depense", name: "en attente" },
+  { value: "unsigned", name: "En attente de signature" },
+  { value: "signed", name: "Signé" },
 ] as const;
 
 export type PaymentRequest = {
   id: number;
   reference: string;
-  proof: File | string | undefined;
+  proof?: File | string | undefined;
   account?: string;
   justification?: (string | File)[];
   status: (typeof PAY_STATUS)[number]["value"];
   type: (typeof PAYMENT_TYPES)[number]["value"];
-  method: (typeof PAYMENT_METHOD)[number]["value"];
+  methodId: number;
   deadline: Date;
   title: string;
   description?: string;
   beneficiary?: User;
   benefId?: number;
+  transactionId?: number;
 
   model?: Vehicle;
   km?: number;
@@ -543,6 +545,7 @@ export const BANK_TYPES = [
   { value: "CASH", name: "Sous-Caisse" },
   { value: "CASH_REGISTER", name: "Caisse Principale" },
   { value: "MOBILE_WALLET", name: "Portefeuille Mobile" },
+  { value: "null", name: "Aucun" }
 ] as const;
 
 export type Bank = {
@@ -641,12 +644,15 @@ export type RequestType = {
   updatedAt?: Date;
 };
 
+type SignMode = "ONE" | "BOTH";
+
 export type Signatair = {
   id: number;
   userIds: number[];
   createdAt: Date;
   updatedAt: Date;
   bankId: number;
+  mode: SignMode;
   payTypeId: number;
   user?: User[];
   payTypes?: PayType;

@@ -214,7 +214,8 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
       cell: ({ row }) => {
         const provider: BonsCommande["provider"] = row.getValue("provider");
         return (
-          <div className="font-medium">{formatToShortName(provider.name)}</div>
+          <div className="font-medium">{provider.name}</div>
+          // <div className="font-medium">{formatToShortName(provider.name)}</div>
         );
       },
     },
@@ -269,11 +270,37 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
           return payments?.filter((payment) => payment.commandId === row.original.id).filter(c => c.status === "paid");
         }, [payments, row.original]);
 
+        const getColor = (value: number) => {
+          if (value < 40) return "bg-red-500";
+          if (value < 70) return "bg-yellow-500";
+          return "bg-green-500";
+        };
+
+
         // Pourcentage de payement
-        const percentage = pay?.flatMap(x => x.price).reduce((a, b) => a + b, 0) ?? 0 * 100 / totalAmountPurchase(row.original);
+        const paid = pay?.flatMap(x => x.price).reduce((a, b) => a + b, 0) ?? 0;
+        const total = totalAmountPurchase(row.original);
+
+        const percent = (paid / total) * 100;
+
+        const value = Math.min(100, Math.max(0, percent));
+        const color = getColor(value);
 
 
-        return <div>{`${percentage === 0 ? percentage : percentage.toFixed(2)} %`}</div>;
+        return (
+          <div className="w-full">
+            <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${color} transition-all duration-300`}
+                style={{ width: `${value}%` }}
+              />
+            </div>
+
+            <div className="mt-1 text-sm text-right text-gray-600">
+              {Number.isInteger(value) ? value : value.toFixed(2)} %
+            </div>
+          </div>
+        );
       },
     },
 

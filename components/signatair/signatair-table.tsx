@@ -177,6 +177,36 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
         },
       },
       {
+        accessorKey: "mode",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Mode
+              {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          const mode = row.original.mode;
+          let message = "";
+          if (mode == "ONE") {
+            message = "Un Signatair";
+          } else {
+            message = "Tout les Signatair";
+          }
+          return (
+            <Badge className={`flex items-center gap-1 w-fit`}>
+              {message ?? "Non Defini"}
+            </Badge>
+          );
+        },
+      },
+      {
         id: "actions",
         header: () => <span className="tablehead">Action</span>,
         enableHiding: false,

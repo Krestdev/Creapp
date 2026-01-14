@@ -36,6 +36,7 @@ const formSchema = z.object({
     .array(z.number(), { message: "Please select at least one item" })
     .min(1, "Please select at least one item")
     .optional(),
+  mode: z.string(),
 });
 
 export default function CreateSignatairForm() {
@@ -45,6 +46,7 @@ export default function CreateSignatairForm() {
       bank: "",
       type: "",
       signatair: [],
+      mode: "ONE",
     },
   });
 
@@ -72,6 +74,7 @@ export default function CreateSignatairForm() {
         bank: "",
         type: "",
         signatair: [],
+        mode: "ONE",
       });
       queryClient.invalidateQueries({
         queryKey: ["SignatairList"],
@@ -97,6 +100,7 @@ export default function CreateSignatairForm() {
       const data: Omit<Signatair, "id" | "createdAt" | "updatedAt"> = {
         bankId: Number(values.bank),
         payTypeId: Number(values.type),
+        mode: values.mode as "ONE" | "BOTH",
         userIds: values.signatair ?? [],
       };
       signatairMutation.mutate(data);
@@ -127,7 +131,9 @@ export default function CreateSignatairForm() {
                   data-invalid={fieldState.invalid}
                   className="gap-1 col-span-full"
                 >
-                  <FieldLabel htmlFor="bank">{"Banque"} <span className="text-destructive">*</span></FieldLabel>
+                  <FieldLabel htmlFor="bank">
+                    {"Banque"} <span className="text-destructive">*</span>
+                  </FieldLabel>
 
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="w-full">
@@ -155,6 +161,47 @@ export default function CreateSignatairForm() {
           />
 
           <Controller
+            name="mode"
+            control={form.control}
+            render={({ field, fieldState }) => {
+              return (
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="gap-1 col-span-full"
+                >
+                  <FieldLabel htmlFor="mode">
+                    {"mode"} <span className="text-destructive">*</span>
+                  </FieldLabel>
+
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un mode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {["ONE", "BOTH"].map((option) => {
+                        let message = "";
+                        if (option == "ONE") {
+                          message = "Un Signatair";
+                        } else {
+                          message = "Tout les Signatair";
+                        }
+                        return (
+                          <SelectItem key={option} value={option}>
+                            {message}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              );
+            }}
+          />
+
+          <Controller
             name="type"
             control={form.control}
             render={({ field, fieldState }) => {
@@ -163,22 +210,24 @@ export default function CreateSignatairForm() {
                   data-invalid={fieldState.invalid}
                   className="gap-1 col-span-full"
                 >
-                  <FieldLabel htmlFor="bank">{"Type de document"} <span className="text-destructive">*</span></FieldLabel>
+                  <FieldLabel htmlFor="bank">
+                    {"Type de document"}{" "}
+                    <span className="text-destructive">*</span>
+                  </FieldLabel>
 
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Sélectionner un type de document" />
                     </SelectTrigger>
                     <SelectContent>
-                      {paytypeData.data?.data
-                        .map((option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.id.toString()}
-                          >
-                            {option.label}
-                          </SelectItem>
-                        ))}
+                      {paytypeData.data?.data.map((option) => (
+                        <SelectItem
+                          key={option.id}
+                          value={option.id.toString()}
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {fieldState.invalid && (
@@ -190,7 +239,9 @@ export default function CreateSignatairForm() {
           />
 
           <div className="space-y-2 col-span-2">
-            <FormLabel>{"Signataire"} <span className="text-destructive">*</span></FormLabel>
+            <FormLabel>
+              {"Signataire"} <span className="text-destructive">*</span>
+            </FormLabel>
             <MultiSelectUser
               display="user"
               users={userData?.data?.data || []}

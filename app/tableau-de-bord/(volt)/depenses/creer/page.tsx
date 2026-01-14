@@ -1,4 +1,4 @@
-import CreateDepensePage from "@/components/depense/CreateResquestPage";
+import CreateDepensePage from "@/components/depense/CreateDepensePage";
 import PageTitle from "@/components/pageTitle";
 
 const Page = () => {

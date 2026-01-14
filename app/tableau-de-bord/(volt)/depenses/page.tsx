@@ -27,17 +27,6 @@ function Page() {
             hide: false,
             disabled: false,
         },
-    ];
-
-    const tabs = [
-        {
-            id: 0,
-            title: "Tickets en attente"
-        },
-        {
-            id: 1,
-            title: "Tickets payés"
-        }
     ]
 
     const [selectedTab, setSelectedTab] = useState(0)
@@ -127,6 +116,24 @@ function Page() {
             },
         ];
 
+        const tabs = [
+            {
+                id: 0,
+                title: "Tickets en attente",
+                badge: data.data.filter((p) => p.status === "pending_depense" || p.status === "pending").length
+            },
+            {
+                id: 1,
+                title: "Tickets signés",
+                badge: data.data.filter((p) => p.status === "signed").length
+            },
+            {
+                id: 2,
+                title: "Tickets payés"
+
+            }
+        ]
+
         return (
             <div className="content">
                 <PageTitle
@@ -167,22 +174,31 @@ function Page() {
                 {selectedTab === 0 ?
                     <ExpensesTable
                         payments={data.data.filter(
-                            (p) => p.status === "pending_depense" || p.status === "validated"
+                            (p) => p.status === "pending_depense" || p.status === "validated" || p.status === "unsigned"
                         )}
                         banks={getBanks.data.data}
                         type="pending"
                         purchases={getPurchases.data.data}
                         requestTypes={getRequestType.data.data}
-                    /> :
-                    <ExpensesTable
-                        payments={data.data.filter(
-                            (p) => p.status === "paid" || p.status === "validated"
-                        )}
-                        type="validated"
-                        banks={getBanks.data.data}
-                        purchases={getPurchases.data.data}
-                        requestTypes={getRequestType.data.data}
-                    />}
+                    /> : selectedTab === 1 ?
+                        <ExpensesTable
+                            payments={data.data.filter(
+                                (p) => p.status === "signed"
+                            )}
+                            type="signed"
+                            banks={getBanks.data.data}
+                            purchases={getPurchases.data.data}
+                            requestTypes={getRequestType.data.data}
+                        /> :
+                        <ExpensesTable
+                            payments={data.data.filter(
+                                (p) => p.status === "paid"
+                            )}
+                            type="paid"
+                            banks={getBanks.data.data}
+                            purchases={getPurchases.data.data}
+                            requestTypes={getRequestType.data.data}
+                        />}
             </div>
         );
     }

@@ -109,7 +109,9 @@ export function InvoicesTable({ payments, purchases }: Props) {
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      createdAt: false
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
@@ -257,8 +259,8 @@ export function InvoicesTable({ payments, purchases }: Props) {
           typeof proofField === "string" && proofField.length > 0
             ? proofField.split(";").filter(Boolean)
             : Array.isArray(proofField)
-            ? proofField.map(String).filter(Boolean)
-            : [];
+              ? proofField.map(String).filter(Boolean)
+              : [];
         return (
           <div className="font-medium flex flex-wrap gap-1.5">
             {elements.map((proof, index) => (
@@ -321,6 +323,23 @@ export function InvoicesTable({ payments, purchases }: Props) {
       },
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
+      },
+    },
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Date de création"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        return <div className="font-medium">{format(row.getValue("createdAt"), "dd/MM/yyyy")}</div>;
       },
     },
     {
@@ -576,7 +595,22 @@ export function InvoicesTable({ payments, purchases }: Props) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "status" ?
+                      "Statut"
+                      : column.id === "price" ?
+                        "Montant"
+                        : column.id === "proof" ?
+                          "Documents"
+                          : column.id === "provider" ?
+                            "Fournisseur"
+                            : column.id === "reference" ?
+                              "Référence"
+                              : column.id === "createdAt" ?
+                                "Date de création"
+                                : column.id === "updatedAt" ?
+                                  "Date de modification"
+                                  : column.id
+                    }
                   </DropdownMenuCheckboxItem>
                 );
               })}
