@@ -76,13 +76,11 @@ export type PaymentRequest = {
   justification?: (string | File)[];
   status: (typeof PAY_STATUS)[number]["value"];
   type: (typeof PAYMENT_TYPES)[number]["value"];
-  methodId: number;
   deadline: Date;
   title: string;
   description?: string;
   beneficiary?: User;
   benefId?: number;
-  transactionId?: number;
 
   model?: Vehicle;
   km?: number;
@@ -550,7 +548,7 @@ export const BANK_TYPES = [
   { value: "CASH", name: "Sous-Caisse" },
   { value: "CASH_REGISTER", name: "Caisse Principale" },
   { value: "MOBILE_WALLET", name: "Portefeuille Mobile" },
-  { value: "null", name: "Aucun" }
+  { value: "null", name: "Aucun" },
 ] as const;
 
 export type Bank = {
