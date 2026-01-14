@@ -16,6 +16,8 @@ import { NavLink } from "@/types/types";
 import Link from "next/link";
 import { requestTypeQ } from "@/queries/requestType";
 import ExpensesTable from "./expenses-table";
+import { useState } from "react";
+import { TabBar } from "@/components/base/TabBar";
 
 function Page() {
     const links: Array<NavLink> = [
@@ -26,6 +28,19 @@ function Page() {
             disabled: false,
         },
     ];
+
+    const tabs = [
+        {
+            id: 0,
+            title: "Tickets en attente"
+        },
+        {
+            id: 1,
+            title: "Tickets payés"
+        }
+    ]
+
+    const [selectedTab, setSelectedTab] = useState(0)
 
     const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
         ["payments"],
@@ -148,24 +163,26 @@ function Page() {
                         <StatisticCard key={id} {...data} className="h-full" />
                     ))}
                 </div>
-                <ExpensesTable
-                    payments={data.data.filter(
-                        (p) => p.status === "pending_depense" || p.status === "validated"
-                    )}
-                    banks={getBanks.data.data}
-                    type="pending"
-                    purchases={getPurchases.data.data}
-                    requestTypes={getRequestType.data.data}
-                />
-                <ExpensesTable
-                    payments={data.data.filter(
-                        (p) => p.status === "paid" || p.status === "validated"
-                    )}
-                    type="validated"
-                    banks={getBanks.data.data}
-                    purchases={getPurchases.data.data}
-                    requestTypes={getRequestType.data.data}
-                />
+                <TabBar tabs={tabs} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
+                {selectedTab === 0 ?
+                    <ExpensesTable
+                        payments={data.data.filter(
+                            (p) => p.status === "pending_depense" || p.status === "validated"
+                        )}
+                        banks={getBanks.data.data}
+                        type="pending"
+                        purchases={getPurchases.data.data}
+                        requestTypes={getRequestType.data.data}
+                    /> :
+                    <ExpensesTable
+                        payments={data.data.filter(
+                            (p) => p.status === "paid" || p.status === "validated"
+                        )}
+                        type="validated"
+                        banks={getBanks.data.data}
+                        purchases={getPurchases.data.data}
+                        requestTypes={getRequestType.data.data}
+                    />}
             </div>
         );
     }

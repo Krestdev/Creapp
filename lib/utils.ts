@@ -107,40 +107,45 @@ export const TranslateRole = (role: string) => {
   }
 };
 
-export function totalAmountPurchase(payload:BonsCommande):number{
-  return payload.devi.element.reduce((total, el)=> total + el.priceProposed*el.quantity, 0)
+export function totalAmountPurchase(payload: BonsCommande): number {
+  return payload.devi.element.reduce((total, el) => total + el.priceProposed * el.quantity, 0)
+}
+
+// Fonction pour calculer le pourcentage du payment d'un bon
+export function paymentPercentage(payload: BonsCommande): number {
+  return (payload.devi.element.reduce((total, el) => total + el.priceProposed * el.quantity, 0) / totalAmountPurchase(payload)) * 100
 }
 
 interface RoleCheck {
   roleList: Role[];
   role: "admin" | "achat" | "Donner d'ordre achat" | "trésorier" | "Donneur d'ordre décaissement" | "rh" | "comptable";
 }
-export function isRole({roleList, role}:RoleCheck):boolean{
+export function isRole({ roleList, role }: RoleCheck): boolean {
   if (roleList.some(r => r.label === "ADMIN")) {
     return true;
   }
-  if(role === "achat" && roleList.some(r => r.label === "SALES" || r.label === "SALES_MANAGER")){
+  if (role === "achat" && roleList.some(r => r.label === "SALES" || r.label === "SALES_MANAGER")) {
     return true;
   }
-  if(role === "Donner d'ordre achat" && roleList.some(r => r.label === "SALES_MANAGER")){
+  if (role === "Donner d'ordre achat" && roleList.some(r => r.label === "SALES_MANAGER")) {
     return true;
   }
-  if(role === "trésorier" && roleList.some(r => r.label === "VOLT")){
+  if (role === "trésorier" && roleList.some(r => r.label === "VOLT")) {
     return true;
   }
-  if(role === "Donneur d'ordre décaissement" && roleList.some(r => r.label === "VOLT_MANAGER")){
+  if (role === "Donneur d'ordre décaissement" && roleList.some(r => r.label === "VOLT_MANAGER")) {
     return true;
   }
-  if(role === "rh" && roleList.some(r => r.label === "RH")){
+  if (role === "rh" && roleList.some(r => r.label === "RH")) {
     return true;
   }
-  if(role === "comptable" && roleList.some(r => r.label === "ACCOUNTANT")){
+  if (role === "comptable" && roleList.some(r => r.label === "ACCOUNTANT")) {
     return true;
   }
   return false;
 }
 
-export function getRandomColor (id?:number){
+export function getRandomColor(id?: number) {
   const colors = [
     "var(--primary-600)",
     "var(--secondary-600)",
@@ -167,15 +172,15 @@ export function getRandomColor (id?:number){
 }
 
 export const getPeriodType = (
-    range: DateRange | undefined
-  ): "day" | "week" | "month" => {
-    if (!range?.from || !range?.to) return "month";
+  range: DateRange | undefined
+): "day" | "week" | "month" => {
+  if (!range?.from || !range?.to) return "month";
 
-    const diffDays = Math.floor(
-      (range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24)
-    );
+  const diffDays = Math.floor(
+    (range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24)
+  );
 
-    if (diffDays <= 7) return "day";
-    if (diffDays <= 31) return "week";
-    return "month";
-  };
+  if (diffDays <= 7) return "day";
+  if (diffDays <= 31) return "week";
+  return "month";
+};

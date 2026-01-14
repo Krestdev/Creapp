@@ -19,6 +19,7 @@ import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
 import { cn, isRole, XAF } from "@/lib/utils";
+import { paymentQ } from "@/queries/payment";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -30,6 +31,8 @@ const Page = () => {
     ["purchaseOrders"],
     purchaseQ.getAll
   );
+
+  const getPayments = useFetchQuery(["payments"], paymentQ.getAll, 15000);
 
   const { user } = useStore();
   const auth = isRole({
@@ -190,7 +193,7 @@ const Page = () => {
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
         </div>
-        <PurchaseTable data={filteredData} />
+        <PurchaseTable data={filteredData} payments={getPayments.data?.data} />
       </div>
     );
 };

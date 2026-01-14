@@ -214,6 +214,11 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
     }
   }
 
+
+  const typeFilter = requestTypes.map(x => {
+    return { value: x.type, label: x.label }
+  }).concat({ value: "CURRENT", label: "Dépenses courantes" })
+
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -534,8 +539,8 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{"Tous les types"}</SelectItem>
-                {requestTypes.map((p) => (
-                  <SelectItem key={p.type} value={p.type}>
+                {typeFilter.map((p) => (
+                  <SelectItem key={p.value} value={p.value} className="uppercase">
                     {p.label}
                   </SelectItem>
                 ))}

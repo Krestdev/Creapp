@@ -10,7 +10,7 @@ import SignatairPage from "@/components/signatair/signatair";
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Configurer",
+      title: "Configurer les signataires",
       href: "./signatairs/create",
       hide: false,
       disabled: false,

@@ -49,7 +49,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { XAF } from "@/lib/utils";
+import { cn, XAF } from "@/lib/utils";
 import { BonsCommande, PAY_STATUS, PaymentRequest, PRIORITIES } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { Pagination } from "../base/pagination";
@@ -62,25 +62,52 @@ interface Props {
   purchases: Array<BonsCommande>;
 }
 
-function getPriorityBadge(
+const getPriorityBadge = (
   priority: PaymentRequest["priority"]
-): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-  const priorityData = PRIORITIES.find((p) => p.value === priority);
-  const label = priorityData?.name ?? "Inconnu";
-
+): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+  rowClassName?: string;
+} => {
+  const label = PRIORITIES.find(c => c.value === priority)?.name ?? "Inconnu"
   switch (priority) {
     case "low":
-      return { label, variant: "outline" };
+      return {
+        label,
+        variant: "amber",
+        rowClassName:
+          "bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/20 dark:hover:bg-orange-950/30",
+      };
     case "medium":
-      return { label, variant: "blue" };
+      return {
+        label,
+        variant: "success",
+        rowClassName:
+          "bg-green-50 hover:bg-green-100 dark:bg-green-950/20 dark:hover:bg-green-950/30",
+      };
     case "high":
-      return { label, variant: "destructive" };
+      return {
+        label,
+        variant: "destructive",
+        rowClassName:
+          "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30",
+      };
     case "urgent":
-      return { label, variant: "purple" };
+      return {
+        label,
+        variant: "primary",
+        rowClassName:
+          "bg-primary-50 hover:bg-primary-100 dark:bg-primary-950/20 dark:hover:bg-primary-950/30",
+      };
     default:
-      return { label, variant: "outline" };
+      return {
+        label: "Inconnu",
+        variant: "outline",
+        rowClassName:
+          "bg-gray-50 hover:bg-gray-100 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
+      };
   }
-}
+};
 
 function getStatusBadge(status: PaymentRequest["status"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
   const statusData = PAY_STATUS.find(s => s.value === status);
@@ -90,11 +117,11 @@ function getStatusBadge(status: PaymentRequest["status"]): { label: string; vari
     case "pending":
       return { label, variant: "amber" };
     case "accepted":
-      return {label, variant: "sky"};
+      return { label, variant: "sky" };
     case "rejected":
-      return {label, variant: "destructive"};
+      return { label, variant: "destructive" };
     case "validated":
-      return { label, variant: "primary" };
+      return { label, variant: "sky" };
     case "signed":
       return { label, variant: "lime" };
     case "paid":
@@ -455,6 +482,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className={cn(getPriorityBadge(row.original.priority)?.rowClassName || "")}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell

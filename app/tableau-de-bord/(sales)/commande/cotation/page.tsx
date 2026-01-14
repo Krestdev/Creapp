@@ -1,6 +1,7 @@
 "use client";
 
 import Empty from "@/components/base/empty";
+import { TabBar } from "@/components/base/TabBar";
 import Besoins from "@/components/bdcommande/besoins";
 import Cotation from "@/components/bdcommande/cotation";
 import PageTitle from "@/components/pageTitle";
@@ -11,6 +12,7 @@ import { commandRqstQ } from "@/queries/commandRqstModule";
 import { requestQ } from "@/queries/requestModule";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState } from "react";
 
 const Page = () => {
   const { user, isHydrated } = useStore();
@@ -28,6 +30,18 @@ const Page = () => {
     },
     enabled: isHydrated,
   });
+
+  const tabs = [
+    {
+      id: 0,
+      title: "Besoins disponibles"
+    },
+    {
+      id: 1,
+      title: "Demande de cotation"
+    },
+  ]
+  const [selectedTab, setSelectedTab] = useState(0)
 
   const { data: cotation } = useFetchQuery(["commands"], commandRqstQ.getAll);
 
@@ -66,18 +80,20 @@ const Page = () => {
             );
           })}
       </PageTitle>
-      <div className="flex flex-col">
-        <h2>{"Besoins disponibles"}</h2>
-        {besoinVal && besoinVal?.length > 0 ? (
-          <Besoins selected={[]} setSelected={() => {}} isHome />
-        ) : (
-          <Empty message="Aucun besoin disponible" />
-        )}
-      </div>
-      <div className="flex flex-col">
-        <h2>{"Demande de cotation"}</h2>
-        <Cotation />
-      </div>
+      <TabBar tabs={tabs} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
+      {selectedTab === 0 ?
+        <div className="flex flex-col">
+          <h2>{"Besoins disponibles"}</h2>
+          {besoinVal && besoinVal?.length > 0 ? (
+            <Besoins selected={[]} setSelected={() => { }} isHome />
+          ) : (
+            <Empty message="Aucun besoin disponible" />
+          )}
+        </div> :
+        <div className="flex flex-col">
+          <h2>{"Demande de cotation"}</h2>
+          <Cotation />
+        </div>}
     </div>
   );
 };

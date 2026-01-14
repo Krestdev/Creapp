@@ -2,7 +2,7 @@
 
 import { UseQueryResult } from "@tanstack/react-query";
 import { CheckCircle } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
@@ -17,6 +17,7 @@ import { Category, RequestModelT, User } from "@/types/types";
 import { DataVal } from "../base/dataVal";
 import ErrorPage from "../error-page";
 import LoadingPage from "../loading-page";
+import { TabBar } from "../base/TabBar";
 
 /* ======================================================
    TYPES
@@ -217,6 +218,19 @@ const Approb = ({
 
   const requestData = useFetchQuery(["requests"], requestQ.getAll, 15000);
 
+
+  const tabs = [
+    {
+      id: 0,
+      title: "Besoins disponibles"
+    },
+    {
+      id: 1,
+      title: "Demande de cotation"
+    },
+  ]
+  const [selectedTab, setSelectedTab] = useState(0)
+
   if (!isHydrated || !user) return null;
 
   const filteredData = useFilteredRequests(
@@ -271,56 +285,57 @@ const Approb = ({
     return (
       <div className="flex flex-col gap-6">
         {/* ================== PENDING ================== */}
-        <div>
-          <h2 className="text-xl font-semibold mb-3">
-            {"Besoins en attente de validation"} ({pendingData.length})
-          </h2>
 
-          {pendingData.length > 0 ? (
+        <TabBar tabs={tabs} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
+        {selectedTab === 0 ?
+          <div>
+            <h2 className="text-xl font-semibold mb-3">
+              {"Besoins en attente de validation"} ({pendingData.length})
+            </h2>
+
+            {pendingData.length > 0 ? (
+              <DataVal
+                data={pendingData}
+                dateFilter={dateFilter}
+                setDateFilter={setDateFilter}
+                customDateRange={customDateRange}
+                setCustomDateRange={setCustomDateRange}
+                empty="Aucun besoin en attente"
+                isCheckable={true}
+                categoriesData={categoriesData.data?.data}
+                projectsData={projectsData.data?.data}
+                usersData={usersData.data?.data}
+                paymentsData={paymentsData.data?.data}
+                requestTypeData={getRequestType.data?.data}
+              />
+            ) : (
+              <div className="text-center py-12 border rounded-lg bg-gray-50">
+                <CheckCircle className="mx-auto h-8 w-8 text-green-600 mb-2" />
+                <p>{"Aucun besoin en attente"}</p>
+              </div>
+            )}
+          </div> :
+          <div>
+            <h2 className="text-xl font-semibold mb-3">
+              {"Historique des validations"} ({proceedData.length})
+            </h2>
+
             <DataVal
-              data={pendingData}
+              data={proceedData.filter((item) => item.state !== "rejected")}
+              type="proceed"
+              empty="Aucun besoin traité"
               dateFilter={dateFilter}
               setDateFilter={setDateFilter}
               customDateRange={customDateRange}
               setCustomDateRange={setCustomDateRange}
-              empty="Aucun besoin en attente"
-              isCheckable={true}
-              categoriesData={categoriesData.data?.data}
+              isCheckable={false}
               projectsData={projectsData.data?.data}
               usersData={usersData.data?.data}
               paymentsData={paymentsData.data?.data}
+              categoriesData={categoriesData.data?.data}
               requestTypeData={getRequestType.data?.data}
             />
-          ) : (
-            <div className="text-center py-12 border rounded-lg bg-gray-50">
-              <CheckCircle className="mx-auto h-8 w-8 text-green-600 mb-2" />
-              <p>{"Aucun besoin en attente"}</p>
-            </div>
-          )}
-        </div>
-
-        {/* ================== HISTORY ================== */}
-        <div>
-          <h2 className="text-xl font-semibold mb-3">
-            {"Historique des validations"} ({proceedData.length})
-          </h2>
-
-          <DataVal
-            data={proceedData.filter((item) => item.state !== "rejected")}
-            type="proceed"
-            empty="Aucun besoin traité"
-            dateFilter={dateFilter}
-            setDateFilter={setDateFilter}
-            customDateRange={customDateRange}
-            setCustomDateRange={setCustomDateRange}
-            isCheckable={false}
-            projectsData={projectsData.data?.data}
-            usersData={usersData.data?.data}
-            paymentsData={paymentsData.data?.data}
-            categoriesData={categoriesData.data?.data}
-            requestTypeData={getRequestType.data?.data}
-          />
-        </div>
+          </div>}
       </div>
     );
   }

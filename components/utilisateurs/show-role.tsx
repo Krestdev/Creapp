@@ -127,10 +127,10 @@ export function ShowRole({
         {/* Header */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8">
           <DialogTitle className="text-xl font-semibold text-white">
-            {TranslateRole(role.label)}
+            {"Role - " + TranslateRole(role.label)}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            {"Détails du rôle et permissions"}
+            {"Détails du rôle"}
           </p>
         </DialogHeader>
 

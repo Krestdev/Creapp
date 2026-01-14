@@ -21,6 +21,7 @@ import {
   DollarSign,
   FileIcon,
   HelpCircle,
+  LucideAlarmClockPlus,
   LucideHash,
   SquareUser,
   User,
@@ -55,6 +56,8 @@ function getStatusBadge(status: PaymentRequest["status"]): {
       return { label, variant: "amber" };
     case "validated":
       return { label, variant: "success" };
+    case "rejected":
+      return { label, variant: "destructive" };
     default:
       return { label, variant: "outline" };
   }
@@ -67,8 +70,8 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {purchase?.devi.commandRequest.title ?? `Paiement`}
+          <DialogTitle className="uppercase">
+            {purchase?.devi.commandRequest.title + " - " + purchase?.provider.name}
           </DialogTitle>
           <DialogDescription>{`Facture ${payment.reference}`}</DialogDescription>
         </DialogHeader>
@@ -134,6 +137,17 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
             </Badge>
           </div>
         </div>
+        {payment.status === "rejected" && <div className="view-group">
+          <span className="view-icon">
+            <LucideAlarmClockPlus />
+          </span>
+          <div className="flex flex-col">
+            <p className="view-group-title text-destructive">{"Motif du rejet"}</p>
+            <p className="text-destructive">
+              {payment.reason}
+            </p>
+          </div>
+        </div>}
         {/**Justificatif */}
         <div className="view-group">
           <span className="view-icon">
@@ -142,9 +156,8 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Justificatif"}</p>
             <Link
-              href={`${
-                process.env.NEXT_PUBLIC_API
-              }/uploads/${encodeURIComponent(payment.proof as string)}`}
+              href={`${process.env.NEXT_PUBLIC_API
+                }/uploads/${encodeURIComponent(payment.proof as string)}`}
               target="_blank"
               className="flex gap-0.5 items-center"
             >
@@ -165,7 +178,7 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
             <CalendarFold />
           </span>
           <div className="flex flex-col">
-            <p className="view-group-title">{"Date limite"}</p>
+            <p className="view-group-title">{"Date limite de paiement"}</p>
             <p className="font-semibold">
               {format(new Date(payment.deadline), "dd MMMM yyyy", {
                 locale: fr,

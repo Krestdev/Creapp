@@ -1,6 +1,6 @@
 "use client";
 import PageTitle from "@/components/pageTitle";
-import React from "react";
+import React, { useState } from "react";
 import { PurchaseApprovalTable } from "./approval-table";
 import { useStore } from "@/providers/datastore";
 import ErrorPage from "@/components/error-page";
@@ -8,6 +8,7 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "@/components/loading-page";
 import { ApprovedTable } from "./approved-table";
+import { TabBar } from "@/components/base/TabBar";
 
 function Page() {
   const { user } = useStore();
@@ -20,6 +21,17 @@ function Page() {
     ["purchaseOrders"],
     purchaseQ.getAll
   );
+  const [selectedTab, setSelectedTab] = useState(0)
+  const tabs = [
+    {
+      id: 0,
+      title: "Bons de commandes en attente"
+    },
+    {
+      id: 1,
+      title: "Bons de commandes traités"
+    },
+  ]
 
   if (!auth) {
     return <ErrorPage statusCode={401} />;
@@ -38,16 +50,19 @@ function Page() {
           subtitle="Approbation des bons de commandes"
           color="blue"
         />
-        <PurchaseApprovalTable
-          data={data.data.filter(
-            (c) => c.status === "IN-REVIEW" || c.status === "PENDING"
-          )}
-        />
-        <ApprovedTable
-          data={data.data.filter(
-            (c) => c.status === "APPROVED" || c.status === "REJECTED"
-          )}
-        />
+        <TabBar tabs={tabs} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
+        {selectedTab === 0 ?
+          <PurchaseApprovalTable
+            data={data.data.filter(
+              (c) => c.status === "IN-REVIEW" || c.status === "PENDING"
+            )}
+          /> :
+          <ApprovedTable
+            data={data.data.filter(
+              (c) => c.status === "APPROVED" || c.status === "REJECTED"
+            )}
+          />
+        }
       </div>
     );
   }
