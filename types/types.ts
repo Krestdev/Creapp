@@ -97,10 +97,10 @@ export type PaymentRequest = {
   createdAt: string;
   updatedAt: string;
 
-  vehiclesId: number | null;
-  bankId: number | null;
-  transactionId: number | null;
-  methodId: number | null;
+  vehiclesId?: number | null;
+  bankId?: number | null;
+  transactionId?: number | null;
+  methodId?: number | null;
 };
 
 export type User = {
@@ -665,4 +665,5 @@ export type Signatair = {
 export type PayType = {
   id: number;
   label: string | null;
+  type?: string;
 };

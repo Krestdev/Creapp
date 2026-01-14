@@ -1,3 +1,5 @@
+import { useFetchQuery } from "@/hooks/useData";
+import { payTypeQ } from "@/queries/payType";
 import { PaymentRequest } from "@/types/types";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import React from "react";
@@ -121,6 +123,8 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest }) => {
     return "N/A";
   };
 
+  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -203,7 +207,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest }) => {
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Méthode de paiement:</Text>
-            <Text style={styles.infoValue}>{paymentRequest.method}</Text>
+            <Text style={styles.infoValue}>{getPaymentType.data?.data.find((item) => item.id === paymentRequest.methodId)?.label}</Text>
           </View>
 
           <View style={styles.infoRow}>

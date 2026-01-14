@@ -44,28 +44,31 @@ import { useFetchQuery } from "@/hooks/useData";
 import { getRandomColor, XAF } from "@/lib/utils";
 import { commadQ } from "@/queries/command";
 import { paymentQ } from "@/queries/payment";
+import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
 import {
   DateFilter,
   PAY_STATUS,
-  PAYMENT_METHOD,
-  PAYMENT_TYPES,
   PaymentRequest,
+  PayType,
 } from "@/types/types";
 import { format } from "date-fns";
 import { Settings2 } from "lucide-react";
 import React from "react";
 
 function Page() {
+
+  const getProviders = useFetchQuery(["providers"], providerQ.getAll, 50000);
+  const getPurchases = useFetchQuery(["purchaseOrders"], commadQ.getAll);
+  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
+
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | PaymentRequest["status"]
   >("all");
   const [typeFilter, setTypeFilter] = React.useState<
     "all" | PaymentRequest["type"]
   >("all");
-  const [methodFilter, setMethodFilter] = React.useState<
-    "all" | PaymentRequest["method"]
-  >("all");
+  const [methodFilter, setMethodFilter] = React.useState<string>("all");
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [customDateRange, setCustomDateRange] = React.useState<
@@ -87,8 +90,7 @@ function Page() {
     paymentQ.getAll,
     15000
   );
-  const getProviders = useFetchQuery(["providers"], providerQ.getAll, 50000);
-  const getPurchases = useFetchQuery(["purchaseOrders"], commadQ.getAll);
+
   const filteredData: Array<PaymentRequest> = React.useMemo(() => {
     if (!data) return [];
     return data.data.filter((payment) => {
@@ -103,7 +105,11 @@ function Page() {
         typeFilter === "all" ? true : payment.type === typeFilter;
       //Filter by method
       const matchMethod =
-        methodFilter === "all" ? true : payment.method === methodFilter;
+        methodFilter === "all" ||
+        payment.methodId?.toString() === methodFilter;
+
+
+
       //Filter Status
       const matchStatus =
         statusFilter === "all" ? true : payment.status === statusFilter;
@@ -145,7 +151,7 @@ function Page() {
       }
       return matchDate && matchMethod && matchStatus && matchType && matchProvider;
     });
-  }, [dateFilter, customDateRange, statusFilter, typeFilter, methodFilter, providerFilter, getPurchases.data]);
+  }, [dateFilter, customDateRange, statusFilter, typeFilter, methodFilter, providerFilter, getPurchases.data, data]);
 
   // Calcul des métriques principales
   const metrics = React.useMemo(() => {
@@ -244,6 +250,15 @@ function Page() {
       },
     },
   ];
+
+  // Créer une constante pour les types de paiement
+  const PAYMENT_TYPES = [
+    { value: "facilitation", name: "Facilitation" },
+    { value: "ressource_humaine", name: "Ressource Humaine" },
+    { value: "speciaux", name: "Spéciaux" },
+    { value: "achat", name: "Achat" },
+    { value: "CURRENT", name: "CURRENT" },
+  ] as const;
 
   // Données pour le graphique par type de paiement
   const paymentTypeData: { data: ChartDataItem[]; config: ChartConfig } =
@@ -366,49 +381,65 @@ function Page() {
     return { data: sortedData, config };
   }, [getProviders.data, filteredData, getPurchases.data]);
 
-  // Données pour le graphique par méthode de paiement
+  // Données pour le graphique par méthode de paiement (basé sur les données API)
   const paymentMethodData: { data: ChartDataItem[]; config: ChartConfig } =
     React.useMemo(() => {
-      let data;
-      let config;
-      const methodStats: Record<string, { amount: number; count: number }> = {};
-      const methodLabels = Object.fromEntries(
-        PAYMENT_METHOD.map((m) => [m.value, m.name])
-      );
-      const methodColors: Record<string, string> = {
-        checks: "var(--chart-3)",
-        "bank-transfer": "var(--primary-600)",
-        cash: "var(--chart-4)",
-      };
+      const methodStats: Record<string, { amount: number; count: number; label: string }> = {};
 
+      // Récupérer les méthodes de paiement depuis l'API
+      const paymentMethods = getPaymentType.data?.data || [];
+
+      // Créer un mapping ID -> label
+      const methodMap = new Map(
+        paymentMethods.map(method => [method.id.toString(), method.label || `Méthode ${method.id}`])
+      );
+
+      // Calculer les statistiques
       filteredData.forEach((payment) => {
-        const method = payment.method;
-        if (!methodStats[method]) {
-          methodStats[method] = { amount: 0, count: 0 };
+        const methodId = payment.methodId?.toString();
+        if (!methodId) return;
+
+        if (!methodStats[methodId]) {
+          methodStats[methodId] = {
+            amount: 0,
+            count: 0,
+            label: methodMap.get(methodId) || `Méthode ${methodId}`
+          };
         }
-        methodStats[method].amount += payment.price;
-        methodStats[method].count += 1;
+        methodStats[methodId].amount += payment.price;
+        methodStats[methodId].count += 1;
       });
 
-      data = Object.entries(methodStats).map(([method, data], index) => ({
-        id: method,
-        value: data.amount,
-        label: methodLabels[method] || method,
-        color: methodColors[method] || getRandomColor(index),
-        name: method,
-        count: data.count,
+      // Convertir en array pour le graphique
+      const data: ChartDataItem[] = Object.entries(methodStats).map(([methodId, stats], index) => ({
+        id: methodId,
+        value: stats.amount,
+        label: stats.label,
+        color: getRandomColor(index),
+        name: `method_${methodId}`,
+        count: stats.count,
+        fullName: stats.label,
       }));
-      config = {
+
+      // Trier par montant décroissant
+      const sortedData = data.sort((a, b) => b.value - a.value);
+
+      // Créer la configuration du graphique
+      const config: ChartConfig = {
         value: { label: "Montant" },
         ...Object.fromEntries(
-          Object.entries(methodLabels).map(([key, label]) => [
-            key,
-            { label, color: methodColors[key] },
+          sortedData.map((item, index) => [
+            `method_${item.id}`,
+            {
+              label: item.fullName || item.label,
+              color: item.color,
+            }
           ])
         ),
       };
-      return { data, config };
-    }, [filteredData]);
+
+      return { data: sortedData, config };
+    }, [filteredData, getPaymentType.data]);
 
   // Séries temporelles quotidiennes par type de paiement
   const timeSeriesByType: AreaChartDataItem[] = React.useMemo(() => {
@@ -447,10 +478,22 @@ function Page() {
   const typeSeries: AreaChartSeries[] = PAYMENT_TYPES.map((t, i) => ({
     key: t.value,
     label: t.name,
-    color: ({} as Record<string, string>)[t.value] || getRandomColor(i),
+    color: getRandomColor(i),
     type: "natural",
     fillOpacity: 0.18,
   }));
+
+  // Créer une constante pour les statuts de paiement
+  const PAY_STATUS = [
+    { value: "pending", name: "En attente" },
+    { value: "pending_depense", name: "En attente dépense" },
+    { value: "accepted", name: "Accepté" },
+    { value: "validated", name: "Validé" },
+    { value: "signed", name: "Signé" },
+    { value: "paid", name: "Payé" },
+    { value: "rejected", name: "Rejeté" },
+    { value: "ghost", name: "Ghost" },
+  ] as const;
 
   // Séries temporelles quotidiennes par statut de paiement
   const timeSeriesByStatus: AreaChartDataItem[] = React.useMemo(() => {
@@ -492,18 +535,18 @@ function Page() {
   const statusSeries: AreaChartSeries[] = PAY_STATUS.map((s, i) => ({
     key: s.value,
     label: s.name,
-    color: ({} as Record<string, string>)[s.value] || getRandomColor(i),
+    color: getRandomColor(i),
     type: "natural",
     fillOpacity: 0.15,
   }));
 
-  if (isLoading || getProviders.isLoading || getPurchases.isLoading) {
+  if (isLoading || getProviders.isLoading || getPurchases.isLoading || getPaymentType.isLoading) {
     return <LoadingPage />;
   }
-  if (isError || getProviders.isError || getPurchases.isError) {
-    return <ErrorPage error={error || getProviders.error || getPurchases.error || undefined} />;
+  if (isError || getProviders.isError || getPurchases.isError || getPaymentType.isError) {
+    return <ErrorPage error={error || getProviders.error || getPurchases.error || getPaymentType.error || undefined} />;
   }
-  if (isSuccess && getProviders.isSuccess && getPurchases.isSuccess) {
+  if (isSuccess && getProviders.isSuccess && getPurchases.isSuccess && getPaymentType.isSuccess) {
     return (
       <div className="content">
         <PageTitle
@@ -525,7 +568,7 @@ function Page() {
               </SheetDescription>
             </SheetHeader>
             <div className="px-5 grid gap-5">
-              {/**Fitre par type */}
+              {/**Filtre par type */}
               <div className="grid gap-1.5">
                 <Label htmlFor="typeFilter">{"Type"}</Label>
                 <Select
@@ -572,18 +615,16 @@ function Page() {
                 <Label htmlFor="statusFilter">{"Méthode de paiement"}</Label>
                 <Select
                   value={methodFilter}
-                  onValueChange={(v) =>
-                    setMethodFilter(v as "all" | PaymentRequest["method"])
-                  }
+                  onValueChange={(v) => setMethodFilter(v)}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un statut" />
+                    <SelectValue placeholder="Sélectionner une méthode" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                    {PAYMENT_METHOD.map((t, id) => (
-                      <SelectItem key={id} value={t.value}>
-                        {t.name}
+                    <SelectItem value={"all"}>{"Toutes"}</SelectItem>
+                    {getPaymentType.data.data.map((method: PayType, id: number) => (
+                      <SelectItem key={id} value={String(method.id)}>
+                        {method.label || `Méthode ${method.id}`}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -779,7 +820,10 @@ function Page() {
                   innerRadius={30}
                   maxHeight={300}
                   tooltipConfig={{
-                    valueFormatter: (value) => `${XAF.format(Number(value))} `,
+                    valueFormatter: (value, name, payload) => {
+                      const item = payload?.payload as any;
+                      return `${XAF.format(Number(value))} (${item?.count || 0}) `;
+                    },
                   }}
                   chartConfig={paymentMethodData.config}
                 />
