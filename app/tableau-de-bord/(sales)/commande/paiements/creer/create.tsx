@@ -63,7 +63,7 @@ const formSchema = z.object({
   ),
   isPartial: z.boolean(),
   price: z.number({ message: "Veuillez renseigner un montant" }),
-  method: z.string().min(1, "Ce champs est requis"),
+  method: z.string().min(1, "Ce champ est requis"),
   priority: z.enum(PAY_PRIORITY),
   proof: z
     .array(
@@ -101,7 +101,7 @@ function CreatePaiement({ purchases }: Props) {
       deadline: format(new Date(), "yyyy-MM-dd"),
       isPartial: false,
       price: 0,
-      method: "bank-transfer",
+      method: "", // Laisser vide initialement
       priority: "high",
       proof: [],
     },
@@ -109,6 +109,7 @@ function CreatePaiement({ purchases }: Props) {
 
   const commandId = form.watch("commandId");
   const isPartial = form.watch("isPartial");
+  const methodValue = form.watch("method");
 
   const createPayment = useMutation({
     mutationFn: async (payload: NewPayment) => paymentQ.new(payload),
@@ -125,7 +126,25 @@ function CreatePaiement({ purchases }: Props) {
     },
   });
 
+  // Initialiser la valeur par défaut quand les données sont chargées
+  React.useEffect(() => {
+    if (getPaymentType.data?.data && getPaymentType.data.data.length > 0) {
+      const firstMethodId = getPaymentType.data.data[0].id.toString();
+
+      // Définir la valeur seulement si elle est vide
+      if (!methodValue || methodValue.trim() === "") {
+        form.setValue("method", firstMethodId);
+      }
+    }
+  }, [getPaymentType.data, methodValue, form]);
+
   function onSubmit(values: FormValues) {
+    // Validation supplémentaire pour le moyen de paiement
+    if (!values.method || values.method.trim() === "") {
+      toast.error("Veuillez sélectionner un moyen de paiement");
+      return;
+    }
+
     const purchase = purchases.find((p) => p.id === values.commandId);
     if (!purchase) {
       form.setError("commandId", { message: "Bon de commande invalide" });
@@ -165,7 +184,6 @@ function CreatePaiement({ purchases }: Props) {
     };
     createPayment.mutate(payload);
   }
-
 
   useEffect(() => {
     if (!!commandId) {
@@ -209,13 +227,11 @@ function CreatePaiement({ purchases }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     {purchases.length === 0 ? (
-                      <SelectItem value="-" disabled>
+                      <SelectItem value="no-option" disabled>
                         {"Aucune demande enregistrée"}
                       </SelectItem>
                     ) : (
                       purchases.map((request) => {
-
-
                         const pay = React.useMemo(() => {
                           return payments?.filter((payment) => payment.commandId === request.id).filter(c => c.status === "paid");
                         }, [payments, request]);
@@ -377,33 +393,47 @@ function CreatePaiement({ purchases }: Props) {
           }
         />
 
-        {/* Moyen de paiement */}
+        {/* Moyen de paiement - CORRIGÉ */}
         <FormField
           control={form.control}
           name="method"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getPaymentType.data?.data.map((method) => (
-                      <SelectItem key={method.id} value={String(method.id)}>
-                        {method.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const paymentMethods = getPaymentType.data?.data || [];
+
+            return (
+              <FormItem>
+                <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+                <FormControl>
+                  {paymentMethods.length === 0 ? (
+                    <div className="text-sm text-muted-foreground p-2 border rounded-md bg-muted">
+                      Chargement des moyens de paiement...
+                    </div>
+                  ) : (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="min-w-60 w-full">
+                        <SelectValue placeholder="Sélectionner">
+                          {paymentMethods.find(
+                            (method) => String(method.id) === field.value
+                          )?.label || "Sélectionner"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {paymentMethods.map((method) => (
+                          <SelectItem key={method.id} value={String(method.id)}>
+                            {method.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         {/* Priorité */}
@@ -461,7 +491,7 @@ function CreatePaiement({ purchases }: Props) {
             type="submit"
             className="w-fit"
             variant={"primary"}
-            disabled={createPayment.isPending}
+            disabled={createPayment.isPending || !getPaymentType.data?.data?.length}
             isLoading={createPayment.isPending}
           >
             {"Créer le paiement"}

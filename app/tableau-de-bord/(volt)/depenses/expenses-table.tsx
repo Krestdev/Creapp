@@ -21,6 +21,7 @@ import {
   Coins,
   DollarSign,
   Eye,
+  Signature,
   XCircle,
 } from "lucide-react";
 import * as React from "react";
@@ -66,6 +67,7 @@ import {
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
 import PayExpense from "./pay-expense";
+import ShareExpense from "./share-expense";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -176,6 +178,8 @@ function getStatusBadge(status: PaymentRequest["status"]): {
       return { label, variant: "success" };
     case "pending_depense":
       return { label, variant: "yellow" };
+    case "unsigned":
+      return { label, variant: "lime" };
     default:
       return { label, variant: "outline" };
   }
@@ -227,7 +231,6 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
-      status: false,
       createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
@@ -237,6 +240,7 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPay, setShowPay] = React.useState<boolean>(false);
+  const [showShare, setShowShare] = React.useState<boolean>(false);
 
   const columns: ColumnDef<PaymentRequest>[] = [
     // {
@@ -462,16 +466,28 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={item.status !== "validated"}
-                onClick={() => {
-                  setSelected(item);
-                  setShowPay(true);
-                }}
-              >
-                <DollarSign />
-                {"Payer"}
-              </DropdownMenuItem>
+              {type === "signed" &&
+                <DropdownMenuItem
+                  disabled={item.status !== "signed"}
+                  onClick={() => {
+                    setSelected(item);
+                    setShowPay(true);
+                  }}
+                >
+                  <DollarSign />
+                  {"Payer"}
+                </DropdownMenuItem>}
+              {type === "pending" &&
+                <DropdownMenuItem
+                  disabled={item.status !== "validated"}
+                  onClick={() => {
+                    setSelected(item);
+                    setShowShare(true);
+                  }}
+                >
+                  <Signature />
+                  {"Soumettre aux signataires"}
+                </DropdownMenuItem>}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -700,11 +716,18 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
         />
       )}
       {selected && (
-        <PayExpense
-          ticket={selected}
-          open={showPay}
-          onOpenChange={setShowPay}
-          banks={banks} />
+        <>
+          <ShareExpense
+            ticket={selected}
+            open={showShare}
+            onOpenChange={setShowShare}
+            banks={banks} />
+          <PayExpense
+            ticket={selected}
+            open={showPay}
+            onOpenChange={setShowPay}
+            banks={banks} />
+        </>
       )}
     </div>
   );

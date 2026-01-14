@@ -57,21 +57,21 @@ export const PAYMENT_METHOD = [
 ] as const;
 
 export const PAY_STATUS = [
-  { value: "pending", name: "En cours" },
+  { value: "pending", name: "En attente" },
   { value: "accepted", name: "Accepté" },
   { value: "rejected", name: "Rejeté" },
   { value: "validated", name: "Approuvé" },
   { value: "ghost", name: "Fantome" },
   { value: "paid", name: "Payé" },
   { value: "pending_depense", name: "en attente" },
-  { value: "unsigned", name: "en attente de signatur" },
+  { value: "unsigned", name: "En attente de signature" },
   { value: "signed", name: "Signé" },
 ] as const;
 
 export type PaymentRequest = {
   id: number;
   reference: string;
-  proof: File | string | undefined;
+  proof?: File | string | undefined;
   account?: string;
   justification?: (string | File)[];
   status: (typeof PAY_STATUS)[number]["value"];
@@ -82,6 +82,7 @@ export type PaymentRequest = {
   description?: string;
   beneficiary?: User;
   benefId?: number;
+  transactionId?: number;
 
   model?: Vehicle;
   km?: number;

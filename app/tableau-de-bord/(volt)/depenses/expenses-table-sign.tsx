@@ -66,7 +66,7 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
-import PayExpense from "./pay-expense";
+import PayExpense from "./share-expense";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -388,11 +388,11 @@ function ExpensesTableSign({
 
         const priorityA =
           priorityOrder[
-            rowA.getValue(columnId) as keyof typeof priorityOrder
+          rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-            rowB.getValue(columnId) as keyof typeof priorityOrder
+          rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -581,35 +581,34 @@ function ExpensesTableSign({
                     {column.id === "createdAt"
                       ? "Date de création"
                       : column.id === "updatedAt"
-                      ? "Date de modification"
-                      : column.id === "reference"
-                      ? "Référence"
-                      : column.id === "title"
-                      ? "Titre"
-                      : column.id === "price"
-                      ? "Montant"
-                      : column.id === "status"
-                      ? "Statut"
-                      : column.id === "priority"
-                      ? "Priorité"
-                      : column.id === "provider"
-                      ? "Fournisseur"
-                      : column.id === "type"
-                      ? "Type"
-                      : column.id === "createdAt"
-                      ? "Date de création"
-                      : column.id === "updatedAt"
-                      ? "Date de modification"
-                      : column.id}
+                        ? "Date de modification"
+                        : column.id === "reference"
+                          ? "Référence"
+                          : column.id === "title"
+                            ? "Titre"
+                            : column.id === "price"
+                              ? "Montant"
+                              : column.id === "status"
+                                ? "Statut"
+                                : column.id === "priority"
+                                  ? "Priorité"
+                                  : column.id === "provider"
+                                    ? "Fournisseur"
+                                    : column.id === "type"
+                                      ? "Type"
+                                      : column.id === "createdAt"
+                                        ? "Date de création"
+                                        : column.id === "updatedAt"
+                                          ? "Date de modification"
+                                          : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${
-        payments.length
-      })`}</h3>
+      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${payments.length
+        })`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -624,9 +623,9 @@ function ExpensesTableSign({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
