@@ -97,6 +97,11 @@ export type PaymentRequest = {
   projectId?: number | null;
   createdAt: string;
   updatedAt: string;
+
+  vehiclesId: number | null;
+  bankId: number | null;
+  transactionId: number | null;
+  methodId: number | null;
 };
 
 export type User = {

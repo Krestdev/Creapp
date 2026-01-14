@@ -19,8 +19,8 @@ import {
   ChevronDown,
   Clock,
   Coins,
-  DollarSign,
   Eye,
+  PenTool,
   XCircle,
 } from "lucide-react";
 import * as React from "react";
@@ -28,7 +28,6 @@ import * as React from "react";
 import { Pagination } from "@/components/base/pagination";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -55,18 +54,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
 import {
   Bank,
   BonsCommande,
   PAY_STATUS,
-  PAYMENT_TYPES,
   PaymentRequest,
   PRIORITIES,
   RequestType,
+  Signatair,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
-import ViewExpense from "./view-expense";
-import PayExpense from "./pay-expense";
+import ViewExpense from "../view-expense";
+import PayExpense from "./sign-expense";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -128,6 +128,7 @@ interface Props {
   type: "pending" | "validated";
   banks: Array<Bank>;
   requestTypes: Array<RequestType>;
+  signatair: Array<Signatair>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -177,6 +178,10 @@ function getStatusBadge(status: PaymentRequest["status"]): {
       return { label, variant: "success" };
     case "pending_depense":
       return { label, variant: "yellow" };
+    case "unsigned":
+      return { label, variant: "yellow" };
+    case "signed":
+      return { label, variant: "blue" };
     default:
       return { label, variant: "outline" };
   }
@@ -188,7 +193,23 @@ function ExpensesTableSign({
   type,
   banks,
   requestTypes,
+  signatair,
 }: Props) {
+  const { isHydrated, user } = useStore();
+
+  const canSign = (bankId: number | null, methodId: number | null) => {
+    if (bankId == null || methodId == null) {
+      return false;
+    }
+    return signatair
+      .filter(
+        (signers) => signers.bankId == bankId && signers.payTypeId == methodId
+      )
+      .at(0)
+      ?.user?.map((u) => u.id)
+      .includes(user ? user.id : -1);
+  };
+
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -226,7 +247,8 @@ function ExpensesTableSign({
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
-      status: false,
+      // status: false,
+      type: false,
       createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
@@ -292,7 +314,6 @@ function ExpensesTableSign({
       },
       cell: ({ row }) => {
         const value = row.original;
-        console.log(value.type);
         const type = getTypeBadge(value.type);
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
@@ -425,6 +446,9 @@ function ExpensesTableSign({
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
+        const cansign = canSign(item.bankId ?? -1, item.methodId ?? -1);
+
+        console.log(item.status, cansign);
 
         return (
           <DropdownMenu>
@@ -446,14 +470,14 @@ function ExpensesTableSign({
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={item.status !== "validated"}
+                disabled={!(item.status === "unsigned" && cansign)}
                 onClick={() => {
                   setSelected(item);
                   setShowPay(true);
                 }}
               >
-                <DollarSign />
-                {"Payer"}
+                <PenTool />
+                {"Signe"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -463,7 +487,7 @@ function ExpensesTableSign({
   ];
 
   const table = useReactTable({
-    data: payments,
+    data: payments.filter((x) => canSign(x.bankId, x.methodId)),
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

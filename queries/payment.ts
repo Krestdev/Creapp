@@ -169,22 +169,41 @@ class PaymentQueries {
       .then((res) => res.data);
   };
 
-  approveInvoice = async (id:number):Promise<{data: PaymentRequest}> => {
+  approveInvoice = async (id: number): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
     formData.append("status", "accepted");
-    return api.put(`${this.route}/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }).then((response)=> response.data);
-  }
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => response.data);
+  };
 
-  rejectInvoice = async ({id, reason}:{id:number, reason:string}):Promise<{data: PaymentRequest}> => {
+  validate = async (data: {
+    paymentId: number;
+    userId: number;
+  }): Promise<{ data: PaymentRequest }> => {
+    return api
+      .put(`${this.route}/validate/${data.paymentId}`, { userId: data.userId })
+      .then((response) => response.data);
+  };
+
+  rejectInvoice = async ({
+    id,
+    reason,
+  }: {
+    id: number;
+    reason: string;
+  }): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
     formData.append("status", "rejected");
     formData.append("reason", reason);
-    return api.put(`${this.route}/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }).then((response)=> response.data)
-  }
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => response.data);
+  };
 
   vaidate = async (
     id: number,
@@ -197,12 +216,14 @@ class PaymentQueries {
       if (value === undefined || value === null) return;
       formData.append(key, String(value));
     });
-    return api.put(`${this.route}/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }).then((response) => {
-      console.log(response.data);
-      return response.data;
-    });
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        console.log(response.data);
+        return response.data;
+      });
   };
 
   pay = async (
