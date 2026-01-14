@@ -211,7 +211,7 @@ function EditBank({ open, openChange, bank }: Props) {
       };
       return update.mutate(payload);
     }
-    if (type === "CASH") {
+    if (type === "CASH" || type === "CASH_REGISTER") {
       const payload: BankPayload = {
         ...rest,
         justification: justification[0],
@@ -250,6 +250,7 @@ function EditBank({ open, openChange, bank }: Props) {
                   <FormLabel isRequired>{"Intitulé du compte"}</FormLabel>
                   <FormControl>
                     <Input
+                    disabled={bank.type === "CASH_REGISTER"}
                       {...field}
                       placeholder="Ex: UBA Cameroun / Caisse Générale"
                     />

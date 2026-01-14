@@ -60,10 +60,10 @@ function Page() {
         },
       },
       {
-        title: "Caisses",
+        title: "Caisse",
         value: XAF.format(
           getBanks.data.data
-            .filter((b) => b.type === "CASH")
+            .filter((b) => b.type === "CASH" || b.type ==="CASH_REGISTER")
             .reduce((sum, bank) => sum + bank.balance, 0)
         ),
         variant: "dark",
@@ -119,7 +119,7 @@ function Page() {
             <StatisticCard key={id} {...item} />
           ))}
         </div>
-        <BankTable data={getBanks.data.data} canEdit={canEdit} />
+        <BankTable data={getBanks.data.data.filter(c=> !!c.type)} canEdit={canEdit} />
       </div>
     );
   }

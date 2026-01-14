@@ -424,7 +424,7 @@ const paymentByProvider: { data: ChartDataItem[]; config: ChartConfig } = React.
 
     const daily: Record<string, Record<string, number>> = {};
 
-    data?.data.filter(x=> x.status === "paid").forEach((payment) => {
+    filteredData.forEach((payment) => {
       const d = new Date(payment.createdAt);
       const day = d.toISOString().slice(0, 10);
       if (!daily[day]) daily[day] = {};
@@ -443,7 +443,7 @@ const paymentByProvider: { data: ChartDataItem[]; config: ChartConfig } = React.
       });
       return entry;
     });
-  }, [data]);
+  }, [filteredData]);
 
   const typeSeries: AreaChartSeries[] = PAYMENT_TYPES.map((t, i) => ({
     key: t.value,
@@ -469,7 +469,7 @@ const paymentByProvider: { data: ChartDataItem[]; config: ChartConfig } = React.
 
     const daily: Record<string, Record<string, number>> = {};
 
-    data?.data.filter(x=> x.status === "paid").forEach((payment) => {
+    filteredData.forEach((payment) => {
       const d = new Date(payment.createdAt);
       const day = d.toISOString().slice(0, 10);
       if (!daily[day]) daily[day] = {};
@@ -488,7 +488,7 @@ const paymentByProvider: { data: ChartDataItem[]; config: ChartConfig } = React.
       });
       return entry;
     });
-  }, [data]);
+  }, [filteredData]);
 
   const statusSeries: AreaChartSeries[] = PAY_STATUS.map((s, i) => ({
     key: s.value,
