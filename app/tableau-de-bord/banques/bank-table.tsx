@@ -15,7 +15,8 @@ import {
   ArrowUpDown,
   ChevronDown,
   Eye,
-  Pencil
+  Pencil,
+  Settings2
 } from "lucide-react";
 import * as React from "react";
 
@@ -47,13 +48,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { XAF } from "@/lib/utils";
+import { cn, XAF } from "@/lib/utils";
 import { Bank, BANK_TYPES } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewBank from "./viewBank";
 import EditBank from "./editBank";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface Props {
   data: Array<Bank>;
@@ -67,6 +69,8 @@ function getTypeBadge(type: Bank["type"]): { label: string; variant: VariantProp
   switch (type) {
     case "BANK":
       return { label, variant: "blue" };
+    case "CASH_REGISTER":
+      return { label, variant: "primary"}
     case "CASH":
       return { label, variant: "lime" };
     case "MOBILE_WALLET":
@@ -88,9 +92,30 @@ function BankTable({ data, canEdit }: Props) {
   });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState<"all" | "true" | "false">("all");
+  const [typeFilter, setTypeFilter] = React.useState<"all" | Bank["type"]>("all");
   const [selected, setSelected] = React.useState<Bank>();
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
+
+  const resetAllFilters = ():void =>{
+    setGlobalFilter("");
+    setStatusFilter("all");
+    setTypeFilter("all");
+  }
+
+  const filteredData:Array<Bank> = React.useMemo(()=>{
+    return data.filter(bank=>{
+      //statusFilter
+      const matchStatus =
+      statusFilter === "all" ? true : statusFilter === String(bank.Status);
+      //typeFilter
+      const matchType =
+      typeFilter === "all" ? true : typeFilter === bank.type;
+
+      return matchStatus && matchType
+    })
+  },[data, statusFilter, typeFilter]);
 
   const columns: ColumnDef<Bank>[] = [
     {
@@ -246,7 +271,7 @@ function BankTable({ data, canEdit }: Props) {
   ];
 
   const table = useReactTable({
-    data: data,
+    data: filteredData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -277,35 +302,43 @@ function BankTable({ data, canEdit }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="grid gap-1.5">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant={"outline"}>
+              <Settings2 />
+              {"Filtres"}
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les fitres pour affiner les données"}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="px-5 grid gap-5">
+              <div className="grid gap-1.5">
             <Label>{"Recherche"}</Label>
             <Input
               placeholder="Référence"
               value={globalFilter ?? ""}
               onChange={(event) => setGlobalFilter(event.target.value)}
-              className="max-w-sm"
+              className="w-full"
             />
           </div>
           <div className="grid gap-1.5">
             <Label>{"Type de compte"}</Label>
             <Select
-              value={
-                (table.getColumn("type")?.getFilterValue() as string) ?? "all"
-              }
-              onValueChange={(value) =>
-                table
-                  .getColumn("type")
-                  ?.setFilterValue(value === "all" ? "" : value)
-              }
+              value={typeFilter}
+              onValueChange={(value) =>setTypeFilter(value as "all" | Bank["type"])}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Filtrer par type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{"Tous"}</SelectItem>
                 {BANK_TYPES.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>
+                  <SelectItem key={p.name} value={p.value}>
                     {p.name}
                   </SelectItem>
                 ))}
@@ -315,16 +348,10 @@ function BankTable({ data, canEdit }: Props) {
           <div className="grid gap-1.5">
             <Label>{"Statut"}</Label>
             <Select
-              value={
-                (table.getColumn("status")?.getFilterValue() as string) ?? "all" // CORRECTION: 'priority' au lieu de 'priorite'
-              }
-              onValueChange={(value) =>
-                table
-                  .getColumn("status")
-                  ?.setFilterValue(value === "all" ? "" : value)
-              }
+              value={statusFilter}
+              onValueChange={(value) =>setStatusFilter(value as "all" | "true" | "false")}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Filtrer par statut" />
               </SelectTrigger>
               <SelectContent>
@@ -338,7 +365,19 @@ function BankTable({ data, canEdit }: Props) {
               </SelectContent>
             </Select>
           </div>
-        </div>
+              {/* Bouton pour réinitialiser les filtres */}
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={resetAllFilters}
+                  className="w-full"
+                >
+                  {"Réinitialiser"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
@@ -404,6 +443,7 @@ function BankTable({ data, canEdit }: Props) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className={cn(row.original.Status === false && "bg-red-50")}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
