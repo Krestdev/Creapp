@@ -87,10 +87,10 @@ function AppSidebar() {
   const approbationDevis =
     providers?.data?.data && cotation?.data && quotationsData?.data
       ? groupQuotationsByCommandRequest(
-        cotation?.data!,
-        quotationsData?.data!,
-        providers?.data?.data!
-      ).filter((c) => c.status === "NOT_PROCESSED")
+          cotation?.data!,
+          quotationsData?.data!,
+          providers?.data?.data!
+        ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
 
   // Récupérer toutes les catégories avec leurs validateurs
@@ -419,6 +419,12 @@ function AppSidebar() {
           href: "/tableau-de-bord/ticket/transferts",
           authorized: ["ADMIN", "VOLT_MANAGER"],
         },
+        {
+          pageId: "PG-04-03",
+          title: "Statistiques",
+          href: "/tableau-de-bord/ticket/statistiques",
+          authorized: ["ADMIN", "VOLT_MANAGER"],
+        },
       ],
     },
     {
@@ -434,7 +440,9 @@ function AppSidebar() {
           title: "Dépenses",
           href: "/tableau-de-bord/depenses",
           badgeValue:
-            approvedTicket && approvedDepense && approvedTicket?.length + approvedDepense?.length > 0
+            approvedTicket &&
+            approvedDepense &&
+            approvedTicket?.length + approvedDepense?.length > 0
               ? approvedTicket?.length + approvedDepense?.length
               : undefined,
           authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
@@ -444,6 +452,12 @@ function AppSidebar() {
           title: "Créer une dépense",
           href: "/tableau-de-bord/depenses/creer",
           authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+        },
+        {
+          pageId: "PG-23354987-01",
+          title: "Signer",
+          href: "/tableau-de-bord/depenses/sign",
+          authorized: ["ADMIN", "VOLT"],
         },
       ],
     },

@@ -84,8 +84,9 @@ class TransactionQuery {
       return response.data;
     });
   };
-  complete = async ({ id, proof }: { id: number, proof: File }): Promise<{ data: Transaction }> => {
+  complete = async ({ id, proof, date }: { id: number, proof: File; date: Date }): Promise<{ data: Transaction }> => {
     const formData = new FormData();
+    formData.append("date", String(date));
     formData.append("status", "APPROVED");
     formData.append("proof", proof);
     return api.put(`${this.route}/${id}`, formData, {

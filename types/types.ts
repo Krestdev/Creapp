@@ -61,10 +61,11 @@ export const PAY_STATUS = [
   { value: "accepted", name: "Accepté" },
   { value: "rejected", name: "Rejeté" },
   { value: "validated", name: "Approuvé" },
-  { value: "signed", name: "Signé" },
   { value: "ghost", name: "Fantome" },
   { value: "paid", name: "Payé" },
   { value: "pending_depense", name: "en attente" },
+  { value: "unsigned", name: "en attente de signatur" },
+  { value: "signed", name: "Signé" },
 ] as const;
 
 export type PaymentRequest = {
@@ -641,12 +642,15 @@ export type RequestType = {
   updatedAt?: Date;
 };
 
+type SignMode = "ONE" | "BOTH";
+
 export type Signatair = {
   id: number;
   userIds: number[];
   createdAt: Date;
   updatedAt: Date;
   bankId: number;
+  mode: SignMode;
   payTypeId: number;
   user?: User[];
   payTypes?: PayType;
