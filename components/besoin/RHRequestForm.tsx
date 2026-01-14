@@ -366,7 +366,7 @@ export default function RHRequestForm() {
             control={form.control}
             name="beneficiaire"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="col-span-2">
                 <FormLabel>
                   {"Bénéficiaire"}
                   <span className="text-red-500">*</span>

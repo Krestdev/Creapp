@@ -437,22 +437,18 @@ function AppSidebar() {
       items: [
         {
           pageId: "PG-23354987-00",
-          title: "Dépenses Tickets",
-          href: "/tableau-de-bord/depenses/tickets",
+          title: "Dépenses",
+          href: "/tableau-de-bord/depenses",
           badgeValue:
-            approvedTicket && approvedTicket?.length > 0
-              ? approvedTicket?.length
+            approvedTicket && approvedDepense && approvedTicket?.length + approvedDepense?.length > 0
+              ? approvedTicket?.length + approvedDepense?.length
               : undefined,
           authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
         },
         {
           pageId: "PG-23354987-01",
-          title: "Dépenses Courantes",
-          href: "/tableau-de-bord/depenses/courrent",
-          badgeValue:
-            approvedDepense && approvedDepense?.length > 0
-              ? approvedDepense?.length
-              : undefined,
+          title: "Créer une dépense",
+          href: "/tableau-de-bord/depenses/creer",
           authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
         },
       ],
@@ -489,7 +485,7 @@ function AppSidebar() {
       icon: SettingsIcon,
       href: "/tableau-de-bord/settings",
       authorized: ["ADMIN"],
-      title: "Parametre",
+      title: "Paramètres",
       // items: [
       //   {
       //     pageId: "PG-08",

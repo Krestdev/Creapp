@@ -110,13 +110,32 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
     () => [
       // Colonne unique pour Nom & Prénom
       {
+        accessorKey: "mark",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Marque
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("mark")}</div>
+        ),
+      },
+      {
         id: "label",
         header: ({ column }) => (
           <span
             className="tablehead cursor-pointer select-none flex items-center"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Label
+            Modèle
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </span>
         ),
@@ -134,25 +153,6 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
         },
       },
       {
-        accessorKey: "mark",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Mark
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("mark")}</div>
-        ),
-      },
-      {
         accessorKey: "matricule",
         header: ({ column }) => {
           return (
@@ -162,7 +162,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Couleur
+              Matricule
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -302,7 +302,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
             <SelectValue placeholder="Filtrer par mark" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les mark</SelectItem>
+            <SelectItem value="all">{"Toutes les marques"}</SelectItem>
             {Array.from(new Set(data.map((item) => item.mark))).map((mark) => (
               <SelectItem key={mark} value={mark}>
                 {mark}
@@ -323,8 +323,8 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
               .map((column) => {
                 let text = column.id;
                 if (column.id === "fullName") text = "Nom & Prénom";
-                else if (column.id === "email") text = "Email";
-                else if (column.id === "role") text = "Rôles";
+                else if (column.id === "label") text = "Modèle";
+                else if (column.id === "mark") text = "Marque";
                 else if (column.id === "verified") text = "Statut";
                 else if (column.id === "createdAt") text = "Date d'ajout";
                 else if (column.id === "lastConnection")
@@ -373,9 +373,9 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

@@ -214,6 +214,11 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
     }
   }
 
+
+  const typeFilter = requestTypes.map(x => {
+    return { value: x.type, label: x.label }
+  }).concat({ value: "CURRENT", label: "Dépenses courantes" })
+
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -234,28 +239,28 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
   const [showPay, setShowPay] = React.useState<boolean>(false);
 
   const columns: ColumnDef<PaymentRequest>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    // {
+    //   id: "select",
+    //   header: ({ table }) => (
+    //     <Checkbox
+    //       checked={
+    //         table.getIsAllPageRowsSelected() ||
+    //         (table.getIsSomePageRowsSelected() && "indeterminate")
+    //       }
+    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //       aria-label="Select all"
+    //     />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Checkbox
+    //       checked={row.getIsSelected()}
+    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //       aria-label="Select row"
+    //     />
+    //   ),
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
     {
       accessorKey: "reference",
       header: ({ column }) => {
@@ -475,7 +480,7 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
   ];
 
   const table = useReactTable({
-    data: payments, // CORRECTION: 'data' au lieu de 'payments'
+    data: payments,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -534,8 +539,8 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{"Tous les types"}</SelectItem>
-                {requestTypes.map((p) => (
-                  <SelectItem key={p.type} value={p.type}>
+                {typeFilter.map((p) => (
+                  <SelectItem key={p.value} value={p.value} className="uppercase">
                     {p.label}
                   </SelectItem>
                 ))}

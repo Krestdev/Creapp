@@ -66,7 +66,7 @@ export function RoleTable({ data }: RolesTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Name"}
+              {"Nom"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -211,7 +211,11 @@ export function RoleTable({ data }: RolesTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "label" ?
+                      "Nom" :
+                      column.id === "users" ?
+                        "Membres" :
+                        column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}

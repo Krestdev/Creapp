@@ -55,15 +55,16 @@ import {
 } from "@/components/ui/table";
 
 import { useFetchQuery } from "@/hooks/useData";
-import { formatToShortName, totalAmountPurchase, XAF } from "@/lib/utils";
+import { formatToShortName, paymentPercentage, totalAmountPurchase, XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
-import { BonsCommande, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
+import { BonsCommande, PaymentRequest, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
 import { format } from "date-fns";
 import EditPurchase from "./editPurchase";
 import ViewPurchase from "./viewPurchase";
 
 interface BonsCommandeTableProps {
   data: Array<BonsCommande>;
+  payments: Array<PaymentRequest> | undefined;
 }
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
@@ -109,7 +110,7 @@ const getPriorityLabel = (
   }
 };
 
-export function PurchaseTable({ data }: BonsCommandeTableProps) {
+export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
   const getUsers = useFetchQuery(["users"], userQ.getAll);
 
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -161,28 +162,6 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
   }, [data, statusFilter, priorityFilter, penaltyFilter]);
 
   const columns: ColumnDef<BonsCommande>[] = [
-    // {
-    //   id: "select",
-    //   header: ({ table }) => (
-    //     <Checkbox
-    //       checked={
-    //         table.getIsAllPageRowsSelected() ||
-    //         (table.getIsSomePageRowsSelected() && "indeterminate")
-    //       }
-    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //       aria-label="Sélectionner tout"
-    //     />
-    //   ),
-    //   cell: ({ row }) => (
-    //     <Checkbox
-    //       checked={row.getIsSelected()}
-    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-    //       aria-label="Sélectionner la ligne"
-    //     />
-    //   ),
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
 
     {
       accessorKey: "reference",
@@ -278,6 +257,23 @@ export function PurchaseTable({ data }: BonsCommandeTableProps) {
         const value = row.getValue("status") as Status;
         const { label, variant } = getStatusLabel(value);
         return <Badge variant={variant}>{label}</Badge>;
+      },
+    },
+
+    {
+      accessorKey: "payment",
+      header: () => <span className="tablehead">{"Statut de paiement"}</span>,
+      cell: ({ row }) => {
+
+        const pay = React.useMemo(() => {
+          return payments?.filter((payment) => payment.commandId === row.original.id).filter(c => c.status === "paid");
+        }, [payments, row.original]);
+
+        // Pourcentage de payement
+        const percentage = pay?.flatMap(x => x.price).reduce((a, b) => a + b, 0) ?? 0 * 100 / totalAmountPurchase(row.original);
+
+
+        return <div>{`${percentage === 0 ? percentage : percentage.toFixed(2)} %`}</div>;
       },
     },
 

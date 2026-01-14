@@ -51,7 +51,7 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
       <DialogContent className="max-w-[640px]! max-h-[650px] overflow-y-auto p-0 gap-0 overflow-x-hidden border-none flex flex-col">
         {/* Header */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8">
-          <DialogTitle className="text-xl font-semibold text-white flex items-center gap-2">
+          <DialogTitle className="text-xl font-semibold text-white flex items-center gap-2 uppercase">
             {"Utilisateur - " + user.lastName + " " + user.firstName}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">

@@ -16,7 +16,7 @@ import { CarburentForm } from "./carburent";
 
 const CreateDepensePage = () => {
   const { user } = useStore();
-  const [typeDepense, setTypeDepense] = React.useState<string>("Transport");
+  const [typeDepense, setTypeDepense] = React.useState<string>("");
 
   const userRoles = user?.role?.flatMap((x) => x.label) || [];
 
@@ -24,7 +24,7 @@ const CreateDepensePage = () => {
     switch (typeDepense) {
       case "Transport":
         return <TransportForm />;
-      case "Carburent":
+      case "Carburant":
         return <CarburentForm />;
       default:
         return null;
@@ -32,27 +32,25 @@ const CreateDepensePage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-2 mx-12">
-        <Label>{"Type de depense"}</Label>
+    <div>
+      <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 gap-4 max-w-3xl px-2 sm:px-5 md:px-8 w-full ">
+        <div className="flex flex-col gap-2">
+          <Label>{"Type de dépense"}</Label>
+          <Select onValueChange={setTypeDepense}>
+            <SelectTrigger className="w-full rounded-[4px]">
+              <SelectValue placeholder="Type de dépense" />
+            </SelectTrigger>
 
-        <Select onValueChange={setTypeDepense}>
-          <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
-            <SelectValue placeholder="Transport" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectGroup>
-              {/* Visible par tous */}
-              <SelectItem value="Transport">{"Depense Transport"}</SelectItem>
-
-              {/* Visible par tous (modifiable si depense) */}
-              <SelectItem value="Carburent">
-                {"Depense de Carburent"}
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="Transport">{"Transport"}</SelectItem>
+                <SelectItem value="Carburant">
+                  {"Carburant"}
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {renderForm()}

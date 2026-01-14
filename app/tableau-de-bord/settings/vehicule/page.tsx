@@ -10,7 +10,7 @@ import VehiclePage from "@/components/vehicle/vehiclePage";
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Créer une vehicule",
+      title: "Ajouter un véhicule",
       href: "./vehicule/create",
       hide: false,
       disabled: false,
@@ -20,8 +20,8 @@ function Page() {
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Vehicle"
-        subtitle="Consultez et gérez les vehicle."
+        title="Véhicules"
+        subtitle="Consultez et gérez les véhicules."
         color="red"
       >
         {links

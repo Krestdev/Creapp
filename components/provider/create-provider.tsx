@@ -240,7 +240,7 @@ export default function CreateProviderForm() {
           control={form.control}
           name="carte_contribuable"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="col-span-2">
               <FormLabel isRequired>{"Carte contribuable"}</FormLabel>
               <FormControl>
                 <FilesUpload
@@ -262,7 +262,7 @@ export default function CreateProviderForm() {
           control={form.control}
           name="acf"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="col-span-2">
               <FormLabel isRequired>{"ACF"}</FormLabel>
               <FormControl>
                 <FilesUpload
@@ -284,7 +284,7 @@ export default function CreateProviderForm() {
           control={form.control}
           name="plan_localisation"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="col-span-2">
               <FormLabel isRequired>{"Plan de localisation"}</FormLabel>
               <FormControl>
                 <FilesUpload
@@ -306,7 +306,7 @@ export default function CreateProviderForm() {
           control={form.control}
           name="commerce_registre"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="col-span-2">
               <FormLabel isRequired>{"registre de commerce"}</FormLabel>
               <FormControl>
                 <FilesUpload
@@ -328,7 +328,7 @@ export default function CreateProviderForm() {
           control={form.control}
           name="banck_attestation"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="col-span-2">
               <FormLabel isRequired>{"Attestation bancaire"}</FormLabel>
               <FormControl>
                 <FilesUpload

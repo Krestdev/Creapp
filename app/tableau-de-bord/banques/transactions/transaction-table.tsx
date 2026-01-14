@@ -96,7 +96,7 @@ function getTypeBadge(type: Transaction["Type"]): {
   }
 }
 
-function TransactionTable({ data, canEdit, banks,filterByType = false }: Props) {
+function TransactionTable({ data, canEdit, banks, filterByType = false }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -204,8 +204,8 @@ function TransactionTable({ data, canEdit, banks,filterByType = false }: Props) 
         amountTypeFilter === "greater"
           ? transaction.amount > amountFilter
           : amountTypeFilter === "equal"
-          ? transaction.amount === amountFilter
-          : transaction.amount < amountFilter;
+            ? transaction.amount === amountFilter
+            : transaction.amount < amountFilter;
 
       // Filtre par date
       let matchDate = true;
@@ -590,7 +590,7 @@ function TransactionTable({ data, canEdit, banks,filterByType = false }: Props) 
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
                     {
-                      banks.map((bank)=>(
+                      banks.map((bank) => (
                         <SelectItem key={bank.id} value={String(bank.id)}>{bank.label}</SelectItem>
                       ))
                     }
@@ -672,9 +672,9 @@ function TransactionTable({ data, canEdit, banks,filterByType = false }: Props) 
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy"
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            customDateRange.from,
+                            "dd/MM/yyyy"
+                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -752,14 +752,24 @@ function TransactionTable({ data, canEdit, banks,filterByType = false }: Props) 
                     {column.id === "from"
                       ? "Source"
                       : column.id === "to"
-                      ? "Destination"
-                      : column.id === "proof"
-                      ? "Preuve"
-                      : column.id === "createdAt"
-                      ? "Date"
-                      : column.id === "amount"
-                      ? "Montant"
-                      : column.id}
+                        ? "Destination"
+                        : column.id === "proof"
+                          ? "Preuve"
+                          : column.id === "createdAt"
+                            ? "Date"
+                            : column.id === "amount"
+                              ? "Montant"
+                              : column.id === "type"
+                                ? "Type"
+                                : column.id === "status"
+                                  ? "Statut"
+                                  : column.id === "bank"
+                                    ? "Banque"
+                                    : column.id === "ref"
+                                      ? "Référence"
+                                      : column.id === "label"
+                                        ? "Libellé"
+                                        : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -781,9 +791,9 @@ function TransactionTable({ data, canEdit, banks,filterByType = false }: Props) 
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

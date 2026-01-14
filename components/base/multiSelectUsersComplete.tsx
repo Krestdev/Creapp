@@ -13,6 +13,7 @@ type Props = {
   onChange: (list: User[]) => void;
   display: "user" | "request";
   className?: string;
+  placeholder?: string;
 };
 
 export default function MultiSelectUsers({
@@ -21,6 +22,7 @@ export default function MultiSelectUsers({
   onChange,
   display,
   className,
+  placeholder = "Aucun utilisateur selectionné",
 }: Props) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -66,9 +68,8 @@ export default function MultiSelectUsers({
       ref={dropdownRef}
     >
       <div
-        className={`relative ${
-          display === "user" && "p-3 border"
-        } rounded-lg flex flex-wrap gap-2 items-center`}
+        className={`relative ${display === "user" && "p-3 border"
+          } rounded-lg flex flex-wrap gap-2 items-center`}
       >
         {/* Tags */}
         {display === "user" &&
@@ -88,7 +89,7 @@ export default function MultiSelectUsers({
             ))
           ) : (
             <span className="text-gray-500">
-              {"Aucun utilisateur selectionné"}
+              {placeholder}
             </span>
           ))}
 
@@ -96,9 +97,8 @@ export default function MultiSelectUsers({
           variant={"ghost"}
           type="button"
           onClick={() => setOpen(!open)}
-          className={`${
-            display === "user" ? "ml-auto" : "mx-auto w-full border"
-          }`}
+          className={`${display === "user" ? "ml-auto" : "mx-auto w-full border"
+            }`}
         >
           {display === "request" ? "Ajouter un besoin" : ""}
           <LucidePlus

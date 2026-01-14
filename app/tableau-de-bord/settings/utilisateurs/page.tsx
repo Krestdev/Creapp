@@ -9,13 +9,13 @@ import { cn } from "@/lib/utils";
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Créer une dépense",
+      title: "Créer un utilisateur",
       href: "./utilisateurs/create",
       hide: false,
       disabled: false,
     },
     {
-      title: "Roles d'utilisateur",
+      title: "Rôles",
       href: "./utilisateurs/roles",
       hide: false,
       disabled: false,

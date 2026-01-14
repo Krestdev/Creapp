@@ -42,128 +42,135 @@ export default function SettingsPage() {
       }[];
     }[];
   }[] = [
-    {
-      category: "Gestion",
-      items: [
-        {
-          title: "Utilisateurs",
-          description: "Geres les Utilisateurs",
-          icon: Users,
-          href: "/tableau-de-bord/settings/utilisateurs",
-          color: "from-purple-500 to-purple-600",
-          items: [
-            {
-              pageId: "PG-08-01",
-              title: "Liste de utilisateur",
-              href: "/tableau-de-bord/settings/utilisateurs",
-              authorized: ["ADMIN"],
-            },
-            {
-              pageId: "PG-08-02",
-              title: "Cree un utilisateur",
-              href: "/tableau-de-bord/settings/utilisateurs/create",
-              authorized: ["ADMIN"],
-            },
-            {
-              pageId: "PG-08-03",
-              title: "Roles d'utilisateur",
-              href: "/tableau-de-bord/settings/utilisateurs/roles",
-              authorized: ["ADMIN"],
-            },
-          ],
-        },
-        {
-          title: "Signatairs",
-          description: "Geres les fourniseur",
-          icon: Stamp,
-          href: "/tableau-de-bord/settings/signatairs",
-          color: "from-green-500 to-green-600",
-          items: [
-            {
-              pageId: "PG-08-02",
-              title: "Liste des Signatairs",
-              href: "/tableau-de-bord/settings/signatairs",
-              authorized: ["ADMIN"],
-            },
-            {
-              pageId: "PG-08-01",
-              title: "Assigner un Signatair",
-              href: "/tableau-de-bord/settings/signatairs/create",
-              authorized: ["ADMIN"],
-            },
-          ],
-        },
-        {
-          title: "Fournisseurs",
-          description: "Geres les fourniseur",
-          icon: Building2,
-          href: "/tableau-de-bord/settings/provider",
-          color: "from-amber-500 to-amber-600",
-          items: [
-            {
-              pageId: "PG-08-02",
-              title: "Liste des fournisseurs",
-              href: "/tableau-de-bord/settings/provider",
-              authorized: ["ADMIN"],
-            },
-            {
-              pageId: "PG-08-01",
-              title: "Créer un fournisseur",
-              href: "/tableau-de-bord/settings/provider/create",
-              authorized: ["ADMIN"],
-            },
-          ],
-        },
-        {
-          title: "Besoins",
-          description: "Geres les besoins",
-          icon: Box,
-          href: "/tableau-de-bord/settings/besoins",
-          color: "from-yellow-500 to-yellow-600",
-          items: [
-            {
-              pageId: "PG-08-02",
-              title: "Types de besoins",
-              href: "/tableau-de-bord/settings/type-de-besoins",
-              authorized: ["ADMIN"],
-            },
-            {
-              pageId: "PG-08-01",
-              title: "Liste des catégories",
-              href: "/tableau-de-bord/settings/categories",
-              authorized: ["ADMIN"],
-            },
-          ],
-        },
-        {
-          title: "Signatair",
-          description: "Assigner les signatair",
-          icon: UserPenIcon,
-          href: "/tableau-de-bord/settings/signatairs",
-          color: "from-red-500 to-red-600",
-        },
-      ],
-    },
-    {
-      category: "Système",
-      items: [
-        {
-          title: "Notifications",
-          description: "Email and notification preferences",
-          icon: Bell,
-          href: "/tableau-de-bord/settings/notifications",
-          color: "from-cyan-500 to-cyan-600",
-        },
-        {
-          title: "Véhicule",
-          description: "Enregistrement des vehicule",
-          icon: Car,
-          href: "/tableau-de-bord/settings/vehicule",
-          color: "from-indigo-500 to-indigo-600",
-        },
-      ],
-    },
-  ];
+      {
+        category: "Général",
+        items: [
+          {
+            title: "Utilisateurs",
+            description: "Gérer les utilisateurs",
+            icon: Users,
+            href: "/tableau-de-bord/settings/utilisateurs",
+            color: "from-purple-500 to-purple-600",
+            items: [
+              {
+                pageId: "PG-08-01",
+                title: "Liste",
+                href: "/tableau-de-bord/settings/utilisateurs",
+                authorized: ["ADMIN"],
+              },
+              {
+                pageId: "PG-08-02",
+                title: "Ajouter",
+                href: "/tableau-de-bord/settings/utilisateurs/create",
+                authorized: ["ADMIN"],
+              },
+              {
+                pageId: "PG-08-03",
+                title: "Rôles",
+                href: "/tableau-de-bord/settings/utilisateurs/roles",
+                authorized: ["ADMIN"],
+              },
+            ],
+          },
+          {
+            title: "Signataires",
+            description: "Gérer les signataires",
+            icon: Stamp,
+            href: "/tableau-de-bord/settings/signataires",
+            color: "from-green-500 to-green-600",
+            items: [
+              {
+                pageId: "PG-08-02",
+                title: "Liste",
+                href: "/tableau-de-bord/settings/signatairs",
+                authorized: ["ADMIN"],
+              },
+              {
+                pageId: "PG-08-01",
+                title: "Configurer les signataires",
+                href: "/tableau-de-bord/settings/signatairs/create",
+                authorized: ["ADMIN"],
+              },
+            ],
+          },
+          {
+            title: "Fournisseurs",
+            description: "Gérer les fournisseurs",
+            icon: Building2,
+            href: "/tableau-de-bord/settings/provider",
+            color: "from-amber-500 to-amber-600",
+            items: [
+              {
+                pageId: "PG-08-02",
+                title: "Liste",
+                href: "/tableau-de-bord/settings/provider",
+                authorized: ["ADMIN"],
+              },
+              {
+                pageId: "PG-08-01",
+                title: "Ajouter",
+                href: "/tableau-de-bord/settings/provider/create",
+                authorized: ["ADMIN"],
+              },
+            ],
+          },
+          {
+            title: "Besoins",
+            description: "Gérer les besoins",
+            icon: Box,
+            href: "/tableau-de-bord/settings/besoins",
+            color: "from-yellow-500 to-yellow-600",
+            items: [
+              {
+                pageId: "PG-08-02",
+                title: "Types",
+                href: "/tableau-de-bord/settings/type-de-besoins",
+                authorized: ["ADMIN"],
+              },
+              {
+                pageId: "PG-08-01",
+                title: "Catégories",
+                href: "/tableau-de-bord/settings/categories",
+                authorized: ["ADMIN"],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        category: "Système",
+        items: [
+          // {
+          //   title: "Notifications",
+          //   description: "Email et notification de preferences",
+          //   icon: Bell,
+          //   href: "/tableau-de-bord/settings/notifications",
+          //   color: "from-cyan-500 to-cyan-600",
+          // },
+          {
+            title: "Véhicules",
+            description: "Enregistrement des véhicules",
+            icon: Car,
+            href: "/tableau-de-bord/settings/vehicule",
+            color: "from-indigo-500 to-indigo-600",
+            items: [
+              {
+                pageId: "PG-08-02",
+                title: "Liste",
+                href: "/tableau-de-bord/settings/vehicule",
+                authorized: ["ADMIN"],
+              },
+              {
+                pageId: "PG-08-01",
+                title: "Ajouter",
+                href: "/tableau-de-bord/settings/vehicule/create",
+                authorized: ["ADMIN"],
+              },
+            ],
+          },
+        ],
+      },
+    ];
 
   return (
     <main className="min-h-screen">
