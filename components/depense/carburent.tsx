@@ -40,6 +40,8 @@ import {
   FormMessage,
 } from "../ui/form";
 import ViewDepense from "./viewDepense";
+import { payTypeQ } from "@/queries/payType";
+import { useFetchQuery } from "@/hooks/useData";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -139,6 +141,8 @@ export function CarburentForm() {
     queryFn: bankQ.getAll,
   });
 
+  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
+
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
     const payment: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> = {
       title: data.title,
@@ -150,7 +154,7 @@ export function CarburentForm() {
       justification: data.Justificatif,
       status: "paid",
       type: "CURRENT",
-      method: "cash",
+      methodId: getPaymentType.data?.data.find((item) => item.type === "cash")?.id!,
       priority: "medium",
       isPartial: false,
       userId: user!.id,

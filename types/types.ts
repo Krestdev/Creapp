@@ -662,4 +662,5 @@ export type Signatair = {
 export type PayType = {
   id: number;
   label: string | null;
+  type?: string;
 };
