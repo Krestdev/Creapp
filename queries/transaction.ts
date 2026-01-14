@@ -24,6 +24,7 @@ export interface TransferProps
   > {
   fromBankId: number;
   toBankId: number;
+  isDirect: boolean;
 }
 
 export interface StatusUpdateProps {
@@ -145,6 +146,7 @@ class TransactionQuery {
     formData.append("userId", String(data.userId));
     formData.append("fromBankId", String(data.fromBankId));
     formData.append("toBankId", String(data.toBankId));
+    if(data.isDirect === true) formData.append("status", "APPROVED");
 
     return api
       .post(this.route, formData, {
