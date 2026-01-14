@@ -75,7 +75,7 @@ export type PaymentRequest = {
   justification?: (string | File)[];
   status: (typeof PAY_STATUS)[number]["value"];
   type: (typeof PAYMENT_TYPES)[number]["value"];
-  method: (typeof PAYMENT_METHOD)[number]["value"];
+  methodId: number;
   deadline: Date;
   title: string;
   description?: string;
@@ -542,6 +542,7 @@ export const BANK_TYPES = [
   { value: "BANK", name: "Banque" },
   { value: "CASH", name: "Caisse" },
   { value: "MOBILE_WALLET", name: "Portefeuille Mobile" },
+  { value: "null", name: "Aucun" }
 ] as const;
 
 export type Bank = {

@@ -25,14 +25,15 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useFetchQuery } from "@/hooks/useData";
 import { totalAmountPurchase, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
+import { payTypeQ } from "@/queries/payType";
+import { purchaseQ } from "@/queries/purchase-order";
 import {
   BonsCommande,
-  CommandRequestT,
   PAYMENT_METHOD,
-  PaymentRequest,
   PRIORITIES,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,10 +47,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
-const METHOD = PAYMENT_METHOD.map((m) => m.value) as [
-  (typeof PAYMENT_METHOD)[number]["value"],
-  ...(typeof PAYMENT_METHOD)[number]["value"][]
-];
 const PAY_PRIORITY = PRIORITIES.map((m) => m.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][]
@@ -66,7 +63,7 @@ const formSchema = z.object({
   ),
   isPartial: z.boolean(),
   price: z.number({ message: "Veuillez renseigner un montant" }),
-  method: z.enum(METHOD),
+  method: z.string().min(1, "Ce champs est requis"),
   priority: z.enum(PAY_PRIORITY),
   proof: z
     .array(
@@ -94,6 +91,8 @@ function CreatePaiement({ purchases }: Props) {
   const [dueDate, setDueDate] = React.useState<boolean>(false);
   const today = new Date(); //On part sur 3 jours de delai de base :)
   today.setDate(today.getDate() + 3);
+
+  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -153,7 +152,7 @@ function CreatePaiement({ purchases }: Props) {
       });
     }
     const payload: NewPayment = {
-      method: values.method,
+      methodId: Number(values.method),
       type: "achat",
       deadline: new Date(values.deadline),
       title: purchase.devi.commandRequest.title,
@@ -181,6 +180,15 @@ function CreatePaiement({ purchases }: Props) {
     }
   }, [commandId]);
 
+  const getPayments = useFetchQuery(["payments"], paymentQ.getAll, 15000);
+  const getPurchases = useFetchQuery(
+    ["purchaseOrders"],
+    purchaseQ.getAll,
+    15000
+  );
+
+  const payments = getPayments.data?.data;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
@@ -205,11 +213,23 @@ function CreatePaiement({ purchases }: Props) {
                         {"Aucune demande enregistrée"}
                       </SelectItem>
                     ) : (
-                      purchases.map((request) => (
-                        <SelectItem key={request.id} value={String(request.id)}>
-                          {request.devi.commandRequest.title}
-                        </SelectItem>
-                      ))
+                      purchases.map((request) => {
+
+
+                        const pay = React.useMemo(() => {
+                          return payments?.filter((payment) => payment.commandId === request.id).filter(c => c.status === "paid");
+                        }, [payments, request]);
+                        const paid = pay?.flatMap(x => x.price).reduce((a, b) => a + b, 0) ?? 0;
+                        const total = totalAmountPurchase(request);
+
+                        const diff = total - paid;
+                        return (
+                          diff > 0 &&
+                          <SelectItem key={request.id} value={String(request.id)}>
+                            {request.devi.commandRequest.title}
+                          </SelectItem>
+                        )
+                      })
                     )}
                   </SelectContent>
                 </Select>
@@ -323,9 +343,16 @@ function CreatePaiement({ purchases }: Props) {
           name="price"
           render={({ field }) => {
             const purchase = purchases.find((p) => p.id === commandId);
+            const pay = React.useMemo(() => {
+              return payments?.filter((payment) => payment.commandId === purchase?.id).filter(c => c.status === "paid");
+            }, [payments, purchase]);
+            const paid = pay?.flatMap(x => x.price).reduce((a, b) => a + b, 0) ?? 0;
+            const total = purchase ? totalAmountPurchase(purchase) : 0;
+
+            const diff = total - paid;
             return (
               <FormItem>
-                <FormLabel isRequired>{'Montant'}<span className="text-xs text-red-500">(Reste à payer : {purchase ? XAF.format(totalAmountPurchase(purchase!)) : 0})</span></FormLabel>
+                <FormLabel isRequired>{'Montant'}<span className="text-xs text-red-500">(Reste à payer : {XAF.format(diff ? diff : 0)})</span></FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -366,9 +393,9 @@ function CreatePaiement({ purchases }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PAYMENT_METHOD.map((method) => (
-                      <SelectItem key={method.value} value={method.value}>
-                        {method.name}
+                    {getPaymentType.data?.data.map((method) => (
+                      <SelectItem key={method.id} value={String(method.id)}>
+                        {method.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

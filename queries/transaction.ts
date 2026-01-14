@@ -13,6 +13,7 @@ export interface TransactionProps
   to?: source;
   fromBankId?: number;
   toBankId?: number;
+  paymentId: number
 }
 
 export interface TransferProps
@@ -49,6 +50,7 @@ class TransactionQuery {
     formData.append("Type", payload.Type);
     formData.append("date", String(payload.date));
     formData.append("userId", String(payload.userId));
+    formData.append("paymentId", String(payload.paymentId));
     if (payload.from) formData.append("from", JSON.stringify(payload.from));
     if (payload.fromBankId)
       formData.append("fromBankId", String(payload.fromBankId));

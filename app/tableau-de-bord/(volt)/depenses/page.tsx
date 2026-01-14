@@ -36,6 +36,10 @@ function Page() {
         },
         {
             id: 1,
+            title: "Tickets signés"
+        },
+        {
+            id: 2,
             title: "Tickets payés"
         }
     ]
@@ -127,6 +131,9 @@ function Page() {
             },
         ];
 
+        console.log(data.data);
+
+
         return (
             <div className="content">
                 <PageTitle
@@ -173,16 +180,25 @@ function Page() {
                         type="pending"
                         purchases={getPurchases.data.data}
                         requestTypes={getRequestType.data.data}
-                    /> :
-                    <ExpensesTable
-                        payments={data.data.filter(
-                            (p) => p.status === "paid" || p.status === "validated"
-                        )}
-                        type="validated"
-                        banks={getBanks.data.data}
-                        purchases={getPurchases.data.data}
-                        requestTypes={getRequestType.data.data}
-                    />}
+                    /> : selectedTab === 1 ?
+                        <ExpensesTable
+                            payments={data.data.filter(
+                                (p) => p.status === "signed"
+                            )}
+                            type="signed"
+                            banks={getBanks.data.data}
+                            purchases={getPurchases.data.data}
+                            requestTypes={getRequestType.data.data}
+                        /> :
+                        <ExpensesTable
+                            payments={data.data.filter(
+                                (p) => p.status === "paid"
+                            )}
+                            type="paid"
+                            banks={getBanks.data.data}
+                            purchases={getPurchases.data.data}
+                            requestTypes={getRequestType.data.data}
+                        />}
             </div>
         );
     }

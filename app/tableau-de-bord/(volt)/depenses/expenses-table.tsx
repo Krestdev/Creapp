@@ -124,7 +124,7 @@ const statusConfig = {
 interface Props {
   payments: Array<PaymentRequest>;
   purchases: Array<BonsCommande>;
-  type: "pending" | "validated";
+  type: "pending" | "paid" | "signed";
   banks: Array<Bank>;
   requestTypes: Array<RequestType>;
 }
@@ -624,7 +624,7 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${payments.length
+      <h3>{`Tickets ${type === "pending" ? "en attente" : type === "signed" ? "signés" : "payés"} (${payments.length
         })`}</h3>
       <div className="rounded-md border">
         <Table>

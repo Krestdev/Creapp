@@ -15,7 +15,7 @@ export type CreatePurchasePayload = {
   > & {
     instalments: Array<{
       percentage: number;
-      deadLine?: string;
+      deadLine?: Date | undefined;
     }>;
   };
   ids: Array<number>;

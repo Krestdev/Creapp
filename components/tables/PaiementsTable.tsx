@@ -56,6 +56,7 @@ import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
 import { Label } from "../ui/label";
 import EditPayment from "@/app/tableau-de-bord/(sales)/commande/paiements/edit-payment";
+import { format } from "date-fns";
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -139,7 +140,9 @@ export function PaiementsTable({ payments, purchases }: Props) {
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      createdAt: false,
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
@@ -290,6 +293,23 @@ export function PaiementsTable({ payments, purchases }: Props) {
       },
     },
     {
+      accessorKey: "createdAt",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Date de creation"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium">{format(row.getValue("createdAt"), "dd/MM/yyyy")}</div>
+      ),
+    },
+    {
       id: "actions",
       header: () => <span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
@@ -321,11 +341,14 @@ export function PaiementsTable({ payments, purchases }: Props) {
                   setSelected(item);
                   setShowUpdateModal(true);
                 }}
+                disabled={item.status !== "pending"}
               >
                 <LucidePen />
                 {"Modifier"}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
+              <DropdownMenuItem
+                onClick={() => console.log("Reject", item)}
+                disabled={item.status !== "pending"}>
                 <Trash />
                 {"Annuler"}
               </DropdownMenuItem>
@@ -445,7 +468,21 @@ export function PaiementsTable({ payments, purchases }: Props) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "createdAt" ?
+                      "Date de creation" :
+                      column.id === "status" ?
+                        "Statut" :
+                        column.id === "piority" ?
+                          "Priorité" :
+                          column.id === "price" ?
+                            "Montant" :
+                            column.id === "commandId" ?
+                              "Bon de commande" :
+                              column.id === "provider" ?
+                                "Zournisseur" :
+                                column.id === "reference" ?
+                                  "Reference" : column.id
+                    }
                   </DropdownMenuCheckboxItem>
                 );
               })}

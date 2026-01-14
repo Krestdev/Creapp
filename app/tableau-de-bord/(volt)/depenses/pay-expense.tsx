@@ -99,7 +99,12 @@ function PayExpense({ ticket, open, onOpenChange, banks }: Props) {
         queryKey: ["banks", "transactions"],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["payments"],
+        refetchType: "active",
+      });
       toast.success("Votre transaction a été enregistrée avec succès !");
+      onOpenChange(false);
       // router.push("./");
     },
     onError: (error: Error) => {
@@ -115,12 +120,14 @@ function PayExpense({ ticket, open, onOpenChange, banks }: Props) {
       date: new Date(date),
       amount: ticket.price,
       userId: user?.id ?? 0,
+      paymentId: ticket.id,
       to,
       fromBankId,
       proof,
     };
     pay.mutate(payload);
   }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
@@ -229,7 +236,7 @@ function PayExpense({ ticket, open, onOpenChange, banks }: Props) {
                             <SelectValue placeholder="Sélectionner un compte" />
                           </SelectTrigger>
                           <SelectContent>
-                            {banks.map((bank) => (
+                            {banks.filter(x => x.type !== null).map((bank) => (
                               <SelectItem key={bank.id} value={String(bank.id)}>
                                 {bank.label}
                               </SelectItem>
