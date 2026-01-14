@@ -1,15 +1,15 @@
 "use client";
 import {
-    type ColumnDef,
-    type ColumnFiltersState,
-    type SortingState,
-    type VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, CheckCircleIcon, ChevronDown, Eye, Pencil, Settings2 } from "lucide-react";
 import * as React from "react";
@@ -19,57 +19,58 @@ import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
-    Bank,
-    DateFilter,
-    Transaction,
-    TRANSACTION_STATUS,
-    TransferTransaction
+  Bank,
+  DateFilter,
+  Transaction,
+  TRANSACTION_STATUS,
+  TransferTransaction
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewTransaction from "../view-transaction";
 import CompleteTransfer from "./complete-transfer";
+import { EditTransferDialog } from "./updateDialog";
 
 interface Props {
   data: Array<Transaction>;
@@ -79,7 +80,9 @@ interface Props {
 
 function TransferTable({ data, banks }: Props) {
   const { user } = useStore();
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -179,8 +182,8 @@ function TransferTable({ data, banks }: Props) {
         amountTypeFilter === "greater"
           ? transaction.amount > amountFilter
           : amountTypeFilter === "equal"
-          ? transaction.amount === amountFilter
-          : transaction.amount < amountFilter;
+            ? transaction.amount === amountFilter
+            : transaction.amount < amountFilter;
 
       // Filtre par date
       let matchDate = true;
@@ -341,7 +344,7 @@ function TransferTable({ data, banks }: Props) {
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Date"}
+            {"Date demande"}
             <ArrowUpDown />
           </span>
         );
@@ -351,6 +354,28 @@ function TransferTable({ data, banks }: Props) {
         return (
           <span>
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "date",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Date transaction"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.date;
+        return (
+          <span>
+            {row.original.status === "APPROVED" ? format(new Date(value), "dd MMMM yyyy, p", { locale: fr }) : "-"}
           </span>
         );
       },
@@ -400,26 +425,26 @@ function TransferTable({ data, banks }: Props) {
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
-                <DropdownMenuItem
+              <DropdownMenuItem
                 disabled={item.status !== "PENDING"}
-                  onClick={() => {
-                    setSelected(item);
-                    setEdit(true);
-                  }}
-                >
-                  <Pencil />
-                  {"Modifier"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setEdit(true);
+                }}
+              >
+                <Pencil />
+                {"Modifier"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 disabled={item.status !== "ACCEPTED"}
-                  onClick={() => {
-                    setSelected(item);
-                    setComplete(true);
-                  }}
-                >
-                  <CheckCircleIcon className="text-green-600" />
-                  {"Exécuter le transfert"}
-                </DropdownMenuItem>
+                onClick={() => {
+                  setSelected(item);
+                  setComplete(true);
+                }}
+              >
+                <CheckCircleIcon className="text-green-600" />
+                {"Exécuter le transfert"}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -527,7 +552,7 @@ function TransferTable({ data, banks }: Props) {
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
                     {
-                      banks.map((bank)=>(
+                      banks.map((bank) => (
                         <SelectItem key={bank.id} value={String(bank.id)}>{bank.label}</SelectItem>
                       ))
                     }
@@ -609,9 +634,9 @@ function TransferTable({ data, banks }: Props) {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy"
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            customDateRange.from,
+                            "dd/MM/yyyy"
+                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -689,14 +714,20 @@ function TransferTable({ data, banks }: Props) {
                     {column.id === "from"
                       ? "Source"
                       : column.id === "to"
-                      ? "Destination"
-                      : column.id === "proof"
-                      ? "Preuve"
-                      : column.id === "createdAt"
-                      ? "Date"
-                      : column.id === "amount"
-                      ? "Montant"
-                      : column.id}
+                        ? "Destination"
+                        : column.id === "proof"
+                          ? "Preuve"
+                          : column.id === "createdAt"
+                            ? "Date demande"
+                            : column.id === "date"
+                              ? "Date transaction"
+                              : column.id === "amount"
+                                ? "Montant"
+                                : column.id === "label"
+                                  ? "Libellé"
+                                  : column.id === "status"
+                                    ? "Statut"
+                                    : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -718,9 +749,9 @@ function TransferTable({ data, banks }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -763,14 +794,22 @@ function TransferTable({ data, banks }: Props) {
 
       <Pagination table={table} />
       {selected && (
-        <ViewTransaction
-          transaction={selected}
-          open={view}
-          openChange={setView}
-        />
+        <>
+          <ViewTransaction
+            transaction={selected}
+            open={view}
+            openChange={setView}
+          />
+
+          <EditTransferDialog
+            open={edit}
+            onOpenChange={setEdit}
+            transfer={selected}
+          />
+        </>
       )}
       {/* {selected && <EditTransaction transaction={selected} open={edit} openChange={setEdit} />} */}
-      {selected && <CompleteTransfer transaction={selected as TransferTransaction} open={complete} openChange={setComplete}  />}
+      {selected && <CompleteTransfer transaction={selected as TransferTransaction} open={complete} openChange={setComplete} />}
     </div>
   );
 }

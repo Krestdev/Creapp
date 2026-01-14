@@ -14,10 +14,12 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
+  Check,
   CheckCircle,
   ChevronDown,
   Eye,
   LucidePen,
+  LucideX,
   Search,
   Shield,
   Trash2,
@@ -331,7 +333,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Statut
+              {"Etat"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -346,6 +348,39 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             >
               {getStatutIcon(status)}
               {TranslateStatus(status)}
+            </Badge>
+          );
+        },
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue || filterValue === "all") return true;
+          if (filterValue === "true") return row.getValue(columnId) === true;
+          if (filterValue === "false") return row.getValue(columnId) === false;
+          return true;
+        },
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Statut
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          const status = row.getValue("status");
+          return (
+            <Badge
+              variant={status === "active" ? "success" : "destructive"}
+            >
+              {status === "active" ? <Check /> : <LucideX />}
+              {status === "active" ? "Actif" : "Suspendu"}
             </Badge>
           );
         },
@@ -677,9 +712,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

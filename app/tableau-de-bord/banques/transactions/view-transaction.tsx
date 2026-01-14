@@ -41,7 +41,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
   };
 
   const getTypeBadgeVariant = (type: Transaction["Type"]) => {
-    switch(type) {
+    switch (type) {
       case "CREDIT":
         return "success";
       case "DEBIT":
@@ -53,8 +53,8 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
     }
   };
 
-  const getStatusBadge = (status: Transaction["status"]):{label: string; variant: VariantProps<typeof badgeVariants>["variant"]} =>{
-    const label = TRANSACTION_STATUS.find(t=> t.value === status)?.name ?? "Inconnu";
+  const getStatusBadge = (status: Transaction["status"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } => {
+    const label = TRANSACTION_STATUS.find(t => t.value === status)?.name ?? "Inconnu";
     switch (status) {
       case "APPROVED":
         return { label, variant: "success" };
@@ -74,7 +74,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
           <DialogTitle>{transaction.label}</DialogTitle>
           <DialogDescription>{"Détails de la transaction"}</DialogDescription>
         </DialogHeader>
-        
+
         <div className='grid gap-4 @min-[540px]/dialog:grid-cols-2'>
           {/** Référence */}
           <div className="view-group">
@@ -98,7 +98,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Montant"}</p>
-              <p className={`font-semibold ${transaction.Type === "CREDIT" ? "text-green-600" : transaction.Type==="DEBIT" && "text-red-600"}`}>
+              <p className={`font-semibold ${transaction.Type === "CREDIT" ? "text-green-600" : transaction.Type === "DEBIT" && "text-red-600"}`}>
                 {XAF.format(transaction.amount)}
               </p>
             </div>
@@ -151,8 +151,8 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">
-                {transaction.Type === "CREDIT" ? "Source" : 
-                 transaction.Type === "DEBIT" ? "Compte débité" : "Compte d'origine"}
+                {transaction.Type === "CREDIT" ? "Source" :
+                  transaction.Type === "DEBIT" ? "Compte débité" : "Compte d'origine"}
               </p>
               <div className='space-y-0.5'>
                 <p className='font-semibold'>{transaction.from.label}</p>
@@ -170,8 +170,8 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">
-                {transaction.Type === "CREDIT" ? "Compte crédité" : 
-                 transaction.Type === "DEBIT" ? "Destination" : "Compte destinataire"}
+                {transaction.Type === "CREDIT" ? "Compte crédité" :
+                  transaction.Type === "DEBIT" ? "Destination" : "Compte destinataire"}
               </p>
               <div className='space-y-0.5'>
                 <p className='font-semibold'>{transaction.to.label}</p>
@@ -190,29 +190,28 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             <div className="flex flex-col">
               <p className="view-group-title">{"Preuve de transaction"}</p>
               <div className="space-y-1">
-                {transaction.proof ? 
-                transaction.proof.split(";").map((proof, index) => (
-                  <Link
-                  key={index}
-                    href={`${
-                      process.env.NEXT_PUBLIC_API
-                    }/uploads/${encodeURIComponent(proof)}`}
-                    target="_blank"
-                    className="flex gap-0.5 items-center"
-                  >
-                    <img
-                      src="/images/pdf.png"
-                      alt="preuve"
-                      className="h-7 w-auto aspect-square"
-                    />
-                    <p className="text-foreground font-medium">
-                      {"Document de preuve"}
-                    </p>
-                  </Link>
-                ))
-                : (
-                  <p className='italic'>{"Aucune preuve jointe"}</p>
-                )}
+                {transaction.proof ?
+                  transaction.proof.split(";").map((proof, index) => (
+                    <Link
+                      key={index}
+                      href={`${process.env.NEXT_PUBLIC_API
+                        }/uploads/${encodeURIComponent(proof)}`}
+                      target="_blank"
+                      className="flex gap-0.5 items-center"
+                    >
+                      <img
+                        src="/images/pdf.png"
+                        alt="preuve"
+                        className="h-7 w-auto aspect-square"
+                      />
+                      <p className="text-foreground font-medium">
+                        {"Document de preuve"}
+                      </p>
+                    </Link>
+                  ))
+                  : (
+                    <p className='italic'>{"Aucune preuve jointe"}</p>
+                  )}
               </div>
             </div>
           </div>
@@ -223,7 +222,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
               <Calendar />
             </span>
             <div className="flex flex-col">
-              <p className="view-group-title">{"Date de la transaction"}</p>
+              <p className="view-group-title">{"Date de la demande"}</p>
               <p className="font-semibold">
                 {format(new Date(transaction.createdAt), "dd MMMM yyyy, p", {
                   locale: fr,
@@ -231,6 +230,21 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
               </p>
             </div>
           </div>
+          {/** Date de création */}
+          {transaction.status === "APPROVED" &&
+            <div className="view-group">
+              <span className="view-icon">
+                <Calendar />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Date de la transaction"}</p>
+                <p className="font-semibold">
+                  {format(new Date(transaction.date), "dd MMMM yyyy, p", {
+                    locale: fr,
+                  })}
+                </p>
+              </div>
+            </div>}
         </div>
 
         <DialogFooter>

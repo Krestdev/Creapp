@@ -31,7 +31,9 @@ const statisticVariants = cva(
         secondary: "bg-secondary-600 border border-secondary-200 text-white",
         dark: "bg-gray-900 border border-input text-white",
         destructive: "bg-[#9E1315] border border-red-200 text-white",
-        success: "bg-[#15803D] border border-green-200 text-white"
+        success: "bg-[#15803D] border border-green-200 text-white",
+        amber: "bg-amber-600 border border-amber-200 text-white",
+        blue: "bg-blue-600 border border-blue-200 text-white"
       },
     },
     defaultVariants: {

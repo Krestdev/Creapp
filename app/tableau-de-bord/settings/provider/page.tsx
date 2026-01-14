@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Créer une dépense",
+      title: "Créer un fournisseur",
       href: "./utilisateurs/create",
       hide: false,
       disabled: false,

@@ -192,7 +192,7 @@ export default function FilesUpload({
     <div className="w-full max-w-full flex flex-col gap-4">
       {/* Drop area */}
       <div
-        className="relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-input px-4 py-2 transition-colors data-[dragging=true]:border-primary data-[dragging=true]:bg-primary/5"
+        className="relative flex flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-input px-4 py-2 transition-colors data-[dragging=true]:border-primary data-[dragging=true]:bg-primary/5"
         data-dragging={isDragging || undefined}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
@@ -217,19 +217,19 @@ export default function FilesUpload({
             </p>
             <p>{"ou"}</p>
           </div> */}
-            <p className="font-medium font-mono">
-              {"Glissez-déposez vos fichiers ici ou "}
-          <Button
-            onClick={(e) => {
-              e.preventDefault();
-              openFileDialog();
-            }}
-            variant="outline"
-            size={"sm"}
-          >
-            {"Parcourir les fichiers"}
-          </Button>
-            </p>
+          <p className="font-medium font-mono text-[14px]">
+            {"Glissez-déposez vos fichiers ici ou "}
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                openFileDialog();
+              }}
+              variant="outline"
+              size={"sm"}
+            >
+              {"Parcourir les fichiers"}
+            </Button>
+          </p>
 
           <p className="text-xs text-gray-400">
             {acceptTypes === "images" && `PNG, JPG, GIF jusqu'à ${maxSizeMB}MB`}

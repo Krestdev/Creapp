@@ -15,7 +15,7 @@ function Page() {
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Catégories"
+        title="Catégories besoins"
         subtitle="Consultez la liste des catégories."
         color="red"
       >

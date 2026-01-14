@@ -25,7 +25,7 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { totalAmountPurchase } from "@/lib/utils";
+import { totalAmountPurchase, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
 import {
@@ -166,6 +166,7 @@ function CreatePaiement({ purchases }: Props) {
     };
     createPayment.mutate(payload);
   }
+
 
   useEffect(() => {
     if (!!commandId) {
@@ -320,29 +321,33 @@ function CreatePaiement({ purchases }: Props) {
         <FormField
           control={form.control}
           name="price"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Montant"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    disabled={!isPartial}
-                    value={field.value}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(Number(value));
-                    }}
-                    className="pr-12"
-                  />
-                  <p className="absolute right-2 top-1/2 -translate-y-1/2">
-                    {"FCFA"}
-                  </p>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const purchase = purchases.find((p) => p.id === commandId);
+            return (
+              <FormItem>
+                <FormLabel isRequired>{'Montant'}<span className="text-xs text-red-500">(Reste à payer : {purchase ? XAF.format(totalAmountPurchase(purchase!)) : 0})</span></FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      disabled={!isPartial}
+                      value={field.value}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(Number(value));
+                      }}
+                      className="pr-12"
+                    />
+                    <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                      {"FCFA"}
+                    </p>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )
+          }
+          }
         />
 
         {/* Moyen de paiement */}

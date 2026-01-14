@@ -87,7 +87,7 @@ export default function SettingsPage() {
               },
               {
                 pageId: "PG-08-01",
-                title: "Configurer les signataire",
+                title: "Configurer les signataires",
                 href: "/tableau-de-bord/settings/signatairs/create",
                 authorized: ["ADMIN"],
               },

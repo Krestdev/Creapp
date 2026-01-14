@@ -419,6 +419,12 @@ function AppSidebar() {
           href: "/tableau-de-bord/ticket/transferts",
           authorized: ["ADMIN", "VOLT_MANAGER"],
         },
+        {
+          pageId: "PG-04-03",
+          title: "Statistiques",
+          href: "/tableau-de-bord/ticket/statistiques",
+          authorized: ["ADMIN", "VOLT_MANAGER"],
+        },
       ],
     },
     {
