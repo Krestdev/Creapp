@@ -82,8 +82,6 @@ const Page = () => {
     },
   ];
 
-  console.log(filteredData);
-
   const Statistics: Array<StatisticProps> = [
     {
       title: "Total Bons de commande",

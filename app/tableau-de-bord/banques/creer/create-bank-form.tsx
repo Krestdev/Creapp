@@ -29,14 +29,15 @@ import { QueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+const banks = BANK_TYPES.filter(t=> t.value !== "CASH_REGISTER");
 // ✅ Schema: champs communs + validations conditionnelles
 const formSchema = z
   .object({
     label: z.string().min(2, "Intitulé trop court").max(120, "Trop long"),
     type: z.enum(
-      BANK_TYPES.map((t) => t.value) as [
-        (typeof BANK_TYPES)[number]["value"],
-        ...(typeof BANK_TYPES)[number]["value"][]
+      banks.map((t) => t.value) as [
+        (typeof banks)[number]["value"],
+        ...(typeof banks)[number]["value"][]
       ]
     ),
     balance: z.coerce.number({ message: "Solde invalide" }),
@@ -213,7 +214,7 @@ function CreateBank() {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {BANK_TYPES.map((t) => (
+                    {banks.map((t) => (
                       <SelectItem key={t.value} value={t.value}>
                         {t.name}
                       </SelectItem>

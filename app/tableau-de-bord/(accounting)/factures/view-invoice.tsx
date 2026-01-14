@@ -2,38 +2,39 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
 import {
-    BonsCommande,
-    PAYMENT_METHOD,
-    PaymentRequest
+  BonsCommande,
+  PAYMENT_METHOD,
+  PaymentRequest
 } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-    Calendar,
-    CalendarFold,
-    DollarSign,
-    FileIcon,
-    HelpCircle,
-    LucideHash,
-    SquareUser,
-    User,
-    Wallet,
+  Calendar,
+  CalendarFold,
+  DollarSign,
+  FileIcon,
+  HelpCircle,
+  LucideHash,
+  SquareUser,
+  User,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { getInvoiceStatusBadge } from "./invoices-table";
+import { payTypeQ } from "@/queries/payType";
 
 interface Props {
   payment: PaymentRequest;
@@ -44,8 +45,11 @@ interface Props {
 
 function ViewInvoice({ payment, open, openChange, purchases }: Props) {
   const getUsers = useFetchQuery(["users"], userQ.getAll, 50000);
+  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 50000);
   const purchase = purchases.find((p) => p.id === payment.commandId);
   const files = typeof payment.proof === "string" ? payment.proof : "";
+
+  const paymentType = getPaymentType.data?.data.find((p) => p.id === payment.methodId);
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
@@ -112,8 +116,7 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Méthode de paiement"}</p>
             <p className="font-semibold">
-              {PAYMENT_METHOD.find((p) => p.value === payment.method)?.name ??
-                "Non défini"}
+              {paymentType?.label ?? "Non défini"}
             </p>
           </div>
         </div>
@@ -125,13 +128,12 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Justificatif"}</p>
             <div className="space-y-1">
-                {files ? 
-                files.split(";").filter(x=> !!x).map((proof, index) => (
+              {files ?
+                files.split(";").filter(x => !!x).map((proof, index) => (
                   <Link
-                  key={index}
-                    href={`${
-                      process.env.NEXT_PUBLIC_API
-                    }/uploads/${encodeURIComponent(proof)}`}
+                    key={index}
+                    href={`${process.env.NEXT_PUBLIC_API
+                      }/uploads/${encodeURIComponent(proof)}`}
                     target="_blank"
                     className="flex gap-0.5 items-center"
                   >
@@ -148,7 +150,7 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
                 : (
                   <p className='italic'>{"Aucune preuve jointe"}</p>
                 )}
-              </div>
+            </div>
           </div>
         </div>
         {/**Date limite */}

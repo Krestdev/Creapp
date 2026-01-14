@@ -24,9 +24,11 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useFetchQuery } from "@/hooks/useData";
 import { totalAmountPurchase } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { paymentQ, UpdatePayment } from "@/queries/payment";
+import { payTypeQ } from "@/queries/payType";
 import {
   BonsCommande,
   PAYMENT_METHOD,
@@ -62,7 +64,7 @@ const formSchema = z.object({
   ),
   isPartial: z.boolean(),
   price: z.number({ message: "Veuillez renseigner un montant" }),
-  method: z.enum(METHOD),
+  methodId: z.string().min(1, "Veuillez sélectionner un moyen de paiement"),
   priority: z.enum(PAY_PRIORITY),
   proof: z
     .array(
@@ -98,7 +100,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
       deadline: format(new Date(payment.deadline), "yyyy-MM-dd"),
       isPartial: payment.isPartial,
       price: payment.price,
-      method: payment.method,
+      methodId: String(payment.methodId),
       priority: payment.priority,
       proof: payment.proof ? [payment.proof] : [],
     },
@@ -121,6 +123,8 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
       toast.error(error.message);
     },
   });
+
+  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll);
 
   function onSubmit(values: FormValues) {
     const purchase = purchases.find((p) => p.id === payment.commandId);
@@ -148,7 +152,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
     }
     if (values.proof[0] instanceof File) {
       const payload: Partial<UpdatePayment> = {
-        method: values.method,
+        methodId: Number(values.methodId),
         commandId: payment.commandId,
         type: "achat",
         deadline: new Date(values.deadline),
@@ -163,7 +167,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
       return updatePayment.mutate(payload);
     }
     const payload: Partial<UpdatePayment> = {
-      method: values.method,
+      methodId: Number(values.methodId),
       commandId: payment.commandId,
       type: "achat",
       deadline: new Date(values.deadline),
@@ -310,7 +314,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
         {/* Moyen de paiement */}
         <FormField
           control={form.control}
-          name="method"
+          name="methodId"
           render={({ field }) => (
             <FormItem>
               <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
@@ -323,9 +327,9 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PAYMENT_METHOD.map((method) => (
-                      <SelectItem key={method.value} value={method.value}>
-                        {method.name}
+                    {getPaymentType.data?.data.map((method) => (
+                      <SelectItem key={method.id} value={String(method.id)}>
+                        {method.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

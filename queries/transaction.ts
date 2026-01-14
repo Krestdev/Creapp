@@ -13,6 +13,8 @@ export interface TransactionProps
   to?: source;
   fromBankId?: number;
   toBankId?: number;
+  status?: string;
+  paymentId?: number;
 }
 
 export interface TransferProps
@@ -49,6 +51,7 @@ class TransactionQuery {
     formData.append("Type", payload.Type);
     formData.append("date", String(payload.date));
     formData.append("userId", String(payload.userId));
+    formData.append("paymentId", String(payload.paymentId));
     if (payload.from) formData.append("from", JSON.stringify(payload.from));
     if (payload.fromBankId)
       formData.append("fromBankId", String(payload.fromBankId));
@@ -82,6 +85,35 @@ class TransactionQuery {
       return response.data;
     });
   };
+
+  update = async (
+    id: number,
+    data: Omit<TransactionProps, "userId">
+  ): Promise<{ data: Transaction }> => {
+    const formData = new FormData();
+    formData.append("label", data.label);
+    formData.append("amount", String(data.amount));
+    formData.append("Type", data.Type);
+    formData.append("date", String(data.date));
+    formData.append("paymentId", String(data.paymentId));
+    if (data.from) formData.append("from", JSON.stringify(data.from));
+    if (data.fromBankId) formData.append("fromBankId", String(data.fromBankId));
+    if (data.to) formData.append("to", JSON.stringify(data.to));
+    if (data.toBankId) formData.append("toBankId", String(data.toBankId));
+    if (data.proof && data.proof.length > 0) {
+      data.proof.forEach((file) => {
+        formData.append("proof", file);
+      });
+    }
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
+  };
+
   complete = async ({
     id,
     proof,
