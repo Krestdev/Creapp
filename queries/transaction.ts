@@ -14,7 +14,7 @@ export interface TransactionProps
   fromBankId?: number;
   toBankId?: number;
   status?: string;
-  paymentId: number
+  paymentId?: number
 }
 
 export interface TransferProps
