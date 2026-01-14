@@ -125,7 +125,7 @@ function PayExpense({ ticket, open, onOpenChange, banks }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle>{`Payer ${ticket.title}`}</DialogTitle>
+          <DialogTitle className="uppercase">{`Payer - ${ticket.title}`}</DialogTitle>
           <DialogDescription>{`Paiement du ticket ${ticket.reference}`}</DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto px-6 pb-4">
