@@ -57,7 +57,8 @@ import {
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
 import {
-  Bank, BonsCommande,
+  Bank,
+  BonsCommande,
   PAY_STATUS,
   PAYMENT_TYPES,
   PaymentRequest,
@@ -66,7 +67,7 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
-import PayExpense from "./pay-expense";
+import PayExpense from "./sign/sign-expense";
 import ShareExpense from "./share-expense";
 
 // Configuration des couleurs pour les priorités
@@ -185,11 +186,14 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props) {
-
-  function getTypeBadge(
-    type: PaymentRequest["type"]
-  ): {
+function ExpensesTable({
+  payments,
+  purchases,
+  type,
+  banks,
+  requestTypes,
+}: Props) {
+  function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
   } {
@@ -201,7 +205,7 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
       };
     }
 
-    const typeData = requestTypes.find(t => t.type === type);
+    const typeData = requestTypes.find((t) => t.type === type);
     const label = typeData?.label ?? "Inconnu";
 
     switch (type) {
@@ -218,10 +222,11 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
     }
   }
 
-
-  const typeFilter = requestTypes.map(x => {
-    return { value: x.type, label: x.label }
-  }).concat({ value: "CURRENT", label: "Dépenses courantes" })
+  const typeFilter = requestTypes
+    .map((x) => {
+      return { value: x.type, label: x.label };
+    })
+    .concat({ value: "CURRENT", label: "Dépenses courantes" });
 
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -388,11 +393,17 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
           low: 1,
           medium: 2,
           high: 3,
-          urgent: 4
+          urgent: 4,
         };
 
-        const priorityA = priorityOrder[rowA.getValue(columnId) as keyof typeof priorityOrder] || 0;
-        const priorityB = priorityOrder[rowB.getValue(columnId) as keyof typeof priorityOrder] || 0;
+        const priorityA =
+          priorityOrder[
+            rowA.getValue(columnId) as keyof typeof priorityOrder
+          ] || 0;
+        const priorityB =
+          priorityOrder[
+            rowB.getValue(columnId) as keyof typeof priorityOrder
+          ] || 0;
 
         return priorityA - priorityB;
       },
@@ -466,7 +477,7 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
-              {type === "signed" &&
+              {type === "signed" && (
                 <DropdownMenuItem
                   disabled={item.status !== "signed"}
                   onClick={() => {
@@ -476,8 +487,9 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
                 >
                   <DollarSign />
                   {"Payer"}
-                </DropdownMenuItem>}
-              {type === "pending" &&
+                </DropdownMenuItem>
+              )}
+              {type === "pending" && (
                 <DropdownMenuItem
                   disabled={item.status !== "validated"}
                   onClick={() => {
@@ -487,7 +499,8 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
                 >
                   <Signature />
                   {"Soumettre aux signataires"}
-                </DropdownMenuItem>}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -556,7 +569,11 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
               <SelectContent>
                 <SelectItem value="all">{"Tous les types"}</SelectItem>
                 {typeFilter.map((p) => (
-                  <SelectItem key={p.value} value={p.value} className="uppercase">
+                  <SelectItem
+                    key={p.value}
+                    value={p.value}
+                    className="uppercase"
+                  >
                     {p.label}
                   </SelectItem>
                 ))}
@@ -611,37 +628,42 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === "createdAt" ?
-                      "Date de création" :
-                      column.id === "updatedAt" ?
-                        "Date de modification" :
-                        column.id === "reference" ?
-                          "Référence" :
-                          column.id === "title" ?
-                            "Titre" :
-                            column.id === "price" ?
-                              "Montant" :
-                              column.id === "status" ?
-                                "Statut" :
-                                column.id === "priority" ?
-                                  "Priorité" :
-                                  column.id === "provider" ?
-                                    "Fournisseur" :
-                                    column.id === "type" ?
-                                      "Type" :
-                                      column.id === "createdAt" ?
-                                        "Date de création" :
-                                        column.id === "updatedAt" ?
-                                          "Date de modification" :
-                                          column.id}
+                    {column.id === "createdAt"
+                      ? "Date de création"
+                      : column.id === "updatedAt"
+                      ? "Date de modification"
+                      : column.id === "reference"
+                      ? "Référence"
+                      : column.id === "title"
+                      ? "Titre"
+                      : column.id === "price"
+                      ? "Montant"
+                      : column.id === "status"
+                      ? "Statut"
+                      : column.id === "priority"
+                      ? "Priorité"
+                      : column.id === "provider"
+                      ? "Fournisseur"
+                      : column.id === "type"
+                      ? "Type"
+                      : column.id === "createdAt"
+                      ? "Date de création"
+                      : column.id === "updatedAt"
+                      ? "Date de modification"
+                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Tickets ${type === "pending" ? "en attente" : type === "signed" ? "signés" : "payés"} (${payments.length
-        })`}</h3>
+      <h3>{`Tickets ${
+        type === "pending"
+          ? "en attente"
+          : type === "signed"
+          ? "signés"
+          : "payés"
+      } (${payments.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -656,9 +678,9 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
@@ -721,12 +743,14 @@ function ExpensesTable({ payments, purchases, type, banks, requestTypes }: Props
             ticket={selected}
             open={showShare}
             onOpenChange={setShowShare}
-            banks={banks} />
+            banks={banks}
+          />
           <PayExpense
             ticket={selected}
             open={showPay}
             onOpenChange={setShowPay}
-            banks={banks} />
+            banks={banks}
+          />
         </>
       )}
     </div>

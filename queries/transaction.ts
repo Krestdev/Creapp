@@ -14,7 +14,7 @@ export interface TransactionProps
   fromBankId?: number;
   toBankId?: number;
   status?: string;
-  paymentId: number
+  paymentId?: number;
 }
 
 export interface TransferProps
@@ -86,7 +86,10 @@ class TransactionQuery {
     });
   };
 
-  update = async (id: number, data: Omit<TransactionProps, "userId">): Promise<{ data: Transaction }> => {
+  update = async (
+    id: number,
+    data: Omit<TransactionProps, "userId">
+  ): Promise<{ data: Transaction }> => {
     const formData = new FormData();
     formData.append("label", data.label);
     formData.append("amount", String(data.amount));
@@ -94,8 +97,7 @@ class TransactionQuery {
     formData.append("date", String(data.date));
     formData.append("paymentId", String(data.paymentId));
     if (data.from) formData.append("from", JSON.stringify(data.from));
-    if (data.fromBankId)
-      formData.append("fromBankId", String(data.fromBankId));
+    if (data.fromBankId) formData.append("fromBankId", String(data.fromBankId));
     if (data.to) formData.append("to", JSON.stringify(data.to));
     if (data.toBankId) formData.append("toBankId", String(data.toBankId));
     if (data.proof && data.proof.length > 0) {
@@ -112,16 +114,25 @@ class TransactionQuery {
       });
   };
 
-  complete = async ({ id, proof, date }: { id: number, proof: File; date: Date }): Promise<{ data: Transaction }> => {
+  complete = async ({
+    id,
+    proof,
+    date,
+  }: {
+    id: number;
+    proof: File;
+    date: Date;
+  }): Promise<{ data: Transaction }> => {
     const formData = new FormData();
     formData.append("date", String(date));
     formData.append("status", "APPROVED");
     formData.append("proof", proof);
-    return api.put(`${this.route}/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    })
-      .then((response) => response.data)
-  }
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => response.data);
+  };
 
   createTransaction = async (
     data: TransferProps

@@ -14,6 +14,7 @@ import {
 import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
+import { payTypeQ } from "@/queries/payType";
 import {
   BonsCommande,
   PAY_STATUS,
@@ -122,14 +123,15 @@ const hasValue = (value: any): boolean => {
 function ViewExpense({ open, openChange, payment, purchases }: Props) {
   const getUsers = useFetchQuery(["users"], userQ.getAll, 50000);
   const purchase = purchases.find((p) => p.id === payment.commandId);
+  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
 
-  if (getUsers.isLoading) {
+  if (getUsers.isLoading || getPaymentType.isLoading) {
     return <LoadingPage />;
   }
-  if (getUsers.isError) {
-    return <ErrorPage error={getUsers.error} />;
+  if (getUsers.isError || getPaymentType.isError) {
+    return <ErrorPage error={getUsers.error || getPaymentType.error!} />;
   }
-  if (getUsers.isSuccess) {
+  if (getUsers.isSuccess && getPaymentType.isSuccess) {
     const user = getUsers.data.data.find((u) => u.id === payment.userId);
 
     // Rendu conditionnel selon le type
@@ -545,8 +547,8 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
       const fields = [];
 
       // Méthode de paiement
-      if (hasValue(payment.method)) {
-        const methodName = PAYMENT_METHOD.find((p) => p.value === payment.method)?.name || "Non défini";
+      if (hasValue(payment.methodId)) {
+        const methodName = getPaymentType.data?.data.find((p) => p.id === payment.methodId)?.label || "Non défini";
         fields.push(
           <div key="method" className="view-group">
             <span className="view-icon">

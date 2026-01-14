@@ -123,7 +123,7 @@ function Page() {
           payments={data.data.filter(
             (p) => p.status === "paid" && p.type !== "CURRENT"
           )}
-          type="validated"
+          type="paid"
           purchases={getPurchases.data.data}
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}

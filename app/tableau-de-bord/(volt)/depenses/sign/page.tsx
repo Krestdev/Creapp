@@ -13,7 +13,10 @@ import { bankQ } from "@/queries/bank";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import { requestTypeQ } from "@/queries/requestType";
-import ExpensesTableSign from "../expenses-table-sign";
+import ExpensesTableSign from "./expenses-table-sign";
+import { signatairQ } from "@/queries/signatair";
+import { Signatair } from "@/types/types";
+import { useStore } from "@/providers/datastore";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
@@ -21,6 +24,8 @@ function Page() {
     paymentQ.getAll,
     30000
   );
+
+  const signatair = useFetchQuery(["signatair"], signatairQ.getAll);
 
   const getRequestType = useFetchQuery(
     ["requestType"],
@@ -34,11 +39,32 @@ function Page() {
     30000
   );
   const getBanks = useFetchQuery(["banks"], bankQ.getAll, 30000);
+
+  const { user } = useStore();
+
+  const canSign = (
+    bankId: number | null,
+    methodId: number | null,
+    signatair: Signatair[]
+  ) => {
+    if (bankId == null || methodId == null) {
+      return false;
+    }
+    return signatair
+      .filter(
+        (signers) => signers.bankId == bankId && signers.payTypeId == methodId
+      )
+      .at(0)
+      ?.user?.map((u) => u.id)
+      .includes(user ? user.id : -1);
+  };
+
   if (
     isLoading ||
     getPurchases.isLoading ||
     getBanks.isLoading ||
-    getRequestType.isLoading
+    getRequestType.isLoading ||
+    signatair.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -46,7 +72,8 @@ function Page() {
     isError ||
     getPurchases.isError ||
     getBanks.isError ||
-    getRequestType.isError
+    getRequestType.isError ||
+    signatair.isError
   ) {
     return (
       <ErrorPage
@@ -55,6 +82,7 @@ function Page() {
           getPurchases.error ||
           getBanks.error ||
           getRequestType.error ||
+          signatair.error ||
           undefined
         }
       />
@@ -64,20 +92,29 @@ function Page() {
     isSuccess &&
     getPurchases.isSuccess &&
     getBanks.isSuccess &&
-    getRequestType.isSuccess
+    getRequestType.isSuccess &&
+    signatair.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente de signature",
         value: data.data.filter(
-          (p) => p.status === "unsigned" && p.type === "achat"
+          (p) =>
+            p.status === "unsigned" &&
+            p.type === "achat" &&
+            canSign(p.bankId, p.methodId, signatair.data.data)
         ).length,
         variant: "primary",
         more: {
           title: "Montant total",
           value: XAF.format(
             data.data
-              .filter((p) => p.status === "validated" && p.type === "achat")
+              .filter(
+                (p) =>
+                  p.status === "validated" &&
+                  p.type === "achat" &&
+                  canSign(p.bankId, p.methodId, signatair.data.data)
+              )
               .reduce((total, el) => total + el.price, 0)
           ),
         },
@@ -85,7 +122,10 @@ function Page() {
       {
         title: "Tickets signer",
         value: data.data.filter(
-          (p) => p.status === "signed" && p.type === "achat"
+          (p) =>
+            p.status === "signed" &&
+            p.type === "achat" &&
+            canSign(p.bankId, p.methodId, signatair.data.data)
         ).length,
         variant: "secondary",
         more: {
@@ -94,8 +134,9 @@ function Page() {
             data.data
               .filter(
                 (p) =>
-                  (p.status === "paid" || p.status === "validated") &&
-                  p.type === "achat"
+                  (p.status === "signed" || p.status === "validated") &&
+                  p.type === "achat" &&
+                  canSign(p.bankId, p.methodId, signatair.data.data)
               )
               .reduce((total, el) => total + el.price, 0)
           ),
@@ -123,6 +164,7 @@ function Page() {
           type="pending"
           purchases={getPurchases.data.data}
           requestTypes={getRequestType.data.data}
+          signatair={signatair.data.data}
         />
         <ExpensesTableSign
           payments={data.data.filter(
@@ -132,6 +174,7 @@ function Page() {
           banks={getBanks.data.data}
           purchases={getPurchases.data.data}
           requestTypes={getRequestType.data.data}
+          signatair={signatair.data.data}
         />
       </div>
     );
