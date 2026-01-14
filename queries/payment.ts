@@ -93,7 +93,7 @@ class PaymentQueries {
       .then((response) => response.data);
   };
 
-  new = async (payload: NewPayment): Promise<{ data: PaymentRequest }> => {
+  new = async (payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId">): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
     const { proof, ...rest } = payload;
     formData.append("proof", proof);

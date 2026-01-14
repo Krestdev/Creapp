@@ -102,7 +102,7 @@ function Page() {
           (p) =>
             p.status === "unsigned" &&
             p.type === "achat" &&
-            canSign(p.bankId, p.methodId, signatair.data.data)
+            canSign(p.bankId!, p.methodId!, signatair.data.data)
         ).length,
         variant: "primary",
         more: {
@@ -113,7 +113,7 @@ function Page() {
                 (p) =>
                   p.status === "validated" &&
                   p.type === "achat" &&
-                  canSign(p.bankId, p.methodId, signatair.data.data)
+                  canSign(p.bankId!, p.methodId!, signatair.data.data)
               )
               .reduce((total, el) => total + el.price, 0)
           ),
@@ -125,7 +125,7 @@ function Page() {
           (p) =>
             p.status === "signed" &&
             p.type === "achat" &&
-            canSign(p.bankId, p.methodId, signatair.data.data)
+            canSign(p.bankId!, p.methodId!, signatair.data.data)
         ).length,
         variant: "secondary",
         more: {
@@ -136,7 +136,7 @@ function Page() {
                 (p) =>
                   (p.status === "signed" || p.status === "validated") &&
                   p.type === "achat" &&
-                  canSign(p.bankId, p.methodId, signatair.data.data)
+                  canSign(p.bankId!, p.methodId!, signatair.data.data)
               )
               .reduce((total, el) => total + el.price, 0)
           ),

@@ -44,9 +44,9 @@ interface Props {
 const TX_TYPES = TRANSACTION_TYPES.filter((c) => c.value !== "TRANSFER").map(
   (t) => t.value
 ) as [
-  (typeof TRANSACTION_TYPES)[number]["value"],
-  ...(typeof TRANSACTION_TYPES)[number]["value"][]
-];
+    (typeof TRANSACTION_TYPES)[number]["value"],
+    ...(typeof TRANSACTION_TYPES)[number]["value"][]
+  ];
 
 const sourceSchema = z.object({
   label: z.string().min(2, "Libellé trop court"),

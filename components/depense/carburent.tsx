@@ -104,7 +104,7 @@ export function CarburentForm() {
   const paymentsData = useMutation({
     mutationKey: ["payments-Depense"],
     mutationFn: async (
-      data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> & {
+      data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "transactionId" | "bankId"> & {
         vehiclesId: number;
       } & {
         caisseId: number;
@@ -144,7 +144,7 @@ export function CarburentForm() {
   const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
 
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
-    const payment: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> = {
+    const payment: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "vehiclesId" | "bankId" | "transactionId"> = {
       title: data.title,
       km: data.km,
       liters: data.liters,
