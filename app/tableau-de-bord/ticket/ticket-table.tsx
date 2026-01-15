@@ -1,5 +1,9 @@
 "use client";
 
+import { Pagination } from "@/components/base/pagination";
+import { TabBar } from "@/components/base/TabBar";
+import { ApproveTicket } from "@/components/modals/ApproveTicket";
+import { DetailTicket } from "@/components/modals/detail-ticket";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +15,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -22,14 +43,16 @@ import {
 import { useFetchQuery } from "@/hooks/useData";
 import { cn, company } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { } from "@/queries/commandRqstModule";
+import {} from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import {
   BonsCommande,
+  PAYMENT_TYPES,
+  PAY_STATUS,
   PRIORITIES,
   PaymentRequest,
-  RequestType
+  RequestType,
 } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -52,18 +75,13 @@ import {
   Eye,
   Flag,
   LucideCheck,
-  LucideDollarSign
+  Settings2,
 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
-import { Pagination } from "../base/pagination";
-import { ApproveTicket } from "../modals/ApproveTicket";
-import { DetailTicket } from "../modals/detail-ticket";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
-  isAdmin: boolean;
-  isManaged?: boolean;
   requestTypeData: RequestType[];
 }
 
@@ -129,12 +147,77 @@ const getStatusVariant = (
   }
 };
 
-export function TicketsTable({
-  data,
-  isAdmin,
-  isManaged,
-  requestTypeData,
-}: TicketsTableProps) {
+export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
+  const [searchFilter, setSearchFilter] = React.useState<string>("");
+  const [typeFilter, setTypeFilter] = React.useState<
+    "all" | PaymentRequest["type"]
+  >("all");
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | PaymentRequest["status"]
+  >("all");
+  const [priorityFilter, setPriorityFilter] = React.useState<
+    "all" | PaymentRequest["priority"]
+  >("all");
+  const [selectedTab, setSelectedTab] = React.useState<number>(0);
+  const tabs = [
+    { id: 0, title: "En attentes d'approbation" },
+    { id: 1, title: "Tickets traités" },
+  ];
+
+  const filteredData = React.useMemo(() => {
+    return data.filter((c) => {
+      //selectTab
+      const matchTab =
+        selectedTab === 0
+          ? c.status === "accepted"
+          : c.status === "paid" || c.status === "validated";
+      //searchFilter
+      const matchSearch =
+        searchFilter === ""
+          ? true
+          : c.id === Number(searchFilter) ||
+            c.price === Number(searchFilter) ||
+            c.account
+              ?.toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.title
+              .toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.description
+              ?.toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.reference
+              .toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase());
+      //TypeFilter
+      const matchType = typeFilter === "all" ? true : c.type === typeFilter;
+      //StatusFilter
+      const matchStatus =
+        statusFilter === "all" ? true : c.status === statusFilter;
+      //PriorityFilter
+      const matchPriority =
+        priorityFilter === "all" ? true : c.priority === priorityFilter;
+
+      return (
+        matchPriority && matchStatus && matchType && matchSearch && matchTab
+      );
+    });
+  }, [
+    data,
+    typeFilter,
+    statusFilter,
+    priorityFilter,
+    searchFilter,
+    selectedTab,
+  ]);
+
+  const resetAllFilters = () => {
+    setSearchFilter("");
+    setStatusFilter("all");
+    setPriorityFilter("all");
+    setTypeFilter("all");
+  };
+
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -441,30 +524,17 @@ export function TicketsTable({
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {isAdmin ? (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setMessage("Ticket approuvé avec succès");
-                    setSelectedTicket(item);
-                    setOpenValidationModal(true);
-                  }}
-                  disabled={isManaged}
-                >
-                  <LucideCheck className="text-[#16A34A] mr-2 h-4 w-4" />
-                  {"Approuver"}
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setMessage("Ticket payé avec succès");
-                    setSelectedTicket(item);
-                    setOpenPaiementModal(true);
-                  }}
-                >
-                  <LucideDollarSign className="mr-2 h-4 w-4" />
-                  {"Payer"}
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem
+                onClick={() => {
+                  setMessage("Ticket approuvé avec succès");
+                  setSelectedTicket(item);
+                  setOpenValidationModal(true);
+                }}
+                disabled
+              >
+                <LucideCheck className="text-[#16A34A] mr-2 h-4 w-4" />
+                {"Approuver"}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -473,7 +543,7 @@ export function TicketsTable({
   ];
 
   const table = useReactTable({
-    data: data.sort((a, b) => a.reference.localeCompare(b.reference)),
+    data: filteredData.sort((a, b) => a.reference.localeCompare(b.reference)),
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -505,58 +575,171 @@ export function TicketsTable({
   return (
     <div className="content">
       <div className="flex gap-4 items-center justify-between">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto bg-transparent">
-              {"Colonnes"}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
+        <TabBar
+          tabs={tabs}
+          setSelectedTab={setSelectedTab}
+          selectedTab={selectedTab}
+        />
+        <div className="flex gap-4 items-center">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5">
+                {/**Search */}
+                <div className="grid gap-1.5">
+                  <Label>{"Recherche"}</Label>
+                  <Input
+                    placeholder="Rechercher par titre"
+                    value={searchFilter}
+                    onChange={(v) => setSearchFilter(v.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                {/**Priority */}
+                <div className="grid gap-1.5">
+                  <Label>{"Priorité"}</Label>
+                  <Select
+                    value={priorityFilter}
+                    onValueChange={(v) =>
+                      setPriorityFilter(v as "all" | PaymentRequest["priority"])
                     }
                   >
-                    {column.id === "createdAt"
-                      ? "Date de creation"
-                      : column.id === "priority"
-                      ? "Priorité"
-                      : column.id === "status"
-                      ? "Statut"
-                      : column.id === "type"
-                      ? "Type"
-                      : column.id === "amount"
-                      ? "Montant"
-                      : column.id === "description"
-                      ? "Description"
-                      : column.id === "reference"
-                      ? "Reference"
-                      : column.id === "createdAt"
-                      ? "Date de creation"
-                      : column.id === "updatedAt"
-                      ? "Date de modification"
-                      : column.id === "actions"
-                      ? "Actions"
-                      : column.id === "title"
-                      ? "Titre"
-                      : column.id === "category"
-                      ? "Categorie"
-                      : column.id === "price"
-                      ? "Montant"
-                      : column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {PRIORITIES.map((priority) => (
+                        <SelectItem key={priority.value} value={priority.value}>
+                          {priority.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/** Status */}
+                <div className="grid gap-1.5">
+                  <Label>{"Statut"}</Label>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(v) =>
+                      setStatusFilter(v as "all" | PaymentRequest["status"])
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {PAY_STATUS.filter(
+                        (c) => c.value === "accepted" || c.value === "validated"
+                      ).map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {getStatusVariant(status.value).label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/** */}
+                <div className="grid gap-1.5">
+                  <Label>{"Type"}</Label>
+                  <Select
+                    value={typeFilter}
+                    onValueChange={(v) =>
+                      setTypeFilter(v as "all" | PaymentRequest["type"])
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrer par type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous les types"}</SelectItem>
+                      {PAYMENT_TYPES.map((p) => (
+                        <SelectItem key={p.value} value={p.value}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Bouton pour réinitialiser les filtres */}
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={resetAllFilters}
+                    className="w-full"
+                  >
+                    {"Réinitialiser"}
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto bg-transparent">
+                {"Colonnes"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id === "createdAt"
+                        ? "Date de creation"
+                        : column.id === "priority"
+                        ? "Priorité"
+                        : column.id === "status"
+                        ? "Statut"
+                        : column.id === "type"
+                        ? "Type"
+                        : column.id === "amount"
+                        ? "Montant"
+                        : column.id === "description"
+                        ? "Description"
+                        : column.id === "reference"
+                        ? "Reference"
+                        : column.id === "createdAt"
+                        ? "Date de creation"
+                        : column.id === "updatedAt"
+                        ? "Date de modification"
+                        : column.id === "actions"
+                        ? "Actions"
+                        : column.id === "title"
+                        ? "Titre"
+                        : column.id === "category"
+                        ? "Categorie"
+                        : column.id === "price"
+                        ? "Montant"
+                        : column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
