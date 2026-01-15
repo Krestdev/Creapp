@@ -63,10 +63,16 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   const label = statusData?.name ?? "Inconnu";
 
   switch (status) {
+    case "pending":
+      return { label, variant: "amber" };
+    case "validated":
+      return { label, variant: "sky" };
     case "paid":
       return { label, variant: "success" };
-    case "validated":
-      return { label: "Non payé", variant: "destructive" };
+    case "pending_depense":
+      return { label, variant: "yellow" };
+    case "unsigned":
+      return { label, variant: "lime" };
     default:
       return { label, variant: "outline" };
   }
@@ -292,7 +298,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   </span>
                   <div className="flex flex-col">
                     <p className="view-group-title">{"Commande associée"}</p>
-                    <p className="font-semibold">ID: {payment.commandId}</p>
+                    <p className="font-semibold">{purchase?.devi.commandRequest.title}</p>
                   </div>
                 </div>
               )}
@@ -505,20 +511,10 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Statut"}</p>
             <Badge
-              variant={
-                payment.status === "paid" ? "success" :
-                  payment.status === "validated" ? "sky" :
-                    payment.status === "pending" ? "amber" :
-                      payment.status === "pending_depense" ? "yellow" :
-                        payment.status === "rejected" ? "destructive" : "outline"
-              }
+              variant={getStatusBadge(payment.status).variant}
               className="w-fit"
             >
-              {payment.status === "paid" ? "Payé" :
-                payment.status === "validated" ? "Validé" :
-                  payment.status === "pending" ? "En attente" :
-                    payment.status === "pending_depense" ? "En attente" :
-                      payment.status === "rejected" ? "Rejeté" : payment.status}
+              {getStatusBadge(payment.status).label}
             </Badge>
           </div>
         </div>

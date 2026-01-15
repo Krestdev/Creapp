@@ -68,7 +68,6 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
-import PayExpense from "./sign/sign-expense";
 import ShareExpense from "./share-expense";
 import { TabBar } from "@/components/base/TabBar";
 import {
@@ -79,6 +78,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import PayExpense from "./pay-expense";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -284,17 +284,17 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
       const matchTab =
         selectedTab === 0
           ? p.status === "pending_depense" ||
-            p.status === "validated" ||
-            p.status === "unsigned"
+          p.status === "validated" ||
+          p.status === "unsigned"
           : selectedTab === 1
-          ? p.status === "signed"
-          : p.status === "paid";
+            ? p.status === "signed"
+            : p.status === "paid";
       //Filter type
       const matchType =
-      typeFilter === "all" ? true : p.type === typeFilter;
+        typeFilter === "all" ? true : p.type === typeFilter;
       //Filter priority
       const matchPriority =
-      priorityFilter === "all" ? true : p.priority === priorityFilter;
+        priorityFilter === "all" ? true : p.priority === priorityFilter;
 
       return matchTab && matchType && matchPriority;
     });
@@ -451,11 +451,11 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
 
         const priorityA =
           priorityOrder[
-            rowA.getValue(columnId) as keyof typeof priorityOrder
+          rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-            rowB.getValue(columnId) as keyof typeof priorityOrder
+          rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -544,7 +544,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
               )}
               {selectedTab === 0 && (
                 <DropdownMenuItem
-                  disabled={item.status !== "validated"}
+                  disabled={item.status !== "validated" && item.status === "pending"}
                   onClick={() => {
                     setSelected(item);
                     setShowShare(true);
@@ -633,7 +633,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                   <Label>{"Type"}</Label>
                   <Select
                     value={typeFilter}
-                    onValueChange={(value) =>setTypeFilter(value as "all" | PaymentRequest["type"])}
+                    onValueChange={(value) => setTypeFilter(value as "all" | PaymentRequest["type"])}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Filtrer par type" />
@@ -657,7 +657,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                   <Label>{"Priorité"}</Label>
                   <Select
                     value={priorityFilter}
-                    onValueChange={v=>setPriorityFilter(v as "all" | PaymentRequest["priority"])}
+                    onValueChange={v => setPriorityFilter(v as "all" | PaymentRequest["priority"])}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Filtrer par priorité" />
@@ -709,26 +709,26 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                       {column.id === "createdAt"
                         ? "Date de création"
                         : column.id === "updatedAt"
-                        ? "Date de modification"
-                        : column.id === "reference"
-                        ? "Référence"
-                        : column.id === "title"
-                        ? "Titre"
-                        : column.id === "price"
-                        ? "Montant"
-                        : column.id === "status"
-                        ? "Statut"
-                        : column.id === "priority"
-                        ? "Priorité"
-                        : column.id === "provider"
-                        ? "Fournisseur"
-                        : column.id === "type"
-                        ? "Type"
-                        : column.id === "createdAt"
-                        ? "Date de création"
-                        : column.id === "updatedAt"
-                        ? "Date de modification"
-                        : column.id}
+                          ? "Date de modification"
+                          : column.id === "reference"
+                            ? "Référence"
+                            : column.id === "title"
+                              ? "Titre"
+                              : column.id === "price"
+                                ? "Montant"
+                                : column.id === "status"
+                                  ? "Statut"
+                                  : column.id === "priority"
+                                    ? "Priorité"
+                                    : column.id === "provider"
+                                      ? "Fournisseur"
+                                      : column.id === "type"
+                                        ? "Type"
+                                        : column.id === "createdAt"
+                                          ? "Date de création"
+                                          : column.id === "updatedAt"
+                                            ? "Date de modification"
+                                            : column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
@@ -736,13 +736,12 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
           </DropdownMenu>
         </div>
       </div>
-      <h3>{`Tickets ${
-        selectedTab === 0
-          ? "en attente"
-          : selectedTab === 1
+      <h3>{`Tickets ${selectedTab === 0
+        ? "en attente"
+        : selectedTab === 1
           ? "signés"
           : "payés"
-      } (${payments.length})`}</h3>
+        } (${payments.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -757,9 +756,9 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

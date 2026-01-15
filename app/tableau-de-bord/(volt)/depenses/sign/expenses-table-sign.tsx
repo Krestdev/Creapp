@@ -67,6 +67,7 @@ import {
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "../view-expense";
 import PayExpense from "./sign-expense";
+import { useMemo } from "react";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -197,18 +198,38 @@ function ExpensesTableSign({
 }: Props) {
   const { isHydrated, user } = useStore();
 
-  const canSign = (bankId: number | null, methodId: number | null) => {
-    if (bankId == null || methodId == null) {
-      return false;
+  // OPTIMISATION: Pré-calculer les autorisations avec useMemo
+  const authorizedPayments = useMemo(() => {
+    if (!user || !signatair.length) {
+      return [];
     }
-    return signatair
-      .filter(
-        (signers) => signers.bankId == bankId && signers.payTypeId == methodId
-      )
-      .at(0)
-      ?.user?.map((u) => u.id)
-      .includes(user ? user.id : -1);
-  };
+
+    const currentUserId = user.id;
+
+    // Créer une Map pour un accès rapide O(1)
+    const signerMap = new Map<string, boolean>();
+
+    signatair.forEach(signer => {
+      const key = `${signer.bankId}_${signer.payTypeId}`;
+      const hasPermission = signer.user?.some(u => u.id === currentUserId) || false;
+      signerMap.set(key, hasPermission);
+    });
+
+    // Filtrer les paiements une seule fois
+    return payments.filter(payment => {
+      const key = `${payment.bankId}_${payment.methodId}`;
+      return signerMap.get(key) || false;
+    });
+  }, [payments, signatair, user]);
+
+  // OPTIMISATION: Créer une Map pour les achats pour un accès rapide
+  const purchasesMap = useMemo(() => {
+    const map = new Map<number, BonsCommande>();
+    purchases.forEach(purchase => {
+      map.set(purchase.id, purchase);
+    });
+    return map;
+  }, [purchases]);
 
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
@@ -247,7 +268,6 @@ function ExpensesTableSign({
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
-      // status: false,
       type: false,
       createdAt: false,
     });
@@ -259,7 +279,31 @@ function ExpensesTableSign({
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPay, setShowPay] = React.useState<boolean>(false);
 
-  const columns: ColumnDef<PaymentRequest>[] = [
+  // OPTIMISATION: Fonction canSign mémoïsée
+  const canSign = useMemo(() => {
+    if (!user || !signatair.length) {
+      return () => false;
+    }
+
+    const currentUserId = user.id;
+    const signerMap = new Map<string, boolean>();
+
+    signatair.forEach(signer => {
+      const key = `${signer.bankId}_${signer.payTypeId}`;
+      const hasPermission = signer.user?.some(u => u.id === currentUserId) || false;
+      signerMap.set(key, hasPermission);
+    });
+
+    return (bankId: number | null, methodId: number | null) => {
+      if (bankId == null || methodId == null) {
+        return false;
+      }
+      const key = `${bankId}_${methodId}`;
+      return signerMap.get(key) || false;
+    };
+  }, [signatair, user]);
+
+  const columns: ColumnDef<PaymentRequest>[] = React.useMemo(() => [
     {
       accessorKey: "reference",
       header: ({ column }) => {
@@ -333,7 +377,7 @@ function ExpensesTableSign({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find((p) => p.id === value.commandId);
+        const purchase = purchasesMap.get(value.commandId || -1);
         const title = value.title;
         return (
           <div>
@@ -357,7 +401,7 @@ function ExpensesTableSign({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find((p) => p.id === value.commandId);
+        const purchase = purchasesMap.get(value.commandId || -1);
         return <div>{purchase?.provider?.name ?? "Creaconsult"}</div>;
       },
     },
@@ -397,9 +441,7 @@ function ExpensesTableSign({
         const priority = getPriorityBadge(value.priority);
         return <Badge variant={priority.variant}>{priority.label}</Badge>;
       },
-      // Ajoutez cette fonction pour définir l'ordre de tri personnalisé
       sortingFn: (rowA, rowB, columnId) => {
-        // Définir l'ordre de priorité logique
         const priorityOrder = {
           low: 1,
           medium: 2,
@@ -418,7 +460,6 @@ function ExpensesTableSign({
 
         return priorityA - priorityB;
       },
-      // Optionnel: Ajouter un filtre pour que le sélecteur fonctionne
       filterFn: (row, id, value) => {
         return value === "" || value === "all" || row.getValue(id) === value;
       },
@@ -448,8 +489,6 @@ function ExpensesTableSign({
         const item = row.original;
         const cansign = canSign(item.bankId ?? -1, item.methodId ?? -1);
 
-        console.log(item.status, cansign);
-
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
@@ -477,17 +516,17 @@ function ExpensesTableSign({
                 }}
               >
                 <PenTool />
-                {"Signe"}
+                {"Signer"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
       },
     },
-  ];
+  ], [canSign, purchasesMap]);
 
   const table = useReactTable({
-    data: payments.filter((x) => canSign(x.bankId!, x.methodId!)),
+    data: authorizedPayments, // Utiliser les paiements pré-filtrés
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -499,7 +538,7 @@ function ExpensesTableSign({
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "provider", "title"];
+      const searchableColumns = ["reference", "title"];
       const searchValue = filterValue.toLowerCase();
 
       return searchableColumns.some((column) => {
@@ -523,7 +562,7 @@ function ExpensesTableSign({
           <div className="grid gap-1.5">
             <Label>{"Recherche"}</Label>
             <Input
-              placeholder="Référence"
+              placeholder="Référence ou titre"
               value={globalFilter ?? ""}
               onChange={(event) => setGlobalFilter(event.target.value)}
               className="max-w-sm"
@@ -620,18 +659,14 @@ function ExpensesTableSign({
                                     ? "Fournisseur"
                                     : column.id === "type"
                                       ? "Type"
-                                      : column.id === "createdAt"
-                                        ? "Date de création"
-                                        : column.id === "updatedAt"
-                                          ? "Date de modification"
-                                          : column.id}
+                                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${payments.length
+      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${authorizedPayments.length
         })`}</h3>
       <div className="rounded-md border">
         <Table>
@@ -659,7 +694,6 @@ function ExpensesTableSign({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
-                // Utilisation de la priorité pour styliser la ligne
                 const priority = row.original.priority;
                 const config = getPriorityConfig(priority);
 

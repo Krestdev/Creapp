@@ -148,12 +148,12 @@ function Page() {
                         <StatisticCard key={id} {...data} className="h-full" />
                     ))}
                 </div>
-                    <ExpensesTable
-                        payments={data.data}
-                        banks={getBanks.data.data}
-                        purchases={getPurchases.data.data}
-                        requestTypes={getRequestType.data.data}
-                    />
+                <ExpensesTable
+                    payments={data.data}
+                    banks={getBanks.data.data}
+                    purchases={getPurchases.data.data}
+                    requestTypes={getRequestType.data.data}
+                />
             </div>
         );
     }

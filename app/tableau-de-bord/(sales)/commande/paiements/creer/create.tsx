@@ -242,7 +242,7 @@ function CreatePaiement({ purchases }: Props) {
                         return (
                           diff > 0 &&
                           <SelectItem key={request.id} value={String(request.id)}>
-                            {request.devi.commandRequest.title}
+                            {request.devi.commandRequest.title + " - " + request.provider.name}
                           </SelectItem>
                         )
                       })
