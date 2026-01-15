@@ -181,9 +181,9 @@ export default function CreateSignatairForm() {
                       {["ONE", "BOTH"].map((option) => {
                         let message = "";
                         if (option == "ONE") {
-                          message = "Un Signatair";
+                          message = "Un Signataire";
                         } else {
-                          message = "Tout les Signatair";
+                          message = "Tout les Signataires";
                         }
                         return (
                           <SelectItem key={option} value={option}>
