@@ -331,7 +331,9 @@ export function DataVal({
     projectFilter,
     userFilter,
     selectedTab,
-    categoryFilter
+    categoryFilter,
+    dateFilter,
+    customDateRange
   ]);
 
   const resetAllFilters = () => {
