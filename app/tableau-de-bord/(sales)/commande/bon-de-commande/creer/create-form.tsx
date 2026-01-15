@@ -26,6 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useFetchQuery } from "@/hooks/useData";
 import { formatToShortName, isProviderValid } from "@/lib/utils";
+import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
 import { CreatePurchasePayload, purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
@@ -42,11 +43,6 @@ import z from "zod";
 const PO_PRIORITIES = PRIORITIES.map((s) => s.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][]
-];
-
-const METHOD = PAYMENT_METHOD.map((m) => m.value) as [
-  (typeof PAYMENT_METHOD)[number]["value"],
-  ...(typeof PAYMENT_METHOD)[number]["value"][]
 ];
 
 const paymentSchema = z.object({
@@ -90,7 +86,7 @@ export const formSchema = z
       },
       { message: "Le total des paiements doit être égal à 100%" }
     ),
-    paymentMethod: z.enum(METHOD),
+    paymentMethod: z.string().min(1, "Ce champ est requis"),
     priority: z.enum(PO_PRIORITIES),
     deliveryLocation: z.string().min(1, "Ce champ est requis"),
 
@@ -127,6 +123,15 @@ function CreateForm() {
   const getQuotations = useFetchQuery(["quotations"], quotationQ.getAll);
   const getProviders = useFetchQuery(["providers"], providerQ.getAll);
   const getPurchases = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
+  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll);
+
+  // Définir la valeur par défaut pour paymentMethod
+  const defaultPaymentMethod = React.useMemo(() => {
+    if (getPaymentType.data?.data && getPaymentType.data.data.length > 0) {
+      return getPaymentType.data.data[0].id.toString();
+    }
+    return "bank-transfer"; // Valeur par défaut de fallback
+  }, [getPaymentType.data]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -139,9 +144,24 @@ function CreateForm() {
       hasPenalties: false,
       penaltyMode: "",
       instalments: [{ percentage: 100, deadLine: undefined }],
-      paymentMethod: "bank-transfer",
+      paymentMethod: defaultPaymentMethod,
     },
   });
+
+  // Mettre à jour la valeur de paymentMethod lorsque les données sont chargées
+  React.useEffect(() => {
+    if (getPaymentType.data?.data && getPaymentType.data.data.length > 0) {
+      const firstMethodId = getPaymentType.data.data[0].id.toString();
+
+      // Définir la valeur seulement si elle est vide ou si c'est la valeur de fallback
+      const currentValue = form.getValues("paymentMethod");
+      if (!currentValue || currentValue === "bank-transfer") {
+        form.setValue("paymentMethod", firstMethodId);
+      }
+    }
+  }, [getPaymentType.data, form]);
+
+  const methodValue = form.watch("paymentMethod");
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -169,7 +189,7 @@ function CreateForm() {
         hasPenalties: false,
         penaltyMode: "",
         instalments: [{ percentage: 100, deadLine: undefined }],
-        paymentMethod: "bank-transfer",
+        paymentMethod: defaultPaymentMethod,
       });
       queryClient.invalidateQueries({
         queryKey: ["purchaseOrders"],
@@ -308,9 +328,9 @@ function CreateForm() {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PAYMENT_METHOD.map(({ name, value }, id) => (
-                      <SelectItem key={id} value={value}>
-                        {name}
+                    {getPaymentType.data?.data.map((p) => (
+                      <SelectItem key={p.id} value={p.id.toString()}>
+                        {p.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

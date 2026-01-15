@@ -336,7 +336,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
             disabled={pay.isPending}
             isLoading={pay.isPending}
           >
-            {"Payer"}
+            {"Soumettre"}
           </Button>
           <Button
             variant={"outline"}

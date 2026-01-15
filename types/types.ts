@@ -422,7 +422,7 @@ export type BonsCommande = {
     status: boolean;
   }>;
   deliveryLocation?: string;
-  paymentMethod: (typeof PAYMENT_METHOD)[number]["value"];
+  paymentMethod: string;
   paymentTerms: string;
   deliveryDelay: Date;
   motif?: string;
