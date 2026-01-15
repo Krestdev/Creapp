@@ -14,18 +14,6 @@ function Page() {
     ["transactions"],
     transactionQ.getAll
   );
-  const tabs = [
-    {
-      id: 0,
-      title: "Transferts en attente"
-    },
-    {
-      id: 1,
-      title: "Historique des transferts"
-    },
-  ]
-  const [selectedTab, setSelectedTab] = useState(0)
-
   if (isLoading) {
     return <LoadingPage />;
   }
@@ -40,22 +28,9 @@ function Page() {
           subtitle="Approuvez ou rejetez les demandes de transfert de fonds."
           color="green"
         />
-        <TabBar tabs={tabs} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
-        {
-          selectedTab === 0 ?
             <TransferTable
-              data={data.data.filter(
-                (c) => c.Type === "TRANSFER" && c.status === "PENDING"
-              )}
-            /> :
-            <TransferHistory
-              data={data.data.filter(
-                (c) =>
-                  (c.Type === "TRANSFER" && c.status === "APPROVED") ||
-                  c.status === "REJECTED"
-              )}
+              data={data.data}
             />
-        }
       </div>
     );
   }

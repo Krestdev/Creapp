@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Eye,
   LucidePen,
+  Settings2,
   Trash
 } from "lucide-react";
 import * as React from "react";
@@ -57,6 +58,7 @@ import DetailPaiement from "../modals/detail-paiement";
 import { Label } from "../ui/label";
 import EditPayment from "@/app/tableau-de-bord/(sales)/commande/paiements/edit-payment";
 import { format } from "date-fns";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -150,6 +152,26 @@ export function PaiementsTable({ payments, purchases }: Props) {
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
+  const [statusFilter, setStatusFilter]  = React.useState<"all" | PaymentRequest["status"]>("all");
+  const [priorityFilter, setPriorityFilter] = React.useState<"all" | PaymentRequest["priority"]>("all");
+
+  const filteredData = React.useMemo(()=>{
+    return payments.filter(p=>{
+      //Filter Priority
+      const matchPriority =
+      priorityFilter === "all" ? true : p.priority === priorityFilter;
+      //Filter Status
+      const matchStatus =
+      statusFilter === "all" ? true : p.status === statusFilter;
+      return matchPriority && matchStatus;
+    })
+  }, [payments, statusFilter, priorityFilter]);
+
+  const resetAllFilters = () => {
+    setGlobalFilter("");
+    setPriorityFilter("all");
+    setStatusFilter("all");
+  }
 
   const columns: ColumnDef<PaymentRequest>[] = [
     // {
@@ -392,61 +414,85 @@ export function PaiementsTable({ payments, purchases }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="grid gap-1.5">
-            <Label>{"Recherche"}</Label>
-            <Input
-              placeholder="Référence"
-              value={globalFilter ?? ""}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{"Priorité"}</Label>
-            <Select
-              value={
-                (table.getColumn("priority")?.getFilterValue() as string) ?? "all" // CORRECTION: 'priority' au lieu de 'priorite'
-              }
-              onValueChange={(value) =>
-                table
-                  .getColumn("priority")
-                  ?.setFilterValue(value === "all" ? "" : value)
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrer par priorité" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes"}</SelectItem>
-                {PRIORITIES.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{"Statut"}</Label>
-            <Select
-              value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"} // CORRECTION: 'status' au lieu de 'statut'
-              onValueChange={(value) =>
-                table
-                  .getColumn("status")
-                  ?.setFilterValue(value === "all" ? "" : value)
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrer par statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous"}</SelectItem>
-                {PAY_STATUS.map((status) => <SelectItem key={status.value} value={status.value}>{status.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline">
+                <Settings2 className="mr-2 h-4 w-4" />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+
+            <SheetContent className="overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les filtres pour affiner vos données"}
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="space-y-5 px-5">
+                <div className="space-y-3">
+                  <Label htmlFor="searchPO">{"Recherche globale"}</Label>
+                  <Input
+                    id="searchPO"
+                    type="search"
+                    placeholder="Référence"
+                    value={globalFilter ?? ""}
+                    onChange={(e) => setGlobalFilter(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label>{"Priorité"}</Label>
+                  <Select
+                    value={priorityFilter}
+                    onValueChange={(v: "all" | PaymentRequest["priority"]) =>
+                      setPriorityFilter(v)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Toutes les priorités" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {PRIORITIES.map((p) => (
+                        <SelectItem key={p.value} value={p.value}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>{"Statut"}</Label>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={v=>setStatusFilter(v as "all" | PaymentRequest["status"])}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Toutes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {
+                        PAY_STATUS.map((s)=>
+                        <SelectItem key={s.value} value={s.value}>{s.name}</SelectItem>
+                        )
+                      }
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  variant="outline"
+                  onClick={resetAllFilters}
+                  className="w-full"
+                >
+                  {"Réinitialiser les filtres"}
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">

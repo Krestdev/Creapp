@@ -6,20 +6,21 @@ import { Button } from '../ui/button'
 interface Props {
     tabs: { id: number, title: string, badge?: number }[]
     setSelectedTab: (value: React.SetStateAction<number>) => void
-    selectedTab: number
+    selectedTab: number;
+    className?:string;
 }
 
-export const TabBar = ({ tabs, setSelectedTab, selectedTab }: Props) => {
+export const TabBar = ({ tabs, setSelectedTab, selectedTab, className="" }: Props) => {
     return (
-        <div className="flex flex-row gap-4">
+        <div className={cn("w-fit flex border rounded overflow-hidden", className)}>
             {tabs.map(x => {
                 return (
                     <div
                         onClick={() => setSelectedTab(x.id)}
-                        className={`py-2 px-4 rounded-[8px] h-12 flex items-center cursor-pointer gap-2 ${x.id === selectedTab ? "bg-amber-400 text-black hover:bg-amber-400 hover:text-black" : "border"}`}
+                        className={`py-1 px-4 h-9 flex items-center cursor-pointer gap-2 text-sm hover:bg-gray-100 transition-all duration-300 ease-out ${x.id === selectedTab && "bg-accent text-default hover:bg-accent/80! font-semibold"}`}
                         key={x.id}>
                         <p>{x.title}</p>
-                        {x.badge ? x.badge > 0 && <div className={`px-2 rounded-[8px] ${x.id === selectedTab ? "bg-white text-black" : "bg-primary text-white"}`}>
+                        {x.badge ? x.badge > 0 && <div className={`px-2 rounded ${x.id === selectedTab ? "bg-white text-black" : "bg-primary text-white"}`}>
                             <p>{x.badge}</p>
                         </div> : null}
                     </div>
