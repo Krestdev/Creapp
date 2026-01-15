@@ -100,7 +100,6 @@ function Page() {
     },
   });
   const fromValue = form.watch("fromBankId");
-  const toValue = form.watch("toBankId");
 
   const filteredBanks = React.useMemo(() => {
     if (!banks) return [];
@@ -208,36 +207,13 @@ function Page() {
               render={({ field }) => (
                 <FormItem className="@min-[640px]:col-span-2">
                   <FormLabel isRequired>
-                    {"Libellé de la Transaction"}
+                    {"Libellé du Transfert"}
                   </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="Intitulé de la transaction"
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Montant"}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        {...field}
-                        placeholder="Ex. 50 000"
-                        className="pr-12"
-                      />
-                      <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                        {"FCFA"}
-                      </span>
-                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -275,7 +251,7 @@ function Page() {
                         {fromBank ? (
                           <span className="text-muted-foreground">
                             {"Solde disponible : "}
-                            <span className="font-medium">
+                            <span className="font-medium text-secondary">
                               {XAF.format(fromBank.balance)}
                             </span>
                           </span>
@@ -323,6 +299,29 @@ function Page() {
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Montant"}</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        {...field}
+                        placeholder="Ex. 50 000"
+                        className="pr-12"
+                      />
+                      <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                        {"FCFA"}
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="@min-[640px]:col-span-2 w-full inline-flex justify-end">
               <Button
                 type="submit"
@@ -360,6 +359,7 @@ function Page() {
                       ...formData,
                       Type: "TRANSFER",
                       userId: user?.id ?? 0,
+                      isDirect: isInstant(formData)
                     });
                     setShow(false);
                   }}
