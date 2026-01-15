@@ -68,7 +68,6 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
-import PayExpense from "./sign/sign-expense";
 import ShareExpense from "./share-expense";
 import { TabBar } from "@/components/base/TabBar";
 import {
@@ -79,6 +78,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import PayExpense from "./pay-expense";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -737,10 +737,10 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
         </div>
       </div>
       <h3>{`Tickets ${selectedTab === 0
-          ? "en attente"
-          : selectedTab === 1
-            ? "signés"
-            : "payés"
+        ? "en attente"
+        : selectedTab === 1
+          ? "signés"
+          : "payés"
         } (${payments.length})`}</h3>
       <div className="rounded-md border">
         <Table>
