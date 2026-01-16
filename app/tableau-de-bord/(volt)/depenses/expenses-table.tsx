@@ -544,7 +544,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
               )}
               {selectedTab === 0 && (
                 <DropdownMenuItem
-                  disabled={item.status !== "validated" && item.status === "pending"}
+                  disabled={item.status === "unsigned"}
                   onClick={() => {
                     setSelected(item);
                     setShowShare(true);

@@ -15,6 +15,7 @@ export interface TransactionProps
   toBankId?: number;
   status?: string;
   paymentId?: number;
+  methodId?: number;
 }
 
 export interface TransferProps
@@ -53,6 +54,7 @@ class TransactionQuery {
     formData.append("date", String(payload.date));
     formData.append("userId", String(payload.userId));
     formData.append("paymentId", String(payload.paymentId));
+    formData.append("methodId", String(payload.methodId));
     if (payload.from) formData.append("from", JSON.stringify(payload.from));
     if (payload.fromBankId)
       formData.append("fromBankId", String(payload.fromBankId));
@@ -146,7 +148,7 @@ class TransactionQuery {
     formData.append("userId", String(data.userId));
     formData.append("fromBankId", String(data.fromBankId));
     formData.append("toBankId", String(data.toBankId));
-    if(data.isDirect === true) formData.append("status", "APPROVED");
+    if (data.isDirect === true) formData.append("status", "APPROVED");
 
     return api
       .post(this.route, formData, {
