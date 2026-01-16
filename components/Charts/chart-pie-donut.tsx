@@ -41,8 +41,8 @@ interface DonutChartProps {
 export function ChartPieDonut({
   data,
   chartConfig,
-  innerRadius = 60,
-  maxHeight = 250,
+  innerRadius = 40,
+  maxHeight = 300,
   showLegend = false,
   tooltipConfig = {},
   className = "",
