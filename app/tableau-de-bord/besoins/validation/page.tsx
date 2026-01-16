@@ -1,45 +1,48 @@
 "use client";
 
+import { DataVal } from "@/components/base/dataVal";
 import {
   StatisticCard,
   StatisticProps,
 } from "@/components/base/TitleValueCard";
-import Approb from "@/components/besoin/Approb";
+import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import useAuthGuard from "@/hooks/useAuthGuard";
 import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
+import { paymentQ } from "@/queries/payment";
+import { projectQ } from "@/queries/projectModule";
+import { requestQ } from "@/queries/requestModule";
+import { requestTypeQ } from "@/queries/requestType";
 import { RequestModelT } from "@/types/types";
 import React from "react";
 
 const Page = () => {
-  const { hasAccess, isChecking } = useAuthGuard({
-    authorizedRoles: ["ADMIN", "MANAGER"],
-  });
-
   const { user } = useStore();
-
   const categoriesData = useFetchQuery(
     ["categories"],
     categoryQ.getCategories,
     15000
   );
+  const projectsData = useFetchQuery(["projects"], projectQ.getAll, 15000);
 
-  const validator = categoriesData.data?.data
-    .find((c) => c.validators.some((v) => v.userId === user?.id))
-    ?.validators.find((v) => v.userId === user?.id);
+  const usersData = useFetchQuery(["usersList"], userQ.getAll, 15000);
 
-  // État pour tous les filtres
-  const [dateFilter, setDateFilter] = React.useState<
-    "today" | "week" | "month" | "year" | "custom" | undefined
-  >(undefined);
-  const [customDateRange, setCustomDateRange] = React.useState<
-    { from: Date; to: Date } | undefined
-  >(undefined);
+  const paymentsData = useFetchQuery(["payments"], paymentQ.getAll, 15000);
 
-  const [data, setData] = React.useState<RequestModelT[]>([]);
+  const requestData = useFetchQuery(["requests"], requestQ.getAll, 15000);
+
+  const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll);
+
+  const data: Array<RequestModelT> = React.useMemo(() => {
+    if(!requestData.data || !categoriesData.data) return [];
+    return requestData.data.data.filter(r=>{
+      const isValidator = categoriesData.data.data.find(c=> c.id === r.categoryId)?.validators.find(v=> v.userId === user?.id);
+      return isValidator;
+    });
+  }, [requestData.data]);
 
   // Calcul des statistiques à partir des données filtrées
   const pending = React.useMemo(() => {
@@ -57,14 +60,6 @@ const Page = () => {
   const rejected = React.useMemo(() => {
     return data.filter((item) => item.state === "rejected").length;
   }, [data]);
-
-  if (isChecking) {
-    return <LoadingPage />;
-  }
-
-  if (!hasAccess) {
-    return null;
-  }
 
   const Statistics: Array<StatisticProps> = [
     {
@@ -87,28 +82,73 @@ const Page = () => {
     },
   ];
 
-  return (
-    <div className="content">
-      {/* page title */}
-      <PageTitle
-        title="Validation des besoins"
-        subtitle="Approuvez ou rejetez les besoins."
-        color="green"
+  if (
+    projectsData.isPending ||
+    usersData.isPending ||
+    paymentsData.isPending ||
+    categoriesData.isPending ||
+    requestData.isPending ||
+    getRequestType.isPending
+  ) {
+    return <LoadingPage />;
+  }
+
+  if (
+    projectsData.isError ||
+    usersData.isError ||
+    paymentsData.isError ||
+    categoriesData.isError ||
+    requestData.isError ||
+    getRequestType.isError
+  ) {
+    return (
+      <ErrorPage
+        error={
+          projectsData.error ||
+          usersData.error ||
+          paymentsData.error ||
+          categoriesData.error ||
+          requestData.error ||
+          getRequestType.error ||
+          undefined
+        }
       />
-      <div className="grid-stats-4">
-        {Statistics.map((statistic, id) => (
-          <StatisticCard key={id} {...statistic} />
-        ))}
+    );
+  }
+
+  if (
+    projectsData.data &&
+    usersData.data &&
+    paymentsData.data &&
+    categoriesData.data &&
+    requestData.data &&
+    getRequestType.data
+  )
+    return (
+      <div className="content">
+        {/* page title */}
+        <PageTitle
+          title="Validation des besoins"
+          subtitle="Approuvez ou rejetez les besoins."
+          color="green"
+        />
+        <div className="grid-stats-4">
+          {Statistics.map((statistic, id) => (
+            <StatisticCard key={id} {...statistic} />
+          ))}
+        </div>
+        <DataVal
+          data={requestData.data.data}
+          empty="Aucun besoin en attente"
+          isCheckable={true}
+          categoriesData={categoriesData.data.data}
+          projectsData={projectsData.data.data}
+          usersData={usersData.data.data}
+          paymentsData={paymentsData.data.data}
+          requestTypeData={getRequestType.data.data}
+        />
       </div>
-      <Approb
-        setData={setData}
-        dateFilter={dateFilter}
-        setDateFilter={setDateFilter}
-        customDateRange={customDateRange}
-        setCustomDateRange={setCustomDateRange}
-      />
-    </div>
-  );
+    );
 };
 
 export default Page;

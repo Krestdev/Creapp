@@ -82,7 +82,7 @@ const Page = () => {
       </PageTitle>
       <TabBar tabs={tabs} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
       {selectedTab === 0 ?
-        <div className="flex flex-col">
+        <div className="content">
           <h2>{"Besoins disponibles"}</h2>
           {besoinVal && besoinVal?.length > 0 ? (
             <Besoins selected={[]} setSelected={() => { }} isHome />
@@ -90,7 +90,7 @@ const Page = () => {
             <Empty message="Aucun besoin disponible" />
           )}
         </div> :
-        <div className="flex flex-col">
+        <div className="content">
           <h2>{"Demande de cotation"}</h2>
           <Cotation />
         </div>}

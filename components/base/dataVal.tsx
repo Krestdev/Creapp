@@ -27,6 +27,7 @@ import {
   LucideBan,
   LucideIcon,
   Paperclip,
+  Settings2,
 } from "lucide-react";
 import * as React from "react";
 
@@ -60,6 +61,7 @@ import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
   Category,
+  DateFilter,
   PaymentRequest,
   ProjectT,
   RequestModelT,
@@ -91,21 +93,25 @@ import { Textarea } from "../ui/textarea";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { SearchableSelect } from "./searchableSelect";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
+import { TabBar } from "./TabBar";
 
 interface DataTableProps {
   data: RequestModelT[];
   empty: string;
   type?: "pending" | "proceed";
-  dateFilter?: "today" | "week" | "month" | "year" | "custom" | undefined;
-  setDateFilter?: React.Dispatch<
-    React.SetStateAction<
-      "today" | "week" | "month" | "year" | "custom" | undefined
-    >
-  >;
-  customDateRange?: { from: Date; to: Date } | undefined;
-  setCustomDateRange?: React.Dispatch<
-    React.SetStateAction<{ from: Date; to: Date } | undefined>
-  >;
   customProps?: {
     userPosition?: number | null;
     categoryName?: string;
@@ -117,17 +123,13 @@ interface DataTableProps {
   projectsData: ProjectT[];
   usersData: User[];
   paymentsData: PaymentRequest[];
-  requestTypeData: RequestType[] | undefined;
+  requestTypeData: RequestType[];
 }
 
 export function DataVal({
   data,
   empty,
   type = "pending",
-  dateFilter,
-  setDateFilter,
-  customDateRange,
-  setCustomDateRange,
   isCheckable = false,
   categoriesData,
   projectsData,
@@ -152,13 +154,22 @@ export function DataVal({
   const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
   const [projectFilter, setProjectFilter] = React.useState<string>("all");
   const [userFilter, setUserFilter] = React.useState<string>("all");
-
-  // États pour le modal personnalisé
-  const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
-    React.useState(false);
-  const [tempCustomDateRange, setTempCustomDateRange] = React.useState<
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+  const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
-  >(customDateRange || { from: addDays(new Date(), -7), to: new Date() });
+  >();
+  const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
+  const [selectedTab, setSelectedTab] = React.useState<number>(0);
+  const tabs = [
+    {
+      id: 0,
+      title: "En attente",
+    },
+    {
+      id: 1,
+      title: "Traités",
+    },
+  ];
 
   // Modal states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
@@ -232,64 +243,6 @@ export function DataVal({
     );
   };
 
-  // Fonction pour obtenir le texte d'affichage du filtre de date
-  const getDateFilterText = () => {
-    switch (dateFilter) {
-      case "today":
-        return "Aujourd'hui";
-      case "week":
-        return "Cette semaine";
-      case "month":
-        return "Ce mois";
-      case "year":
-        return "Cette année";
-      case "custom":
-        if (customDateRange?.from && customDateRange?.to) {
-          return `${format(customDateRange.from, "dd/MM/yyyy")} - ${format(
-            customDateRange.to,
-            "dd/MM/yyyy"
-          )}`;
-        }
-        return "Personnaliser";
-      default:
-        return "Toutes les périodes";
-    }
-  };
-
-  // Gérer l'ouverture du modal personnalisé
-  const handleCustomDateClick = () => {
-    // Initialiser avec la plage actuelle ou une plage par défaut
-    setTempCustomDateRange(
-      customDateRange || { from: addDays(new Date(), -7), to: new Date() }
-    );
-    setIsCustomDateModalOpen(true);
-  };
-
-  // Appliquer la plage personnalisée
-  const applyCustomDateRange = () => {
-    if (tempCustomDateRange?.from && tempCustomDateRange?.to) {
-      if (setDateFilter) {
-        setDateFilter("custom");
-      }
-      if (setCustomDateRange) {
-        setCustomDateRange(tempCustomDateRange);
-      }
-      setIsCustomDateModalOpen(false);
-    } else {
-      toast.error("Veuillez sélectionner une plage de dates valide");
-    }
-  };
-
-  // Réinitialiser le filtre personnalisé
-  const clearCustomDateRange = () => {
-    if (setDateFilter) {
-      setDateFilter(undefined);
-    }
-    if (setCustomDateRange) {
-      setCustomDateRange(undefined);
-    }
-  };
-
   const getProjectName = (projectId: string) => {
     const project = projectsData?.find((proj) => proj.id === Number(projectId));
     return project?.label || projectId;
@@ -307,54 +260,69 @@ export function DataVal({
     return user?.lastName + " " + user?.firstName || userId;
   };
 
-  // Fonction pour filtrer les données manuellement
+  // Major Filter *******************************************
   const filteredData = React.useMemo(() => {
-    let filtered = [...data];
+    return data.filter((b) => {
+      const validatedByUser = categoriesData.find(c=> c.id === b.categoryId)?.validators.find(v=> v.userId === user?.id)?.id;
+      //console.log(`validator Id: ${validatedByUser} - ${b.label}`);
+      const validated = b.revieweeList?.some(r=>r.validatorId === validatedByUser);
+      const now = new Date();
+      let startDate = new Date();
+      let endDate = now;
+      //Selected Tab
+      const matchTab =
+      selectedTab === 0 ? b.state === "pending" && !validated :
+      selectedTab === 1 && !!validated;
+      //Status Filter
+      const matchStatus =
+        statusFilter === "all" ? true : b.state === statusFilter;
+      //Project Filter
+      const matchProject =
+        projectFilter === "all" ? true : b.projectId === Number(projectFilter);
+      //User Filter
+      const matchUser =
+        userFilter === "all" ? true : b.userId === Number(userFilter);
+      //Category Filter
+      const matchCategory =
+      categoryFilter === "all" ? true : b.categoryId === Number(categoryFilter);
+      //Date filter
+      let matchDate = true;
+      if (dateFilter) {
+        switch (dateFilter) {
+          case "today":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "week":
+            startDate.setDate(
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+            );
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "month":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          case "custom":
+            if (customDateRange?.from && customDateRange?.to) {
+              startDate = customDateRange.from;
+              endDate = customDateRange.to;
+            }
+            break;
+        }
 
-    // Filtrer par statut (seulement pour type proceed)
-    if (type === "proceed" && statusFilter && statusFilter !== "all") {
-      filtered = filtered.filter((item) => item.state === statusFilter);
-    }
-
-    // Filtrer par catégorie
-    if (categoryFilter && categoryFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => String(item.categoryId) === String(categoryFilter)
-      );
-    }
-
-    // Filtrer par projet
-    if (projectFilter && projectFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => String(item.projectId) === String(projectFilter)
-      );
-    }
-
-    // Filtrer par utilisateur
-    if (userFilter && userFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => String(item.userId) === String(userFilter)
-      );
-    }
-
-    // Filtrer par recherche globale
-    if (globalFilter) {
-      const searchValue = globalFilter.toLowerCase();
-      filtered = filtered.filter((item) => {
-        const searchText = [
-          item.label || "",
-          getProjectName(String(item.projectId)) || "",
-          getCategoryName(String(item.categoryId)) || "",
-          getUserName(String(item.userId)) || "",
-        ]
-          .join(" ")
-          .toLowerCase();
-
-        return searchText.includes(searchValue);
-      });
-    }
-
-    return filtered;
+        if (
+          dateFilter !== "custom" ||
+          (customDateRange?.from && customDateRange?.to)
+        ) {
+          matchDate =
+            new Date(b.createdAt) >= startDate &&
+            new Date(b.createdAt) <= endDate;
+        }
+      }
+      return matchDate && matchProject && matchUser && matchStatus && matchTab && matchCategory;
+    });
   }, [
     data,
     globalFilter,
@@ -362,13 +330,26 @@ export function DataVal({
     categoryFilter,
     projectFilter,
     userFilter,
-    type,
+    selectedTab,
+    categoryFilter,
+    dateFilter,
+    customDateRange
   ]);
 
+  const resetAllFilters = () => {
+    setGlobalFilter("");
+    setStatusFilter("all");
+    setCategoryFilter("all");
+    setProjectFilter("all");
+    setUserFilter("all");
+    setDateFilter(undefined);
+    setCustomDateRange(undefined);
+  };
+
+  const categoryIds = [...new Set(data.map((req) => req.categoryId))];
   const uniqueCategories = React.useMemo(() => {
     if (!data.length || !categoriesData) return [];
 
-    const categoryIds = [...new Set(data.map((req) => req.categoryId))];
 
     return categoryIds.map((categoryId) => {
       const category = categoriesData.find(
@@ -498,13 +479,9 @@ export function DataVal({
         .join(", ");
     } else if (request.type === "facilitation") {
       return (
-        usersData.find(
-          (u) => u.id === Number(request.beneficiary)
-        )?.firstName +
+        usersData.find((u) => u.id === Number(request.beneficiary))?.firstName +
         " " +
-        usersData.find(
-          (u) => u.id === Number(request.beneficiary)
-        )?.lastName
+        usersData.find((u) => u.id === Number(request.beneficiary))?.lastName
       );
     }
     return "Aucun bénéficiaire";
@@ -524,12 +501,12 @@ export function DataVal({
       decision?: string;
       validatorId?: number;
       validator?:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => {
       await requestQ.review(id, {
         validated: validated,
@@ -852,8 +829,8 @@ export function DataVal({
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Titres
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Titres"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -894,8 +871,8 @@ export function DataVal({
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Projets
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Projets"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -915,8 +892,8 @@ export function DataVal({
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Catégories
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Catégories"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -943,8 +920,8 @@ export function DataVal({
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Émetteurs
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Émetteurs"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -964,8 +941,8 @@ export function DataVal({
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Date d'émission
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Date d'émission"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -987,8 +964,8 @@ export function DataVal({
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Bénéficiaires
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Bénéficiaires"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -1004,7 +981,7 @@ export function DataVal({
     if (type === "pending") {
       baseColumns.push({
         id: "validationProgress",
-        header: () => <span className="tablehead">Validation</span>,
+        header: () => <span className="tablehead">{"Validation"}</span>,
         cell: ({ row }: { row: Row<RequestModelT> }) => {
           const validationInfo = getValidationInfo(row.original);
 
@@ -1066,7 +1043,7 @@ export function DataVal({
     baseColumns.push({
       id: "actions",
       enableHiding: false,
-      header: () => <span className="tablehead">Actions</span>,
+      header: () => <span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
 
@@ -1164,201 +1141,260 @@ export function DataVal({
   const canValidateSelected = selectedCount > 0 && isCheckable;
 
   return (
-    <div className="w-full">
-      <div className="flex flex-wrap items-center gap-3 py-4">
-        {/* Global search */}
-        <Input
-          placeholder="Rechercher par titre, catégorie, projet..."
-          value={globalFilter}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
+    <div className="content">
+      <div className="flex flex-wrap gap-4 items-center justify-between">
+          <TabBar tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
+                  <Input
+                    name="search"
+                    type="search"
+                    id="searchCommand"
+                    placeholder="Référence, libellé"
+                    value={globalFilter ?? ""}
+                    onChange={(event) => setGlobalFilter(event.target.value)}
+                    className="w-full"
+                  />
+                </div>
 
-        {/* Status filter - seulement pour proceed */}
-        {type === "proceed" && (
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Statut" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              {uniqueStatus?.map((state) => {
-                return (
-                  <SelectItem
-                    key={state.id}
-                    value={state.id}
-                    className="capitalize"
+                {/* Filtre par statut */}
+                <div className="grid gap-1.5">
+                  <Label>{"Statut"}</Label>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={setStatusFilter}
                   >
-                    {state.name}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        )}
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {uniqueStatus.map((s) => (
+                        <SelectItem key={s.id} value={String(s.id)}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Filtre par Catégorie */}
+                <div className="grid gap-1.5">
+                  <Label>{"Catégorie"}</Label>
+                  <Select
+                    value={categoryFilter}
+                    onValueChange={setCategoryFilter}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {categoriesData.filter(c=>categoryIds.includes(c.id)).map((s) => (
+                        <SelectItem key={s.id} value={String(s.id)}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Filtre par Projet */}
+                <div className="grid gap-1.5">
+                  <Label>{"Projet"}</Label>
+                  <Select
+                    value={projectFilter}
+                    onValueChange={setProjectFilter}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {projectsData.map((p) => (
+                        <SelectItem key={p.id} value={String(p.id)}>
+                          {p.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Filtre par Emetteur */}
+                <div className="grid gap-1.5">
+                  <Label>{"Emetteur"}</Label>
+                  <Select
+                    value={userFilter}
+                    onValueChange={setUserFilter}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {usersData.map((u) => (
+                        <SelectItem key={u.id} value={String(u.id)}>
+                          {u.firstName.concat(" ", u.lastName)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Filtre par période */}
+                <div className="grid gap-1.5">
+                  <Label>{"Période"}</Label>
+                  <Select
+                    onValueChange={(v) => {
+                      if (v !== "custom") {
+                        setCustomDateRange(undefined);
+                        setCustomOpen(false);
+                      }
+                      if (v === "all") return setDateFilter(undefined);
+                      setDateFilter(v as Exclude<DateFilter, undefined>);
+                      setCustomOpen(v === "custom");
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner une période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
+                      <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
+                      <SelectItem value="week">{"Cette semaine"}</SelectItem>
+                      <SelectItem value="month">{"Ce mois"}</SelectItem>
+                      <SelectItem value="year">{"Cette année"}</SelectItem>
+                      <SelectItem value="custom">{"Personnalisé"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Collapsible
+                    open={customOpen}
+                    onOpenChange={setCustomOpen}
+                    disabled={dateFilter !== "custom"}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        {"Plage personnalisée"}
+                        <span className="text-muted-foreground text-xs">
+                          {customDateRange?.from && customDateRange.to
+                            ? `${format(
+                                customDateRange.from,
+                                "dd/MM/yyyy"
+                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            : "Choisir"}
+                        </span>
+                      </Button>
+                    </CollapsibleTrigger>
 
-        {/* Category filter */}
-        <SearchableSelect
-          value={categoryFilter}
-          onChange={setCategoryFilter}
-          placeholder="Catégorie"
-          allLabel="Toutes"
-          options={uniqueCategories.map((c) => ({
-            value: String(c.id),
-            label: c.name,
-          }))}
-        />
+                    <CollapsibleContent className="space-y-4 pt-4">
+                      <Calendar
+                        mode="range"
+                        selected={customDateRange}
+                        onSelect={(range) =>
+                          setCustomDateRange(range as { from: Date; to: Date })
+                        }
+                        numberOfMonths={1}
+                        className="rounded-md border w-full"
+                      />
+                      <div className="space-y-1">
+                        <Button
+                          className="w-full"
+                          onClick={() => {
+                            setCustomDateRange(undefined);
+                            setDateFilter(undefined);
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Annuler"}
+                        </Button>
+                        <Button
+                          className="w-full"
+                          variant={"outline"}
+                          onClick={() => {
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Réduire"}
+                        </Button>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
 
-        {/* Project filter */}
-        <SearchableSelect
-          value={projectFilter}
-          onChange={setProjectFilter}
-          placeholder="Projet"
-          allLabel="Tous"
-          options={uniqueProjects.map((p) => ({
-            value: String(p.id),
-            label: p.name,
-          }))}
-        />
-
-        {/* Users filter */}
-        <SearchableSelect
-          value={userFilter}
-          onChange={setUserFilter}
-          placeholder="Émetteur"
-          allLabel="Tous"
-          options={uniqueUsers.map((u) => ({
-            value: String(u.id),
-            label: u.name,
-          }))}
-        />
-
-        {/* Date filter - seulement si setDateFilter est fourni */}
-        {setDateFilter && (
+                {/* Bouton pour réinitialiser les filtres */}
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={resetAllFilters}
+                    className="w-full"
+                  >
+                    {"Réinitialiser"}
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+          {/* Column visibility */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="bg-transparent">
-                {getDateFilterText()}
-                <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+              <Button variant="outline">
+                {"Colonnes"}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={() => clearCustomDateRange()}
-                className={cn(
-                  "flex items-center justify-between",
-                  !dateFilter && "bg-accent"
-                )}
-              >
-                <span>Toutes les périodes</span>
-                {!dateFilter && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => setDateFilter("today")}
-                className={cn(
-                  "flex items-center justify-between",
-                  dateFilter === "today" && "bg-accent"
-                )}
-              >
-                <span>Aujourd'hui</span>
-                {dateFilter === "today" && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setDateFilter("week")}
-                className={cn(
-                  "flex items-center justify-between",
-                  dateFilter === "week" && "bg-accent"
-                )}
-              >
-                <span>Cette semaine</span>
-                {dateFilter === "week" && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setDateFilter("month")}
-                className={cn(
-                  "flex items-center justify-between",
-                  dateFilter === "month" && "bg-accent"
-                )}
-              >
-                <span>Ce mois</span>
-                {dateFilter === "month" && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setDateFilter("year")}
-                className={cn(
-                  "flex items-center justify-between",
-                  dateFilter === "year" && "bg-accent"
-                )}
-              >
-                <span>Cette année</span>
-                {dateFilter === "year" && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleCustomDateClick}
-                className={cn(
-                  "flex items-center justify-between",
-                  dateFilter === "custom" && "bg-accent"
-                )}
-              >
-                <span className="flex items-center">
-                  <CalendarDays className="mr-2 h-4 w-4" />
-                  Personnaliser
-                </span>
-                {dateFilter === "custom" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-
-        {/* Column visibility */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto bg-transparent">
-              Colonnes
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id === "select"
-                      ? "Sélection"
-                      : column.id === "label"
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id === "select"
+                        ? "Sélection"
+                        : column.id === "label"
                         ? "Titres"
                         : column.id === "projectId"
-                          ? "Projets"
-                          : column.id === "categoryId"
-                            ? "Catégories"
-                            : column.id === "userId"
-                              ? "Émetteurs"
-                              : column.id === "beneficiary"
-                                ? "Bénéficiaires"
-                                : column.id === "createdAt"
-                                  ? "Date d'émission"
-                                  : column.id === "state"
-                                    ? "Statuts"
-                                    : column.id === "validationProgress"
-                                      ? "Validation"
-                                      : column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                        ? "Projets"
+                        : column.id === "categoryId"
+                        ? "Catégories"
+                        : column.id === "userId"
+                        ? "Émetteurs"
+                        : column.id === "beneficiary"
+                        ? "Bénéficiaires"
+                        : column.id === "createdAt"
+                        ? "Date d'émission"
+                        : column.id === "state"
+                        ? "Statuts"
+                        : column.id === "validationProgress"
+                        ? "Validation"
+                        : column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       {isCheckable && selectedCount > 1 && (
         <div className="flex items-center gap-2 pb-4">
@@ -1400,9 +1436,9 @@ export function DataVal({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
                     );
                   })}
@@ -1428,8 +1464,8 @@ export function DataVal({
                       validationInfo.userPosition === 3 && "border-l-red-400",
                       validationInfo.isLastValidator && "border-l-red-400",
                       isSelected &&
-                      isCheckable &&
-                      "bg-blue-50 hover:bg-blue-100"
+                        isCheckable &&
+                        "bg-blue-50 hover:bg-blue-100"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -1455,117 +1491,6 @@ export function DataVal({
 
       {/* Pagination */}
       {filteredData.length > 0 && <Pagination table={table} pageSize={15} />}
-
-      {/* Modal pour la plage de dates personnalisée */}
-      <Dialog
-        open={isCustomDateModalOpen}
-        onOpenChange={setIsCustomDateModalOpen}
-      >
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Sélectionner une plage de dates</DialogTitle>
-            <DialogDescription>
-              Choisissez la période que vous souhaitez filtrer
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="date-from">Date de début</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !tempCustomDateRange?.from && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {tempCustomDateRange?.from ? (
-                        format(tempCustomDateRange.from, "PPP", { locale: fr })
-                      ) : (
-                        <span>Sélectionner une date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={tempCustomDateRange?.from}
-                      onSelect={(date) =>
-                        setTempCustomDateRange((prev) => ({
-                          from: date || prev?.from || new Date(),
-                          to: prev?.to || new Date(),
-                        }))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="date-to">Date de fin</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !tempCustomDateRange?.to && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {tempCustomDateRange?.to ? (
-                        format(tempCustomDateRange.to, "PPP", { locale: fr })
-                      ) : (
-                        <span>Sélectionner une date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={tempCustomDateRange?.to}
-                      onSelect={(date) =>
-                        setTempCustomDateRange((prev) => ({
-                          from: prev?.from || new Date(),
-                          to: date || prev?.to || new Date(),
-                        }))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            <div className="rounded-md border p-4">
-              <Calendar
-                mode="range"
-                selected={tempCustomDateRange}
-                onSelect={(range) =>
-                  setTempCustomDateRange(range as { from: Date; to: Date })
-                }
-                numberOfMonths={1}
-                className="rounded-md border"
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsCustomDateModalOpen(false)}
-            >
-              Annuler
-            </Button>
-            <Button onClick={applyCustomDateRange}>Appliquer</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Dialog pour les actions de groupe - seulement si isCheckable est true */}
       {isCheckable && (
