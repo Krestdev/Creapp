@@ -374,10 +374,10 @@ export function QuotationGroupTable({
           {/* Afficher les filtres actifs */}
           {(providerFilter !== "all" || statusFilter !== "all" || globalFilter) && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Filtres actifs:</span>
+              <span>{"Filtres actifs:"}</span>
               {providerFilter !== "all" && (
                 <Badge variant="outline">
-                  Fournisseur: {providers.find(p => p.id.toString() === providerFilter)?.name}
+                  {`Fournisseur: ${providers.find(p => p.id.toString() === providerFilter)?.name}`}
                 </Badge>
               )}
               {statusFilter !== "all" && (
