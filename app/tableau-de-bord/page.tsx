@@ -611,7 +611,7 @@ const DashboardPage = () => {
       </Dialog>
 
       {/* Cartes de statistiques */}
-      <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
+      <div className="grid-stats-4">
         <StatsCard
           titleColor="text-[#E4E4E7]"
           title="En attente de validation"

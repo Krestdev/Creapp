@@ -209,7 +209,7 @@
     @apply max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start;
   }
   .grid-stats-4 {
-    @apply grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1200px]:grid-cols-3 @min-[1600px]:grid-cols-4 items-center gap-4 @min-[640px]:gap-5;
+    @apply grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-3 @min-[1400px]:grid-cols-4 items-center gap-4 @min-[640px]:gap-5;
   }
 }
 
