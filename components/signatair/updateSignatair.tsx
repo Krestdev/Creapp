@@ -136,21 +136,6 @@ export default function UpdateSignatair({
     },
   });
 
-  const bankData = useQuery({
-    queryKey: ["banks"],
-    queryFn: () => bankQ.getAll(),
-  });
-
-  const paytypeData = useQuery({
-    queryKey: ["payementType"],
-    queryFn: () => payTypeQ.getAll(),
-  });
-
-  const userData = useQuery({
-    queryKey: ["users"],
-    queryFn: () => userQ.getAll(),
-  });
-
   /* =========================
      SUBMIT
   ========================= */

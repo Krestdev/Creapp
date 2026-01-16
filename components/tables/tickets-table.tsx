@@ -22,14 +22,14 @@ import {
 import { useFetchQuery } from "@/hooks/useData";
 import { cn, company } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { } from "@/queries/commandRqstModule";
+import {} from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import {
   BonsCommande,
   PRIORITIES,
   PaymentRequest,
-  RequestType
+  RequestType,
 } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -52,7 +52,7 @@ import {
   Eye,
   Flag,
   LucideCheck,
-  LucideDollarSign
+  LucideDollarSign,
 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
@@ -74,7 +74,6 @@ const getPriorityBadge = (
   variant: VariantProps<typeof badgeVariants>["variant"];
   rowClassName?: string;
 } => {
-  const label = PRIORITIES.find((c) => c.value === priority)?.name ?? "Inconnu";
   const label = PRIORITIES.find((c) => c.value === priority)?.name ?? "Inconnu";
   switch (priority) {
     case "low":
@@ -114,13 +113,6 @@ const getPriorityBadge = (
       };
   }
 };
-const getStatusVariant = (
-  status: PaymentRequest["status"]
-): {
-  label: string;
-  variant: VariantProps<typeof badgeVariants>["variant"];
-} => {
-  switch (status) {
 const getStatusVariant = (
   status: PaymentRequest["status"]
 ): {
