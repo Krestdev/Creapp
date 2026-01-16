@@ -30,6 +30,7 @@ import {
   SettingsIcon,
   Ticket,
   ReceiptIcon,
+  SignatureIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -48,6 +49,7 @@ import {
   SidebarHeader,
 } from "../ui/sidebar";
 import NavigationItem from "./navigation-item";
+import { signatairQ } from "@/queries/signatair";
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
@@ -114,6 +116,8 @@ function AppSidebar() {
   const myList = useFetchQuery(["requests", user?.id], () =>
     requestQ.getMine(user!.id)
   );
+
+  const signatories = useFetchQuery(["SignatairList"], signatairQ.getAll);
 
   const besoinDéstocké =
     myList.data?.data.filter((x) => x.state === "store").length ?? 0;
@@ -453,13 +457,14 @@ function AppSidebar() {
           href: "/tableau-de-bord/depenses/creer",
           authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
         },
-        {
-          pageId: "PG-23354987-01",
-          title: "Signer",
-          href: "/tableau-de-bord/depenses/sign",
-          authorized: ["ADMIN", "VOLT"],
-        },
       ],
+    },
+    {
+      pageId: "PG-00001",
+      title: "Signer",
+      href: "/tableau-de-bord/signatures",
+      authorized: [],
+      icon: SignatureIcon,
     },
     {
       pageId: "PG-56489713246",
@@ -543,9 +548,13 @@ function AppSidebar() {
   ];
 
   // Filtrer les liens de navigation selon les rôles de l'utilisateur
-  const filteredNavLinks = navLinks.filter((navLink) =>
-    navLink.authorized.some((role) => userRoles.includes(role))
-  );
+  const filteredNavLinks = navLinks.filter((navLink) => {
+    const signPage = navLink.pageId === "00001";
+    const canSign = signatories.data?.data.find(s=> s.user?.some(o=>o.id === user?.id ));
+    if(signPage) return !!canSign;
+    if (navLink.authorized.length === 0) return true;
+    return navLink.authorized.some((role) => userRoles.includes(role));
+  });
 
   return (
     <Sidebar>
