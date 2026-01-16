@@ -158,7 +158,7 @@ const DashboardPage = () => {
 
   // Requête pour récupérer TOUS les besoins (pour "Besoins reçus")
   const allRequestsData = useQuery({
-    queryKey: ["allRequests"],
+    queryKey: ["requests"],
     queryFn: () => requestQ.getAll(),
     enabled: isHydrated && !!user,
   });

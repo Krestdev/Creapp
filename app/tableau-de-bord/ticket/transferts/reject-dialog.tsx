@@ -55,10 +55,10 @@ function RejectDialog({ transaction, open, openChange, userId }: Props) {
       }),
     onSuccess: () => {
       toast.success("Demande de transfert rejetée avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["transactions", "banks"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["transactions", "banks"],
+      //   refetchType: "active",
+      // });
       openChange(false);
     },
     onError: (error: Error) => {

@@ -83,5 +83,3 @@ class NotificationQueries {
       });
   };
 }
-
-export const notificationQ = new NotificationQueries();

@@ -112,10 +112,10 @@ export default function UpdateDepartment({
     onSuccess: () => {
       toast.success("Département mis à jour avec succès !");
       setOpen(false);
-      queryClient.invalidateQueries({
-        queryKey: ["departmentList"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["departmentList"],
+      //   refetchType: "active",
+      // });
       onSuccess?.();
     },
 

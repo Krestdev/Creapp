@@ -265,16 +265,21 @@ export function DataVal({
   // Major Filter *******************************************
   const filteredData = React.useMemo(() => {
     return data.filter((b) => {
-      const validatedByUser = categoriesData.find(c => c.id === b.categoryId)?.validators.find(v => v.userId === user?.id)?.id;
+      const validatedByUser = categoriesData
+        .find((c) => c.id === b.categoryId)
+        ?.validators.find((v) => v.userId === user?.id)?.id;
       //console.log(`validator Id: ${validatedByUser} - ${b.label}`);
-      const validated = b.revieweeList?.some(r => r.validatorId === validatedByUser);
+      const validated = b.revieweeList?.some(
+        (r) => r.validatorId === validatedByUser
+      );
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
       //Selected Tab
       const matchTab =
-        selectedTab === 0 ? b.state === "pending" && !validated :
-          selectedTab === 1 && !!validated;
+        selectedTab === 0
+          ? b.state === "pending" && !validated
+          : selectedTab === 1 && !!validated;
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : b.state === statusFilter;
@@ -286,7 +291,9 @@ export function DataVal({
         userFilter === "all" ? true : b.userId === Number(userFilter);
       //Category Filter
       const matchCategory =
-        categoryFilter === "all" ? true : b.categoryId === Number(categoryFilter);
+        categoryFilter === "all"
+          ? true
+          : b.categoryId === Number(categoryFilter);
       //Date filter
       let matchDate = true;
       if (dateFilter) {
@@ -323,7 +330,14 @@ export function DataVal({
             new Date(b.createdAt) <= endDate;
         }
       }
-      return matchDate && matchProject && matchUser && matchStatus && matchTab && matchCategory;
+      return (
+        matchDate &&
+        matchProject &&
+        matchUser &&
+        matchStatus &&
+        matchTab &&
+        matchCategory
+      );
     });
   }, [
     data,
@@ -335,7 +349,7 @@ export function DataVal({
     selectedTab,
     categoryFilter,
     dateFilter,
-    customDateRange
+    customDateRange,
   ]);
 
   const resetAllFilters = () => {
@@ -351,7 +365,6 @@ export function DataVal({
   const categoryIds = [...new Set(data.map((req) => req.categoryId))];
   const uniqueCategories = React.useMemo(() => {
     if (!data.length || !categoriesData) return [];
-
 
     return categoryIds.map((categoryId) => {
       const category = categoriesData.find(
@@ -503,12 +516,12 @@ export function DataVal({
       decision?: string;
       validatorId?: number;
       validator?:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => {
       await requestQ.review(id, {
         validated: validated,
@@ -523,7 +536,7 @@ export function DataVal({
           ? "Besoin approuvé avec succès !"
           : "Besoin rejeté avec succès !"
       );
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      // queryClient.invalidateQueries({ queryKey: ["requests"] });
     },
     onError: () => {
       toast.error("Une erreur est survenue lors de la validation.");
@@ -610,7 +623,7 @@ export function DataVal({
         `${selectedCount} besoin(s) ${actionType}(s) avec succès !`
       );
 
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      // queryClient.invalidateQueries({ queryKey: ["requests"] });
       setRowSelection({}); // Réinitialiser la sélection
     },
     onError: (error) => {
@@ -1079,7 +1092,9 @@ export function DataVal({
                 <DropdownMenuItem
                   onClick={() =>
                     validationInfo.isLastValidator
-                      ? item.type === "facilitation" ? (setSelectedItem(item), setIsUpdateFacModalOpen(true)) : (setSelectedItem(item), setIsLastValModalOpen(true))
+                      ? item.type === "facilitation"
+                        ? (setSelectedItem(item), setIsUpdateFacModalOpen(true))
+                        : (setSelectedItem(item), setIsLastValModalOpen(true))
                       : openValidationModal("approve", item)
                   }
                   disabled={
@@ -1145,7 +1160,11 @@ export function DataVal({
   return (
     <div className="content">
       <div className="flex flex-wrap gap-4 items-center justify-between">
-        <TabBar tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+        <TabBar
+          tabs={tabs}
+          selectedTab={selectedTab}
+          setSelectedTab={setSelectedTab}
+        />
         <div className="flex flex-wrap items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
@@ -1178,10 +1197,7 @@ export function DataVal({
                 {/* Filtre par statut */}
                 <div className="grid gap-1.5">
                   <Label>{"Statut"}</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={setStatusFilter}
-                  >
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Sélectionner" />
                     </SelectTrigger>
@@ -1207,11 +1223,13 @@ export function DataVal({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{"Tous"}</SelectItem>
-                      {categoriesData.filter(c => categoryIds.includes(c.id)).map((s) => (
-                        <SelectItem key={s.id} value={String(s.id)}>
-                          {s.label}
-                        </SelectItem>
-                      ))}
+                      {categoriesData
+                        .filter((c) => categoryIds.includes(c.id))
+                        .map((s) => (
+                          <SelectItem key={s.id} value={String(s.id)}>
+                            {s.label}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1238,10 +1256,7 @@ export function DataVal({
                 {/* Filtre par Emetteur */}
                 <div className="grid gap-1.5">
                   <Label>{"Emetteur"}</Label>
-                  <Select
-                    value={userFilter}
-                    onValueChange={setUserFilter}
-                  >
+                  <Select value={userFilter} onValueChange={setUserFilter}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Sélectionner" />
                     </SelectTrigger>
@@ -1273,7 +1288,9 @@ export function DataVal({
                       <SelectValue placeholder="Sélectionner une période" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
+                      <SelectItem value="all">
+                        {"Toutes les périodes"}
+                      </SelectItem>
                       <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
                       <SelectItem value="week">{"Cette semaine"}</SelectItem>
                       <SelectItem value="month">{"Ce mois"}</SelectItem>
@@ -1295,9 +1312,9 @@ export function DataVal({
                         <span className="text-muted-foreground text-xs">
                           {customDateRange?.from && customDateRange.to
                             ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy"
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                                customDateRange.from,
+                                "dd/MM/yyyy"
+                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -1354,9 +1371,7 @@ export function DataVal({
           {/* Column visibility */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                {"Colonnes"}
-              </Button>
+              <Button variant="outline">{"Colonnes"}</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {table
@@ -1375,22 +1390,22 @@ export function DataVal({
                       {column.id === "select"
                         ? "Sélection"
                         : column.id === "label"
-                          ? "Titres"
-                          : column.id === "projectId"
-                            ? "Projets"
-                            : column.id === "categoryId"
-                              ? "Catégories"
-                              : column.id === "userId"
-                                ? "Émetteurs"
-                                : column.id === "beneficiary"
-                                  ? "Bénéficiaires"
-                                  : column.id === "createdAt"
-                                    ? "Date d'émission"
-                                    : column.id === "state"
-                                      ? "Statuts"
-                                      : column.id === "validationProgress"
-                                        ? "Validation"
-                                        : column.id}
+                        ? "Titres"
+                        : column.id === "projectId"
+                        ? "Projets"
+                        : column.id === "categoryId"
+                        ? "Catégories"
+                        : column.id === "userId"
+                        ? "Émetteurs"
+                        : column.id === "beneficiary"
+                        ? "Bénéficiaires"
+                        : column.id === "createdAt"
+                        ? "Date d'émission"
+                        : column.id === "state"
+                        ? "Statuts"
+                        : column.id === "validationProgress"
+                        ? "Validation"
+                        : column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
@@ -1438,9 +1453,9 @@ export function DataVal({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
                     );
                   })}
@@ -1466,8 +1481,8 @@ export function DataVal({
                       validationInfo.userPosition === 3 && "border-l-red-400",
                       validationInfo.isLastValidator && "border-l-red-400",
                       isSelected &&
-                      isCheckable &&
-                      "bg-blue-50 hover:bg-blue-100"
+                        isCheckable &&
+                        "bg-blue-50 hover:bg-blue-100"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (

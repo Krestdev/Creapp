@@ -4,10 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import {
-  Form,
-  FormLabel,
-} from "@/components/ui/form";
+import { Form, FormLabel } from "@/components/ui/form";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +20,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { signatairQ } from "@/queries/signatair";
 import { Field, FieldError, FieldLabel } from "../ui/field";
+import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -42,7 +41,9 @@ const formSchema = z.object({
   type: z.string().min(1, "Veuillez sélectionner un type de paiement"),
   mode: z.string().min(1, "Veuillez sélectionner un mode de signature"),
   signatair: z
-    .array(z.number(), { message: "Veuillez sélectionner au moins un signataire" })
+    .array(z.number(), {
+      message: "Veuillez sélectionner au moins un signataire",
+    })
     .min(1, "Veuillez sélectionner au moins un signataire")
     .optional(),
 });
@@ -122,10 +123,10 @@ export default function UpdateSignatair({
         queryKey: ["signatair"],
         refetchType: "active",
       });
-      queryClient.invalidateQueries({
-        queryKey: ["SignatairList"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["SignatairList"],
+      //   refetchType: "active",
+      // });
       setOpen(false);
       onSuccess?.();
     },
@@ -133,6 +134,21 @@ export default function UpdateSignatair({
     onError: (error: Error) => {
       toast.error(error.message || "Erreur lors de la modification");
     },
+  });
+
+  const bankData = useQuery({
+    queryKey: ["banks"],
+    queryFn: () => bankQ.getAll(),
+  });
+
+  const paytypeData = useQuery({
+    queryKey: ["payementType"],
+    queryFn: () => payTypeQ.getAll(),
+  });
+
+  const userData = useQuery({
+    queryKey: ["users"],
+    queryFn: () => userQ.getAll(),
   });
 
   /* =========================
@@ -188,7 +204,10 @@ export default function UpdateSignatair({
                         Banque <span className="text-destructive">*</span>
                       </FieldLabel>
 
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionner une banque" />
                         </SelectTrigger>
@@ -223,10 +242,14 @@ export default function UpdateSignatair({
                       className="gap-1 col-span-full"
                     >
                       <FieldLabel htmlFor="type">
-                        Type de paiement <span className="text-destructive">*</span>
+                        Type de paiement{" "}
+                        <span className="text-destructive">*</span>
                       </FieldLabel>
 
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionner un type de paiement" />
                         </SelectTrigger>
@@ -259,17 +282,24 @@ export default function UpdateSignatair({
                       className="gap-1 col-span-full"
                     >
                       <FieldLabel htmlFor="mode">
-                        Mode de signature <span className="text-destructive">*</span>
+                        Mode de signature{" "}
+                        <span className="text-destructive">*</span>
                       </FieldLabel>
 
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionner un mode" />
                         </SelectTrigger>
                         <SelectContent>
                           {[
                             { value: "ONE", label: "Un signataire suffit" },
-                            { value: "BOTH", label: "Tous les signataires requis" },
+                            {
+                              value: "BOTH",
+                              label: "Tous les signataires requis",
+                            },
                           ].map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}

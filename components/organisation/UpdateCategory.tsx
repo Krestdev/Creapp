@@ -146,8 +146,8 @@ export function UpdateCategory({
     },
     onSuccess: (data: ResponseT<Category>) => {
       toast.success("Catégorie mise à jour avec succès !");
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      queryClient.invalidateQueries({ queryKey: ["categoryList"] });
+      // queryClient.invalidateQueries({ queryKey: ["categories"] });
+      // queryClient.invalidateQueries({ queryKey: ["categoryList"] });
       setOpen(false);
       onSuccess?.();
     },

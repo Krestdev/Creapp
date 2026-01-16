@@ -26,9 +26,17 @@ function Page() {
     30000
   );
 
-  const signatair = useFetchQuery(["signatair"], signatairQ.getAll);
-  const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll, 30000);
-  const getPurchases = useFetchQuery(["purchaseOrders"], purchaseQ.getAll, 30000);
+  const signatair = useFetchQuery(["signatairs"], signatairQ.getAll);
+  const getRequestType = useFetchQuery(
+    ["requestType"],
+    requestTypeQ.getAll,
+    30000
+  );
+  const getPurchases = useFetchQuery(
+    ["purchaseOrders"],
+    purchaseQ.getAll,
+    30000
+  );
   const getBanks = useFetchQuery(["banks"], bankQ.getAll, 30000);
 
   const [selectedTab, setSelectedTab] = useState(0);
@@ -38,8 +46,8 @@ function Page() {
   const filteredData = useMemo(() => {
     if (!data?.data || !signatair.data?.data || !user) {
       return {
-        unsignedPayments: [],           // unsigned seulement
-        signedPayments: [],           // pending_depense + unsigned (pour l'onglet)
+        unsignedPayments: [], // unsigned seulement
+        signedPayments: [], // pending_depense + unsigned (pour l'onglet)
         statistics: [],
       };
     }
@@ -51,9 +59,9 @@ function Page() {
     // Pré-calculer les signataires autorisés par banque et type de paiement
     const authorizedSigners = new Map<string, Set<number>>();
 
-    allSignatair.forEach(signer => {
+    allSignatair.forEach((signer) => {
       const key = `${signer.bankId}_${signer.payTypeId}`;
-      const userIds = new Set(signer.user?.map(u => u.id) || []);
+      const userIds = new Set(signer.user?.map((u) => u.id) || []);
       authorizedSigners.set(key, userIds);
     });
 
@@ -66,7 +74,7 @@ function Page() {
     };
 
     // Filtrer les paiements selon les permissions - version optimisée
-    const authorizedPayments = allPayments.filter(p =>
+    const authorizedPayments = allPayments.filter((p) =>
       userCanSign(p.bankId!, p.methodId!)
     );
 
@@ -88,15 +96,18 @@ function Page() {
 
     // Calcul des statistiques détaillées
     const pendingDepenseTotal = pendingDepensePayments.reduce(
-      (total, el) => total + (el.price || 0), 0
+      (total, el) => total + (el.price || 0),
+      0
     );
 
     const unsignedTotal = unsignedPayments.reduce(
-      (total, el) => total + (el.price || 0), 0
+      (total, el) => total + (el.price || 0),
+      0
     );
 
     const signedTotal = signedPayments.reduce(
-      (total, el) => total + (el.price || 0), 0
+      (total, el) => total + (el.price || 0),
+      0
     );
 
     const allPendingTotal = pendingDepenseTotal + unsignedTotal;
@@ -128,22 +139,25 @@ function Page() {
       signedPayments,
       allPendingPayments,
       statistics,
-      allPayments
+      allPayments,
     };
   }, [data?.data, signatair.data?.data, user]);
 
-  const tabs = useMemo(() => [
-    {
-      id: 0,
-      title: "Tickets en attente",
-      badge: filteredData.unsignedPayments.length
-    },
-    {
-      id: 1,
-      title: "Tickets signés",
-      badge: filteredData.signedPayments.length
-    }
-  ], [filteredData.unsignedPayments.length, filteredData.signedPayments.length]);
+  const tabs = useMemo(
+    () => [
+      {
+        id: 0,
+        title: "Tickets en attente",
+        badge: filteredData.unsignedPayments.length,
+      },
+      {
+        id: 1,
+        title: "Tickets signés",
+        badge: filteredData.signedPayments.length,
+      },
+    ],
+    [filteredData.unsignedPayments.length, filteredData.signedPayments.length]
+  );
 
   if (
     isLoading ||

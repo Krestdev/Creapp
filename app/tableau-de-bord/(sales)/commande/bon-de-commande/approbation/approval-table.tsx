@@ -198,10 +198,10 @@ export function PurchaseApprovalTable({ data }: Props) {
     },
     onSuccess: () => {
       toast.success("Bon de commande approuvé ✅");
-      queryClient.invalidateQueries({
-        queryKey: ["purchaseOrders"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["purchaseOrders"],
+      //   refetchType: "active",
+      // });
       setDecisionOpen(false);
     },
     onError: (e: any) => toast.error(e?.message ?? "Impossible d'approuver"),
@@ -215,10 +215,10 @@ export function PurchaseApprovalTable({ data }: Props) {
     },
     onSuccess: () => {
       toast.success("Bon de commande rejeté ❌");
-      queryClient.invalidateQueries({
-        queryKey: ["purchaseOrders"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["purchaseOrders"],
+      //   refetchType: "active",
+      // });
       setDecisionOpen(false);
       setRejectReason("");
     },
@@ -649,9 +649,9 @@ export function PurchaseApprovalTable({ data }: Props) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -692,14 +692,14 @@ export function PurchaseApprovalTable({ data }: Props) {
                     {(priorityFilter !== "all" ||
                       penaltyFilter !== "all" ||
                       globalFilter) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={resetAllFilters}
-                        >
-                          {"Réinitialiser les filtres"}
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetAllFilters}
+                      >
+                        {"Réinitialiser les filtres"}
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

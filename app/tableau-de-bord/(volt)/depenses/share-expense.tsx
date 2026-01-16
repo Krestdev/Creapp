@@ -52,9 +52,14 @@ const createFormSchema = (hasMethodId: boolean) =>
     label: z.string().min(2, "Libellé trop court"),
     fromBankId: z.coerce.number().int().positive(),
     // Ajouter methodId seulement si le ticket n'a pas déjà de methodId
-    ...(hasMethodId ? {} : {
-      methodId: z.number().int().positive("Veuillez sélectionner un moyen de paiement"),
-    }),
+    ...(hasMethodId
+      ? {}
+      : {
+          methodId: z
+            .number()
+            .int()
+            .positive("Veuillez sélectionner un moyen de paiement"),
+        }),
     to: z.object({
       label: z.string().min(2, "Libellé trop court"),
       accountNumber: z.string().optional(),
@@ -69,7 +74,11 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   const queryClient = useQueryClient();
 
   // Récupérer la liste des signataires
-  const getSignataires = useFetchQuery(["SignatairList"], signatairQ.getAll, 30000);
+  const getSignataires = useFetchQuery(
+    ["SignatairList"],
+    signatairQ.getAll,
+    30000
+  );
 
   // Récupérer les types de paiement
   const payTypesQuery = useFetchQuery(["payTypes"], payTypeQ.getAll, 30000);
@@ -80,8 +89,8 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   }, [ticket.methodId]);
 
   // Créer le schéma conditionnel
-  const formSchema = useMemo(() =>
-    createFormSchema(hasExistingMethodId),
+  const formSchema = useMemo(
+    () => createFormSchema(hasExistingMethodId),
     [hasExistingMethodId]
   );
 
@@ -99,13 +108,13 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   // Observer la valeur de la banque sélectionnée
   const selectedBankId = useWatch({
     control: form.control,
-    name: "fromBankId"
+    name: "fromBankId",
   });
 
   // Observer la valeur de methodId (si présent dans le formulaire)
   const selectedMethodId = useWatch({
     control: form.control,
-    name: "methodId" as any
+    name: "methodId" as any,
   });
 
   // Obtenir le type de paiement du ticket ou du formulaire
@@ -126,34 +135,32 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   const filteredBanks = useMemo(() => {
     if (!paymentMethod?.type) {
       // Si pas de méthode de paiement définie, afficher tous les comptes actifs
-      return banks.filter(x => x.type !== null && x.Status === true);
+      return banks.filter((x) => x.type !== null && x.Status === true);
     }
 
     const paymentType = paymentMethod.type.toLowerCase();
 
     switch (paymentType) {
-      case 'cash': // Espèces
+      case "cash": // Espèces
         // Pour les espèces : caisses + Orange Money
-        return banks.filter(bank =>
-          (
-            bank.type === 'CASH' ||
-            bank.type === 'CASH_REGISTER' ||
-            bank.type === 'MOBILE_WALLET'
-          ) &&
-          bank.Status === true
+        return banks.filter(
+          (bank) =>
+            (bank.type === "CASH" ||
+              bank.type === "CASH_REGISTER" ||
+              bank.type === "MOBILE_WALLET") &&
+            bank.Status === true
         );
 
-      case 'ov': // Ordre de virement
-      case 'chq': // Chèque
+      case "ov": // Ordre de virement
+      case "chq": // Chèque
         // Pour les virements et chèques : banques uniquement
-        return banks.filter(bank =>
-          bank.type === 'BANK' &&
-          bank.Status === true
+        return banks.filter(
+          (bank) => bank.type === "BANK" && bank.Status === true
         );
 
       default:
         // Par défaut, afficher tous les comptes actifs
-        return banks.filter(x => x.type !== null && x.Status === true);
+        return banks.filter((x) => x.type !== null && x.Status === true);
     }
   }, [banks, paymentMethod?.type]);
 
@@ -175,22 +182,28 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
 
   // Formater la liste des signataires pour l'affichage
   const signatairesList = useMemo(() => {
-    if (!relevantSignataireConfig?.user || relevantSignataireConfig.user.length === 0) {
+    if (
+      !relevantSignataireConfig?.user ||
+      relevantSignataireConfig.user.length === 0
+    ) {
       return "Aucun signataire défini pour cette combinaison banque/méthode";
     }
 
     return relevantSignataireConfig.user
-      .map(user => `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email)
+      .map(
+        (user) =>
+          `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+      )
       .join(", ");
   }, [relevantSignataireConfig]);
 
   // Formater le mode de signature en texte lisible
   const formatMode = (mode: string): string => {
     switch (mode) {
-      case 'ONE':
-        return 'Au moins une signature requise';
-      case 'BOTH':
-        return 'Toutes les signatures requises';
+      case "ONE":
+        return "Au moins une signature requise";
+      case "BOTH":
+        return "Toutes les signatures requises";
       default:
         return mode;
     }
@@ -200,14 +213,14 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.create(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["banks", "transactions"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["banks", "transactions"],
+      //   refetchType: "active",
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["payments"],
+      //   refetchType: "active",
+      // });
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
     },
@@ -238,7 +251,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       to,
       fromBankId,
       // Inclure methodId dans le payload
-      methodId: finalMethodId
+      methodId: finalMethodId,
     };
 
     pay.mutate(payload);
@@ -276,14 +289,22 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
 
               {/* Information sur la méthode de paiement */}
               <div className="@min-[640px]:col-span-2 p-3 rounded-sm border bg-blue-50/30">
-                <h3 className="font-medium text-sm mb-2">Information de paiement</h3>
+                <h3 className="font-medium text-sm mb-2">
+                  Information de paiement
+                </h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <span className="font-medium text-muted-foreground">Montant :</span>
-                    <p className="font-semibold">{ticket.price.toLocaleString()} FCFA</p>
+                    <span className="font-medium text-muted-foreground">
+                      Montant :
+                    </span>
+                    <p className="font-semibold">
+                      {ticket.price.toLocaleString()} FCFA
+                    </p>
                   </div>
                   <div>
-                    <span className="font-medium text-muted-foreground">Statut :</span>
+                    <span className="font-medium text-muted-foreground">
+                      Statut :
+                    </span>
                     <p className="font-semibold capitalize">{ticket.status}</p>
                   </div>
                 </div>
@@ -298,7 +319,8 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                     <FormItem className="@min-[640px]:col-span-2">
                       <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
                       <FormDescription className="text-amber-600">
-                        Ce paiement n'a pas encore de moyen de paiement défini. Veuillez en sélectionner un.
+                        Ce paiement n'a pas encore de moyen de paiement défini.
+                        Veuillez en sélectionner un.
                       </FormDescription>
                       <FormControl>
                         <Select
@@ -312,8 +334,12 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                           </SelectTrigger>
                           <SelectContent>
                             {payTypesQuery.data?.data?.map((payType) => (
-                              <SelectItem key={payType.id} value={String(payType.id)}>
-                                {payType.label || `Moyen de paiement ${payType.id}`}
+                              <SelectItem
+                                key={payType.id}
+                                value={String(payType.id)}
+                              >
+                                {payType.label ||
+                                  `Moyen de paiement ${payType.id}`}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -328,12 +354,15 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
               {/* Afficher la méthode de paiement si elle existe déjà */}
               {hasExistingMethodId && paymentMethod && (
                 <div className="@min-[640px]:col-span-2 p-3 rounded-sm border bg-green-50/30">
-                  <h3 className="font-medium text-sm mb-1">Moyen de paiement défini</h3>
+                  <h3 className="font-medium text-sm mb-1">
+                    Moyen de paiement défini
+                  </h3>
                   <p className="font-semibold text-green-700">
                     {paymentMethod.label || `Type ${ticket.methodId}`}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Ce paiement a déjà un moyen de paiement configuré. Pour le modifier, veuillez éditer le paiement directement.
+                    Ce paiement a déjà un moyen de paiement configuré. Pour le
+                    modifier, veuillez éditer le paiement directement.
                   </p>
                 </div>
               )}
@@ -362,10 +391,16 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                                 <div className="flex flex-col">
                                   <span>{bank.label}</span>
                                   <span className="text-xs text-muted-foreground">
-                                    {bank.type === 'BANK' && `Banque - Solde: ${bank.balance?.toLocaleString()} FCFA`}
-                                    {bank.type === 'CASH' && `Caisse - Solde: ${bank.balance?.toLocaleString()} FCFA`}
-                                    {bank.type === 'CASH_REGISTER' && `Caisse principale - Solde: ${bank.balance?.toLocaleString()} FCFA`}
-                                    {bank.type === 'MOBILE_WALLET' && `Portefeuille mobile (${bank.label}) - ${bank.phoneNum || 'N/A'}`}
+                                    {bank.type === "BANK" &&
+                                      `Banque - Solde: ${bank.balance?.toLocaleString()} FCFA`}
+                                    {bank.type === "CASH" &&
+                                      `Caisse - Solde: ${bank.balance?.toLocaleString()} FCFA`}
+                                    {bank.type === "CASH_REGISTER" &&
+                                      `Caisse principale - Solde: ${bank.balance?.toLocaleString()} FCFA`}
+                                    {bank.type === "MOBILE_WALLET" &&
+                                      `Portefeuille mobile (${bank.label}) - ${
+                                        bank.phoneNum || "N/A"
+                                      }`}
                                   </span>
                                 </div>
                               </SelectItem>
@@ -375,38 +410,61 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                       </FormControl>
 
                       {/* Affichage de la configuration de signature correspondante */}
-                      {selectedBankId && paymentMethod && relevantSignataireConfig && (
-                        <div className="mt-3 space-y-2 p-3 bg-muted/30 rounded-md">
-                          <p className="text-sm font-medium">Configuration de signature :</p>
-                          <div className="text-sm">
-                            <div className="ml-2 mt-1">
-                              <p className="text-xs">
-                                <span className="font-medium">Mode :</span>{' '}
-                                <span className={relevantSignataireConfig.mode === 'ONE' ? 'text-green-600' : 'text-amber-600'}>
-                                  {formatMode(relevantSignataireConfig.mode)}
-                                </span>
-                              </p>
-                              <p className="text-xs mt-1">
-                                <span className="font-medium">Signataires :</span>{' '}
-                                {signatairesList}
-                              </p>
+                      {selectedBankId &&
+                        paymentMethod &&
+                        relevantSignataireConfig && (
+                          <div className="mt-3 space-y-2 p-3 bg-muted/30 rounded-md">
+                            <p className="text-sm font-medium">
+                              Configuration de signature :
+                            </p>
+                            <div className="text-sm">
+                              <div className="ml-2 mt-1">
+                                <p className="text-xs">
+                                  <span className="font-medium">Mode :</span>{" "}
+                                  <span
+                                    className={
+                                      relevantSignataireConfig.mode === "ONE"
+                                        ? "text-green-600"
+                                        : "text-amber-600"
+                                    }
+                                  >
+                                    {formatMode(relevantSignataireConfig.mode)}
+                                  </span>
+                                </p>
+                                <p className="text-xs mt-1">
+                                  <span className="font-medium">
+                                    Signataires :
+                                  </span>{" "}
+                                  {signatairesList}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
                       {/* Message si aucune configuration trouvée */}
-                      {selectedBankId && paymentMethod && !relevantSignataireConfig && (
-                        <div className="mt-3 p-3 bg-muted/20 rounded-md border border-muted">
-                          <p className="text-sm text-muted-foreground">
-                            ⚠️ Aucune configuration de signature trouvée pour la combinaison :
-                          </p>
-                          <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
-                            <li>Compte source : {banks.find(b => b.id === selectedBankId)?.label || `#${selectedBankId}`}</li>
-                            <li>Méthode de paiement : {paymentMethod?.label || `Type ${paymentMethod?.id}`}</li>
-                          </ul>
-                        </div>
-                      )}
+                      {selectedBankId &&
+                        paymentMethod &&
+                        !relevantSignataireConfig && (
+                          <div className="mt-3 p-3 bg-muted/20 rounded-md border border-muted">
+                            <p className="text-sm text-muted-foreground">
+                              ⚠️ Aucune configuration de signature trouvée pour
+                              la combinaison :
+                            </p>
+                            <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
+                              <li>
+                                Compte source :{" "}
+                                {banks.find((b) => b.id === selectedBankId)
+                                  ?.label || `#${selectedBankId}`}
+                              </li>
+                              <li>
+                                Méthode de paiement :{" "}
+                                {paymentMethod?.label ||
+                                  `Type ${paymentMethod?.id}`}
+                              </li>
+                            </ul>
+                          </div>
+                        )}
 
                       <FormMessage />
                     </FormItem>
@@ -454,7 +512,9 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                   name="to.phoneNum"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{"Numéro de téléphone destinataire"}</FormLabel>
+                      <FormLabel>
+                        {"Numéro de téléphone destinataire"}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -477,7 +537,11 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
           <Button
             onClick={form.handleSubmit(onSubmit)}
             variant={"primary"}
-            disabled={pay.isPending || filteredBanks.length === 0 || (!hasExistingMethodId && !selectedMethodId)}
+            disabled={
+              pay.isPending ||
+              filteredBanks.length === 0 ||
+              (!hasExistingMethodId && !selectedMethodId)
+            }
             isLoading={pay.isPending}
           >
             {"Soumettre"}

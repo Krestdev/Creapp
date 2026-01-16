@@ -110,7 +110,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
-      createdAt: false
+      createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -118,7 +118,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
     undefined
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const [reject, setReject] = React.useState<boolean>(false);
 
   const [statusFilter, setStatusFilter] = React.useState<
@@ -134,10 +134,10 @@ export function InvoicesTable({ payments, purchases }: Props) {
     mutationFn: async (id: number) => paymentQ.approveInvoice(id),
     onSuccess: () => {
       toast.success("Facture approuvée avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["payments"],
+      //   refetchType: "active",
+      // });
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -199,8 +199,8 @@ export function InvoicesTable({ payments, purchases }: Props) {
             new Date(payment.createdAt) <= endDate;
         }
       }
-      return matchDate && matchStatus
-    })
+      return matchDate && matchStatus;
+    });
   }, [statusFilter, customDateRange, dateFilter]);
 
   const columns: ColumnDef<PaymentRequest>[] = [
@@ -259,15 +259,16 @@ export function InvoicesTable({ payments, purchases }: Props) {
           typeof proofField === "string" && proofField.length > 0
             ? proofField.split(";").filter(Boolean)
             : Array.isArray(proofField)
-              ? proofField.map(String).filter(Boolean)
-              : [];
+            ? proofField.map(String).filter(Boolean)
+            : [];
         return (
           <div className="font-medium flex flex-wrap gap-1.5">
             {elements.map((proof, index) => (
               <Link
                 key={index}
-                href={`${process.env.NEXT_PUBLIC_API
-                  }/uploads/${encodeURIComponent(proof)}`}
+                href={`${
+                  process.env.NEXT_PUBLIC_API
+                }/uploads/${encodeURIComponent(proof)}`}
                 target="_blank"
                 className="flex gap-0.5 items-center px-2 py-1 rounded border"
               >
@@ -339,7 +340,11 @@ export function InvoicesTable({ payments, purchases }: Props) {
         );
       },
       cell: ({ row }) => {
-        return <div className="font-medium">{format(row.getValue("createdAt"), "dd/MM/yyyy")}</div>;
+        return (
+          <div className="font-medium">
+            {format(row.getValue("createdAt"), "dd/MM/yyyy")}
+          </div>
+        );
       },
     },
     {
@@ -457,7 +462,9 @@ export function InvoicesTable({ payments, purchases }: Props) {
                 <Label>{"Statut"}</Label>
                 <Select
                   value={statusFilter}
-                  onValueChange={(value) => setStatusFilter(value as "all" | PaymentRequest["status"])}
+                  onValueChange={(value) =>
+                    setStatusFilter(value as "all" | PaymentRequest["status"])
+                  }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Filtrer par statut" />
@@ -518,9 +525,9 @@ export function InvoicesTable({ payments, purchases }: Props) {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                            customDateRange.from,
-                            "dd/MM/yyyy"
-                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy"
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -595,22 +602,21 @@ export function InvoicesTable({ payments, purchases }: Props) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === "status" ?
-                      "Statut"
-                      : column.id === "price" ?
-                        "Montant"
-                        : column.id === "proof" ?
-                          "Documents"
-                          : column.id === "provider" ?
-                            "Fournisseur"
-                            : column.id === "reference" ?
-                              "Référence"
-                              : column.id === "createdAt" ?
-                                "Date de création"
-                                : column.id === "updatedAt" ?
-                                  "Date de modification"
-                                  : column.id
-                    }
+                    {column.id === "status"
+                      ? "Statut"
+                      : column.id === "price"
+                      ? "Montant"
+                      : column.id === "proof"
+                      ? "Documents"
+                      : column.id === "provider"
+                      ? "Fournisseur"
+                      : column.id === "reference"
+                      ? "Référence"
+                      : column.id === "createdAt"
+                      ? "Date de création"
+                      : column.id === "updatedAt"
+                      ? "Date de modification"
+                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -632,9 +638,9 @@ export function InvoicesTable({ payments, purchases }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}

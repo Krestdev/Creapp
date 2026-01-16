@@ -69,7 +69,7 @@ export function DevisModal({
   });
 
   const requestsData = useQuery({
-    queryKey: ["requestsList"],
+    queryKey: ["requests"],
     queryFn: () => requestQ.getAll(),
   });
 

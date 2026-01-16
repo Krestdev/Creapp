@@ -132,10 +132,10 @@ function TransactionForm({ banks, userId }: Props) {
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.create(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["banks", "transactions"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["banks", "transactions"],
+      //   refetchType: "active",
+      // });
       toast.success("Votre transaction a été enregistrée avec succès !");
       router.push("./");
     },

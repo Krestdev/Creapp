@@ -120,10 +120,10 @@ const [customDateRange, setCustomDateRange] = React.useState<
     mutationFn: (id: number) => commandRqstQ.delete(id),
     onSuccess: () => {
       toast.success("Demande de cotation annulée avec succès.");
-      queryClient.invalidateQueries({
-        queryKey: ["commands"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["commands"],
+      //   refetchType: "active",
+      // });
     },
   });
 

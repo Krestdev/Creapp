@@ -10,6 +10,6 @@ export const useFetchQuery = <TData>(
     queryKey,
     queryFn,
     refetchOnWindowFocus: false,
-    retryDelay: 30000,
-    refetchInterval,
+    // retryDelay: 30000,
+    // refetchInterval,
   });

@@ -137,10 +137,10 @@ export default function UpdateProvider({
       setOpen(false);
       form.reset(defaultValues);
       onSuccess?.();
-      queryClient.invalidateQueries({
-        queryKey: ["providersList"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["providersList"],
+      //   refetchType: "active",
+      // });
     },
     onError: (error: Error) => {
       console.error("Erreur de mise à jour:", error);

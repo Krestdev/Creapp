@@ -46,18 +46,12 @@ import { commadQ } from "@/queries/command";
 import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
-import {
-  DateFilter,
-  PAY_STATUS,
-  PaymentRequest,
-  PayType,
-} from "@/types/types";
+import { DateFilter, PAY_STATUS, PaymentRequest, PayType } from "@/types/types";
 import { format } from "date-fns";
 import { Settings2 } from "lucide-react";
 import React from "react";
 
 function Page() {
-
   const getProviders = useFetchQuery(["providers"], providerQ.getAll, 50000);
   const getPurchases = useFetchQuery(["purchaseOrders"], commadQ.getAll);
   const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
@@ -99,16 +93,18 @@ function Page() {
       let endDate = now;
       //Filter by provider
       const matchProvider =
-        providerFilter === "all" ? true : !!payment.commandId ? getPurchases.data?.data.find(p => p.id === payment.commandId)?.providerId === Number(providerFilter) : false;
+        providerFilter === "all"
+          ? true
+          : !!payment.commandId
+          ? getPurchases.data?.data.find((p) => p.id === payment.commandId)
+              ?.providerId === Number(providerFilter)
+          : false;
       //Filter by type
       const matchType =
         typeFilter === "all" ? true : payment.type === typeFilter;
       //Filter by method
       const matchMethod =
-        methodFilter === "all" ||
-        payment.methodId?.toString() === methodFilter;
-
-
+        methodFilter === "all" || payment.methodId?.toString() === methodFilter;
 
       //Filter Status
       const matchStatus =
@@ -149,9 +145,20 @@ function Page() {
             new Date(payment.createdAt) <= endDate;
         }
       }
-      return matchDate && matchMethod && matchStatus && matchType && matchProvider;
+      return (
+        matchDate && matchMethod && matchStatus && matchType && matchProvider
+      );
     });
-  }, [dateFilter, customDateRange, statusFilter, typeFilter, methodFilter, providerFilter, getPurchases.data, data]);
+  }, [
+    dateFilter,
+    customDateRange,
+    statusFilter,
+    typeFilter,
+    methodFilter,
+    providerFilter,
+    getPurchases.data,
+    data,
+  ]);
 
   // Calcul des métriques principales
   const metrics = React.useMemo(() => {
@@ -178,10 +185,10 @@ function Page() {
     const approvalRate =
       filteredData.length > 0
         ? (filteredData.filter(
-          (p) => p.status === "validated" || p.status === "paid"
-        ).length /
-          filteredData.length) *
-        100
+            (p) => p.status === "validated" || p.status === "paid"
+          ).length /
+            filteredData.length) *
+          100
         : 0;
 
     const pendingCount = filteredData.filter(
@@ -227,8 +234,9 @@ function Page() {
       variant: "secondary",
       more: {
         title: `${metrics.pendingCount} paiements`,
-        value: `${Math.round((metrics.pendingAmount / metrics.totalAmount) * 100) || 0
-          }% du total`,
+        value: `${
+          Math.round((metrics.pendingAmount / metrics.totalAmount) * 100) || 0
+        }% du total`,
       },
     },
     {
@@ -307,91 +315,109 @@ function Page() {
     }, [filteredData]);
 
   // Données par fournisseur
-  const paymentByProvider: { data: ChartDataItem[]; config: ChartConfig } = React.useMemo(() => {
-    const providerStats: Record<number | string, { amount: number; count: number; name: string }> = {};
+  const paymentByProvider: { data: ChartDataItem[]; config: ChartConfig } =
+    React.useMemo(() => {
+      const providerStats: Record<
+        number | string,
+        { amount: number; count: number; name: string }
+      > = {};
 
-    // Préparer les labels des fournisseurs
-    const providerLabels = new Map(
-      getProviders.data?.data?.map(provider => [provider.id, provider.name]) || []
-    );
+      // Préparer les labels des fournisseurs
+      const providerLabels = new Map(
+        getProviders.data?.data?.map((provider) => [
+          provider.id,
+          provider.name,
+        ]) || []
+      );
 
-    filteredData.forEach((payment) => {
-      let providerId: number | string = "creaconsult";
-      let providerName = "Creaconsult";
+      filteredData.forEach((payment) => {
+        let providerId: number | string = "creaconsult";
+        let providerName = "Creaconsult";
 
-      // Trouver le fournisseur via le bon de commande
-      if (payment.commandId) {
-        const purchaseOrder = getPurchases.data?.data?.find(p => p.id === payment.commandId);
-        if (purchaseOrder?.provider) {
-          providerId = purchaseOrder.provider.id;
-          providerName = purchaseOrder.provider.name;
-          // Mettre à jour le cache des noms si nécessaire
-          if (!providerLabels.has(providerId)) {
-            providerLabels.set(providerId, providerName);
+        // Trouver le fournisseur via le bon de commande
+        if (payment.commandId) {
+          const purchaseOrder = getPurchases.data?.data?.find(
+            (p) => p.id === payment.commandId
+          );
+          if (purchaseOrder?.provider) {
+            providerId = purchaseOrder.provider.id;
+            providerName = purchaseOrder.provider.name;
+            // Mettre à jour le cache des noms si nécessaire
+            if (!providerLabels.has(providerId)) {
+              providerLabels.set(providerId, providerName);
+            }
           }
         }
-      }
 
-      // Initialiser si nécessaire
-      if (!providerStats[providerId]) {
-        providerStats[providerId] = {
-          amount: 0,
-          count: 0,
-          name: providerName
-        };
-      }
+        // Initialiser si nécessaire
+        if (!providerStats[providerId]) {
+          providerStats[providerId] = {
+            amount: 0,
+            count: 0,
+            name: providerName,
+          };
+        }
 
-      // Ajouter les données
-      providerStats[providerId].amount += payment.price;
-      providerStats[providerId].count += 1;
-    });
+        // Ajouter les données
+        providerStats[providerId].amount += payment.price;
+        providerStats[providerId].count += 1;
+      });
 
-    // Convertir en array pour le graphique
-    const data: ChartDataItem[] = Object.entries(providerStats).map(([id, stats], index) => {
-      const providerId = typeof id === 'string' && id === 'creaconsult' ? id : Number(id);
+      // Convertir en array pour le graphique
+      const data: ChartDataItem[] = Object.entries(providerStats).map(
+        ([id, stats], index) => {
+          const providerId =
+            typeof id === "string" && id === "creaconsult" ? id : Number(id);
 
-      return {
-        id: providerId,
-        value: stats.amount,
-        label: stats.name,
-        color: getRandomColor(index),
-        name: `provider_${providerId}`,
-        count: stats.count,
-        fullName: stats.name,
+          return {
+            id: providerId,
+            value: stats.amount,
+            label: stats.name,
+            color: getRandomColor(index),
+            name: `provider_${providerId}`,
+            count: stats.count,
+            fullName: stats.name,
+          };
+        }
+      );
+
+      // Trier par montant décroissant
+      const sortedData = data.sort((a, b) => b.value - a.value);
+
+      // Créer la configuration du graphique
+      const config: ChartConfig = {
+        value: { label: "Montant" },
+        ...Object.fromEntries(
+          sortedData.map((item, index) => [
+            `provider_${item.id}`,
+            {
+              label: item.fullName || item.label,
+              color: item.color,
+            },
+          ])
+        ),
       };
-    });
 
-    // Trier par montant décroissant
-    const sortedData = data.sort((a, b) => b.value - a.value);
-
-    // Créer la configuration du graphique
-    const config: ChartConfig = {
-      value: { label: "Montant" },
-      ...Object.fromEntries(
-        sortedData.map((item, index) => [
-          `provider_${item.id}`,
-          {
-            label: item.fullName || item.label,
-            color: item.color,
-          }
-        ])
-      ),
-    };
-
-    return { data: sortedData, config };
-  }, [getProviders.data, filteredData, getPurchases.data]);
+      return { data: sortedData, config };
+    }, [getProviders.data, filteredData, getPurchases.data]);
 
   // Données pour le graphique par méthode de paiement (basé sur les données API)
   const paymentMethodData: { data: ChartDataItem[]; config: ChartConfig } =
     React.useMemo(() => {
-      const methodStats: Record<string, { amount: number; count: number; label: string }> = {};
+      const methodStats: Record<
+        string,
+        { amount: number; count: number; label: string }
+      > = {};
 
       // Récupérer les méthodes de paiement depuis l'API
       const paymentMethods = getPaymentType.data?.data || [];
 
       // Créer un mapping ID -> label
       const methodMap = new Map(
-        paymentMethods.map(method => [method.id.toString(), method.label || `Méthode ${method.id}`])
+        paymentMethods.map((method) => [
+          method.id.toString(),
+          method.label || `Méthode ${method.id}`,
+        ])
       );
 
       // Calculer les statistiques
@@ -403,7 +429,7 @@ function Page() {
           methodStats[methodId] = {
             amount: 0,
             count: 0,
-            label: methodMap.get(methodId) || `Méthode ${methodId}`
+            label: methodMap.get(methodId) || `Méthode ${methodId}`,
           };
         }
         methodStats[methodId].amount += payment.price;
@@ -411,15 +437,17 @@ function Page() {
       });
 
       // Convertir en array pour le graphique
-      const data: ChartDataItem[] = Object.entries(methodStats).map(([methodId, stats], index) => ({
-        id: methodId,
-        value: stats.amount,
-        label: stats.label,
-        color: getRandomColor(index),
-        name: `method_${methodId}`,
-        count: stats.count,
-        fullName: stats.label,
-      }));
+      const data: ChartDataItem[] = Object.entries(methodStats).map(
+        ([methodId, stats], index) => ({
+          id: methodId,
+          value: stats.amount,
+          label: stats.label,
+          color: getRandomColor(index),
+          name: `method_${methodId}`,
+          count: stats.count,
+          fullName: stats.label,
+        })
+      );
 
       // Trier par montant décroissant
       const sortedData = data.sort((a, b) => b.value - a.value);
@@ -433,7 +461,7 @@ function Page() {
             {
               label: item.fullName || item.label,
               color: item.color,
-            }
+            },
           ])
         ),
       };
@@ -540,13 +568,38 @@ function Page() {
     fillOpacity: 0.15,
   }));
 
-  if (isLoading || getProviders.isLoading || getPurchases.isLoading || getPaymentType.isLoading) {
+  if (
+    isLoading ||
+    getProviders.isLoading ||
+    getPurchases.isLoading ||
+    getPaymentType.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (isError || getProviders.isError || getPurchases.isError || getPaymentType.isError) {
-    return <ErrorPage error={error || getProviders.error || getPurchases.error || getPaymentType.error || undefined} />;
+  if (
+    isError ||
+    getProviders.isError ||
+    getPurchases.isError ||
+    getPaymentType.isError
+  ) {
+    return (
+      <ErrorPage
+        error={
+          error ||
+          getProviders.error ||
+          getPurchases.error ||
+          getPaymentType.error ||
+          undefined
+        }
+      />
+    );
   }
-  if (isSuccess && getProviders.isSuccess && getPurchases.isSuccess && getPaymentType.isSuccess) {
+  if (
+    isSuccess &&
+    getProviders.isSuccess &&
+    getPurchases.isSuccess &&
+    getPaymentType.isSuccess
+  ) {
     return (
       <div className="content">
         <PageTitle
@@ -622,11 +675,13 @@ function Page() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={"all"}>{"Toutes"}</SelectItem>
-                    {getPaymentType.data.data.map((method: PayType, id: number) => (
-                      <SelectItem key={id} value={String(method.id)}>
-                        {method.label || `Méthode ${method.id}`}
-                      </SelectItem>
-                    ))}
+                    {getPaymentType.data.data.map(
+                      (method: PayType, id: number) => (
+                        <SelectItem key={id} value={String(method.id)}>
+                          {method.label || `Méthode ${method.id}`}
+                        </SelectItem>
+                      )
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -644,7 +699,12 @@ function Page() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                    {PAY_STATUS.filter(t => t.value === "paid" || t.value === "pending" || t.value === "pending_depense").map((t, id) => (
+                    {PAY_STATUS.filter(
+                      (t) =>
+                        t.value === "paid" ||
+                        t.value === "pending" ||
+                        t.value === "pending_depense"
+                    ).map((t, id) => (
                       <SelectItem key={id} value={t.value}>
                         {t.name}
                       </SelectItem>
@@ -691,9 +751,9 @@ function Page() {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                            customDateRange.from,
-                            "dd/MM/yyyy"
-                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy"
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -760,24 +820,25 @@ function Page() {
                 {"Montant total par type de paiement"}
               </p>
             </div>
-            {
-              paymentTypeData.data.length > 0 ?
-                <ChartPieDonut
-                  data={paymentTypeData.data}
-                  showLegend={true}
-                  innerRadius={50}
-                  maxHeight={350}
-                  tooltipConfig={{
-                    valueFormatter: (value, name, payload) => {
-                      const item = payload?.payload as any;
-                      return `${XAF.format(Number(value))} (${item?.count || 0}) `;
-                    },
-                  }}
-                  chartConfig={paymentTypeData.config}
-                />
-                :
-                <EmptyChart />
-            }
+            {paymentTypeData.data.length > 0 ? (
+              <ChartPieDonut
+                data={paymentTypeData.data}
+                showLegend={true}
+                innerRadius={50}
+                maxHeight={350}
+                tooltipConfig={{
+                  valueFormatter: (value, name, payload) => {
+                    const item = payload?.payload as any;
+                    return `${XAF.format(Number(value))} (${
+                      item?.count || 0
+                    }) `;
+                  },
+                }}
+                chartConfig={paymentTypeData.config}
+              />
+            ) : (
+              <EmptyChart />
+            )}
           </div>
           <div className="p-6 rounded-md border w-full h-full flex flex-col gap-4">
             <div className="flex flex-col gap-1">
@@ -786,24 +847,25 @@ function Page() {
                 {"Montant total par fournisseur"}
               </p>
             </div>
-            {
-              paymentByProvider.data.length > 0 ?
-                <ChartPieDonut
-                  data={paymentByProvider.data}
-                  showLegend={true}
-                  innerRadius={50}
-                  maxHeight={350}
-                  tooltipConfig={{
-                    valueFormatter: (value, name, payload) => {
-                      const item = payload?.payload as any;
-                      return `${XAF.format(Number(value))} (${item?.count || 0}) `;
-                    },
-                  }}
-                  chartConfig={paymentByProvider.config}
-                />
-                :
-                <EmptyChart />
-            }
+            {paymentByProvider.data.length > 0 ? (
+              <ChartPieDonut
+                data={paymentByProvider.data}
+                showLegend={true}
+                innerRadius={50}
+                maxHeight={350}
+                tooltipConfig={{
+                  valueFormatter: (value, name, payload) => {
+                    const item = payload?.payload as any;
+                    return `${XAF.format(Number(value))} (${
+                      item?.count || 0
+                    }) `;
+                  },
+                }}
+                chartConfig={paymentByProvider.config}
+              />
+            ) : (
+              <EmptyChart />
+            )}
           </div>
           <div className="p-6 rounded-md border w-full h-full flex flex-col gap-4">
             <div className="flex flex-col gap-1">
@@ -812,24 +874,25 @@ function Page() {
                 {"Répartition par méthode"}
               </p>
             </div>
-            {
-              paymentMethodData.data.length > 0 ?
-                <ChartPieDonut
-                  data={paymentMethodData.data}
-                  showLegend={true}
-                  innerRadius={30}
-                  maxHeight={300}
-                  tooltipConfig={{
-                    valueFormatter: (value, name, payload) => {
-                      const item = payload?.payload as any;
-                      return `${XAF.format(Number(value))} (${item?.count || 0}) `;
-                    },
-                  }}
-                  chartConfig={paymentMethodData.config}
-                />
-                :
-                <EmptyChart />
-            }
+            {paymentMethodData.data.length > 0 ? (
+              <ChartPieDonut
+                data={paymentMethodData.data}
+                showLegend={true}
+                innerRadius={30}
+                maxHeight={300}
+                tooltipConfig={{
+                  valueFormatter: (value, name, payload) => {
+                    const item = payload?.payload as any;
+                    return `${XAF.format(Number(value))} (${
+                      item?.count || 0
+                    }) `;
+                  },
+                }}
+                chartConfig={paymentMethodData.config}
+              />
+            ) : (
+              <EmptyChart />
+            )}
           </div>
 
           {/* Évolution par Type (quotidienne) */}
@@ -840,35 +903,34 @@ function Page() {
                 {"Montant total par type et par jour"}
               </p>
             </div>
-            {
-              timeSeriesByType.length > 0 ?
-                <ChartArea
-                  data={timeSeriesByType}
-                  series={typeSeries}
-                  showYAxis={true}
-                  xAxisFormatter={(value) => {
+            {timeSeriesByType.length > 0 ? (
+              <ChartArea
+                data={timeSeriesByType}
+                series={typeSeries}
+                showYAxis={true}
+                xAxisFormatter={(value) => {
+                  try {
+                    return format(new Date(value), "dd/MM");
+                  } catch {
+                    return value;
+                  }
+                }}
+                tooltipIndicator="line"
+                tooltipConfig={{
+                  valueFormatter: (value) => XAF.format(Number(value)),
+                  labelFormatter: (label) => {
                     try {
-                      return format(new Date(value), "dd/MM");
+                      return format(new Date(label), "dd MMM yyyy");
                     } catch {
-                      return value;
+                      return label;
                     }
-                  }}
-                  tooltipIndicator="line"
-                  tooltipConfig={{
-                    valueFormatter: (value) => XAF.format(Number(value)),
-                    labelFormatter: (label) => {
-                      try {
-                        return format(new Date(label), "dd MMM yyyy");
-                      } catch {
-                        return label;
-                      }
-                    },
-                  }}
-                  height={350}
-                />
-                :
-                <EmptyChart />
-            }
+                  },
+                }}
+                height={350}
+              />
+            ) : (
+              <EmptyChart />
+            )}
           </div>
 
           {/* Évolution par Statut (quotidienne) */}
@@ -879,35 +941,34 @@ function Page() {
                 {"Montant total par statut et par jour"}
               </p>
             </div>
-            {
-              timeSeriesByStatus.length > 0 ?
-                <ChartArea
-                  data={timeSeriesByStatus}
-                  series={statusSeries}
-                  showYAxis={true}
-                  xAxisFormatter={(value) => {
+            {timeSeriesByStatus.length > 0 ? (
+              <ChartArea
+                data={timeSeriesByStatus}
+                series={statusSeries}
+                showYAxis={true}
+                xAxisFormatter={(value) => {
+                  try {
+                    return format(new Date(value), "dd/MM");
+                  } catch {
+                    return value;
+                  }
+                }}
+                tooltipIndicator="line"
+                tooltipConfig={{
+                  valueFormatter: (value) => XAF.format(Number(value)),
+                  labelFormatter: (label) => {
                     try {
-                      return format(new Date(value), "dd/MM");
+                      return format(new Date(label), "dd MMM yyyy");
                     } catch {
-                      return value;
+                      return label;
                     }
-                  }}
-                  tooltipIndicator="line"
-                  tooltipConfig={{
-                    valueFormatter: (value) => XAF.format(Number(value)),
-                    labelFormatter: (label) => {
-                      try {
-                        return format(new Date(label), "dd MMM yyyy");
-                      } catch {
-                        return label;
-                      }
-                    },
-                  }}
-                  height={350}
-                />
-                :
-                <EmptyChart />
-            }
+                  },
+                }}
+                height={350}
+              />
+            ) : (
+              <EmptyChart />
+            )}
           </div>
         </div>
       </div>

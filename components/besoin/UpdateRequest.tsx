@@ -250,7 +250,7 @@ export default function UpdateRequest({
       toast.success("Besoin modifié avec succès !");
       setOpen(false);
       onSuccess?.();
-      queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
+      // queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
     },
 
     onError: () =>

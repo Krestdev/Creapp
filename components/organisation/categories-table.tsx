@@ -80,10 +80,10 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
     mutationFn: (id: number) => categoryQ.deleteCategory(id),
     onSuccess: () => {
       // invalidate and refetch
-      queryClient.invalidateQueries({
-        queryKey: ["categoryList"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["categoryList"],
+      //   refetchType: "active",
+      // });
     },
     onError: (error) => {
       toast.error(

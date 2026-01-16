@@ -29,7 +29,7 @@ import { QueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-const banks = BANK_TYPES.filter(t=> t.value !== "CASH_REGISTER");
+const banks = BANK_TYPES.filter((t) => t.value !== "CASH_REGISTER");
 // ✅ Schema: champs communs + validations conditionnelles
 const formSchema = z
   .object({
@@ -126,10 +126,10 @@ function CreateBank() {
     mutationFn: async (payload: BankPayload) => bankQ.create(payload),
     onSuccess: () => {
       toast.success("Nouveau compte Banque créé avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["banks"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["banks"],
+      //   refetchType: "active",
+      // });
       router.push("../banques");
     },
     onError: (error: Error) => {

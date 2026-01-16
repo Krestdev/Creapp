@@ -12,6 +12,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Form,
   FormControl,
   FormDescription,
@@ -87,10 +95,10 @@ function Page() {
     mutationFn: async (payload: TransferProps) =>
       transactionQ.createTransaction(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["transactions"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["transactions"],
+      //   refetchType: "active",
+      // });
       toast.success("Votre demande de transfert a été initiée avec succès !");
       setFormData(null);
       router.push("./");
@@ -206,9 +214,7 @@ function Page() {
               name="label"
               render={({ field }) => (
                 <FormItem className="@min-[640px]:col-span-2">
-                  <FormLabel isRequired>
-                    {"Libellé du Transfert"}
-                  </FormLabel>
+                  <FormLabel isRequired>{"Libellé du Transfert"}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -359,7 +365,7 @@ function Page() {
                       ...formData,
                       Type: "TRANSFER",
                       userId: user?.id ?? 0,
-                      isDirect: isInstant(formData)
+                      isDirect: isInstant(formData),
                     });
                     setShow(false);
                   }}

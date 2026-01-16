@@ -100,3 +100,5 @@ class QuotationQueries {
 }
 
 export const quotationQ = new QuotationQueries();
+
+// quotationQ = ["quotations"]

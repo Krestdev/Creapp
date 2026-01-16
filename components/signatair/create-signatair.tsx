@@ -53,7 +53,7 @@ export default function CreateSignatairForm() {
   const [selectedUser, setSelectedUser] = useState<User[]>([]);
 
   const bankData = useQuery({
-    queryKey: ["roles"],
+    queryKey: ["banks"],
     queryFn: () => bankQ.getAll(),
   });
 
@@ -76,10 +76,10 @@ export default function CreateSignatairForm() {
         signatair: [],
         mode: "ONE",
       });
-      queryClient.invalidateQueries({
-        queryKey: ["SignatairList"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["SignatairList"],
+      //   refetchType: "active",
+      // });
       setSelectedUser([]);
     },
     onError: () => {

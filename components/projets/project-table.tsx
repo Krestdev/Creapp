@@ -219,8 +219,8 @@ export function ProjectTable({
     onSuccess: () => {
       // invalidate and refetch
       toast.success("Projet mis à jour avec succès !");
-      queryClient.invalidateQueries({ queryKey: ["projectsList"] });
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // queryClient.invalidateQueries({ queryKey: ["projectsList"] });
+      // queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
     onError: () => {
       toast.error(

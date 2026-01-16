@@ -75,6 +75,7 @@ const getPriorityBadge = (
   rowClassName?: string;
 } => {
   const label = PRIORITIES.find((c) => c.value === priority)?.name ?? "Inconnu";
+  const label = PRIORITIES.find((c) => c.value === priority)?.name ?? "Inconnu";
   switch (priority) {
     case "low":
       return {
@@ -113,6 +114,13 @@ const getPriorityBadge = (
       };
   }
 };
+const getStatusVariant = (
+  status: PaymentRequest["status"]
+): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} => {
+  switch (status) {
 const getStatusVariant = (
   status: PaymentRequest["status"]
 ): {
@@ -187,10 +195,10 @@ export function TicketsTable({
       return paymentQ.update(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["payments"],
+      //   refetchType: "active",
+      // });
       toast.success(message);
       message.includes("payé")
         ? setOpenPaiementModal(false)
@@ -207,10 +215,10 @@ export function TicketsTable({
       return paymentQ.vaidate(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["payments"],
+      //   refetchType: "active",
+      // });
       toast.success(message);
       message.includes("payé")
         ? setOpenPaiementModal(false)
@@ -501,7 +509,6 @@ export function TicketsTable({
       globalFilter,
     },
   });
-
   return (
     <div className="content">
       <div className="flex gap-4 items-center justify-between">

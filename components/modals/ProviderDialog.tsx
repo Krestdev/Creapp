@@ -51,10 +51,10 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
     onSuccess: () => {
       toast.success("Fournisseur ajouté avec succès !");
 
-      queryClient.invalidateQueries({
-        queryKey: ["providers"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["providers"],
+      //   refetchType: "active",
+      // });
 
       onOpenChange(false);
     },

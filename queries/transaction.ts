@@ -161,3 +161,5 @@ class TransactionQuery {
 }
 
 export const transactionQ = new TransactionQuery();
+
+// transactionQ = ["transaction"]

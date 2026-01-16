@@ -118,10 +118,10 @@ function TransferTable({ data }: Props) {
       }),
     onSuccess: () => {
       toast.success("Demande approuvée !");
-      queryClient.invalidateQueries({
-        queryKey: ["banks", "transactions"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["banks", "transactions"],
+      //   refetchType: "active",
+      // });
     },
     onError: (error: Error) => {
       toast.error(error.message);

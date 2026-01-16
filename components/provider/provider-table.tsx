@@ -91,7 +91,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
     mutationFn: (id: number) => providerQ.delete(id),
     onSuccess: () => {
       toast.success("Fournisseur supprimé avec succès !");
-      queryClient.invalidateQueries({ queryKey: ["providersList"] });
+      // queryClient.invalidateQueries({ queryKey: ["providersList"] });
     },
   });
 
