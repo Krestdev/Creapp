@@ -2,12 +2,12 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { providerQ } from "@/queries/providers";
 import { quotationQ } from "@/queries/quotation";
 import { QuotationGroupTable } from "../quotation-group";
+import { useQuery } from "@tanstack/react-query";
 
 function Page() {
   const { user } = useStore();
@@ -15,12 +15,21 @@ function Page() {
     (r) => r.label === "SALES_MANAGER" || r.label === "ADMIN"
   );
 
-  const quotations = useFetchQuery(["quotations"], quotationQ.getAll);
+  const quotations = useQuery({
+    queryKey: ["quotations"],
+    queryFn: quotationQ.getAll,
+  });
   /**Providers fetch */
 
-  const providers = useFetchQuery(["providers"], providerQ.getAll);
+  const providers = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
   /**Commands fetch */
-  const commands = useFetchQuery(["commands"], commandRqstQ.getAll, 30000);
+  const commands = useQuery({
+    queryKey: ["commands"],
+    queryFn: commandRqstQ.getAll,
+  });
 
   if (!isAdmin) {
     return <ErrorPage statusCode={401} />;

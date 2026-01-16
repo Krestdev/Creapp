@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useFetchQuery } from "@/hooks/useData";
 import { cn, company } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {} from "@/queries/commandRqstModule";
@@ -31,7 +30,7 @@ import {
   PaymentRequest,
   RequestType,
 } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -179,7 +178,10 @@ export function TicketsTable({
 
   const { user } = useStore();
 
-  const { data: bons } = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
+  const { data: bons } = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
 
   const paymentMutation = useMutation({
     mutationKey: ["payment"],

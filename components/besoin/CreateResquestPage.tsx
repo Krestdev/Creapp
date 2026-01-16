@@ -16,9 +16,9 @@ import {
 import { Label } from "../ui/label";
 import { useStore } from "@/providers/datastore";
 import { requestTypeQ } from "@/queries/requestType";
-import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
+import { useQuery } from "@tanstack/react-query";
 
 const CreateResquestPage = () => {
   const { user } = useStore();
@@ -26,7 +26,10 @@ const CreateResquestPage = () => {
   const userRoles = user?.role?.flatMap((x) => x.label) || [];
   const hasRole = (role: string) => userRoles.includes(role);
 
-  const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll);
+  const getRequestType = useQuery({
+    queryKey: ["requestType"],
+    queryFn: requestTypeQ.getAll,
+  });
 
   if (getRequestType.isLoading) {
     return <LoadingPage />;

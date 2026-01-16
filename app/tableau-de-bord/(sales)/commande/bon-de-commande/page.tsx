@@ -10,16 +10,16 @@ import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useFetchQuery } from "@/hooks/useData";
+import { cn, isRole, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
+import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande, NavLink } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
-import { cn, isRole, XAF } from "@/lib/utils";
-import { paymentQ } from "@/queries/payment";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -27,12 +27,15 @@ const Page = () => {
     to: undefined,
   });
 
-  const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
-    ["purchaseOrders"],
-    purchaseQ.getAll
-  );
+  const { isSuccess, isError, error, isLoading, data } = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
 
-  const getPayments = useFetchQuery(["payments"], paymentQ.getAll, 15000);
+  const getPayments = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
 
   const { user } = useStore();
   const auth = isRole({

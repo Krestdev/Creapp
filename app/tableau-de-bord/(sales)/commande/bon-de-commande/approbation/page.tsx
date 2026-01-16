@@ -2,9 +2,9 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { purchaseQ } from "@/queries/purchase-order";
+import { useQuery } from "@tanstack/react-query";
 import { PurchaseApprovalTable } from "./approval-table";
 
 function Page() {
@@ -14,11 +14,10 @@ function Page() {
       (c) => c.label === "ADMIN" || c.label === "SALES_MANAGER"
     ) ?? false;
 
-  const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
-    ["purchaseOrders"],
-    purchaseQ.getAll
-  );
-  
+  const { isSuccess, isError, error, isLoading, data } = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
 
   if (!auth) {
     return <ErrorPage statusCode={401} />;
@@ -37,9 +36,7 @@ function Page() {
           subtitle="Approbation des bons de commandes"
           color="blue"
         />
-          <PurchaseApprovalTable
-            data={data.data}
-          /> 
+        <PurchaseApprovalTable data={data.data} />
       </div>
     );
   }

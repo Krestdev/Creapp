@@ -25,16 +25,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
-import { signatairQ } from "@/queries/signatair";
 import { payTypeQ } from "@/queries/payType";
+import { signatairQ } from "@/queries/signatair";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
-import { Bank, PaymentRequest, Signatair, User, PayType } from "@/types/types";
+import { Bank, PaymentRequest, PayType, Signatair } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import React, { useMemo } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -74,14 +72,16 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   const queryClient = useQueryClient();
 
   // Récupérer la liste des signataires
-  const getSignataires = useFetchQuery(
-    ["SignatairList"],
-    signatairQ.getAll,
-    30000
-  );
+  const getSignataires = useQuery({
+    queryKey: ["SignatairList"],
+    queryFn: signatairQ.getAll,
+  });
 
   // Récupérer les types de paiement
-  const payTypesQuery = useFetchQuery(["payTypes"], payTypeQ.getAll, 30000);
+  const payTypesQuery = useQuery({
+    queryKey: ["payTypes"],
+    queryFn: payTypeQ.getAll,
+  });
 
   // Vérifier si le ticket a déjà un methodId
   const hasExistingMethodId = useMemo(() => {

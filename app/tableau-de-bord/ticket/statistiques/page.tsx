@@ -40,21 +40,30 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useFetchQuery } from "@/hooks/useData";
 import { getRandomColor, XAF } from "@/lib/utils";
 import { commadQ } from "@/queries/command";
 import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
 import { DateFilter, PAY_STATUS, PaymentRequest, PayType } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Settings2 } from "lucide-react";
 import React from "react";
 
 function Page() {
-  const getProviders = useFetchQuery(["providers"], providerQ.getAll, 50000);
-  const getPurchases = useFetchQuery(["purchaseOrders"], commadQ.getAll);
-  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
+  const getProviders = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: commadQ.getAll,
+  });
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | PaymentRequest["status"]
@@ -79,11 +88,10 @@ function Page() {
       setProviderFilter("all");
     }
   };
-  const { data, isLoading, isError, error, isSuccess } = useFetchQuery(
-    ["payments"],
-    paymentQ.getAll,
-    15000
-  );
+  const { data, isLoading, isError, error, isSuccess } = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
 
   const filteredData: Array<PaymentRequest> = React.useMemo(() => {
     if (!data) return [];

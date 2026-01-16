@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
@@ -31,6 +30,7 @@ import {
 import { useState } from "react";
 import { DownloadFile } from "../base/downLoadFile";
 import ShowFile from "../base/show-file";
+import { useQuery } from "@tanstack/react-query";
 
 interface DetailTicketProps {
   open: boolean;
@@ -54,8 +54,11 @@ export function DetailTicket({
   };
   const { user } = useStore();
 
-  const usersData = useFetchQuery(["users"], userQ.getAll, 30000);
-  const requestData = useFetchQuery(["requests"], requestQ.getAll, 30000);
+  const usersData = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
+  const requestData = useQuery({
+    queryKey: ["requests"],
+    queryFn: requestQ.getAll,
+  });
 
   const [page, setPage] = useState(1);
   const [file, setFile] = useState<string | File | undefined>(undefined);
@@ -250,10 +253,11 @@ export function DetailTicket({
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${beneficiary?.firstName +
-                                  " " +
-                                  beneficiary?.lastName || ben.id
-                                  }`}</p>
+                                >{`${
+                                  beneficiary?.firstName +
+                                    " " +
+                                    beneficiary?.lastName || ben.id
+                                }`}</p>
                               );
                             })}
                           </div>
@@ -301,10 +305,11 @@ export function DetailTicket({
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${beneficiary?.firstName +
-                                  " " +
-                                  beneficiary?.lastName || ben.id
-                                  }`}</p>
+                                >{`${
+                                  beneficiary?.firstName +
+                                    " " +
+                                    beneficiary?.lastName || ben.id
+                                }`}</p>
                               );
                             })}
                           </div>

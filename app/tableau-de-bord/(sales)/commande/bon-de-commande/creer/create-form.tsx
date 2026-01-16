@@ -24,15 +24,14 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useFetchQuery } from "@/hooks/useData";
 import { formatToShortName, isProviderValid } from "@/lib/utils";
 import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
 import { CreatePurchasePayload, purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
-import { PAYMENT_METHOD, PENALITY_MODE, PRIORITIES } from "@/types/types";
+import { PENALITY_MODE, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import React from "react";
@@ -120,10 +119,22 @@ function CreateForm() {
 
   const queryClient = useQueryClient();
 
-  const getQuotations = useFetchQuery(["quotations"], quotationQ.getAll);
-  const getProviders = useFetchQuery(["providers"], providerQ.getAll);
-  const getPurchases = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
-  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll);
+  const getQuotations = useQuery({
+    queryKey: ["quotations"],
+    queryFn: quotationQ.getAll,
+  });
+  const getProviders = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   // Définir la valeur par défaut pour paymentMethod
   const defaultPaymentMethod = React.useMemo(() => {

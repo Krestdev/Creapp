@@ -1,12 +1,12 @@
 "use client";
 import { userQ } from "@/queries/baseModule";
 import { UtilisateursTable } from "./utilisateurs-table";
-import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
+import { useQuery } from "@tanstack/react-query";
 
 const UserListPage = () => {
-  const userData = useFetchQuery(["usersList"], userQ.getAll, 30000);
+  const userData = useQuery({ queryKey: ["usersList"], queryFn: userQ.getAll });
 
   if (userData.isLoading) return <LoadingPage />;
 

@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -20,6 +19,7 @@ import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
 import { userQ } from "@/queries/baseModule";
 import { paymentQ } from "@/queries/payment";
+import { payTypeQ } from "@/queries/payType";
 import { projectQ } from "@/queries/projectModule";
 import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,17 +31,8 @@ import { toast } from "sonner";
 import * as z from "zod";
 import FilesUpload from "../comp-547";
 import { SuccessModal } from "../modals/success-modal";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
+import { Form, FormControl, FormMessage } from "../ui/form";
 import ViewDepense from "./viewDepense";
-import { useFetchQuery } from "@/hooks/useData";
-import { payTypeQ } from "@/queries/payType";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -120,7 +111,10 @@ export function TransportForm() {
     queryFn: bankQ.getAll,
   });
 
-  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
     const payment: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> = {
@@ -131,7 +125,8 @@ export function TransportForm() {
       justification: data.Justificatif,
       status: "paid",
       type: "CURRENT",
-      methodId: getPaymentType.data?.data.find((item) => item.type === "cash")?.id!,
+      methodId: getPaymentType.data?.data.find((item) => item.type === "cash")
+        ?.id!,
       priority: "medium",
       isPartial: false,
       userId: user!.id,

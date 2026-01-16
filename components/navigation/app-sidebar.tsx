@@ -1,5 +1,4 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
-import { useFetchQuery } from "@/hooks/useData";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { useStore } from "@/providers/datastore";
 import { categoryQ } from "@/queries/categoryModule";
@@ -64,15 +63,24 @@ function AppSidebar() {
     return "Employé";
   }
 
-  const { data: cotation } = useFetchQuery(["commands"], commandRqstQ.getAll);
-  const { data: quotationsData } = useFetchQuery(
-    ["quotations"],
-    quotationQ.getAll
-  );
+  const { data: cotation } = useQuery({
+    queryKey: ["commands"],
+    queryFn: commandRqstQ.getAll,
+  });
+  const { data: quotationsData } = useQuery({
+    queryKey: ["quotations"],
+    queryFn: quotationQ.getAll,
+  });
 
-  const getPurchases = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
 
-  const providers = useFetchQuery(["providers"], providerQ.getAll);
+  const providers = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
 
   const purchase = getPurchases.data?.data.filter(
     (c) => c.status === "IN-REVIEW" || c.status === "PENDING"
@@ -113,11 +121,15 @@ function AppSidebar() {
     enabled: isHydrated,
   });
 
-  const myList = useFetchQuery(["requests", user?.id], () =>
-    requestQ.getMine(user!.id)
-  );
+  const myList = useQuery({
+    queryKey: ["requests", user?.id],
+    queryFn: () => requestQ.getMine(user!.id),
+  });
 
-  const signatories = useFetchQuery(["SignatairList"], signatairQ.getAll);
+  const signatories = useQuery({
+    queryKey: ["SignatairList"],
+    queryFn: signatairQ.getAll,
+  });
 
   const besoinDéstocké =
     myList.data?.data.filter((x) => x.state === "store").length ?? 0;
@@ -241,7 +253,10 @@ function AppSidebar() {
     authorizedRoles: [],
   });
 
-  const { data } = useFetchQuery(["payments"], paymentQ.getAll, 30000);
+  const { data } = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
 
   const ticketsData = data?.data.filter((ticket) => ticket.status !== "ghost");
   const pendingTicket = ticketsData?.filter(
@@ -550,8 +565,10 @@ function AppSidebar() {
   // Filtrer les liens de navigation selon les rôles de l'utilisateur
   const filteredNavLinks = navLinks.filter((navLink) => {
     const signPage = navLink.pageId === "00001";
-    const canSign = signatories.data?.data.find(s=> s.user?.some(o=>o.id === user?.id ));
-    if(signPage) return !!canSign;
+    const canSign = signatories.data?.data.find((s) =>
+      s.user?.some((o) => o.id === user?.id)
+    );
+    if (signPage) return !!canSign;
     if (navLink.authorized.length === 0) return true;
     return navLink.authorized.some((role) => userRoles.includes(role));
   });

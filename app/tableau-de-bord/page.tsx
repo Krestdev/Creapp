@@ -6,27 +6,20 @@ import { ChartPieLabelList } from "@/components/Charts/ChartPieLabelList";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import React, { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import React, { useMemo, useState } from "react";
 
 // Imports pour les composants UI
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
-  ChevronDown,
-  ChevronRight,
-  CalendarDays,
-  CalendarIcon,
-} from "lucide-react";
-import { cn, XAF } from "@/lib/utils";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -36,32 +29,36 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { RequestModelT, TableFilters } from "@/types/types";
+import { cn, XAF } from "@/lib/utils";
 import { paymentQ } from "@/queries/payment";
-import { useFetchQuery } from "@/hooks/useData";
+import { PaymentRequest, RequestModelT, TableFilters } from "@/types/types";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { PaymentRequest } from "@/types/types";
+  CalendarDays,
+  CalendarIcon,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 
 const DashboardPage = () => {
   const { user, isHydrated } = useStore();
 
   // Récupérer les paiements
-  const { data: paymentsData } = useFetchQuery(
-    ["payments"],
-    paymentQ.getAll,
-    30000
-  );
+  const { data: paymentsData } = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
 
   const [filters, setFilters] = useState<TableFilters>({
     globalFilter: "",

@@ -19,7 +19,6 @@ import * as React from "react";
 import { Pagination } from "@/components/base/pagination";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -54,10 +53,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { useFetchQuery } from "@/hooks/useData";
-import { formatToShortName, paymentPercentage, totalAmountPurchase, XAF } from "@/lib/utils";
+import { totalAmountPurchase, XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
-import { BonsCommande, PaymentRequest, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
+import {
+  BonsCommande,
+  PaymentRequest,
+  PRIORITIES,
+  PURCHASE_ORDER_STATUS,
+} from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import EditPurchase from "./editPurchase";
 import ViewPurchase from "./viewPurchase";
@@ -111,7 +115,7 @@ const getPriorityLabel = (
 };
 
 export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
-  const getUsers = useFetchQuery(["users"], userQ.getAll);
+  const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
 
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -162,7 +166,6 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
   }, [data, statusFilter, priorityFilter, penaltyFilter]);
 
   const columns: ColumnDef<BonsCommande>[] = [
-
     {
       accessorKey: "reference",
       header: ({ column }) => (
@@ -194,7 +197,10 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
         const name: BonsCommande["devi"] = row.getValue("devi");
         return (
           <div className="font-medium uppercase">
-            {name.commandRequest.title} - <span className="text-red-500 lowercase">{name.commandRequest.reference}</span>
+            {name.commandRequest.title} -{" "}
+            <span className="text-red-500 lowercase">
+              {name.commandRequest.reference}
+            </span>
           </div>
         );
       },
@@ -265,9 +271,10 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
       accessorKey: "payment",
       header: () => <span className="tablehead">{"Statut de paiement"}</span>,
       cell: ({ row }) => {
-
         const pay = React.useMemo(() => {
-          return payments?.filter((payment) => payment.commandId === row.original.id).filter(c => c.status === "paid");
+          return payments
+            ?.filter((payment) => payment.commandId === row.original.id)
+            .filter((c) => c.status === "paid");
         }, [payments, row.original]);
 
         const getColor = (value: number) => {
@@ -276,16 +283,15 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
           return "bg-green-500";
         };
 
-
         // Pourcentage de payement
-        const paid = pay?.flatMap(x => x.price).reduce((a, b) => a + b, 0) ?? 0;
+        const paid =
+          pay?.flatMap((x) => x.price).reduce((a, b) => a + b, 0) ?? 0;
         const total = totalAmountPurchase(row.original);
 
         const percent = (paid / total) * 100;
 
         const value = Math.min(100, Math.max(0, percent));
         const color = getColor(value);
-
 
         return (
           <div className="w-full">
@@ -551,34 +557,34 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
             priorityFilter !== "all" ||
             penaltyFilter !== "all" ||
             globalFilter) && (
-              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                <span>Filtres actifs:</span>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <span>Filtres actifs:</span>
 
-                {statusFilter !== "all" && (
-                  <Badge variant="default" className="font-normal">
-                    {`Statut: ${getStatusLabel(statusFilter).label}`}
-                  </Badge>
-                )}
+              {statusFilter !== "all" && (
+                <Badge variant="default" className="font-normal">
+                  {`Statut: ${getStatusLabel(statusFilter).label}`}
+                </Badge>
+              )}
 
-                {priorityFilter !== "all" && (
-                  <Badge variant="outline" className="font-normal">
-                    {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
-                  </Badge>
-                )}
+              {priorityFilter !== "all" && (
+                <Badge variant="outline" className="font-normal">
+                  {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
+                </Badge>
+              )}
 
-                {penaltyFilter !== "all" && (
-                  <Badge variant="outline" className="font-normal">
-                    {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
-                  </Badge>
-                )}
+              {penaltyFilter !== "all" && (
+                <Badge variant="outline" className="font-normal">
+                  {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
+                </Badge>
+              )}
 
-                {globalFilter && (
-                  <Badge variant="outline" className="font-normal">
-                    {`Recherche: "${globalFilter}"`}
-                  </Badge>
-                )}
-              </div>
-            )}
+              {globalFilter && (
+                <Badge variant="outline" className="font-normal">
+                  {`Recherche: "${globalFilter}"`}
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Menu colonnes */}
@@ -636,9 +642,9 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -680,14 +686,14 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                       priorityFilter !== "all" ||
                       penaltyFilter !== "all" ||
                       globalFilter) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={resetAllFilters}
-                        >
-                          {"Réinitialiser les filtres"}
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetAllFilters}
+                      >
+                        {"Réinitialiser les filtres"}
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

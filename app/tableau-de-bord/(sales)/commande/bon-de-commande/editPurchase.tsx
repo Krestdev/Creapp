@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useFetchQuery } from "@/hooks/useData";
 import { formatToShortName } from "@/lib/utils";
 import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
@@ -46,7 +45,7 @@ import {
   PRIORITIES,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import React from "react";
@@ -143,9 +142,18 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
     {}
   );
 
-  const getQuotations = useFetchQuery(["quotations"], quotationQ.getAll);
-  const getProviders = useFetchQuery(["providers"], providerQ.getAll);
-  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll);
+  const getQuotations = useQuery({
+    queryKey: ["quotations"],
+    queryFn: quotationQ.getAll,
+  });
+  const getProviders = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   // Définir la valeur par défaut pour paymentMethod
   const defaultPaymentMethod = React.useMemo(() => {
@@ -168,7 +176,10 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
 
   // Définir les échéances par défaut avec vérification
   const defaultInstalments = React.useMemo(() => {
-    if (purchaseOrder?.instalments && Array.isArray(purchaseOrder.instalments)) {
+    if (
+      purchaseOrder?.instalments &&
+      Array.isArray(purchaseOrder.instalments)
+    ) {
       return purchaseOrder.instalments.map((instalment) => ({
         percentage: instalment.percentage || 0,
         deadLine: instalment.deadLine
@@ -215,10 +226,18 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
     }
 
     // Initialiser les échéances si elles ne sont pas déjà définies
-    if (!form.getValues("instalments") || form.getValues("instalments").length === 0) {
+    if (
+      !form.getValues("instalments") ||
+      form.getValues("instalments").length === 0
+    ) {
       form.setValue("instalments", defaultInstalments);
     }
-  }, [getPaymentType.data, purchaseOrder?.paymentMethod, form, defaultInstalments]);
+  }, [
+    getPaymentType.data,
+    purchaseOrder?.paymentMethod,
+    form,
+    defaultInstalments,
+  ]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -266,8 +285,13 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-4xl! max-h-[90vh] sm:w-[90%] p-0 flex flex-col">
         {/* En-tête fixe */}
-        <DialogHeader variant={"secondary"} className="bg-[#8B1538] text-white p-6 rounded-t-lg shrink-0">
-          <DialogTitle>{`Bon de commande - ${purchaseOrder?.provider?.name || "Non défini"}`}</DialogTitle>
+        <DialogHeader
+          variant={"secondary"}
+          className="bg-[#8B1538] text-white p-6 rounded-t-lg shrink-0"
+        >
+          <DialogTitle>{`Bon de commande - ${
+            purchaseOrder?.provider?.name || "Non défini"
+          }`}</DialogTitle>
           <DialogDescription className="text-white/90">
             {"Mettre à jour les informations liées au bon de commande"}
           </DialogDescription>
@@ -387,7 +411,10 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                   <FormItem>
                     <FormLabel isRequired>{"Moyen de Paiement"}</FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionner" />
                         </SelectTrigger>
@@ -409,7 +436,9 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                 name="deliveryDelay"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>{"Date limite de livraison"}</FormLabel>
+                    <FormLabel isRequired>
+                      {"Date limite de livraison"}
+                    </FormLabel>
                     <FormControl>
                       <div className="relative flex gap-2">
                         <Input
@@ -580,7 +609,10 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                                       captionLayout="dropdown"
                                       onSelect={(date) => {
                                         if (!date) return;
-                                        const value = format(date, "yyyy-MM-dd");
+                                        const value = format(
+                                          date,
+                                          "yyyy-MM-dd"
+                                        );
                                         field.onChange(value);
                                         setSelectDate(false);
                                       }}
@@ -625,8 +657,9 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                     {"La somme de tous les paiements doit être égale à 100%."}
                     {totalAmount !== 100 && (
                       <span className="text-destructive ml-2">
-                        {`Total actuel: ${totalAmount}% (il manque ${100 - totalAmount
-                          }%)`}
+                        {`Total actuel: ${totalAmount}% (il manque ${
+                          100 - totalAmount
+                        }%)`}
                       </span>
                     )}
                   </p>
@@ -660,7 +693,10 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                   <FormItem>
                     <FormLabel isRequired>{"Priorité"}</FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionner" />
                         </SelectTrigger>
@@ -716,7 +752,10 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                         </SelectTrigger>
                         <SelectContent>
                           {PENALITY_MODE.map((penalty) => (
-                            <SelectItem key={penalty.value} value={penalty.value}>
+                            <SelectItem
+                              key={penalty.value}
+                              value={penalty.value}
+                            >
                               {penalty.name}
                             </SelectItem>
                           ))}

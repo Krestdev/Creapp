@@ -3,13 +3,16 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { useFetchQuery } from "@/hooks/useData";
 import { receptionQ } from "@/queries/reception";
 import type { Reception } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { ReceptionTable } from "./reception-table";
 
 const ReceptionsPage = () => {
-  const getReceptions = useFetchQuery(["receptions"], receptionQ.getAll, 90000);
+  const getReceptions = useQuery({
+    queryKey: ["receptions"],
+    queryFn: receptionQ.getAll,
+  });
 
   if (getReceptions.isLoading) return <LoadingPage />;
   if (getReceptions.isError) return <ErrorPage />;

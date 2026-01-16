@@ -28,13 +28,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
 import { transactionQ, TransferProps } from "@/queries/transaction";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -70,7 +69,7 @@ function Page() {
     isLoading,
     isError,
     error,
-  } = useFetchQuery(["banks"], bankQ.getAll);
+  } = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {

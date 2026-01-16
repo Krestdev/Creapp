@@ -3,7 +3,6 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
-import { useFetchQuery } from "@/hooks/useData";
 import { cn, isRole } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { transactionQ } from "@/queries/transaction";
@@ -11,6 +10,7 @@ import { NavLink } from "@/types/types";
 import Link from "next/link";
 import TransactionTable from "./transaction-table";
 import { bankQ } from "@/queries/bank";
+import { useQuery } from "@tanstack/react-query";
 
 function Page() {
   const { user } = useStore();
@@ -23,12 +23,11 @@ function Page() {
     },
   ];
 
-  const getTransactions = useFetchQuery(
-    ["transactions"],
-    transactionQ.getAll,
-    500000
-  );
-  const getBanks = useFetchQuery(["banks"], bankQ.getAll, 50000);
+  const getTransactions = useQuery({
+    queryKey: ["transactions"],
+    queryFn: transactionQ.getAll,
+  });
+  const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
 
   if (getTransactions.isLoading || getBanks.isLoading) {
     return <LoadingPage />;

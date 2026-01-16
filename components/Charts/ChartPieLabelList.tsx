@@ -16,7 +16,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { useFetchQuery } from "@/hooks/useData";
+import { useQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { projectQ } from "@/queries/projectModule";
 import { purchaseQ } from "@/queries/purchase-order";
@@ -64,16 +64,13 @@ export function ChartPieLabelList({
   chartType,
   title = "Répartition des dépenses",
 }: ChartPieLabelListProps) {
-  const { data: projectData } = useFetchQuery(
+  const { data: projectData } = useQuery(
     ["projectsList"],
     projectQ.getAll,
     30000
   );
 
-  const { data: commandData } = useFetchQuery(
-    ["purchaseOrders"],
-    purchaseQ.getAll
-  );
+  const { data: commandData } = useQuery({queryKey:["purchaseOrders"], purchaseQ.getAll);
 
   // les commandes (liste des IDs)
   const commandIds = data.flatMap((x) => x.commandId);

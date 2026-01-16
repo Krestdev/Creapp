@@ -3,13 +3,13 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
-import { useFetchQuery } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
 import { bankQ } from "@/queries/bank";
 import { transactionQ } from "@/queries/transaction";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
 import TransferTable from "./transfer-table";
+import { useQuery } from "@tanstack/react-query";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -18,12 +18,11 @@ function Page() {
       href: "./transferts/creer",
     },
   ];
-  const getTransactions = useFetchQuery(
-    ["transactions"],
-    transactionQ.getAll,
-    30000
-  );
-  const getBanks = useFetchQuery(["banks"], bankQ.getAll, 50000);
+  const getTransactions = useQuery({
+    queryKey: ["transactions"],
+    queryFn: transactionQ.getAll,
+  });
+  const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
 
   if (getTransactions.isLoading || getBanks.isLoading) {
     return <LoadingPage />;

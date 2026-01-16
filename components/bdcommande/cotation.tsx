@@ -1,16 +1,16 @@
 "use client";
 
 import { CommandeTable } from "@/components/tables/commande-table";
-import { useFetchQuery } from "@/hooks/useData";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import ErrorPage from "../error-page";
 import LoadingPage from "../loading-page";
+import { useQuery } from "@tanstack/react-query";
 
 const Cotation = () => {
-  const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
-    ["commands"],
-    commandRqstQ.getAll
-  );
+  const { isSuccess, isError, error, isLoading, data } = useQuery({
+    queryKey: ["commands"],
+    queryFn: commandRqstQ.getAll,
+  });
 
   if (isLoading) {
     return <LoadingPage />;
@@ -22,9 +22,7 @@ const Cotation = () => {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
-          <CommandeTable
-            data={data.data}
-          />
+          <CommandeTable data={data.data} />
         </div>
       </div>
     );

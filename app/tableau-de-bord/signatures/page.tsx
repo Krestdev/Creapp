@@ -37,7 +37,7 @@ function Page() {
     purchaseQ.getAll,
     30000
   );
-  const getBanks = useFetchQuery(["banks"], bankQ.getAll, 30000);
+  const getBanks = useFetchQuery(["banks"], queryFn:bankQ.getAll});
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { user } = useStore();

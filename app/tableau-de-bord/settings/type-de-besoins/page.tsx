@@ -3,26 +3,22 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { useFetchQuery } from "@/hooks/useData";
-import { requestTypeQ } from "@/queries/requestType";
-import { TypeTable } from "./TypeTable";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LucidePen } from "lucide-react";
-import { UpdateRequestType } from "./UpdateRequestType";
-import { useState } from "react";
+import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { requestTypeQ } from "@/queries/requestType";
 import { RequestType } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
+import { LucidePen } from "lucide-react";
+import { useState } from "react";
+import { UpdateRequestType } from "./UpdateRequestType";
 
 const Page = () => {
   const [isOpenModalEdit, setIsModalOpenEdit] = useState(false);
   const [select, setSelect] = useState<RequestType>();
-  const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll);
+  const getRequestType = useQuery({
+    queryKey: ["requestType"],
+    queryFn: requestTypeQ.getAll,
+  });
 
   if (getRequestType.isLoading) {
     return <LoadingPage />;

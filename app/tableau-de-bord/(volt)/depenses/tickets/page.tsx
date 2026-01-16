@@ -2,7 +2,6 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
@@ -13,25 +12,23 @@ import {
 } from "@/components/base/TitleValueCard";
 import { bankQ } from "@/queries/bank";
 import { requestTypeQ } from "@/queries/requestType";
+import { useQuery } from "@tanstack/react-query";
 
 function Page() {
-  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
-    ["payments"],
-    paymentQ.getAll,
-    30000
-  );
-  const getPurchases = useFetchQuery(
-    ["purchaseOrders"],
-    purchaseQ.getAll,
-    30000
-  );
-  const getRequestType = useFetchQuery(
-    ["requestType"],
-    requestTypeQ.getAll,
-    30000
-  );
+  const { data, isSuccess, isError, error, isLoading } = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
+  const getRequestType = useQuery({
+    queryKey: ["requestType"],
+    queryFn: requestTypeQ.getAll,
+  });
 
-  const getBanks = useFetchQuery(["banks"], bankQ.getAll, 35000);
+  const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
   if (
     isLoading ||
     getPurchases.isLoading ||

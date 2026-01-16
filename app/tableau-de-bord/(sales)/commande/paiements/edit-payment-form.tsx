@@ -24,7 +24,6 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useFetchQuery } from "@/hooks/useData";
 import { totalAmountPurchase } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { paymentQ, UpdatePayment } from "@/queries/payment";
@@ -37,7 +36,7 @@ import {
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
@@ -124,7 +123,10 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
     },
   });
 
-  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll);
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   function onSubmit(values: FormValues) {
     const purchase = purchases.find((p) => p.id === payment.commandId);

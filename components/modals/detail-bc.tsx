@@ -7,10 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { BonsCommande } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -74,7 +74,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
     data: devis,
     isSuccess,
     // isLoading,
-  } = useFetchQuery(["commandes"], commandRqstQ.getAll, 30000);
+  } = useQuery({ queryKey: ["commandes"], queryFn: commandRqstQ.getAll });
   if (!data || !isSuccess) return null;
 
   const devisTitle = devis?.data.find(

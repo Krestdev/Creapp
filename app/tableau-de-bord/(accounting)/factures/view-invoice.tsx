@@ -10,14 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
-import {
-  BonsCommande,
-  PAYMENT_METHOD,
-  PaymentRequest
-} from "@/types/types";
+import { payTypeQ } from "@/queries/payType";
+import { BonsCommande, PaymentRequest } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -34,7 +31,6 @@ import {
 import Link from "next/link";
 import React from "react";
 import { getInvoiceStatusBadge } from "./invoices-table";
-import { payTypeQ } from "@/queries/payType";
 
 interface Props {
   payment: PaymentRequest;
@@ -44,12 +40,17 @@ interface Props {
 }
 
 function ViewInvoice({ payment, open, openChange, purchases }: Props) {
-  const getUsers = useFetchQuery(["users"], userQ.getAll, 50000);
-  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 50000);
+  const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
   const purchase = purchases.find((p) => p.id === payment.commandId);
   const files = typeof payment.proof === "string" ? payment.proof : "";
 
-  const paymentType = getPaymentType.data?.data.find((p) => p.id === payment.methodId);
+  const paymentType = getPaymentType.data?.data.find(
+    (p) => p.id === payment.methodId
+  );
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
@@ -128,28 +129,32 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Justificatif"}</p>
             <div className="space-y-1">
-              {files ?
-                files.split(";").filter(x => !!x).map((proof, index) => (
-                  <Link
-                    key={index}
-                    href={`${process.env.NEXT_PUBLIC_API
+              {files ? (
+                files
+                  .split(";")
+                  .filter((x) => !!x)
+                  .map((proof, index) => (
+                    <Link
+                      key={index}
+                      href={`${
+                        process.env.NEXT_PUBLIC_API
                       }/uploads/${encodeURIComponent(proof)}`}
-                    target="_blank"
-                    className="flex gap-0.5 items-center"
-                  >
-                    <img
-                      src="/images/pdf.png"
-                      alt="preuve"
-                      className="h-7 w-auto aspect-square"
-                    />
-                    <p className="text-foreground font-medium">
-                      {"Document de preuve"}
-                    </p>
-                  </Link>
-                ))
-                : (
-                  <p className='italic'>{"Aucune preuve jointe"}</p>
-                )}
+                      target="_blank"
+                      className="flex gap-0.5 items-center"
+                    >
+                      <img
+                        src="/images/pdf.png"
+                        alt="preuve"
+                        className="h-7 w-auto aspect-square"
+                      />
+                      <p className="text-foreground font-medium">
+                        {"Document de preuve"}
+                      </p>
+                    </Link>
+                  ))
+              ) : (
+                <p className="italic">{"Aucune preuve jointe"}</p>
+              )}
             </div>
           </div>
         </div>

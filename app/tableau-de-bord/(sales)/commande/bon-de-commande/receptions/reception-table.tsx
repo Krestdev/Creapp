@@ -54,8 +54,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { useFetchQuery } from "@/hooks/useData";
-import { userQ } from "@/queries/baseModule";
 import {
   PURCHASE_ORDER_STATUS,
   Reception,
@@ -91,8 +89,6 @@ const getStatusBadge = (
 };
 
 export function ReceptionTable({ data }: Props) {
-  const getUsers = useFetchQuery(["users"], userQ.getAll);
-
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);

@@ -5,11 +5,11 @@ import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { DevisTable } from "@/components/tables/DevisTable";
 import { Button } from "@/components/ui/button";
-import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { providerQ } from "@/queries/providers";
 import { quotationQ } from "@/queries/quotation";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 const Page = () => {
@@ -22,19 +22,25 @@ const Page = () => {
     {
       title: "Créer un devis",
       href: "./devis/creer",
-    }
+    },
   ];
   /**Quotation fetch */
 
-  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
-    ["quotations"],
-    quotationQ.getAll
-  );
+  const { data, isSuccess, isError, error, isLoading } = useQuery({
+    queryKey: ["quotations"],
+    queryFn: quotationQ.getAll,
+  });
   /**Providers fetch */
 
-  const providers = useFetchQuery(["providers"], providerQ.getAll, 500000);
+  const providers = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
   /**Commands fetch */
-  const commands = useFetchQuery(["commands"], commandRqstQ.getAll, 30000);
+  const commands = useQuery({
+    queryKey: ["commands"],
+    queryFn: commandRqstQ.getAll,
+  });
   if (isLoading || providers.isLoading || commands.isLoading) {
     return <LoadingPage />;
   }

@@ -6,7 +6,6 @@ import Besoins from "@/components/bdcommande/besoins";
 import Cotation from "@/components/bdcommande/cotation";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
-import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { requestQ } from "@/queries/requestModule";
@@ -34,16 +33,19 @@ const Page = () => {
   const tabs = [
     {
       id: 0,
-      title: "Besoins disponibles"
+      title: "Besoins disponibles",
     },
     {
       id: 1,
-      title: "Demande de cotation"
+      title: "Demande de cotation",
     },
-  ]
-  const [selectedTab, setSelectedTab] = useState(0)
+  ];
+  const [selectedTab, setSelectedTab] = useState(0);
 
-  const { data: cotation } = useFetchQuery(["commands"], commandRqstQ.getAll);
+  const { data: cotation } = useQuery({
+    queryKey: ["commands"],
+    queryFn: commandRqstQ.getAll,
+  });
 
   const besoinsDansCotation =
     cotation?.data.flatMap((item) => item.besoins.map((b) => b.id)) ?? [];
@@ -80,20 +82,26 @@ const Page = () => {
             );
           })}
       </PageTitle>
-      <TabBar tabs={tabs} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
-      {selectedTab === 0 ?
+      <TabBar
+        tabs={tabs}
+        setSelectedTab={setSelectedTab}
+        selectedTab={selectedTab}
+      />
+      {selectedTab === 0 ? (
         <div className="content">
           <h2>{"Besoins disponibles"}</h2>
           {besoinVal && besoinVal?.length > 0 ? (
-            <Besoins selected={[]} setSelected={() => { }} isHome />
+            <Besoins selected={[]} setSelected={() => {}} isHome />
           ) : (
             <Empty message="Aucun besoin disponible" />
           )}
-        </div> :
+        </div>
+      ) : (
         <div className="content">
           <h2>{"Demande de cotation"}</h2>
           <Cotation />
-        </div>}
+        </div>
+      )}
     </div>
   );
 };

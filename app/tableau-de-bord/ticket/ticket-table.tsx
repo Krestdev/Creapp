@@ -40,10 +40,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useFetchQuery } from "@/hooks/useData";
 import { cn, company } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { } from "@/queries/commandRqstModule";
+import {} from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import {
@@ -54,7 +53,7 @@ import {
   PaymentRequest,
   RequestType,
 } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -176,19 +175,19 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
         searchFilter === ""
           ? true
           : c.id === Number(searchFilter) ||
-          c.price === Number(searchFilter) ||
-          c.account
-            ?.toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.title
-            .toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.description
-            ?.toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.reference
-            .toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase());
+            c.price === Number(searchFilter) ||
+            c.account
+              ?.toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.title
+              .toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.description
+              ?.toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.reference
+              .toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase());
       //TypeFilter
       const matchType = typeFilter === "all" ? true : c.type === typeFilter;
       //StatusFilter
@@ -262,7 +261,10 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
 
   const { user } = useStore();
 
-  const { data: bons } = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
+  const { data: bons } = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
 
   const paymentMutation = useMutation({
     mutationKey: ["payment"],
@@ -710,30 +712,30 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
                       {column.id === "createdAt"
                         ? "Date de creation"
                         : column.id === "priority"
-                          ? "Priorité"
-                          : column.id === "status"
-                            ? "Statut"
-                            : column.id === "type"
-                              ? "Type"
-                              : column.id === "amount"
-                                ? "Montant"
-                                : column.id === "description"
-                                  ? "Description"
-                                  : column.id === "reference"
-                                    ? "Reference"
-                                    : column.id === "createdAt"
-                                      ? "Date de creation"
-                                      : column.id === "updatedAt"
-                                        ? "Date de modification"
-                                        : column.id === "actions"
-                                          ? "Actions"
-                                          : column.id === "title"
-                                            ? "Titre"
-                                            : column.id === "category"
-                                              ? "Categorie"
-                                              : column.id === "price"
-                                                ? "Montant"
-                                                : column.id}
+                        ? "Priorité"
+                        : column.id === "status"
+                        ? "Statut"
+                        : column.id === "type"
+                        ? "Type"
+                        : column.id === "amount"
+                        ? "Montant"
+                        : column.id === "description"
+                        ? "Description"
+                        : column.id === "reference"
+                        ? "Reference"
+                        : column.id === "createdAt"
+                        ? "Date de creation"
+                        : column.id === "updatedAt"
+                        ? "Date de modification"
+                        : column.id === "actions"
+                        ? "Actions"
+                        : column.id === "title"
+                        ? "Titre"
+                        : column.id === "category"
+                        ? "Categorie"
+                        : column.id === "price"
+                        ? "Montant"
+                        : column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
@@ -755,9 +757,9 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
