@@ -102,6 +102,8 @@ export const TranslateRole = (role: string) => {
       return "Donneur d'ordre de décaissement";
     case "RH":
       return "Ressources Humaines";
+    case "ACCOUNTANT":
+      return "Comptable";
     default:
       return role;
   }

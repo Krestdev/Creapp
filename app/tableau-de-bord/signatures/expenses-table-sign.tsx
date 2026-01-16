@@ -65,7 +65,7 @@ import {
   Signatair,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
-import ViewExpense from "../view-expense";
+import ViewExpense from "../(volt)/depenses/view-expense";
 import PayExpense from "./sign-expense";
 import { useMemo } from "react";
 
