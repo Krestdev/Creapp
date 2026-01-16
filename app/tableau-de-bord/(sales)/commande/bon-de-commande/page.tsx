@@ -186,7 +186,7 @@ const Page = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
+        <div className="grid-stats-4">
           {Statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
