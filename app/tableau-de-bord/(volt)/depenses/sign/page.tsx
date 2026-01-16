@@ -80,7 +80,7 @@ function Page() {
     );
 
     const pendingPayments = allPayments.filter(
-      (p) => p.status === "pending_depense" || p.status === "pending"
+      (p) => p.status === "pending_depense" || (p.status === "pending" && p.type === "achat")
     );
 
     // Calcul des statistiques

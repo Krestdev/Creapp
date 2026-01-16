@@ -32,6 +32,7 @@ interface SearchableSelectProps {
   allLabel?: string;
   className?: string;
   width?: string;
+  disabled?: boolean;
 }
 
 export function SearchableSelect({
@@ -43,6 +44,7 @@ export function SearchableSelect({
   allLabel = "Tous",
   width = "w-fit",
   className,
+  disabled = false,
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [contentWidth, setContentWidth] = React.useState<number>(0);
@@ -82,6 +84,7 @@ export function SearchableSelect({
               !selected && "text-muted-foreground",
               className
             )}
+            disabled={disabled}
           >
             <span className="truncate flex-1 text-left max-w-[270px]">
               {selected ? selected.label : placeholder}

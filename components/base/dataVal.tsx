@@ -107,6 +107,7 @@ import {
   CollapsibleTrigger,
 } from "../ui/collapsible";
 import { TabBar } from "./TabBar";
+import BesoinFacLastVal from "../modals/BesoinFacLastVal";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -179,6 +180,7 @@ export function DataVal({
   const [isValidationModalOpen, setIsValidationModalOpen] =
     React.useState(false);
   const [isLastValModalOpen, setIsLastValModalOpen] = React.useState(false);
+  const [isUpdateFacModalOpen, setIsUpdateFacModalOpen] = React.useState(false);
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
@@ -263,16 +265,16 @@ export function DataVal({
   // Major Filter *******************************************
   const filteredData = React.useMemo(() => {
     return data.filter((b) => {
-      const validatedByUser = categoriesData.find(c=> c.id === b.categoryId)?.validators.find(v=> v.userId === user?.id)?.id;
+      const validatedByUser = categoriesData.find(c => c.id === b.categoryId)?.validators.find(v => v.userId === user?.id)?.id;
       //console.log(`validator Id: ${validatedByUser} - ${b.label}`);
-      const validated = b.revieweeList?.some(r=>r.validatorId === validatedByUser);
+      const validated = b.revieweeList?.some(r => r.validatorId === validatedByUser);
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
       //Selected Tab
       const matchTab =
-      selectedTab === 0 ? b.state === "pending" && !validated :
-      selectedTab === 1 && !!validated;
+        selectedTab === 0 ? b.state === "pending" && !validated :
+          selectedTab === 1 && !!validated;
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : b.state === statusFilter;
@@ -284,7 +286,7 @@ export function DataVal({
         userFilter === "all" ? true : b.userId === Number(userFilter);
       //Category Filter
       const matchCategory =
-      categoryFilter === "all" ? true : b.categoryId === Number(categoryFilter);
+        categoryFilter === "all" ? true : b.categoryId === Number(categoryFilter);
       //Date filter
       let matchDate = true;
       if (dateFilter) {
@@ -501,12 +503,12 @@ export function DataVal({
       decision?: string;
       validatorId?: number;
       validator?:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     }) => {
       await requestQ.review(id, {
         validated: validated,
@@ -1077,7 +1079,7 @@ export function DataVal({
                 <DropdownMenuItem
                   onClick={() =>
                     validationInfo.isLastValidator
-                      ? (setSelectedItem(item), setIsLastValModalOpen(true))
+                      ? item.type === "facilitation" ? (setSelectedItem(item), setIsUpdateFacModalOpen(true)) : (setSelectedItem(item), setIsLastValModalOpen(true))
                       : openValidationModal("approve", item)
                   }
                   disabled={
@@ -1143,7 +1145,7 @@ export function DataVal({
   return (
     <div className="content">
       <div className="flex flex-wrap gap-4 items-center justify-between">
-          <TabBar tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+        <TabBar tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
         <div className="flex flex-wrap items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
@@ -1205,7 +1207,7 @@ export function DataVal({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{"Tous"}</SelectItem>
-                      {categoriesData.filter(c=>categoryIds.includes(c.id)).map((s) => (
+                      {categoriesData.filter(c => categoryIds.includes(c.id)).map((s) => (
                         <SelectItem key={s.id} value={String(s.id)}>
                           {s.label}
                         </SelectItem>
@@ -1293,9 +1295,9 @@ export function DataVal({
                         <span className="text-muted-foreground text-xs">
                           {customDateRange?.from && customDateRange.to
                             ? `${format(
-                                customDateRange.from,
-                                "dd/MM/yyyy"
-                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy"
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -1373,22 +1375,22 @@ export function DataVal({
                       {column.id === "select"
                         ? "Sélection"
                         : column.id === "label"
-                        ? "Titres"
-                        : column.id === "projectId"
-                        ? "Projets"
-                        : column.id === "categoryId"
-                        ? "Catégories"
-                        : column.id === "userId"
-                        ? "Émetteurs"
-                        : column.id === "beneficiary"
-                        ? "Bénéficiaires"
-                        : column.id === "createdAt"
-                        ? "Date d'émission"
-                        : column.id === "state"
-                        ? "Statuts"
-                        : column.id === "validationProgress"
-                        ? "Validation"
-                        : column.id}
+                          ? "Titres"
+                          : column.id === "projectId"
+                            ? "Projets"
+                            : column.id === "categoryId"
+                              ? "Catégories"
+                              : column.id === "userId"
+                                ? "Émetteurs"
+                                : column.id === "beneficiary"
+                                  ? "Bénéficiaires"
+                                  : column.id === "createdAt"
+                                    ? "Date d'émission"
+                                    : column.id === "state"
+                                      ? "Statuts"
+                                      : column.id === "validationProgress"
+                                        ? "Validation"
+                                        : column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
@@ -1436,9 +1438,9 @@ export function DataVal({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                       </TableHead>
                     );
                   })}
@@ -1464,8 +1466,8 @@ export function DataVal({
                       validationInfo.userPosition === 3 && "border-l-red-400",
                       validationInfo.isLastValidator && "border-l-red-400",
                       isSelected &&
-                        isCheckable &&
-                        "bg-blue-50 hover:bg-blue-100"
+                      isCheckable &&
+                      "bg-blue-50 hover:bg-blue-100"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -1650,6 +1652,11 @@ export function DataVal({
         data={selectedItem}
         titre={"Approuver le besoin"}
         description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
+      />
+      <BesoinFacLastVal
+        open={isUpdateFacModalOpen}
+        setOpen={setIsUpdateFacModalOpen}
+        requestData={selectedItem}
       />
     </div>
   );

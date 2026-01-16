@@ -264,7 +264,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
       id: 0,
       title: "Tickets en attente",
       badge: payments.filter(
-        (p) => p.status === "pending_depense" || p.status === "pending"
+        (p) => p.status === "pending_depense" || p.status === "validated"
       ).length,
     },
     {
