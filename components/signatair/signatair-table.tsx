@@ -52,6 +52,7 @@ import { TranslateRole } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { ModalWarning } from "../modals/modal-warning";
 import { signatairQ } from "@/queries/signatair";
+import EditSignatairForm from "./updateSignatair";
 
 interface UtilisateursTableProps {
   data: Signatair[];
@@ -195,9 +196,9 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
           const mode = row.original.mode;
           let message = "";
           if (mode == "ONE") {
-            message = "Un Signatair";
+            message = "Un Signataire";
           } else {
-            message = "Tout les Signatair";
+            message = "Tout les Signataires";
           }
           return (
             <Badge className={`flex items-center gap-1 w-fit`}>
@@ -285,8 +286,8 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
         signatair.user?.map((user) =>
           TranslateRole(
             user.firstName?.toLowerCase() +
-              " " +
-              user.lastName?.toLowerCase() || ""
+            " " +
+            user.lastName?.toLowerCase() || ""
           )
         ) || [];
 
@@ -386,9 +387,9 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -435,7 +436,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
 
       {selectedItem && (
         <>
-          <UpdateUser
+          <EditSignatairForm
             open={isUpdateModalOpen}
             setOpen={setIsUpdateModalOpen}
             signatair={selectedItem}

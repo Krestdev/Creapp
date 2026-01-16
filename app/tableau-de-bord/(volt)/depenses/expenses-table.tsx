@@ -21,6 +21,7 @@ import {
   Coins,
   DollarSign,
   Eye,
+  Settings2,
   Signature,
   XCircle,
 } from "lucide-react";
@@ -67,8 +68,17 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
-import PayExpense from "./sign/sign-expense";
 import ShareExpense from "./share-expense";
+import { TabBar } from "@/components/base/TabBar";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import PayExpense from "./pay-expense";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -127,7 +137,6 @@ const statusConfig = {
 interface Props {
   payments: Array<PaymentRequest>;
   purchases: Array<BonsCommande>;
-  type: "pending" | "paid" | "signed";
   banks: Array<Bank>;
   requestTypes: Array<RequestType>;
 }
@@ -186,13 +195,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function ExpensesTable({
-  payments,
-  purchases,
-  type,
-  banks,
-  requestTypes,
-}: Props) {
+function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -222,7 +225,7 @@ function ExpensesTable({
     }
   }
 
-  const typeFilter = requestTypes
+  const types = requestTypes
     .map((x) => {
       return { value: x.type, label: x.label };
     })
@@ -246,6 +249,56 @@ function ExpensesTable({
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPay, setShowPay] = React.useState<boolean>(false);
   const [showShare, setShowShare] = React.useState<boolean>(false);
+  const [selectedTab, setSelectedTab] = React.useState<number>(0);
+  const [typeFilter, setTypeFilter] = React.useState<"all" | PaymentRequest["type"]>("all");
+  const [priorityFilter, setPriorityFilter] = React.useState<"all" | PaymentRequest["priority"]>("all");
+
+  const resetAllFilters = () => {
+    setGlobalFilter("");
+    setPriorityFilter("all");
+    setTypeFilter("all");
+  }
+
+  const tabs = [
+    {
+      id: 0,
+      title: "Tickets en attente",
+      badge: payments.filter(
+        (p) => p.status === "pending_depense" || p.status === "validated"
+      ).length,
+    },
+    {
+      id: 1,
+      title: "Tickets signés",
+      badge: payments.filter((p) => p.status === "signed").length,
+    },
+    {
+      id: 2,
+      title: "Tickets payés",
+    },
+  ];
+
+  const filteredData = React.useMemo(() => {
+    return payments.filter((p) => {
+      //Filter tab
+      const matchTab =
+        selectedTab === 0
+          ? p.status === "pending_depense" ||
+          p.status === "validated" ||
+          p.status === "unsigned"
+          : selectedTab === 1
+            ? p.status === "signed"
+            : p.status === "paid";
+      //Filter type
+      const matchType =
+        typeFilter === "all" ? true : p.type === typeFilter;
+      //Filter priority
+      const matchPriority =
+        priorityFilter === "all" ? true : p.priority === priorityFilter;
+
+      return matchTab && matchType && matchPriority;
+    });
+  }, [payments, selectedTab, priorityFilter, typeFilter]);
 
   const columns: ColumnDef<PaymentRequest>[] = [
     // {
@@ -398,11 +451,11 @@ function ExpensesTable({
 
         const priorityA =
           priorityOrder[
-            rowA.getValue(columnId) as keyof typeof priorityOrder
+          rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-            rowB.getValue(columnId) as keyof typeof priorityOrder
+          rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -477,7 +530,7 @@ function ExpensesTable({
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
-              {type === "signed" && (
+              {selectedTab === 1 && (
                 <DropdownMenuItem
                   disabled={item.status !== "signed"}
                   onClick={() => {
@@ -489,9 +542,9 @@ function ExpensesTable({
                   {"Payer"}
                 </DropdownMenuItem>
               )}
-              {type === "pending" && (
+              {selectedTab === 0 && (
                 <DropdownMenuItem
-                  disabled={item.status !== "validated"}
+                  disabled={item.status === "unsigned"}
                   onClick={() => {
                     setSelected(item);
                     setShowShare(true);
@@ -509,7 +562,7 @@ function ExpensesTable({
   ];
 
   const table = useReactTable({
-    data: payments,
+    data: filteredData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -541,129 +594,154 @@ function ExpensesTable({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
+        <TabBar
+          tabs={tabs}
+          setSelectedTab={setSelectedTab}
+          selectedTab={selectedTab}
+          className="w-fit"
+        />
         <div className="flex flex-wrap items-end gap-3">
-          <div className="grid gap-1.5">
-            <Label>{"Recherche"}</Label>
-            <Input
-              placeholder="Référence"
-              value={globalFilter ?? ""}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{"Type de ticket"}</Label>
-            <Select
-              value={
-                (table.getColumn("type")?.getFilterValue() as string) ?? "all"
-              }
-              onValueChange={(value) =>
-                table
-                  .getColumn("type")
-                  ?.setFilterValue(value === "all" ? "" : value)
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrer par type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous les types"}</SelectItem>
-                {typeFilter.map((p) => (
-                  <SelectItem
-                    key={p.value}
-                    value={p.value}
-                    className="uppercase"
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
+                  <Input
+                    name="search"
+                    type="search"
+                    id="searchCommand"
+                    placeholder="Référence, libellé"
+                    value={globalFilter ?? ""}
+                    onChange={(event) => setGlobalFilter(event.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                {/**Type Filter */}
+                <div className="grid gap-1.5">
+                  <Label>{"Type"}</Label>
+                  <Select
+                    value={typeFilter}
+                    onValueChange={(value) => setTypeFilter(value as "all" | PaymentRequest["type"])}
                   >
-                    {p.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{"Priorité"}</Label>
-            <Select
-              value={
-                (table.getColumn("priority")?.getFilterValue() as string) ??
-                "all"
-              }
-              onValueChange={(value) =>
-                table
-                  .getColumn("priority")
-                  ?.setFilterValue(value === "all" ? "" : value)
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrer par priorité" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes"}</SelectItem>
-                {PRIORITIES.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrer par type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous les types"}</SelectItem>
+                      {types.map((p) => (
+                        <SelectItem
+                          key={p.value}
+                          value={p.value}
+                          className="uppercase"
+                        >
+                          {p.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/**Priority Filter */}
+                <div className="grid gap-1.5">
+                  <Label>{"Priorité"}</Label>
+                  <Select
+                    value={priorityFilter}
+                    onValueChange={v => setPriorityFilter(v as "all" | PaymentRequest["priority"])}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrer par priorité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {PRIORITIES.map((p) => (
+                        <SelectItem key={p.value} value={p.value}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Bouton pour réinitialiser les filtres */}
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={resetAllFilters}
+                    className="w-full"
+                  >
+                    {"Réinitialiser"}
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="bg-transparent">
+                {"Colonnes"}
+                <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id === "createdAt"
+                        ? "Date de création"
+                        : column.id === "updatedAt"
+                          ? "Date de modification"
+                          : column.id === "reference"
+                            ? "Référence"
+                            : column.id === "title"
+                              ? "Titre"
+                              : column.id === "price"
+                                ? "Montant"
+                                : column.id === "status"
+                                  ? "Statut"
+                                  : column.id === "priority"
+                                    ? "Priorité"
+                                    : column.id === "provider"
+                                      ? "Fournisseur"
+                                      : column.id === "type"
+                                        ? "Type"
+                                        : column.id === "createdAt"
+                                          ? "Date de création"
+                                          : column.id === "updatedAt"
+                                            ? "Date de modification"
+                                            : column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="bg-transparent">
-              {"Colonnes"}
-              <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id === "createdAt"
-                      ? "Date de création"
-                      : column.id === "updatedAt"
-                      ? "Date de modification"
-                      : column.id === "reference"
-                      ? "Référence"
-                      : column.id === "title"
-                      ? "Titre"
-                      : column.id === "price"
-                      ? "Montant"
-                      : column.id === "status"
-                      ? "Statut"
-                      : column.id === "priority"
-                      ? "Priorité"
-                      : column.id === "provider"
-                      ? "Fournisseur"
-                      : column.id === "type"
-                      ? "Type"
-                      : column.id === "createdAt"
-                      ? "Date de création"
-                      : column.id === "updatedAt"
-                      ? "Date de modification"
-                      : column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
-      <h3>{`Tickets ${
-        type === "pending"
-          ? "en attente"
-          : type === "signed"
+      <h3>{`Tickets ${selectedTab === 0
+        ? "en attente"
+        : selectedTab === 1
           ? "signés"
           : "payés"
-      } (${payments.length})`}</h3>
+        } (${payments.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -678,9 +756,9 @@ function ExpensesTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

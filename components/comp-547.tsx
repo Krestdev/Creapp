@@ -19,6 +19,7 @@ interface Props {
   accept?: string;
   multiple?: boolean;
   acceptTypes?: "images" | "documents" | "all";
+  disabled?: boolean;
 }
 
 const getAcceptString = (
@@ -117,6 +118,7 @@ export default function FilesUpload({
   accept,
   multiple = true,
   acceptTypes = "images",
+  disabled = false,
 }: Props) {
   const maxSize = maxSizeMB * 1024 * 1024;
   const acceptString = accept || getAcceptString(acceptTypes);
@@ -204,6 +206,7 @@ export default function FilesUpload({
           aria-label="Upload files"
           className="sr-only"
           name={name}
+          disabled={disabled}
         />
 
         <div className="flex flex-col items-center gap-1 text-center">
@@ -226,6 +229,7 @@ export default function FilesUpload({
               }}
               variant="outline"
               size={"sm"}
+              disabled={disabled}
             >
               {"Parcourir les fichiers"}
             </Button>

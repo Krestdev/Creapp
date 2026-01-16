@@ -13,7 +13,7 @@ export default function PrivateLayout({ children }: { children: ReactNode }) {
     return <LoadingPage/>
   }
 
-  if (!user || !isRole({roleList: user?.role ?? [], role: "trésorier"})) {
+  if (!user || !isRole({roleList: user?.role ??[], role: "manager"})) {
     return <ErrorPage statusCode={401}/>;
   }
   return children

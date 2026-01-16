@@ -108,7 +108,9 @@ function CreatePaiement({ purchases }: Props) {
   const methodValue = form.watch("method");
 
   const createPayment = useMutation({
-    mutationFn: async (payload: NewPayment) => paymentQ.new(payload),
+    mutationFn: async (
+      payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId">
+    ) => paymentQ.new(payload),
     onSuccess: () => {
       toast.success("Votre paiement a été initié avec succès !");
       // queryClient.invalidateQueries({
@@ -166,18 +168,19 @@ function CreatePaiement({ purchases }: Props) {
           "Votre montant est supérieur ou égal au montant total du bon de commande",
       });
     }
-    const payload: NewPayment = {
-      methodId: Number(values.method),
-      type: "achat",
-      deadline: new Date(values.deadline),
-      title: purchase.devi.commandRequest.title,
-      price: values.price,
-      priority: values.priority,
-      userId: user?.id ?? 0,
-      proof: values.proof[0],
-      commandId: values.commandId,
-      isPartial: values.isPartial,
-    };
+    const payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId"> =
+      {
+        methodId: Number(values.method),
+        type: "achat",
+        deadline: new Date(values.deadline),
+        title: purchase.devi.commandRequest.title,
+        price: values.price,
+        priority: values.priority,
+        userId: user?.id ?? 0,
+        proof: values.proof[0],
+        commandId: values.commandId,
+        isPartial: values.isPartial,
+      };
     createPayment.mutate(payload);
   }
 
@@ -248,7 +251,9 @@ function CreatePaiement({ purchases }: Props) {
                               key={request.id}
                               value={String(request.id)}
                             >
-                              {request.devi.commandRequest.title}
+                              {request.devi.commandRequest.title +
+                                " - " +
+                                request.provider.name}
                             </SelectItem>
                           )
                         );

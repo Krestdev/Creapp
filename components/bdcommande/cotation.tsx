@@ -3,16 +3,10 @@
 import { CommandeTable } from "@/components/tables/commande-table";
 import { useFetchQuery } from "@/hooks/useData";
 import { commandRqstQ } from "@/queries/commandRqstModule";
-import { useQuery } from "@tanstack/react-query";
-import React from "react";
-import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
+import LoadingPage from "../loading-page";
 
 const Cotation = () => {
-  const [dateFilter, setDateFilter] = React.useState<
-    "today" | "week" | "month" | "year" | "custom" | undefined
-  >();
-
   const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
     ["commands"],
     commandRqstQ.getAll
@@ -22,16 +16,14 @@ const Cotation = () => {
     return <LoadingPage />;
   }
   if (isError) {
-    return <ErrorPage error={error ?? isError ?? undefined} />;
+    return <ErrorPage error={error} />;
   }
   if (isSuccess)
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
           <CommandeTable
-            data={data?.data}
-            dateFilter={dateFilter}
-            setDateFilter={setDateFilter}
+            data={data.data}
           />
         </div>
       </div>

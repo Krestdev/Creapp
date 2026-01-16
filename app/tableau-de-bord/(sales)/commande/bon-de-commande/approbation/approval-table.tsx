@@ -77,6 +77,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ViewPurchase from "../viewPurchase";
+import { TabBar } from "@/components/base/TabBar";
 
 interface Props {
   data: Array<BonsCommande>;
@@ -148,7 +149,7 @@ export function PurchaseApprovalTable({ data }: Props) {
     "all"
   );
   const [penaltyFilter, setPenaltyFilter] = React.useState<
-    "all" | "yes" | "no"
+    "all" | "true" | "false"
   >("all");
 
   // modals
@@ -161,23 +162,33 @@ export function PurchaseApprovalTable({ data }: Props) {
   );
 
   // optionnel : reason pour rejet
-  const [rejectReason, setRejectReason] = React.useState("");
+  const [rejectReason, setRejectReason] = React.useState<string>("");
+  const [selectedTab, setSelectedTab] = React.useState<number>(0);
+  const tabs = [
+    {
+      id: 0,
+      title: "Bons de commandes en attente"
+    },
+    {
+      id: 1,
+      title: "Bons de commandes traités"
+    },
+  ]
 
   const filteredData = React.useMemo(() => {
-    let filtered = [...(data ?? [])];
-
-    if (priorityFilter !== "all")
-      filtered = filtered.filter((po) => po.priority === priorityFilter);
-
-    if (penaltyFilter !== "all") {
-      filtered = filtered.filter((po) => {
-        const has = !!po.hasPenalties;
-        return penaltyFilter === "yes" ? has : !has;
-      });
-    }
-
-    return filtered;
-  }, [data, priorityFilter, penaltyFilter]);
+    return data.filter((po)=>{
+      //Filter Priority
+      const matchPriority =
+      priorityFilter === "all" ? true : po.priority === priorityFilter;
+      //Filter penalty
+      const matchPenalty =
+      penaltyFilter === "all" ? true : Boolean(penaltyFilter) === po.hasPenalties;
+      //Filter Tab
+      const matchTab =
+      selectedTab === 0 ? po.status === "IN-REVIEW" || po.status === "PENDING" : po.status === "REJECTED" || po.status === "APPROVED";
+      return matchPenalty && matchPriority && matchTab;
+    })
+  }, [data, priorityFilter, penaltyFilter, selectedTab]);
 
   const approveMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -503,6 +514,7 @@ export function PurchaseApprovalTable({ data }: Props) {
     <div className="w-full space-y-4">
       {/* BARRE DE FILTRES */}
       <div className="flex flex-wrap items-center justify-between gap-4">
+        <TabBar tabs={tabs} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
         <div className="flex flex-wrap items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
@@ -543,7 +555,7 @@ export function PurchaseApprovalTable({ data }: Props) {
                       <SelectValue placeholder="Toutes les priorités" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">{"Toutes"}</SelectItem>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
                       {PRIORITIES.map((p) => (
                         <SelectItem key={p.value} value={p.value}>
                           {p.name}
@@ -557,17 +569,17 @@ export function PurchaseApprovalTable({ data }: Props) {
                   <Label>{"Pénalités"}</Label>
                   <Select
                     value={penaltyFilter}
-                    onValueChange={(v: "all" | "yes" | "no") =>
+                    onValueChange={(v: "all" | "true" | "false") =>
                       setPenaltyFilter(v)
                     }
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Toutes" />
+                      <SelectValue placeholder="Tous" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{"Toutes"}</SelectItem>
-                      <SelectItem value="yes">{"Oui"}</SelectItem>
-                      <SelectItem value="no">{"Non"}</SelectItem>
+                      <SelectItem value="true">{"Oui"}</SelectItem>
+                      <SelectItem value="false">{"Non"}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -582,46 +594,45 @@ export function PurchaseApprovalTable({ data }: Props) {
               </div>
             </SheetContent>
           </Sheet>
+          {/* Menu colonnes */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                {"Colonnes"}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  let columnName = column.id;
+                  if (column.id === "reference") columnName = "Référence";
+                  else if (column.id === "devi") columnName = "Titre";
+                  else if (column.id === "provider") columnName = "Fournisseur";
+                  else if (column.id === "amountBase") columnName = "Montant";
+                  else if (column.id === "priority") columnName = "Priorité";
+                  else if (column.id === "status") columnName = "Statut";
+                  else if (column.id === "createdAt") columnName = "Créé le";
+                  else if (column.id === "penalties") columnName = "Pénalités";
+
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {columnName}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-
-        {/* Menu colonnes */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              {"Colonnes"}
-              <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                let columnName = column.id;
-                if (column.id === "reference") columnName = "Référence";
-                else if (column.id === "devi") columnName = "Titre";
-                else if (column.id === "provider") columnName = "Fournisseur";
-                else if (column.id === "amountBase") columnName = "Montant";
-                else if (column.id === "priority") columnName = "Priorité";
-                else if (column.id === "status") columnName = "Statut";
-                else if (column.id === "createdAt") columnName = "Créé le";
-                else if (column.id === "penalties") columnName = "Pénalités";
-
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {columnName}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       {/* TABLEAU */}

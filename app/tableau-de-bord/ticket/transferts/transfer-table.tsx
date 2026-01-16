@@ -69,12 +69,25 @@ import {
 import React from "react";
 import { toast } from "sonner";
 import RejectDialog from "./reject-dialog";
+import { cp } from "fs";
+import { TabBar } from "@/components/base/TabBar";
 
 interface Props {
   data: Array<Transaction>;
 }
 
 function TransferTable({ data }: Props) {
+  const tabs = [
+    {
+      id: 0,
+      title: "Transferts en attente"
+    },
+    {
+      id: 1,
+      title: "Historique des transferts"
+    },
+  ]
+  const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -120,6 +133,11 @@ function TransferTable({ data }: Props) {
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
+      //Filter Tab
+      const matchTab =
+      selectedTab === 0 ? transaction.Type === "TRANSFER" && transaction.status === "PENDING" 
+      : (transaction.Type === "TRANSFER" && transaction.status === "APPROVED") || transaction.status === "REJECTED";
+
       // Filter amount minimum
       const matchMinAmount = !amountMinFilter
         ? true
@@ -166,9 +184,9 @@ function TransferTable({ data }: Props) {
             transaction.createdAt <= endDate;
         }
       }
-      return matchDate && matchMaxAmount && matchMinAmount;
+      return matchDate && matchMaxAmount && matchMinAmount && matchTab;
     });
-  }, [data, dateFilter, customDateRange, amountMaxFilter, amountMinFilter]);
+  }, [data, dateFilter, customDateRange, amountMaxFilter, amountMinFilter, selectedTab]);
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -385,201 +403,204 @@ function TransferTable({ data }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-5 grid gap-5">
-              <div className="grid gap-1.5">
-                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                <Input
-                  name="search"
-                  type="search"
-                  id="searchCommand"
-                  placeholder="Référence, libellé"
-                  value={globalFilter ?? ""}
-                  onChange={(event) => setGlobalFilter(event.target.value)}
-                  className="max-w-sm"
-                />
-              </div>
-
-              {/* Filtre par montant */}
-              <div className="grid gap-1.5">
-                <Label>{"Montant min"}</Label>
-                <div className="relative">
+        <TabBar tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab}/>
+        <div className="flex items-center gap-3">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
                   <Input
-                    type="number"
-                    placeholder="Montant minimim"
-                    value={amountMinFilter}
-                    onChange={(e) => setAmountMinFilter(Number(e.target.value))}
+                    name="search"
+                    type="search"
+                    id="searchCommand"
+                    placeholder="Référence, libellé"
+                    value={globalFilter ?? ""}
+                    onChange={(event) => setGlobalFilter(event.target.value)}
                     className="w-full"
                   />
-                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                    {"FCFA"}
-                  </span>
                 </div>
-              </div>
-              <div className="grid gap-1.5">
-                <Label>{"Montant maximum"}</Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Montant max"
-                    value={amountMaxFilter}
-                    onChange={(e) => setAmountMaxFilter(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                    {"FCFA"}
-                  </span>
-                </div>
-              </div>
 
-              {/* Filtre par période */}
-              <div className="grid gap-1.5">
-                <Label>{"Période"}</Label>
-                <Select
-                  onValueChange={(v) => {
-                    if (v !== "custom") {
-                      setCustomDateRange(undefined);
-                      setCustomOpen(false);
-                    }
-                    if (v === "all") return setDateFilter(undefined);
-                    setDateFilter(v as Exclude<DateFilter, undefined>);
-                    setCustomOpen(v === "custom");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
-                    <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                    <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                    <SelectItem value="month">{"Ce mois"}</SelectItem>
-                    <SelectItem value="year">{"Cette année"}</SelectItem>
-                    <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Collapsible
-                  open={customOpen}
-                  onOpenChange={setCustomOpen}
-                  disabled={dateFilter !== "custom"}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      {"Plage personnalisée"}
-                      <span className="text-muted-foreground text-xs">
-                        {customDateRange?.from && customDateRange.to
-                          ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy"
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
-                          : "Choisir"}
-                      </span>
-                    </Button>
-                  </CollapsibleTrigger>
-
-                  <CollapsibleContent className="space-y-4 pt-4">
-                    <Calendar
-                      mode="range"
-                      selected={customDateRange}
-                      onSelect={(range) =>
-                        setCustomDateRange(range as { from: Date; to: Date })
-                      }
-                      numberOfMonths={1}
-                      className="rounded-md border w-full"
+                {/* Filtre par montant */}
+                <div className="grid gap-1.5">
+                  <Label>{"Montant min"}</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Montant minimim"
+                      value={amountMinFilter}
+                      onChange={(e) => setAmountMinFilter(Number(e.target.value))}
+                      className="w-full"
                     />
-                    <div className="space-y-1">
-                      <Button
-                        className="w-full"
-                        onClick={() => {
-                          setCustomDateRange(undefined);
-                          setDateFilter(undefined);
-                          setCustomOpen(false);
-                        }}
-                      >
-                        {"Annuler"}
-                      </Button>
-                      <Button
-                        className="w-full"
-                        variant={"outline"}
-                        onClick={() => {
-                          setCustomOpen(false);
-                        }}
-                      >
-                        {"Réduire"}
-                      </Button>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
+                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                      {"FCFA"}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>{"Montant maximum"}</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Montant max"
+                      value={amountMaxFilter}
+                      onChange={(e) => setAmountMaxFilter(Number(e.target.value))}
+                      className="w-full"
+                    />
+                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                      {"FCFA"}
+                    </span>
+                  </div>
+                </div>
 
-              {/* Bouton pour réinitialiser les filtres */}
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={resetAllFilters}
-                  className="w-full"
-                >
-                  {"Réinitialiser"}
-                </Button>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="bg-transparent">
-              {"Colonnes"}
-              <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
+                {/* Filtre par période */}
+                <div className="grid gap-1.5">
+                  <Label>{"Période"}</Label>
+                  <Select
+                    onValueChange={(v) => {
+                      if (v !== "custom") {
+                        setCustomDateRange(undefined);
+                        setCustomOpen(false);
+                      }
+                      if (v === "all") return setDateFilter(undefined);
+                      setDateFilter(v as Exclude<DateFilter, undefined>);
+                      setCustomOpen(v === "custom");
+                    }}
                   >
-                    {column.id === "from"
-                      ? "Source"
-                      : column.id === "to"
-                      ? "Destination"
-                      : column.id === "proof"
-                      ? "Preuve"
-                      : column.id === "createdAt"
-                      ? "Date"
-                      : column.id === "amount"
-                      ? "Montant"
-                      : column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner une période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
+                      <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
+                      <SelectItem value="week">{"Cette semaine"}</SelectItem>
+                      <SelectItem value="month">{"Ce mois"}</SelectItem>
+                      <SelectItem value="year">{"Cette année"}</SelectItem>
+                      <SelectItem value="custom">{"Personnalisé"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Collapsible
+                    open={customOpen}
+                    onOpenChange={setCustomOpen}
+                    disabled={dateFilter !== "custom"}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        {"Plage personnalisée"}
+                        <span className="text-muted-foreground text-xs">
+                          {customDateRange?.from && customDateRange.to
+                            ? `${format(
+                                customDateRange.from,
+                                "dd/MM/yyyy"
+                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            : "Choisir"}
+                        </span>
+                      </Button>
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent className="space-y-4 pt-4">
+                      <Calendar
+                        mode="range"
+                        selected={customDateRange}
+                        onSelect={(range) =>
+                          setCustomDateRange(range as { from: Date; to: Date })
+                        }
+                        numberOfMonths={1}
+                        className="rounded-md border w-full"
+                      />
+                      <div className="space-y-1">
+                        <Button
+                          className="w-full"
+                          onClick={() => {
+                            setCustomDateRange(undefined);
+                            setDateFilter(undefined);
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Annuler"}
+                        </Button>
+                        <Button
+                          className="w-full"
+                          variant={"outline"}
+                          onClick={() => {
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Réduire"}
+                        </Button>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+
+                {/* Bouton pour réinitialiser les filtres */}
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={resetAllFilters}
+                    className="w-full"
+                  >
+                    {"Réinitialiser"}
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="bg-transparent">
+                {"Colonnes"}
+                <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id === "from"
+                        ? "Source"
+                        : column.id === "to"
+                        ? "Destination"
+                        : column.id === "proof"
+                        ? "Preuve"
+                        : column.id === "createdAt"
+                        ? "Date"
+                        : column.id === "amount"
+                        ? "Montant"
+                        : column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-      <h3>{`Transferts en attente (${data.length})`}</h3>
+      <h3>{`Transferts (${filteredData.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

@@ -1,13 +1,15 @@
-import { ChartDataItem, ChartPieDonut } from '@/components/Charts/chart-pie-donut';
-import { getRandomColor, XAF } from '@/lib/utils';
-import { BonsCommande } from '@/types/types'
-import React from 'react'
+import {
+  ChartDataItem,
+  ChartPieDonut,
+} from "@/components/Charts/chart-pie-donut";
+import { getRandomColor, XAF } from "@/lib/utils";
+import { BonsCommande } from "@/types/types";
 interface Props {
-    data: Array<BonsCommande>;
+  data: Array<BonsCommande>;
 }
 
-function PieProviderPurchase({data}:Props) {
-    const providerMap = new Map<
+function PieProviderPurchase({ data }: Props) {
+  const providerMap = new Map<
     number,
     { label: string; value: number; count: number }
   >();
@@ -42,12 +44,13 @@ function PieProviderPurchase({data}:Props) {
 
   return (
     <ChartPieDonut
-              data={providerPieData}
-              tooltipConfig={{
-                valueFormatter: (value) => XAF.format(value),
-              }}
-            />
-  )
+      data={providerPieData}
+      tooltipConfig={{
+        valueFormatter: (value) => `${XAF.format(value)} - `,
+      }}
+      showLegend
+    />
+  );
 }
 
-export default PieProviderPurchase
+export default PieProviderPurchase;

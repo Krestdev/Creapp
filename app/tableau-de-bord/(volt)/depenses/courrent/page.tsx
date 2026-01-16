@@ -153,7 +153,6 @@ function Page() {
             (p) => p.status === "pending_depense" && p.type === "CURRENT"
           )}
           banks={getBanks.data.data}
-          type="pending"
           purchases={getPurchases.data.data}
           requestTypes={getRequestType.data.data}
         />
@@ -161,7 +160,6 @@ function Page() {
           payments={data.data.filter(
             (p) => p.status === "paid" && p.type === "CURRENT"
           )}
-          type="paid"
           banks={getBanks.data.data}
           purchases={getPurchases.data.data}
           requestTypes={getRequestType.data.data}

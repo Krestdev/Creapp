@@ -36,6 +36,7 @@ import { useFetchQuery } from "@/hooks/useData";
 import { Button } from "../ui/button";
 import { XAF } from "@/lib/utils";
 import Link from "next/link";
+import { payTypeQ } from "@/queries/payType";
 
 interface Props {
   payment: PaymentRequest;
@@ -66,6 +67,8 @@ function getStatusBadge(status: PaymentRequest["status"]): {
 function DetailPaiement({ payment, open, openChange, purchases }: Props) {
   const getUsers = useFetchQuery(["users"], userQ.getAll, 50000);
   const purchase = purchases.find((p) => p.id === payment.commandId);
+  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
+
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
@@ -120,8 +123,7 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Méthode de paiement"}</p>
             <p className="font-semibold">
-              {PAYMENT_METHOD.find((p) => p.value === payment.method)?.name ??
-                "Non défini"}
+              {getPaymentType.data?.data.find((item) => item.id === payment.methodId)?.label}
             </p>
           </div>
         </div>

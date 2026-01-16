@@ -114,12 +114,12 @@ export function BesoinLastVal({
     }: {
       id: number;
       validator:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     }) => {
       await requestQ.validate(id, validator?.id!, validator);
     },
@@ -205,8 +205,8 @@ export function BesoinLastVal({
   const headerDescription = isError
     ? "Une erreur est survenue. Vous pouvez réessayer."
     : isSuccess
-    ? "Les modifications ont bien été enregistrées."
-    : description;
+      ? "Les modifications ont bien été enregistrées."
+      : description;
 
   // Reset complet quand le modal se ferme
   useEffect(() => {

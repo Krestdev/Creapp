@@ -12,6 +12,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Form,
   FormControl,
   FormDescription,
@@ -36,7 +44,7 @@ import { transactionQ, TransferProps } from "@/queries/transaction";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -99,20 +107,23 @@ function Page() {
       toast.error(error.message);
     },
   });
+  const fromValue = form.watch("fromBankId");
 
-  const balance: { from: number; to: number } = useMemo(() => {
-    const from =
-      banks?.data.find((p) => p.id === form.watch().fromBankId)?.balance ?? 0;
-    const to =
-      banks?.data.find((p) => p.id === form.watch().toBankId)?.balance ?? 0;
-    return { from, to };
-  }, [banks, form.watch()]);
+  const filteredBanks = React.useMemo(() => {
+    if (!banks) return [];
+    return banks.data.filter((c) => !!c.type);
+  }, [banks]);
+
+  const fromBank = React.useMemo(() => {
+    if (!fromValue) return null;
+    return filteredBanks.find((b) => b.id === Number(fromValue)) ?? null;
+  }, [fromValue, filteredBanks]);
 
   const [show, setShow] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormValues | null>(null);
   const isInstant = (data: FormValues): boolean => {
-    const from = banks?.data.find((x) => x.id === data.fromBankId)?.type;
-    const to = banks?.data.find((x) => x.id === data.toBankId)?.type;
+    const from = filteredBanks.find((x) => x.id === data.fromBankId)?.type;
+    const to = filteredBanks.find((x) => x.id === data.toBankId)?.type;
     if (from === "CASH" || (from === "CASH_REGISTER" && to === "CASH")) {
       return true;
     }
@@ -120,8 +131,26 @@ function Page() {
   };
 
   function onSubmit(values: FormValues) {
-    const fromType = banks?.data.find((x) => x.id === values.fromBankId)?.type;
-    const toType = banks?.data.find((x) => x.id === values.toBankId)?.type;
+    // Vérifier le solde insuffisant avant de continuer
+    const fromBank = filteredBanks.find((x) => x.id === values.fromBankId);
+    if (!fromBank) {
+      return form.setError("fromBankId", {
+        message: "Compte source introuvable",
+      });
+    }
+
+    if (values.amount > fromBank.balance) {
+      return form.setError("amount", {
+        message: `Solde insuffisant. Solde disponible : ${XAF.format(
+          fromBank.balance
+        )}`,
+      });
+    }
+
+    const fromType = filteredBanks.find(
+      (x) => x.id === values.fromBankId
+    )?.type;
+    const toType = filteredBanks.find((x) => x.id === values.toBankId)?.type;
     if (!fromType) {
       return form.setError("fromBankId", { message: "Erreur sur le compte" });
     }
@@ -141,7 +170,7 @@ function Page() {
     if (
       fromType === "CASH_REGISTER" &&
       toType !== "CASH" &&
-      toType == "MOBILE_WALLET"
+      toType !== "MOBILE_WALLET"
     ) {
       return form.setError("toBankId", {
         message:
@@ -185,9 +214,7 @@ function Page() {
               name="label"
               render={({ field }) => (
                 <FormItem className="@min-[640px]:col-span-2">
-                  <FormLabel isRequired>
-                    {"Libellé de la Transaction"}
-                  </FormLabel>
+                  <FormLabel isRequired>{"Libellé du Transfert"}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -198,6 +225,86 @@ function Page() {
                 </FormItem>
               )}
             />
+            <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
+              <h3 className="@min-[640px]:col-span-2">{"Transférer depuis"}</h3>
+              <FormField
+                control={form.control}
+                name="fromBankId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Compte source"}</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={!!field.value ? String(field.value) : undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner un compte" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredBanks
+                            .filter((c) => c.Status === true)
+                            .map((bank) => (
+                              <SelectItem key={bank.id} value={String(bank.id)}>
+                                {bank.label}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormDescription>
+                      <FormDescription>
+                        {fromBank ? (
+                          <span className="text-muted-foreground">
+                            {"Solde disponible : "}
+                            <span className="font-medium text-secondary">
+                              {XAF.format(fromBank.balance)}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            {"Sélectionnez un compte"}
+                          </span>
+                        )}
+                      </FormDescription>
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
+              <h3 className="@min-[640px]:col-span-2">{"Transférer vers"}</h3>
+              <FormField
+                control={form.control}
+                name="toBankId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Compte destinataire"}</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={!!field.value ? String(field.value) : undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner un compte" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredBanks
+                            .filter((c) => c.Status === true)
+                            .map((bank) => (
+                              <SelectItem key={bank.id} value={String(bank.id)}>
+                                {bank.label}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="amount"
@@ -221,80 +328,6 @@ function Page() {
                 </FormItem>
               )}
             />
-            <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
-              <h3 className="@min-[640px]:col-span-2">{"Transférer depuis"}</h3>
-              <FormField
-                control={form.control}
-                name="fromBankId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Compte source"}</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={!!field.value ? String(field.value) : undefined}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionner un compte" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {banks.data
-                            .filter((c) => !!c.type && c.Status === true)
-                            .map((bank) => (
-                              <SelectItem key={bank.id} value={String(bank.id)}>
-                                {bank.label}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    {balance.from > 0 && (
-                      <FormDescription>{`Solde : ${XAF.format(
-                        balance.from
-                      )}`}</FormDescription>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
-              <h3 className="@min-[640px]:col-span-2">{"Transférer vers"}</h3>
-              <FormField
-                control={form.control}
-                name="toBankId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Compte destinataire"}</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={!!field.value ? String(field.value) : undefined}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionner un compte" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {banks.data
-                            .filter((c) => !!c.type && c.Status === true)
-                            .map((bank) => (
-                              <SelectItem key={bank.id} value={String(bank.id)}>
-                                {bank.label}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    {balance.to > 0 && (
-                      <FormDescription>{`Solde : ${XAF.format(
-                        balance.from
-                      )}`}</FormDescription>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
             <div className="@min-[640px]:col-span-2 w-full inline-flex justify-end">
               <Button
                 type="submit"
@@ -332,6 +365,7 @@ function Page() {
                       ...formData,
                       Type: "TRANSFER",
                       userId: user?.id ?? 0,
+                      isDirect: isInstant(formData),
                     });
                     setShow(false);
                   }}

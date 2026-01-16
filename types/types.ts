@@ -97,10 +97,10 @@ export type PaymentRequest = {
   createdAt: string;
   updatedAt: string;
 
-  vehiclesId: number | null;
-  bankId: number | null;
-  transactionId: number | null;
-  methodId: number | null;
+  vehiclesId?: number | null;
+  bankId?: number | null;
+  transactionId?: number | null;
+  methodId?: number | null;
 };
 
 export type User = {
@@ -422,7 +422,7 @@ export type BonsCommande = {
     status: boolean;
   }>;
   deliveryLocation?: string;
-  paymentMethod: (typeof PAYMENT_METHOD)[number]["value"];
+  paymentMethod: string;
   paymentTerms: string;
   deliveryDelay: Date;
   motif?: string;
@@ -665,4 +665,5 @@ export type Signatair = {
 export type PayType = {
   id: number;
   label: string | null;
+  type?: string;
 };

@@ -77,11 +77,7 @@ export function BesoinsTraiter({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
       id: false,
-      titre: true,
-      projet: true,
-      category: true,
-      emetteur: true,
-      beneficiaires: true,
+      createdAt: false,
     });
   const [globalFilter, setGlobalFilter] = React.useState("");
 
@@ -321,6 +317,22 @@ export function BesoinsTraiter({
           sensitivity: "base",
         });
       },
+    },
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="bg-transparent text-black hover:bg-transparent"
+        >
+          {"Date de création"}
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div>{format(row.getValue("createdAt"), "PPP", { locale: fr })}</div>
+      ),
     },
     {
       accessorKey: "dueDate",

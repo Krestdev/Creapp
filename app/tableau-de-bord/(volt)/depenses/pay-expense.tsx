@@ -63,7 +63,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
 
   const pay = useMutation({
     mutationFn: async (payload: Omit<TransactionProps, "userId">) =>
-      transactionQ.update(ticket.id, payload),
+      transactionQ.update(ticket.transactionId!, payload),
     onSuccess: () => {
       // queryClient.invalidateQueries({
       //     queryKey: ["banks", "transactions"],
