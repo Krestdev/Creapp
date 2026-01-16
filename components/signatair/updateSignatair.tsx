@@ -4,14 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormLabel } from "@/components/ui/form";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,15 +13,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { bankQ } from "@/queries/bank";
 import { userQ } from "@/queries/baseModule";
-import { Role, Signatair, User, User as UserT } from "@/types/types";
+import { payTypeQ } from "@/queries/payType";
+import { signatairQ } from "@/queries/signatair";
+import { Signatair, User } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import MultiSelectRole from "../base/multiSelectRole";
-import { signatairQ } from "@/queries/signatair";
+import MultiSelectUsers from "../base/multiSelectUsersComplete";
 import { Field, FieldError, FieldLabel } from "../ui/field";
+import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -36,11 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { bankQ } from "@/queries/bank";
-import { payTypeQ } from "@/queries/payType";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Label } from "../ui/label";
-import MultiSelectUsers from "../base/multiSelectUsersComplete";
 
 /* =========================
    SCHEMA ZOD
@@ -106,10 +97,10 @@ export default function UpdateUser({
 
     onSuccess: () => {
       toast.success("Signatair modifié avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["SignatairList"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["SignatairList"],
+      //   refetchType: "active",
+      // });
       setOpen(false);
       onSuccess?.();
     },
@@ -120,18 +111,13 @@ export default function UpdateUser({
   });
 
   const bankData = useQuery({
-    queryKey: ["roles"],
+    queryKey: ["banks"],
     queryFn: () => bankQ.getAll(),
   });
 
   const paytypeData = useQuery({
     queryKey: ["payementType"],
     queryFn: () => payTypeQ.getAll(),
-  });
-
-  const signatairData = useQuery({
-    queryKey: ["payementType"],
-    queryFn: () => signatairQ.getAll(),
   });
 
   const userData = useQuery({

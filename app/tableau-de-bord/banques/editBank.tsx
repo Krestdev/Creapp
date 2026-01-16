@@ -165,10 +165,10 @@ function EditBank({ open, openChange, bank }: Props) {
     mutationFn: async (payload: BankPayload) => bankQ.update(bank.id, payload),
     onSuccess: () => {
       toast.success("Compte mis à jour avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["banks"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["banks"],
+      //   refetchType: "active",
+      // });
       form.reset({
         label: bank.label,
         type: bank.type,
@@ -250,7 +250,7 @@ function EditBank({ open, openChange, bank }: Props) {
                   <FormLabel isRequired>{"Intitulé du compte"}</FormLabel>
                   <FormControl>
                     <Input
-                    disabled={bank.type === "CASH_REGISTER"}
+                      disabled={bank.type === "CASH_REGISTER"}
                       {...field}
                       placeholder="Ex: UBA Cameroun / Caisse Générale"
                     />

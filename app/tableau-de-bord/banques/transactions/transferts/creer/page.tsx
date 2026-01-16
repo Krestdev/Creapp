@@ -3,7 +3,14 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -80,10 +87,10 @@ function Page() {
     mutationFn: async (payload: TransferProps) =>
       transactionQ.createTransaction(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["transactions"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["transactions"],
+      //   refetchType: "active",
+      // });
       toast.success("Votre demande de transfert a été initiée avec succès !");
       setFormData(null);
       router.push("./");
@@ -93,43 +100,65 @@ function Page() {
     },
   });
 
-  const balance:{from:number, to:number} = useMemo(()=>{
-    const from = banks?.data.find(p=>p.id === form.watch().fromBankId)?.balance ?? 0
-    const to = banks?.data.find(p=>p.id === form.watch().toBankId)?.balance ?? 0
-    return {from, to}
-  },[banks, form.watch()]);
+  const balance: { from: number; to: number } = useMemo(() => {
+    const from =
+      banks?.data.find((p) => p.id === form.watch().fromBankId)?.balance ?? 0;
+    const to =
+      banks?.data.find((p) => p.id === form.watch().toBankId)?.balance ?? 0;
+    return { from, to };
+  }, [banks, form.watch()]);
 
   const [show, setShow] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormValues | null>(null);
-  const isInstant = (data: FormValues):boolean => {
-    const from = banks?.data.find(x=> x.id === data.fromBankId)?.type;
-    const to = banks?.data.find(x=> x.id === data.toBankId)?.type;
-    if(from === "CASH" || from === "CASH_REGISTER" && to==="CASH"){
+  const isInstant = (data: FormValues): boolean => {
+    const from = banks?.data.find((x) => x.id === data.fromBankId)?.type;
+    const to = banks?.data.find((x) => x.id === data.toBankId)?.type;
+    if (from === "CASH" || (from === "CASH_REGISTER" && to === "CASH")) {
       return true;
     }
     return false;
-  }
+  };
 
   function onSubmit(values: FormValues) {
-    const fromType = banks?.data.find(x=> x.id === values.fromBankId)?.type;
-    const toType = banks?.data.find(x=> x.id === values.toBankId)?.type;
-    if(!fromType){
-      return form.setError("fromBankId", {message: "Erreur sur le compte"});
+    const fromType = banks?.data.find((x) => x.id === values.fromBankId)?.type;
+    const toType = banks?.data.find((x) => x.id === values.toBankId)?.type;
+    if (!fromType) {
+      return form.setError("fromBankId", { message: "Erreur sur le compte" });
     }
-    if(!toType){
-      return form.setError("toBankId", {message: "Erreur sur le compte"});
+    if (!toType) {
+      return form.setError("toBankId", { message: "Erreur sur le compte" });
     }
-    if(fromType === "CASH" && toType !== "CASH" && toType !== "CASH_REGISTER"){
-      return form.setError("toBankId", {message: "Vous ne pouvez transférer d'une sous-caisse que vers une sous-caisse ou la caisse !"});
+    if (
+      fromType === "CASH" &&
+      toType !== "CASH" &&
+      toType !== "CASH_REGISTER"
+    ) {
+      return form.setError("toBankId", {
+        message:
+          "Vous ne pouvez transférer d'une sous-caisse que vers une sous-caisse ou la caisse !",
+      });
     }
-    if(fromType === "CASH_REGISTER" && toType !== "CASH" && toType == "MOBILE_WALLET"){
-      return form.setError("toBankId", {message: "Vous ne pouvez transférer de la Caisse que vers une sous-caisse ou un portefeuille mobile !"});
+    if (
+      fromType === "CASH_REGISTER" &&
+      toType !== "CASH" &&
+      toType == "MOBILE_WALLET"
+    ) {
+      return form.setError("toBankId", {
+        message:
+          "Vous ne pouvez transférer de la Caisse que vers une sous-caisse ou un portefeuille mobile !",
+      });
     }
-    if(fromType === "BANK" && toType === "CASH"){
-      return form.setError("toBankId", {message: "Vous ne pouvez transférer vers une sous-caisse depuis une banque !"});
+    if (fromType === "BANK" && toType === "CASH") {
+      return form.setError("toBankId", {
+        message:
+          "Vous ne pouvez transférer vers une sous-caisse depuis une banque !",
+      });
     }
-    if(fromType === "MOBILE_WALLET" && toType === "CASH"){
-      return form.setError("toBankId", {message: "Vous ne pouvez transférer d'un portefeuille mobile vers une sous-caisse !"});
+    if (fromType === "MOBILE_WALLET" && toType === "CASH") {
+      return form.setError("toBankId", {
+        message:
+          "Vous ne pouvez transférer d'un portefeuille mobile vers une sous-caisse !",
+      });
     }
     setFormData(values);
     setShow(true);
@@ -209,15 +238,21 @@ function Page() {
                           <SelectValue placeholder="Sélectionner un compte" />
                         </SelectTrigger>
                         <SelectContent>
-                          {banks.data.filter(c=>!!c.type && c.Status === true).map((bank) => (
-                            <SelectItem key={bank.id} value={String(bank.id)}>
-                              {bank.label}
-                            </SelectItem>
-                          ))}
+                          {banks.data
+                            .filter((c) => !!c.type && c.Status === true)
+                            .map((bank) => (
+                              <SelectItem key={bank.id} value={String(bank.id)}>
+                                {bank.label}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    {balance.from > 0 && <FormDescription>{`Solde : ${XAF.format(balance.from)}`}</FormDescription>}
+                    {balance.from > 0 && (
+                      <FormDescription>{`Solde : ${XAF.format(
+                        balance.from
+                      )}`}</FormDescription>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -240,15 +275,21 @@ function Page() {
                           <SelectValue placeholder="Sélectionner un compte" />
                         </SelectTrigger>
                         <SelectContent>
-                          {banks.data.filter(c=> !!c.type && c.Status === true).map((bank) => (
-                            <SelectItem key={bank.id} value={String(bank.id)}>
-                              {bank.label}
-                            </SelectItem>
-                          ))}
+                          {banks.data
+                            .filter((c) => !!c.type && c.Status === true)
+                            .map((bank) => (
+                              <SelectItem key={bank.id} value={String(bank.id)}>
+                                {bank.label}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    {balance.to > 0 && <FormDescription>{`Solde : ${XAF.format(balance.from)}`}</FormDescription>}
+                    {balance.to > 0 && (
+                      <FormDescription>{`Solde : ${XAF.format(
+                        balance.from
+                      )}`}</FormDescription>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -266,22 +307,52 @@ function Page() {
             </div>
           </form>
         </Form>
-        {
-          !!formData &&
+        {!!formData && (
           <Dialog open={show} onOpenChange={setShow}>
-          <DialogContent>
-            <DialogHeader variant={isInstant(formData) ? "secondary" : "default"}>
-              <DialogTitle>
-                {isInstant(formData) ? "Confirmer le transfert" : "Confirmer la demande de transfert"}
-              </DialogTitle>
-              <DialogDescription>{isInstant(formData) ? "Vous êtes sur le point de transférer des fonds vers une sous-caisse": "Initiation d'une demande de transfert. Cette demande devra être validée par le Donneur d'ordre"}</DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant={"primary"} onClick={()=>{create.mutate({ ...formData, Type: "TRANSFER", userId: user?.id ?? 0 }); setShow(false)}} isLoading={create.isPending} disabled={create.isPending}>{"Soumettre"}</Button>
-              <Button variant={"outline"} onClick={()=>{setFormData(null); setShow(false)}}>{"Annuler"}</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>}
+            <DialogContent>
+              <DialogHeader
+                variant={isInstant(formData) ? "secondary" : "default"}
+              >
+                <DialogTitle>
+                  {isInstant(formData)
+                    ? "Confirmer le transfert"
+                    : "Confirmer la demande de transfert"}
+                </DialogTitle>
+                <DialogDescription>
+                  {isInstant(formData)
+                    ? "Vous êtes sur le point de transférer des fonds vers une sous-caisse"
+                    : "Initiation d'une demande de transfert. Cette demande devra être validée par le Donneur d'ordre"}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant={"primary"}
+                  onClick={() => {
+                    create.mutate({
+                      ...formData,
+                      Type: "TRANSFER",
+                      userId: user?.id ?? 0,
+                    });
+                    setShow(false);
+                  }}
+                  isLoading={create.isPending}
+                  disabled={create.isPending}
+                >
+                  {"Soumettre"}
+                </Button>
+                <Button
+                  variant={"outline"}
+                  onClick={() => {
+                    setFormData(null);
+                    setShow(false);
+                  }}
+                >
+                  {"Annuler"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     );
 }

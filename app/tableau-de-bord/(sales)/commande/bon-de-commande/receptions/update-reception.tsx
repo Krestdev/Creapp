@@ -58,7 +58,7 @@ export default function UpdateReception({
       toast.success("Réception mise à jour");
       onOpenChange(false);
       // adapte la clé à ta query réelle
-      queryClient.invalidateQueries({ queryKey: ["receptions"] });
+      // queryClient.invalidateQueries({ queryKey: ["receptions"] });
     },
     onError: (error: Error) => {
       toast.error(error.message ?? "Une erreur est survenue");

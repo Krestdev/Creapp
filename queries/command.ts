@@ -65,3 +65,5 @@ class CommandQueries {
 }
 
 export const commadQ = new CommandQueries();
+
+// commands = ["purchaseOrders"]

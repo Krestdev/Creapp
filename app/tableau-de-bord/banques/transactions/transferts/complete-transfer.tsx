@@ -2,23 +2,27 @@ import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { transactionQ } from "@/queries/transaction";
 import { TransferTransaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,16 +41,14 @@ interface Props {
 }
 
 const formSchema = z.object({
-  date: z
-      .string()
-      .refine(
-        (val) => {
-          const d = new Date(val);
-          const now = new Date();
-          return !isNaN(d.getTime()) && d >= now;
-        },
-        { message: "Date invalide" }
-      ),
+  date: z.string().refine(
+    (val) => {
+      const d = new Date(val);
+      const now = new Date();
+      return !isNaN(d.getTime()) && d >= now;
+    },
+    { message: "Date invalide" }
+  ),
   proof: z
     .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
     .min(1, { message: "Veuillez ajouter un justificatif" }),
@@ -61,18 +63,25 @@ function CompleteTransfer({ open, openChange, transaction }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       proof: [],
-      date: format(new Date(), "yyyy-MM-dd")
+      date: format(new Date(), "yyyy-MM-dd"),
     },
   });
   const complete = useMutation({
-    mutationFn: async ({ id, proof, date }: { id: number; proof: File, date:Date }) =>
-      transactionQ.complete({ id, proof, date }),
+    mutationFn: async ({
+      id,
+      proof,
+      date,
+    }: {
+      id: number;
+      proof: File;
+      date: Date;
+    }) => transactionQ.complete({ id, proof, date }),
     onSuccess: () => {
       toast.success("Transfert mis à jour avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["transactions", "banks"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["transactions", "banks"],
+      //   refetchType: "active",
+      // });
       openChange(false);
       form.reset({ proof: [] });
     },
@@ -81,7 +90,11 @@ function CompleteTransfer({ open, openChange, transaction }: Props) {
     },
   });
   const onSubmit = (value: FormValue): void => {
-    complete.mutate({ id: transaction.id, proof: value.proof[0], date:new Date(value.date) });
+    complete.mutate({
+      id: transaction.id,
+      proof: value.proof[0],
+      date: new Date(value.date),
+    });
   };
 
   return (
@@ -94,68 +107,68 @@ function CompleteTransfer({ open, openChange, transaction }: Props) {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
             <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Date du transfert"}</FormLabel>
-              <FormControl>
-                <div className="relative flex gap-2">
-                  <Input
-                    id={field.name}
-                    value={field.value}
-                    placeholder="Sélectionner une date"
-                    className="bg-background pr-10"
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "ArrowDown") {
-                        e.preventDefault();
-                        setSelectDate(true);
-                      }
-                    }}
-                  />
-                  <Popover open={selectDate} onOpenChange={setSelectDate}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="date-picker"
-                        variant="ghost"
-                        className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
-                      >
-                        <CalendarIcon className="size-3.5" />
-                        <span className="sr-only">
-                          {"Sélectionner une date"}
-                        </span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      className="w-auto overflow-hidden p-0"
-                      align="end"
-                      alignOffset={-8}
-                      sideOffset={10}
-                    >
-                      <Calendar
-                        mode="single"
-                        selected={
-                          field.value ? new Date(field.value) : undefined
-                        }
-                        captionLayout="dropdown"
-                        onSelect={(date) => {
-                          if (!date) return;
-                          const value = format(date, "yyyy-MM-dd");
-                          field.onChange(value);
-                          setSelectDate(false);
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Date du transfert"}</FormLabel>
+                  <FormControl>
+                    <div className="relative flex gap-2">
+                      <Input
+                        id={field.name}
+                        value={field.value}
+                        placeholder="Sélectionner une date"
+                        className="bg-background pr-10"
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            setSelectDate(true);
+                          }
                         }}
                       />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                      <Popover open={selectDate} onOpenChange={setSelectDate}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date-picker"
+                            variant="ghost"
+                            className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                          >
+                            <CalendarIcon className="size-3.5" />
+                            <span className="sr-only">
+                              {"Sélectionner une date"}
+                            </span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto overflow-hidden p-0"
+                          align="end"
+                          alignOffset={-8}
+                          sideOffset={10}
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={
+                              field.value ? new Date(field.value) : undefined
+                            }
+                            captionLayout="dropdown"
+                            onSelect={(date) => {
+                              if (!date) return;
+                              const value = format(date, "yyyy-MM-dd");
+                              field.onChange(value);
+                              setSelectDate(false);
+                            }}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="proof"
@@ -177,8 +190,25 @@ function CompleteTransfer({ open, openChange, transaction }: Props) {
               )}
             />
             <DialogFooter>
-                <Button type="submit" variant={"primary"} disabled={complete.isPending} isLoading={complete.isPending}>{"Transférer"}</Button>
-                <Button variant="outline" disabled={complete.isPending} onClick={(e)=>{e.preventDefault(); openChange(false); form.reset({proof: []});}}>{"Fermer"}</Button>
+              <Button
+                type="submit"
+                variant={"primary"}
+                disabled={complete.isPending}
+                isLoading={complete.isPending}
+              >
+                {"Transférer"}
+              </Button>
+              <Button
+                variant="outline"
+                disabled={complete.isPending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  openChange(false);
+                  form.reset({ proof: [] });
+                }}
+              >
+                {"Fermer"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

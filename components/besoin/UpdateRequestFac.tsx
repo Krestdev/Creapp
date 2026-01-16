@@ -216,22 +216,22 @@ export default function UpdateRequestFac({
       setOpen(false);
 
       // Invalider et rafraîchir toutes les requêtes
-      queryClient.invalidateQueries({
-        queryKey: ["requests"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["requests", user?.id],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["requests-validation"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["payment", user?.id],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["requests"],
+      //   refetchType: "active",
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["requests", user?.id],
+      //   refetchType: "active",
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["requests-validation"],
+      //   refetchType: "active",
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["payment", user?.id],
+      //   refetchType: "active",
+      // });
 
       onSuccess?.();
     },

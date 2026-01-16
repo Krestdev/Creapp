@@ -78,18 +78,18 @@ export default function SpecialRequestForm() {
       form.reset();
 
       // Invalider et rafraîchir toutes les requêtes liées aux besoins
-      queryClient.invalidateQueries({
-        queryKey: ["requests"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["requests-validation"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["requests", user?.id],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["requests"],
+      //   refetchType: "active",
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["requests-validation"],
+      //   refetchType: "active",
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["requests", user?.id],
+      //   refetchType: "active",
+      // });
     },
 
     onError: (error: any) => {

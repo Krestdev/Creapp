@@ -23,7 +23,7 @@ function Page() {
     transactionQ.getAll,
     30000
   );
-  const getBanks = useFetchQuery(["transactions"], bankQ.getAll, 50000);
+  const getBanks = useFetchQuery(["banks"], bankQ.getAll, 50000);
 
   if (getTransactions.isLoading || getBanks.isLoading) {
     return <LoadingPage />;

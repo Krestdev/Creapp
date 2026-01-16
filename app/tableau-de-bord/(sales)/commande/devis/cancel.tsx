@@ -27,10 +27,10 @@ function CancelQuotation({ open, openChange, quotation }: Props) {
     mutationFn: async () => quotationQ.cancel(quotation.id),
     onSuccess: () => {
       toast.success("Devis annulé avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["quotations"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["quotations"],
+      //   refetchType: "active",
+      // });
       openChange(false);
     },
     onError: (error) => {

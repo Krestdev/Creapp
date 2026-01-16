@@ -83,7 +83,7 @@ const getPriorityBadge = (
   variant: VariantProps<typeof badgeVariants>["variant"];
   rowClassName?: string;
 } => {
-  const label = PRIORITIES.find(c=> c.value === priority)?.name ?? "Inconnu"
+  const label = PRIORITIES.find((c) => c.value === priority)?.name ?? "Inconnu";
   switch (priority) {
     case "low":
       return {
@@ -122,14 +122,19 @@ const getPriorityBadge = (
       };
   }
 };
-const getStatusVariant = (status:PaymentRequest["status"]):{label: string; variant: VariantProps<typeof badgeVariants>["variant"]} => {
-  switch(status){
+const getStatusVariant = (
+  status: PaymentRequest["status"]
+): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} => {
+  switch (status) {
     case "accepted":
-      return {label: "En attente", variant: "amber"};
+      return { label: "En attente", variant: "amber" };
     case "validated":
-      return {label: "Approuvé", variant: "success"};
-    default: 
-    return {label:"Payé", variant: "purple"}
+      return { label: "Approuvé", variant: "success" };
+    default:
+      return { label: "Payé", variant: "purple" };
   }
 };
 
@@ -191,10 +196,10 @@ export function TicketsTable({
       return paymentQ.update(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["payments"],
+      //   refetchType: "active",
+      // });
       toast.success(message);
       message.includes("payé")
         ? setOpenPaiementModal(false)
@@ -211,10 +216,10 @@ export function TicketsTable({
       return paymentQ.vaidate(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["payments"],
+      //   refetchType: "active",
+      // });
       toast.success(message);
       message.includes("payé")
         ? setOpenPaiementModal(false)
@@ -430,13 +435,9 @@ export function TicketsTable({
       },
       cell: ({ row }) => {
         const status = row.original.status;
-        const {label, variant} = getStatusVariant(status);
+        const { label, variant } = getStatusVariant(status);
 
-        return (
-          <Badge variant={variant}>
-            {label}
-          </Badge>
-        );
+        return <Badge variant={variant}>{label}</Badge>;
       },
     },
     {
@@ -552,7 +553,6 @@ export function TicketsTable({
     },
   });
 
-
   // Fonction pour obtenir le libellé à afficher dans le SelectValue pour les priorités
   const getPriorityDisplayValue = () => {
     if (selectedPriority === "all") {
@@ -634,15 +634,17 @@ export function TicketsTable({
         {isAdmin && (
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sélectionner"/>
+              <SelectValue placeholder="Sélectionner" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-              {PAY_STATUS.filter(c=> c.value === "accepted" || c.value === "validated").map((status) =>
-                  <SelectItem key={status.value} value={status.value}>
-                    {getStatusVariant(status.value).label}
-                  </SelectItem>
-              )}
+              {PAY_STATUS.filter(
+                (c) => c.value === "accepted" || c.value === "validated"
+              ).map((status) => (
+                <SelectItem key={status.value} value={status.value}>
+                  {getStatusVariant(status.value).label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         )}

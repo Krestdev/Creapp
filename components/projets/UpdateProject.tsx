@@ -80,10 +80,10 @@ export default function UpdateProject({
       console.log("created successful:", data);
       form.reset();
       setOpen(false);
-      queryClient.invalidateQueries({
-        queryKey: ["projectsList"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["projectsList"],
+      //   refetchType: "active",
+      // });
     },
     onError: (error: any) => {
       toast.error("Une erreur est survenue lors de la mise à jour du projet.");

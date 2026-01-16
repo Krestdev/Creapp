@@ -171,10 +171,10 @@ function CreateForm() {
         instalments: [{ percentage: 100, deadLine: undefined }],
         paymentMethod: "bank-transfer",
       });
-      queryClient.invalidateQueries({
-        queryKey: ["purchaseOrders"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["purchaseOrders"],
+      //   refetchType: "active",
+      // });
     },
     onError: (error: Error) => {
       toast.error(error.message ?? "Une erreur est survenue");
@@ -218,7 +218,9 @@ function CreateForm() {
         penaltyMode: values.penaltyMode,
         instalments: values.instalments.map((instalment) => ({
           percentage: instalment.percentage,
-          deadLine: instalment.deadLine ? new Date(instalment.deadLine) : undefined,
+          deadLine: instalment.deadLine
+            ? new Date(instalment.deadLine)
+            : undefined,
         })),
       },
       ids: ids,
@@ -262,12 +264,13 @@ function CreateForm() {
                             value={String(quote.id)}
                             className="line-clamp-1"
                           >
-                            {`${quote.commandRequest.title
-                              } - ${formatToShortName(
-                                getProviders.data?.data.find(
-                                  (p) => p.id === quote.providerId
-                                )?.name
-                              )}`}
+                            {`${
+                              quote.commandRequest.title
+                            } - ${formatToShortName(
+                              getProviders.data?.data.find(
+                                (p) => p.id === quote.providerId
+                              )?.name
+                            )}`}
                           </SelectItem>
                         ))}
                     {getQuotations.data &&
@@ -532,8 +535,9 @@ function CreateForm() {
               {"La somme de tous les paiements doit être égale à 100%."}
               {totalAmount !== 100 && (
                 <span className="text-destructive ml-2">
-                  {`Total actuel: ${totalAmount}% (il manque ${100 - totalAmount
-                    }%)`}
+                  {`Total actuel: ${totalAmount}% (il manque ${
+                    100 - totalAmount
+                  }%)`}
                 </span>
               )}
             </p>

@@ -69,10 +69,10 @@ export function UpdateRequestType({
     },
     onSuccess: () => {
       toast.success("Type de besoin modifié avec succès");
-      queryClient.invalidateQueries({
-        queryKey: ["requestType"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["requestType"],
+      //   refetchType: "active",
+      // });
       onOpenChange(false);
     },
     onError: (error) => {

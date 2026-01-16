@@ -95,14 +95,14 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.create(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["banks", "transactions"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["banks", "transactions"],
+      //   refetchType: "active",
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["payments"],
+      //   refetchType: "active",
+      // });
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
       // router.push("./");
@@ -229,18 +229,25 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                       <FormLabel isRequired>{"Compte source"}</FormLabel>
                       <FormControl>
                         <Select
-                          value={!!field.value ? String(field.value) : undefined}
+                          value={
+                            !!field.value ? String(field.value) : undefined
+                          }
                           onValueChange={field.onChange}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Sélectionner un compte" />
                           </SelectTrigger>
                           <SelectContent>
-                            {banks.filter(x => x.type !== null).map((bank) => (
-                              <SelectItem key={bank.id} value={String(bank.id)}>
-                                {bank.label}
-                              </SelectItem>
-                            ))}
+                            {banks
+                              .filter((x) => x.type !== null)
+                              .map((bank) => (
+                                <SelectItem
+                                  key={bank.id}
+                                  value={String(bank.id)}
+                                >
+                                  {bank.label}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -289,7 +296,9 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                   name="to.phoneNum"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{"Numéro de téléphone destinataire"}</FormLabel>
+                      <FormLabel>
+                        {"Numéro de téléphone destinataire"}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"

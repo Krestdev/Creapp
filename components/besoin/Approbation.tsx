@@ -169,7 +169,7 @@ const Approbation = ({
   });
 
   const requestData = useQuery({
-    queryKey: ["requests-validation"],
+    queryKey: ["requests"],
     queryFn: () => {
       return requestQ.getAll();
     },

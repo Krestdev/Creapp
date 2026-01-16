@@ -7,7 +7,7 @@ import { SignatairTable } from "./signatair-table";
 const SignatairPage = () => {
   const { isHydrated } = useStore();
   const userData = useQuery({
-    queryKey: ["SignatairList"],
+    queryKey: ["signatairs"],
     queryFn: () => signatairQ.getAll(),
     enabled: isHydrated,
   });

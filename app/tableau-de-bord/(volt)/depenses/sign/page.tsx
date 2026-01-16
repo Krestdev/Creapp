@@ -25,7 +25,7 @@ function Page() {
     30000
   );
 
-  const signatair = useFetchQuery(["signatair"], signatairQ.getAll);
+  const signatair = useFetchQuery(["signatairs"], signatairQ.getAll);
 
   const getRequestType = useFetchQuery(
     ["requestType"],

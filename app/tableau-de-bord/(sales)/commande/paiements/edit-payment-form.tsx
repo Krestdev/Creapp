@@ -113,10 +113,10 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
       paymentQ.update(payment.id, data),
     onSuccess: () => {
       toast.success("Votre paiement a été modifié avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["payments", "purchaseOrders"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["payments", "purchaseOrders"],
+      //   refetchType: "active",
+      // });
       openChange(false);
     },
     onError: (error: Error) => {
@@ -162,7 +162,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
         userId: user?.id ?? 0,
         proof: values.proof[0],
         isPartial: values.isPartial,
-        status: "pending"
+        status: "pending",
       };
       return updatePayment.mutate(payload);
     }
@@ -176,7 +176,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
       priority: values.priority,
       userId: user?.id ?? 0,
       isPartial: values.isPartial,
-      status: "pending"
+      status: "pending",
     };
     return updatePayment.mutate(payload);
   }

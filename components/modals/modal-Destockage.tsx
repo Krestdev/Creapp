@@ -50,10 +50,10 @@ export function ModalDestockage({
     onSuccess: (res) => {
       toast.success("Le besoin a été déstocké.");
       onOpenChange(false);
-      queryClient.invalidateQueries({
-        queryKey: ["requests"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["requests"],
+      //   refetchType: "active",
+      // });
     },
     onError: (error) => {
       toast.error("Une erreur est survenue.");

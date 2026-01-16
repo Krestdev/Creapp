@@ -86,10 +86,10 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
     mutationFn: (id: number) => signatairQ.delete(id),
     onSuccess: () => {
       toast.success("Signatair supprimer");
-      queryClient.invalidateQueries({
-        queryKey: ["SignatairList"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["SignatairList"],
+      //   refetchType: "active",
+      // });
     },
     onError: (e) => {
       console.error(e);

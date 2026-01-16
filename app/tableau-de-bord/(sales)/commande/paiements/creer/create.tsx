@@ -31,11 +31,7 @@ import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { purchaseQ } from "@/queries/purchase-order";
-import {
-  BonsCommande,
-  PAYMENT_METHOD,
-  PRIORITIES,
-} from "@/types/types";
+import { BonsCommande, PAYMENT_METHOD, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -115,10 +111,10 @@ function CreatePaiement({ purchases }: Props) {
     mutationFn: async (payload: NewPayment) => paymentQ.new(payload),
     onSuccess: () => {
       toast.success("Votre paiement a été initié avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["payments", "purchaseOrders"],
-        refetchType: "active",
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["payments", "purchaseOrders"],
+      //   refetchType: "active",
+      // });
       router.push("./");
     },
     onError: (error: Error) => {
@@ -233,18 +229,29 @@ function CreatePaiement({ purchases }: Props) {
                     ) : (
                       purchases.map((request) => {
                         const pay = React.useMemo(() => {
-                          return payments?.filter((payment) => payment.commandId === request.id).filter(c => c.status === "paid");
+                          return payments
+                            ?.filter(
+                              (payment) => payment.commandId === request.id
+                            )
+                            .filter((c) => c.status === "paid");
                         }, [payments, request]);
-                        const paid = pay?.flatMap(x => x.price).reduce((a, b) => a + b, 0) ?? 0;
+                        const paid =
+                          pay
+                            ?.flatMap((x) => x.price)
+                            .reduce((a, b) => a + b, 0) ?? 0;
                         const total = totalAmountPurchase(request);
 
                         const diff = total - paid;
                         return (
-                          diff > 0 &&
-                          <SelectItem key={request.id} value={String(request.id)}>
-                            {request.devi.commandRequest.title}
-                          </SelectItem>
-                        )
+                          diff > 0 && (
+                            <SelectItem
+                              key={request.id}
+                              value={String(request.id)}
+                            >
+                              {request.devi.commandRequest.title}
+                            </SelectItem>
+                          )
+                        );
                       })
                     )}
                   </SelectContent>
@@ -360,15 +367,23 @@ function CreatePaiement({ purchases }: Props) {
           render={({ field }) => {
             const purchase = purchases.find((p) => p.id === commandId);
             const pay = React.useMemo(() => {
-              return payments?.filter((payment) => payment.commandId === purchase?.id).filter(c => c.status === "paid");
+              return payments
+                ?.filter((payment) => payment.commandId === purchase?.id)
+                .filter((c) => c.status === "paid");
             }, [payments, purchase]);
-            const paid = pay?.flatMap(x => x.price).reduce((a, b) => a + b, 0) ?? 0;
+            const paid =
+              pay?.flatMap((x) => x.price).reduce((a, b) => a + b, 0) ?? 0;
             const total = purchase ? totalAmountPurchase(purchase) : 0;
 
             const diff = total - paid;
             return (
               <FormItem>
-                <FormLabel isRequired>{'Montant'}<span className="text-xs text-red-500">(Reste à payer : {XAF.format(diff ? diff : 0)})</span></FormLabel>
+                <FormLabel isRequired>
+                  {"Montant"}
+                  <span className="text-xs text-red-500">
+                    (Reste à payer : {XAF.format(diff ? diff : 0)})
+                  </span>
+                </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -388,9 +403,8 @@ function CreatePaiement({ purchases }: Props) {
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )
-          }
-          }
+            );
+          }}
         />
 
         {/* Moyen de paiement - CORRIGÉ */}
@@ -409,10 +423,7 @@ function CreatePaiement({ purchases }: Props) {
                       Chargement des moyens de paiement...
                     </div>
                   ) : (
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="min-w-60 w-full">
                         <SelectValue placeholder="Sélectionner">
                           {paymentMethods.find(
@@ -491,7 +502,9 @@ function CreatePaiement({ purchases }: Props) {
             type="submit"
             className="w-fit"
             variant={"primary"}
-            disabled={createPayment.isPending || !getPaymentType.data?.data?.length}
+            disabled={
+              createPayment.isPending || !getPaymentType.data?.data?.length
+            }
             isLoading={createPayment.isPending}
           >
             {"Créer le paiement"}

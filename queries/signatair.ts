@@ -40,3 +40,5 @@ class SignatairQueries {
 }
 
 export const signatairQ = new SignatairQueries();
+
+// signatairQ = ["signatairs"]

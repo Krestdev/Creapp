@@ -498,13 +498,9 @@ export function DataVal({
         .join(", ");
     } else if (request.type === "facilitation") {
       return (
-        usersData.find(
-          (u) => u.id === Number(request.beneficiary)
-        )?.firstName +
+        usersData.find((u) => u.id === Number(request.beneficiary))?.firstName +
         " " +
-        usersData.find(
-          (u) => u.id === Number(request.beneficiary)
-        )?.lastName
+        usersData.find((u) => u.id === Number(request.beneficiary))?.lastName
       );
     }
     return "Aucun bénéficiaire";
@@ -524,12 +520,12 @@ export function DataVal({
       decision?: string;
       validatorId?: number;
       validator?:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => {
       await requestQ.review(id, {
         validated: validated,
@@ -544,7 +540,7 @@ export function DataVal({
           ? "Besoin approuvé avec succès !"
           : "Besoin rejeté avec succès !"
       );
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      // queryClient.invalidateQueries({ queryKey: ["requests"] });
     },
     onError: () => {
       toast.error("Une erreur est survenue lors de la validation.");
@@ -631,7 +627,7 @@ export function DataVal({
         `${selectedCount} besoin(s) ${actionType}(s) avec succès !`
       );
 
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      // queryClient.invalidateQueries({ queryKey: ["requests"] });
       setRowSelection({}); // Réinitialiser la sélection
     },
     onError: (error) => {
@@ -1338,22 +1334,22 @@ export function DataVal({
                     {column.id === "select"
                       ? "Sélection"
                       : column.id === "label"
-                        ? "Titres"
-                        : column.id === "projectId"
-                          ? "Projets"
-                          : column.id === "categoryId"
-                            ? "Catégories"
-                            : column.id === "userId"
-                              ? "Émetteurs"
-                              : column.id === "beneficiary"
-                                ? "Bénéficiaires"
-                                : column.id === "createdAt"
-                                  ? "Date d'émission"
-                                  : column.id === "state"
-                                    ? "Statuts"
-                                    : column.id === "validationProgress"
-                                      ? "Validation"
-                                      : column.id}
+                      ? "Titres"
+                      : column.id === "projectId"
+                      ? "Projets"
+                      : column.id === "categoryId"
+                      ? "Catégories"
+                      : column.id === "userId"
+                      ? "Émetteurs"
+                      : column.id === "beneficiary"
+                      ? "Bénéficiaires"
+                      : column.id === "createdAt"
+                      ? "Date d'émission"
+                      : column.id === "state"
+                      ? "Statuts"
+                      : column.id === "validationProgress"
+                      ? "Validation"
+                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -1400,9 +1396,9 @@ export function DataVal({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
                     );
                   })}
@@ -1428,8 +1424,8 @@ export function DataVal({
                       validationInfo.userPosition === 3 && "border-l-red-400",
                       validationInfo.isLastValidator && "border-l-red-400",
                       isSelected &&
-                      isCheckable &&
-                      "bg-blue-50 hover:bg-blue-100"
+                        isCheckable &&
+                        "bg-blue-50 hover:bg-blue-100"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (

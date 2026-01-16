@@ -152,8 +152,8 @@ function SelectQuotation({ id }: { id: string }) {
     mutationFn: async (value: SubmitPayload) => quotationQ.validate(value),
     onSuccess: () => {
       toast.success("Décision enregistrée !");
-      queryClient.invalidateQueries({ queryKey: ["quotations"] });
-      queryClient.invalidateQueries({ queryKey: ["commands"] });
+      // queryClient.invalidateQueries({ queryKey: ["quotations"] });
+      // queryClient.invalidateQueries({ queryKey: ["commands"] });
       router.push("/tableau-de-bord/commande/devis/approbation");
     },
     onError: (error: Error) => {
@@ -252,10 +252,7 @@ function SelectQuotation({ id }: { id: string }) {
                       }
                     }}
                   >
-                    <Checkbox
-                      checked={checked}
-                      className="z-10"
-                    />
+                    <Checkbox checked={checked} className="z-10" />
 
                     <div className="grid gap-3">
                       <div className="flex items-center gap-2">

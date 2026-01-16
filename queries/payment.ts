@@ -254,3 +254,5 @@ class PaymentQueries {
 }
 
 export const paymentQ = new PaymentQueries();
+
+// socket invalidated payments = ["payments"]

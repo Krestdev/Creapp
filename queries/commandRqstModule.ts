@@ -121,3 +121,5 @@ class CommandRqstQueries {
 }
 
 export const commandRqstQ = new CommandRqstQueries();
+
+// socket invalidated commandrequests = ["commands"]
