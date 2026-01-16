@@ -38,9 +38,8 @@ function Page() {
   const filteredData = useMemo(() => {
     if (!data?.data || !signatair.data?.data || !user) {
       return {
-        unsignedPayments: [],
-        signedPayments: [],
-        pendingPayments: [],
+        unsignedPayments: [],           // unsigned seulement
+        signedPayments: [],           // pending_depense + unsigned (pour l'onglet)
         statistics: [],
       };
     }
@@ -71,36 +70,51 @@ function Page() {
       userCanSign(p.bankId!, p.methodId!)
     );
 
+    // Séparation des paiements par statut
+    const pendingDepensePayments = authorizedPayments.filter(
+      (p) => p.status === "pending_depense"
+    );
+
     const unsignedPayments = authorizedPayments.filter(
-      (p) => p.status === "unsigned" && p.type === "achat"
+      (p) => p.status === "unsigned"
     );
 
     const signedPayments = authorizedPayments.filter(
-      (p) => p.status === "signed" && p.type === "achat"
+      (p) => p.status === "signed"
     );
 
-    const pendingPayments = allPayments.filter(
-      (p) => p.status === "pending_depense" || (p.status === "pending" && p.type === "achat")
+    // Tous les paiements en attente (pour l'onglet)
+    const allPendingPayments = [...pendingDepensePayments, ...unsignedPayments];
+
+    // Calcul des statistiques détaillées
+    const pendingDepenseTotal = pendingDepensePayments.reduce(
+      (total, el) => total + (el.price || 0), 0
     );
 
-    // Calcul des statistiques
-    const pendingTotal = unsignedPayments.reduce((total, el) => total + (el.price || 0), 0);
-    const signedTotal = signedPayments.reduce((total, el) => total + (el.price || 0), 0);
+    const unsignedTotal = unsignedPayments.reduce(
+      (total, el) => total + (el.price || 0), 0
+    );
+
+    const signedTotal = signedPayments.reduce(
+      (total, el) => total + (el.price || 0), 0
+    );
+
+    const allPendingTotal = pendingDepenseTotal + unsignedTotal;
 
     const statistics: Array<StatisticProps> = [
       {
-        title: "Tickets en attente de signature",
+        title: "En attente signature",
         value: unsignedPayments.length,
-        variant: "primary",
+        variant: "secondary",
         more: {
           title: "Montant total",
-          value: XAF.format(pendingTotal),
+          value: XAF.format(unsignedTotal),
         },
       },
       {
-        title: "Tickets signés",
+        title: "Signés",
         value: signedPayments.length,
-        variant: "secondary",
+        variant: "success",
         more: {
           title: "Montant total",
           value: XAF.format(signedTotal),
@@ -109,9 +123,10 @@ function Page() {
     ];
 
     return {
+      pendingDepensePayments,
       unsignedPayments,
       signedPayments,
-      pendingPayments,
+      allPendingPayments,
       statistics,
       allPayments
     };
@@ -121,14 +136,14 @@ function Page() {
     {
       id: 0,
       title: "Tickets en attente",
-      badge: filteredData.pendingPayments.length // Utiliser pendingPayments comme dans l'autre page
+      badge: filteredData.unsignedPayments.length
     },
     {
       id: 1,
       title: "Tickets signés",
       badge: filteredData.signedPayments.length
     }
-  ], [filteredData.pendingPayments.length, filteredData.signedPayments.length]);
+  ], [filteredData.unsignedPayments.length, filteredData.signedPayments.length]);
 
   if (
     isLoading ||

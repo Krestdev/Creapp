@@ -46,25 +46,23 @@ interface Props {
   banks: Array<Bank>;
 }
 
-const formSchema = z.object({
-  label: z.string().min(2, "Libellé trop court"),
-  // date: z.string({ message: "Veuillez définir une date" }).refine(
-  //   (val) => {
-  //     const d = new Date(val);
-  //     return !isNaN(d.getTime());
-  //   },
-  //   { message: "Date invalide" }
-  // ),
-  fromBankId: z.coerce.number().int().positive(),
-
-  to: z.object({
+// Schéma conditionnel : ajouter methodId seulement si le ticket n'en a pas
+const createFormSchema = (hasMethodId: boolean) =>
+  z.object({
     label: z.string().min(2, "Libellé trop court"),
-    accountNumber: z.string().optional(),
-    phoneNum: z.string().optional(),
-  }),
-});
+    fromBankId: z.coerce.number().int().positive(),
+    // Ajouter methodId seulement si le ticket n'a pas déjà de methodId
+    ...(hasMethodId ? {} : {
+      methodId: z.number().int().positive("Veuillez sélectionner un moyen de paiement"),
+    }),
+    to: z.object({
+      label: z.string().min(2, "Libellé trop court"),
+      accountNumber: z.string().optional(),
+      phoneNum: z.string().optional(),
+    }),
+  });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   const { user } = useStore();
@@ -77,13 +75,25 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   // Récupérer les types de paiement
   const payTypesQuery = useFetchQuery(["payTypes"], payTypeQ.getAll, 30000);
 
+  // Vérifier si le ticket a déjà un methodId
+  const hasExistingMethodId = useMemo(() => {
+    return !!ticket.methodId;
+  }, [ticket.methodId]);
+
+  // Créer le schéma conditionnel
+  const formSchema = useMemo(() =>
+    createFormSchema(hasExistingMethodId),
+    [hasExistingMethodId]
+  );
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       label: ticket.title,
-      // date: format(new Date(), "yyyy-MM-dd"),
       fromBankId: undefined,
-      to: { label: "" },
+      // Si le ticket n'a pas de methodId, laisser undefined
+      ...(hasExistingMethodId ? {} : { methodId: undefined }),
+      to: { label: "", accountNumber: "", phoneNum: "" },
     },
   });
 
@@ -93,19 +103,30 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     name: "fromBankId"
   });
 
-  // Obtenir le type de paiement du ticket
+  // Observer la valeur de methodId (si présent dans le formulaire)
+  const selectedMethodId = useWatch({
+    control: form.control,
+    name: "methodId" as any
+  });
+
+  // Obtenir le type de paiement du ticket ou du formulaire
   const paymentMethod = useMemo(() => {
-    if (!payTypesQuery.data?.data || !ticket.methodId) {
+    // Priorité : methodId du formulaire (si présent) puis methodId du ticket
+    const methodId = selectedMethodId || ticket.methodId;
+
+    if (!payTypesQuery.data?.data || !methodId) {
       return null;
     }
+
     return payTypesQuery.data.data.find(
-      (payType: PayType) => payType.id === ticket.methodId
+      (payType: PayType) => payType.id === methodId
     );
-  }, [payTypesQuery.data?.data, ticket.methodId]);
+  }, [payTypesQuery.data?.data, ticket.methodId, selectedMethodId]);
 
   // Filtrer les comptes en fonction du type de paiement
   const filteredBanks = useMemo(() => {
     if (!paymentMethod?.type) {
+      // Si pas de méthode de paiement définie, afficher tous les comptes actifs
       return banks.filter(x => x.type !== null && x.Status === true);
     }
 
@@ -137,27 +158,9 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     }
   }, [banks, paymentMethod?.type]);
 
-  // Déterminer les comptes autorisés pour le type de paiement
-  const getAccountTypeLabel = () => {
-    if (!paymentMethod?.type) return "comptes";
-
-    const paymentType = paymentMethod.type.toLowerCase();
-
-    switch (paymentType) {
-      case 'cash':
-        return "caisses et portefeuilles mobiles";
-      case 'ov':
-        return "banques (ordre de virement)";
-      case 'chq':
-        return "banques (chèque)";
-      default:
-        return "comptes actifs";
-    }
-  };
-
-  // Récupérer la configuration de signature correspondant au methodId du ticket
+  // Récupérer la configuration de signature correspondante
   const relevantSignataireConfig = useMemo(() => {
-    if (!getSignataires.data?.data || !selectedBankId || !ticket.methodId) {
+    if (!getSignataires.data?.data || !selectedBankId || !paymentMethod?.id) {
       return null;
     }
 
@@ -165,11 +168,11 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     const config = getSignataires.data.data.find(
       (signataire: Signatair) =>
         signataire.bankId === selectedBankId &&
-        signataire.payTypeId === ticket.methodId
+        signataire.payTypeId === paymentMethod.id
     );
 
     return config || null;
-  }, [getSignataires.data?.data, selectedBankId, ticket.methodId]);
+  }, [getSignataires.data?.data, selectedBankId, paymentMethod?.id]);
 
   // Formater la liste des signataires pour l'affichage
   const signatairesList = useMemo(() => {
@@ -187,7 +190,6 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     switch (mode) {
       case 'ONE':
         return 'Au moins une signature requise';
-      case 'ALL':
       case 'BOTH':
         return 'Toutes les signatures requises';
       default:
@@ -216,7 +218,17 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   });
 
   function onSubmit(values: FormValues) {
-    const { to, fromBankId, ...rest } = values;
+    const { to, fromBankId, methodId, ...rest } = values;
+
+    // Utiliser methodId du formulaire si présent, sinon celui du ticket
+    const finalMethodId = Number(methodId) || ticket.methodId;
+
+    if (!finalMethodId) {
+      toast.error("Veuillez sélectionner un moyen de paiement");
+      return;
+    }
+
+    // Créer l'objet payload
     const payload: TransactionProps = {
       ...rest,
       Type: "DEBIT",
@@ -226,7 +238,10 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       paymentId: ticket.id,
       to,
       fromBankId,
+      // Inclure methodId dans le payload
+      methodId: finalMethodId
     };
+
     pay.mutate(payload);
   }
 
@@ -260,84 +275,69 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                 )}
               />
 
-              {/* <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Date de la transaction"}</FormLabel>
-                    <FormControl>
-                      <div className="relative flex gap-2">
-                        <Input
-                          id={field.name}
-                          value={field.value}
-                          placeholder="Sélectionner une date"
-                          className="bg-background pr-10"
-                          onChange={(e) => {
-                            field.onChange(e.target.value);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "ArrowDown") {
-                              e.preventDefault();
-                              setOpenDate(true);
-                            }
-                          }}
-                        />
-                        <Popover open={openDate} onOpenChange={setOpenDate}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              id="date-picker"
-                              variant="ghost"
-                              className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
-                            >
-                              <CalendarIcon className="size-3.5" />
-                              <span className="sr-only">
-                                {"Sélectionner une date"}
-                              </span>
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            className="w-auto overflow-hidden p-0"
-                            align="end"
-                            alignOffset={-8}
-                            sideOffset={10}
-                          >
-                            <Calendar
-                              mode="single"
-                              selected={
-                                field.value ? new Date(field.value) : undefined
-                              }
-                              captionLayout="dropdown"
-                              onSelect={(date) => {
-                                if (!date) return;
-                                const value = format(date, "yyyy-MM-dd");
-                                field.onChange(value);
-                                setOpenDate(false);
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              /> */}
-
               {/* Information sur la méthode de paiement */}
               <div className="@min-[640px]:col-span-2 p-3 rounded-sm border bg-blue-50/30">
                 <h3 className="font-medium text-sm mb-2">Information de paiement</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <span className="font-medium text-muted-foreground">Méthode :</span>
-                    <p className="font-semibold">{paymentMethod?.label || `Type ${ticket.methodId}`}</p>
-                  </div>
-                  <div>
                     <span className="font-medium text-muted-foreground">Montant :</span>
                     <p className="font-semibold">{ticket.price.toLocaleString()} FCFA</p>
                   </div>
+                  <div>
+                    <span className="font-medium text-muted-foreground">Statut :</span>
+                    <p className="font-semibold capitalize">{ticket.status}</p>
+                  </div>
                 </div>
               </div>
+
+              {/* Champ moyen de paiement UNIQUEMENT si le ticket n'en a pas déjà */}
+              {!hasExistingMethodId && (
+                <FormField
+                  control={form.control}
+                  name="methodId"
+                  render={({ field }) => (
+                    <FormItem className="@min-[640px]:col-span-2">
+                      <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+                      <FormDescription className="text-amber-600">
+                        Ce paiement n'a pas encore de moyen de paiement défini. Veuillez en sélectionner un.
+                      </FormDescription>
+                      <FormControl>
+                        <Select
+                          value={field.value ? String(field.value) : undefined}
+                          onValueChange={(value) => {
+                            field.onChange(Number(value));
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Sélectionner un moyen de paiement" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {payTypesQuery.data?.data?.map((payType) => (
+                              <SelectItem key={payType.id} value={String(payType.id)}>
+                                {payType.label || `Moyen de paiement ${payType.id}`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Afficher la méthode de paiement si elle existe déjà */}
+              {hasExistingMethodId && paymentMethod && (
+                <div className="@min-[640px]:col-span-2 p-3 rounded-sm border bg-green-50/30">
+                  <h3 className="font-medium text-sm mb-1">Moyen de paiement défini</h3>
+                  <p className="font-semibold text-green-700">
+                    {paymentMethod.label || `Type ${ticket.methodId}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Ce paiement a déjà un moyen de paiement configuré. Pour le modifier, veuillez éditer le paiement directement.
+                  </p>
+                </div>
+              )}
 
               <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
                 <h3 className="@min-[640px]:col-span-2">{"Source"}</h3>
@@ -355,7 +355,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                           }}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder={`Sélectionner un compte source`} />
+                            <SelectValue placeholder="Sélectionner un compte source" />
                           </SelectTrigger>
                           <SelectContent>
                             {filteredBanks.map((bank) => (
@@ -376,7 +376,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                       </FormControl>
 
                       {/* Affichage de la configuration de signature correspondante */}
-                      {selectedBankId && relevantSignataireConfig && (
+                      {selectedBankId && paymentMethod && relevantSignataireConfig && (
                         <div className="mt-3 space-y-2 p-3 bg-muted/30 rounded-md">
                           <p className="text-sm font-medium">Configuration de signature :</p>
                           <div className="text-sm">
@@ -397,14 +397,14 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                       )}
 
                       {/* Message si aucune configuration trouvée */}
-                      {selectedBankId && !relevantSignataireConfig && (
+                      {selectedBankId && paymentMethod && !relevantSignataireConfig && (
                         <div className="mt-3 p-3 bg-muted/20 rounded-md border border-muted">
                           <p className="text-sm text-muted-foreground">
                             ⚠️ Aucune configuration de signature trouvée pour la combinaison :
                           </p>
                           <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
                             <li>Compte source : {banks.find(b => b.id === selectedBankId)?.label || `#${selectedBankId}`}</li>
-                            <li>Méthode de paiement : {paymentMethod?.label || `Type ${ticket.methodId}`}</li>
+                            <li>Méthode de paiement : {paymentMethod?.label || `Type ${paymentMethod?.id}`}</li>
                           </ul>
                         </div>
                       )}
@@ -478,7 +478,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
           <Button
             onClick={form.handleSubmit(onSubmit)}
             variant={"primary"}
-            disabled={pay.isPending || filteredBanks.length === 0}
+            disabled={pay.isPending || filteredBanks.length === 0 || (!hasExistingMethodId && !selectedMethodId)}
             isLoading={pay.isPending}
           >
             {"Soumettre"}
