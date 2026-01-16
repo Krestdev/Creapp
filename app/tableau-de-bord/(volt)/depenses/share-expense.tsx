@@ -67,7 +67,6 @@ type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   const { user } = useStore();
   const queryClient = useQueryClient();
-  const [openDate, setOpenDate] = React.useState<boolean>(false);
 
   // Récupérer la liste des signataires
   const getSignataires = useFetchQuery(["SignatairList"], signatairQ.getAll, 30000);
