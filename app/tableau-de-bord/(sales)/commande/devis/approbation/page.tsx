@@ -20,7 +20,7 @@ function Page() {
 
   const providers = useFetchQuery(["providers"], providerQ.getAll);
   /**Commands fetch */
-  const commands = useFetchQuery(["commands"], commandRqstQ.getAll, 30000);
+  const commands = useFetchQuery(["commands"], commandRqstQ.getAll);
 
   if (!isAdmin) {
     return <ErrorPage statusCode={401} />;

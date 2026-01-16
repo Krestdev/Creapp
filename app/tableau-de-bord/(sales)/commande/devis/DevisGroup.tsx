@@ -1,4 +1,6 @@
 "use client";
+import ShowFile from "@/components/base/show-file";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -8,31 +10,14 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { cn, XAF } from "@/lib/utils";
-import { Quotation, QuotationGroup } from "@/types/types";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { QuotationGroup } from "@/types/types";
 import {
-    CheckCircle,
-    DollarSign,
-    LucideBriefcaseBusiness,
-    LucideCalendar,
-    LucideCalendarFold,
     LucideClipboardList,
     LucideFile,
     LucideHash,
-    LucideUserCircle2,
-    LucideUserRound,
-    XCircle,
+    LucideUserRound
 } from "lucide-react";
-import { userQ } from "@/queries/baseModule";
-import { useQuery } from "@tanstack/react-query";
-import { providerQ } from "@/queries/providers";
-import { requestQ } from "@/queries/requestModule";
 import React from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import ShowFile from "@/components/base/show-file";
-import { Badge } from "@/components/ui/badge";
 
 interface DetailModalProps {
     open: boolean;
