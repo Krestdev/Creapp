@@ -461,7 +461,7 @@ function AppSidebar() {
     },
     {
       pageId: "PG-00001",
-      title: "Signer",
+      title: "Signatures",
       href: "/tableau-de-bord/signatures",
       authorized: [],
       icon: SignatureIcon,
