@@ -1,22 +1,44 @@
+"use client"
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import RolesPage from "@/components/utilisateurs/roles";
+import { RoleTable } from "@/components/utilisateurs/roles-table";
+import { userQ } from "@/queries/baseModule";
+import { useQuery } from "@tanstack/react-query";
+import Roles from "./roles";
 
 function Page() {
-  return (
-    <div className="flex flex-col gap-6">
-      {/* page title */}
-      <PageTitle
-        title="Rôles"
-        subtitle="Consultez la liste des rôles."
-        color="red"
-      />
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        <div className="w-full">
-          <RolesPage />
-        </div>
+  const {
+    data: roles,
+    isError,
+    error,
+    isLoading,
+    isSuccess,
+  } = useQuery({
+    queryKey: ["rolesList"],
+    queryFn: () => userQ.getRoles(),
+  });
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+  if (isError) {
+    return <ErrorPage error={error} />;
+  }
+  if (isSuccess) {
+    return (
+      <div className="content">
+        {/* page title */}
+        <PageTitle
+          title="Rôles"
+          subtitle="Consultez la liste des rôles."
+          color="red"
+        />
+        <RoleTable data={roles.data.filter((x) => x.label !== "MANAGER")} />
+        <Roles data={roles.data.filter(x=> x.label !== "MANAGER" )} />
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 export default Page;

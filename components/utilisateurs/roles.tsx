@@ -1,15 +1,12 @@
 "use client";
-import { RoleTable } from "./roles-table";
-import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { useQuery } from "@tanstack/react-query";
+import { RoleTable } from "./roles-table";
 
 const RolesPage = () => {
-  const { isHydrated } = useStore();
   const rolesData = useQuery({
     queryKey: ["rolesList"],
-    queryFn: () => userQ.getRoles(),
-    enabled: isHydrated,
+    queryFn: () => userQ.getRoles()
   });
   if (rolesData.data)
     return (
