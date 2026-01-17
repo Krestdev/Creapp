@@ -1,25 +1,25 @@
 "use client";
 import { useStore } from "@/providers/datastore";
-import { providerQ } from "@/queries/providers";
+import { driverQ } from "@/queries/driver";
 import { useQuery } from "@tanstack/react-query";
-import { ProviderTable } from "./provider-table";
+import { DriverTable } from "./driver-table";
 
-const ProviderListPage = () => {
+const DriverListPage = () => {
   const { isHydrated } = useStore();
-  const providerDate = useQuery({
-    queryKey: ["providersList"],
-    queryFn: () => providerQ.getAll(),
+  const driverDate = useQuery({
+    queryKey: ["drivers"],
+    queryFn: () => driverQ.getAll(),
     enabled: isHydrated,
   });
 
-  if (providerDate.data)
+  if (!driverDate.isLoading && driverDate.data)
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
-          <ProviderTable data={providerDate.data.data} />
+          <DriverTable data={driverDate.data.data} />
         </div>
       </div>
     );
 };
 
-export default ProviderListPage;
+export default DriverListPage;

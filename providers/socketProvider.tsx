@@ -404,6 +404,31 @@ export default function SocketProvider({
       });
     });
 
+    /**
+     * driver
+     */
+
+    socket.on("driver:new", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["drivers"],
+        refetchType: "active",
+      });
+    });
+
+    socket.on("driver:update", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["drivers"],
+        refetchType: "active",
+      });
+    });
+
+    socket.on("driver:delete", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["drivers"],
+        refetchType: "active",
+      });
+    });
+
     return () => {
       socket.off("notification:new");
       socket.off("payment:new");
@@ -442,6 +467,9 @@ export default function SocketProvider({
       socket.off("bank:new");
       socket.off("bank:update");
       socket.off("bank:delete");
+      socket.off("driver:new");
+      socket.off("driver:update");
+      socket.off("driver:delete");
     };
   }, [queryClient]);
 

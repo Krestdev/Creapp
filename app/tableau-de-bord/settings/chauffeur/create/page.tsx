@@ -1,15 +1,15 @@
-import CreateProviderForm from "@/components/provider/create-provider";
+import CreateDriverForm from "@/components/driver/create-driver";
 import PageTitle from "@/components/pageTitle";
 
 const Page = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
-        title="Créer un fournisseur"
-        subtitle="Formulaire de création d'un fournisseur"
+        title="Créer un Chauffer"
+        subtitle="Formulaire de création d'un Chauffer"
         color="blue"
       />
-      <CreateProviderForm />
+      <CreateDriverForm />
     </div>
   );
 };

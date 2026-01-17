@@ -50,33 +50,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Provider } from "@/types/types";
-import { Pagination } from "../base/pagination";
-import { Badge } from "../ui/badge";
-import UpdateProvider from "./UpdateProvider";
-import { ShowProvider } from "./show-provider";
-import { providerQ } from "@/queries/providers";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { driverQ } from "@/queries/driver";
+import { Driver } from "@/types/types";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
+import { Badge } from "../ui/badge";
+import { ShowDriver } from "./show-driver";
+import UpdateDriver from "./updateDriver";
 
-interface ProvidersTableProps {
-  data: Provider[];
+interface DriversTableProps {
+  data: Driver[];
 }
 
-export function ProviderTable({ data }: ProvidersTableProps) {
+export function DriverTable({ data }: DriversTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "createdAt", desc: true },
+    { id: "firstName", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  const [selectedItem, setSelectedItem] = React.useState<Provider | null>(null);
+  const [selectedItem, setSelectedItem] = React.useState<Driver | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [openUpdate, setOpenUpdate] = React.useState(false);
   const [openWarning, SetOpenWarning] = React.useState(false);
@@ -84,49 +84,26 @@ export function ProviderTable({ data }: ProvidersTableProps) {
   // États pour les filtres
   const [regimeFilter, setRegimeFilter] = React.useState<string>("all");
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
-  const queryClient = useQueryClient();
 
-  const providerMutation = useMutation({
-    mutationKey: ["providerUpdate"],
-    mutationFn: (id: number) => providerQ.delete(id),
+  const driverMutation = useMutation({
+    mutationKey: ["driverDelete"],
+    mutationFn: (id: number) => driverQ.delete(id),
     onSuccess: () => {
       toast.success("Fournisseur supprimé avec succès !");
-      // queryClient.invalidateQueries({ queryKey: ["providersList"] });
     },
   });
 
-  // Extraire les régimes uniques des fournisseurs
-  const uniqueRegimes = React.useMemo(() => {
-    const regimes = data
-      .map((provider) => provider.regem)
-      .filter(
-        (regime): regime is string =>
-          regime !== undefined && regime !== null && regime.trim() !== ""
-      );
-
-    // Supprimer les doublons et trier par ordre alphabétique
-    return [...new Set(regimes)].sort();
-  }, [data]);
-
   // Fonction pour vérifier les informations du fournisseur
-  const checkProviderInfo = (provider: Provider): "complet" | "incomplet" => {
+  const checkDriverInfo = (driver: Driver): "complet" | "incomplet" => {
     const allFields = [
-      provider.name,
-      provider.email,
-      provider.address,
-      provider.phone,
-      provider.regem,
-      provider.RCCM,
-      provider.NIU,
-      provider.carte_contribuable,
-      provider.acf,
-      provider.plan_localisation,
-      provider.commerce_registre,
-      provider.banck_attestation,
+      driver.firstName,
+      driver.lastName,
+      driver.idCard,
+      driver.licence,
     ];
 
     return allFields.every(
-      (field) => typeof field === "string" && field.trim() !== ""
+      (field) => typeof field === "string" && field.trim() !== "",
     )
       ? "complet"
       : "incomplet";
@@ -138,10 +115,10 @@ export function ProviderTable({ data }: ProvidersTableProps) {
 
     // Filtre par recherche globale
     if (globalFilter) {
-      filtered = filtered.filter((provider) => {
-        const searchableFields = ["name", "email", "phone", "address", "regem"];
+      filtered = filtered.filter((driver) => {
+        const searchableFields = ["firstName", "lastName"];
         return searchableFields.some((field) => {
-          const value = provider[field as keyof Provider];
+          const value = driver[field as keyof Driver];
           return value
             ?.toString()
             .toLowerCase()
@@ -150,15 +127,10 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       });
     }
 
-    // Filtre par régime
-    if (regimeFilter !== "all") {
-      filtered = filtered.filter((provider) => provider.regem === regimeFilter);
-    }
-
     // Filtre par statut (complet/incomplet)
     if (statusFilter !== "all") {
-      filtered = filtered.filter((provider) => {
-        const status = checkProviderInfo(provider);
+      filtered = filtered.filter((driver) => {
+        const status = checkDriverInfo(driver);
         return status === statusFilter;
       });
     }
@@ -168,21 +140,17 @@ export function ProviderTable({ data }: ProvidersTableProps) {
 
   const translateColumns = (columnId: string) => {
     const translations: { [key: string]: string } = {
-      name: "Nom (Entreprise)",
-      address: "Adresse",
-      phone: "Téléphone",
-      email: "Email",
-      regem: "Régime",
+      firstName: "Nom ",
+      lastName: "Prenom",
       completionStatus: "Statut",
-      actions: "Actions",
     };
     return translations[columnId] || columnId;
   };
 
-  const columns = React.useMemo<ColumnDef<Provider>[]>(
+  const columns = React.useMemo<ColumnDef<Driver>[]>(
     () => [
       {
-        accessorKey: "name",
+        accessorKey: "firstName",
         header: ({ column }) => {
           return (
             <span
@@ -191,17 +159,19 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Nom (Entreprise)
+              Nom
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
         },
         cell: ({ row }) => (
-          <div className="font-medium uppercase">{row.getValue("name")}</div>
+          <div className="font-medium uppercase">
+            {row.getValue("firstName")}
+          </div>
         ),
       },
       {
-        accessorKey: "regem",
+        accessorKey: "lastName",
         header: ({ column }) => {
           return (
             <span
@@ -210,82 +180,23 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Régime
+              Pre Nom
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
         },
         cell: ({ row }) => {
-          const regime = row.getValue("regem") as string;
+          const lname = row.original.lastName;
           return (
             <div className="font-medium">
-              {regime || (
-                <span className="text-muted-foreground">Non spécifié</span>
-              )}
+              {lname || <span className="text-muted-foreground">{lname}</span>}
             </div>
           );
         },
       },
       {
-        accessorKey: "address",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Addresse
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("address")}</div>
-        ),
-      },
-      {
-        accessorKey: "phone",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Téléphone
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("phone")}</div>
-        ),
-      },
-      {
-        accessorKey: "email",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Email
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("email")}</div>
-        ),
-      },
-      {
         id: "completionStatus",
-        accessorFn: (row) => checkProviderInfo(row),
+        accessorFn: (row) => checkDriverInfo(row),
         header: ({ column }) => {
           return (
             <span
@@ -300,7 +211,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
           );
         },
         cell: ({ row }) => {
-          const status = checkProviderInfo(row.original);
+          const status = checkDriverInfo(row.original);
           return (
             <div className="font-medium">
               <Badge variant={status === "complet" ? "success" : "amber"}>
@@ -320,7 +231,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         header: "Actions",
         enableHiding: false,
         cell: ({ row }) => {
-          const provider = row.original;
+          const driver = row.original;
 
           return (
             <DropdownMenu>
@@ -334,7 +245,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuItem
                   onClick={() => {
-                    setSelectedItem(provider);
+                    setSelectedItem(driver);
                     setOpenUpdate(true);
                   }}
                 >
@@ -344,7 +255,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
-                    setSelectedItem(provider);
+                    setSelectedItem(driver);
                     setIsUpdateModalOpen(true);
                   }}
                 >
@@ -353,7 +264,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
-                    setSelectedItem(provider);
+                    setSelectedItem(driver);
                     SetOpenWarning(true);
                   }}
                   className="text-destructive"
@@ -367,7 +278,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         },
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -421,21 +332,6 @@ export function ProviderTable({ data }: ProvidersTableProps) {
             className="pl-8 w-[250px]"
           />
         </div>
-
-        {/* Filtre par régime */}
-        <Select value={regimeFilter} onValueChange={setRegimeFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Tous les régimes" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{"Tous les régimes"}</SelectItem>
-            {uniqueRegimes.map((regime) => (
-              <SelectItem key={regime} value={regime}>
-                {regime}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
 
         {/* Filtre par statut */}
         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -509,7 +405,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -531,7 +427,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -552,12 +448,12 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       </div>
 
       <Pagination table={table} />
-      <UpdateProvider
+      <UpdateDriver
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
-        providerData={selectedItem}
+        driverData={selectedItem}
       />
-      <ShowProvider
+      <ShowDriver
         open={openUpdate}
         onOpenChange={setOpenUpdate}
         data={selectedItem}
@@ -565,11 +461,11 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       <ModalWarning
         variant="error"
         title="Supprimer"
-        name={selectedItem?.name}
+        name={selectedItem?.firstName}
         description="êtes-vous sur de vouloir supprimer ce fournisseur ?"
         open={openWarning}
         onOpenChange={SetOpenWarning}
-        onAction={() => providerMutation.mutate(selectedItem?.id!)}
+        onAction={() => driverMutation.mutate(selectedItem?.id!)}
         actionText="Supprimer"
       />
     </div>
