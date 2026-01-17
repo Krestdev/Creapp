@@ -26,6 +26,7 @@ import { User as UserT } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 /* =========================
    SCHEMA ZOD
@@ -50,6 +51,8 @@ const formSchema = z
     }
   );
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface UpdateRequestProps {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -63,9 +66,8 @@ export default function UpdatePassword({
   userData,
   onSuccess,
 }: UpdateRequestProps) {
-  const queryClient = useQueryClient();
-
-  const form = useForm<z.infer<typeof formSchema>>({
+  const router = useRouter();
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       password: "",
@@ -73,52 +75,23 @@ export default function UpdatePassword({
     },
   });
 
-  /* =========================
-       INIT FORM
-    ========================= */
-  useEffect(() => {
-    if (userData && open) {
-      form.reset({
-        password: "",
-        confirmPassword: "",
-      });
-    }
-  }, [userData, open, form]);
-
-  /* =========================
-       MUTATION
-    ========================= */
-
-  const userMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<UserT> }) =>
-      userQ.update(id, data),
-
-    onSuccess: () => {
-      toast.success("Utilisateur modifié avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["usersList"],
-        refetchType: "active",
-      });
+  const update = useMutation({
+    mutationFn: async (password: string) =>
+      userQ.changePassword(userData?.id ?? 0, password),
+    onSuccess: (data) => {
+      toast.success(
+        `Vous avez modifié le mot de passe de ${userData?.firstName} ${userData?.lastName} avec succès !`
+      );
       setOpen(false);
       onSuccess?.();
     },
-
-    onError: () => {
-      toast.error("Erreur lors de la modification");
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 
-  /* =========================
-       SUBMIT
-    ========================= */
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!userData?.id) return;
-
-    const payload = {
-      password: values.password,
-    };
-
-    userMutation.mutate({ id: userData.id, data: payload });
+  function onSubmit(values: FormValues) {
+    update.mutate(values.password);
   }
 
   /* =========================
@@ -126,7 +99,7 @@ export default function UpdatePassword({
     ========================= */
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[440px] p-0 flex flex-col">
+      <DialogContent className="sm:max-w-[540px]! p-0 flex flex-col">
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg">
           <DialogTitle className="text-xl font-semibold">
             {userData?.firstName + " " + userData?.lastName}
@@ -137,55 +110,50 @@ export default function UpdatePassword({
             }
           </p>
         </DialogHeader>
+        <div className="px-6 pb-6">
 
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="w-full flex flex-col gap-4 px-6"
-          >
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nouveau mot de passe</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="******" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirmer le mot de passe</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="******" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-
-          <div className="flex justify-end gap-3 p-6 pt-0">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Annuler
-            </Button>
-            <Button
-              variant={"primary"}
-              onClick={form.handleSubmit(onSubmit)}
-              type="submit"
-              disabled={userMutation.isPending}
-            >
-              {userMutation.isPending ? "Enregistrement..." : "Modifier"}
-            </Button>
-          </div>
-        </Form>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="@min-[640px]:col-span-2">
+                    <FormLabel isRequired>{"Mot de passe"}</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="password" placeholder="******" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem className="@min-[640px]:col-span-2">
+                    <FormLabel isRequired>
+                      {"Confirmer votre mot de passe"}
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} type="password" placeholder="******" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="@min-[640px]:col-span-2 w-full inline-flex justify-end">
+                <Button
+                  variant={"primary"}
+                  disabled={update.isPending}
+                  isLoading={update.isPending}
+                >
+                  {"Enregistrer les modifications"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

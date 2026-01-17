@@ -1,4 +1,4 @@
-import { useQuery } from "@/hooks/useData";
+import { useQuery } from "@tanstack/react-query";
 import { payTypeQ } from "@/queries/payType";
 import { PaymentRequest } from "@/types/types";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
