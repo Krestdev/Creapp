@@ -273,8 +273,10 @@ export type ResponseT<T> = {
   data: T;
 };
 
+export type storedUser = Omit<User, "password">;
+
 export type LoginResponse = {
-  user: User;
+  user: storedUser;
   token: string;
 };
 

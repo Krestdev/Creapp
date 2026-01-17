@@ -52,7 +52,7 @@ api.interceptors.request.use(
   (config) => {
     const token =
       typeof window !== "undefined"
-        ? JSON.parse(sessionStorage.getItem("creapp") || "{}")?.state?.token
+        ? JSON.parse(localStorage.getItem("creapp-store") || "{}")?.state?.token
         : null;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -77,8 +77,8 @@ api.interceptors.response.use(
       case 401:
         // Rediriger vers login si token expiré
         if (typeof window !== "undefined") {
-          sessionStorage.removeItem("creapp");
-          window.location.href = "/login";
+          localStorage.removeItem("creapp-store");
+          window.location.href = "/connexion";
         }
         toast.error("Session expirée. Veuillez vous reconnecter.");
         break;
@@ -111,7 +111,7 @@ api.interceptors.response.use(
         toast.error(errorMessage);
     }
 
-    // Vous pouvez aussi logger les erreurs
+   /*  // Vous pouvez aussi logger les erreurs
     if (process.env.NODE_ENV === "development") {
       console.error("API Error:", {
         url: error.config?.url,
@@ -119,7 +119,7 @@ api.interceptors.response.use(
         status: error.response?.status,
         message: errorMessage,
       });
-    }
+    } */
 
     return Promise.reject(new Error(errorMessage));
   }

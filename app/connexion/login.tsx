@@ -47,7 +47,7 @@ function Login() {
         httpOnly: true,
       });
       console.log("User roles set in cookies:", res.cookies.get("userRole"));
-      login(data.data.user);
+      login(data.data);
       router.push("/tableau-de-bord");
     },
     onError: (error: any) => {
