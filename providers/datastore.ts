@@ -1,13 +1,14 @@
 // Je vais ecrire le store en utilisant zustand avec persistance en sessionStorage
-import { User } from "@/types/types";
+import { storedUser, User } from "@/types/types";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 interface Store {
-  user?: User;
+  user?: storedUser;
   isHydrated: boolean;
+  token?: string;
   setIsHydrated: (v: boolean) => void;
-  login: (data: User) => void;
+  login: ({user, token}: {user:storedUser, token:string}) => void;
   logout: () => void;
 }
 
@@ -16,8 +17,9 @@ export const useStore = create<Store>()(
     (set) => ({
       user: undefined,
       isHydrated: false,
+      token: undefined,
       setIsHydrated: (v: boolean) => set({ isHydrated: v }),
-      login: (data: User) => set({ user: data }),
+      login: ({user, token}) => set({ user: user, token:token }),
       logout: () => set({ user: undefined }),
     }),
     {

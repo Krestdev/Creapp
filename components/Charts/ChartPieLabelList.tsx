@@ -16,11 +16,11 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { useQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { projectQ } from "@/queries/projectModule";
 import { purchaseQ } from "@/queries/purchase-order";
 import { PaymentRequest } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 
 interface ChartPieLabelListProps {
   data?: PaymentRequest[];
@@ -64,13 +64,15 @@ export function ChartPieLabelList({
   chartType,
   title = "Répartition des dépenses",
 }: ChartPieLabelListProps) {
-  const { data: projectData } = useQuery(
-    ["projectsList"],
-    projectQ.getAll,
-    30000
-  );
+  const { data: projectData } = useQuery({
+    queryKey:["projectsList"],
+    queryFn:projectQ.getAll,
+  });
 
-  const { data: commandData } = useQuery({queryKey:["purchaseOrders"], purchaseQ.getAll);
+  const { data: commandData } = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
 
   // les commandes (liste des IDs)
   const commandIds = data.flatMap((x) => x.commandId);
