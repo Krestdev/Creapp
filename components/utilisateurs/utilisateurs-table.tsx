@@ -849,6 +849,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             onOpenChange={setIsDeleteModalOpen}
             title="Supprimer l'utilisateur"
             description="Êtes-vous sûr de vouloir supprimer cet utilisateur ?"
+            message="Supprimer cet utilisateur entrainera la perte de ses roles dans le processus de l'application. Cette action est irréversible."
             variant="error"
             onAction={() => userMutation.mutate(selectedItem?.id ?? -1)}
           />
