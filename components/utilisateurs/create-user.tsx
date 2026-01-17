@@ -9,7 +9,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import { userQ } from "@/queries/baseModule";
 import { ResponseT, Role, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,10 +62,10 @@ export default function CreateUserForm() {
   const registerAPI = useMutation({
     mutationKey: ["registerNewUser"],
     mutationFn: (
-      data: Omit<User, "status" | "lastConnection" | "role" | "members" | "id">
+      data: Omit<User, "status" | "lastConnection" | "role" | "members" | "id">&{role:Array<number>}
     ) => userQ.create(data),
-    onSuccess: (data: ResponseT<User>) => {
-      toast.success("Utilisateur créé avec succès.");
+    onSuccess: (data) => {
+      toast.success(`Utilisateur ${data.data.firstName} créé avec succès`);
       form.reset({
         firstName: "",
         lastName: "",
@@ -83,14 +82,8 @@ export default function CreateUserForm() {
         refetchType: "active",
       });
     },
-    onError: (error: unknown) => {
-      if ((error as Error).message === "Email already in use") {
-        toast.error("Cette adresse mail est déjà utilisée");
-      } else {
-        toast.error(
-          "Une erreur est survenue lors de la creation de l'utilisateur."
-        );
-      }
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 
@@ -106,8 +99,9 @@ export default function CreateUserForm() {
     })) || [];
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      const data = {
+    let data:Omit<User, "status" | "lastConnection" | "role" | "members" | "id">&{role:Array<number>};
+    if(!!values.role){
+      data = {
         firstName: values.firstName ?? "",
         lastName: values.lastName,
         email: values.email,
@@ -116,11 +110,18 @@ export default function CreateUserForm() {
         role: values.role,
         post: values.poste,
       };
-      registerAPI.mutate(data);
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+    } else {
+      data = {
+        firstName: values.firstName ?? "",
+        lastName: values.lastName,
+        email: values.email,
+        password: values.password,
+        phone: values.phone,
+        role: [],
+        post: values.poste,
+      };
     }
+      registerAPI.mutate(data);
   }
 
   return (
@@ -197,7 +198,7 @@ export default function CreateUserForm() {
             <FormItem>
               <FormLabel>{"Mot de passe"}</FormLabel>
               <FormControl className="w-full">
-                <PasswordInput placeholder="Entrer Mot de passe" {...field} />
+                <Input type="password" placeholder="Entrer Mot de passe" {...field} />
               </FormControl>
 
               <FormMessage />
@@ -212,7 +213,7 @@ export default function CreateUserForm() {
             <FormItem>
               <FormLabel>{"Confirmer le mot de passe"}</FormLabel>
               <FormControl className="w-full">
-                <PasswordInput
+                <Input type="password"
                   placeholder="Confirmer le mot de passe"
                   {...field}
                 />
@@ -245,7 +246,7 @@ export default function CreateUserForm() {
           <FormLabel>{"Rôles *"}</FormLabel>
           <MultiSelectRole
             display="Role"
-            roles={ROLES.filter((r) => r.label !== "MANAGER")}
+            roles={ROLES.filter((r) => r.label !== "MANAGER" && r.label !== "USER")}
             selected={selectedRole}
             onChange={(selected) => {
               setSelectedRole(selected);
