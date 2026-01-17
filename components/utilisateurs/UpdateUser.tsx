@@ -176,8 +176,8 @@ export default function UpdateUser({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[840px] p-0 flex flex-col">
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg">
-          <DialogTitle className="text-xl font-semibold">
-            {userData?.firstName + " " + userData?.lastName}
+          <DialogTitle className="text-xl font-semibold uppercase">
+            {"Utilisateur - " + userData?.firstName + " " + userData?.lastName}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Modifier l'utilisateur en indiquant les nouvelles informations."}
@@ -242,6 +242,7 @@ export default function UpdateUser({
                       type="email"
                       {...field}
                       placeholder="Adresse email"
+                      disabled
                     />
                   </FormControl>
                   <FormMessage />

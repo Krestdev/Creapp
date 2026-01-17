@@ -60,7 +60,7 @@ import {
 } from "@/components/ui/table";
 import { userQ } from "@/queries/baseModule";
 import { Role, User as UserT } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import UpdateUser from "./UpdateUser";
@@ -70,6 +70,7 @@ import { useStore } from "@/providers/datastore";
 import { ModalWarning } from "../modals/modal-warning";
 import { format } from "date-fns";
 import UpdatePassword from "./updatePassword";
+import { signatairQ } from "@/queries/signatair";
 
 interface UtilisateursTableProps {
   data: UserT[];
@@ -93,7 +94,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     React.useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
-  const [verifiedFilter, setVerifiedFilter] = React.useState<string>("all");
+
+  const signataireData = useQuery({
+    queryKey: ["signatairs"],
+    queryFn: () => signatairQ.getAll(),
+  });
 
   // Récupérer les rôles uniques des utilisateurs pour les options du filtre
   const uniqueRoles = React.useMemo(() => {
@@ -181,6 +186,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
   const { user } = useStore();
   const queryClient = useQueryClient();
+
 
   const userMutationData = useMutation({
     mutationKey: ["usersStatus"],
@@ -333,7 +339,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Etat"}
+              {"Vérification"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -352,10 +358,16 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           );
         },
         filterFn: (row, columnId, filterValue) => {
-          if (!filterValue || filterValue === "all") return true;
-          if (filterValue === "true") return row.getValue(columnId) === true;
-          if (filterValue === "false") return row.getValue(columnId) === false;
-          return true;
+          if (filterValue === undefined || filterValue === "" || filterValue === "all") {
+            return true;
+          }
+
+          // Convertir la valeur de filtre en booléen
+          const filterBool = typeof filterValue === "string"
+            ? filterValue === "true"
+            : Boolean(filterValue);
+
+          return row.getValue(columnId) === filterBool;
         },
       },
       {
@@ -368,13 +380,13 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Statut
+              Statut compte
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
         },
         cell: ({ row }) => {
-          const status = row.getValue("status");
+          const status = row.getValue("status") as string;
           return (
             <Badge
               variant={status === "active" ? "success" : "destructive"}
@@ -386,9 +398,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue || filterValue === "all") return true;
-          if (filterValue === "true") return row.getValue(columnId) === true;
-          if (filterValue === "false") return row.getValue(columnId) === false;
-          return true;
+          return row.getValue(columnId) === filterValue;
         },
       },
       {
@@ -453,6 +463,12 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         cell: ({ row }) => {
           const utilisateur = row.original;
 
+          const isSignataire = signataireData.data?.data
+            ?.flatMap(x => x.user)
+            .some(u => u?.id === utilisateur.id);
+
+          // si l'utilisateur est signataire, on ne peut pas le supprimer ou suspendre
+
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -506,12 +522,16 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
-                    onClick={() =>
+                    onClick={() => {
+                      if (isSignataire) {
+                        toast.error("Vous ne pouvez pas suspendre un signataire.");
+                        return;
+                      }
                       userMutationData.mutate({
                         id: utilisateur.id ?? -1,
                         status: "inactive",
                       })
-                    }
+                    }}
                     disabled={
                       utilisateur.status === "inactive" ||
                       utilisateur.id === user?.id
@@ -524,6 +544,10 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 <DropdownMenuItem
                   className="text-red-600"
                   onClick={() => {
+                    if (isSignataire) {
+                      toast.error("Vous ne pouvez pas supprimer un signataire.");
+                      return;
+                    }
                     setSelectedItem(utilisateur);
                     setIsDeleteModalOpen(true);
                   }}
@@ -584,8 +608,31 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     },
   });
 
-  const roleFilter =
-    (table.getColumn("role")?.getFilterValue() as string) ?? "all";
+  // Récupérer la valeur du filtre de statut
+  const statusFilter =
+    (table.getColumn("status")?.getFilterValue() as string) ?? "all";
+
+  // Récupérer la valeur du filtre de vérification
+  const verifiedFilterValue = table.getColumn("verified")?.getFilterValue();
+
+  // Déterminer la valeur pour le Select
+  const verifiedSelectValue = React.useMemo(() => {
+    if (verifiedFilterValue === undefined || verifiedFilterValue === "" || verifiedFilterValue === "all") {
+      return "all";
+    }
+
+    // Si c'est un booléen, convertir en string
+    if (typeof verifiedFilterValue === "boolean") {
+      return verifiedFilterValue ? "true" : "false";
+    }
+
+    // Si c'est une string, vérifier son contenu
+    if (typeof verifiedFilterValue === "string") {
+      return verifiedFilterValue === "true" ? "true" : "false";
+    }
+
+    return "all";
+  }, [verifiedFilterValue]);
 
   // Gestion des succès
   const handleUpdateSuccess = () => {
@@ -610,7 +657,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           />
         </div>
         <Select
-          value={roleFilter}
+          value={(table.getColumn("role")?.getFilterValue() as string) ?? "all"}
           onValueChange={(value) =>
             table
               .getColumn("role")
@@ -630,21 +677,38 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           </SelectContent>
         </Select>
         <Select
-          value={verifiedFilter}
+          value={statusFilter}
+          onValueChange={(value) =>
+            table
+              .getColumn("status")
+              ?.setFilterValue(value === "all" ? "" : value)
+          }
+        >
+          <SelectTrigger className="w-full md:w-[180px]">
+            <SelectValue placeholder="Statut compte" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="active">Actif</SelectItem>
+            <SelectItem value="inactive">Suspendu</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={verifiedSelectValue}
           onValueChange={(value) => {
-            setVerifiedFilter(value);
             if (value === "all") {
               table.getColumn("verified")?.setFilterValue(undefined);
             } else {
+              // Toujours passer un booléen au filtre
               table.getColumn("verified")?.setFilterValue(value === "true");
             }
           }}
         >
           <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Filtrer par vérification" />
+            <SelectValue placeholder="Vérification email" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="all">Tous les états</SelectItem>
             <SelectItem value="true">Vérifié</SelectItem>
             <SelectItem value="false">Non vérifié</SelectItem>
           </SelectContent>
@@ -664,7 +728,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 if (column.id === "fullName") text = "Nom & Prénom";
                 else if (column.id === "email") text = "Email";
                 else if (column.id === "role") text = "Rôles";
-                else if (column.id === "verified") text = "Statut";
+                else if (column.id === "verified") text = "Vérification";
+                else if (column.id === "status") text = "Statut compte";
                 else if (column.id === "createdAt") text = "Date d'ajout";
                 else if (column.id === "lastConnection")
                   text = "Dernière connexion";
