@@ -43,8 +43,8 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
       <DialogContent className="sm:max-w-[760px] w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header with burgundy background */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {`Fournisseur ${data?.name}`}
+          <DialogTitle className="text-xl font-semibold text-white uppercase">
+            {`Fournisseur - ${data?.name}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {title !== "" ? title : "Informations relatives au fournisseur"}

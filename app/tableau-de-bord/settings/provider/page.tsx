@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Créer un fournisseur",
-      href: "./utilisateurs/create",
+      title: "Ajouter un fournisseur",
+      href: "./provider/create",
       hide: false,
       disabled: false,
     },
