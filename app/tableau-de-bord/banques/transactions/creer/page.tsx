@@ -3,10 +3,10 @@ import PageTitle from "@/components/pageTitle";
 import React from "react";
 import TransactionForm from "./transaction-form";
 import { bankQ } from "@/queries/bank";
-import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "@/components/loading-page";
 import ErrorPage from "@/components/error-page";
 import { useStore } from "@/providers/datastore";
+import { useQuery } from "@tanstack/react-query";
 
 function Page() {
   const { user } = useStore();
@@ -16,7 +16,7 @@ function Page() {
     error,
     isLoading,
     isSuccess,
-  } = useFetchQuery(["banks"], bankQ.getAll, 20000);
+  } = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
   if (isLoading) {
     return <LoadingPage />;
   }

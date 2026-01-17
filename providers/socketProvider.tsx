@@ -27,17 +27,6 @@ export default function SocketProvider({
     // 🔥 GLOBAL INVALIDATION
 
     /**
-     * Notifications
-     */
-
-    // socket.on("notification:new", ({ userId }: { userId: number }) => {
-    //   queryClient.invalidateQueries({
-    //     queryKey: ["notifications", userId],
-    //     refetchType: "active",
-    //   });
-    // });
-
-    /**
      * Payments
      */
 
@@ -201,6 +190,7 @@ export default function SocketProvider({
     });
 
     socket.on("purchaseOrder:update", () => {
+      console.log("Purchasing");
       queryClient.invalidateQueries({
         queryKey: ["purchaseOrders"],
         refetchType: "active",
@@ -443,6 +433,15 @@ export default function SocketProvider({
       socket.off("reception:new");
       socket.off("reception:update");
       socket.off("reception:delete");
+      socket.off("category:new");
+      socket.off("category:update");
+      socket.off("category:delete");
+      socket.off("project:new");
+      socket.off("project:update");
+      socket.off("project:delete");
+      socket.off("bank:new");
+      socket.off("bank:update");
+      socket.off("bank:delete");
     };
   }, [queryClient]);
 

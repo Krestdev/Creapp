@@ -25,7 +25,6 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useFetchQuery } from "@/hooks/useData";
 import { totalAmountPurchase, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
@@ -34,7 +33,7 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande, PAYMENT_METHOD, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -88,7 +87,10 @@ function CreatePaiement({ purchases }: Props) {
   const today = new Date(); //On part sur 3 jours de delai de base :)
   today.setDate(today.getDate() + 3);
 
-  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll);
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -197,12 +199,10 @@ function CreatePaiement({ purchases }: Props) {
     }
   }, [commandId]);
 
-  const getPayments = useFetchQuery(["payments"], paymentQ.getAll, 15000);
-  const getPurchases = useFetchQuery(
-    ["purchaseOrders"],
-    purchaseQ.getAll,
-    15000
-  );
+  const getPayments = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
 
   const payments = getPayments.data?.data;
 

@@ -1,15 +1,15 @@
 "use client";
-import { useFetchQuery } from "@/hooks/useData";
 import { categoryQ } from "@/queries/categoryModule";
 import ErrorPage from "../error-page";
 import LoadingPage from "../loading-page";
 import { CategoriesTable } from "./categories-table";
+import { useQuery } from "@tanstack/react-query";
 
 const CategoriesPage = () => {
-  const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
-    ["categoryList"],
-    categoryQ.getCategories
-  );
+  const { isSuccess, isError, error, isLoading, data } = useQuery({
+    queryKey: ["categoryList"],
+    queryFn: categoryQ.getCategories,
+  });
 
   if (isLoading) {
     return <LoadingPage />;

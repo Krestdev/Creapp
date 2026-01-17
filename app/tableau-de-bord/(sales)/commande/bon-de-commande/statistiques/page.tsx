@@ -9,17 +9,17 @@ import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
+import { payTypeQ } from "@/queries/payType";
 import { purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
+import PaymentMethodChart from "./payment-method-chart";
 import AreaPurchaseChart from "./purchase-period";
 import PieProviderPurchase from "./purchase-pie-provider";
 import StatusChart from "./status-chart";
-import PaymentMethodChart from "./payment-method-chart";
-import { payTypeQ } from "@/queries/payType";
 
 function Page() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -27,12 +27,15 @@ function Page() {
     to: undefined,
   });
 
-  const { isSuccess, isError, error, isLoading, data } = useFetchQuery(
-    ["purchaseOrders"],
-    purchaseQ.getAll
-  );
+  const { isSuccess, isError, error, isLoading, data } = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
 
-  const methods = useFetchQuery(["paymentType"], payTypeQ.getAll);
+  const methods = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   const filteredData: Array<BonsCommande> = useMemo(() => {
     const list = data?.data ?? [];
@@ -145,7 +148,10 @@ function Page() {
             <div className="flex flex-col gap-1">
               <h3>{"Bons de commande par methode de paiement"}</h3>
             </div>
-            <PaymentMethodChart purchases={filteredData} methods={methods.data.data} />
+            <PaymentMethodChart
+              purchases={filteredData}
+              methods={methods.data.data}
+            />
           </div>
           <div className="p-6 rounded-md border w-full h-full flex flex-col gap-4">
             <div className="flex flex-col gap-1">

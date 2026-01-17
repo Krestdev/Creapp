@@ -6,25 +6,23 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import Tickets from "@/components/ticket/tickets";
-import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
 import { requestTypeQ } from "@/queries/requestType";
+import { useQuery } from "@tanstack/react-query";
 
 function Page() {
   const { user } = useStore();
 
-  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
-    ["payments"],
-    paymentQ.getAll,
-    30000
-  );
+  const { data, isSuccess, isError, error, isLoading } = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
 
-  const getRequestType = useFetchQuery(
-    ["requestType"],
-    requestTypeQ.getAll,
-    30000
-  );
+  const getRequestType = useQuery({
+    queryKey: ["requestType"],
+    queryFn: requestTypeQ.getAll,
+  });
 
   if (isLoading || getRequestType.isLoading) {
     return <LoadingPage />;
@@ -34,7 +32,10 @@ function Page() {
   }
   if (isSuccess && getRequestType.isSuccess) {
     const ticketsData = data?.data.filter(
-      (ticket) => ticket.status !== "ghost" && ticket.status !== "pending" && ticket.status !== "rejected"
+      (ticket) =>
+        ticket.status !== "ghost" &&
+        ticket.status !== "pending" &&
+        ticket.status !== "rejected"
     );
     const pending = ticketsData.filter((ticket) => ticket.status === "pending");
     const approved = ticketsData.filter(

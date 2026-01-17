@@ -41,7 +41,6 @@ import {
 } from "../ui/form";
 import ViewDepense from "./viewDepense";
 import { payTypeQ } from "@/queries/payType";
-import { useFetchQuery } from "@/hooks/useData";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -104,7 +103,10 @@ export function CarburentForm() {
   const paymentsData = useMutation({
     mutationKey: ["payments-Depense"],
     mutationFn: async (
-      data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "transactionId" | "bankId"> & {
+      data: Omit<
+        PaymentRequest,
+        "id" | "createdAt" | "updatedAt" | "transactionId" | "bankId"
+      > & {
         vehiclesId: number;
       } & {
         caisseId: number;
@@ -141,10 +143,21 @@ export function CarburentForm() {
     queryFn: bankQ.getAll,
   });
 
-  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
-    const payment: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "vehiclesId" | "bankId" | "transactionId"> = {
+    const payment: Omit<
+      PaymentRequest,
+      | "id"
+      | "createdAt"
+      | "updatedAt"
+      | "vehiclesId"
+      | "bankId"
+      | "transactionId"
+    > = {
       title: data.title,
       km: data.km,
       liters: data.liters,
@@ -154,7 +167,8 @@ export function CarburentForm() {
       justification: data.Justificatif,
       status: "paid",
       type: "CURRENT",
-      methodId: getPaymentType.data?.data.find((item) => item.type === "cash")?.id!,
+      methodId: getPaymentType.data?.data.find((item) => item.type === "cash")
+        ?.id!,
       priority: "medium",
       isPartial: false,
       userId: user!.id,

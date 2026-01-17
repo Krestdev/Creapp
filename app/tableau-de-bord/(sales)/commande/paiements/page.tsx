@@ -4,10 +4,10 @@ import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { PaiementsTable } from "@/components/tables/PaiementsTable";
 import { Button } from "@/components/ui/button";
-import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 function Page() {
@@ -36,12 +36,14 @@ function Page() {
     },
   ];
 
-  const getPayments = useFetchQuery(["payments"], paymentQ.getAll, 15000);
-  const getPurchases = useFetchQuery(
-    ["purchaseOrders"],
-    purchaseQ.getAll,
-    15000
-  );
+  const getPayments = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
 
   if (getPayments.isLoading || getPurchases.isLoading) {
     return <LoadingPage />;

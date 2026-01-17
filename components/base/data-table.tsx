@@ -54,7 +54,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useFetchQuery } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { categoryQ } from "@/queries/categoryModule";
@@ -168,7 +167,10 @@ export function DataTable({ data }: Props) {
   >();
   const queryClient = useQueryClient();
 
-  const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll);
+  const getRequestType = useQuery({
+    queryKey: ["requestType"],
+    queryFn: requestTypeQ.getAll,
+  });
 
   const projectsData = useQuery({
     queryKey: ["projects"],

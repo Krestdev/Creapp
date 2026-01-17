@@ -5,7 +5,6 @@ import LoadingPage from "@/components/loading-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useFetchQuery } from "@/hooks/useData";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
@@ -14,7 +13,7 @@ import { providerQ } from "@/queries/providers";
 import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import type { Provider, QuotationGroup } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { notFound, useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
@@ -96,13 +95,25 @@ function SelectQuotation({ id }: { id: string }) {
     return Array.from(byDevi.values());
   };
 
-  const quotations = useFetchQuery(["quotations"], quotationQ.getAll);
+  const quotations = useQuery({
+    queryKey: ["quotations"],
+    queryFn: quotationQ.getAll,
+  });
 
-  const providers = useFetchQuery(["providers"], providerQ.getAll, 500000);
+  const providers = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
 
-  const commands = useFetchQuery(["commands"], commandRqstQ.getAll, 30000);
+  const commands = useQuery({
+    queryKey: ["commands"],
+    queryFn: commandRqstQ.getAll,
+  });
 
-  const purchaseOrder = useFetchQuery(["purchaseOrders"], purchaseQ.getAll);
+  const purchaseOrder = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
 
   // besoinId -> providerId
   const [selected, setSelected] = React.useState<Record<number, number>>({});

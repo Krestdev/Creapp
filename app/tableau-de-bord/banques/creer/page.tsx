@@ -26,10 +26,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BankPayload, bankQ } from "@/queries/bank";
-import { QueryClient, useMutation } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "@/components/loading-page";
 import ErrorPage from "@/components/error-page";
 
@@ -112,7 +111,7 @@ function Page() {
     isError,
     error,
     isSuccess,
-  } = useFetchQuery(["banks"], bankQ.getAll);
+  } = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
   //Banks data
   const filteredBanks = React.useMemo(() => {
     if (!accounts) return [];

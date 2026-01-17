@@ -2,18 +2,15 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { useFetchQuery } from "@/hooks/useData";
 import { transactionQ } from "@/queries/transaction";
 import TransferTable from "./transfer-table";
-import TransferHistory from "./transfert-history";
-import { TabBar } from "@/components/base/TabBar";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 function Page() {
-  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
-    ["transactions"],
-    transactionQ.getAll
-  );
+  const { data, isSuccess, isError, error, isLoading } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: transactionQ.getAll,
+  });
   if (isLoading) {
     return <LoadingPage />;
   }
@@ -28,9 +25,7 @@ function Page() {
           subtitle="Approuvez ou rejetez les demandes de transfert de fonds."
           color="green"
         />
-            <TransferTable
-              data={data.data}
-            />
+        <TransferTable data={data.data} />
       </div>
     );
   }

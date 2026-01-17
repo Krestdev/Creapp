@@ -16,12 +16,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Bank, PaymentRequest, Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -51,11 +50,10 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
     },
   });
 
-  const gettransaction = useFetchQuery(
-    ["transaction"],
-    transactionQ.getAll,
-    30000
-  );
+  const gettransaction = useQuery({
+    queryKey: ["transaction"],
+    queryFn: transactionQ.getAll,
+  });
 
   const trans = gettransaction.data?.data.find(
     (item) => item.id === ticket.transactionId

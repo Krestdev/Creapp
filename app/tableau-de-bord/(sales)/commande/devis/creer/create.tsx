@@ -25,7 +25,6 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
@@ -34,7 +33,7 @@ import { quotationQ } from "@/queries/quotation";
 import { Quotation, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, FolderX, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -96,13 +95,22 @@ function CreateQuotation({ quotation, openChange }: Props) {
   const { user } = useStore();
 
   /**Demandes de cotation */
-  const cmdRqstData = useFetchQuery(["commands"], commandRqstQ.getAll, 500000);
+  const cmdRqstData = useQuery({
+    queryKey: ["commands"],
+    queryFn: commandRqstQ.getAll,
+  });
   /**Devis */
 
-  const quotationsData = useFetchQuery(["quotations"], quotationQ.getAll);
+  const quotationsData = useQuery({
+    queryKey: ["quotations"],
+    queryFn: quotationQ.getAll,
+  });
   /**Fournisseurs */
 
-  const providersData = useFetchQuery(["providers"], providerQ.getAll, 15000);
+  const providersData = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
 
   /**Data states */
   const [dueDate, setDueDate] = React.useState<boolean>(false);
@@ -501,10 +509,11 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                       }}
                                     >
                                       <span className="truncate">
-                                        {`${item.designation} - ${item.quantity
-                                          } ${item.unit} - ${XAF.format(
-                                            item.price
-                                          )}`}
+                                        {`${item.designation} - ${
+                                          item.quantity
+                                        } ${item.unit} - ${XAF.format(
+                                          item.price
+                                        )}`}
                                       </span>
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
                                         {"Modifier"}

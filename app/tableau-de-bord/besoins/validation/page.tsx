@@ -8,7 +8,6 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { useFetchQuery } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
@@ -17,29 +16,46 @@ import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { RequestModelT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
 const Page = () => {
   const { user } = useStore();
-  const categoriesData = useFetchQuery(
-    ["categories"],
-    categoryQ.getCategories,
-    15000
-  );
-  const projectsData = useFetchQuery(["projects"], projectQ.getAll, 15000);
+  const categoriesData = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoryQ.getCategories,
+  });
+  const projectsData = useQuery({
+    queryKey: ["projects"],
+    queryFn: projectQ.getAll,
+  });
 
-  const usersData = useFetchQuery(["usersList"], userQ.getAll, 15000);
+  const usersData = useQuery({
+    queryKey: ["usersList"],
+    queryFn: userQ.getAll,
+  });
 
-  const paymentsData = useFetchQuery(["payments"], paymentQ.getAll, 15000);
+  const paymentsData = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
 
-  const requestData = useFetchQuery(["requests"], requestQ.getAll, 15000);
+  const requestData = useQuery({
+    queryKey: ["requests"],
+    queryFn: requestQ.getAll,
+  });
 
-  const getRequestType = useFetchQuery(["requestType"], requestTypeQ.getAll);
+  const getRequestType = useQuery({
+    queryKey: ["requestType"],
+    queryFn: requestTypeQ.getAll,
+  });
 
   const data: Array<RequestModelT> = React.useMemo(() => {
-    if(!requestData.data || !categoriesData.data) return [];
-    return requestData.data.data.filter(r=>{
-      const isValidator = categoriesData.data.data.find(c=> c.id === r.categoryId)?.validators.find(v=> v.userId === user?.id);
+    if (!requestData.data || !categoriesData.data) return [];
+    return requestData.data.data.filter((r) => {
+      const isValidator = categoriesData.data.data
+        .find((c) => c.id === r.categoryId)
+        ?.validators.find((v) => v.userId === user?.id);
       return isValidator;
     });
   }, [requestData.data]);

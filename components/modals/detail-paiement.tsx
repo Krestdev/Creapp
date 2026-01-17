@@ -32,11 +32,11 @@ import { Badge, badgeVariants } from "../ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { userQ } from "@/queries/baseModule";
-import { useFetchQuery } from "@/hooks/useData";
 import { Button } from "../ui/button";
 import { XAF } from "@/lib/utils";
 import Link from "next/link";
 import { payTypeQ } from "@/queries/payType";
+import { useQuery } from "@tanstack/react-query";
 
 interface Props {
   payment: PaymentRequest;
@@ -65,16 +65,21 @@ function getStatusBadge(status: PaymentRequest["status"]): {
 }
 
 function DetailPaiement({ payment, open, openChange, purchases }: Props) {
-  const getUsers = useFetchQuery(["users"], userQ.getAll, 50000);
+  const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
   const purchase = purchases.find((p) => p.id === payment.commandId);
-  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="uppercase">
-            {purchase?.devi.commandRequest.title + " - " + purchase?.provider.name}
+            {purchase?.devi.commandRequest.title +
+              " - " +
+              purchase?.provider.name}
           </DialogTitle>
           <DialogDescription>{`Facture ${payment.reference}`}</DialogDescription>
         </DialogHeader>
@@ -123,7 +128,11 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Méthode de paiement"}</p>
             <p className="font-semibold">
-              {getPaymentType.data?.data.find((item) => item.id === payment.methodId)?.label}
+              {
+                getPaymentType.data?.data.find(
+                  (item) => item.id === payment.methodId
+                )?.label
+              }
             </p>
           </div>
         </div>
@@ -139,17 +148,19 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
             </Badge>
           </div>
         </div>
-        {payment.status === "rejected" && <div className="view-group">
-          <span className="view-icon">
-            <LucideAlarmClockPlus />
-          </span>
-          <div className="flex flex-col">
-            <p className="view-group-title text-destructive">{"Motif du rejet"}</p>
-            <p className="text-destructive">
-              {payment.reason}
-            </p>
+        {payment.status === "rejected" && (
+          <div className="view-group">
+            <span className="view-icon">
+              <LucideAlarmClockPlus />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title text-destructive">
+                {"Motif du rejet"}
+              </p>
+              <p className="text-destructive">{payment.reason}</p>
+            </div>
           </div>
-        </div>}
+        )}
         {/**Justificatif */}
         <div className="view-group">
           <span className="view-icon">
@@ -158,8 +169,9 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Justificatif"}</p>
             <Link
-              href={`${process.env.NEXT_PUBLIC_API
-                }/uploads/${encodeURIComponent(payment.proof as string)}`}
+              href={`${
+                process.env.NEXT_PUBLIC_API
+              }/uploads/${encodeURIComponent(payment.proof as string)}`}
               target="_blank"
               className="flex gap-0.5 items-center"
             >

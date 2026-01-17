@@ -7,13 +7,13 @@ import { NavLink } from "@/types/types";
 import Link from "next/link";
 import BankTable from "./bank-table";
 import { bankQ } from "@/queries/bank";
-import { useFetchQuery } from "@/hooks/useData";
 import LoadingPage from "@/components/loading-page";
 import ErrorPage from "@/components/error-page";
 import {
   StatisticCard,
   StatisticProps,
 } from "@/components/base/TitleValueCard";
+import { useQuery } from "@tanstack/react-query";
 
 function Page() {
   const { user } = useStore();
@@ -29,7 +29,7 @@ function Page() {
     },
   ];
 
-  const getBanks = useFetchQuery(["banks"], bankQ.getAll, 120000);
+  const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
 
   if (getBanks.isLoading) {
     return <LoadingPage />;
@@ -63,7 +63,7 @@ function Page() {
         title: "Caisse",
         value: XAF.format(
           getBanks.data.data
-            .filter((b) => b.type === "CASH" || b.type ==="CASH_REGISTER")
+            .filter((b) => b.type === "CASH" || b.type === "CASH_REGISTER")
             .reduce((sum, bank) => sum + bank.balance, 0)
         ),
         variant: "dark",
@@ -119,7 +119,10 @@ function Page() {
             <StatisticCard key={id} {...item} />
           ))}
         </div>
-        <BankTable data={getBanks.data.data.filter(c=> !!c.type)} canEdit={canEdit} />
+        <BankTable
+          data={getBanks.data.data.filter((c) => !!c.type)}
+          canEdit={canEdit}
+        />
       </div>
     );
   }

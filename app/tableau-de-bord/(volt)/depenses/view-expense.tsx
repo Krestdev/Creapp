@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
 import { payTypeQ } from "@/queries/payType";
@@ -21,6 +20,7 @@ import {
   PAYMENT_METHOD,
   PaymentRequest,
 } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -117,19 +117,22 @@ function getTypeLabel(type: PaymentRequest["type"]) {
 // Helper pour vérifier si une valeur est significative
 const hasValue = (value: any): boolean => {
   if (value === null || value === undefined) return false;
-  if (typeof value === 'string') {
-    return value.trim() !== '' && value !== 'none' && value !== 'null';
+  if (typeof value === "string") {
+    return value.trim() !== "" && value !== "none" && value !== "null";
   }
-  if (typeof value === 'number') {
+  if (typeof value === "number") {
     return value > 0;
   }
   return true;
 };
 
 function ViewExpense({ open, openChange, payment, purchases }: Props) {
-  const getUsers = useFetchQuery(["users"], userQ.getAll, 50000);
+  const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
   const purchase = purchases.find((p) => p.id === payment.commandId);
-  const getPaymentType = useFetchQuery(["paymentType"], payTypeQ.getAll, 30000);
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   if (getUsers.isLoading || getPaymentType.isLoading) {
     return <LoadingPage />;
@@ -175,7 +178,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                     <HelpCircle />
                   </span>
                   <div className="flex flex-col">
-                    <p className="view-group-title">{"Description détaillée"}</p>
+                    <p className="view-group-title">
+                      {"Description détaillée"}
+                    </p>
                     <p className="text-foreground">{payment.description}</p>
                   </div>
                 </div>
@@ -215,7 +220,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                 </span>
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Type de dépense"}</p>
-                  <p className="font-semibold">{"Salaires et charges sociales"}</p>
+                  <p className="font-semibold">
+                    {"Salaires et charges sociales"}
+                  </p>
                 </div>
               </div>
             </>
@@ -232,7 +239,14 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   </span>
                   <div className="flex flex-col">
                     <p className="view-group-title">{"Bénéficiaire"}</p>
-                    <p className="font-semibold">{getUsers.data?.data.find((u) => u.id === payment.benefId)?.firstName + " " + getUsers.data?.data.find((u) => u.id === payment.benefId)?.lastName}</p>
+                    <p className="font-semibold">
+                      {getUsers.data?.data.find((u) => u.id === payment.benefId)
+                        ?.firstName +
+                        " " +
+                        getUsers.data?.data.find(
+                          (u) => u.id === payment.benefId
+                        )?.lastName}
+                    </p>
                   </div>
                 </div>
               )}
@@ -274,7 +288,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                       </span>
                       <div className="flex flex-col">
                         <p className="view-group-title">{"Fournisseur"}</p>
-                        <p className="font-semibold">{purchase.provider.name}</p>
+                        <p className="font-semibold">
+                          {purchase.provider.name}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -284,7 +300,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                         <LucideHash />
                       </span>
                       <div className="flex flex-col">
-                        <p className="view-group-title">{"Référence commande"}</p>
+                        <p className="view-group-title">
+                          {"Référence commande"}
+                        </p>
                         <p className="font-semibold">{purchase.reference}</p>
                       </div>
                     </div>
@@ -298,7 +316,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   </span>
                   <div className="flex flex-col">
                     <p className="view-group-title">{"Commande associée"}</p>
-                    <p className="font-semibold">{purchase?.devi.commandRequest.title}</p>
+                    <p className="font-semibold">
+                      {purchase?.devi.commandRequest.title}
+                    </p>
                   </div>
                 </div>
               )}
@@ -340,7 +360,14 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   </span>
                   <div className="flex flex-col">
                     <p className="view-group-title">{"Bénéficiaire"}</p>
-                    <p className="font-semibold">{getUsers.data?.data.find((u) => u.id === payment.benefId)?.firstName + " " + getUsers.data?.data.find((u) => u.id === payment.benefId)?.lastName}</p>
+                    <p className="font-semibold">
+                      {getUsers.data?.data.find((u) => u.id === payment.benefId)
+                        ?.firstName +
+                        " " +
+                        getUsers.data?.data.find(
+                          (u) => u.id === payment.benefId
+                        )?.lastName}
+                    </p>
                   </div>
                 </div>
               )}
@@ -352,8 +379,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   <div className="flex flex-col">
                     <p className="view-group-title">{"Justification"}</p>
                     <Link
-                      href={`${process.env.NEXT_PUBLIC_API
-                        }/uploads/${payment.justification}`}
+                      href={`${process.env.NEXT_PUBLIC_API}/uploads/${payment.justification}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -417,9 +443,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
       // Type (toujours affiché)
       fields.push(
         <div key="type" className="view-group">
-          <span className="view-icon">
-            {getTypeIcon(payment.type)}
-          </span>
+          <span className="view-icon">{getTypeIcon(payment.type)}</span>
           <div className="flex flex-col">
             <p className="view-group-title">{"Type de dépense"}</p>
             <Badge variant="outline" className="w-fit">
@@ -439,9 +463,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
             <div className="flex flex-col">
               <p className="view-group-title">{"Référence"}</p>
               <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
-                <p className="text-primary-600 text-sm">
-                  {payment.reference}
-                </p>
+                <p className="text-primary-600 text-sm">{payment.reference}</p>
               </div>
             </div>
           </div>
@@ -487,15 +509,23 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               <p className="view-group-title">{"Priorité"}</p>
               <Badge
                 variant={
-                  payment.priority === "urgent" ? "destructive" :
-                    payment.priority === "high" ? "default" :
-                      payment.priority === "medium" ? "outline" : "secondary"
+                  payment.priority === "urgent"
+                    ? "destructive"
+                    : payment.priority === "high"
+                    ? "default"
+                    : payment.priority === "medium"
+                    ? "outline"
+                    : "secondary"
                 }
                 className="w-fit"
               >
-                {payment.priority === "urgent" ? "Urgent" :
-                  payment.priority === "high" ? "Haute" :
-                    payment.priority === "medium" ? "Moyenne" : "Basse"}
+                {payment.priority === "urgent"
+                  ? "Urgent"
+                  : payment.priority === "high"
+                  ? "Haute"
+                  : payment.priority === "medium"
+                  ? "Moyenne"
+                  : "Basse"}
               </Badge>
             </div>
           </div>
@@ -523,12 +553,17 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
       // Reason for rejection
       if (payment.status === "rejected" && hasValue(payment.reason)) {
         fields.push(
-          <div key="reason" className="view-group @min-[540px]/dialog:col-span-2 bg-red-50 p-3 rounded-md border border-red-200">
+          <div
+            key="reason"
+            className="view-group @min-[540px]/dialog:col-span-2 bg-red-50 p-3 rounded-md border border-red-200"
+          >
             <span className="view-icon text-red-600">
               <HelpCircle />
             </span>
             <div className="flex flex-col">
-              <p className="view-group-title text-red-700">{"Motif du rejet"}</p>
+              <p className="view-group-title text-red-700">
+                {"Motif du rejet"}
+              </p>
               <p className="text-red-800 font-medium">{payment.reason}</p>
             </div>
           </div>
@@ -544,7 +579,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
 
       // Méthode de paiement
       if (hasValue(payment.methodId)) {
-        const methodName = getPaymentType.data?.data.find((p) => p.id === payment.methodId)?.label || "Non défini";
+        const methodName =
+          getPaymentType.data?.data.find((p) => p.id === payment.methodId)
+            ?.label || "Non défini";
         fields.push(
           <div key="method" className="view-group">
             <span className="view-icon">
@@ -568,8 +605,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
             <div className="flex flex-col">
               <p className="view-group-title">{"Justificatif"}</p>
               <Link
-                href={`${process.env.NEXT_PUBLIC_API
-                  }/uploads/${encodeURIComponent(payment.proof as string)}`}
+                href={`${
+                  process.env.NEXT_PUBLIC_API
+                }/uploads/${encodeURIComponent(payment.proof as string)}`}
                 target="_blank"
                 className="flex gap-0.5 items-center"
               >
@@ -605,7 +643,10 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
       );
 
       // Date de modification
-      if (hasValue(payment.updatedAt) && payment.updatedAt !== payment.createdAt) {
+      if (
+        hasValue(payment.updatedAt) &&
+        payment.updatedAt !== payment.createdAt
+      ) {
         fields.push(
           <div key="updatedAt" className="view-group">
             <span className="view-icon">
@@ -625,7 +666,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
 
       // Créé par
       if (hasValue(payment.userId)) {
-        const userData = getUsers.data?.data.find((u) => u.id === payment.userId);
+        const userData = getUsers.data?.data.find(
+          (u) => u.id === payment.userId
+        );
         if (userData) {
           fields.push(
             <div key="userId" className="view-group">
@@ -635,7 +678,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Initié par"}</p>
                 <p className="font-semibold">
-                  {`${userData.firstName || ''} ${userData.lastName || ''}`.trim()}
+                  {`${userData.firstName || ""} ${
+                    userData.lastName || ""
+                  }`.trim()}
                 </p>
               </div>
             </div>
@@ -651,8 +696,11 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader variant={"default"}>
             <div className="flex items-center gap-2">
-              <DialogTitle className="uppercase">{`${getTypeLabel(payment.type)} - ${hasValue(payment.title) ? payment.title : "Sans titre"
-                }`}</DialogTitle>
+              <DialogTitle className="uppercase">{`${getTypeLabel(
+                payment.type
+              )} - ${
+                hasValue(payment.title) ? payment.title : "Sans titre"
+              }`}</DialogTitle>
             </div>
             <DialogDescription>{`Voir les informations détaillées`}</DialogDescription>
           </DialogHeader>

@@ -1,23 +1,21 @@
 "use client";
 
 import { TicketsTable } from "@/components/tables/tickets-table";
-import { useFetchQuery } from "@/hooks/useData";
 import { paymentQ } from "@/queries/payment";
 import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
 import { requestTypeQ } from "@/queries/requestType";
+import { useQuery } from "@tanstack/react-query";
 
 const Liste = () => {
-  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
-    ["payments"],
-    paymentQ.getAll,
-    30000
-  );
-  const getRequestType = useFetchQuery(
-    ["requestType"],
-    requestTypeQ.getAll,
-    30000
-  );
+  const { data, isSuccess, isError, error, isLoading } = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
+  const getRequestType = useQuery({
+    queryKey: ["requestType"],
+    queryFn: requestTypeQ.getAll,
+  });
 
   if (isLoading || getRequestType.isLoading) {
     return <LoadingPage />;
