@@ -6,7 +6,6 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { useFetchQuery } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { bankQ } from "@/queries/bank";
 import { paymentQ } from "@/queries/payment";
@@ -18,26 +17,28 @@ import { Signatair } from "@/types/types";
 import { useStore } from "@/providers/datastore";
 import { TabBar } from "@/components/base/TabBar";
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 function Page() {
-  const { data, isSuccess, isError, error, isLoading } = useFetchQuery(
-    ["payments"],
-    paymentQ.getAll,
-    30000
-  );
 
-  const signatair = useFetchQuery(["signatairs"], signatairQ.getAll);
-  const getRequestType = useFetchQuery(
-    ["requestType"],
-    requestTypeQ.getAll,
-    30000
-  );
-  const getPurchases = useFetchQuery(
-    ["purchaseOrders"],
-    purchaseQ.getAll,
-    30000
-  );
-  const getBanks = useFetchQuery(["banks"], queryFn:bankQ.getAll});
+  const { data, isSuccess, isError, error, isLoading } = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
+
+  const signatair = useQuery({ queryKey: ["signatairs"], queryFn: signatairQ.getAll });
+  const getRequestType = useQuery({
+    queryKey: ["requestType"],
+    queryFn: requestTypeQ.getAll
+  });
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll
+  });
+  const getBanks = useQuery({
+    queryKey: ["banks"],
+    queryFn: bankQ.getAll
+  });
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { user } = useStore();

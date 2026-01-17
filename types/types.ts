@@ -669,3 +669,11 @@ export type PayType = {
   label: string | null;
   type?: string;
 };
+
+export type Driver = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  licence?: string | File;
+  idCard?: string | File;
+};

@@ -1,5 +1,5 @@
 "use client";
-import ProviderListPage from "@/components/provider/liste";
+import ChauffeurListPage from "@/components/driver/liste";
 import PageTitle from "@/components/pageTitle";
 import { NavLink } from "@/types/types";
 import Link from "next/link";
@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Créer un fournisseur",
-      href: "./provider/create",
+      title: "Créer un Chauffeur",
+      href: "./chauffeur/create",
       hide: false,
       disabled: false,
     },
@@ -19,8 +19,8 @@ function Page() {
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Fournisseurs"
-        subtitle="Consultez la liste des fournisseurs."
+        title="Chauffeur"
+        subtitle="Consultez la liste des Chauffeurs."
         color="red"
       >
         {links
@@ -47,7 +47,7 @@ function Page() {
             );
           })}
       </PageTitle>
-      <ProviderListPage />
+      <ChauffeurListPage />
     </div>
   );
 }
