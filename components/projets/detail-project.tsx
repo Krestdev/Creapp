@@ -14,7 +14,7 @@ import { ProjectT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { da, fr } from "date-fns/locale";
 import {
   CheckCircle,
   Clipboard,
@@ -141,7 +141,7 @@ export function DetailProject({
                     {"Chef de projet"}
                   </p>
                   <p className="font-semibold">
-                    {data.chief?.name || "Non assigné"}
+                    {data.chief.firstName.concat(" ", data.chief.lastName) || "Non assigné"}
                   </p>
                 </div>
               </div>
