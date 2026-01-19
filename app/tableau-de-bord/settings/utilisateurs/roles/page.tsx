@@ -34,8 +34,8 @@ function Page() {
           subtitle="Consultez la liste des rôles."
           color="red"
         />
-        <RoleTable data={roles.data.filter((x) => x.label !== "MANAGER")} />
-        <Roles data={roles.data.filter(x=> x.label !== "MANAGER" )} />
+        {/* <RoleTable data={roles.data.filter((x) => x.label !== "MANAGER")} /> */}
+        <Roles data={roles.data.filter((x) => x.label !== "MANAGER")} />
       </div>
     );
   }

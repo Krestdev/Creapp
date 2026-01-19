@@ -122,8 +122,8 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
         ),
 
         accessorFn: (row) =>
-          row.user?.map((user) => (
-            <Badge className={`flex items-center gap-1 w-fit`}>
+          row.user?.map((user, i) => (
+            <Badge key={i} className={`flex items-center gap-1 w-fit`}>
               {formatFullName(user.lastName, user.firstName) ?? "Non Defini"}
             </Badge>
           )),
@@ -244,7 +244,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
                   Modifier
                 </DropdownMenuItem>
 
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   className="text-red-600"
                   onClick={() => {
                     setSelectedItem(signatair);
@@ -253,7 +253,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Supprimer
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           );

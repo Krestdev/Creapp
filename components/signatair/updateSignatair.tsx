@@ -157,14 +157,12 @@ export default function UpdateSignatair({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[840px] p-0 flex flex-col max-h-[90vh]">
-        <DialogHeader className="bg-[#8B1538] text-white p-6 rounded-t-lg">
-          <DialogTitle className="text-xl font-semibold">
-            Modifier le signataire
+        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-t-lg">
+          <DialogTitle className="text-xl font-semibold uppercase">
+            {`Signataire - ${signatair?.Bank?.label} - ${signatair?.payTypes?.label}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            {signatair?.Bank?.label && signatair?.payTypes?.label
-              ? `${signatair.Bank.label} - ${signatair.payTypes.label}`
-              : "Modifier les informations du signataire"}
+            {`Modifier les informations du signataire`}
           </p>
         </DialogHeader>
 

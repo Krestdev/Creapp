@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -123,15 +124,13 @@ export function ShowRole({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[640px] w-full overflow-y-auto p-0 gap-0 border-none">
+      <DialogContent>
         {/* Header */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {"Role - " + TranslateRole(role.label)}
+        <DialogHeader>
+          <DialogTitle>
+            {TranslateRole(role.label)}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
-            {"Détails du rôle"}
-          </p>
+            {"Description du rôle"}
         </DialogHeader>
 
         {/* Content */}
@@ -227,17 +226,14 @@ export function ShowRole({
             </div>
           </div>
         </div>
-
-        {/* Footer buttons */}
-        <div className="flex w-full justify-end gap-3 p-6 pt-0">
+        <DialogFooter>
           <Button
             variant="outline"
-            className="bg-transparent"
             onClick={() => onOpenChange(false)}
           >
             {"Fermer"}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

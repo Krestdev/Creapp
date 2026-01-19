@@ -33,8 +33,8 @@ class UserQueries {
 
   // create (sans role)
   create = async (
-    data: Omit<User, "status" | "lastConnection" | "role" | "members" | "id">
-  ): Promise<ResponseT<User>> => {
+    data: Omit<User, "status" | "lastConnection" | "role" | "members" | "id">&{role: Array<number>}
+  ): Promise<{data:User}> => {
     return api.post(`${this.route}/create`, data).then((response) => {
       console.log(response.data);
       return response.data;
