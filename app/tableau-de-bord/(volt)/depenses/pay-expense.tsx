@@ -51,26 +51,18 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
   });
 
   const gettransaction = useQuery({
-    queryKey: ["transaction"],
+    queryKey: ["transactions"],
     queryFn: transactionQ.getAll,
   });
 
   const trans = gettransaction.data?.data.find(
-    (item) => item.id === ticket.transactionId
+    (item) => item.id === ticket.transactionId,
   );
 
   const pay = useMutation({
     mutationFn: async (payload: Omit<TransactionProps, "userId">) =>
       transactionQ.update(ticket.transactionId!, payload),
     onSuccess: () => {
-      // queryClient.invalidateQueries({
-      //     queryKey: ["banks", "transactions"],
-      //     refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //     queryKey: ["payments"],
-      //     refetchType: "active",
-      // });
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
       // router.push("./");

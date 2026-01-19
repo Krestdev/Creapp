@@ -47,7 +47,7 @@ const formSchema = z.object({
       const now = new Date();
       return !isNaN(d.getTime()) && d >= now;
     },
-    { message: "Date invalide" }
+    { message: "Date invalide" },
   ),
   proof: z
     .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
@@ -78,10 +78,6 @@ function CompleteTransfer({ open, openChange, transaction }: Props) {
     }) => transactionQ.complete({ id, proof, date }),
     onSuccess: () => {
       toast.success("Transfert mis à jour avec succès !");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["transactions", "banks"],
-      //   refetchType: "active",
-      // });
       openChange(false);
       form.reset({ proof: [] });
     },

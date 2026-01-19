@@ -3,11 +3,10 @@ import { Transaction } from "@/types/types";
 
 type source = { label: string; accountNumber?: string; phoneNumber?: string };
 
-export interface TransactionProps
-  extends Omit<
-    Transaction,
-    "id" | "proof" | "from" | "to" | "createdAt" | "status"
-  > {
+export interface TransactionProps extends Omit<
+  Transaction,
+  "id" | "proof" | "from" | "to" | "createdAt" | "status"
+> {
   proof?: File[];
   from?: source;
   to?: source;
@@ -18,11 +17,10 @@ export interface TransactionProps
   methodId?: number;
 }
 
-export interface TransferProps
-  extends Omit<
-    Transaction,
-    "id" | "proof" | "from" | "to" | "createdAt" | "status" | "date"
-  > {
+export interface TransferProps extends Omit<
+  Transaction,
+  "id" | "proof" | "from" | "to" | "createdAt" | "status" | "date"
+> {
   fromBankId: number;
   toBankId: number;
   isDirect: boolean;
@@ -45,7 +43,7 @@ class TransactionQuery {
   };
 
   create = async (
-    payload: TransactionProps
+    payload: TransactionProps,
   ): Promise<{ data: Transaction }> => {
     const formData = new FormData();
     formData.append("label", payload.label);
@@ -91,7 +89,7 @@ class TransactionQuery {
 
   update = async (
     id: number,
-    data: Omit<TransactionProps, "userId">
+    data: Omit<TransactionProps, "userId">,
   ): Promise<{ data: Transaction }> => {
     const formData = new FormData();
     formData.append("label", data.label);
@@ -138,7 +136,7 @@ class TransactionQuery {
   };
 
   createTransaction = async (
-    data: TransferProps
+    data: TransferProps,
   ): Promise<{ data: Transaction }> => {
     const formData = new FormData();
     formData.append("label", data.label);
@@ -162,4 +160,4 @@ class TransactionQuery {
 
 export const transactionQ = new TransactionQuery();
 
-// transactionQ = ["transaction"]
+// transactionQ = ["transactions"]

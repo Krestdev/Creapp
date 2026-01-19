@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import {
   Select,
   SelectContent,
@@ -9,16 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import React from "react";
 import { Label } from "../ui/label";
-import { useStore } from "@/providers/datastore";
-import { TransportForm } from "./transportForm";
 import { CarburentForm } from "./carburent";
+import { TransportForm } from "./transportForm";
 
 const CreateDepensePage = () => {
-  const { user } = useStore();
   const [typeDepense, setTypeDepense] = React.useState<string>("");
 
-  const userRoles = user?.role?.flatMap((x) => x.label) || [];
+  // const userRoles = user?.role?.flatMap((x) => x.label) || [];
 
   const renderForm = () => {
     switch (typeDepense) {
@@ -44,9 +42,7 @@ const CreateDepensePage = () => {
             <SelectContent>
               <SelectGroup>
                 <SelectItem value="Transport">{"Transport"}</SelectItem>
-                <SelectItem value="Carburant">
-                  {"Carburant"}
-                </SelectItem>
+                <SelectItem value="Carburant">{"Carburant"}</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
