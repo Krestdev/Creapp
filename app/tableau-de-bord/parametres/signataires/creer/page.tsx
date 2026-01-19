@@ -109,11 +109,18 @@ const Page = () => {
     });
   
     function onSubmit(values: z.infer<typeof formSchema>) {
+      const {bank, type, mode, signatair} = values;
+      let modeValue: "ONE" | "BOTH";
+      if(mode === "unique" || mode === "any"){
+        modeValue = "ONE";
+      }else {
+        modeValue = "BOTH";
+      }
         const data: Omit<Signatair, "id" | "createdAt" | "updatedAt"> = {
-          bankId: Number(values.bank),
-          payTypeId: Number(values.type),
-          mode: values.mode as "ONE" | "BOTH",
-          userIds: values.signatair ?? [],
+          bankId: Number(bank),
+          payTypeId: type,
+          mode: modeValue,
+          userIds: signatair,
         };
         create.mutate(data);
     }
@@ -147,7 +154,7 @@ const Page = () => {
                                   .map((option) => (
                                     <SelectItem
                                       key={option.id}
-                                      value={option.id.toString()}
+                                      value={String(option.id)}
                                     >
                                       {option.label}
                                     </SelectItem>
