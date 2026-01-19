@@ -123,7 +123,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                 <Link
                   href={`${
                     process.env.NEXT_PUBLIC_API
-                  }/${encodeURIComponent(data.carte_contribuable as string)}`}
+                  }/${data.carte_contribuable as string}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >
@@ -154,7 +154,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                 <Link
                   href={`${
                     process.env.NEXT_PUBLIC_API
-                  }/${encodeURIComponent(data.acf as string)}`}
+                  }/${data.acf as string}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >
@@ -181,7 +181,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                 <Link
                   href={`${
                     process.env.NEXT_PUBLIC_API
-                  }/${encodeURIComponent(data.plan_localisation as string)}`}
+                  }/${data.plan_localisation as string}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >
@@ -208,7 +208,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                 <Link
                   href={`${
                     process.env.NEXT_PUBLIC_API
-                  }/${encodeURIComponent(data.RCCM as string)}`}
+                  }/${data.RCCM as string}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >
@@ -235,7 +235,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                 <Link
                   href={`${
                     process.env.NEXT_PUBLIC_API
-                  }/${encodeURIComponent(data.banck_attestation as string)}`}
+                  }/${data.banck_attestation as string}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >

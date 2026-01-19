@@ -13,7 +13,7 @@ const ShowFile = ({ file, title, setPage }: Props) => {
 
   if (!file || typeof file !== "string") return null;
 
-  const src = `${baseUrl}/${encodeURIComponent(file)}`;
+  const src = `${baseUrl}/${file}`;
 
   return (
     <div className="w-[full] h-[600px] px-4 flex-1 overflow-auto pb-6 flex flex-col gap-2">
