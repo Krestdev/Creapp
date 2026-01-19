@@ -77,14 +77,14 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   // Fonctions pour récupérer les noms
   const getProjectName = (projectId: string) => {
     const project = projectsData.data?.data?.find(
-      (proj) => proj.id === Number(projectId)
+      (proj) => proj.id === Number(projectId),
     );
     return project?.label || projectId;
   };
 
   const getCategoryName = (categoryId: string) => {
     const category = categoriesData.data?.data?.find(
-      (cat) => cat.id === Number(categoryId)
+      (cat) => cat.id === Number(categoryId),
     );
     return category?.label || categoryId;
   };
@@ -96,7 +96,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
   // Trouver la catégorie du besoin pour récupérer les validateurs configurés
   const categoryOfRequest = categoriesData.data?.data?.find(
-    (cat) => cat.id === Number(data.categoryId)
+    (cat) => cat.id === Number(data.categoryId),
   );
 
   // Récupérer les validateurs configurés pour cette catégorie, triés par rank
@@ -104,7 +104,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
     categoryOfRequest?.validators?.sort((a, b) => a.rank - b.rank) || [];
 
   const paiement = paymentsData.data?.data.find(
-    (x) => x.requestId === data?.id
+    (x) => x.requestId === data?.id,
   );
 
   const statusConfig = {
@@ -156,11 +156,11 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
       const validator = configuredValidators[i];
 
       const validatorUser = usersData.data?.data?.find(
-        (u) => u.id === validator.userId
+        (u) => u.id === validator.userId,
       );
 
       const review = data.revieweeList?.find(
-        (r) => r.validatorId === validator.id
+        (r) => r.validatorId === validator.id,
       );
 
       let status = "pending";
@@ -350,14 +350,15 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Priorité"}
                   </p>
                   <Badge
-                    className={`${data.priority === "urgent"
-                      ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                      : data.priority === "medium"
-                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                        : data.priority === "low"
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                      }`}
+                    className={`${
+                      data.priority === "urgent"
+                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                        : data.priority === "medium"
+                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                          : data.priority === "low"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    }`}
                   >
                     {data.priority === "urgent" ? (
                       <X className="h-3 w-3 mr-1" />
@@ -381,10 +382,9 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   <div className="space-y-1">
                     {!!paiement?.proof ? (
                       <Link
-                        href={`${process.env.NEXT_PUBLIC_API
-                          }/uploads/${encodeURIComponent(
-                            paiement?.proof as string
-                          )}`}
+                        href={`${
+                          process.env.NEXT_PUBLIC_API
+                        }/${paiement?.proof as string}`}
                         target="_blank"
                         className="flex gap-0.5 items-center"
                       >
@@ -406,7 +406,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
               {/* Historique de validation - NOUVELLE VERSION */}
               {data.type === "ressource_humaine" ||
-                data.type === "speciaux" ? null : (
+              data.type === "speciaux" ? null : (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <UserCheck className="h-5 w-5 text-muted-foreground" />
@@ -480,7 +480,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                       {data.revieweeList
                         ?.filter((r) => r.decision?.startsWith("rejected"))
                         .map((r) =>
-                          r.decision?.replace(/^rejected\s*/i, "").trim()
+                          r.decision?.replace(/^rejected\s*/i, "").trim(),
                         )
                         .join(", ") || "Aucun motif fourni"}
                     </p>
@@ -491,7 +491,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
             <div className="flex flex-col space-y-4 pb-4">
               {/* Priorité */}
-              {data.type === "ressource_humaine" &&
+              {data.type === "ressource_humaine" && (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <CalendarClock className="h-5 w-5 text-muted-foreground" />
@@ -504,7 +504,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                       <p className="font-semibold">{`Du ${format(
                         data.period.from!,
                         "PPP",
-                        { locale: fr }
+                        { locale: fr },
                       )} au ${format(data.period.to!, "PPP", {
                         locale: fr,
                       })}`}</p>
@@ -512,7 +512,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                       <p>Non renseigné</p>
                     )}
                   </div>
-                </div>}
+                </div>
+              )}
 
               {/* Bénéficiaires */}
               {data.type !== "speciaux" && (
@@ -529,11 +530,11 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {data.type === "facilitation" ? (
                       <p className="font-semibold capitalize">
                         {usersData.data?.data?.find(
-                          (u) => u.id === Number(data.beneficiary)
+                          (u) => u.id === Number(data.beneficiary),
                         )?.firstName +
                           " " +
                           usersData.data?.data?.find(
-                            (u) => u.id === Number(data.beneficiary)
+                            (u) => u.id === Number(data.beneficiary),
                           )?.lastName}
                       </p>
                     ) : (
@@ -546,16 +547,17 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                           <div className="flex flex-col">
                             {data.beficiaryList?.map((ben) => {
                               const beneficiary = usersData.data?.data?.find(
-                                (x) => x.id === ben.id
+                                (x) => x.id === ben.id,
                               );
                               return (
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${beneficiary?.firstName +
-                                  " " +
-                                  beneficiary?.lastName || ben.id
-                                  }`}</p>
+                                >{`${
+                                  beneficiary?.firstName +
+                                    " " +
+                                    beneficiary?.lastName || ben.id
+                                }`}</p>
                               );
                             })}
                           </div>
@@ -595,18 +597,18 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
               {(data.type === "facilitation" ||
                 data.type === "ressource_humaine") && (
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1">
-                      <DollarSign className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {"Montant"}
-                      </p>
-                      <p>{XAF.format(data.amount!)}</p>
-                    </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <DollarSign className="h-5 w-5 text-muted-foreground" />
                   </div>
-                )}
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {"Montant"}
+                    </p>
+                    <p>{XAF.format(data.amount!)}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Quantité */}
               <div className="flex items-start gap-3">
@@ -669,7 +671,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                           ?.filter((r) => r.decision?.startsWith("rejected"))
                           .pop()?.updatedAt!,
                         "PPP",
-                        { locale: fr }
+                        { locale: fr },
                       )}
                     </p>
                   </div>

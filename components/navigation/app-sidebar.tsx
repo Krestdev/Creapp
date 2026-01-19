@@ -83,7 +83,7 @@ function AppSidebar() {
   });
 
   const purchase = getPurchases.data?.data.filter(
-    (c) => c.status === "IN-REVIEW" || c.status === "PENDING"
+    (c) => c.status === "IN-REVIEW" || c.status === "PENDING",
   );
 
   const devisTraite =
@@ -91,7 +91,7 @@ function AppSidebar() {
     quotationsData?.data.filter(
       (c) =>
         c.status === "APPROVED" &&
-        !getPurchases.data.data.some((a) => a.deviId === c.id)
+        !getPurchases.data.data.some((a) => a.deviId === c.id),
     );
 
   const approbationDevis =
@@ -99,7 +99,7 @@ function AppSidebar() {
       ? groupQuotationsByCommandRequest(
           cotation?.data!,
           quotationsData?.data!,
-          providers?.data?.data!
+          providers?.data?.data!,
         ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
 
@@ -143,7 +143,7 @@ function AppSidebar() {
     (x) =>
       x.categoryId !== 0 &&
       x.state === "validated" &&
-      !besoinsDansCotation.includes(x.id)
+      !besoinsDansCotation.includes(x.id),
   );
 
   const isValidCategoryId = (id: number | null | undefined): id is number =>
@@ -152,7 +152,7 @@ function AppSidebar() {
   const isUserValidatorForCategory = (
     categoryId: number | null | undefined,
     userId: number,
-    categories: Category[]
+    categories: Category[],
   ): boolean => {
     if (!isValidCategoryId(categoryId)) return false;
 
@@ -165,7 +165,7 @@ function AppSidebar() {
   const hasUserValidatedRequest = (
     request: RequestModelT,
     userId: number,
-    categories: Category[]
+    categories: Category[],
   ): boolean => {
     if (!isValidCategoryId(request.categoryId)) return false;
 
@@ -181,7 +181,7 @@ function AppSidebar() {
   const hasAllPreviousValidatorsApproved = (
     request: RequestModelT,
     userId: number,
-    categories: Category[]
+    categories: Category[],
   ): boolean => {
     if (!isValidCategoryId(request.categoryId)) return false;
 
@@ -189,7 +189,7 @@ function AppSidebar() {
     if (!category?.validators) return false;
 
     const currentValidator = category.validators.find(
-      (v) => v.userId === userId
+      (v) => v.userId === userId,
     );
     if (!currentValidator) return false;
 
@@ -197,7 +197,7 @@ function AppSidebar() {
     if (currentValidator.rank === 1) return true;
 
     const previousValidators = category.validators.filter(
-      (v) => v.rank < currentValidator.rank
+      (v) => v.rank < currentValidator.rank,
     );
 
     if (previousValidators.length === 0) return true;
@@ -210,7 +210,7 @@ function AppSidebar() {
   const usePendingData = (
     filteredData: RequestModelT[],
     user: User,
-    categoryData: UseQueryResult<{ data: Category[] }, Error>
+    categoryData: UseQueryResult<{ data: Category[] }, Error>,
   ) => {
     return React.useMemo(() => {
       const categories = categoryData.data?.data;
@@ -228,7 +228,7 @@ function AppSidebar() {
   };
 
   const useFilteredRequests = (
-    requestData: UseQueryResult<{ data: RequestModelT[] }, Error>
+    requestData: UseQueryResult<{ data: RequestModelT[] }, Error>,
   ) => {
     return React.useMemo(() => {
       const data =
@@ -260,13 +260,13 @@ function AppSidebar() {
 
   const ticketsData = data?.data.filter((ticket) => ticket.status !== "ghost");
   const pendingTicket = ticketsData?.filter(
-    (ticket) => ticket.status === "pending"
+    (ticket) => ticket.status === "pending",
   );
   const approvedTicket = ticketsData?.filter(
-    (ticket) => ticket.status === "validated"
+    (ticket) => ticket.status === "validated",
   );
   const approvedDepense = ticketsData?.filter(
-    (ticket) => ticket.status === "pending_depense"
+    (ticket) => ticket.status === "pending_depense",
   );
 
   const overall = approvedDepense?.concat(approvedDepense);
@@ -337,12 +337,6 @@ function AppSidebar() {
           authorized: ["ADMIN", "MANAGER"],
           badgeValue: pendingData?.length > 0 ? pendingData?.length : undefined,
         },
-        // {
-        //   pageId: "PG-09-03",
-        //   title: "Catégories",
-        //   href: "/tableau-de-bord/besoins/categories",
-        //   authorized: ["ADMIN"],
-        // },
       ],
     },
     {
@@ -564,9 +558,9 @@ function AppSidebar() {
 
   // Filtrer les liens de navigation selon les rôles de l'utilisateur
   const filteredNavLinks = navLinks.filter((navLink) => {
-    const signPage = navLink.pageId === "00001";
+    const signPage = navLink.pageId === "PG-00001";
     const canSign = signatories.data?.data.find((s) =>
-      s.user?.some((o) => o.id === user?.id)
+      s.user?.some((o) => o.id === user?.id),
     );
     if (signPage) return !!canSign;
     if (navLink.authorized.length === 0) return true;
@@ -586,7 +580,7 @@ function AppSidebar() {
             key={id}
             {...props}
             items={items?.filter((item) =>
-              item.authorized.some((role) => userRoles.includes(role))
+              item.authorized.some((role) => userRoles.includes(role)),
             )}
           />
         ))}

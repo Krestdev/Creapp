@@ -87,7 +87,7 @@ type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
 type Priority = (typeof PRIORITIES)[number]["value"];
 
 const getStatusLabel = (
-  status: Status
+  status: Status,
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
@@ -107,7 +107,7 @@ const getStatusLabel = (
 };
 
 const getPriorityLabel = (
-  priority: Priority
+  priority: Priority,
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
@@ -137,7 +137,7 @@ export function PurchaseApprovalTable({ data }: Props) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -146,7 +146,7 @@ export function PurchaseApprovalTable({ data }: Props) {
 
   // filtres
   const [priorityFilter, setPriorityFilter] = React.useState<"all" | Priority>(
-    "all"
+    "all",
   );
   const [penaltyFilter, setPenaltyFilter] = React.useState<
     "all" | "true" | "false"
@@ -158,7 +158,7 @@ export function PurchaseApprovalTable({ data }: Props) {
 
   const [decisionOpen, setDecisionOpen] = React.useState(false);
   const [decisionType, setDecisionType] = React.useState<"approve" | "reject">(
-    "approve"
+    "approve",
   );
 
   // optionnel : reason pour rejet
@@ -167,27 +167,31 @@ export function PurchaseApprovalTable({ data }: Props) {
   const tabs = [
     {
       id: 0,
-      title: "Bons de commandes en attente"
+      title: "Bons de commandes en attente",
     },
     {
       id: 1,
-      title: "Bons de commandes traités"
+      title: "Bons de commandes traités",
     },
-  ]
+  ];
 
   const filteredData = React.useMemo(() => {
-    return data.filter((po)=>{
+    return data.filter((po) => {
       //Filter Priority
       const matchPriority =
-      priorityFilter === "all" ? true : po.priority === priorityFilter;
+        priorityFilter === "all" ? true : po.priority === priorityFilter;
       //Filter penalty
       const matchPenalty =
-      penaltyFilter === "all" ? true : Boolean(penaltyFilter) === po.hasPenalties;
+        penaltyFilter === "all"
+          ? true
+          : Boolean(penaltyFilter) === po.hasPenalties;
       //Filter Tab
       const matchTab =
-      selectedTab === 0 ? po.status === "IN-REVIEW" || po.status === "PENDING" : po.status === "REJECTED" || po.status === "APPROVED";
+        selectedTab === 0
+          ? po.status === "IN-REVIEW" || po.status === "PENDING"
+          : po.status === "REJECTED" || po.status === "APPROVED";
       return matchPenalty && matchPriority && matchTab;
-    })
+    });
   }, [data, priorityFilter, penaltyFilter, selectedTab]);
 
   const approveMutation = useMutation({
@@ -244,29 +248,6 @@ export function PurchaseApprovalTable({ data }: Props) {
   };
 
   const columns: ColumnDef<BonsCommande>[] = [
-    // {
-    //   id: "select",
-    //   header: ({ table }) => (
-    //     <Checkbox
-    //       checked={
-    //         table.getIsAllPageRowsSelected() ||
-    //         (table.getIsSomePageRowsSelected() && "indeterminate")
-    //       }
-    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //       aria-label="Sélectionner tout"
-    //     />
-    //   ),
-    //   cell: ({ row }) => (
-    //     <Checkbox
-    //       checked={row.getIsSelected()}
-    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-    //       aria-label="Sélectionner la ligne"
-    //     />
-    //   ),
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
-
     {
       accessorKey: "reference",
       header: ({ column }) => (
@@ -334,7 +315,7 @@ export function PurchaseApprovalTable({ data }: Props) {
         const po = row.original;
         const total = po.devi.element.reduce(
           (t, el) => t + el.priceProposed * el.quantity,
-          0
+          0,
         );
         return <div className="font-medium">{XAF.format(total)}</div>;
       },
@@ -514,7 +495,11 @@ export function PurchaseApprovalTable({ data }: Props) {
     <div className="w-full space-y-4">
       {/* BARRE DE FILTRES */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <TabBar tabs={tabs} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
+        <TabBar
+          tabs={tabs}
+          setSelectedTab={setSelectedTab}
+          selectedTab={selectedTab}
+        />
         <div className="flex flex-wrap items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
@@ -650,7 +635,7 @@ export function PurchaseApprovalTable({ data }: Props) {
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -673,7 +658,7 @@ export function PurchaseApprovalTable({ data }: Props) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

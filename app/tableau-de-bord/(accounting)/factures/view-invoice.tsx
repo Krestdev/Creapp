@@ -49,7 +49,7 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
   const files = typeof payment.proof === "string" ? payment.proof : "";
 
   const paymentType = getPaymentType.data?.data.find(
-    (p) => p.id === payment.methodId
+    (p) => p.id === payment.methodId,
   );
   return (
     <Dialog open={open} onOpenChange={openChange}>
@@ -138,7 +138,7 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
                       key={index}
                       href={`${
                         process.env.NEXT_PUBLIC_API
-                      }/uploads/${encodeURIComponent(proof)}`}
+                      }/${proof}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >

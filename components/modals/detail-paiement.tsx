@@ -130,7 +130,7 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
             <p className="font-semibold">
               {
                 getPaymentType.data?.data.find(
-                  (item) => item.id === payment.methodId
+                  (item) => item.id === payment.methodId,
                 )?.label
               }
             </p>
@@ -171,7 +171,7 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
             <Link
               href={`${
                 process.env.NEXT_PUBLIC_API
-              }/uploads/${encodeURIComponent(payment.proof as string)}`}
+              }/${payment.proof as string}`}
               target="_blank"
               className="flex gap-0.5 items-center"
             >

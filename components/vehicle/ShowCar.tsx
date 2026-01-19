@@ -39,7 +39,7 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
     }
   };
 
-  const url = `${process.env.NEXT_PUBLIC_API}/uploads/${vehicleData.picture}`;
+  const url = `${process.env.NEXT_PUBLIC_API}/${vehicleData.picture}`;
   /* =========================
        RENDER
     ========================= */

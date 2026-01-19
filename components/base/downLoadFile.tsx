@@ -11,20 +11,14 @@ interface DownloadButtonProps {
   className?: string;
 }
 
-export function DownloadFile({
-  file,
-}: DownloadButtonProps) {
+export function DownloadFile({ file }: DownloadButtonProps) {
   const baseUrl = process.env.NEXT_PUBLIC_API;
   return (
     <PDFDownloadLink
       document={
         <Document>
           <Page size="A4" style={styles.page}>
-            <Image
-              style={styles.fullImage}
-              src={`${baseUrl}/uploads/${file}`}
-              fixed
-            />
+            <Image style={styles.fullImage} src={`${baseUrl}/${file}`} fixed />
           </Page>
         </Document>
       }

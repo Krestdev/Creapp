@@ -226,37 +226,6 @@ export function DepartementTable({ data }: DepartementTableProps) {
           </div>
         ),
       },
-      // {
-      //   accessorKey: "status",
-      //   header: ({ column }) => {
-      //     return (
-      //       <span
-      //         className="tablehead"
-      //         onClick={() =>
-      //           column.toggleSorting(column.getIsSorted() === "asc")
-      //         }
-      //       >
-      //         {"Statut"}
-      //         <ArrowUpDown />
-      //       </span>
-      //     );
-      //   },
-      //   cell: ({ row }) => {
-      //     const status = row.getValue("status") as string;
-      //     const label = getBadge(status).label;
-      //     const variant = getBadge(status).variant;
-      //     return (
-      //       <Badge
-      //         variant={variant}
-      //       >
-      //         {label}
-      //       </Badge>
-      //     );
-      //   },
-      //   filterFn: (row, id, value) => {
-      //     return value.includes(row.getValue(id));
-      //   },
-      // },
       {
         id: "actions",
         header: "Actions",

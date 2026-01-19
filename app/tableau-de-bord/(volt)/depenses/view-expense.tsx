@@ -244,7 +244,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                         ?.firstName +
                         " " +
                         getUsers.data?.data.find(
-                          (u) => u.id === payment.benefId
+                          (u) => u.id === payment.benefId,
                         )?.lastName}
                     </p>
                   </div>
@@ -365,7 +365,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                         ?.firstName +
                         " " +
                         getUsers.data?.data.find(
-                          (u) => u.id === payment.benefId
+                          (u) => u.id === payment.benefId,
                         )?.lastName}
                     </p>
                   </div>
@@ -379,7 +379,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   <div className="flex flex-col">
                     <p className="view-group-title">{"Justification"}</p>
                     <Link
-                      href={`${process.env.NEXT_PUBLIC_API}/uploads/${payment.justification}`}
+                      href={`${process.env.NEXT_PUBLIC_API}/${payment.justification}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -450,7 +450,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               {getTypeLabel(payment.type)}
             </Badge>
           </div>
-        </div>
+        </div>,
       );
 
       // Référence
@@ -466,7 +466,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                 <p className="text-primary-600 text-sm">{payment.reference}</p>
               </div>
             </div>
-          </div>
+          </div>,
         );
       }
 
@@ -481,7 +481,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               <p className="view-group-title">{"Titre"}</p>
               <p className="font-semibold">{payment.title}</p>
             </div>
-          </div>
+          </div>,
         );
       }
 
@@ -495,7 +495,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
             <p className="view-group-title">{"Montant"}</p>
             <p className="font-semibold text-lg">{XAF.format(payment.price)}</p>
           </div>
-        </div>
+        </div>,
       );
 
       // Priorité
@@ -512,23 +512,23 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   payment.priority === "urgent"
                     ? "destructive"
                     : payment.priority === "high"
-                    ? "default"
-                    : payment.priority === "medium"
-                    ? "outline"
-                    : "secondary"
+                      ? "default"
+                      : payment.priority === "medium"
+                        ? "outline"
+                        : "secondary"
                 }
                 className="w-fit"
               >
                 {payment.priority === "urgent"
                   ? "Urgent"
                   : payment.priority === "high"
-                  ? "Haute"
-                  : payment.priority === "medium"
-                  ? "Moyenne"
-                  : "Basse"}
+                    ? "Haute"
+                    : payment.priority === "medium"
+                      ? "Moyenne"
+                      : "Basse"}
               </Badge>
             </div>
-          </div>
+          </div>,
         );
       }
 
@@ -547,7 +547,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               {getStatusBadge(payment.status).label}
             </Badge>
           </div>
-        </div>
+        </div>,
       );
 
       // Reason for rejection
@@ -566,7 +566,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               </p>
               <p className="text-red-800 font-medium">{payment.reason}</p>
             </div>
-          </div>
+          </div>,
         );
       }
 
@@ -591,7 +591,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               <p className="view-group-title">{"Méthode de paiement"}</p>
               <p className="font-semibold">{methodName}</p>
             </div>
-          </div>
+          </div>,
         );
       }
 
@@ -607,7 +607,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               <Link
                 href={`${
                   process.env.NEXT_PUBLIC_API
-                }/uploads/${encodeURIComponent(payment.proof as string)}`}
+                }/${payment.proof as string}`}
                 target="_blank"
                 className="flex gap-0.5 items-center"
               >
@@ -621,7 +621,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                 </p>
               </Link>
             </div>
-          </div>
+          </div>,
         );
       }
 
@@ -639,7 +639,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               })}
             </p>
           </div>
-        </div>
+        </div>,
       );
 
       // Date de modification
@@ -660,14 +660,14 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                 })}
               </p>
             </div>
-          </div>
+          </div>,
         );
       }
 
       // Créé par
       if (hasValue(payment.userId)) {
         const userData = getUsers.data?.data.find(
-          (u) => u.id === payment.userId
+          (u) => u.id === payment.userId,
         );
         if (userData) {
           fields.push(
@@ -683,7 +683,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   }`.trim()}
                 </p>
               </div>
-            </div>
+            </div>,
           );
         }
       }
@@ -697,7 +697,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
           <DialogHeader variant={"default"}>
             <div className="flex items-center gap-2">
               <DialogTitle className="uppercase">{`${getTypeLabel(
-                payment.type
+                payment.type,
               )} - ${
                 hasValue(payment.title) ? payment.title : "Sans titre"
               }`}</DialogTitle>
