@@ -9,7 +9,7 @@ class ProviderQueries {
   // --------------------------------------
 
   create = async (
-    data: Omit<Provider, "id" | "createdAt">
+    data: Omit<Provider, "id" | "createdAt">,
   ): Promise<{ message: string; data: Provider }> => {
     const formData = new FormData();
 
@@ -65,7 +65,7 @@ class ProviderQueries {
 
   update = async (
     id: number,
-    data: Partial<Omit<Provider, "id" | "createdAt">>
+    data: Partial<Omit<Provider, "id" | "createdAt">>,
   ): Promise<{ data: Provider }> => {
     const formData = new FormData();
 
@@ -105,7 +105,6 @@ class ProviderQueries {
 
   delete = async (id: number): Promise<{ data: Provider }> => {
     return api.delete(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };

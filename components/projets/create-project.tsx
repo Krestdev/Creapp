@@ -75,7 +75,6 @@ export function ProjectCreateForm() {
     ) => projectQ.create(data),
     onSuccess: (data: ResponseT<ProjectCreateResponse>) => {
       toast.success("Projet créé avec succès !");
-      console.log("created successful:", data);
       form.reset();
     },
     onError: (error: any) => {

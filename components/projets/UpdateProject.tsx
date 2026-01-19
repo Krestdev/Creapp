@@ -77,7 +77,6 @@ export default function UpdateProject({
     ) => projectQ.update(projectData?.id || 0, data),
     onSuccess: (data: ResponseT<ProjectT>) => {
       toast.success("Projet mis à jour avec succès !");
-      console.log("created successful:", data);
       form.reset();
       setOpen(false);
       // queryClient.invalidateQueries({

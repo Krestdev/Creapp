@@ -73,8 +73,6 @@ export default function FacilitationRequestForm() {
     { id: number; nom: string; montant: number }[]
   >([]);
 
-  console.log(beneficiairesList);
-
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
   // ----------------------------------------------------------------------

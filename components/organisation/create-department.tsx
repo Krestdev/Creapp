@@ -61,7 +61,6 @@ export function DepartmentCreateForm() {
     ) => departmentQ.create(data),
     onSuccess: (data: ResponseT<DepartmentT>) => {
       toast.success("Département créé avec succès !");
-      console.log("created successful:", data);
       form.reset();
     },
     onError: (error: any) => {

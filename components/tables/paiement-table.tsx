@@ -137,7 +137,7 @@ export function PaiementTable({ data }: PaiementTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -276,7 +276,7 @@ export function PaiementTable({ data }: PaiementTableProps) {
       },
       cell: ({ row }) => {
         const priority = row.getValue(
-          "priorite"
+          "priorite",
         ) as keyof typeof priorityConfig;
         const config = priorityConfig[priority];
         const Icon = config.icon;
@@ -332,16 +332,16 @@ export function PaiementTable({ data }: PaiementTableProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => console.log("View", item)}>
+              <DropdownMenuItem>
                 <Eye className="mr-2 h-4 w-4" />
                 View
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => console.log("Validate", item)}>
+              <DropdownMenuItem>
                 <Check className="mr-2 h-4 w-4" />
                 Validate
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log("Reject", item)}>
+              <DropdownMenuItem>
                 <X className="mr-2 h-4 w-4" />
                 Reject
               </DropdownMenuItem>
@@ -478,9 +478,9 @@ export function PaiementTable({ data }: PaiementTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -496,7 +496,7 @@ export function PaiementTable({ data }: PaiementTableProps) {
                   className={cn(
                     statusConfig[
                       row.original.statut as keyof typeof statusConfig
-                    ].rowClassName
+                    ].rowClassName,
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -506,7 +506,7 @@ export function PaiementTable({ data }: PaiementTableProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

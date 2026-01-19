@@ -65,8 +65,8 @@ export function ChartPieLabelList({
   title = "Répartition des dépenses",
 }: ChartPieLabelListProps) {
   const { data: projectData } = useQuery({
-    queryKey:["projectsList"],
-    queryFn:projectQ.getAll,
+    queryKey: ["projectsList"],
+    queryFn: projectQ.getAll,
   });
 
   const { data: commandData } = useQuery({
@@ -79,10 +79,8 @@ export function ChartPieLabelList({
 
   // Je vais chercher les fournisseurs des commandes qui appartiennent à commandIds
   const providerData = commandData?.data.filter((command) =>
-    commandIds.includes(command.id)
+    commandIds.includes(command.id),
   );
-
-  console.log(data.filter((x) => x.status === "paid"));
 
   // Préparer les données
   const prepareChartData = () => {
@@ -191,7 +189,7 @@ export function ChartPieLabelList({
       amount: {
         label: "Montant",
       },
-    } as ChartConfig
+    } as ChartConfig,
   );
 
   // Fonction pour afficher les pourcentages sur les portions
@@ -280,7 +278,7 @@ export function ChartPieLabelList({
                       const percent =
                         totalAmount > 0
                           ? parseFloat(
-                              ((Number(value) / totalAmount) * 100).toFixed(2)
+                              ((Number(value) / totalAmount) * 100).toFixed(2),
                             )
                           : 0;
                       return [

@@ -176,7 +176,6 @@ export default function MyForm() {
       priority: "medium",
     };
 
-    console.log("Données soumises:", requestData);
     requestMutation.mutate(requestData);
   }
 

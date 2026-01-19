@@ -11,10 +11,9 @@ class DepartmentQueries {
     data: Omit<
       DepartmentT,
       "id" | "createdAt" | "updatedAt" | "members" | "status" | "reference"
-    >
+    >,
   ): Promise<{ message: string; data: DepartmentT }> => {
     return api.post(this.route, data).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -22,7 +21,6 @@ class DepartmentQueries {
   // Liste des départements
   getAll = async (): Promise<{ data: DepartmentT[] }> => {
     return api.get(this.route).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -30,7 +28,6 @@ class DepartmentQueries {
   // Récupérer un département
   getOne = async (id: number): Promise<{ data: DepartmentT }> => {
     return api.get(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -38,10 +35,9 @@ class DepartmentQueries {
   // Modifier un département
   update = async (
     id: number,
-    data: Partial<DepartmentUpdateInput>
+    data: Partial<DepartmentUpdateInput>,
   ): Promise<{ data: DepartmentT }> => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -49,7 +45,6 @@ class DepartmentQueries {
   // Supprimer un département
   delete = async (id: number): Promise<{ data: DepartmentT }> => {
     return api.delete(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -59,7 +54,6 @@ class DepartmentQueries {
   // Récupérer les membres d’un département
   getMembers = async (id: number): Promise<{ data: Member[] }> => {
     return api.get(`${this.route}/${id}/members`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -67,7 +61,7 @@ class DepartmentQueries {
   // Ajouter des membres
   addMembers = async (
     id: number,
-    data: { label: string; userId: number } // Modifier le type pour userId
+    data: { label: string; userId: number }, // Modifier le type pour userId
   ): Promise<{ data: Member[] }> => {
     return api
       .post(`${this.route}/${id}/members`, {
@@ -75,7 +69,6 @@ class DepartmentQueries {
         userId: data.userId,
       })
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };
@@ -83,12 +76,11 @@ class DepartmentQueries {
   // Retirer des membres
   removeMembers = async (
     id: number,
-    members: number
+    members: number,
   ): Promise<{ data: Member }> => {
     return api
       .delete(`${this.route}/${id}/members`, { data: { members } })
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };
@@ -98,7 +90,6 @@ class DepartmentQueries {
   // Liste des validateurs
   getValidators = async (id: number): Promise<{ data: Member[] }> => {
     return api.get(`${this.route}/${id}/validators`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -106,12 +97,11 @@ class DepartmentQueries {
   // Ajouter des validateurs
   addValidators = async (
     idDep: number,
-    userId: number
+    userId: number,
   ): Promise<{ data: Member[] }> => {
     return api
       .post(`${this.route}/${idDep}/validators`, { userId })
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };
@@ -119,7 +109,7 @@ class DepartmentQueries {
   // Retirer des validateurs
   removeValidators = async (
     id: number,
-    userId: number
+    userId: number,
   ): Promise<{ data: Member[] }> => {
     return api
       .delete(`${this.route}/${id}/validators`, { data: { userId } })
@@ -132,26 +122,24 @@ class DepartmentQueries {
 
   getFinalValidators = async (id: number): Promise<{ data: Member[] }> => {
     return api.get(`${this.route}/${id}/final-validators`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
 
   addFinalValidators = async (
     id: number,
-    userId: number
+    userId: number,
   ): Promise<{ data: Member[] }> => {
     return api
       .post(`${this.route}/${id}/final-validators`, { userId })
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };
 
   removeFinalValidators = async (
     id: number,
-    userId: number
+    userId: number,
   ): Promise<{ data: Member[] }> => {
     return api
       .delete(`${this.route}/${id}/final-validators`, {
@@ -169,7 +157,6 @@ class DepartmentQueries {
     return api
       .post(`${this.route}/${id}/chief`, { userId })
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };
@@ -177,12 +164,11 @@ class DepartmentQueries {
   // Supprimer un chef
   removeChief = async (
     id: number,
-    userId: number
+    userId: number,
   ): Promise<{ data: Member }> => {
     return api
       .delete(`${this.route}/${id}/chief`, { data: { userId } })
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };

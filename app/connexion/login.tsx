@@ -46,7 +46,6 @@ function Login() {
       res.cookies.set("userRole", JSON.stringify(user.role), {
         httpOnly: true,
       });
-      console.log("User roles set in cookies:", res.cookies.get("userRole"));
       login(data.data);
       router.push("/tableau-de-bord");
     },

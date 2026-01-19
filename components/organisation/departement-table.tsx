@@ -191,7 +191,6 @@ export function DepartementTable({ data }: DepartementTableProps) {
           );
         },
         cell: ({ row }) => {
-          console.log(row.getValue("members"));
           const members = row.getValue("members") as Member[];
           return (
             <div>

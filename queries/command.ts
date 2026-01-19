@@ -12,10 +12,9 @@ class CommandQueries {
     data: Omit<
       BonsCommande,
       "id" | "createdAt" | "updatedAt" | "reference" | "hasPenalties"
-    >
+    >,
   ): Promise<{ data: BonsCommande }> => {
     return api.post(this.route, data).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -26,14 +25,12 @@ class CommandQueries {
 
   getAll = async (): Promise<{ data: BonsCommande[] }> => {
     return api.get(this.route).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
 
   getOne = async (id: number): Promise<{ data: BonsCommande }> => {
     return api.get(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -44,10 +41,9 @@ class CommandQueries {
 
   update = async (
     id: number,
-    data: Partial<BonsCommande>
+    data: Partial<BonsCommande>,
   ): Promise<{ data: BonsCommande }> => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -58,7 +54,6 @@ class CommandQueries {
 
   delete = async (id: number): Promise<{ data: BonsCommande }> => {
     return api.delete(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };

@@ -86,7 +86,6 @@ export function CategoryCreateForm() {
     ) => categoryQ.createCategory(data),
     onSuccess: (data: ResponseT<Category>) => {
       toast.success("Catégorie créée avec succès !");
-      console.log("created successful:", data);
       form.reset();
     },
     onError: (error: any) => {

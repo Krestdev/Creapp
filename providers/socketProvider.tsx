@@ -11,7 +11,7 @@ export default function SocketProvider({
   children: React.ReactNode;
 }) {
   const queryClient = useQueryClient();
-  const { user } = useStore();
+  const { user, logout } = useStore();
 
   useEffect(() => {
     const socket = getSocket();
@@ -395,21 +395,31 @@ export default function SocketProvider({
      * user
      */
 
-    socket.on("user:new", () => {
+    socket.on("user:new", ({ message }: { message: number }) => {
+      alert(message);
+      console.log(message);
       queryClient.invalidateQueries({
         queryKey: ["users"],
         refetchType: "active",
       });
     });
 
-    socket.on("user:update", () => {
+    socket.on("user:update", ({ userId }: { userId: number }) => {
+      if (user?.id === userId) {
+        localStorage.removeItem("creapp-store");
+        window.location.href = "/connexion";
+      }
       queryClient.invalidateQueries({
         queryKey: ["users"],
         refetchType: "active",
       });
     });
 
-    socket.on("user:delete", () => {
+    socket.on("user:delete", ({ userId }: { userId: number }) => {
+      if (user?.id === userId) {
+        localStorage.removeItem("creapp-store");
+        window.location.href = "/connexion";
+      }
       queryClient.invalidateQueries({
         queryKey: ["users"],
         refetchType: "active",

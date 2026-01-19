@@ -268,7 +268,6 @@ export function DataVal({
       const validatedByUser = categoriesData
         .find((c) => c.id === b.categoryId)
         ?.validators.find((v) => v.userId === user?.id)?.id;
-      //console.log(`validator Id: ${validatedByUser} - ${b.label}`);
       const validated = b.revieweeList?.some(
         (r) => r.validatorId === validatedByUser,
       );

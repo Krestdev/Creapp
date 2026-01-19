@@ -12,10 +12,9 @@ class CommandRqstQueries {
     data: Omit<
       CommandRequestT,
       "id" | "createdAt" | "updatedAt" | "reference" | "besoins"
-    >
+    >,
   ): Promise<{ data: CommandRequestT }> => {
     return api.post(this.route, data).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -26,14 +25,12 @@ class CommandRqstQueries {
 
   getAll = async (): Promise<{ data: CommandRequestT[] }> => {
     return api.get(this.route).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
 
   getOne = async (id: number): Promise<{ data: CommandRequestT }> => {
     return api.get(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -44,10 +41,9 @@ class CommandRqstQueries {
 
   update = async (
     id: number,
-    data: Partial<CommandRequestT>
+    data: Partial<CommandRequestT>,
   ): Promise<{ data: CommandRequestT }> => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -58,7 +54,6 @@ class CommandRqstQueries {
 
   delete = async (id: number): Promise<{ data: CommandRequestT }> => {
     return api.delete(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -69,7 +64,6 @@ class CommandRqstQueries {
 
   validate = async (id: number): Promise<{ data: CommandRequestT }> => {
     return api.put(`${this.route}/validate/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -82,7 +76,6 @@ class CommandRqstQueries {
 
   submit = async (id: number): Promise<{ data: CommandRequestT }> => {
     return api.put(`${this.route}/submit/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -93,12 +86,11 @@ class CommandRqstQueries {
 
   attachDoc = async (
     id: number,
-    docId: number
+    docId: number,
   ): Promise<{ data: CommandRequestT }> => {
     return api
       .put(`${this.route}/attachDoc/${id}/${docId}`)
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };
@@ -109,12 +101,11 @@ class CommandRqstQueries {
 
   linkProvider = async (
     id: number,
-    providerId: number
+    providerId: number,
   ): Promise<{ data: CommandRequestT }> => {
     return api
       .put(`${this.route}/linkProvider/${id}/${providerId}`)
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };

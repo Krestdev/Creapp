@@ -94,7 +94,6 @@ export default function CreateSignatairForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
     try {
       const data: Omit<Signatair, "id" | "createdAt" | "updatedAt"> = {
         bankId: Number(values.bank),

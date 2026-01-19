@@ -235,7 +235,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
@@ -244,27 +244,31 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
-    undefined
+    undefined,
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPay, setShowPay] = React.useState<boolean>(false);
   const [showShare, setShowShare] = React.useState<boolean>(false);
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
-  const [typeFilter, setTypeFilter] = React.useState<"all" | PaymentRequest["type"]>("all");
-  const [priorityFilter, setPriorityFilter] = React.useState<"all" | PaymentRequest["priority"]>("all");
+  const [typeFilter, setTypeFilter] = React.useState<
+    "all" | PaymentRequest["type"]
+  >("all");
+  const [priorityFilter, setPriorityFilter] = React.useState<
+    "all" | PaymentRequest["priority"]
+  >("all");
 
   const resetAllFilters = () => {
     setGlobalFilter("");
     setPriorityFilter("all");
     setTypeFilter("all");
-  }
+  };
 
   const tabs = [
     {
       id: 0,
       title: "Tickets en attente",
       badge: payments.filter(
-        (p) => p.status === "pending_depense" || p.status === "validated"
+        (p) => p.status === "pending_depense" || p.status === "validated",
       ).length,
     },
     {
@@ -284,14 +288,13 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
       const matchTab =
         selectedTab === 0
           ? p.status === "pending_depense" ||
-          p.status === "validated" ||
-          p.status === "unsigned"
+            p.status === "validated" ||
+            p.status === "unsigned"
           : selectedTab === 1
             ? p.status === "signed"
             : p.status === "paid";
       //Filter type
-      const matchType =
-        typeFilter === "all" ? true : p.type === typeFilter;
+      const matchType = typeFilter === "all" ? true : p.type === typeFilter;
       //Filter priority
       const matchPriority =
         priorityFilter === "all" ? true : p.priority === priorityFilter;
@@ -355,7 +358,6 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original;
-        console.log(value.type);
         const type = getTypeBadge(value.type);
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
@@ -451,11 +453,11 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
 
         const priorityA =
           priorityOrder[
-          rowA.getValue(columnId) as keyof typeof priorityOrder
+            rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-          rowB.getValue(columnId) as keyof typeof priorityOrder
+            rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -633,7 +635,9 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                   <Label>{"Type"}</Label>
                   <Select
                     value={typeFilter}
-                    onValueChange={(value) => setTypeFilter(value as "all" | PaymentRequest["type"])}
+                    onValueChange={(value) =>
+                      setTypeFilter(value as "all" | PaymentRequest["type"])
+                    }
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Filtrer par type" />
@@ -657,7 +661,9 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                   <Label>{"Priorité"}</Label>
                   <Select
                     value={priorityFilter}
-                    onValueChange={v => setPriorityFilter(v as "all" | PaymentRequest["priority"])}
+                    onValueChange={(v) =>
+                      setPriorityFilter(v as "all" | PaymentRequest["priority"])
+                    }
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Filtrer par priorité" />
@@ -736,12 +742,13 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
           </DropdownMenu>
         </div>
       </div>
-      <h3>{`Tickets ${selectedTab === 0
-        ? "en attente"
-        : selectedTab === 1
-          ? "signés"
-          : "payés"
-        } (${payments.length})`}</h3>
+      <h3>{`Tickets ${
+        selectedTab === 0
+          ? "en attente"
+          : selectedTab === 1
+            ? "signés"
+            : "payés"
+      } (${payments.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -756,9 +763,9 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -785,7 +792,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}

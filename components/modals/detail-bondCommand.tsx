@@ -16,11 +16,8 @@ interface DetailOrderProps {
 }
 
 export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
-
   if (!data) return null;
 
-  console.log(data);
-  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[750px] overflow-y-auto p-0 gap-0 overflow-x-hidden border-none flex flex-col">
@@ -81,9 +78,7 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
                 <p className="w-fit font-semibold underline text-[10px]">
                   {"Contact principal :"}
                 </p>
-                <p className="flex-1 text-[10px]">
-                  {data.name}
-                </p>
+                <p className="flex-1 text-[10px]">{data.name}</p>
               </div>
 
               <div className="flex gap-2">
@@ -107,7 +102,9 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
           <div className="border border-blacK mb-6">
             {/* HEADER */}
             <div className="flex bg-gray-100 border-b border-black text-[12px] leading-tight font-bold uppercase">
-              <div className="border-black p-2 w-[31%]">{"TITRE DU BESOIN"}</div>
+              <div className="border-black p-2 w-[31%]">
+                {"TITRE DU BESOIN"}
+              </div>
 
               <div className="border-black p-2 w-[39%]">
                 {"DESCRIPTION DÉTAILLÉE & SPÉCIFICATIONS"}

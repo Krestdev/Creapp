@@ -50,7 +50,6 @@ export function ModalDestockage({
     },
     onError: (error) => {
       toast.error("Une erreur est survenue.");
-      console.log(error);
     },
   });
 

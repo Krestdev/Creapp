@@ -10,10 +10,9 @@ class NotificationQueries {
 
   // Create
   create = async (
-    data: Omit<Notification, "id" | "createdAt" | "updatedAt" | "read">
+    data: Omit<Notification, "id" | "createdAt" | "updatedAt" | "read">,
   ): Promise<ResponseT<Notification>> => {
     return api.post(this.route, data).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -21,7 +20,6 @@ class NotificationQueries {
   // Get all
   getAll = async (): Promise<{ data: Notification[] }> => {
     return api.get(this.route).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -29,7 +27,6 @@ class NotificationQueries {
   // Get one
   getOne = async (id: number): Promise<{ data: Notification }> => {
     return api.get(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -37,10 +34,9 @@ class NotificationQueries {
   // Update
   update = async (
     id: number,
-    data: Partial<Notification>
+    data: Partial<Notification>,
   ): Promise<{ data: Notification }> => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -48,7 +44,6 @@ class NotificationQueries {
   // Delete
   delete = async (id: number): Promise<{ data: Notification }> => {
     return api.delete(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -60,7 +55,6 @@ class NotificationQueries {
   // Notifications d’un utilisateur
   getByUser = async (userId: number): Promise<{ data: Notification[] }> => {
     return api.get(`${this.route}/user/${userId}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -68,7 +62,6 @@ class NotificationQueries {
   // Marquer comme lue
   markAsRead = async (id: number): Promise<{ data: Notification }> => {
     return api.patch(`${this.route}/${id}/read`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -78,7 +71,6 @@ class NotificationQueries {
     return api
       .patch(`${this.route}/user/${userId}/read-all`)
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };

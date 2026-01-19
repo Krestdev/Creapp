@@ -1,11 +1,10 @@
 import api from "@/providers/axios";
 import { PaymentRequest } from "@/types/types";
 
-export interface NewPayment
-  extends Omit<
-    PaymentRequest,
-    "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status"
-  > {
+export interface NewPayment extends Omit<
+  PaymentRequest,
+  "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status"
+> {
   proof: File;
   commandId: number;
 }
@@ -26,7 +25,7 @@ class PaymentQueries {
   // CREATE (POST)
   // --------------------------------------
   create = async (
-    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">
+    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">,
   ): Promise<{ message: string; data: PaymentRequest }> => {
     const formData = new FormData();
 
@@ -61,7 +60,7 @@ class PaymentQueries {
   createDepense = async (
     data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> & {
       caisseId: number;
-    }
+    },
   ): Promise<{ message: string; data: PaymentRequest }> => {
     const formData = new FormData();
 
@@ -93,7 +92,9 @@ class PaymentQueries {
       .then((response) => response.data);
   };
 
-  new = async (payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId">): Promise<{ data: PaymentRequest }> => {
+  new = async (
+    payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId">,
+  ): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
     const { proof, ...rest } = payload;
     formData.append("proof", proof);
@@ -153,7 +154,7 @@ class PaymentQueries {
 
   update = async (
     id: number,
-    data: UpdatePayment
+    data: UpdatePayment,
   ): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
     const { proof, ...rest } = data;
@@ -207,7 +208,7 @@ class PaymentQueries {
 
   vaidate = async (
     id: number,
-    data: UpdatePayment
+    data: UpdatePayment,
   ): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
     const { proof, ...rest } = data;
@@ -221,14 +222,13 @@ class PaymentQueries {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };
 
   pay = async (
     id: number,
-    data: PayPayload
+    data: PayPayload,
   ): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
     const { justification, ...rest } = data;

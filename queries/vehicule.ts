@@ -10,7 +10,7 @@ class VehicleQueries {
 
   // Create
   create = async (
-    payload: Omit<Vehicle, "id" | "createdAt" | "updatedAt">
+    payload: Omit<Vehicle, "id" | "createdAt" | "updatedAt">,
   ): Promise<ResponseT<Vehicle>> => {
     const formData = new FormData();
 
@@ -42,11 +42,9 @@ class VehicleQueries {
       });
   };
 
-
   // Get all
   getAll = async (): Promise<{ data: Vehicle[] }> => {
     return api.get(this.route).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -54,7 +52,6 @@ class VehicleQueries {
   // Get one
   getOne = async (id: number): Promise<{ data: Vehicle }> => {
     return api.get(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -62,7 +59,7 @@ class VehicleQueries {
   // Update
   update = async (
     id: number,
-    data: Partial<Vehicle>
+    data: Partial<Vehicle>,
   ): Promise<{ data: Vehicle }> => {
     const formData = new FormData();
 
@@ -98,11 +95,9 @@ class VehicleQueries {
       });
   };
 
-
   // Delete
   delete = async (id: number): Promise<{ data: Vehicle }> => {
     return api.delete(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -114,7 +109,6 @@ class VehicleQueries {
   // Vehicles d’un utilisateur
   getByUser = async (userId: number): Promise<{ data: Vehicle[] }> => {
     return api.get(`${this.route}/user/${userId}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -122,7 +116,6 @@ class VehicleQueries {
   // Marquer comme lue
   markAsRead = async (id: number): Promise<{ data: Vehicle }> => {
     return api.patch(`${this.route}/${id}/read`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };
@@ -132,7 +125,6 @@ class VehicleQueries {
     return api
       .patch(`${this.route}/user/${userId}/read-all`)
       .then((response) => {
-        console.log(response.data);
         return response.data;
       });
   };

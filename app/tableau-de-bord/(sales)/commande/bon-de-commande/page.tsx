@@ -54,7 +54,6 @@ const Page = () => {
       let matchDate = true; //Date filter
 
       const start = new Date(item.createdAt);
-      console.log(start);
       if (from && !to) {
         matchDate = start >= from;
       } else if (!from && to) {
@@ -98,17 +97,17 @@ const Page = () => {
               total +
               item.devi.element.reduce(
                 (t, e) => t + e.priceProposed * e.quantity,
-                0
+                0,
               ),
-            0
-          )
+            0,
+          ),
         ),
       },
     },
     {
       title: "En attente",
       value: filteredData.filter(
-        (c) => c.status === "PENDING" || c.status === "IN-REVIEW"
+        (c) => c.status === "PENDING" || c.status === "IN-REVIEW",
       ).length,
       variant: "secondary",
       more: {
@@ -131,8 +130,8 @@ const Page = () => {
                 item.devi.element
                   .filter((o) => o.status === "SELECTED")
                   .reduce((t, e) => t + e.priceProposed * e.quantity, 0),
-              0
-            )
+              0,
+            ),
         ),
       },
     },

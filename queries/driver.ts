@@ -105,7 +105,6 @@ class DriverQueries {
 
   delete = async (id: number): Promise<{ data: Driver }> => {
     return api.delete(`${this.route}/${id}`).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };

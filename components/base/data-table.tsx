@@ -557,8 +557,6 @@ export function DataTable({ data }: Props) {
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedItem(item);
-                    console.log(item.type);
-
                     item.type === "facilitation"
                       ? setIsUpdateFacModalOpen(true)
                       : setIsUpdateModalOpen(true);

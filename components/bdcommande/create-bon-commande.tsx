@@ -79,11 +79,10 @@ export default function CreateBonForm() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
       toast(
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-        </pre>
+        </pre>,
       );
     } catch (error) {
       console.error("Form submission error", error);
@@ -257,7 +256,7 @@ export default function CreateBonForm() {
                           variant={"outline"}
                           className={cn(
                             "w-60 pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (

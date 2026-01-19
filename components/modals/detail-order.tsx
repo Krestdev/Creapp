@@ -20,8 +20,6 @@ interface DetailOrderProps {
 export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
   if (!data) return null;
 
-  console.log(data);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[750px] overflow-y-auto p-0 gap-0 overflow-x-hidden border-none flex flex-col">

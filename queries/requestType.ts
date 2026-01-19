@@ -12,7 +12,6 @@ class RequestTypeQueries {
 
   update = async (id: number, data: Partial<RequestType>) => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
-      console.log(response.data);
       return response.data;
     });
   };

@@ -49,7 +49,6 @@ export default function CreateDriverForm() {
     ) => driverQ.create(data),
     onSuccess: (data: ResponseT<Driver>) => {
       toast.success("Fournisseur créé avec succès.");
-      console.log("Register successful:", data);
     },
     onError: (error: any) => {
       toast.error(

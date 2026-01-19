@@ -18,7 +18,7 @@ import {
   Eye,
   LucidePen,
   Settings2,
-  Trash
+  Trash,
 } from "lucide-react";
 import * as React from "react";
 
@@ -51,14 +51,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
-import { BonsCommande, PAY_STATUS, PaymentRequest, PRIORITIES } from "@/types/types";
+import {
+  BonsCommande,
+  PAY_STATUS,
+  PaymentRequest,
+  PRIORITIES,
+} from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
 import { Label } from "../ui/label";
 import EditPayment from "@/app/tableau-de-bord/(sales)/commande/paiements/edit-payment";
 import { format } from "date-fns";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -66,13 +78,13 @@ interface Props {
 }
 
 const getPriorityBadge = (
-  priority: PaymentRequest["priority"]
+  priority: PaymentRequest["priority"],
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
   rowClassName?: string;
 } => {
-  const label = PRIORITIES.find(c => c.value === priority)?.name ?? "Inconnu"
+  const label = PRIORITIES.find((c) => c.value === priority)?.name ?? "Inconnu";
   switch (priority) {
     case "low":
       return {
@@ -112,9 +124,12 @@ const getPriorityBadge = (
   }
 };
 
-function getStatusBadge(status: PaymentRequest["status"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-  const statusData = PAY_STATUS.find(s => s.value === status);
-  const label = statusData?.name ?? "Inconnu"
+function getStatusBadge(status: PaymentRequest["status"]): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const statusData = PAY_STATUS.find((s) => s.value === status);
+  const label = statusData?.name ?? "Inconnu";
 
   switch (status) {
     case "pending":
@@ -132,14 +147,14 @@ function getStatusBadge(status: PaymentRequest["status"]): { label: string; vari
     default:
       return { label, variant: "outline" };
   }
-};
+}
 
 export function PaiementsTable({ payments, purchases }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
@@ -148,30 +163,34 @@ export function PaiementsTable({ payments, purchases }: Props) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
-    undefined
+    undefined,
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
-  const [statusFilter, setStatusFilter]  = React.useState<"all" | PaymentRequest["status"]>("all");
-  const [priorityFilter, setPriorityFilter] = React.useState<"all" | PaymentRequest["priority"]>("all");
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | PaymentRequest["status"]
+  >("all");
+  const [priorityFilter, setPriorityFilter] = React.useState<
+    "all" | PaymentRequest["priority"]
+  >("all");
 
-  const filteredData = React.useMemo(()=>{
-    return payments.filter(p=>{
+  const filteredData = React.useMemo(() => {
+    return payments.filter((p) => {
       //Filter Priority
       const matchPriority =
-      priorityFilter === "all" ? true : p.priority === priorityFilter;
+        priorityFilter === "all" ? true : p.priority === priorityFilter;
       //Filter Status
       const matchStatus =
-      statusFilter === "all" ? true : p.status === statusFilter;
+        statusFilter === "all" ? true : p.status === statusFilter;
       return matchPriority && matchStatus;
-    })
+    });
   }, [payments, statusFilter, priorityFilter]);
 
   const resetAllFilters = () => {
     setGlobalFilter("");
     setPriorityFilter("all");
     setStatusFilter("all");
-  }
+  };
 
   const columns: ColumnDef<PaymentRequest>[] = [
     // {
@@ -228,7 +247,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find(p => p.id === value.commandId);
+        const purchase = purchases.find((p) => p.id === value.commandId);
         return <div>{purchase?.devi.commandRequest.title ?? "Non défini"}</div>;
       },
     },
@@ -304,11 +323,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
       cell: ({ row }) => {
         const value = row.original;
         const status = getStatusBadge(value.status);
-        return (
-          <Badge variant={status.variant}>
-            {status.label}
-          </Badge>
-        );
+        return <Badge variant={status.variant}>{status.label}</Badge>;
       },
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
@@ -328,7 +343,9 @@ export function PaiementsTable({ payments, purchases }: Props) {
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{format(row.getValue("createdAt"), "dd/MM/yyyy")}</div>
+        <div className="font-medium">
+          {format(row.getValue("createdAt"), "dd/MM/yyyy")}
+        </div>
       ),
     },
     {
@@ -368,9 +385,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
                 <LucidePen />
                 {"Modifier"}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => console.log("Reject", item)}
-                disabled={item.status !== "pending"}>
+              <DropdownMenuItem disabled={item.status !== "pending"}>
                 <Trash />
                 {"Annuler"}
               </DropdownMenuItem>
@@ -415,84 +430,86 @@ export function PaiementsTable({ payments, purchases }: Props) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline">
-                <Settings2 className="mr-2 h-4 w-4" />
-                {"Filtres"}
-              </Button>
-            </SheetTrigger>
+          <SheetTrigger asChild>
+            <Button variant="outline">
+              <Settings2 className="mr-2 h-4 w-4" />
+              {"Filtres"}
+            </Button>
+          </SheetTrigger>
 
-            <SheetContent className="overflow-y-auto">
-              <SheetHeader>
-                <SheetTitle>{"Filtres"}</SheetTitle>
-                <SheetDescription>
-                  {"Configurer les filtres pour affiner vos données"}
-                </SheetDescription>
-              </SheetHeader>
+          <SheetContent className="overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les filtres pour affiner vos données"}
+              </SheetDescription>
+            </SheetHeader>
 
-              <div className="space-y-5 px-5">
-                <div className="space-y-3">
-                  <Label htmlFor="searchPO">{"Recherche globale"}</Label>
-                  <Input
-                    id="searchPO"
-                    type="search"
-                    placeholder="Référence"
-                    value={globalFilter ?? ""}
-                    onChange={(e) => setGlobalFilter(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label>{"Priorité"}</Label>
-                  <Select
-                    value={priorityFilter}
-                    onValueChange={(v: "all" | PaymentRequest["priority"]) =>
-                      setPriorityFilter(v)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Toutes les priorités" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {PRIORITIES.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label>{"Statut"}</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={v=>setStatusFilter(v as "all" | PaymentRequest["status"])}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Toutes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {
-                        PAY_STATUS.map((s)=>
-                        <SelectItem key={s.value} value={s.value}>{s.name}</SelectItem>
-                        )
-                      }
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button
-                  variant="outline"
-                  onClick={resetAllFilters}
-                  className="w-full"
-                >
-                  {"Réinitialiser les filtres"}
-                </Button>
+            <div className="space-y-5 px-5">
+              <div className="space-y-3">
+                <Label htmlFor="searchPO">{"Recherche globale"}</Label>
+                <Input
+                  id="searchPO"
+                  type="search"
+                  placeholder="Référence"
+                  value={globalFilter ?? ""}
+                  onChange={(e) => setGlobalFilter(e.target.value)}
+                />
               </div>
-            </SheetContent>
-          </Sheet>
+              <div className="space-y-3">
+                <Label>{"Priorité"}</Label>
+                <Select
+                  value={priorityFilter}
+                  onValueChange={(v: "all" | PaymentRequest["priority"]) =>
+                    setPriorityFilter(v)
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Toutes les priorités" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {PRIORITIES.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label>{"Statut"}</Label>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(v) =>
+                    setStatusFilter(v as "all" | PaymentRequest["status"])
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Toutes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {PAY_STATUS.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={resetAllFilters}
+                className="w-full"
+              >
+                {"Réinitialiser les filtres"}
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
@@ -514,21 +531,21 @@ export function PaiementsTable({ payments, purchases }: Props) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === "createdAt" ?
-                      "Date de creation" :
-                      column.id === "status" ?
-                        "Statut" :
-                        column.id === "piority" ?
-                          "Priorité" :
-                          column.id === "price" ?
-                            "Montant" :
-                            column.id === "commandId" ?
-                              "Bon de commande" :
-                              column.id === "provider" ?
-                                "Zournisseur" :
-                                column.id === "reference" ?
-                                  "Reference" : column.id
-                    }
+                    {column.id === "createdAt"
+                      ? "Date de creation"
+                      : column.id === "status"
+                        ? "Statut"
+                        : column.id === "piority"
+                          ? "Priorité"
+                          : column.id === "price"
+                            ? "Montant"
+                            : column.id === "commandId"
+                              ? "Bon de commande"
+                              : column.id === "provider"
+                                ? "Zournisseur"
+                                : column.id === "reference"
+                                  ? "Reference"
+                                  : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -550,9 +567,9 @@ export function PaiementsTable({ payments, purchases }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -565,7 +582,9 @@ export function PaiementsTable({ payments, purchases }: Props) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={cn(getPriorityBadge(row.original.priority)?.rowClassName || "")}
+                  className={cn(
+                    getPriorityBadge(row.original.priority)?.rowClassName || "",
+                  )}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -574,7 +593,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -603,11 +622,14 @@ export function PaiementsTable({ payments, purchases }: Props) {
           purchases={purchases}
         />
       )}
-      {
-        selected && (
-          <EditPayment open={showUpdateModal} openChange={setShowUpdateModal} payment={selected} purchases={purchases} />
-        )
-      }
+      {selected && (
+        <EditPayment
+          open={showUpdateModal}
+          openChange={setShowUpdateModal}
+          payment={selected}
+          purchases={purchases}
+        />
+      )}
     </div>
   );
 }
