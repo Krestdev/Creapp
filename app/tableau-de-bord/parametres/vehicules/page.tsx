@@ -5,13 +5,13 @@ import { NavLink } from "@/types/types";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import SignatairPage from "@/components/signatair/signatair";
+import VehiclePage from "@/components/vehicle/vehiclePage";
 
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Configurer les signataires",
-      href: "./signatairs/create",
+      title: "Ajouter un véhicule",
+      href: "./vehicules/creer",
       hide: false,
       disabled: false,
     },
@@ -20,8 +20,8 @@ function Page() {
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Signataires"
-        subtitle="Consultez et gérez les Signataires."
+        title="Véhicules"
+        subtitle="Consultez et gérez les véhicules."
         color="red"
       >
         {links
@@ -48,7 +48,7 @@ function Page() {
             );
           })}
       </PageTitle>
-      <SignatairPage />
+      <VehiclePage />
     </div>
   );
 }

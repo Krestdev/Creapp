@@ -50,7 +50,7 @@ export default function SettingsPage() {
             {
               pageId: "PG-08-02",
               title: "Ajouter",
-              href: "/tableau-de-bord/parametres/utilisateurs/create",
+              href: "/tableau-de-bord/parametres/utilisateurs/creer",
               authorized: ["ADMIN"],
             },
             {
@@ -71,13 +71,13 @@ export default function SettingsPage() {
             {
               pageId: "PG-08-02",
               title: "Liste",
-              href: "/tableau-de-bord/parametres/signatairs",
+              href: "/tableau-de-bord/parametres/signataires",
               authorized: ["ADMIN"],
             },
             {
               pageId: "PG-08-01",
               title: "Configurer les signataires",
-              href: "/tableau-de-bord/parametres/signatairs/create",
+              href: "/tableau-de-bord/parametres/signataires/creer",
               authorized: ["ADMIN"],
             },
           ],
@@ -137,22 +137,22 @@ export default function SettingsPage() {
         //   color: "from-cyan-500 to-cyan-600",
         // },
         {
-          title: "Chauffeur",
+          title: "Chauffeurs",
           description: "Enregistrement des véhicules",
           icon: Car,
-          href: "/tableau-de-bord/parametres/chauffeur",
+          href: "/tableau-de-bord/parametres/chauffeurs",
           color: "from-orange-500 to-orange-600",
           items: [
             {
               pageId: "PG-08-02",
               title: "Liste",
-              href: "/tableau-de-bord/parametres/chauffeur",
+              href: "/tableau-de-bord/parametres/chauffeurs",
               authorized: ["ADMIN"],
             },
             {
               pageId: "PG-08-01",
               title: "Ajouter",
-              href: "/tableau-de-bord/parametres/chauffeur/create",
+              href: "/tableau-de-bord/parametres/chauffeurs/creer",
               authorized: ["ADMIN"],
             },
           ],
@@ -161,19 +161,19 @@ export default function SettingsPage() {
           title: "Véhicules",
           description: "Enregistrement des véhicules",
           icon: Car,
-          href: "/tableau-de-bord/parametres/vehicule",
+          href: "/tableau-de-bord/parametres/vehicules",
           color: "from-indigo-500 to-indigo-600",
           items: [
             {
               pageId: "PG-08-02",
               title: "Liste",
-              href: "/tableau-de-bord/parametres/vehicule",
+              href: "/tableau-de-bord/parametres/vehicules",
               authorized: ["ADMIN"],
             },
             {
               pageId: "PG-08-01",
               title: "Ajouter",
-              href: "/tableau-de-bord/parametres/vehicule/create",
+              href: "/tableau-de-bord/parametres/vehicules/creer",
               authorized: ["ADMIN"],
             },
           ],
