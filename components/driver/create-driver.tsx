@@ -115,7 +115,7 @@ export default function CreateDriverForm() {
           name="lastName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Pre Nom</FormLabel>
+              <FormLabel>Prénom</FormLabel>
               <FormControl>
                 <Input
                   placeholder="prenom"
@@ -133,8 +133,8 @@ export default function CreateDriverForm() {
           control={form.control}
           name="licence"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Driver Licence</FormLabel>
+            <FormItem className="col-span-2">
+              <FormLabel>{"Permis de conduire"}</FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value ? [field.value] : []}
@@ -155,8 +155,8 @@ export default function CreateDriverForm() {
           control={form.control}
           name="idCard"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>ID Card</FormLabel>
+            <FormItem className="col-span-2">
+              <FormLabel>{"Carte nationale d'identité"}</FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value ? [field.value] : []}
@@ -176,7 +176,7 @@ export default function CreateDriverForm() {
           className="@min-[640px]:col-span-2 w-fit ml-auto"
           type="submit"
         >
-          {"Créer le fournisseur"}
+          {"Ajouter le chauffeur"}
         </Button>
       </form>
     </Form>

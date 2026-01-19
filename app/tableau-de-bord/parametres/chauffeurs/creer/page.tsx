@@ -5,8 +5,8 @@ const Page = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
-        title="Créer un Chauffer"
-        subtitle="Formulaire de création d'un Chauffer"
+        title="Ajouter un chauffeur"
+        subtitle="Formulaire de création d'un chauffeur"
         color="blue"
       />
       <CreateDriverForm />

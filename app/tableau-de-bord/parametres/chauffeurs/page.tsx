@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 function Page() {
   const links: Array<NavLink> = [
     {
-      title: "Créer un Chauffeur",
+      title: "Ajouter un chauffeur",
       href: "./chauffeurs/creer",
       hide: false,
       disabled: false,
@@ -19,7 +19,7 @@ function Page() {
     <div className="flex flex-col gap-6">
       {/* page title */}
       <PageTitle
-        title="Chauffeur"
+        title="Chauffeurs"
         subtitle="Consultez la liste des Chauffeurs."
         color="red"
       >
