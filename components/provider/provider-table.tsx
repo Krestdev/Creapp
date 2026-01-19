@@ -20,6 +20,7 @@ import {
   Eye,
   LucidePen,
   Search,
+  Settings2,
   Trash2,
 } from "lucide-react";
 import * as React from "react";
@@ -59,6 +60,8 @@ import { providerQ } from "@/queries/providers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ModalWarning } from "../modals/modal-warning";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import { Label } from "../ui/label";
 
 interface ProvidersTableProps {
   data: Provider[];
@@ -191,8 +194,8 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Nom (Entreprise)
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Nom (Entreprise)"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -210,7 +213,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Régime
+              {"Régime"}
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </span>
           );
@@ -220,7 +223,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
           return (
             <div className="font-medium">
               {regime || (
-                <span className="text-muted-foreground">Non spécifié</span>
+                <span className="text-muted-foreground">{"Non spécifié"}</span>
               )}
             </div>
           );
@@ -236,8 +239,8 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Addresse
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Addresse"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -255,8 +258,8 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Téléphone
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Téléphone"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -274,8 +277,8 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Email
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Adresse mail"}
+              <ArrowUpDown/>
             </span>
           );
         },
@@ -295,7 +298,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
               }
             >
               {"Statut"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown />
             </span>
           );
         },
@@ -305,9 +308,9 @@ export function ProviderTable({ data }: ProvidersTableProps) {
             <div className="font-medium">
               <Badge variant={status === "complet" ? "success" : "amber"}>
                 {status === "complet" ? (
-                  <Check className="h-4 w-4" />
+                  <Check />
                 ) : (
-                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTriangle />
                 )}
                 {status === "complet" ? "Complet" : "Incomplet"}
               </Badge>
@@ -317,7 +320,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       },
       {
         id: "actions",
-        header: "Actions",
+        header: () => <span className="tablehead">{"Actions"}</span>,
         enableHiding: false,
         cell: ({ row }) => {
           const provider = row.original;
@@ -338,7 +341,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                     setOpenUpdate(true);
                   }}
                 >
-                  <Eye className="mr-2 h-4 w-4" />
+                  <Eye />
                   {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -348,7 +351,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                     setIsUpdateModalOpen(true);
                   }}
                 >
-                  <LucidePen className="mr-2 h-4 w-4" />
+                  <LucidePen />
                   {"Modifier"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -358,7 +361,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                   }}
                   className="text-destructive"
                 >
-                  <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                  <Trash2 className="text-destructive" />
                   {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -410,63 +413,92 @@ export function ProviderTable({ data }: ProvidersTableProps) {
 
   return (
     <div className="w-full">
-      <div className="flex flex-wrap items-center gap-3 py-4">
-        {/* Recherche existante */}
-        <div className="relative">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher par nom, email, téléphone..."
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-8 w-[250px]"
-          />
-        </div>
-
-        {/* Filtre par régime */}
-        <Select value={regimeFilter} onValueChange={setRegimeFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Tous les régimes" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{"Tous les régimes"}</SelectItem>
-            {uniqueRegimes.map((regime) => (
-              <SelectItem key={regime} value={regime}>
-                {regime}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Filtre par statut */}
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Tous les statuts" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-            <SelectItem value="complet">
-              <div className="flex items-center gap-2">
-                <Badge variant="success" className="h-4 w-4 p-0">
-                  <Check className="h-3 w-3" />
-                </Badge>
-                {"Complet"}
+      <div className="flex flex-wrap items-center justify-between gap-3 py-4">
+        <Sheet>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
+                  <Input
+                    name="search"
+                    type="search"
+                    id="searchCommand"
+                    placeholder="Référence, libellé"
+                    value={globalFilter ?? ""}
+                    onChange={(event) => setGlobalFilter(event.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                {/**Type Filter */}
+                <div className="grid gap-1.5">
+                  <Label>{"Régime"}</Label>
+                  <Select
+                    value={regimeFilter}
+                    onValueChange={setRegimeFilter}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrer par type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {uniqueRegimes.map((p) => (
+                        <SelectItem
+                          key={p}
+                          value={p}
+                        >
+                          {p}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/**Status Filter */}
+                <div className="grid gap-1.5">
+                  <Label>{"Priorité"}</Label>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={setStatusFilter}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrer par priorité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      <SelectItem value="complet">{"Complet"}</SelectItem>
+                      <SelectItem value="incomplet">{"Incomplet"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Bouton pour réinitialiser les filtres */}
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={resetAllFilters}
+                    className="w-full"
+                  >
+                    {"Réinitialiser"}
+                  </Button>
+                </div>
               </div>
-            </SelectItem>
-            <SelectItem value="incomplet">
-              <div className="flex items-center gap-2">
-                <Badge variant="amber" className="h-4 w-4 p-0">
-                  <AlertTriangle className="h-3 w-3" />
-                </Badge>
-                {"Incomplet"}
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
+            </SheetContent>
+          </Sheet>
 
         {/* Menu des colonnes */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto bg-transparent">
+            <Button variant="outline">
               {"Colonnes"}
               <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
@@ -543,7 +575,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Aucun résultat trouvé avec les filtres actuels
+                  {"Aucun résultat trouvé avec les filtres actuels"}
                 </TableCell>
               </TableRow>
             )}
@@ -552,16 +584,20 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       </div>
 
       <Pagination table={table} />
-      <UpdateProvider
+      {
+        selectedItem &&
+        <UpdateProvider
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
         providerData={selectedItem}
-      />
-      <ShowProvider
+      />}
+      {
+        selectedItem &&
+        <ShowProvider
         open={openUpdate}
         onOpenChange={setOpenUpdate}
         data={selectedItem}
-      />
+      />}
       <ModalWarning
         variant="error"
         title="Supprimer"
