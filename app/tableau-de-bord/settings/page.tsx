@@ -3,23 +3,12 @@
 import PageTitle from "@/components/pageTitle";
 import SettingsCard from "@/components/settings/settings-card";
 import {
-  Building2,
-  Users,
-  User,
-  Shield,
-  Bell,
-  Palette,
-  Lock,
-  CreditCard,
-  LogOut,
-  Database,
-  Car,
-  BookCopy,
-  Type,
   Box,
+  Building2,
+  Car,
   LucideProps,
   Stamp,
-  UserPenIcon,
+  Users
 } from "lucide-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
@@ -97,19 +86,19 @@ export default function SettingsPage() {
           title: "Fournisseurs",
           description: "Gérer les fournisseurs",
           icon: Building2,
-          href: "/tableau-de-bord/settings/provider",
+          href: "/tableau-de-bord/settings/fournisseurs",
           color: "from-amber-500 to-amber-600",
           items: [
             {
               pageId: "PG-08-02",
               title: "Liste",
-              href: "/tableau-de-bord/settings/provider",
+              href: "/tableau-de-bord/settings/fournisseurs",
               authorized: ["ADMIN"],
             },
             {
               pageId: "PG-08-01",
               title: "Ajouter",
-              href: "/tableau-de-bord/settings/provider/create",
+              href: "/tableau-de-bord/settings/fournisseurs/creer",
               authorized: ["ADMIN"],
             },
           ],

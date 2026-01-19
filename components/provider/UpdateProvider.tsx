@@ -64,7 +64,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface UpdateRequestProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  providerData: Provider | null;
+  providerData: Provider;
   onSuccess?: () => void;
 }
 
@@ -202,20 +202,20 @@ export default function UpdateProvider({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
-            Modifier le fournisseur
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader variant={"secondary"}>
+          <DialogTitle>
+            {`Modifier ${providerData.name}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            Modifiez les informations du fournisseur existant
+            {"Modifiez les informations du fournisseur existant"}
           </p>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 mx-4 flex-1 overflow-y-auto pb-6"
+            className="grid gap-4 @min-[540px]/dialog:grid-cols-2"
             id="update-provider-form"
           >
             {/* Nom */}
@@ -224,12 +224,11 @@ export default function UpdateProvider({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom (entreprise)</FormLabel>
+                  <FormLabel isRequired>{"Nom de l'entreprise"}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Nom de l'entreprise"
                       {...field}
-                      disabled={providerMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -243,13 +242,12 @@ export default function UpdateProvider({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{"Email"}</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
                       placeholder="Entrer l'email"
                       {...field}
-                      disabled={providerMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -263,12 +261,11 @@ export default function UpdateProvider({
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Adresse</FormLabel>
+                  <FormLabel>{"Adresse(Localisation)"}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Entrer l'adresse de l'entreprise"
                       {...field}
-                      disabled={providerMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -282,12 +279,11 @@ export default function UpdateProvider({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Numéro de téléphone</FormLabel>
+                  <FormLabel>{"Numéro de téléphone"}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Entrer le numéro de téléphone"
                       {...field}
-                      disabled={providerMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -301,12 +297,11 @@ export default function UpdateProvider({
               name="RCCM"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>RCCM</FormLabel>
+                  <FormLabel>{"Régistre du Commerce(RCCM)"}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="RC/234/456/..."
                       {...field}
-                      disabled={providerMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -320,12 +315,11 @@ export default function UpdateProvider({
               name="NIU"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>NIU</FormLabel>
+                  <FormLabel>{"NIU"}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="QA123..."
                       {...field}
-                      disabled={providerMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -340,12 +334,11 @@ export default function UpdateProvider({
               render={({ field }) => (
                 <FormItem className="@min-[640px]:col-span-2">
                   <FormLabel>
-                    Régime <span className="text-red-500">*</span>
+                    {"Régime"}
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
-                    disabled={providerMutation.isPending}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">
@@ -353,8 +346,8 @@ export default function UpdateProvider({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Réel">Réel</SelectItem>
-                      <SelectItem value="Simplifié">Simplifié</SelectItem>
+                      <SelectItem value="Réel">{"Réel"}</SelectItem>
+                      <SelectItem value="Simplifié">{"Simplifié"}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -368,7 +361,7 @@ export default function UpdateProvider({
               name="carte_contribuable"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Carte contribuable</FormLabel>
+                  <FormLabel>{"Carte de contribuable"}</FormLabel>
                   <FormControl>
                     <FilesUpload
                       value={field.value ? [field.value] : []}
@@ -390,7 +383,7 @@ export default function UpdateProvider({
               name="acf"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ACF</FormLabel>
+                  <FormLabel>{"Attestation de Conformité Fiscale"}</FormLabel>
                   <FormControl>
                     <FilesUpload
                       value={field.value ? [field.value] : []}
@@ -412,7 +405,7 @@ export default function UpdateProvider({
               name="plan_localisation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Plan de localisation</FormLabel>
+                  <FormLabel>{"Plan de localisation"}</FormLabel>
                   <FormControl>
                     <FilesUpload
                       value={field.value ? [field.value] : []}
@@ -434,7 +427,7 @@ export default function UpdateProvider({
               name="commerce_registre"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Registre de commerce</FormLabel>
+                  <FormLabel>{"Registre de commerce"}</FormLabel>
                   <FormControl>
                     <FilesUpload
                       value={field.value ? [field.value] : []}
@@ -456,7 +449,7 @@ export default function UpdateProvider({
               name="banck_attestation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Attestation bancaire</FormLabel>
+                  <FormLabel>{"Attestation bancaire"}</FormLabel>
                   <FormControl>
                     <FilesUpload
                       value={field.value ? [field.value] : []}
@@ -487,8 +480,9 @@ export default function UpdateProvider({
               variant="primary"
               form="update-provider-form"
               disabled={providerMutation.isPending || !form.formState.isDirty}
+              isLoading={providerMutation.isPending}
             >
-              {providerMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+              {"Enregistrer"}
             </Button>
           </div>
         </Form>
