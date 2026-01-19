@@ -3,14 +3,13 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type SortingState,
   type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
+  useReactTable
 } from "@tanstack/react-table";
 import {
   AlertTriangle,
@@ -19,9 +18,8 @@ import {
   ChevronDown,
   Eye,
   LucidePen,
-  Search,
   Settings2,
-  Trash2,
+  Trash2
 } from "lucide-react";
 import * as React from "react";
 
@@ -51,26 +49,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Provider } from "@/types/types";
-import { Pagination } from "../base/pagination";
-import { Badge } from "../ui/badge";
-import UpdateProvider from "./UpdateProvider";
-import { ShowProvider } from "./show-provider";
 import { providerQ } from "@/queries/providers";
+import { Provider } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import { Badge } from "../ui/badge";
 import { Label } from "../ui/label";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import UpdateProvider from "./UpdateProvider";
+import { ShowProvider } from "./show-provider";
 
 interface ProvidersTableProps {
   data: Provider[];
 }
 
 export function ProviderTable({ data }: ProvidersTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "createdAt", desc: true },
-  ]);
+
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
@@ -375,7 +371,6 @@ export function ProviderTable({ data }: ProvidersTableProps) {
   const table = useReactTable({
     data: filteredData,
     columns,
-    onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -395,7 +390,6 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       });
     },
     state: {
-      sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
