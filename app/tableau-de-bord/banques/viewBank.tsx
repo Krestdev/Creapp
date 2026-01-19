@@ -1,13 +1,29 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { XAF } from '@/lib/utils';
-import { Bank, BANK_TYPES } from '@/types/types';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Calendar, DollarSign, FileIcon, HelpCircle, IdCardIcon, Landmark, LucideHash } from 'lucide-react';
-import Link from 'next/link';
-import React from 'react';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { XAF } from "@/lib/utils";
+import { Bank, BANK_TYPES } from "@/types/types";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import {
+  Calendar,
+  DollarSign,
+  FileIcon,
+  HelpCircle,
+  IdCardIcon,
+  Landmark,
+  LucideHash,
+} from "lucide-react";
+import Link from "next/link";
+import React from "react";
 
 interface Props {
   open: boolean;
@@ -20,10 +36,12 @@ function ViewBank({ open, openChange, bank }: Props) {
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"default"}>
-          <DialogTitle className='uppercase'>{"Compte - " + bank.label}</DialogTitle>
+          <DialogTitle className="uppercase">
+            {"Compte - " + bank.label}
+          </DialogTitle>
           <DialogDescription>{`Informations du compte`}</DialogDescription>
         </DialogHeader>
-        <div className='grid gap-4 @min-[540px]/dialog:grid-cols-2'>
+        <div className="grid gap-4 @min-[540px]/dialog:grid-cols-2">
           {/**Reference */}
           <div className="view-group">
             <span className="view-icon">
@@ -32,9 +50,7 @@ function ViewBank({ open, openChange, bank }: Props) {
             <div className="flex flex-col">
               <p className="view-group-title">{"Référence"}</p>
               <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
-                <p className="text-primary-600 text-sm">
-                  {`BA-${bank.id}`}
-                </p>
+                <p className="text-primary-600 text-sm">{`BA-${bank.id}`}</p>
               </div>
             </div>
           </div>
@@ -80,14 +96,49 @@ function ViewBank({ open, openChange, bank }: Props) {
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Informations du compte"}</p>
-              <div className='space-y-0.5'>
-                {!!bank.accountNumber && <p>{"Numéro de compte: "}<span className='font-semibold'>{bank.accountNumber}</span></p>}
-                {!!bank.atmCode && <p>{"Code Guichet: "}<span className='font-semibold'>{bank.atmCode}</span></p>}
-                {!!bank.bankCode && <p>{"Code Banque: "}<span className='font-semibold'>{bank.bankCode}</span></p>}
-                {!!bank.key && <p>{"Clé: "}<span className='font-semibold'>{bank.key}</span></p>}
-                {!!bank.phoneNum && <p>{"Numéro de téléphone: "}<span className='font-semibold'>{bank.phoneNum}</span></p>}
-                {!!bank.merchantNum && <p>{"Numéro marchand: "}<span className='font-semibold'>{bank.merchantNum}</span></p>}
-                {!bank.merchantNum && !bank.accountNumber && !bank.phoneNum && !bank.atmCode && !bank.bankCode && !bank.key && <p>{"--"}</p>}
+              <div className="space-y-0.5">
+                {!!bank.accountNumber && (
+                  <p>
+                    {"Numéro de compte: "}
+                    <span className="font-semibold">{bank.accountNumber}</span>
+                  </p>
+                )}
+                {!!bank.atmCode && (
+                  <p>
+                    {"Code Guichet: "}
+                    <span className="font-semibold">{bank.atmCode}</span>
+                  </p>
+                )}
+                {!!bank.bankCode && (
+                  <p>
+                    {"Code Banque: "}
+                    <span className="font-semibold">{bank.bankCode}</span>
+                  </p>
+                )}
+                {!!bank.key && (
+                  <p>
+                    {"Clé: "}
+                    <span className="font-semibold">{bank.key}</span>
+                  </p>
+                )}
+                {!!bank.phoneNum && (
+                  <p>
+                    {"Numéro de téléphone: "}
+                    <span className="font-semibold">{bank.phoneNum}</span>
+                  </p>
+                )}
+                {!!bank.merchantNum && (
+                  <p>
+                    {"Numéro marchand: "}
+                    <span className="font-semibold">{bank.merchantNum}</span>
+                  </p>
+                )}
+                {!bank.merchantNum &&
+                  !bank.accountNumber &&
+                  !bank.phoneNum &&
+                  !bank.atmCode &&
+                  !bank.bankCode &&
+                  !bank.key && <p>{"--"}</p>}
               </div>
             </div>
           </div>
@@ -98,21 +149,28 @@ function ViewBank({ open, openChange, bank }: Props) {
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Justificatif"}</p>
-              {!!bank.justification ? <Link
-                href={`${process.env.NEXT_PUBLIC_API
-                  }/uploads/${encodeURIComponent(bank.justification)}`}
-                target="_blank"
-                className="flex gap-0.5 items-center"
-              >
-                <img
-                  src="/images/pdf.png"
-                  alt="justificatif"
-                  className="h-7 w-auto aspect-square"
-                />
-                <p className="text-foreground font-medium">
-                  {bank.justification ? "Document justificatif" : "Aucun justificatif"}
-                </p>
-              </Link> : <p className='italic'>{"Aucun justificatif"}</p>}
+              {!!bank.justification ? (
+                <Link
+                  href={`${
+                    process.env.NEXT_PUBLIC_API
+                  }/${encodeURIComponent(bank.justification)}`}
+                  target="_blank"
+                  className="flex gap-0.5 items-center"
+                >
+                  <img
+                    src="/images/pdf.png"
+                    alt="justificatif"
+                    className="h-7 w-auto aspect-square"
+                  />
+                  <p className="text-foreground font-medium">
+                    {bank.justification
+                      ? "Document justificatif"
+                      : "Aucun justificatif"}
+                  </p>
+                </Link>
+              ) : (
+                <p className="italic">{"Aucun justificatif"}</p>
+              )}
             </div>
           </div>
           {/**Updated at */}
@@ -123,9 +181,13 @@ function ViewBank({ open, openChange, bank }: Props) {
             <div className="flex flex-col">
               <p className="view-group-title">{"Dernière mise à jour"}</p>
               <p className="font-semibold">
-                {format(new Date(bank.updatedAt ?? bank.createdAt), "dd MMMM yyyy, p", {
-                  locale: fr,
-                })}
+                {format(
+                  new Date(bank.updatedAt ?? bank.createdAt),
+                  "dd MMMM yyyy, p",
+                  {
+                    locale: fr,
+                  },
+                )}
               </p>
             </div>
           </div>
@@ -137,7 +199,7 @@ function ViewBank({ open, openChange, bank }: Props) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-export default ViewBank
+export default ViewBank;

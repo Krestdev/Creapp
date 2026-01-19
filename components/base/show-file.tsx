@@ -13,11 +13,15 @@ const ShowFile = ({ file, title, setPage }: Props) => {
 
   if (!file || typeof file !== "string") return null;
 
-  const src = `${baseUrl}/uploads/${encodeURIComponent(file)}`;
+  const src = `${baseUrl}/${encodeURIComponent(file)}`;
 
   return (
     <div className="w-[full] h-[600px] px-4 flex-1 overflow-auto pb-6 flex flex-col gap-2">
-      <Button className="w-fit shrink-0 fixed " variant="ghost" onClick={() => setPage(1)}>
+      <Button
+        className="w-fit shrink-0 fixed "
+        variant="ghost"
+        onClick={() => setPage(1)}
+      >
         <ArrowLeft />
         {"Retour"}
       </Button>

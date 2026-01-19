@@ -24,7 +24,7 @@ interface Props {
 
 const getAcceptString = (
   acceptTypes?: Props["acceptTypes"],
-  customAccept?: string
+  customAccept?: string,
 ): string => {
   if (customAccept) return customAccept;
 
@@ -73,7 +73,7 @@ const getDisplayUrl = (url: string): string => {
   // Si c'est juste un nom de fichier
   const apiUrl = process.env.NEXT_PUBLIC_API || "";
 
-  return `${apiUrl}/uploads/${url}`;
+  return `${apiUrl}/${url}`;
 };
 
 const valueToInitialFiles = (value: Props["value"]): FileMetadata[] => {
@@ -164,8 +164,8 @@ export default function FilesUpload({
           const fullUrl = fileMetadata.url;
 
           // Extraire juste le nom de fichier de l'URL
-          if (fullUrl.includes("/uploads/")) {
-            return fullUrl.split("/uploads/").pop() || fullUrl;
+          if (fullUrl.includes("/")) {
+            return fullUrl.split("/").pop() || fullUrl;
           }
           return fullUrl.split("/").pop() || fullUrl;
         }
@@ -289,7 +289,7 @@ export default function FilesUpload({
                           crossOrigin="anonymous" // Ajouter cet attribut pour CORS
                           onError={(e) => {
                             e.currentTarget.src = `data:image/svg+xml;base64,${btoa(
-                              `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`
+                              `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
                             )}`;
                           }}
                         />

@@ -24,7 +24,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +46,14 @@ import {
 
 import { Pagination } from "@/components/base/pagination";
 import { badgeVariants } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import {
   CommandRequestT,
@@ -69,8 +76,11 @@ interface QuotationGroupTableProps {
 }
 
 const getGroupStatusLabel = (
-  status: QuotationGroupStatus
-): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } => {
+  status: QuotationGroupStatus,
+): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} => {
   switch (status) {
     case "NOT_PROCESSED":
       return { label: "Non traité", variant: "destructive" };
@@ -91,19 +101,26 @@ export function QuotationGroupTable({
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
-    createdAt: false,
-  });
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({
+      createdAt: false,
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const router = useRouter();
 
   // Filtres spécifiques
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
-  const [statusFilter, setStatusFilter] = React.useState<"all" | QuotationGroupStatus>("all");
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | QuotationGroupStatus
+  >("all");
   const [openView, setOpenView] = React.useState(false);
-  const [selectedItem, setSelectedItem] = React.useState<QuotationGroup | null>(null);
+  const [selectedItem, setSelectedItem] = React.useState<QuotationGroup | null>(
+    null,
+  );
 
   const data = React.useMemo(() => {
     return groupQuotationsByCommandRequest(requests, quotations, providers);
@@ -116,7 +133,7 @@ export function QuotationGroupTable({
     if (providerFilter !== "all") {
       const providerId = Number(providerFilter);
       filtered = filtered.filter((g) =>
-        g.providers.some((p) => p.id === providerId)
+        g.providers.some((p) => p.id === providerId),
       );
     }
 
@@ -129,28 +146,6 @@ export function QuotationGroupTable({
   }, [data, providerFilter, statusFilter]);
 
   const columns: ColumnDef<QuotationGroupT>[] = [
-    // {
-    //   id: "select",
-    //   header: ({ table }) => (
-    //     <Checkbox
-    //       checked={
-    //         table.getIsAllPageRowsSelected() ||
-    //         (table.getIsSomePageRowsSelected() && "indeterminate")
-    //       }
-    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //       aria-label="Sélectionner tout"
-    //     />
-    //   ),
-    //   cell: ({ row }) => (
-    //     <Checkbox
-    //       checked={row.getIsSelected()}
-    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-    //       aria-label="Sélectionner la ligne"
-    //     />
-    //   ),
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
     {
       id: "commandRequest",
       accessorFn: (row) => row.commandRequest.reference,
@@ -167,7 +162,10 @@ export function QuotationGroupTable({
         const group = row.original;
         return (
           <div className="font-medium">
-            {group.commandRequest.title} - <span className="text-red-500">{group.commandRequest.reference}</span>
+            {group.commandRequest.title} -{" "}
+            <span className="text-red-500">
+              {group.commandRequest.reference}
+            </span>
           </div>
         );
       },
@@ -240,8 +238,11 @@ export function QuotationGroupTable({
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
-              <DropdownMenuItem disabled={group.status === "PROCESSED"}
-                onClick={() => router.push(`./valider/${group.commandRequest.id}`)}
+              <DropdownMenuItem
+                disabled={group.status === "PROCESSED"}
+                onClick={() =>
+                  router.push(`./valider/${group.commandRequest.id}`)
+                }
                 className="cursor-pointer"
               >
                 <Check />
@@ -272,11 +273,16 @@ export function QuotationGroupTable({
 
       const ref = group.commandRequest.reference?.toLowerCase() || "";
       const title = group.commandRequest.title?.toLowerCase() || "";
-      const providersText = group.providers.map((p) => p.name).join(" ").toLowerCase();
+      const providersText = group.providers
+        .map((p) => p.name)
+        .join(" ")
+        .toLowerCase();
 
-      return ref.includes(search) ||
+      return (
+        ref.includes(search) ||
         title.includes(search) ||
-        providersText.includes(search);
+        providersText.includes(search)
+      );
     },
     state: {
       sorting,
@@ -327,12 +333,17 @@ export function QuotationGroupTable({
 
                 <div className="space-y-3">
                   <Label>{"Fournisseur"}</Label>
-                  <Select value={providerFilter} onValueChange={setProviderFilter}>
+                  <Select
+                    value={providerFilter}
+                    onValueChange={setProviderFilter}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Tous les fournisseurs" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">{"Tous les fournisseurs"}</SelectItem>
+                      <SelectItem value="all">
+                        {"Tous les fournisseurs"}
+                      </SelectItem>
                       {providers.map((p) => (
                         <SelectItem key={p.id} value={p.id.toString()}>
                           {p.name}
@@ -346,14 +357,18 @@ export function QuotationGroupTable({
                   <Label>{"Statut"}</Label>
                   <Select
                     value={statusFilter}
-                    onValueChange={(v: "all" | QuotationGroupStatus) => setStatusFilter(v)}
+                    onValueChange={(v: "all" | QuotationGroupStatus) =>
+                      setStatusFilter(v)
+                    }
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Tous les statuts" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{"Tous"}</SelectItem>
-                      <SelectItem value="NOT_PROCESSED">{"Non traité"}</SelectItem>
+                      <SelectItem value="NOT_PROCESSED">
+                        {"Non traité"}
+                      </SelectItem>
                       <SelectItem value="IN_PROGRESS">{"En cours"}</SelectItem>
                       <SelectItem value="PROCESSED">{"Traité"}</SelectItem>
                     </SelectContent>
@@ -372,12 +387,14 @@ export function QuotationGroupTable({
           </Sheet>
 
           {/* Afficher les filtres actifs */}
-          {(providerFilter !== "all" || statusFilter !== "all" || globalFilter) && (
+          {(providerFilter !== "all" ||
+            statusFilter !== "all" ||
+            globalFilter) && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>{"Filtres actifs:"}</span>
               {providerFilter !== "all" && (
                 <Badge variant="outline">
-                  {`Fournisseur: ${providers.find(p => p.id.toString() === providerFilter)?.name}`}
+                  {`Fournisseur: ${providers.find((p) => p.id.toString() === providerFilter)?.name}`}
                 </Badge>
               )}
               {statusFilter !== "all" && (
@@ -408,16 +425,20 @@ export function QuotationGroupTable({
               .filter((column) => column.getCanHide())
               .map((column) => {
                 let columnName = column.id;
-                if (column.id === "commandRequest") columnName = "Demande de cotation";
+                if (column.id === "commandRequest")
+                  columnName = "Demande de cotation";
                 else if (column.id === "providers") columnName = "Fournisseurs";
                 else if (column.id === "status") columnName = "Statut";
-                else if (column.id === "createdAt") columnName = "Date de création";
+                else if (column.id === "createdAt")
+                  columnName = "Date de création";
 
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
                     {columnName}
                   </DropdownMenuCheckboxItem>
@@ -434,13 +455,16 @@ export function QuotationGroupTable({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="border-r last:border-r-0">
+                  <TableHead
+                    key={header.id}
+                    className="border-r last:border-r-0"
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -455,10 +479,13 @@ export function QuotationGroupTable({
                   className="hover:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="border-r last:border-r-0">
+                    <TableCell
+                      key={cell.id}
+                      className="border-r last:border-r-0"
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -474,7 +501,9 @@ export function QuotationGroupTable({
                     <span className="text-muted-foreground">
                       {"Aucun résultat trouvé"}
                     </span>
-                    {(providerFilter !== "all" || statusFilter !== "all" || globalFilter) && (
+                    {(providerFilter !== "all" ||
+                      statusFilter !== "all" ||
+                      globalFilter) && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -498,9 +527,7 @@ export function QuotationGroupTable({
           {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
         </div> */}
 
-        {table.getPageCount() > 1 && (
-          <Pagination table={table} pageSize={15} />
-        )}
+        {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       </div>
 
       <DevisGroup

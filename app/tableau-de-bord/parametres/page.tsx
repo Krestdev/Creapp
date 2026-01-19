@@ -2,14 +2,7 @@
 
 import PageTitle from "@/components/pageTitle";
 import SettingsCard from "@/components/settings/settings-card";
-import {
-  Box,
-  Building2,
-  Car,
-  LucideProps,
-  Stamp,
-  Users
-} from "lucide-react";
+import { Box, Building2, Car, LucideProps, Stamp, Users } from "lucide-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export default function SettingsPage() {
@@ -129,13 +122,6 @@ export default function SettingsPage() {
     {
       category: "Système",
       items: [
-        // {
-        //   title: "Notifications",
-        //   description: "Email et notification de preferences",
-        //   icon: Bell,
-        //   href: "/tableau-de-bord/parametres/notifications",
-        //   color: "from-cyan-500 to-cyan-600",
-        // },
         {
           title: "Chauffeurs",
           description: "Enregistrement des véhicules",
