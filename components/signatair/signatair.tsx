@@ -2,12 +2,11 @@
 import { useStore } from "@/providers/datastore";
 import { signatairQ } from "@/queries/signatair";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { SignatairTable } from "./signatair-table";
-import { Card, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { LucidePen } from "lucide-react";
+import { LucidePen, Receipt, FileCheck } from "lucide-react";
 import { useState } from "react";
-import { Signatair } from "@/types/types";
+import { PayType, Signatair } from "@/types/types";
 import EditSignatairForm from "./updateSignatair";
 import { Badge } from "../ui/badge";
 
@@ -40,66 +39,172 @@ const SignatairPage = () => {
     });
   };
 
-  const mode = (mode: string) => {
-    if (mode == "ONE") {
-      return "Un Signataire";
-    } else {
-      return "Plusieurs Signataires";
+  // Regrouper les données par banque
+  const groupedData = userData.data?.data.reduce((acc, item) => {
+    const bankId = item.Bank?.id || item.bankId || 'unknown';
+
+    if (!acc[bankId]) {
+      acc[bankId] = {
+        bank: item.Bank,
+        cheque: null,
+        virement: null,
+      };
     }
-  };
 
-  if (userData.data)
-    return (
-      <div className="grid-stats-4">
-        {userData.data?.data.map((item, id) => (
-          <Card key={id} className="h-full justify-between">
-            <div className="flex flex-col gap-2">
-              <CardHeader className="flex justify-between">
-                <CardTitle className="text-lg">{"Banque : " + item.Bank?.label}</CardTitle>
-              </CardHeader>
-              <div className="px-6">
-                <p className="text-gray-400">{"Type : " + item.payTypes?.label}</p>
-              </div>
-              {/* <div className="px-6">
-                <p className="text-gray-400">{"Mode : " + mode(item.mode)}</p>
-              </div> */}
+    // Déterminer si c'est un chèque ou un virement basé sur le payType
+    const payType = item.payTypes;
+    if (payType) {
+      if (payType.type === 'chq' || payType.label?.toLowerCase().includes('chèque')) {
+        acc[bankId].cheque = item;
+      } else if (payType.type === 'ov' || payType.label?.toLowerCase().includes('virement')) {
+        acc[bankId].virement = item;
+      }
+    }
 
-              <div className="flex flex-col px-6">
-                <p className="text-gray-400">{"Signataire"}</p>
-                <div className="flex flex-col gap-2 px-3">
-                  {item.user?.map((user, i) => (
-                    <Badge key={i} className={`flex items-center gap-1 w-fit`}>
-                      {formatFullName(user.lastName, user.firstName) ?? "Non Defini"}
-                    </Badge>
-                  ))}
+    return acc;
+  }, {} as Record<string, {
+    bank: any;
+    cheque: Signatair | null;
+    virement: Signatair | null;
+  }>);
+
+  if (!userData.data) return null;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Object.entries(groupedData || {}).map(([bankId, { bank, cheque, virement }]) => (
+        <Card key={bankId} className="h-full flex flex-col">
+          {/* En-tête avec le nom de la banque */}
+          <CardContent>
+
+            <CardHeader className="gradient-to-r from-blue-50 to-white">
+              <CardTitle className="text-xl font-semibold text-center text-gray-800">
+                {bank?.label || "Banque inconnue"}
+              </CardTitle>
+            </CardHeader>
+
+            {/* Contenu principal avec deux colonnes */}
+            <div className="flex-1 p-6">
+              <div className="grid grid-cols-2 gap-6 h-full">
+                {/* Colonne Chèque */}
+                <div className="flex flex-col bg-white shadow-sm rounded-lg p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Receipt className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">
+                        {cheque?.payTypes?.label || "Chèque"}
+                      </h3>
+                      <p className="text-xs text-gray-500">Type de paiement</p>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Signataire(s)</h4>
+                      {cheque?.user && cheque.user.length > 0 ? (
+                        <div className="space-y-2">
+                          {cheque.user.map((user, i) => (
+                            <div key={i} className="flex items-center gap-2 p-2 bg-blue-50 rounded">
+                              <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                              <span className="text-sm">
+                                {formatFullName(user.lastName, user.firstName)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-400 italic">Aucun signataire défini</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {cheque && (
+                    <div className="mt-6">
+                      <Button
+                        onClick={() => {
+                          setSelect(cheque);
+                          setIsModalOpenEdit(true);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <LucidePen className="h-3 w-3 mr-2" />
+                        Modifier
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Colonne Virement */}
+                <div className="flex flex-col bg-white shadow-sm rounded-lg p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <FileCheck className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">
+                        {virement?.payTypes?.label || "Ordre de Virement"}
+                      </h3>
+                      <p className="text-xs text-gray-500">Type de paiement</p>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Signataire(s)</h4>
+                      {virement?.user && virement.user.length > 0 ? (
+                        <div className="space-y-2">
+                          {virement.user.map((user, i) => (
+                            <div key={i} className="flex items-center gap-2 p-2 bg-green-50 rounded">
+                              <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                              <span className="text-sm">
+                                {formatFullName(user.lastName, user.firstName)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-400 italic">Aucun signataire défini</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {virement && (
+                    <div className="mt-6">
+                      <Button
+                        onClick={() => {
+                          setSelect(virement);
+                          setIsModalOpenEdit(true);
+                        }}
+                        variant="primary"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <LucidePen className="h-3 w-3 mr-2" />
+                        Modifier
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-            <CardFooter>
-              <Button
-                onClick={() => {
-                  setSelect(item);
-                  setIsModalOpenEdit(true);
-                }}
-                variant={"primary"}
-                className="rounded-[4px] ml-auto"
-              >
-                <LucidePen />
-                {"Modifier"}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-        {select && (
-          <EditSignatairForm
-            open={isOpenModalEdit}
-            setOpen={setIsModalOpenEdit}
-            signatair={select}
-            onSuccess={handleUpdateSuccess}
-          />
-        )}
-      </div>
-    );
+          </CardContent>
+        </Card>
+      ))}
+
+      {select && (
+        <EditSignatairForm
+          open={isOpenModalEdit}
+          setOpen={setIsModalOpenEdit}
+          signatair={select}
+          onSuccess={handleUpdateSuccess}
+        />
+      )}
+    </div>
+  );
 };
 
 export default SignatairPage;
