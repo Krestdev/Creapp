@@ -104,7 +104,7 @@ export function ProjectTable({
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -161,7 +161,7 @@ export function ProjectTable({
   }, [data]);
 
   const getBadge = (
-    status: string
+    status: string,
   ): {
     label: string;
     icon?: LucideIcon;
@@ -213,7 +213,6 @@ export function ProjectTable({
   const queryClient = useQueryClient();
 
   const projectMutationData = useMutation({
-    mutationKey: ["projectsStatus"],
     mutationFn: (data: { id: number; status: string }) =>
       projectQ.update(data.id, { status: data.status }),
     onSuccess: () => {
@@ -224,7 +223,7 @@ export function ProjectTable({
     },
     onError: () => {
       toast.error(
-        "Une erreur s'est produite lors de la mise à jour du projet."
+        "Une erreur s'est produite lors de la mise à jour du projet.",
       );
     },
   });
@@ -276,11 +275,11 @@ export function ProjectTable({
     ) {
       if (Array.isArray(effectiveFilters.statusFilter)) {
         filtered = filtered.filter((project) =>
-          effectiveFilters.statusFilter.includes(project.status)
+          effectiveFilters.statusFilter.includes(project.status),
         );
       } else {
         filtered = filtered.filter(
-          (project) => project.status === effectiveFilters.statusFilter
+          (project) => project.status === effectiveFilters.statusFilter,
         );
       }
     }
@@ -291,7 +290,7 @@ export function ProjectTable({
       effectiveFilters.chiefFilter !== "all"
     ) {
       filtered = filtered.filter(
-        (project) => project.chief?.name === effectiveFilters.chiefFilter
+        (project) => project.chief?.name === effectiveFilters.chiefFilter,
       );
     }
 
@@ -306,27 +305,27 @@ export function ProjectTable({
         switch (effectiveFilters.budgetOperator) {
           case "eq": // Égal à
             filtered = filtered.filter(
-              (project) => (project.budget || 0) === budgetValue
+              (project) => (project.budget || 0) === budgetValue,
             );
             break;
           case "lt": // Inférieur à
             filtered = filtered.filter(
-              (project) => (project.budget || 0) < budgetValue
+              (project) => (project.budget || 0) < budgetValue,
             );
             break;
           case "gt": // Supérieur à
             filtered = filtered.filter(
-              (project) => (project.budget || 0) > budgetValue
+              (project) => (project.budget || 0) > budgetValue,
             );
             break;
           case "lte": // Inférieur ou égal à
             filtered = filtered.filter(
-              (project) => (project.budget || 0) <= budgetValue
+              (project) => (project.budget || 0) <= budgetValue,
             );
             break;
           case "gte": // Supérieur ou égal à
             filtered = filtered.filter(
-              (project) => (project.budget || 0) >= budgetValue
+              (project) => (project.budget || 0) >= budgetValue,
             );
             break;
         }
@@ -620,7 +619,7 @@ export function ProjectTable({
         },
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -696,7 +695,7 @@ export function ProjectTable({
                   onValueChange={(value) =>
                     updateFilter(
                       "statusFilter",
-                      value === "all" ? "all" : value
+                      value === "all" ? "all" : value,
                     )
                   }
                 >
@@ -779,18 +778,18 @@ export function ProjectTable({
                     {column.id === "reference"
                       ? "Référence"
                       : column.id === "label"
-                      ? "Projet"
-                      : column.id === "chief"
-                      ? "Chef Projet"
-                      : column.id === "budget"
-                      ? "Budget prévisionnel"
-                      : column.id === "status"
-                      ? "Statut"
-                      : column.id === "createdAt"
-                      ? "Date de création"
-                      : column.id === "userId"
-                      ? "Créé par"
-                      : column.id}
+                        ? "Projet"
+                        : column.id === "chief"
+                          ? "Chef Projet"
+                          : column.id === "budget"
+                            ? "Budget prévisionnel"
+                            : column.id === "status"
+                              ? "Statut"
+                              : column.id === "createdAt"
+                                ? "Date de création"
+                                : column.id === "userId"
+                                  ? "Créé par"
+                                  : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -815,7 +814,7 @@ export function ProjectTable({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -842,7 +841,7 @@ export function ProjectTable({
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

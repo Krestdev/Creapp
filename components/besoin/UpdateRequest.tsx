@@ -200,7 +200,7 @@ export default function UpdateRequest({
           requestData.beficiaryList?.flatMap((b) => b.id)
         ) {
           const benefIds = Array.isArray(
-            requestData.beficiaryList?.flatMap((b) => b.id)
+            requestData.beficiaryList?.flatMap((b) => b.id),
           )
             ? requestData.beficiaryList?.flatMap((b) => b.id)
             : [];
@@ -240,7 +240,6 @@ export default function UpdateRequest({
   const queryClient = useQueryClient();
 
   const requestMutation = useMutation({
-    mutationKey: ["requests", "update"],
     mutationFn: async (data: Partial<RequestModelT>) => {
       if (!requestData?.id) throw new Error("ID du besoin manquant");
       return requestQ.update(Number(requestData.id), data);

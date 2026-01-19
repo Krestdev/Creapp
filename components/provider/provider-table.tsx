@@ -72,7 +72,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -90,7 +90,6 @@ export function ProviderTable({ data }: ProvidersTableProps) {
   const queryClient = useQueryClient();
 
   const providerMutation = useMutation({
-    mutationKey: ["providerUpdate"],
     mutationFn: (id: number) => providerQ.delete(id),
     onSuccess: () => {
       toast.success("Fournisseur supprimé avec succès !");
@@ -104,7 +103,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       .map((provider) => provider.regem)
       .filter(
         (regime): regime is string =>
-          regime !== undefined && regime !== null && regime.trim() !== ""
+          regime !== undefined && regime !== null && regime.trim() !== "",
       );
 
     // Supprimer les doublons et trier par ordre alphabétique
@@ -129,7 +128,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
     ];
 
     return allFields.every(
-      (field) => typeof field === "string" && field.trim() !== ""
+      (field) => typeof field === "string" && field.trim() !== "",
     )
       ? "complet"
       : "incomplet";
@@ -370,7 +369,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         },
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -541,7 +540,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -563,7 +562,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

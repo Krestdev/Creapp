@@ -100,7 +100,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -129,14 +129,9 @@ export function CommandeTable({ data }: CommandeTableProps) {
   });
 
   const cancelDevis = useMutation({
-    mutationKey: ["cancelDevis"],
     mutationFn: (id: number) => commandRqstQ.delete(id),
     onSuccess: () => {
       toast.success("Demande de cotation annulée avec succès.");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["commands"],
-      //   refetchType: "active",
-      // });
     },
   });
 
@@ -149,7 +144,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
     React.useState(false);
 
   const getStatusConfig = (
-    status: string
+    status: string,
   ): {
     label: string;
     icon?: LucideIcon;
@@ -211,7 +206,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
             break;
           case "week":
             startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
             );
             startDate.setHours(0, 0, 0, 0);
             break;
@@ -257,7 +252,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
         if (customDateRange?.from && customDateRange?.to) {
           return `${format(customDateRange.from, "dd/MM/yyyy")} - ${format(
             customDateRange.to,
-            "dd/MM/yyyy"
+            "dd/MM/yyyy",
           )}`;
         }
         return "Personnaliser";
@@ -352,7 +347,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
       },
       cell: ({ row }) => {
         const devisAssocies = devis?.data.filter(
-          (x) => x.commandRequestId === row.original.id
+          (x) => x.commandRequestId === row.original.id,
         );
         return <div>{devisAssocies?.length}</div>;
       },
@@ -364,7 +359,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
       cell: ({ row }) => {
         const item = row.original;
         const devisAssocies = devis?.data.filter(
-          (x) => x.commandRequestId === row.original.id
+          (x) => x.commandRequestId === row.original.id,
         );
 
         return (
@@ -521,7 +516,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
                               customDateRange.from,
-                              "dd/MM/yyyy"
+                              "dd/MM/yyyy",
                             )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
@@ -599,16 +594,16 @@ export function CommandeTable({ data }: CommandeTableProps) {
                     {column.id === "reference"
                       ? "Référence"
                       : column.id === "title"
-                      ? "Titre"
-                      : column.id === "dueDate"
-                      ? "Date limite de soumission"
-                      : column.id === "state"
-                      ? "Statut"
-                      : column.id === "createdAt"
-                      ? "Date de création"
-                      : column.id === "devis"
-                      ? "Devis"
-                      : null}
+                        ? "Titre"
+                        : column.id === "dueDate"
+                          ? "Date limite de soumission"
+                          : column.id === "state"
+                            ? "Statut"
+                            : column.id === "createdAt"
+                              ? "Date de création"
+                              : column.id === "devis"
+                                ? "Devis"
+                                : null}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -632,7 +627,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -658,7 +653,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}

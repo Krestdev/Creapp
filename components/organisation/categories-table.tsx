@@ -62,7 +62,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -76,7 +76,6 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
   const queryClient = useQueryClient();
 
   const categoryData = useMutation({
-    mutationKey: ["deleteCategory"],
     mutationFn: (id: number) => categoryQ.deleteCategory(id),
     onSuccess: () => {
       // invalidate and refetch
@@ -87,7 +86,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
     },
     onError: (error) => {
       toast.error(
-        "Une erreur est survenue lors de la suppression de la categorie."
+        "Une erreur est survenue lors de la suppression de la categorie.",
       );
       console.error(error);
     },
@@ -195,7 +194,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         },
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -250,8 +249,8 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                   column.id == "label"
                     ? "Nom catégorie"
                     : column.id == "description"
-                    ? "Description"
-                    : "";
+                      ? "Description"
+                      : "";
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -285,7 +284,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -312,7 +311,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

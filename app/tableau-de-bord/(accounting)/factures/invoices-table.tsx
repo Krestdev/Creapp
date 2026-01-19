@@ -106,7 +106,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
@@ -115,7 +115,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
-    undefined
+    undefined,
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   // const queryClient = useQueryClient();
@@ -134,10 +134,6 @@ export function InvoicesTable({ payments, purchases }: Props) {
     mutationFn: async (id: number) => paymentQ.approveInvoice(id),
     onSuccess: () => {
       toast.success("Facture approuvée avec succès !");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["payments"],
-      //   refetchType: "active",
-      // });
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -172,7 +168,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
             break;
           case "week":
             startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
             );
             startDate.setHours(0, 0, 0, 0);
             break;
@@ -259,8 +255,8 @@ export function InvoicesTable({ payments, purchases }: Props) {
           typeof proofField === "string" && proofField.length > 0
             ? proofField.split(";").filter(Boolean)
             : Array.isArray(proofField)
-            ? proofField.map(String).filter(Boolean)
-            : [];
+              ? proofField.map(String).filter(Boolean)
+              : [];
         return (
           <div className="font-medium flex flex-wrap gap-1.5">
             {elements.map((proof, index) => (
@@ -475,7 +471,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
                       (x) =>
                         x.value === "accepted" ||
                         x.value === "pending" ||
-                        x.value === "rejected"
+                        x.value === "rejected",
                     ).map((status) => (
                       <SelectItem key={status.value} value={status.value}>
                         {status.name}
@@ -526,7 +522,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
                               customDateRange.from,
-                              "dd/MM/yyyy"
+                              "dd/MM/yyyy",
                             )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
@@ -605,18 +601,18 @@ export function InvoicesTable({ payments, purchases }: Props) {
                     {column.id === "status"
                       ? "Statut"
                       : column.id === "price"
-                      ? "Montant"
-                      : column.id === "proof"
-                      ? "Documents"
-                      : column.id === "provider"
-                      ? "Fournisseur"
-                      : column.id === "reference"
-                      ? "Référence"
-                      : column.id === "createdAt"
-                      ? "Date de création"
-                      : column.id === "updatedAt"
-                      ? "Date de modification"
-                      : column.id}
+                        ? "Montant"
+                        : column.id === "proof"
+                          ? "Documents"
+                          : column.id === "provider"
+                            ? "Fournisseur"
+                            : column.id === "reference"
+                              ? "Référence"
+                              : column.id === "createdAt"
+                                ? "Date de création"
+                                : column.id === "updatedAt"
+                                  ? "Date de modification"
+                                  : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -639,7 +635,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -661,7 +657,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

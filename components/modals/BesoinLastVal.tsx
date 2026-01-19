@@ -107,33 +107,24 @@ export function BesoinLastVal({
     ?.validators?.find((v) => v.userId === user?.id);
 
   const validateRequest = useMutation({
-    mutationKey: ["requests-validation"],
     mutationFn: async ({
       id,
       validator,
     }: {
       id: number;
       validator:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => {
       await requestQ.validate(id, validator?.id!, validator);
     },
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
       requestData.refetch();
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["payment"],
-      //   refetchType: "active",
-      // });
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
@@ -141,7 +132,6 @@ export function BesoinLastVal({
   });
 
   const requestMutation = useMutation({
-    mutationKey: ["requests"],
     mutationFn: async (data: Partial<RequestModelT>) => {
       const id = data?.id;
 

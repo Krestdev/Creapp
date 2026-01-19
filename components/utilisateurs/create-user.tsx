@@ -60,9 +60,11 @@ export default function CreateUserForm() {
   const queryClient = useQueryClient();
 
   const registerAPI = useMutation({
-    mutationKey: ["registerNewUser"],
     mutationFn: (
-      data: Omit<User, "status" | "lastConnection" | "role" | "members" | "id">&{role:Array<number>}
+      data: Omit<
+        User,
+        "status" | "lastConnection" | "role" | "members" | "id"
+      > & { role: Array<number> },
     ) => userQ.create(data),
     onSuccess: (data) => {
       toast.success(`Utilisateur ${data.data.firstName} créé avec succès`);
@@ -99,8 +101,11 @@ export default function CreateUserForm() {
     })) || [];
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    let data:Omit<User, "status" | "lastConnection" | "role" | "members" | "id">&{role:Array<number>};
-    if(!!values.role){
+    let data: Omit<
+      User,
+      "status" | "lastConnection" | "role" | "members" | "id"
+    > & { role: Array<number> };
+    if (!!values.role) {
       data = {
         firstName: values.firstName ?? "",
         lastName: values.lastName,
@@ -121,7 +126,7 @@ export default function CreateUserForm() {
         post: values.poste,
       };
     }
-      registerAPI.mutate(data);
+    registerAPI.mutate(data);
   }
 
   return (
@@ -198,7 +203,11 @@ export default function CreateUserForm() {
             <FormItem>
               <FormLabel>{"Mot de passe"}</FormLabel>
               <FormControl className="w-full">
-                <Input type="password" placeholder="Entrer Mot de passe" {...field} />
+                <Input
+                  type="password"
+                  placeholder="Entrer Mot de passe"
+                  {...field}
+                />
               </FormControl>
 
               <FormMessage />
@@ -213,7 +222,8 @@ export default function CreateUserForm() {
             <FormItem>
               <FormLabel>{"Confirmer le mot de passe"}</FormLabel>
               <FormControl className="w-full">
-                <Input type="password"
+                <Input
+                  type="password"
                   placeholder="Confirmer le mot de passe"
                   {...field}
                 />
@@ -246,13 +256,15 @@ export default function CreateUserForm() {
           <FormLabel>{"Rôles *"}</FormLabel>
           <MultiSelectRole
             display="Role"
-            roles={ROLES.filter((r) => r.label !== "MANAGER" && r.label !== "USER")}
+            roles={ROLES.filter(
+              (r) => r.label !== "MANAGER" && r.label !== "USER",
+            )}
             selected={selectedRole}
             onChange={(selected) => {
               setSelectedRole(selected);
               form.setValue(
                 "role",
-                selected.map((r) => r.id)
+                selected.map((r) => r.id),
               );
             }}
           />

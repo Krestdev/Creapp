@@ -48,7 +48,7 @@ const FileSchema = z
     z.union([
       z.instanceof(File, { message: "Doit être un fichier valide" }),
       z.string(),
-    ])
+    ]),
   )
   .max(5, "Pas plus d'un document");
 
@@ -82,11 +82,10 @@ export function TransportForm() {
   const [view, setView] = useState<boolean>(false);
 
   const paymentsData = useMutation({
-    mutationKey: ["payments-Depense"],
     mutationFn: async (
       data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> & {
         caisseId: number;
-      }
+      },
     ) => paymentQ.createDepense(data),
     onSuccess: () => {
       toast.success("Depense soumis avec succès !");

@@ -44,7 +44,7 @@ const SingleFileSchema = z
     z.union([
       z.instanceof(File, { message: "Doit être un fichier valide" }),
       z.string(),
-    ])
+    ]),
   )
   .max(1, "Pas plus d'un document")
   .nullable()
@@ -131,33 +131,14 @@ export default function RHRequestForm() {
   // ----------------------------------------------------------------------
 
   const requestMutation = useMutation({
-    mutationKey: ["requests"],
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
+      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">,
     ) => requestQ.special(data),
 
     onSuccess: () => {
       toast.success("Besoin soumis avec succès !");
       setIsSuccessModalOpen(true);
       form.reset();
-
-      // Invalider et rafraîchir toutes les requêtes liées aux besoins
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests-validation"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests", user?.id],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["payment", user?.id],
-      //   refetchType: "active",
-      // });
     },
 
     onError: (error: any) => {
@@ -217,7 +198,7 @@ export default function RHRequestForm() {
                         (p) =>
                           p.status !== "cancelled" &&
                           p.status !== "Completed" &&
-                          p.status !== "on-hold"
+                          p.status !== "on-hold",
                       )
                       .map((p) => ({
                         value: p.id!.toString(),

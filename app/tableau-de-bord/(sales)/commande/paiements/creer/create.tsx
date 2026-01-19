@@ -44,7 +44,7 @@ import z from "zod";
 
 const PAY_PRIORITY = PRIORITIES.map((m) => m.value) as [
   (typeof PRIORITIES)[number]["value"],
-  ...(typeof PRIORITIES)[number]["value"][]
+  ...(typeof PRIORITIES)[number]["value"][],
 ];
 
 const formSchema = z.object({
@@ -54,7 +54,7 @@ const formSchema = z.object({
       const d = new Date(val);
       return !isNaN(d.getTime());
     },
-    { message: "Date invalide" }
+    { message: "Date invalide" },
   ),
   isPartial: z.boolean(),
   price: z.number({ message: "Veuillez renseigner un montant" }),
@@ -65,7 +65,7 @@ const formSchema = z.object({
       z.union([
         z.instanceof(File, { message: "Doit être un fichier valide" }),
         z.string(),
-      ])
+      ]),
     )
     .min(1, "Veuillez ajouter un élément")
     .max(1, "Un seul justificatif autorisé"),
@@ -111,14 +111,10 @@ function CreatePaiement({ purchases }: Props) {
 
   const createPayment = useMutation({
     mutationFn: async (
-      payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId">
+      payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId">,
     ) => paymentQ.new(payload),
     onSuccess: () => {
       toast.success("Votre paiement a été initié avec succès !");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["payments", "purchaseOrders"],
-      //   refetchType: "active",
-      // });
       router.push("./");
     },
     onError: (error: Error) => {
@@ -234,7 +230,7 @@ function CreatePaiement({ purchases }: Props) {
                         const pay = React.useMemo(() => {
                           return payments
                             ?.filter(
-                              (payment) => payment.commandId === request.id
+                              (payment) => payment.commandId === request.id,
                             )
                             .filter((c) => c.status === "paid");
                         }, [payments, request]);
@@ -432,7 +428,7 @@ function CreatePaiement({ purchases }: Props) {
                       <SelectTrigger className="min-w-60 w-full">
                         <SelectValue placeholder="Sélectionner">
                           {paymentMethods.find(
-                            (method) => String(method.id) === field.value
+                            (method) => String(method.id) === field.value,
                           )?.label || "Sélectionner"}
                         </SelectValue>
                       </SelectTrigger>

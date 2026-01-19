@@ -91,7 +91,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   // Créer le schéma conditionnel
   const formSchema = useMemo(
     () => createFormSchema(hasExistingMethodId),
-    [hasExistingMethodId]
+    [hasExistingMethodId],
   );
 
   const form = useForm<FormValues>({
@@ -127,7 +127,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     }
 
     return payTypesQuery.data.data.find(
-      (payType: PayType) => payType.id === methodId
+      (payType: PayType) => payType.id === methodId,
     );
   }, [payTypesQuery.data?.data, ticket.methodId, selectedMethodId]);
 
@@ -148,14 +148,14 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
             (bank.type === "CASH" ||
               bank.type === "CASH_REGISTER" ||
               bank.type === "MOBILE_WALLET") &&
-            bank.Status === true
+            bank.Status === true,
         );
 
       case "ov": // Ordre de virement
       case "chq": // Chèque
         // Pour les virements et chèques : banques uniquement
         return banks.filter(
-          (bank) => bank.type === "BANK" && bank.Status === true
+          (bank) => bank.type === "BANK" && bank.Status === true,
         );
 
       default:
@@ -174,7 +174,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     const config = getSignataires.data.data.find(
       (signataire: Signatair) =>
         signataire.bankId === selectedBankId &&
-        signataire.payTypeId === paymentMethod.id
+        signataire.payTypeId === paymentMethod.id,
     );
 
     return config || null;
@@ -192,7 +192,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     return relevantSignataireConfig.user
       .map(
         (user) =>
-          `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+          `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email,
       )
       .join(", ");
   }, [relevantSignataireConfig]);
@@ -213,14 +213,6 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.create(payload),
     onSuccess: () => {
-      // queryClient.invalidateQueries({
-      //   queryKey: ["banks", "transactions"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["payments"],
-      //   refetchType: "active",
-      // });
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
     },
