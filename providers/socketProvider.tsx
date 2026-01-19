@@ -395,17 +395,15 @@ export default function SocketProvider({
      * user
      */
 
-    socket.on("user:new", ({ message }: { message: number }) => {
-      alert(message);
-      console.log(message);
+    socket.on("user:new", () => {
       queryClient.invalidateQueries({
         queryKey: ["users"],
         refetchType: "active",
       });
     });
 
-    socket.on("user:update", ({ userId }: { userId: number }) => {
-      if (user?.id === userId) {
+    socket.on("user:update", (data?: { userId: number }) => {
+      if (data && user?.id === data.userId) {
         localStorage.removeItem("creapp-store");
         window.location.href = "/connexion";
       }
@@ -415,8 +413,8 @@ export default function SocketProvider({
       });
     });
 
-    socket.on("user:delete", ({ userId }: { userId: number }) => {
-      if (user?.id === userId) {
+    socket.on("user:delete", (data?: { userId: number }) => {
+      if (data && user?.id === data?.userId) {
         localStorage.removeItem("creapp-store");
         window.location.href = "/connexion";
       }
@@ -523,8 +521,10 @@ export default function SocketProvider({
       socket.off("vehicle:new");
       socket.off("vehicle:update");
       socket.off("vehicle:delete");
+      socket.off("connect");
+      socket.off("disconnect");
     };
-  }, [queryClient]);
+  }, [queryClient, user]);
 
   return <>{children}</>;
 }

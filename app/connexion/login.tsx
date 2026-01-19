@@ -50,7 +50,6 @@ function Login() {
       router.push("/tableau-de-bord");
     },
     onError: (error: any) => {
-      console.error("Login error:", error);
       toast.error("Erreur de connexion, veuillez vérifier vos identifiants.");
     },
   });
