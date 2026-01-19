@@ -10,7 +10,7 @@ function Page() {
   const links: Array<NavLink> = [
     {
       title: "Créer un utilisateur",
-      href: "./utilisateurs/create",
+      href: "./utilisateurs/creer",
       hide: false,
       disabled: false,
     },
