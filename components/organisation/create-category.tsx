@@ -40,7 +40,7 @@ export const formSchema = z.object({
       z.object({
         userId: z.number().min(1, "Sélectionnez un utilisateur"),
         rank: z.number().min(1).max(3),
-      })
+      }),
     )
     .min(1, "Definissez au minimum un ascendant")
     .max(3, "Maximum 3 ascendants autorisés")
@@ -71,19 +71,18 @@ export function CategoryCreateForm() {
 
   // Récupérer la liste des utilisateurs
   const usersData = useQuery({
-    queryKey: ["users-list"],
+    queryKey: ["users"],
     queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
 
   const categoryApi = useMutation({
-    mutationKey: ["createCategory"],
     mutationFn: (
       data: Omit<Category, "updatedAt" | "createdAt" | "id"> & {
         parentId?: number;
         description?: string;
         validators?: { userId: number; rank: number }[];
-      }
+      },
     ) => categoryQ.createCategory(data),
     onSuccess: (data: ResponseT<Category>) => {
       toast.success("Catégorie créée avec succès !");
@@ -92,7 +91,7 @@ export function CategoryCreateForm() {
     },
     onError: (error: any) => {
       toast.error(
-        "Une erreur est survenue lors de la creation de la categorie."
+        "Une erreur est survenue lors de la creation de la categorie.",
       );
       console.error("Register error:", error);
     },
@@ -114,7 +113,7 @@ export function CategoryCreateForm() {
     // Trouver un utilisateur qui n'est pas déjà sélectionné
     const existingUserIds = fields.map((field) => field.userId);
     const availableUser = users.find(
-      (user) => !existingUserIds.includes(user.id!)
+      (user) => !existingUserIds.includes(user.id!),
     );
 
     if (!availableUser) {

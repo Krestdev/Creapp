@@ -68,12 +68,11 @@ export default function CreateCotationForm() {
   });
 
   const createCommand = useMutation({
-    mutationKey: ["command"],
     mutationFn: (
       data: Omit<
         CommandRequestT,
         "id" | "createdAt" | "updatedAt" | "reference" | "besoins"
-      >
+      >,
     ) => commandRqstQ.create(data),
     onSuccess: () => {
       setSuccessOpen(true);
@@ -94,7 +93,7 @@ export default function CreateCotationForm() {
     },
     onError: () => {
       toast.error(
-        "Une erreur est survenue lors de la création de la cotation."
+        "Une erreur est survenue lors de la création de la cotation.",
       );
     },
   });
@@ -115,7 +114,7 @@ export default function CreateCotationForm() {
     cotation.flatMap((item) => item.besoins?.flatMap((b) => b.id)) ?? [];
   const filteredData =
     requestData.data?.data.filter(
-      (item) => !besoinCommandes.includes(item.id)
+      (item) => !besoinCommandes.includes(item.id),
     ) ?? [];
 
   // map request to Request Type {id: number, name: string}
@@ -191,7 +190,7 @@ export default function CreateCotationForm() {
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (

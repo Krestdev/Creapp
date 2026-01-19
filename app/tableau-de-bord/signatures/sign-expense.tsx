@@ -36,10 +36,6 @@ function SignExpense({ ticket, open, onOpenChange, banks }: Props) {
     mutationFn: async (userId: number) =>
       paymentQ.validate({ paymentId: ticket.id, userId }),
     onSuccess: () => {
-      // queryClient.invalidateQueries({
-      //   queryKey: ["banks", "payments", "transactions"],
-      //   refetchType: "active",
-      // });
       toast.success("Votre signatur a été enregistrée avec succès !");
       onOpenChange(false);
     },

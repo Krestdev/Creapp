@@ -46,11 +46,11 @@ import z from "zod";
 
 const METHOD = PAYMENT_METHOD.map((m) => m.value) as [
   (typeof PAYMENT_METHOD)[number]["value"],
-  ...(typeof PAYMENT_METHOD)[number]["value"][]
+  ...(typeof PAYMENT_METHOD)[number]["value"][],
 ];
 const PAY_PRIORITY = PRIORITIES.map((m) => m.value) as [
   (typeof PRIORITIES)[number]["value"],
-  ...(typeof PRIORITIES)[number]["value"][]
+  ...(typeof PRIORITIES)[number]["value"][],
 ];
 
 const formSchema = z.object({
@@ -59,7 +59,7 @@ const formSchema = z.object({
       const d = new Date(val);
       return !isNaN(d.getTime());
     },
-    { message: "Date invalide" }
+    { message: "Date invalide" },
   ),
   isPartial: z.boolean(),
   price: z.number({ message: "Veuillez renseigner un montant" }),
@@ -70,7 +70,7 @@ const formSchema = z.object({
       z.union([
         z.instanceof(File, { message: "Doit être un fichier valide" }),
         z.string(),
-      ])
+      ]),
     )
     .min(1, "Veuillez ajouter un élément")
     .max(1, "Un seul justificatif autorisé"),
@@ -112,10 +112,6 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
       paymentQ.update(payment.id, data),
     onSuccess: () => {
       toast.success("Votre paiement a été modifié avec succès !");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["payments", "purchaseOrders"],
-      //   refetchType: "active",
-      // });
       openChange(false);
     },
     onError: (error: Error) => {

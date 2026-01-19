@@ -57,7 +57,7 @@ const SingleFileSchema = z
     z.union([
       z.instanceof(File, { message: "Doit être un fichier valide" }),
       z.string(),
-    ])
+    ]),
   )
   .max(1, "Pas plus d'un document")
   .nullable();
@@ -143,7 +143,7 @@ export default function UpdateRequestFac({
   // ----------------------------------------------------------------------
 
   const paiement = paymentsData.data?.data.find(
-    (x) => x.requestId === requestData?.id
+    (x) => x.requestId === requestData?.id,
   );
 
   useEffect(() => {
@@ -157,7 +157,7 @@ export default function UpdateRequestFac({
                 id: item.id,
                 nom: item.name,
                 montant: item.amount,
-              }))
+              })),
             );
           }
 
@@ -170,7 +170,6 @@ export default function UpdateRequestFac({
               proofValue = paiement?.proof;
             }
           }
-
 
           // Réinitialiser le formulaire avec les valeurs
           form.reset({
@@ -189,7 +188,7 @@ export default function UpdateRequestFac({
         } catch (error) {
           console.error(
             "Erreur lors de l'initialisation du formulaire:",
-            error
+            error,
           );
           toast.error("Erreur lors du chargement des données");
         }
@@ -206,7 +205,6 @@ export default function UpdateRequestFac({
   // ----------------------------------------------------------------------
 
   const updateMutation = useMutation({
-    mutationKey: ["requests", "update", "facilitation"],
     mutationFn: async (data: Partial<RequestModelT>) => {
       if (!requestData?.id) throw new Error("ID de la demande manquant");
       return requestQ.specialUpdate(data, Number(requestData.id));
@@ -215,24 +213,6 @@ export default function UpdateRequestFac({
     onSuccess: () => {
       toast.success("Demande de facilitation modifiée avec succès !");
       setOpen(false);
-
-      // Invalider et rafraîchir toutes les requêtes
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests", user?.id],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests-validation"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["payment", user?.id],
-      //   refetchType: "active",
-      // });
 
       onSuccess?.();
     },
@@ -323,7 +303,7 @@ export default function UpdateRequestFac({
                               (p) =>
                                 p.status !== "cancelled" &&
                                 p.status !== "Completed" &&
-                                p.status !== "on-hold"
+                                p.status !== "on-hold",
                             )
                             .map((p) => ({
                               value: p.id!.toString(),

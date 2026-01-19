@@ -81,7 +81,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({ createdAt: false });
@@ -187,30 +187,19 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const { user } = useStore();
   const queryClient = useQueryClient();
 
-
   const userMutationData = useMutation({
-    mutationKey: ["usersStatus"],
     mutationFn: (data: { id: number; status: string }) =>
       userQ.changeStatus(data.id, { status: data.status }),
     onSuccess: () => {
       toast.success("Statut mis à jour avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["usersList"],
-        refetchType: "active",
-      });
     },
   });
 
   const userMutation = useMutation({
-    mutationKey: ["userUpdate"],
     mutationFn: async (data: number) => userQ.delete(Number(data)),
 
     onSuccess: () => {
       toast.success("Utilisateur supprimé avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["usersList"],
-        refetchType: "active",
-      });
     },
 
     onError: (e) => {
@@ -252,11 +241,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         sortingFn: (rowA, rowB) => {
           const nameA = formatFullName(
             rowA.original.lastName,
-            rowA.original.firstName
+            rowA.original.firstName,
           );
           const nameB = formatFullName(
             rowB.original.lastName,
-            rowB.original.firstName
+            rowB.original.firstName,
           );
 
           return nameA.localeCompare(nameB, "fr", {
@@ -306,13 +295,13 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 return (
                   <Badge
                     className={`${getRoleBadgeColor(
-                      rol.label
+                      rol.label,
                     )} flex items-center gap-1 w-fit`}
                     key={rol.id}
                   >
                     {getRoleIcon(rol.label)}
                     {TranslateRole(
-                      rol.label.charAt(0).toUpperCase() + rol.label.slice(1)
+                      rol.label.charAt(0).toUpperCase() + rol.label.slice(1),
                     )}
                   </Badge>
                 );
@@ -325,7 +314,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
           const roles = row.getValue(columnId) as Role[];
           return roles?.some((role) =>
-            role.label.toLowerCase().includes(filterValue.toLowerCase())
+            role.label.toLowerCase().includes(filterValue.toLowerCase()),
           );
         },
       },
@@ -349,7 +338,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           return (
             <Badge
               className={`${getStatutBadgeColor(
-                status
+                status,
               )} flex items-center gap-1 w-fit`}
             >
               {getStatutIcon(status)}
@@ -358,14 +347,19 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           );
         },
         filterFn: (row, columnId, filterValue) => {
-          if (filterValue === undefined || filterValue === "" || filterValue === "all") {
+          if (
+            filterValue === undefined ||
+            filterValue === "" ||
+            filterValue === "all"
+          ) {
             return true;
           }
 
           // Convertir la valeur de filtre en booléen
-          const filterBool = typeof filterValue === "string"
-            ? filterValue === "true"
-            : Boolean(filterValue);
+          const filterBool =
+            typeof filterValue === "string"
+              ? filterValue === "true"
+              : Boolean(filterValue);
 
           return row.getValue(columnId) === filterBool;
         },
@@ -388,9 +382,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         cell: ({ row }) => {
           const status = row.getValue("status") as string;
           return (
-            <Badge
-              variant={status === "active" ? "success" : "destructive"}
-            >
+            <Badge variant={status === "active" ? "success" : "destructive"}>
               {status === "active" ? <Check /> : <LucideX />}
               {status === "active" ? "Actif" : "Suspendu"}
             </Badge>
@@ -464,8 +456,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           const utilisateur = row.original;
 
           const isSignataire = signataireData.data?.data
-            ?.flatMap(x => x.user)
-            .some(u => u?.id === utilisateur.id);
+            ?.flatMap((x) => x.user)
+            .some((u) => u?.id === utilisateur.id);
 
           // si l'utilisateur est signataire, on ne peut pas le supprimer ou suspendre
 
@@ -524,13 +516,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   <DropdownMenuItem
                     onClick={() => {
                       if (isSignataire) {
-                        toast.error("Vous ne pouvez pas suspendre un signataire.");
+                        toast.error(
+                          "Vous ne pouvez pas suspendre un signataire.",
+                        );
                         return;
                       }
                       userMutationData.mutate({
                         id: utilisateur.id ?? -1,
                         status: "inactive",
-                      })
+                      });
                     }}
                     disabled={
                       utilisateur.status === "inactive" ||
@@ -545,7 +539,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   className="text-red-600"
                   onClick={() => {
                     if (isSignataire) {
-                      toast.error("Vous ne pouvez pas supprimer un signataire.");
+                      toast.error(
+                        "Vous ne pouvez pas supprimer un signataire.",
+                      );
                       return;
                     }
                     setSelectedItem(utilisateur);
@@ -562,7 +558,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         },
       },
     ],
-    [user?.id, userMutation, userMutationData]
+    [user?.id, userMutation, userMutationData],
   );
 
   const table = useReactTable({
@@ -596,7 +592,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
       // Vérifier si le terme de recherche correspond à n'importe quel champ
       return [...searchFields, ...roleNames].some((field) =>
-        field.includes(searchValue)
+        field.includes(searchValue),
       );
     },
     state: {
@@ -617,7 +613,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
   // Déterminer la valeur pour le Select
   const verifiedSelectValue = React.useMemo(() => {
-    if (verifiedFilterValue === undefined || verifiedFilterValue === "" || verifiedFilterValue === "all") {
+    if (
+      verifiedFilterValue === undefined ||
+      verifiedFilterValue === "" ||
+      verifiedFilterValue === "all"
+    ) {
       return "all";
     }
 
@@ -638,10 +638,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const handleUpdateSuccess = () => {
     setIsUpdateModalOpen(false);
     setSelectedItem(null);
-    queryClient.invalidateQueries({
-      queryKey: ["usersList"],
-      refetchType: "active",
-    });
   };
 
   return (
@@ -777,9 +773,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -801,7 +797,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

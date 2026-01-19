@@ -65,7 +65,6 @@ export default function CreateSignatairForm() {
   const queryClient = useQueryClient();
 
   const signatairMutation = useMutation({
-    mutationKey: ["signatair-create"],
     mutationFn: (data: Omit<Signatair, "id" | "createdAt" | "updatedAt">) =>
       signatairQ.create(data),
     onSuccess: () => {
@@ -84,7 +83,7 @@ export default function CreateSignatairForm() {
     },
     onError: () => {
       toast.error(
-        "Une erreur est survenue lors de la creation des Signatairs."
+        "Une erreur est survenue lors de la creation des Signatairs.",
       );
     },
   });
@@ -252,7 +251,7 @@ export default function CreateSignatairForm() {
                 setSelectedUser(selected);
                 form.setValue(
                   "signatair",
-                  selected.map((r) => r.id)
+                  selected.map((r) => r.id),
                 );
               }}
             />

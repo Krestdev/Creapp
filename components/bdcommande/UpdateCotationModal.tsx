@@ -97,31 +97,12 @@ export function UpdateCotationModal({
 
   // Mutation pour la mise à jour
   const updateCommand = useMutation({
-    mutationKey: ["update-command", commandId],
     mutationFn: (data: Partial<CommandRequestT>) =>
       commandRqstQ.update(commandId, data),
     onSuccess: () => {
       toast.success("Demande de cotation mise à jour avec succès");
       setSuccessOpen(true);
       onSuccess?.();
-
-      // Invalider TOUTES les requêtes pertinentes
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["commands"],
-      //   refetchType: "active",
-      // }); // AJOUTÉ
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests-validation"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests", user?.id],
-      //   refetchType: "active",
-      // });
 
       // Fermer la modal
       setTimeout(() => {
@@ -208,7 +189,7 @@ export function UpdateCotationModal({
         shouldValidate: true,
         shouldDirty: true,
         shouldTouch: true,
-      }
+      },
     );
   };
 
@@ -311,7 +292,7 @@ export function UpdateCotationModal({
                                 variant={"outline"}
                                 className={cn(
                                   "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
+                                  !field.value && "text-muted-foreground",
                                 )}
                               >
                                 {field.value ? (

@@ -95,10 +95,6 @@ export default function UpdateVehicle({
 
     onSuccess: () => {
       toast.success("Utilisateur modifié avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["usersList"],
-        refetchType: "active",
-      });
       setOpen(false);
       onSuccess?.();
     },

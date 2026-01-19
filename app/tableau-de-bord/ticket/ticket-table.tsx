@@ -85,7 +85,7 @@ interface TicketsTableProps {
 }
 
 const getPriorityBadge = (
-  priority: PaymentRequest["priority"]
+  priority: PaymentRequest["priority"],
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
@@ -131,7 +131,7 @@ const getPriorityBadge = (
   }
 };
 const getStatusVariant = (
-  status: PaymentRequest["status"]
+  status: PaymentRequest["status"],
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
@@ -243,7 +243,7 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
@@ -267,7 +267,6 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
   });
 
   const paymentMutation = useMutation({
-    mutationKey: ["payment"],
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
       return paymentQ.update(id, data);
     },
@@ -287,7 +286,6 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
   });
 
   const validateMutation = useMutation({
-    mutationKey: ["payment"],
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
       return paymentQ.vaidate(id, data);
     },
@@ -645,7 +643,8 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
                     <SelectContent>
                       <SelectItem value="all">{"Tous"}</SelectItem>
                       {PAY_STATUS.filter(
-                        (c) => c.value === "accepted" || c.value === "validated"
+                        (c) =>
+                          c.value === "accepted" || c.value === "validated",
                       ).map((status) => (
                         <SelectItem key={status.value} value={status.value}>
                           {getStatusVariant(status.value).label}
@@ -712,30 +711,30 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
                       {column.id === "createdAt"
                         ? "Date de creation"
                         : column.id === "priority"
-                        ? "Priorité"
-                        : column.id === "status"
-                        ? "Statut"
-                        : column.id === "type"
-                        ? "Type"
-                        : column.id === "amount"
-                        ? "Montant"
-                        : column.id === "description"
-                        ? "Description"
-                        : column.id === "reference"
-                        ? "Reference"
-                        : column.id === "createdAt"
-                        ? "Date de creation"
-                        : column.id === "updatedAt"
-                        ? "Date de modification"
-                        : column.id === "actions"
-                        ? "Actions"
-                        : column.id === "title"
-                        ? "Titre"
-                        : column.id === "category"
-                        ? "Categorie"
-                        : column.id === "price"
-                        ? "Montant"
-                        : column.id}
+                          ? "Priorité"
+                          : column.id === "status"
+                            ? "Statut"
+                            : column.id === "type"
+                              ? "Type"
+                              : column.id === "amount"
+                                ? "Montant"
+                                : column.id === "description"
+                                  ? "Description"
+                                  : column.id === "reference"
+                                    ? "Reference"
+                                    : column.id === "createdAt"
+                                      ? "Date de creation"
+                                      : column.id === "updatedAt"
+                                        ? "Date de modification"
+                                        : column.id === "actions"
+                                          ? "Actions"
+                                          : column.id === "title"
+                                            ? "Titre"
+                                            : column.id === "category"
+                                              ? "Categorie"
+                                              : column.id === "price"
+                                                ? "Montant"
+                                                : column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
@@ -758,7 +757,7 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -785,7 +784,7 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}

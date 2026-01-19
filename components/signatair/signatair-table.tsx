@@ -63,7 +63,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
     { id: "Bank", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({ createdAt: false });
@@ -71,7 +71,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   const [selectedItem, setSelectedItem] = React.useState<Signatair | null>(
-    null
+    null,
   );
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isUpdatePasswordModalOpen, setIsUpdatePasswordModalOpen] =
@@ -83,7 +83,6 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
   const queryClient = useQueryClient();
 
   const signatairMutation = useMutation({
-    mutationKey: ["signatairDelete"],
     mutationFn: (id: number) => signatairQ.delete(id),
     onSuccess: () => {
       toast.success("Signatair supprimer");
@@ -260,7 +259,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
         },
       },
     ],
-    [user?.id, signatairMutation]
+    [user?.id, signatairMutation],
   );
 
   const table = useReactTable({
@@ -286,9 +285,9 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
         signatair.user?.map((user) =>
           TranslateRole(
             user.firstName?.toLowerCase() +
-            " " +
-            user.lastName?.toLowerCase() || ""
-          )
+              " " +
+              user.lastName?.toLowerCase() || "",
+          ),
         ) || [];
 
       // Recherche dans les autres champs
@@ -387,9 +386,9 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -410,7 +409,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

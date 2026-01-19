@@ -59,7 +59,7 @@ export function DevisModal({
   const [file, setFile] = React.useState<string | File | undefined>(undefined);
 
   const usersData = useQuery({
-    queryKey: ["usersList"],
+    queryKey: ["users"],
     queryFn: () => userQ.getAll(),
   });
 
@@ -292,7 +292,7 @@ export function DevisModal({
                         className={cn(
                           index % 2 === 0 ? "bg-white" : "bg-gray-50",
                           el.status === "SELECTED" && "bg-green-50!",
-                          el.status === "REJECTED" && "bg-red-50!"
+                          el.status === "REJECTED" && "bg-red-50!",
                         )}
                       >
                         <TableCell className="font-medium inline-flex gap-1 items-center">
@@ -313,7 +313,7 @@ export function DevisModal({
                         </TableCell>
                         <TableCell>
                           {XAF.format(
-                            (el.quantity || 0) * (el.priceProposed || 0)
+                            (el.quantity || 0) * (el.priceProposed || 0),
                           )}
                         </TableCell>
                       </TableRow>

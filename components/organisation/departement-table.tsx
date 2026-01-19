@@ -66,7 +66,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -74,13 +74,12 @@ export function DepartementTable({ data }: DepartementTableProps) {
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   const [selectedItem, setSelectedItem] = React.useState<DepartmentT | null>(
-    null
+    null,
   );
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isShowModalOpen, setIsShowModalOpen] = React.useState(false);
 
   const departmentMutation = useMutation({
-    mutationKey: ["departmentUpdate"],
     mutationFn: async (data: number) => departmentQ.delete(Number(data)),
 
     onSuccess: () => {
@@ -94,7 +93,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
   });
 
   const getBadge = (
-    status: string
+    status: string,
   ): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -308,7 +307,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
         },
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -442,7 +441,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -469,7 +468,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

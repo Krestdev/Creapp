@@ -57,7 +57,7 @@ export function DepartmentCreateForm() {
         | "status"
         | "reference"
         | "members"
-      > & { chiefId: number }
+      > & { chiefId: number },
     ) => departmentQ.create(data),
     onSuccess: (data: ResponseT<DepartmentT>) => {
       toast.success("Département créé avec succès !");
@@ -66,14 +66,14 @@ export function DepartmentCreateForm() {
     },
     onError: (error: any) => {
       toast.error(
-        "Une erreur est survenue lors de la creation du departement."
+        "Une erreur est survenue lors de la creation du departement.",
       );
       console.error("Register error:", error);
     },
   });
 
   const userApi = useQuery({
-    queryKey: ["usersList"],
+    queryKey: ["users"],
     queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });

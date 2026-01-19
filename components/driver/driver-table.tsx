@@ -86,7 +86,6 @@ export function DriverTable({ data }: DriversTableProps) {
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
 
   const driverMutation = useMutation({
-    mutationKey: ["driverDelete"],
     mutationFn: (id: number) => driverQ.delete(id),
     onSuccess: () => {
       toast.success("Fournisseur supprimé avec succès !");

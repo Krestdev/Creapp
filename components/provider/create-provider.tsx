@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { providerQ } from "@/queries/providers";
-import { Provider, ResponseT } from "@/types/types";
+import { Provider } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -31,7 +31,7 @@ const SingleFileArray = z
     z.union([
       z.instanceof(File, { message: "Doit être un fichier valide" }),
       z.string(),
-    ])
+    ]),
   )
   .max(1, "Pas plus d'un document")
   .nullable();
@@ -73,27 +73,32 @@ export default function CreateProviderForm() {
   });
 
   const registerAPI = useMutation({
-    mutationKey: ["registerNewProvider"],
     mutationFn: (
       data: Omit<
         Provider,
         "status" | "lastConnection" | "role" | "members" | "id" | "createdAt"
-      >
+      >,
     ) => providerQ.create(data),
-    onSuccess: (data: ResponseT<Provider>) => {
+    onSuccess: () => {
       toast.success("Fournisseur créé avec succès.");
-      console.log("Register successful:", data);
+      form.reset({
+      email: "",
+      address: "",
+      name: "",
+      phone: "",
+      carte_contribuable: [],
+      acf: [],
+      plan_localisation: [],
+      commerce_registre: [],
+      banck_attestation: [],
+    })
     },
-    onError: (error: any) => {
-      toast.error(
-        "Une erreur est survenue lors de la creation du fournisseur."
-      );
-      console.error("Register error:", error);
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
       const data = {
         name: values.name,
         email: values.email,
@@ -109,10 +114,6 @@ export default function CreateProviderForm() {
         banck_attestation: values.banck_attestation?.[0],
       };
       registerAPI.mutate(data);
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
-    }
   }
 
   return (

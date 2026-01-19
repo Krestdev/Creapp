@@ -58,10 +58,11 @@ import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { categoryQ } from "@/queries/categoryModule";
 import { paymentQ } from "@/queries/payment";
+import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { DateFilter, RequestModelT } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -88,7 +89,6 @@ import {
 } from "../ui/sheet";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
-import { projectQ } from "@/queries/projectModule";
 
 const statusConfig = {
   pending: {
@@ -139,7 +139,7 @@ export function DataTable({ data }: Props) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
@@ -165,7 +165,6 @@ export function DataTable({ data }: Props) {
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
-  const queryClient = useQueryClient();
 
   const getRequestType = useQuery({
     queryKey: ["requestType"],
@@ -191,7 +190,6 @@ export function DataTable({ data }: Props) {
   });
 
   const requestMutation = useMutation({
-    mutationKey: ["requests"],
     mutationFn: async (data: Partial<RequestModelT>) => {
       const id = selectedItem?.id;
       if (!id) throw new Error("ID de besoin manquant");
@@ -199,11 +197,6 @@ export function DataTable({ data }: Props) {
     },
     onSuccess: () => {
       toast.success("Besoin annulé avec succès !");
-      // Rafraîchir les données après une annulation réussie
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests", user?.id],
-      //   refetchType: "active",
-      // });
     },
     onError: () => {
       toast.error("Une erreur est survenue.");
@@ -251,7 +244,7 @@ export function DataTable({ data }: Props) {
 
     return categoryIds.map((categoryId) => {
       const category = categoryData.data.data.find(
-        (cat) => cat.id === Number(categoryId)
+        (cat) => cat.id === Number(categoryId),
       );
       return {
         id: categoryId,
@@ -267,7 +260,7 @@ export function DataTable({ data }: Props) {
 
     return projectIds.map((projectId) => {
       const project = projectsData.data?.data.find(
-        (proj) => proj.id === Number(projectId)
+        (proj) => proj.id === Number(projectId),
       );
       return {
         id: projectId,
@@ -295,7 +288,7 @@ export function DataTable({ data }: Props) {
 
   const getProjectName = (projectId: string) => {
     const project = projectsData.data?.data?.find(
-      (proj) => proj.id === Number(projectId)
+      (proj) => proj.id === Number(projectId),
     );
     return project?.label || projectId;
   };
@@ -322,7 +315,7 @@ export function DataTable({ data }: Props) {
     // Filtrer par catégorie locale
     if (categoryFilter && categoryFilter !== "all") {
       filtered = filtered.filter(
-        (item) => String(item.categoryId) === String(categoryFilter)
+        (item) => String(item.categoryId) === String(categoryFilter),
       );
     }
 
@@ -344,7 +337,7 @@ export function DataTable({ data }: Props) {
     // Filtre par projet local
     if (projectFilter && projectFilter !== "all") {
       filtered = filtered.filter(
-        (item) => String(item.projectId) === String(projectFilter)
+        (item) => String(item.projectId) === String(projectFilter),
       );
     }
 
@@ -357,7 +350,7 @@ export function DataTable({ data }: Props) {
       | "ressource_humaine"
       | "facilitation"
       | "speciaux"
-      | undefined
+      | undefined,
   ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
     const typeData = getRequestType.data?.data.find((t) => t.type === type);
     const label = typeData?.label ?? "Inconnu";
@@ -448,7 +441,7 @@ export function DataTable({ data }: Props) {
       cell: ({ row }) => {
         const projectId = row.getValue("projectId") as string;
         const project = projectsData.data?.data?.find(
-          (proj) => proj.id === Number(projectId)
+          (proj) => proj.id === Number(projectId),
         );
         return (
           <div className="first-letter:uppercase lowercase">
@@ -534,7 +527,7 @@ export function DataTable({ data }: Props) {
       cell: ({ row }) => {
         const item = row.original;
         const paiement = paymentsData.data?.data.find(
-          (x) => x.requestId === item?.id
+          (x) => x.requestId === item?.id,
         );
         const isAttach =
           (item.type === "facilitation" || item.type === "ressource_humaine") &&
@@ -759,7 +752,7 @@ export function DataTable({ data }: Props) {
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
                               customDateRange.from,
-                              "dd/MM/yyyy"
+                              "dd/MM/yyyy",
                             )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
@@ -839,18 +832,18 @@ export function DataTable({ data }: Props) {
                     {column.id === "ref"
                       ? "Références"
                       : column.id === "label"
-                      ? "Titres"
-                      : column.id === "type"
-                      ? "Type"
-                      : column.id === "state"
-                      ? "Statuts"
-                      : column.id === "projectId"
-                      ? "Projets"
-                      : column.id === "categoryId"
-                      ? "Catégories"
-                      : column.id === "createdAt"
-                      ? "Date d'émission"
-                      : column.id}
+                        ? "Titres"
+                        : column.id === "type"
+                          ? "Type"
+                          : column.id === "state"
+                            ? "Statuts"
+                            : column.id === "projectId"
+                              ? "Projets"
+                              : column.id === "categoryId"
+                                ? "Catégories"
+                                : column.id === "createdAt"
+                                  ? "Date d'émission"
+                                  : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -875,7 +868,7 @@ export function DataTable({ data }: Props) {
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
                     );
@@ -901,7 +894,7 @@ export function DataTable({ data }: Props) {
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}

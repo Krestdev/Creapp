@@ -174,7 +174,7 @@ export function DataVal({
 
   // Modal states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
-    null
+    null,
   );
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isValidationModalOpen, setIsValidationModalOpen] =
@@ -205,7 +205,7 @@ export function DataVal({
       return null;
 
     const category = categoriesData.find(
-      (cat) => cat.id === request.categoryId
+      (cat) => cat.id === request.categoryId,
     );
     if (!category || !category.validators) return null;
 
@@ -223,7 +223,7 @@ export function DataVal({
       return false;
 
     const category = categoriesData.find(
-      (cat) => cat.id === request.categoryId
+      (cat) => cat.id === request.categoryId,
     );
     if (!category || !category.validators || category.validators.length === 0) {
       return false;
@@ -232,7 +232,7 @@ export function DataVal({
     // Trouver le validateur avec la position la plus élevée
     const maxPosition = Math.max(...category.validators.map((v) => v.rank));
     const lastValidator = category.validators.find(
-      (v) => v.rank === maxPosition
+      (v) => v.rank === maxPosition,
     );
 
     return lastValidator?.userId === user?.id;
@@ -252,7 +252,7 @@ export function DataVal({
 
   const getCategoryName = (categoryId: string) => {
     const category = categoriesData?.find(
-      (cat) => cat.id === Number(categoryId)
+      (cat) => cat.id === Number(categoryId),
     );
     return category?.label || categoryId;
   };
@@ -270,7 +270,7 @@ export function DataVal({
         ?.validators.find((v) => v.userId === user?.id)?.id;
       //console.log(`validator Id: ${validatedByUser} - ${b.label}`);
       const validated = b.revieweeList?.some(
-        (r) => r.validatorId === validatedByUser
+        (r) => r.validatorId === validatedByUser,
       );
       const now = new Date();
       let startDate = new Date();
@@ -303,7 +303,7 @@ export function DataVal({
             break;
           case "week":
             startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
             );
             startDate.setHours(0, 0, 0, 0);
             break;
@@ -368,7 +368,7 @@ export function DataVal({
 
     return categoryIds.map((categoryId) => {
       const category = categoriesData.find(
-        (cat) => cat.id === Number(categoryId)
+        (cat) => cat.id === Number(categoryId),
       );
       return {
         id: categoryId,
@@ -384,7 +384,7 @@ export function DataVal({
 
     return projectIds.map((projectId) => {
       const project = projectsData.find(
-        (proj) => proj.id === Number(projectId)
+        (proj) => proj.id === Number(projectId),
       );
       return {
         id: projectId,
@@ -408,7 +408,7 @@ export function DataVal({
   }, [data, usersData]);
 
   const getStatusConfig = (
-    status: string
+    status: string,
   ): {
     label: string;
     icon?: LucideIcon;
@@ -503,7 +503,6 @@ export function DataVal({
   };
 
   const reviewRequest = useMutation({
-    mutationKey: ["requests-review"],
     mutationFn: async ({
       id,
       validated,
@@ -534,9 +533,8 @@ export function DataVal({
       toast.success(
         validationType === "approve"
           ? "Besoin approuvé avec succès !"
-          : "Besoin rejeté avec succès !"
+          : "Besoin rejeté avec succès !",
       );
-      // queryClient.invalidateQueries({ queryKey: ["requests"] });
     },
     onError: () => {
       toast.error("Une erreur est survenue lors de la validation.");
@@ -580,7 +578,6 @@ export function DataVal({
   };
 
   const reviewGroupRequests = useMutation({
-    mutationKey: ["requests-group-review"],
     mutationFn: async ({
       ids,
       validated,
@@ -620,10 +617,8 @@ export function DataVal({
       const actionType = variables.validated ? "approuvé" : "rejeté";
 
       toast.success(
-        `${selectedCount} besoin(s) ${actionType}(s) avec succès !`
+        `${selectedCount} besoin(s) ${actionType}(s) avec succès !`,
       );
-
-      // queryClient.invalidateQueries({ queryKey: ["requests"] });
       setRowSelection({}); // Réinitialiser la sélection
     },
     onError: (error) => {
@@ -657,7 +652,7 @@ export function DataVal({
 
     if (cannotValidateItems.length > 0) {
       toast.error(
-        `Vous ne pouvez pas valider ${cannotValidateItems.length} besoin(s) sélectionné(s)`
+        `Vous ne pouvez pas valider ${cannotValidateItems.length} besoin(s) sélectionné(s)`,
       );
       return;
     }
@@ -697,7 +692,7 @@ export function DataVal({
 
   const openValidationModal = (
     type: "approve" | "reject",
-    item: RequestModelT
+    item: RequestModelT,
   ) => {
     setSelectedItem(item);
     setValidationType(type);
@@ -724,7 +719,7 @@ export function DataVal({
 
     // Trouver la catégorie pour obtenir le nombre total de validateurs
     const category = categoriesData?.find(
-      (cat) => cat.id === request.categoryId
+      (cat) => cat.id === request.categoryId,
     );
     const totalValidators = category?.validators?.length || 0;
     const validatedCount = request.revieweeList?.length || 0;
@@ -775,7 +770,7 @@ export function DataVal({
       | "ressource_humaine"
       | "facilitation"
       | "achat"
-      | undefined
+      | undefined,
   ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
     const typeData = requestTypeData?.find((t) => t.type === type);
     const label = typeData?.label ?? "Inconnu";
@@ -989,7 +984,7 @@ export function DataVal({
             {getBeneficiaryDisplay(row.original)}
           </div>
         ),
-      }
+      },
     );
 
     // Ajouter la colonne Validation de validation (uniquement pour type pending)
@@ -1313,7 +1308,7 @@ export function DataVal({
                           {customDateRange?.from && customDateRange.to
                             ? `${format(
                                 customDateRange.from,
-                                "dd/MM/yyyy"
+                                "dd/MM/yyyy",
                               )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
@@ -1390,22 +1385,22 @@ export function DataVal({
                       {column.id === "select"
                         ? "Sélection"
                         : column.id === "label"
-                        ? "Titres"
-                        : column.id === "projectId"
-                        ? "Projets"
-                        : column.id === "categoryId"
-                        ? "Catégories"
-                        : column.id === "userId"
-                        ? "Émetteurs"
-                        : column.id === "beneficiary"
-                        ? "Bénéficiaires"
-                        : column.id === "createdAt"
-                        ? "Date d'émission"
-                        : column.id === "state"
-                        ? "Statuts"
-                        : column.id === "validationProgress"
-                        ? "Validation"
-                        : column.id}
+                          ? "Titres"
+                          : column.id === "projectId"
+                            ? "Projets"
+                            : column.id === "categoryId"
+                              ? "Catégories"
+                              : column.id === "userId"
+                                ? "Émetteurs"
+                                : column.id === "beneficiary"
+                                  ? "Bénéficiaires"
+                                  : column.id === "createdAt"
+                                    ? "Date d'émission"
+                                    : column.id === "state"
+                                      ? "Statuts"
+                                      : column.id === "validationProgress"
+                                        ? "Validation"
+                                        : column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
@@ -1454,7 +1449,7 @@ export function DataVal({
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
                     );
@@ -1482,7 +1477,7 @@ export function DataVal({
                       validationInfo.isLastValidator && "border-l-red-400",
                       isSelected &&
                         isCheckable &&
-                        "bg-blue-50 hover:bg-blue-100"
+                        "bg-blue-50 hover:bg-blue-100",
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -1492,7 +1487,7 @@ export function DataVal({
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}

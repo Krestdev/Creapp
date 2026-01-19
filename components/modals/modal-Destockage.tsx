@@ -11,7 +11,7 @@ import { userQ } from "@/queries/baseModule";
 import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Calendar, CalendarFold, Hash, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,10 +37,7 @@ export function ModalDestockage({
     queryFn: async () => projectQ.getAll(),
   });
 
-  const queryClient = useQueryClient();
-
   const requestMutation = useMutation({
-    mutationKey: ["requests"],
     mutationFn: async (data: Partial<RequestModelT>) => {
       const id = data?.id;
       if (!id) throw new Error("ID de besoin manquant");
@@ -50,10 +47,6 @@ export function ModalDestockage({
     onSuccess: (res) => {
       toast.success("Le besoin a été déstocké.");
       onOpenChange(false);
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests"],
-      //   refetchType: "active",
-      // });
     },
     onError: (error) => {
       toast.error("Une erreur est survenue.");
@@ -66,7 +59,7 @@ export function ModalDestockage({
     " " +
     usersData.data?.data?.find((u) => u.id === data?.userId)?.lastName;
   const projet = projectsData.data?.data.find(
-    (p) => p.id === data?.projectId
+    (p) => p.id === data?.projectId,
   )?.label;
 
   const handleDestockage = () => {

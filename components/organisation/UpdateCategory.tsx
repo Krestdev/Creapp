@@ -54,7 +54,7 @@ export const formSchema = z.object({
         id: z.number().optional(), // ID existant pour les ascendants
         userId: z.number().min(1, "Sélectionnez un utilisateur"),
         rank: z.number().min(1).max(3),
-      })
+      }),
     )
     .min(1, "Au moins un ascendant est requis") // MODIFICATION: minimum 1 validateur
     .max(3, "Maximum 3 ascendants autorisés"),
@@ -98,7 +98,7 @@ export function UpdateCategory({
   // Récupérer la liste des utilisateurs
 
   const usersData = useQuery({
-    queryKey: ["users-list"],
+    queryKey: ["users"],
     queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
@@ -111,7 +111,7 @@ export function UpdateCategory({
       // S'assurer qu'il y a au moins un validateur
       if (validators.length === 0 && categoryData.id !== 0) {
         toast.warning(
-          "Cette catégorie n'a pas d'ascendant. Veuillez en ajouter au moins un."
+          "Cette catégorie n'a pas d'ascendant. Veuillez en ajouter au moins un.",
         );
       }
 
@@ -128,13 +128,12 @@ export function UpdateCategory({
   }, [categoryData, form]);
 
   const categoryApi = useMutation({
-    mutationKey: ["updateCategory"],
     mutationFn: async (data: Partial<Category>) => {
       setIsLoading(true);
       try {
         const response = await categoryQ.updateCategory(
           categoryData?.id!,
-          data
+          data,
         );
         return {
           message: "Category updated successfully",
@@ -153,7 +152,7 @@ export function UpdateCategory({
     },
     onError: (error: any) => {
       toast.error(
-        "Une erreur est survenue lors de la mise à jour de la catégorie."
+        "Une erreur est survenue lors de la mise à jour de la catégorie.",
       );
       console.error("Update error:", error);
     },
@@ -175,7 +174,7 @@ export function UpdateCategory({
     // Trouver un utilisateur qui n'est pas déjà sélectionné
     const existingUserIds = fields.map((field) => field.userId);
     const availableUser = users.find(
-      (user) => !existingUserIds.includes(user.id!)
+      (user) => !existingUserIds.includes(user.id!),
     );
 
     if (!availableUser) {

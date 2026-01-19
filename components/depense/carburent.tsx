@@ -41,6 +41,7 @@ import {
 } from "../ui/form";
 import ViewDepense from "./viewDepense";
 import { payTypeQ } from "@/queries/payType";
+import { driverQ } from "@/queries/driver";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -56,7 +57,7 @@ const FileSchema = z
     z.union([
       z.instanceof(File, { message: "Doit être un fichier valide" }),
       z.string(),
-    ])
+    ]),
   )
   .max(5, "Pas plus d'un document");
 
@@ -90,7 +91,7 @@ export function CarburentForm() {
     },
   });
 
-  const { user } = useStore();
+  const { user, isHydrated } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [view, setView] = useState<boolean>(false);
@@ -100,8 +101,13 @@ export function CarburentForm() {
     queryFn: vehicleQ.getAll,
   });
 
+  const driverDate = useQuery({
+    queryKey: ["drivers"],
+    queryFn: () => driverQ.getAll(),
+    enabled: isHydrated,
+  });
+
   const paymentsData = useMutation({
-    mutationKey: ["payments-Depense"],
     mutationFn: async (
       data: Omit<
         PaymentRequest,
@@ -110,7 +116,7 @@ export function CarburentForm() {
         vehiclesId: number;
       } & {
         caisseId: number;
-      }
+      },
     ) => paymentQ.createDepense(data),
     onSuccess: () => {
       toast.success("Depense soumis avec succès !");
@@ -163,7 +169,7 @@ export function CarburentForm() {
       liters: data.liters,
       price: data.Montent,
       description: data.Description,
-      benefId: Number(data.Beneficier),
+      driverId: Number(data.Beneficier),
       justification: data.Justificatif,
       status: "paid",
       type: "CURRENT",
@@ -183,10 +189,10 @@ export function CarburentForm() {
     });
   });
   return (
-    !usersData.isLoading &&
+    !driverDate.isLoading &&
     !bankData.isLoading &&
     bankData.data &&
-    usersData.data && (
+    driverDate.data && (
       <>
         <Form {...form}>
           <form
@@ -357,8 +363,8 @@ export function CarburentForm() {
                 name="Beneficier"
                 control={form.control}
                 render={({ field, fieldState }) => {
-                  const options = usersData.data.data.map((user) => {
-                    return { value: user.id, label: user.firstName };
+                  const options = driverDate.data.data.map((driver) => {
+                    return { value: driver.id, label: driver.firstName };
                   });
                   return (
                     <Field data-invalid={fieldState.invalid} className="gap-1">

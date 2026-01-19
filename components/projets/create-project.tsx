@@ -71,7 +71,7 @@ export function ProjectCreateForm() {
       data: Omit<
         ProjectT,
         "reference" | "updatedAt" | "createdAt" | "id" | "chief"
-      > & { chiefId: number }
+      > & { chiefId: number },
     ) => projectQ.create(data),
     onSuccess: (data: ResponseT<ProjectCreateResponse>) => {
       toast.success("Projet créé avec succès !");
@@ -85,7 +85,7 @@ export function ProjectCreateForm() {
   });
 
   const userApi = useQuery({
-    queryKey: ["usersList"],
+    queryKey: ["users"],
     queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });

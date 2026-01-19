@@ -40,8 +40,8 @@ const formSchema = z
     type: z.enum(
       banks.map((t) => t.value) as [
         (typeof banks)[number]["value"],
-        ...(typeof banks)[number]["value"][]
-      ]
+        ...(typeof banks)[number]["value"][],
+      ],
     ),
     balance: z.coerce.number({ message: "Solde invalide" }),
     justification: z
@@ -142,10 +142,6 @@ function Page() {
     mutationFn: async (payload: BankPayload) => bankQ.create(payload),
     onSuccess: () => {
       toast.success("Nouveau compte Banque créé avec succès !");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["banks"],
-      //   refetchType: "active",
-      // });
       router.push("../banques");
     },
     onError: (error: Error) => {
@@ -168,7 +164,7 @@ function Page() {
       filteredBanks.some(
         (y) =>
           y.label.toLocaleLowerCase().trim() ===
-          values.label.toLocaleLowerCase().trim()
+          values.label.toLocaleLowerCase().trim(),
       )
     ) {
       return form.setError("label", { message: "Ce compte existe déjà" });

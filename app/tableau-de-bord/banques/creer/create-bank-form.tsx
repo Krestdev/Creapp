@@ -37,8 +37,8 @@ const formSchema = z
     type: z.enum(
       banks.map((t) => t.value) as [
         (typeof banks)[number]["value"],
-        ...(typeof banks)[number]["value"][]
-      ]
+        ...(typeof banks)[number]["value"][],
+      ],
     ),
     balance: z.coerce.number({ message: "Solde invalide" }),
     justification: z
@@ -126,10 +126,6 @@ function CreateBank() {
     mutationFn: async (payload: BankPayload) => bankQ.create(payload),
     onSuccess: () => {
       toast.success("Nouveau compte Banque créé avec succès !");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["banks"],
-      //   refetchType: "active",
-      // });
       router.push("../banques");
     },
     onError: (error: Error) => {

@@ -7,7 +7,7 @@ import { VehiclesTable } from "./vehicle-table";
 const VehiclePage = () => {
   const { isHydrated } = useStore();
   const vehicleData = useQuery({
-    queryKey: ["vehiclesList"],
+    queryKey: ["vehicles"],
     queryFn: () => vehicleQ.getAll(),
     enabled: isHydrated,
   });

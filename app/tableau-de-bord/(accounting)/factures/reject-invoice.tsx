@@ -54,7 +54,6 @@ function RejectInvoice({ open, openChange, payment, purchases }: Props) {
     onSuccess: () => {
       toast.success("Vous avez rejeté une facture avec succès !");
       form.reset({ reason: "" });
-      // queryClient.invalidateQueries({queryKey: ["payments"], refetchType: "active"});
       openChange(false);
     },
     onError: (error: Error) => {

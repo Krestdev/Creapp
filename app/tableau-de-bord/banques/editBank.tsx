@@ -48,8 +48,8 @@ const formSchema = z
     type: z.enum(
       BANK_TYPES.map((t) => t.value) as [
         (typeof BANK_TYPES)[number]["value"],
-        ...(typeof BANK_TYPES)[number]["value"][]
-      ]
+        ...(typeof BANK_TYPES)[number]["value"][],
+      ],
     ),
     balance: z.coerce.number({ message: "Solde invalide" }),
     justification: z
@@ -57,7 +57,7 @@ const formSchema = z
         z.union([
           z.instanceof(File, { message: "Doit être un fichier valide" }),
           z.string(),
-        ])
+        ]),
       )
       .min(0),
     Status: z.boolean(),
@@ -165,10 +165,6 @@ function EditBank({ open, openChange, bank }: Props) {
     mutationFn: async (payload: BankPayload) => bankQ.update(bank.id, payload),
     onSuccess: () => {
       toast.success("Compte mis à jour avec succès !");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["banks"],
-      //   refetchType: "active",
-      // });
       form.reset({
         label: bank.label,
         type: bank.type,
