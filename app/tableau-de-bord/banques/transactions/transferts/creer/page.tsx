@@ -81,15 +81,10 @@ function Page() {
   });
 
   const router = useRouter();
-  const queryClient = useQueryClient();
   const create = useMutation({
     mutationFn: async (payload: TransferProps) =>
       transactionQ.createTransaction(payload),
     onSuccess: () => {
-      // queryClient.invalidateQueries({
-      //   queryKey: ["transactions"],
-      //   refetchType: "active",
-      // });
       toast.success("Votre demande de transfert a été initiée avec succès !");
       setFormData(null);
       router.push("./");
@@ -133,13 +128,13 @@ function Page() {
     if (values.amount > fromBank.balance) {
       return form.setError("amount", {
         message: `Solde insuffisant. Solde disponible : ${XAF.format(
-          fromBank.balance
+          fromBank.balance,
         )}`,
       });
     }
 
     const fromType = filteredBanks.find(
-      (x) => x.id === values.fromBankId
+      (x) => x.id === values.fromBankId,
     )?.type;
     const toType = filteredBanks.find((x) => x.id === values.toBankId)?.type;
     if (!fromType) {

@@ -21,7 +21,7 @@ interface ShowCategoryProps {
 
 export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
   const usersData = useQuery({
-    queryKey: ["usersList"],
+    queryKey: ["users"],
     queryFn: async () => userQ.getAll(),
   });
 
@@ -165,11 +165,11 @@ export function ShowCategory({ open, onOpenChange, data }: ShowCategoryProps) {
 
                     const firstValidatorName =
                       usersData.data?.data?.find(
-                        (u) => u.id === validators[0].userId
+                        (u) => u.id === validators[0].userId,
                       )?.firstName +
                         " " +
                         usersData.data?.data?.find(
-                          (u) => u.id === validators[0].userId
+                          (u) => u.id === validators[0].userId,
                         )?.lastName || "Inconnu";
 
                     return (

@@ -79,10 +79,6 @@ export default function CreateUserForm() {
         poste: "",
       });
       setSelectedRole([]);
-      queryClient.invalidateQueries({
-        queryKey: ["usersList"],
-        refetchType: "active",
-      });
     },
     onError: (error: Error) => {
       toast.error(error.message);

@@ -392,6 +392,56 @@ export default function SocketProvider({
     });
 
     /**
+     * user
+     */
+
+    socket.on("user:new", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+        refetchType: "active",
+      });
+    });
+
+    socket.on("user:update", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+        refetchType: "active",
+      });
+    });
+
+    socket.on("user:delete", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+        refetchType: "active",
+      });
+    });
+
+    /**
+     * vehicle
+     */
+
+    socket.on("vehicle:new", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["vehicles"],
+        refetchType: "active",
+      });
+    });
+
+    socket.on("vehicle:update", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["vehicles"],
+        refetchType: "active",
+      });
+    });
+
+    socket.on("vehicle:delete", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["vehicles"],
+        refetchType: "active",
+      });
+    });
+
+    /**
      * driver
      */
 
@@ -457,6 +507,12 @@ export default function SocketProvider({
       socket.off("driver:new");
       socket.off("driver:update");
       socket.off("driver:delete");
+      socket.off("user:new");
+      socket.off("user:update");
+      socket.off("user:delete");
+      socket.off("vehicle:new");
+      socket.off("vehicle:update");
+      socket.off("vehicle:delete");
     };
   }, [queryClient]);
 

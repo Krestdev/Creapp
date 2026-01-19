@@ -6,7 +6,7 @@ import ErrorPage from "../error-page";
 import { useQuery } from "@tanstack/react-query";
 
 const UserListPage = () => {
-  const userData = useQuery({ queryKey: ["usersList"], queryFn: userQ.getAll });
+  const userData = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
 
   if (userData.isLoading) return <LoadingPage />;
 

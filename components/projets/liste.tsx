@@ -13,7 +13,7 @@ const ProjectListPage = () => {
   });
 
   const usersData = useQuery({
-    queryKey: ["usersList"],
+    queryKey: ["users"],
     queryFn: userQ.getAll,
   });
 

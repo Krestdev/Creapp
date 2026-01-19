@@ -192,10 +192,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       userQ.changeStatus(data.id, { status: data.status }),
     onSuccess: () => {
       toast.success("Statut mis à jour avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["usersList"],
-        refetchType: "active",
-      });
     },
   });
 
@@ -204,10 +200,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
     onSuccess: () => {
       toast.success("Utilisateur supprimé avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["usersList"],
-        refetchType: "active",
-      });
     },
 
     onError: (e) => {
@@ -646,10 +638,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const handleUpdateSuccess = () => {
     setIsUpdateModalOpen(false);
     setSelectedItem(null);
-    queryClient.invalidateQueries({
-      queryKey: ["usersList"],
-      refetchType: "active",
-    });
   };
 
   return (

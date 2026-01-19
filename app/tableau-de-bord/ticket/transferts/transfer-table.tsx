@@ -80,18 +80,18 @@ function TransferTable({ data }: Props) {
   const tabs = [
     {
       id: 0,
-      title: "Transferts en attente"
+      title: "Transferts en attente",
     },
     {
       id: 1,
-      title: "Historique des transferts"
+      title: "Historique des transferts",
     },
-  ]
+  ];
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -118,10 +118,6 @@ function TransferTable({ data }: Props) {
       }),
     onSuccess: () => {
       toast.success("Demande approuvée !");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["banks", "transactions"],
-      //   refetchType: "active",
-      // });
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -135,8 +131,11 @@ function TransferTable({ data }: Props) {
       let endDate = now;
       //Filter Tab
       const matchTab =
-      selectedTab === 0 ? transaction.Type === "TRANSFER" && transaction.status === "PENDING" 
-      : (transaction.Type === "TRANSFER" && transaction.status === "APPROVED") || transaction.status === "REJECTED";
+        selectedTab === 0
+          ? transaction.Type === "TRANSFER" && transaction.status === "PENDING"
+          : (transaction.Type === "TRANSFER" &&
+              transaction.status === "APPROVED") ||
+            transaction.status === "REJECTED";
 
       // Filter amount minimum
       const matchMinAmount = !amountMinFilter
@@ -157,7 +156,7 @@ function TransferTable({ data }: Props) {
             break;
           case "week":
             startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
             );
             startDate.setHours(0, 0, 0, 0);
             break;
@@ -186,7 +185,14 @@ function TransferTable({ data }: Props) {
       }
       return matchDate && matchMaxAmount && matchMinAmount && matchTab;
     });
-  }, [data, dateFilter, customDateRange, amountMaxFilter, amountMinFilter, selectedTab]);
+  }, [
+    data,
+    dateFilter,
+    customDateRange,
+    amountMaxFilter,
+    amountMinFilter,
+    selectedTab,
+  ]);
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -258,7 +264,7 @@ function TransferTable({ data }: Props) {
               "font-bold",
               type === "CREDIT"
                 ? "text-green-600"
-                : type === "DEBIT" && "text-red-600"
+                : type === "DEBIT" && "text-red-600",
             )}
           >
             {XAF.format(value)}
@@ -403,7 +409,11 @@ function TransferTable({ data }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <TabBar tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab}/>
+        <TabBar
+          tabs={tabs}
+          selectedTab={selectedTab}
+          setSelectedTab={setSelectedTab}
+        />
         <div className="flex items-center gap-3">
           <Sheet>
             <SheetTrigger asChild>
@@ -441,7 +451,9 @@ function TransferTable({ data }: Props) {
                       type="number"
                       placeholder="Montant minimim"
                       value={amountMinFilter}
-                      onChange={(e) => setAmountMinFilter(Number(e.target.value))}
+                      onChange={(e) =>
+                        setAmountMinFilter(Number(e.target.value))
+                      }
                       className="w-full"
                     />
                     <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
@@ -456,7 +468,9 @@ function TransferTable({ data }: Props) {
                       type="number"
                       placeholder="Montant max"
                       value={amountMaxFilter}
-                      onChange={(e) => setAmountMaxFilter(Number(e.target.value))}
+                      onChange={(e) =>
+                        setAmountMaxFilter(Number(e.target.value))
+                      }
                       className="w-full"
                     />
                     <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
@@ -483,7 +497,9 @@ function TransferTable({ data }: Props) {
                       <SelectValue placeholder="Sélectionner une période" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
+                      <SelectItem value="all">
+                        {"Toutes les périodes"}
+                      </SelectItem>
                       <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
                       <SelectItem value="week">{"Cette semaine"}</SelectItem>
                       <SelectItem value="month">{"Ce mois"}</SelectItem>
@@ -506,7 +522,7 @@ function TransferTable({ data }: Props) {
                           {customDateRange?.from && customDateRange.to
                             ? `${format(
                                 customDateRange.from,
-                                "dd/MM/yyyy"
+                                "dd/MM/yyyy",
                               )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
@@ -585,14 +601,14 @@ function TransferTable({ data }: Props) {
                       {column.id === "from"
                         ? "Source"
                         : column.id === "to"
-                        ? "Destination"
-                        : column.id === "proof"
-                        ? "Preuve"
-                        : column.id === "createdAt"
-                        ? "Date"
-                        : column.id === "amount"
-                        ? "Montant"
-                        : column.id}
+                          ? "Destination"
+                          : column.id === "proof"
+                            ? "Preuve"
+                            : column.id === "createdAt"
+                              ? "Date"
+                              : column.id === "amount"
+                                ? "Montant"
+                                : column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
@@ -616,7 +632,7 @@ function TransferTable({ data }: Props) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -638,7 +654,7 @@ function TransferTable({ data }: Props) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

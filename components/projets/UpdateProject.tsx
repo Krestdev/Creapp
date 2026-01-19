@@ -73,7 +73,7 @@ export default function UpdateProject({
       data: Omit<
         ProjectT,
         "reference" | "updatedAt" | "createdAt" | "id" | "chief"
-      > & { chiefId: number }
+      > & { chiefId: number },
     ) => projectQ.update(projectData?.id || 0, data),
     onSuccess: (data: ResponseT<ProjectT>) => {
       toast.success("Projet mis à jour avec succès !");
@@ -92,7 +92,7 @@ export default function UpdateProject({
   });
 
   const userApi = useQuery({
-    queryKey: ["usersList"],
+    queryKey: ["users"],
     queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });

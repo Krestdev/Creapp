@@ -98,7 +98,7 @@ export function UpdateCategory({
   // Récupérer la liste des utilisateurs
 
   const usersData = useQuery({
-    queryKey: ["users-list"],
+    queryKey: ["users"],
     queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });

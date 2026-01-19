@@ -50,7 +50,7 @@ const formSchema = z
     {
       message: "Les mots de passe ne correspondent pas",
       path: ["confirmPassword"],
-    }
+    },
   );
 
 interface UpdateRequestProps {
@@ -117,10 +117,6 @@ export default function UpdateUser({
 
     onSuccess: () => {
       toast.success("Utilisateur modifié avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["usersList"],
-        refetchType: "active",
-      });
       setOpen(false);
       onSuccess?.();
     },
@@ -306,7 +302,7 @@ export default function UpdateUser({
                   setSelectedRole(selected);
                   form.setValue(
                     "role",
-                    selected.map((r) => r.id)
+                    selected.map((r) => r.id),
                   );
                 }}
               />

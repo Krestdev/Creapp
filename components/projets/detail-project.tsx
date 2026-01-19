@@ -47,7 +47,7 @@ export function DetailProject({
 
   // Fonction pour obtenir les informations du badge selon le statut
   const getStatusBadge = (
-    status: string
+    status: string,
   ): {
     label: string;
     icon?: LucideIcon;
@@ -72,7 +72,7 @@ export function DetailProject({
   };
 
   const usersData = useQuery({
-    queryKey: ["usersList"],
+    queryKey: ["users"],
     queryFn: () => userQ.getAll(),
   });
 

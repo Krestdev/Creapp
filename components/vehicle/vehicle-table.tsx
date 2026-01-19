@@ -50,7 +50,7 @@ import {
 import { useStore } from "@/providers/datastore";
 import { vehicleQ } from "@/queries/vehicule";
 import { Role, Vehicle } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
@@ -78,17 +78,12 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
   const [verifiedFilter, setVerifiedFilter] = React.useState<string>("all");
 
   const { user } = useStore();
-  const queryClient = useQueryClient();
 
   const vehicleMutation = useMutation({
     mutationFn: async (data: number) => vehicleQ.delete(Number(data)),
 
     onSuccess: () => {
       toast.success("Vehicle supprimé avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["vehiclesList"],
-        refetchType: "active",
-      });
     },
 
     onError: (e) => {
@@ -268,10 +263,6 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
   const handleUpdateSuccess = () => {
     setIsUpdateModalOpen(false);
     setSelectedItem(null);
-    queryClient.invalidateQueries({
-      queryKey: ["usersList"],
-      refetchType: "active",
-    });
   };
 
   return (

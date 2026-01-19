@@ -42,11 +42,11 @@ interface Props {
 }
 
 const TX_TYPES = TRANSACTION_TYPES.filter((c) => c.value !== "TRANSFER").map(
-  (t) => t.value
+  (t) => t.value,
 ) as [
-    (typeof TRANSACTION_TYPES)[number]["value"],
-    ...(typeof TRANSACTION_TYPES)[number]["value"][]
-  ];
+  (typeof TRANSACTION_TYPES)[number]["value"],
+  ...(typeof TRANSACTION_TYPES)[number]["value"][],
+];
 
 const sourceSchema = z.object({
   label: z.string().min(2, "Libellé trop court"),
@@ -67,7 +67,7 @@ export const formSchema = z
         const d = new Date(val);
         return !isNaN(d.getTime());
       },
-      { message: "Date invalide" }
+      { message: "Date invalide" },
     ),
 
     Type: z.enum(TX_TYPES),
@@ -132,10 +132,6 @@ function TransactionForm({ banks, userId }: Props) {
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.create(payload),
     onSuccess: () => {
-      // queryClient.invalidateQueries({
-      //   queryKey: ["banks", "transactions"],
-      //   refetchType: "active",
-      // });
       toast.success("Votre transaction a été enregistrée avec succès !");
       router.push("./");
     },
@@ -285,7 +281,7 @@ function TransactionForm({ banks, userId }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     {TRANSACTION_TYPES.filter(
-                      (c) => c.value !== "TRANSFER"
+                      (c) => c.value !== "TRANSFER",
                     ).map((t) => (
                       <SelectItem key={t.value} value={t.value}>
                         {t.name}

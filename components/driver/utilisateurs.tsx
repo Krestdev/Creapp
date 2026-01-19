@@ -7,7 +7,7 @@ import { UtilisateursTable } from "../utilisateurs/utilisateurs-table";
 const UtilisateursPage = () => {
   const { isHydrated } = useStore();
   const userData = useQuery({
-    queryKey: ["usersList"],
+    queryKey: ["users"],
     queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
