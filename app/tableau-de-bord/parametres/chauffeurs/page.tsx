@@ -10,7 +10,7 @@ function Page() {
   const links: Array<NavLink> = [
     {
       title: "Créer un Chauffeur",
-      href: "./chauffeur/creer",
+      href: "./chauffeurs/creer",
       hide: false,
       disabled: false,
     },
