@@ -12,6 +12,7 @@ import { vehicleQ } from "@/queries/vehicule";
 import { Vehicle } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -27,7 +28,12 @@ export const formSchema = z.object({
   label: z.string({ message: "Ce champs est obligatoire" }),
   mark: z.string({ message: "Ce champs est obligatoire" }),
   matricule: z.string().optional(),
-  image: z.string({ message: "Ce champs est obligatoire" }),
+  image: z.array(
+    z.union([
+      z.instanceof(File, { message: "Doit être un fichier valide" }),
+      z.string(),
+    ])
+  ),
 });
 
 type Schema = z.infer<typeof formSchema>;
@@ -35,6 +41,12 @@ type Schema = z.infer<typeof formSchema>;
 export function VehicleForm() {
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
+    defaultValues: {
+      label: "",
+      mark: "",
+      matricule: "",
+      image: [],
+    },
   });
 
   const vehiculeData = useMutation({
@@ -46,7 +58,7 @@ export function VehicleForm() {
         label: "",
         mark: "",
         matricule: "",
-        image: "",
+        image: undefined,
       });
     },
   });
@@ -56,7 +68,7 @@ export function VehicleForm() {
       label: data.label,
       mark: data.mark,
       matricule: data.matricule!,
-      image: data.image,
+      proof: data.image[0],
     });
   });
 

@@ -14,6 +14,7 @@ type Props = {
   display: "user" | "request";
   className?: string;
   placeholder?: string;
+  showMail?: boolean;
 };
 
 export default function MultiSelectUsers({
@@ -23,6 +24,7 @@ export default function MultiSelectUsers({
   display,
   className,
   placeholder = "Aucun utilisateur selectionné",
+  showMail = false,
 }: Props) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -167,6 +169,7 @@ export default function MultiSelectUsers({
                     className="p-2 cursor-pointer hover:bg-gray-100 transition-colors"
                   >
                     {`${user.firstName} ${user.lastName}`}
+                    {showMail && <span className="text-[14px] text-[#B0B0B0]">{" - " + user.email}</span>}
                   </div>
                 ))}
               </>

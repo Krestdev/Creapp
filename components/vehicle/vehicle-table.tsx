@@ -15,6 +15,7 @@ import {
 import {
   ArrowUpDown,
   ChevronDown,
+  LucideEye,
   LucidePen,
   Search,
   Trash2,
@@ -54,7 +55,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
-import UpdateVehicle from "./UpdateUser";
+import UpdateVehicle from "./UpdateCar";
+import { format } from "date-fns";
+import ShowCar from "./ShowCar";
 
 interface VehiclesTableProps {
   data: Vehicle[];
@@ -75,6 +78,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
   const [selectedItem, setSelectedItem] = React.useState<Vehicle | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isShowModalOpen, setIsShowModalOpen] = React.useState(false);
   const [verifiedFilter, setVerifiedFilter] = React.useState<string>("all");
 
   const { user } = useStore();
@@ -184,6 +188,37 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
         },
       },
       {
+        accessorKey: "createdAt",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Date d'ajout
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          return (
+            <div className="flex flex-wrap max-w-[350px] gap-1">
+              {format(row.getValue("createdAt"), "dd/MM/yyyy") ?? "Pas de date"}
+            </div>
+          );
+        },
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue || filterValue === "all") return true;
+
+          const roles = row.getValue(columnId) as Role[];
+          return roles?.some((role) =>
+            role.label.toLowerCase().includes(filterValue.toLowerCase())
+          );
+        },
+      },
+      {
         id: "actions",
         header: () => <span className="tablehead">Action</span>,
         enableHiding: false,
@@ -201,6 +236,15 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedItem(vehicle);
+                    setIsShowModalOpen(true);
+                  }}
+                >
+                  <LucideEye className="mr-2 h-4 w-4" />
+                  Voir
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedItem(vehicle);
@@ -435,6 +479,11 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
             description="Êtes-vous sûr de vouloir supprimer ce vehicle ?"
             variant="error"
             onAction={() => vehicleMutation.mutate(selectedItem?.id ?? -1)}
+          />
+          <ShowCar
+            open={isShowModalOpen}
+            setOpen={setIsShowModalOpen}
+            vehicleData={selectedItem}
           />
         </>
       )}

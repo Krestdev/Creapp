@@ -189,6 +189,7 @@ export default function UpdateSignatair({
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
+                        disabled
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionner une banque" />
@@ -231,6 +232,7 @@ export default function UpdateSignatair({
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
+                        disabled
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionner un type de paiement" />

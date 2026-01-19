@@ -246,6 +246,7 @@ export default function CreateSignatairForm() {
               display="user"
               users={userData?.data?.data || []}
               selected={selectedUser}
+              showMail
               placeholder="Aucun signataire selectionné"
               onChange={(selected) => {
                 setSelectedUser(selected);

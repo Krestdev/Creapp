@@ -37,21 +37,9 @@ const formSchema = z
     firstName: z.string().optional(),
     lastName: z.string().min(1, "Le nom est requis"),
     phone: z.string().optional(),
-    password: z.string().optional(),
-    confirmPassword: z.string().optional(),
     role: z.array(z.number()).min(1, "Le rôle est requis"),
     post: z.string().min(1, "Le poste est requis"),
-  })
-  .refine(
-    (data) => {
-      if (!data.password || data.password.trim() === "") return true;
-      return data.password === data.confirmPassword;
-    },
-    {
-      message: "Les mots de passe ne correspondent pas",
-      path: ["confirmPassword"],
-    }
-  );
+  });
 
 interface UpdateRequestProps {
   open: boolean;
@@ -79,8 +67,6 @@ export default function UpdateUser({
       firstName: "",
       lastName: "",
       phone: "",
-      password: "",
-      confirmPassword: "",
       role: [],
       post: "",
     },
@@ -99,8 +85,6 @@ export default function UpdateUser({
         firstName: userData.firstName || "",
         lastName: userData.lastName || "",
         phone: userData.phone || "",
-        password: "",
-        confirmPassword: "",
         role: roles.map((r) => r.id!),
         post: userData.post || "",
       });
@@ -157,10 +141,6 @@ export default function UpdateUser({
       phone: values.phone || undefined,
       post: values.post || undefined,
     };
-
-    if (values.password && values.password.trim() !== "") {
-      payload.password = values.password;
-    }
 
     if (selectedRole.length) {
       payload.role = selectedRole.map((r) => r.id);
@@ -244,38 +224,6 @@ export default function UpdateUser({
                       placeholder="Adresse email"
                       disabled
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nouveau mot de passe</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Laisser vide pour ne pas modifier"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirmer le mot de passe</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

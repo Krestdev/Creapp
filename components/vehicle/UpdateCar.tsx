@@ -26,15 +26,22 @@ import { Vehicle } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import FilesUpload from "../comp-547";
 
 /* =========================
    SCHEMA ZOD
 ========================= */
 
-const formSchema = z.object({
-  label: z.string(),
-  mark: z.string(),
-  matricule: z.string(),
+export const formSchema = z.object({
+  label: z.string({ message: "Ce champs est obligatoire" }),
+  mark: z.string({ message: "Ce champs est obligatoire" }),
+  matricule: z.string().optional(),
+  image: z.array(
+    z.union([
+      z.instanceof(File, { message: "Doit être un fichier valide" }),
+      z.string(),
+    ])
+  ),
 });
 
 interface UpdateRequestProps {
@@ -58,6 +65,7 @@ export default function UpdateVehicle({
       label: "",
       mark: "",
       matricule: "",
+      image: undefined,
     },
   });
 
@@ -70,6 +78,9 @@ export default function UpdateVehicle({
         label: vehicleData.label,
         mark: vehicleData.mark,
         matricule: vehicleData.matricule,
+        image: vehicleData.picture
+          ? [vehicleData.picture]
+          : [],
       });
     }
   }, [vehicleData, open, form]);
@@ -107,6 +118,7 @@ export default function UpdateVehicle({
       label: values.label,
       mark: values.mark,
       matricule: values.matricule,
+      proof: values.image[0],
     };
 
     vehicleMutation.mutate({ id: vehicleData.id, vehicle: payload });
@@ -117,10 +129,10 @@ export default function UpdateVehicle({
   ========================= */
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[840px] p-0 flex flex-col">
+      <DialogContent className="sm:max-w-[540px] p-0 flex flex-col">
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg">
-          <DialogTitle className="text-xl font-semibold">
-            {vehicleData?.label}
+          <DialogTitle className="text-xl font-semibold uppercase">
+            {`Véhicule - ${vehicleData?.label} ${vehicleData?.mark}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Modifier le vehicule en indiquant les nouvelles informations."}
@@ -128,10 +140,7 @@ export default function UpdateVehicle({
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="w-full grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 px-6"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="w-full px-6 flex flex-col gap-6">
             <FormField
               control={form.control}
               name="label"
@@ -168,6 +177,27 @@ export default function UpdateVehicle({
                   <FormLabel>Matricule </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Contact" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image </FormLabel>
+                  <FormControl>
+                    <FilesUpload
+                      value={field.value}
+                      onChange={field.onChange}
+                      name={field.name}
+                      acceptTypes="all"
+                      multiple={false}
+                      maxFiles={1}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
