@@ -67,7 +67,7 @@ interface TicketsTableProps {
 }
 
 const getPriorityBadge = (
-  priority: PaymentRequest["priority"]
+  priority: PaymentRequest["priority"],
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
@@ -113,7 +113,7 @@ const getPriorityBadge = (
   }
 };
 const getStatusVariant = (
-  status: PaymentRequest["status"]
+  status: PaymentRequest["status"],
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
@@ -160,7 +160,7 @@ export function TicketsTable({
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
@@ -184,15 +184,10 @@ export function TicketsTable({
   });
 
   const paymentMutation = useMutation({
-    mutationKey: ["payment"],
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
       return paymentQ.update(id, data);
     },
     onSuccess: () => {
-      // queryClient.invalidateQueries({
-      //   queryKey: ["payments"],
-      //   refetchType: "active",
-      // });
       toast.success(message);
       message.includes("payé")
         ? setOpenPaiementModal(false)
@@ -204,15 +199,10 @@ export function TicketsTable({
   });
 
   const validateMutation = useMutation({
-    mutationKey: ["payment"],
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
       return paymentQ.vaidate(id, data);
     },
     onSuccess: () => {
-      // queryClient.invalidateQueries({
-      //   queryKey: ["payments"],
-      //   refetchType: "active",
-      // });
       toast.success(message);
       message.includes("payé")
         ? setOpenPaiementModal(false)
@@ -529,30 +519,30 @@ export function TicketsTable({
                     {column.id === "createdAt"
                       ? "Date de creation"
                       : column.id === "priority"
-                      ? "Priorité"
-                      : column.id === "status"
-                      ? "Statut"
-                      : column.id === "type"
-                      ? "Type"
-                      : column.id === "amount"
-                      ? "Montant"
-                      : column.id === "description"
-                      ? "Description"
-                      : column.id === "reference"
-                      ? "Reference"
-                      : column.id === "createdAt"
-                      ? "Date de creation"
-                      : column.id === "updatedAt"
-                      ? "Date de modification"
-                      : column.id === "actions"
-                      ? "Actions"
-                      : column.id === "title"
-                      ? "Titre"
-                      : column.id === "category"
-                      ? "Categorie"
-                      : column.id === "price"
-                      ? "Montant"
-                      : column.id}
+                        ? "Priorité"
+                        : column.id === "status"
+                          ? "Statut"
+                          : column.id === "type"
+                            ? "Type"
+                            : column.id === "amount"
+                              ? "Montant"
+                              : column.id === "description"
+                                ? "Description"
+                                : column.id === "reference"
+                                  ? "Reference"
+                                  : column.id === "createdAt"
+                                    ? "Date de creation"
+                                    : column.id === "updatedAt"
+                                      ? "Date de modification"
+                                      : column.id === "actions"
+                                        ? "Actions"
+                                        : column.id === "title"
+                                          ? "Titre"
+                                          : column.id === "category"
+                                            ? "Categorie"
+                                            : column.id === "price"
+                                              ? "Montant"
+                                              : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -574,7 +564,7 @@ export function TicketsTable({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -601,7 +591,7 @@ export function TicketsTable({
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}

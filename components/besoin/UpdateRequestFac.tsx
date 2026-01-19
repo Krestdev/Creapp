@@ -205,7 +205,6 @@ export default function UpdateRequestFac({
   // ----------------------------------------------------------------------
 
   const updateMutation = useMutation({
-    mutationKey: ["requests", "update", "facilitation"],
     mutationFn: async (data: Partial<RequestModelT>) => {
       if (!requestData?.id) throw new Error("ID de la demande manquant");
       return requestQ.specialUpdate(data, Number(requestData.id));

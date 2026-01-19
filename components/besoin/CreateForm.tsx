@@ -136,29 +136,14 @@ export default function MyForm() {
   // ----------------------------------------------------------------------
 
   const requestMutation = useMutation({
-    mutationKey: ["requests"],
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
+      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">,
     ) => requestQ.create(data),
 
     onSuccess: () => {
       toast.success("Besoin soumis avec succès !");
       setIsSuccessModalOpen(true);
       form.reset();
-
-      // Invalider et rafraîchir toutes les requêtes liées aux besoins
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests-validation"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests", user?.id],
-      //   refetchType: "active",
-      // });
     },
 
     onError: (error: any) => {
@@ -223,7 +208,7 @@ export default function MyForm() {
                         (p) =>
                           p.status !== "cancelled" &&
                           p.status !== "Completed" &&
-                          p.status !== "on-hold"
+                          p.status !== "on-hold",
                       )
                       .map((p) => ({
                         value: p.id!.toString(),
@@ -352,7 +337,7 @@ export default function MyForm() {
                         variant={"outline"}
                         className={cn(
                           "w-[320px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (

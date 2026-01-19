@@ -68,15 +68,11 @@ export default function SocketProvider({
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["requests-validation"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
         queryKey: ["requests", user?.id],
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["payment", user?.id],
+        queryKey: ["payments", user?.id],
         refetchType: "active",
       });
     });
@@ -86,21 +82,16 @@ export default function SocketProvider({
         queryKey: ["requests"],
         refetchType: "active",
       });
-      queryClient.invalidateQueries({ queryKey: ["requests", user?.id] });
       queryClient.invalidateQueries({
         queryKey: ["requests", user?.id],
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["requests-validation"],
+        queryKey: ["payments", user?.id],
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["payment", user?.id],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["payment"],
+        queryKey: ["payments"],
         refetchType: "active",
       });
     });
@@ -159,10 +150,6 @@ export default function SocketProvider({
     socket.on("command:update", () => {
       queryClient.invalidateQueries({
         queryKey: ["commands"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["requests-validation"],
         refetchType: "active",
       });
       queryClient.invalidateQueries({

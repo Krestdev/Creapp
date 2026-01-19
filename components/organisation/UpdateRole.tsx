@@ -58,7 +58,6 @@ export default function UpdateRole({
   }, [departmentData, form]);
 
   const departmentMutation = useMutation({
-    mutationKey: ["departmentUpdate"],
     mutationFn: async (data: Partial<Role>) =>
       userQ.updateRole(Number(departmentData?.id), data),
 

@@ -118,7 +118,7 @@ export function DataValidation({
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
@@ -144,7 +144,7 @@ export function DataValidation({
 
   // Modal states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
-    null
+    null,
   );
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isValidationModalOpen, setIsValidationModalOpen] =
@@ -196,7 +196,7 @@ export function DataValidation({
         if (customDateRange?.from && customDateRange?.to) {
           return `${format(customDateRange.from, "dd/MM/yyyy")} - ${format(
             customDateRange.to,
-            "dd/MM/yyyy"
+            "dd/MM/yyyy",
           )}`;
         }
         return "Personnaliser";
@@ -209,7 +209,7 @@ export function DataValidation({
   const handleCustomDateClick = () => {
     // Initialiser avec la plage actuelle ou une plage par défaut
     setTempCustomDateRange(
-      customDateRange || { from: addDays(new Date(), -7), to: new Date() }
+      customDateRange || { from: addDays(new Date(), -7), to: new Date() },
     );
     setIsCustomDateModalOpen(true);
   };
@@ -241,14 +241,14 @@ export function DataValidation({
 
   const getProjectName = (projectId: string) => {
     const project = projectsData.data?.data?.find(
-      (proj) => proj.id === Number(projectId)
+      (proj) => proj.id === Number(projectId),
     );
     return project?.label || projectId;
   };
 
   const getCategoryName = (categoryId: string) => {
     const category = categoriesData.data?.data?.find(
-      (cat) => cat.id === Number(categoryId)
+      (cat) => cat.id === Number(categoryId),
     );
     return category?.label || categoryId;
   };
@@ -265,7 +265,7 @@ export function DataValidation({
 
     return categoryIds.map((categoryId) => {
       const category = categoriesData.data.data.find(
-        (cat) => cat.id === Number(categoryId)
+        (cat) => cat.id === Number(categoryId),
       );
       return {
         id: categoryId,
@@ -281,7 +281,7 @@ export function DataValidation({
 
     return projectIds.map((projectId) => {
       const project = projectsData.data.data.find(
-        (proj) => proj.id === Number(projectId)
+        (proj) => proj.id === Number(projectId),
       );
       return {
         id: projectId,
@@ -305,7 +305,7 @@ export function DataValidation({
   }, [tableData, usersData.data]);
 
   const getStatusConfig = (
-    status: string
+    status: string,
   ): {
     label: string;
     icon?: LucideIcon;
@@ -394,7 +394,6 @@ export function DataValidation({
   };
 
   const reviewRequest = useMutation({
-    mutationKey: ["requests-review"],
     mutationFn: async ({
       id,
       validated,
@@ -412,19 +411,6 @@ export function DataValidation({
     },
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
-      // Invalider et rafraîchir les données
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests-validation"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests", user?.id],
-      //   refetchType: "active",
-      // });
       requestData.refetch();
     },
     onError: () => {
@@ -462,7 +448,7 @@ export function DataValidation({
 
   const openValidationModal = (
     type: "approve" | "reject",
-    item: RequestModelT
+    item: RequestModelT,
   ) => {
     setSelectedItem(item);
     setValidationType(type);
@@ -876,7 +862,7 @@ export function DataValidation({
                 onClick={() => clearCustomDateRange()}
                 className={cn(
                   "flex items-center justify-between",
-                  !dateFilter && "bg-accent"
+                  !dateFilter && "bg-accent",
                 )}
               >
                 <span>{"Toutes les périodes"}</span>
@@ -887,7 +873,7 @@ export function DataValidation({
                 onClick={() => setDateFilter("today")}
                 className={cn(
                   "flex items-center justify-between",
-                  dateFilter === "today" && "bg-accent"
+                  dateFilter === "today" && "bg-accent",
                 )}
               >
                 <span>{"Aujourd'hui"}</span>
@@ -897,7 +883,7 @@ export function DataValidation({
                 onClick={() => setDateFilter("week")}
                 className={cn(
                   "flex items-center justify-between",
-                  dateFilter === "week" && "bg-accent"
+                  dateFilter === "week" && "bg-accent",
                 )}
               >
                 <span>{"Cette semaine"}</span>
@@ -907,7 +893,7 @@ export function DataValidation({
                 onClick={() => setDateFilter("month")}
                 className={cn(
                   "flex items-center justify-between",
-                  dateFilter === "month" && "bg-accent"
+                  dateFilter === "month" && "bg-accent",
                 )}
               >
                 <span>{"Ce mois"}</span>
@@ -917,7 +903,7 @@ export function DataValidation({
                 onClick={() => setDateFilter("year")}
                 className={cn(
                   "flex items-center justify-between",
-                  dateFilter === "year" && "bg-accent"
+                  dateFilter === "year" && "bg-accent",
                 )}
               >
                 <span>{"Cette année"}</span>
@@ -928,7 +914,7 @@ export function DataValidation({
                 onClick={handleCustomDateClick}
                 className={cn(
                   "flex items-center justify-between",
-                  dateFilter === "custom" && "bg-accent"
+                  dateFilter === "custom" && "bg-accent",
                 )}
               >
                 <span className="flex items-center">
@@ -967,18 +953,18 @@ export function DataValidation({
                     {column.id === "label"
                       ? "Titres"
                       : column.id === "projectId"
-                      ? "Projets"
-                      : column.id === "categoryId"
-                      ? "Catégories"
-                      : column.id === "userId"
-                      ? "Emetteurs"
-                      : column.id === "beneficiary"
-                      ? "Beneficiaires"
-                      : column.id === "createdAt"
-                      ? "Date d'émission"
-                      : column.id === "state"
-                      ? "Statuts"
-                      : column.id}
+                        ? "Projets"
+                        : column.id === "categoryId"
+                          ? "Catégories"
+                          : column.id === "userId"
+                            ? "Emetteurs"
+                            : column.id === "beneficiary"
+                              ? "Beneficiaires"
+                              : column.id === "createdAt"
+                                ? "Date d'émission"
+                                : column.id === "state"
+                                  ? "Statuts"
+                                  : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -1003,7 +989,7 @@ export function DataValidation({
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
                     );
@@ -1017,7 +1003,7 @@ export function DataValidation({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className={cn(
-                    getStatusConfig(row.original.state).rowClassName
+                    getStatusConfig(row.original.state).rowClassName,
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -1027,7 +1013,7 @@ export function DataValidation({
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -1068,7 +1054,7 @@ export function DataValidation({
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !tempCustomDateRange?.from && "text-muted-foreground"
+                        !tempCustomDateRange?.from && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
@@ -1103,7 +1089,7 @@ export function DataValidation({
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !tempCustomDateRange?.to && "text-muted-foreground"
+                        !tempCustomDateRange?.to && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />

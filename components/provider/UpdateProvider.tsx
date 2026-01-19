@@ -90,7 +90,7 @@ export default function UpdateProvider({
       commerce_registre: null,
       banck_attestation: null,
     }),
-    []
+    [],
   );
 
   const form = useForm<FormValues>({
@@ -125,7 +125,6 @@ export default function UpdateProvider({
   const queryClient = useQueryClient();
 
   const providerMutation = useMutation({
-    mutationKey: ["providerUpdate", providerData?.id],
     mutationFn: async (data: Partial<Provider>) => {
       if (!providerData?.id) {
         throw new Error("ID du fournisseur manquant");
@@ -145,7 +144,7 @@ export default function UpdateProvider({
     onError: (error: Error) => {
       console.error("Erreur de mise à jour:", error);
       toast.error(
-        error.message || "Une erreur est survenue lors de la modification."
+        error.message || "Une erreur est survenue lors de la modification.",
       );
     },
   });
@@ -192,7 +191,7 @@ export default function UpdateProvider({
   // Fonction pour gérer les changements de fichiers
   const handleFileChange = (
     field: any,
-    value: FileValue | FileValue[] | null
+    value: FileValue | FileValue[] | null,
   ) => {
     if (Array.isArray(value)) {
       field.onChange(value[0] || null);

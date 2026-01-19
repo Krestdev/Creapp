@@ -65,7 +65,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({ createdAt: false });
@@ -81,7 +81,6 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
   const queryClient = useQueryClient();
 
   const vehicleMutation = useMutation({
-    mutationKey: ["vehicleUpdate"],
     mutationFn: async (data: number) => vehicleQ.delete(Number(data)),
 
     onSuccess: () => {
@@ -179,7 +178,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
 
           const roles = row.getValue(columnId) as Role[];
           return roles?.some((role) =>
-            role.label.toLowerCase().includes(filterValue.toLowerCase())
+            role.label.toLowerCase().includes(filterValue.toLowerCase()),
           );
         },
       },
@@ -226,7 +225,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
         },
       },
     ],
-    [user?.id, vehicleMutation]
+    [user?.id, vehicleMutation],
   );
 
   const table = useReactTable({
@@ -373,9 +372,9 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -396,7 +395,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

@@ -41,7 +41,6 @@ export default function CreateDriverForm() {
   });
 
   const registerAPI = useMutation({
-    mutationKey: ["registerNewDriver"],
     mutationFn: (
       data: Omit<
         Driver,

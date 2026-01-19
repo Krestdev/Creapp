@@ -85,7 +85,6 @@ export default function UpdateDriver({
   }, [open, driverData, form, defaultValues]);
 
   const driverMutation = useMutation({
-    mutationKey: ["driverUpdate", driverData?.id],
     mutationFn: async (data: Partial<Driver>) => {
       if (!driverData?.id) {
         throw new Error("ID du fournisseur manquant");

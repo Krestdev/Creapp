@@ -50,7 +50,7 @@ const formSchema = z.object({
         validator: z.boolean(),
         chief: z.boolean(),
         finalValidator: z.boolean(),
-      })
+      }),
     )
     .nullable(),
   status: z.string(),
@@ -105,7 +105,6 @@ export default function UpdateDepartment({
   });
 
   const departmentMutation = useMutation({
-    mutationKey: ["departmentUpdate"],
     mutationFn: async (data: Partial<DepartmentUpdateInput>) =>
       departmentQ.update(Number(departmentData?.id), data),
 

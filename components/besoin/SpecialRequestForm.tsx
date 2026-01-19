@@ -67,29 +67,14 @@ export default function SpecialRequestForm() {
   // ----------------------------------------------------------------------
 
   const requestMutation = useMutation({
-    mutationKey: ["requests"],
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
+      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">,
     ) => requestQ.special(data),
 
     onSuccess: () => {
       toast.success("Besoin soumis avec succès !");
       setIsSuccessModalOpen(true);
       form.reset();
-
-      // Invalider et rafraîchir toutes les requêtes liées aux besoins
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests-validation"],
-      //   refetchType: "active",
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["requests", user?.id],
-      //   refetchType: "active",
-      // });
     },
 
     onError: (error: any) => {

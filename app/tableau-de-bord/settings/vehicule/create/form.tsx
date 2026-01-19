@@ -38,7 +38,6 @@ export function VehicleForm() {
   });
 
   const vehiculeData = useMutation({
-    mutationKey: ["vehicle"],
     mutationFn: (data: Omit<Vehicle, "id" | "createdAt" | "updatedAt">) =>
       vehicleQ.create(data),
     onSuccess: () => {
@@ -74,7 +73,9 @@ export function VehicleForm() {
               data-invalid={fieldState.invalid}
               className="gap-1 col-span-full"
             >
-              <FieldLabel htmlFor="label">Modèle du véhicule <span className="text-destructive">*</span></FieldLabel>
+              <FieldLabel htmlFor="label">
+                Modèle du véhicule <span className="text-destructive">*</span>
+              </FieldLabel>
               <Input
                 {...field}
                 id="label"
@@ -99,7 +100,9 @@ export function VehicleForm() {
               data-invalid={fieldState.invalid}
               className="gap-1 col-span-full"
             >
-              <FieldLabel htmlFor="mark">Marque <span className="text-destructive">*</span></FieldLabel>
+              <FieldLabel htmlFor="mark">
+                Marque <span className="text-destructive">*</span>
+              </FieldLabel>
               <Input
                 {...field}
                 id="mark"
@@ -149,7 +152,9 @@ export function VehicleForm() {
               data-invalid={fieldState.invalid}
               className="gap-1 col-span-full"
             >
-              <FieldLabel htmlFor="color">Image <span className="text-destructive">*</span></FieldLabel>
+              <FieldLabel htmlFor="color">
+                Image <span className="text-destructive">*</span>
+              </FieldLabel>
               <FilesUpload
                 value={field.value}
                 onChange={field.onChange}
@@ -163,10 +168,11 @@ export function VehicleForm() {
             </Field>
           )}
         />
-
       </FieldGroup>
       <div className="flex justify-end items-center w-full">
-        <Button variant={"primary"}>{vehiculeData.isPending ? "Ajout en cours..." : "Ajouter"}</Button>
+        <Button variant={"primary"}>
+          {vehiculeData.isPending ? "Ajout en cours..." : "Ajouter"}
+        </Button>
       </div>
     </form>
   );

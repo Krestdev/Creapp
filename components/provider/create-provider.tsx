@@ -31,7 +31,7 @@ const SingleFileArray = z
     z.union([
       z.instanceof(File, { message: "Doit être un fichier valide" }),
       z.string(),
-    ])
+    ]),
   )
   .max(1, "Pas plus d'un document")
   .nullable();
@@ -73,12 +73,11 @@ export default function CreateProviderForm() {
   });
 
   const registerAPI = useMutation({
-    mutationKey: ["registerNewProvider"],
     mutationFn: (
       data: Omit<
         Provider,
         "status" | "lastConnection" | "role" | "members" | "id" | "createdAt"
-      >
+      >,
     ) => providerQ.create(data),
     onSuccess: (data: ResponseT<Provider>) => {
       toast.success("Fournisseur créé avec succès.");
@@ -86,7 +85,7 @@ export default function CreateProviderForm() {
     },
     onError: (error: any) => {
       toast.error(
-        "Une erreur est survenue lors de la creation du fournisseur."
+        "Une erreur est survenue lors de la creation du fournisseur.",
       );
       console.error("Register error:", error);
     },

@@ -45,7 +45,6 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
   });
 
   const { mutate: registerProvider, isPending } = useMutation({
-    mutationKey: ["registerNewProvider"],
     mutationFn: (data: { name: string }) => providerQ.create(data),
     // Dans ProviderDialog, modifiez le onSuccess :
     onSuccess: () => {
@@ -60,7 +59,7 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
     },
     onError: (error: any) => {
       toast.error(
-        "Une erreur est survenue lors de la creation du fournisseur."
+        "Une erreur est survenue lors de la creation du fournisseur.",
       );
       console.error("Register error:", error);
     },
