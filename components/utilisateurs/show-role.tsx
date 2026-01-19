@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { TranslateRole } from "@/lib/utils";
 import { Role } from "@/types/types";
-import { CheckCircle, Hash, Key, Lock, LucideFlag, Users } from "lucide-react";
+import { CheckCircle, Hash, HashIcon, Key, Lock, LucideFlag, ScanEyeIcon, ShieldCheck, ShieldIcon, Users, UsersIcon } from "lucide-react";
 
 interface ShowRoleProps {
   open: boolean;
@@ -125,58 +125,49 @@ export function ShowRole({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        {/* Header */}
         <DialogHeader>
-          <DialogTitle>
-            {TranslateRole(role.label)}
+          <DialogTitle className="uppercase">
+            {`role - ${TranslateRole(role.label)}`}
           </DialogTitle>
             {"Description du rôle"}
         </DialogHeader>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4">
-          <div className="flex flex-col gap-3 pb-4">
+        <div className="grid gap-3">
             {/* ID du rôle */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1 bg-[#E4E4E7] h-10 w-10 rounded-full flex items-center justify-center">
-                <Hash className="h-5 w-5 text-black" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">{"ID du rôle"}</p>
-                <Badge
-                  variant="outline"
-                  className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800 font-mono"
+            <div className="view-group">
+            <span className="view-icon">
+              <HashIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Identifiant"}</p>
+              <Badge
+                  variant="blue"
                 >
-                  ROLE-{role.id.toString().padStart(3, "0")}
+                  {`ROLE-${role.id.toString().padStart(3, "0")}`}
                 </Badge>
-              </div>
             </div>
-
+          </div>
             {/* Code système */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1 bg-[#E4E4E7] h-10 w-10 rounded-full flex items-center justify-center">
-                <Lock className="h-5 w-5 text-black" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">
-                  {"Code système"}
-                </p>
-                <Badge variant="outline" className={getRoleColor(role.label)}>
+            <div className="view-group">
+            <span className="view-icon">
+              <ShieldIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Code Système"}</p>
+              <Badge variant="outline" className={getRoleColor(role.label)}>
                   {role.label}
                 </Badge>
-              </div>
             </div>
-
+          </div>
             {/* Niveau d'accès */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1 bg-[#E4E4E7] h-10 w-10 rounded-full flex items-center justify-center">
-                <LucideFlag className="h-5 w-5 text-black" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">
-                  {"Niveau d'accès"}
-                </p>
-                <div className="flex items-center gap-2">
+            <div className="view-group">
+            <span className="view-icon">
+              <ScanEyeIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Accès"}</p>
+              <div className="flex items-center gap-2">
                   {getAccesPages(role.label).map((page, index) => (
                     <Badge
                       key={index}
@@ -187,34 +178,28 @@ export function ShowRole({
                     </Badge>
                   ))}
                 </div>
-              </div>
             </div>
-
+          </div>
             {/* Utilisateurs assignés */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1 bg-[#E4E4E7] h-10 w-10 rounded-full flex items-center justify-center">
-                <Users className="h-5 w-5 text-black" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">
-                  {"Utilisateurs assignés"}
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-black font-semibold text-sm">
-                    {usersCount} utilisateur{usersCount > 1 ? "s" : ""}
-                  </p>
-                </div>
-              </div>
+            <div className="view-group">
+            <span className="view-icon">
+              <UsersIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Utilisateurs"}</p>
+              <p className="font-semibold">
+                {`${usersCount} utilisateur${usersCount > 1 && "s"}`}
+              </p>
             </div>
-
+          </div>
             {/* Permissions */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1 bg-[#E4E4E7] h-10 w-10 rounded-full flex items-center justify-center">
-                <Key className="h-5 w-5 text-black" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">{"Permissions"}</p>
-                <div className="space-y-1 mt-1">
+            <div className="view-group">
+            <span className="view-icon">
+              <ShieldCheck />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Statut"}</p>
+              <div className="space-y-1 mt-1">
                   {permissions.map((permission, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <CheckCircle className="h-3 w-3 text-green-500" />
@@ -222,7 +207,6 @@ export function ShowRole({
                     </div>
                   ))}
                 </div>
-              </div>
             </div>
           </div>
         </div>

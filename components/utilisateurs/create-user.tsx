@@ -23,7 +23,7 @@ const formSchema = z
   .object({
     firstName: z.string().optional(),
     lastName: z.string().min(1, { message: "Le nom est requis" }),
-    email: z.string().min(1, { message: "L'adresse mail est requise" }),
+    email: z.string().email({ message: "L'adresse mail est requise" }),
     password: z.string().min(6, {
       message: "Le mot de passe doit contenir au moins 6 caractères",
     }),
@@ -57,8 +57,6 @@ export default function CreateUserForm() {
   >([]);
 
   // const router = useRouter();
-  const queryClient = useQueryClient();
-
   const registerAPI = useMutation({
     mutationFn: (
       data: Omit<
@@ -182,7 +180,6 @@ export default function CreateUserForm() {
               <FormControl className="w-full">
                 <Input
                   placeholder="ex. johndoe@gemail.com"
-                  type=""
                   {...field}
                 />
               </FormControl>
