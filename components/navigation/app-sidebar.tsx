@@ -511,7 +511,7 @@ function AppSidebar() {
     {
       pageId: "PG-08",
       icon: SettingsIcon,
-      href: "/tableau-de-bord/settings",
+      href: "/tableau-de-bord/parametres",
       authorized: ["ADMIN"],
       title: "Paramètres",
       // items: [

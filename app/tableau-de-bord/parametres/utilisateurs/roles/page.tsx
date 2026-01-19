@@ -2,7 +2,6 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { RoleTable } from "@/components/utilisateurs/roles-table";
 import { userQ } from "@/queries/baseModule";
 import { useQuery } from "@tanstack/react-query";
 import Roles from "./roles";
@@ -34,7 +33,6 @@ function Page() {
           subtitle="Consultez la liste des rôles."
           color="red"
         />
-        {/* <RoleTable data={roles.data.filter((x) => x.label !== "MANAGER")} /> */}
         <Roles data={roles.data.filter((x) => x.label !== "MANAGER")} />
       </div>
     );
