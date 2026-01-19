@@ -87,12 +87,12 @@ export default function UpdateDriver({
   const driverMutation = useMutation({
     mutationFn: async (data: Partial<Driver>) => {
       if (!driverData?.id) {
-        throw new Error("ID du fournisseur manquant");
+        throw new Error("ID du chauffeur manquant");
       }
       return driverQ.update(driverData.id, data);
     },
     onSuccess: () => {
-      toast.success("Fournisseur modifié avec succès !");
+      toast.success("chauffeur modifié avec succès !");
       setOpen(false);
       form.reset(defaultValues);
       onSuccess?.();
@@ -107,7 +107,7 @@ export default function UpdateDriver({
 
   function onSubmit(values: FormValues) {
     if (!driverData?.id) {
-      toast.error("Fournisseur non sélectionné");
+      toast.error("chauffeur non sélectionné");
       return;
     }
 
@@ -140,11 +140,11 @@ export default function UpdateDriver({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
-            Modifier le fournisseur
+          <DialogTitle className="text-xl font-semibold text-white uppercase">
+            {`Chauffeur - ${driverData?.firstName} ${driverData?.lastName}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            Modifiez les informations du fournisseur existant
+            {"Modifiez les informations du chauffeur existant"}
           </p>
         </DialogHeader>
 
@@ -160,7 +160,7 @@ export default function UpdateDriver({
               name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom</FormLabel>
+                  <FormLabel>{"Nom"}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Nom "
@@ -178,7 +178,7 @@ export default function UpdateDriver({
               name="lastName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Pre Nom</FormLabel>
+                  <FormLabel>{"Prénom"}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="prenom"
@@ -196,8 +196,8 @@ export default function UpdateDriver({
               control={form.control}
               name="licence"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Driver Licence</FormLabel>
+                <FormItem className="col-span-2">
+                  <FormLabel>{"Permis de conduire"}</FormLabel>
                   <FormControl>
                     <FilesUpload
                       value={field.value ? [field.value] : []}
@@ -218,8 +218,8 @@ export default function UpdateDriver({
               control={form.control}
               name="idCard"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ID Card</FormLabel>
+                <FormItem className="col-span-2">
+                  <FormLabel>{"Carte nationale d'identité"}</FormLabel>
                   <FormControl>
                     <FilesUpload
                       value={field.value ? [field.value] : []}
