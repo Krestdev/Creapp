@@ -93,7 +93,7 @@ function DialogHeader({ className, variant, ...props }: React.ComponentProps<"di
   return (
     <div
       data-slot="dialog-header"
-      className={cn(dialogHeaderVariants({variant, className}))}
+      className={cn(dialogHeaderVariants({variant, className}), "sticky top-0 z-5")}
       {...props}
     />
   )
