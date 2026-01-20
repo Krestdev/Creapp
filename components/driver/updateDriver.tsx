@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -43,7 +45,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface UpdateRequestProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  driverData: Driver | null;
+  driverData: Driver;
   onSuccess?: () => void;
 }
 
@@ -138,20 +140,20 @@ export default function UpdateDriver({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white uppercase">
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader variant={"secondary"}>
+          <DialogTitle>
             {`Chauffeur - ${driverData?.firstName} ${driverData?.lastName}`}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          <DialogDescription>
             {"Modifiez les informations du chauffeur existant"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 mx-4 flex-1 overflow-y-auto pb-6"
+            className="max-w-3xl w-full grid grid-cols-1 gap-3 @min-[540px]/dialog:grid-cols-2"
             id="update-driver-form"
           >
             {/* Nom */}
@@ -160,10 +162,10 @@ export default function UpdateDriver({
               name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Nom"}</FormLabel>
+                  <FormLabel>{"Noms"}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Nom "
+                      placeholder="Ex. Atangana"
                       {...field}
                       disabled={driverMutation.isPending}
                     />
@@ -178,10 +180,10 @@ export default function UpdateDriver({
               name="lastName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Prénom"}</FormLabel>
+                  <FormLabel>{"Prénoms"}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="prenom"
+                      placeholder="Ex. Joël Stéphane"
                       {...field}
                       disabled={driverMutation.isPending}
                     />
@@ -196,7 +198,7 @@ export default function UpdateDriver({
               control={form.control}
               name="licence"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="@min-[540px]/dialog:col-span-2">
                   <FormLabel>{"Permis de conduire"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -218,7 +220,7 @@ export default function UpdateDriver({
               control={form.control}
               name="idCard"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="@min-[540px]/dialog:col-span-2">
                   <FormLabel>{"Carte nationale d'identité"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -236,24 +238,25 @@ export default function UpdateDriver({
             />
           </form>
 
-          <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={driverMutation.isPending}
             >
-              Annuler
+              {"Annuler"}
             </Button>
             <Button
               type="submit"
               variant="primary"
               form="update-driver-form"
               disabled={driverMutation.isPending || !form.formState.isDirty}
+              isLoading={driverMutation.isPending}
             >
-              {driverMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+              {"Enregistrer"}
             </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

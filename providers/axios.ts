@@ -75,7 +75,7 @@ api.interceptors.response.use(
     // Gestion des codes d'erreur spécifiques
     switch (error.response?.status) {
       case 401:
-        // Rediriger vers login si token expiré
+        // Rediriger vers login si token expiré - On va plutôt rediriger vers le tableau de bord
         if (typeof window !== "undefined") {
           localStorage.removeItem("creapp-store");
           window.location.href = "/connexion";
