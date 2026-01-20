@@ -60,15 +60,8 @@ export default function SocketProvider({
         queryKey: ["requests", userId],
         refetchType: "active",
       });
-    });
-
-    socket.on("request:new", () => {
       queryClient.invalidateQueries({
-        queryKey: ["requests"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["requests", user?.id],
+        queryKey: ["requests-user", userId],
         refetchType: "active",
       });
       queryClient.invalidateQueries({
@@ -411,6 +404,10 @@ export default function SocketProvider({
         queryKey: ["users"],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["requests-user"],
+        refetchType: "active",
+      });
     });
 
     socket.on("user:delete", (data?: { userId: number }) => {
@@ -461,6 +458,8 @@ export default function SocketProvider({
     });
 
     socket.on("driver:update", () => {
+      console.log("updating Drivers");
+
       queryClient.invalidateQueries({
         queryKey: ["drivers"],
         refetchType: "active",

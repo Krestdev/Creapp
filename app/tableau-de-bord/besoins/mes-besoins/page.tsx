@@ -17,7 +17,7 @@ const Page = () => {
 
   // Récupérer les besoins de l'utilisateur
   const { data, isSuccess, isLoading, isError, error } = useQuery({
-    queryKey: ["requests", user?.id],
+    queryKey: ["requests-user", user?.id],
     queryFn: () => {
       if (!user?.id) {
         throw new Error("ID utilisateur non disponible");
