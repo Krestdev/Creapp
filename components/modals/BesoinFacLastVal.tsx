@@ -223,12 +223,12 @@ export default function BesoinFacLastVal({
     }: {
       id: number;
       validator:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     }) => {
       await requestQ.validate(id, validator?.id!, validator);
     },
@@ -257,8 +257,8 @@ export default function BesoinFacLastVal({
     },
 
     onError: (error: any) => {
-      console.error("Erreur lors de la modification:", error);
-      toast.error("Une erreur est survenue lors de la modification.");
+      console.error("Erreur lors de la validation:", error);
+      toast.error("Une erreur est survenue lors de la validation.");
     },
   });
 
@@ -307,12 +307,12 @@ export default function BesoinFacLastVal({
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            {"MODIFICATION DEMANDE DE FACILITATION - " +
+            {"BESOIN DE FACILITATION - " +
               (requestData?.label || "")}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {
-              "Modifiez les informations de la demande de facilitation existante"
+              "Approuver la demande de facilitation existante"
             }
           </p>
         </DialogHeader>
@@ -560,7 +560,7 @@ export default function BesoinFacLastVal({
               className="bg-[#8B1538] hover:bg-[#7A1230]"
               onClick={() => form.handleSubmit(onSubmit)()}
             >
-              Modifier la demande
+              Approuver la demande
               {updateMutation.isPending && (
                 <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />
               )}

@@ -561,7 +561,7 @@ export function DataTable({ data }: Props) {
                     setIsModalOpen(true);
                   }}
                 >
-                  <Eye className="mr-2 h-4 w-4" />
+                  <Eye/>
                   {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -574,7 +574,7 @@ export function DataTable({ data }: Props) {
                   }}
                   disabled={item.state !== "pending"}
                 >
-                  <LucidePen className="mr-2 h-4 w-4" />
+                  <LucidePen />
                   {"Modifier"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -592,7 +592,7 @@ export function DataTable({ data }: Props) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {isAttach ? <Paperclip /> : ""}
+            {isAttach ? <Paperclip size={16} /> : ""}
           </div>
         );
       },
@@ -612,10 +612,41 @@ export function DataTable({ data }: Props) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchValue = filterValue.toLowerCase();
-      const reference = row.getValue("ref") as string;
-      if (reference.toLocaleLowerCase().includes(searchValue)) return true;
-      return false;
+       if (!filterValue || filterValue === '') return true;
+    
+    const searchValue = filterValue.toLowerCase().trim();
+    const item = row.original;
+    
+    // 1. Recherche dans la référence
+    if (item.ref?.toLowerCase().includes(searchValue)) return true;
+    
+    // 2. Recherche dans le label/titre
+    if (item.label?.toLowerCase().includes(searchValue)) return true;
+    
+    // 3. Recherche dans le projet
+    const projectName = getProjectName(String(item.projectId)).toLowerCase();
+    if (projectName.includes(searchValue)) return true;
+    
+    // 4. Recherche dans la catégorie
+    const categoryName = categoryData.data?.data?.find(
+      cat => cat.id === Number(item.categoryId)
+    )?.label?.toLowerCase() || '';
+    if (categoryName.includes(searchValue)) return true;
+    
+    // 5. Recherche dans le statut
+    const statusConfig = getStatusConfig(item.state || '');
+    const statusLabel = getTranslatedLabel(statusConfig.label).toLowerCase();
+    if (statusLabel.includes(searchValue)) return true;
+    
+    // 6. Recherche dans le type
+    const typeBadge = getTypeBadge(item.type);
+    if (typeBadge.label.toLowerCase().includes(searchValue)) return true;
+    
+    // 7. Recherche dans la date (formatée)
+    const formattedDate = format(new Date(item.createdAt), "PP", { locale: fr }).toLowerCase();
+    if (formattedDate.includes(searchValue)) return true;
+    
+    return false;
     },
     state: {
       sorting,

@@ -63,7 +63,7 @@ const Page = () => {
         r.state !== "cancel"
       );
     });
-  }, [requestData.data, categoriesData.data, user]);
+  }, [requestData.data, categoriesData.data, user, categoriesData.data]);
 
   // Calcul des statistiques à partir des données filtrées
   const pending = useMemo(() => {
@@ -76,7 +76,7 @@ const Page = () => {
         : validator?.rank === 1;
       return item.state === "pending" && canValidate;
     }).length;
-  }, [data, categoriesData.data, user]);
+  }, [data, categoriesData.data, user?.id]);
 
   const approved = useMemo(() => {
     return data.filter((item) => {
@@ -91,7 +91,7 @@ const Page = () => {
         item.revieweeList.some((u) => u.validatorId === validator.id);
       return isValidated;
     }).length;
-  }, [data, categoriesData.data, user]);
+  }, [data, categoriesData.data, user?.id]);
 
   const received = useMemo(() => {
     return data.filter((r) => {
@@ -104,7 +104,7 @@ const Page = () => {
       const result = r.state === "pending" ? canValidate : true;
       return result;
     }).length;
-  }, [data, categoriesData.data, user]);
+  }, [data, categoriesData.data, user?.id]);
 
   const rejected = useMemo(() => {
     return data.filter((item) => {
@@ -119,7 +119,7 @@ const Page = () => {
         item.revieweeList.some((u) => u.validatorId === validator.id);
       return isRejected;
     }).length;
-  }, [data, categoriesData.data, user]);
+  }, [data, categoriesData.data, user?.id]);
 
   const Statistics: Array<StatisticProps> = [
     {

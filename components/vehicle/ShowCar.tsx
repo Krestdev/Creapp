@@ -3,12 +3,25 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Vehicle } from "@/types/types";
-import { CalendarDays, Car, FileImage, Hash, Info } from "lucide-react";
+import {
+  CalendarDays,
+  CalendarIcon,
+  Car,
+  CarIcon,
+  FileImage,
+  Hash,
+  Info,
+  ScanBarcodeIcon,
+} from "lucide-react";
 import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface ShowCarProps {
   open: boolean;
@@ -45,85 +58,78 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
     ========================= */
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[540px] p-0 overflow-hidden">
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg">
-          <DialogTitle className="text-xl font-semibold uppercase flex items-center gap-2">
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>
             {`Véhicule - ${vehicleData.mark} ${vehicleData.label}`}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          <DialogDescription>
             {"Informations complètes sur le véhicule"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 pb-6 space-y-6 max-h-[70vh] overflow-y-auto">
-          {/* IMAGE SECTION */}
-          {
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <FileImage className="h-4 w-4" />
-                <span>Photo du véhicule</span>
-              </div>
-              <div className="relative h-48 w-full rounded-lg overflow-hidden border border-gray-200">
-                {vehicleData.picture !== null ? (
-                  <img
-                    src={url}
-                    alt={`${vehicleData.mark} ${vehicleData.label}`}
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full bg-gray-100">
-                    <FileImage className="h-12 w-12 text-gray-400" />
-                  </div>
-                )}
-              </div>
+        <div className="grid gap-3 grid-cols-1 min-[540px]/dialog:grid-cols-2">
+          {/*Image */}
+          <div className="view-group">
+            <span className="view-icon">
+              <FileImage />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Aperçu du véhicule"}</p>
+              {!!vehicleData.picture ? (
+                <img
+                  src={url}
+                  alt={vehicleData.mark.concat(" ", vehicleData.label)}
+                  className="w-full aspect-video h-auto object-cover mt-2"
+                />
+              ) : (
+                <span className="italic text-gray-600">
+                  {"Aucune image reseignée"}
+                </span>
+              )}
             </div>
-          }
-
+          </div>
           {/* VEHICLE INFO GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
             {/* MARQUE */}
-
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <Car className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">
-                  {"Marque & Modèle"}
-                </p>
-                <p className="font-semibold text-lg">
-                  {vehicleData.mark} {vehicleData.label}
+            <div className="view-group">
+              <span className="view-icon">
+                <CarIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Marque et modèle"}</p>
+                <p className="font-semibold">
+                  {vehicleData.mark.concat(" - ", vehicleData.label)}
                 </p>
               </div>
             </div>
-
             {/* MATRICULE */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <Hash className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">
-                  {"Immatriculation"}
-                </p>
-                <p className="font-semibold text-lg">
-                  {vehicleData.matricule || "Non renseigné"}
+            <div className="view-group">
+              <span className="view-icon">
+                <ScanBarcodeIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Immatriculation"}</p>
+                <p
+                  className={cn(
+                    !!vehicleData.matricule ? "font-semibold" : "italic",
+                  )}
+                >
+                  {vehicleData.matricule ?? "Non renseigné"}
                 </p>
               </div>
             </div>
 
             {/* DATE DE CRÉATION */}
             {vehicleData.createdAt && (
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <CalendarDays className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">
-                    {"Date d'ajout"}
-                  </p>
-                  <p className="font-semibold text-lg">
-                    {formatDate(vehicleData.createdAt)}
+              <div className="view-group">
+                <span className="view-icon">
+                  <CalendarIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Date d'ajout"}</p>
+                  <p className="font-semibold">
+                    {format(new Date(vehicleData.createdAt), "dd MMMM yyyy, p", {locale: fr})}
                   </p>
                 </div>
               </div>
@@ -131,16 +137,14 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
 
             {/* DATE DE MISE À JOUR */}
             {vehicleData.updatedAt && (
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <CalendarDays className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">
-                    {"Dernière modification"}
-                  </p>
-                  <p className="font-semibold text-lg">
-                    {formatDate(vehicleData.updatedAt)}
+              <div className="view-group">
+                <span className="view-icon">
+                  <CalendarIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Date de mise à jour"}</p>
+                  <p className="font-semibold">
+                    {format(new Date(vehicleData.updatedAt), "dd MMMM yyyy, p", {locale: fr})}
                   </p>
                 </div>
               </div>

@@ -14,12 +14,9 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  CalendarDays,
-  CalendarIcon,
   CheckCheck,
   CheckCircle,
   ChevronDown,
-  ChevronRight,
   Circle,
   Eye,
   Hourglass,
@@ -27,7 +24,7 @@ import {
   LucideBan,
   LucideIcon,
   Paperclip,
-  Settings2,
+  Settings2
 } from "lucide-react";
 import * as React from "react";
 
@@ -68,17 +65,23 @@ import {
   RequestType,
   User,
 } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
-import { addDays, format } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { DetailBesoin } from "../besoin/detail-besoin";
+import BesoinFacLastVal from "../modals/BesoinFacLastVal";
 import { BesoinLastVal } from "../modals/BesoinLastVal";
 import { ValidationModal } from "../modals/ValidationModal";
 import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
 import { Checkbox } from "../ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -88,11 +91,6 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Label } from "../ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Textarea } from "../ui/textarea";
-import Empty from "./empty";
-import { Pagination } from "./pagination";
-import { SearchableSelect } from "./searchableSelect";
 import {
   Sheet,
   SheetContent,
@@ -101,13 +99,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "../ui/collapsible";
+import { Textarea } from "../ui/textarea";
+import Empty from "./empty";
+import { Pagination } from "./pagination";
 import { TabBar } from "./TabBar";
-import BesoinFacLastVal from "../modals/BesoinFacLastVal";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -139,7 +134,6 @@ export function DataVal({
   requestTypeData,
 }: DataTableProps) {
   const { user } = useStore();
-  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -1031,8 +1025,8 @@ export function DataVal({
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Statuts
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Statuts"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -1042,7 +1036,7 @@ export function DataVal({
 
           return (
             <Badge variant={state.variant} className="text-xs">
-              {Icon && <Icon className="h-3 w-3 mr-1" />}
+              {Icon && <Icon />}
               {state.label}
             </Badge>
           );
@@ -1081,7 +1075,7 @@ export function DataVal({
                     setIsModalOpen(true);
                   }}
                 >
-                  <Eye className="mr-2 h-4 w-4" />
+                  <Eye />
                   {"Voir les détails"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -1098,7 +1092,7 @@ export function DataVal({
                     item.state !== "pending"
                   }
                 >
-                  <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
+                  <CheckCheck className="text-green-500" />
                   {"Approuver"}
                   {validationInfo.isLastValidator}
                 </DropdownMenuItem>
@@ -1115,13 +1109,13 @@ export function DataVal({
                       : ""
                   }
                 >
-                  <LucideBan className="text-red-500 mr-2 h-4 w-4" />
+                  <LucideBan className="text-destructive" />
                   {"Rejeter"}
                   {validationInfo.isLastValidator}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {isAttach ? <Paperclip /> : ""}
+            {isAttach ? <Paperclip size={16} /> : ""}
           </div>
         );
       },

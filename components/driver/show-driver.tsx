@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -15,6 +17,7 @@ import {
   LucideCalendar,
   LucideWallet,
   LucideFile,
+  UserIcon,
 } from "lucide-react";
 import { useState } from "react";
 import ShowFile from "../base/show-file";
@@ -23,7 +26,7 @@ import { DownloadFile } from "../base/downLoadFile";
 interface DetailBCProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: Driver | null;
+  data: Driver;
 }
 
 export function ShowDriver({ open, onOpenChange, data }: DetailBCProps) {
@@ -40,39 +43,38 @@ export function ShowDriver({ open, onOpenChange, data }: DetailBCProps) {
         }
       }}
     >
-      <DialogContent className="sm:max-w-[460px] w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
+      <DialogContent>
         {/* Header with burgundy background */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <DialogTitle className="text-xl font-semibold text-white uppercase">
+        <DialogHeader>
+          <DialogTitle>
             {`Chauffeur - ${data?.firstName} ${data?.lastName}`}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
-            {title !== "" ? title : "Informations relatives au chauffeur"}
-          </p>
+          <DialogDescription>
+            {title.length > 0 ? title : "Informations relatives au chauffeur"}
+          </DialogDescription>
         </DialogHeader>
 
         {/* Content */}
         {page === 1 ? (
-          <div className="p-6 flex flex-col gap-4">
-            <div className="flex-1 flex flex-col gap-3">
-              {/* Nom (entreprise) */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <CircleDollarSign className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{"Nom:"}</p>
-                  <p className="font-semibold">{data?.firstName + " " + data?.lastName}</p>
-                </div>
-              </div>
+          <div className="grid gap-3">
+            <div className="view-group">
+            <span className="view-icon">
+              <UserIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Noms et prénoms"}</p>
+              <p className="font-semibold">
+                {data?.firstName.concat(" ", data.lastName)}
+              </p>
             </div>
+          </div>
             <Button
-              disabled={!data?.licence}
+              disabled={!data.licence}
               variant={"ghost"}
               className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
               onClick={() => {
                 setPage(2);
-                setFile(data?.licence);
+                setFile(data.licence);
                 setTitle("Driver Licence");
               }}
             >
@@ -81,7 +83,7 @@ export function ShowDriver({ open, onOpenChange, data }: DetailBCProps) {
               </div>
               <div className="flex flex-col">
                 <p className="text-[#52525B]">{"Permis de conduire"}</p>
-                {data?.licence ? (
+                {data.licence ? (
                   <div className="flex gap-1.5 items-center">
                     <>
                       <img
@@ -112,7 +114,7 @@ export function ShowDriver({ open, onOpenChange, data }: DetailBCProps) {
               className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
               onClick={() => {
                 setPage(2);
-                setFile(data?.idCard);
+                setFile(data.idCard);
                 setTitle("ID Card");
               }}
             >
@@ -155,7 +157,7 @@ export function ShowDriver({ open, onOpenChange, data }: DetailBCProps) {
         )}
 
         {/* Footer buttons */}
-        <div className="flex w-full justify-end gap-3 p-6 pt-0">
+        <DialogFooter>
           {page === 2 && <DownloadFile file={file} />}
           <Button
             variant="outline"
@@ -164,7 +166,7 @@ export function ShowDriver({ open, onOpenChange, data }: DetailBCProps) {
           >
             {"Fermer"}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
