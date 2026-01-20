@@ -2,8 +2,10 @@
 
 import { useEffect } from "react";
 import { getSocket } from "@/lib/sockets";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useStore } from "./datastore";
+import { userQ } from "@/queries/baseModule";
+import { storedUser } from "@/types/types";
 
 export default function SocketProvider({
   children,
@@ -11,7 +13,11 @@ export default function SocketProvider({
   children: React.ReactNode;
 }) {
   const queryClient = useQueryClient();
-  const { user, logout } = useStore();
+  const { user, update } = useStore();
+  const userQuery = useMutation({
+    mutationFn: (id: number) =>
+      userQ.getOne(id).then((res) => update({ user: res.data })),
+  });
 
   useEffect(() => {
     const socket = getSocket();
@@ -77,6 +83,10 @@ export default function SocketProvider({
       });
       queryClient.invalidateQueries({
         queryKey: ["requests", user?.id],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["requests-user"],
         refetchType: "active",
       });
       queryClient.invalidateQueries({
@@ -395,11 +405,19 @@ export default function SocketProvider({
       });
     });
 
-    socket.on("user:update", (data?: { userId: number }) => {
-      if (data && user?.id === data.userId) {
+    socket.on("user:update", (data?: { userId?: number; action?: string }) => {
+      if (data && user?.id === data.userId && data.action === "diactivate") {
         localStorage.removeItem("creapp-store");
         window.location.href = "/connexion";
+      } else if (
+        data &&
+        user &&
+        user?.id === data.userId &&
+        data.action === "data"
+      ) {
+        userQuery.mutate(user.id);
       }
+
       queryClient.invalidateQueries({
         queryKey: ["users"],
         refetchType: "active",

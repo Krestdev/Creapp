@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/table";
 import { categoryQ } from "@/queries/categoryModule";
 import { Category } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronRight,
@@ -73,17 +73,8 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [showDetail, setShowDetail] = React.useState(false);
 
-  const queryClient = useQueryClient();
-
   const categoryData = useMutation({
     mutationFn: (id: number) => categoryQ.deleteCategory(id),
-    onSuccess: () => {
-      // invalidate and refetch
-      // queryClient.invalidateQueries({
-      //   queryKey: ["categoryList"],
-      //   refetchType: "active",
-      // });
-    },
     onError: (error) => {
       toast.error(
         "Une erreur est survenue lors de la suppression de la categorie.",
