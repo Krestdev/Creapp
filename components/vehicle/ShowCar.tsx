@@ -142,7 +142,7 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
                   <CalendarIcon />
                 </span>
                 <div className="flex flex-col">
-                  <p className="view-group-title">{"Date d'ajout"}</p>
+                  <p className="view-group-title">{"Date de mise à jour"}</p>
                   <p className="font-semibold">
                     {format(new Date(vehicleData.updatedAt), "dd MMMM yyyy, p", {locale: fr})}
                   </p>

@@ -19,7 +19,9 @@ import {
   ChevronDown,
   Eye,
   LucidePen,
+  Pencil,
   Search,
+  Settings2,
   Trash2,
 } from "lucide-react";
 import * as React from "react";
@@ -59,6 +61,15 @@ import { ModalWarning } from "../modals/modal-warning";
 import { Badge } from "../ui/badge";
 import { ShowDriver } from "./show-driver";
 import UpdateDriver from "./updateDriver";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
+import { Label } from "../ui/label";
 
 interface DriversTableProps {
   data: Driver[];
@@ -83,7 +94,7 @@ export function DriverTable({ data }: DriversTableProps) {
 
   // États pour les filtres
   const [regimeFilter, setRegimeFilter] = React.useState<string>("all");
-  const [statusFilter, setStatusFilter] = React.useState<string>("all");
+  const [statusFilter, setStatusFilter] = React.useState<"all" | "complet" | "incomplet">("all");
 
   const driverMutation = useMutation({
     mutationFn: (id: number) => driverQ.delete(id),
@@ -110,32 +121,13 @@ export function DriverTable({ data }: DriversTableProps) {
 
   // Données filtrées
   const filteredData = React.useMemo(() => {
-    let filtered = [...data];
-
-    // Filtre par recherche globale
-    if (globalFilter) {
-      filtered = filtered.filter((driver) => {
-        const searchableFields = ["firstName", "lastName"];
-        return searchableFields.some((field) => {
-          const value = driver[field as keyof Driver];
-          return value
-            ?.toString()
-            .toLowerCase()
-            .includes(globalFilter.toLowerCase());
-        });
-      });
-    }
-
-    // Filtre par statut (complet/incomplet)
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((driver) => {
-        const status = checkDriverInfo(driver);
-        return status === statusFilter;
-      });
-    }
-
-    return filtered;
-  }, [data, globalFilter, regimeFilter, statusFilter]);
+    return data.filter(d=>{
+      //status Filter
+      const matchStatus = statusFilter === "all" ? true :
+      statusFilter === checkDriverInfo(d);
+      return matchStatus; 
+    });
+  }, [data, statusFilter]);
 
   const translateColumns = (columnId: string) => {
     const translations: { [key: string]: string } = {
@@ -158,8 +150,8 @@ export function DriverTable({ data }: DriversTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Nom
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Noms"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -179,8 +171,8 @@ export function DriverTable({ data }: DriversTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Pre Nom
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Prénoms"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -205,7 +197,7 @@ export function DriverTable({ data }: DriversTableProps) {
               }
             >
               {"Statut"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown />
             </span>
           );
         },
@@ -214,11 +206,7 @@ export function DriverTable({ data }: DriversTableProps) {
           return (
             <div className="font-medium">
               <Badge variant={status === "complet" ? "success" : "amber"}>
-                {status === "complet" ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4" />
-                )}
+                {status === "complet" ? <Check /> : <AlertTriangle />}
                 {status === "complet" ? "Complet" : "Incomplet"}
               </Badge>
             </div>
@@ -227,7 +215,7 @@ export function DriverTable({ data }: DriversTableProps) {
       },
       {
         id: "actions",
-        header: "Actions",
+        header: ()=><span className="tablehead">{"Actions"}</span>,
         enableHiding: false,
         cell: ({ row }) => {
           const driver = row.original;
@@ -248,7 +236,7 @@ export function DriverTable({ data }: DriversTableProps) {
                     setOpenUpdate(true);
                   }}
                 >
-                  <Eye className="mr-2 h-4 w-4" />
+                  <Eye />
                   {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -258,7 +246,8 @@ export function DriverTable({ data }: DriversTableProps) {
                     setIsUpdateModalOpen(true);
                   }}
                 >
-                  <LucidePen className="mr-2 h-4 w-4" />
+                  {" "}
+                  <Pencil />
                   {"Modifier"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -268,7 +257,7 @@ export function DriverTable({ data }: DriversTableProps) {
                   }}
                   className="text-destructive"
                 >
-                  <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                  <Trash2 />
                   {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -293,14 +282,15 @@ export function DriverTable({ data }: DriversTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["name", "email", "phone", "address", "regem"];
-      return searchableColumns.some((column) => {
-        const value = row.getValue(column);
-        return value
-          ?.toString()
-          .toLowerCase()
-          .includes(filterValue.toLowerCase());
-      });
+      if (!filterValue || filterValue === '') return true;
+      const searchValue = filterValue.toLowerCase().trim();
+      const item = row.original;
+      const status = checkDriverInfo(item);
+      if(item.firstName.toLocaleLowerCase().includes(searchValue)) return true;
+      if(item.lastName.toLocaleLowerCase().includes(searchValue)) return true;
+      if(status.includes(searchValue)) return true;
+      if(String(item.id) === searchValue) return true;
+      return false;
     },
     state: {
       sorting,
@@ -319,49 +309,67 @@ export function DriverTable({ data }: DriversTableProps) {
   };
 
   return (
-    <div className="w-full">
-      <div className="flex flex-wrap items-center gap-3 py-4">
-        {/* Recherche existante */}
-        <div className="relative">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher par nom, email, téléphone..."
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-8 w-[250px]"
-          />
-        </div>
-
-        {/* Filtre par statut */}
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Tous les statuts" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-            <SelectItem value="complet">
-              <div className="flex items-center gap-2">
-                <Badge variant="success" className="h-4 w-4 p-0">
-                  <Check className="h-3 w-3" />
-                </Badge>
-                {"Complet"}
+    <div className="content">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant={"outline"}>
+              <Settings2 />
+              {"Filtres"}
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les fitres pour affiner les données"}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="px-5 grid gap-5">
+              {/**Global Filter (Search) */}
+              <div className="grid gap-1.5">
+                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
+                <Input
+                  name="search"
+                  type="search"
+                  id="searchCommand"
+                  placeholder="Référence, libellé"
+                  value={globalFilter ?? ""}
+                  onChange={(event) => setGlobalFilter(event.target.value)}
+                  className="max-w-sm"
+                />
               </div>
-            </SelectItem>
-            <SelectItem value="incomplet">
-              <div className="flex items-center gap-2">
-                <Badge variant="amber" className="h-4 w-4 p-0">
-                  <AlertTriangle className="h-3 w-3" />
-                </Badge>
-                {"Incomplet"}
+              {/**Status Filter */}
+              <div className="grid gap-1.5">
+                <Label htmlFor="statusFilter">{"Statut"}</Label>
+                <Select value={statusFilter} onValueChange={(v)=>setStatusFilter(v as typeof statusFilter)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Tous les statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous les statuts"}</SelectItem>
+                    <SelectItem value="complet">{"Complet"}</SelectItem>
+                    <SelectItem value="incomplet">{"Incomplet"}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-
+              {/* Bouton pour réinitialiser les filtres */}
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={resetAllFilters}
+                  className="w-full"
+                >
+                  {"Réinitialiser"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
         {/* Menu des colonnes */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto bg-transparent">
+            <Button variant="outline">
               {"Colonnes"}
               <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
@@ -403,9 +411,9 @@ export function DriverTable({ data }: DriversTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -447,16 +455,20 @@ export function DriverTable({ data }: DriversTableProps) {
       </div>
 
       <Pagination table={table} />
-      <UpdateDriver
+      {
+        selectedItem &&
+        <UpdateDriver
         open={isUpdateModalOpen}
         setOpen={setIsUpdateModalOpen}
         driverData={selectedItem}
-      />
-      <ShowDriver
+      />}
+      {
+        selectedItem &&
+        <ShowDriver
         open={openUpdate}
         onOpenChange={setOpenUpdate}
         data={selectedItem}
-      />
+      />}
       <ModalWarning
         variant="error"
         title="Chauffeur - "
