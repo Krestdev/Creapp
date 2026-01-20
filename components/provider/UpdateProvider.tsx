@@ -205,7 +205,7 @@ export default function UpdateProvider({
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"secondary"}>
           <DialogTitle>
-            {`Modifier ${providerData.name}`}
+            {`Fournisseur - ${providerData.name}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Modifiez les informations du fournisseur existant"}
