@@ -134,9 +134,8 @@ export function ProjectTable({
   // Obtenir la liste unique des chefs de projet
   const uniqueChiefs = React.useMemo(() => {
     const chiefs = data
-      .map((project) => project.chief)
-      .filter((chief) => chief && chief.name)
-      .map((chief) => chief!.name);
+    .filter(p=>!!p.chief)
+    .map((project) => project.chief.firstName.concat(" ", project.chief.lastName))
 
     return [...new Set(chiefs)].sort();
   }, [data]);
@@ -259,7 +258,7 @@ export function ProjectTable({
         const searchText = [
           project.reference || "",
           project.label || "",
-          project.chief?.name || "",
+          project.chief.firstName.concat(" ", project.chief.lastName),
         ]
           .map((text) => normalizeText(text))
           .join(" ");
@@ -290,7 +289,7 @@ export function ProjectTable({
       effectiveFilters.chiefFilter !== "all"
     ) {
       filtered = filtered.filter(
-        (project) => project.chief?.name === effectiveFilters.chiefFilter,
+        (project) => project.chief.firstName.concat(" ", project.chief.lastName) === effectiveFilters.chiefFilter,
       );
     }
 
@@ -404,16 +403,8 @@ export function ProjectTable({
         cell: ({ row }) => {
           const budget = row.getValue("budget") as number;
           const projectBudget = row.original.budget || 0;
-          const budgetRangeInfo = budgetRange;
-          let colorClass = "font-medium";
 
-          if (projectBudget < budgetRangeInfo.avg! * 0.5) {
-            colorClass = "font-medium text-green-600";
-          } else if (projectBudget > budgetRangeInfo.avg! * 1.5) {
-            colorClass = "font-medium text-red-600";
-          }
-
-          return <div className={colorClass}>{formatCurrency(budget)}</div>;
+          return <div>{formatCurrency(budget)}</div>;
         },
       },
       {
