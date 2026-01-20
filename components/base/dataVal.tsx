@@ -265,11 +265,13 @@ export function DataVal({
   // Major Filter *******************************************
   const filteredData = React.useMemo(() => {
     return data.filter((b) => {
-      const validatedByUser = categoriesData
+      const validator = categoriesData
         .find((c) => c.id === b.categoryId)
-        ?.validators.find((v) => v.userId === user?.id)?.id;
-      const validated = b.revieweeList?.some(
-        (r) => r.validatorId === validatedByUser,
+        ?.validators.find((v) => v.userId === user?.id); //Validator value
+        const canValidate = !!b.revieweeList ? validator?.rank === b.revieweeList.length + 1
+        : validator?.rank === 1; //Check if he can validate  
+      const validated = !b.revieweeList ? false : b.revieweeList.some(
+        (r) => r.validatorId === validator?.id, //Lets know if he validated this request
       );
       const now = new Date();
       let startDate = new Date();
@@ -277,8 +279,8 @@ export function DataVal({
       //Selected Tab
       const matchTab =
         selectedTab === 0
-          ? b.state === "pending" && !validated
-          : selectedTab === 1 && !!validated;
+          ? b.state === "pending" && canValidate
+          : selectedTab === 1 && validated;
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : b.state === statusFilter;
