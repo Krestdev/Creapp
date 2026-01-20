@@ -177,7 +177,7 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
                       key={index}
                       href={`${
                         process.env.NEXT_PUBLIC_API
-                      }/${encodeURIComponent(proof)}`}
+                      }/${proof}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >

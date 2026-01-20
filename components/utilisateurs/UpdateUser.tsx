@@ -54,7 +54,6 @@ export default function UpdateUser({
   userData,
   onSuccess,
 }: UpdateRequestProps) {
-  const queryClient = useQueryClient();
 
   const [selectedRole, setSelectedRole] = useState<
     { id: number; label: string }[]
@@ -145,14 +144,11 @@ export default function UpdateUser({
     userMutation.mutate({ id: userData.id, data: payload });
   }
 
-  /* =========================
-     RENDER
-  ========================= */
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[840px] p-0 flex flex-col">
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg">
-          <DialogTitle className="text-xl font-semibold uppercase">
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader variant={"secondary"}>
+          <DialogTitle>
             {"Utilisateur - " + userData?.firstName + " " + userData?.lastName}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
@@ -163,16 +159,16 @@ export default function UpdateUser({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="w-full grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 px-6"
+            className="grid grid-cols-1 gap-3 @min-[540px]/dialog:grid-cols-2"
           >
             <FormField
               control={form.control}
               name="lastName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom</FormLabel>
+                  <FormLabel>{"Nom"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Nom" />
+                    <Input {...field} placeholder="Ex. Atangana" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -184,9 +180,9 @@ export default function UpdateUser({
               name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Prénom </FormLabel>
+                  <FormLabel>{"Prénom"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Prénom" />
+                    <Input {...field} placeholder="Ex. Samuel" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -198,9 +194,9 @@ export default function UpdateUser({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contact </FormLabel>
+                  <FormLabel>{"Contact"}</FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} placeholder="Contact" />
+                    <Input {...field} placeholder="Ex. 679 550 001" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -212,12 +208,11 @@ export default function UpdateUser({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Adresse email </FormLabel>
+                  <FormLabel>{"Adresse email"}</FormLabel>
                   <FormControl>
                     <Input
-                      type="email"
                       {...field}
-                      placeholder="Adresse email"
+                      placeholder="Ex. johndoe@gmail.com"
                       disabled
                     />
                   </FormControl>
@@ -231,7 +226,7 @@ export default function UpdateUser({
               name="post"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Poste </FormLabel>
+                  <FormLabel>{"Poste"}</FormLabel>
                   <FormControl>
                     <Input type="Poste" placeholder="Poste" {...field} />
                   </FormControl>
@@ -240,11 +235,11 @@ export default function UpdateUser({
               )}
             />
 
-            <div className="space-y-2 col-span-2">
-              <FormLabel>Rôles *</FormLabel>
+            <div className="space-y-2 @min-[540px]/dialog:col-span-2">
+              <FormLabel>{"Rôles"}</FormLabel>
               <MultiSelectRole
                 display="Role"
-                roles={ROLES.filter((r) => r.label !== "MANAGER")}
+                roles={ROLES.filter((r) => r.label !== "MANAGER" && r.id !== 1)}
                 selected={selectedRole}
                 onChange={(selected) => {
                   setSelectedRole(selected);
@@ -259,15 +254,16 @@ export default function UpdateUser({
 
           <div className="flex justify-end gap-3 p-6 pt-0">
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Annuler
+              {"Annuler"}
             </Button>
             <Button
               variant={"primary"}
               onClick={form.handleSubmit(onSubmit)}
               type="submit"
               disabled={userMutation.isPending}
+              isLoading={userMutation.isPending}
             >
-              {userMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+              {"Enregistrer"}
             </Button>
           </div>
         </Form>

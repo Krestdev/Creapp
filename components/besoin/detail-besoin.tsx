@@ -384,7 +384,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                       <Link
                         href={`${
                           process.env.NEXT_PUBLIC_API
-                        }/${encodeURIComponent(paiement?.proof as string)}`}
+                        }/${paiement?.proof as string}`}
                         target="_blank"
                         className="flex gap-0.5 items-center"
                       >

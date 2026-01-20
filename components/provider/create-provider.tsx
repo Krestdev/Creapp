@@ -44,7 +44,7 @@ const formSchema = z.object({
     .refine((val) => !isNaN(Number(val)), {
       message: "Le numéro de téléphone doit contenir uniquement des chiffres",
     }),
-  email: z.string().min(1),
+  email: z.string().email(),
   address: z.string(),
   carte_contribuable: SingleFileArray,
   acf: SingleFileArray,

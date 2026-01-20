@@ -170,7 +170,7 @@ export type ProjectT = {
   updatedAt?: Date;
   label: string;
   description: string | null;
-  chief: { id: number; name: string };
+  chief: { id: number; firstName: string; lastName:string; post:string };
   status: string;
   budget: number;
 };

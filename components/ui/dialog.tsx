@@ -75,7 +75,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-background @container/dialog data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-30 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-4 shadow-lg duration-200 sm:max-w-lg",
+          "bg-background @container/dialog data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-30 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-4 shadow-lg duration-200 sm:max-w-lg max-h-[80vh] overflow-y-auto",
           className
         )}
         {...props}
@@ -93,7 +93,7 @@ function DialogHeader({ className, variant, ...props }: React.ComponentProps<"di
   return (
     <div
       data-slot="dialog-header"
-      className={cn(dialogHeaderVariants({variant, className}))}
+      className={cn(dialogHeaderVariants({variant, className}), "sticky top-0 z-5")}
       {...props}
     />
   )
@@ -119,7 +119,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-[120%] tracking-[-2%] font-mono font-semibold text-white", className)}
+      className={cn("text-lg leading-[120%] tracking-[-2%] font-mono font-semibold text-white uppercase", className)}
       {...props}
     />
   )

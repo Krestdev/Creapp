@@ -94,37 +94,37 @@ const statusConfig = {
   pending: {
     label: "Pending",
     icon: Clock,
-    badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
+    badgeClassName: "bg-amber-100 text-amber-600 border border-amber-200",
     rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20",
   },
   validated: {
     label: "Validated",
     icon: CheckCircle,
-    badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
+    badgeClassName: "bg-green-100 text-green-600 border border-green-200",
     rowClassName: "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
   },
   rejected: {
     label: "Rejected",
     icon: XCircle,
-    badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
+    badgeClassName: "bg-red-100 text-red-600 border border-red-200",
     rowClassName: "bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30",
   },
   "in-review": {
     label: "In Review",
     icon: AlertCircle,
-    badgeClassName: "bg-blue-200 text-blue-500 outline outline-blue-600 ",
-    rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
+    badgeClassName: "bg-sky-100 text-sky-600 border border-sky-200 ",
+    rowClassName: "bg-sky-50 dark:bg-bluesky/20 dark:hover:bg-sky-950/30",
   },
   store: {
     label: "Store",
     icon: AlertCircle,
-    badgeClassName: "bg-blue-200 text-blue-500 outline outline-blue-600 ",
+    badgeClassName: "bg-blue-100 text-blue-600 border border-blue-200 ",
     rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
   },
   cancel: {
     label: "Cancel",
     icon: Ban,
-    badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+    badgeClassName: "bg-gray-100 text-gray-600 border border-gray-200",
     rowClassName: "bg-gray-50 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
   },
 };
@@ -305,44 +305,55 @@ export function DataTable({ data }: Props) {
 
   // Fonction pour filtrer les données avec TOUS les filtres
   const filteredData = React.useMemo(() => {
-    let filtered = [...data];
+    return data.filter(item=>{
+      const now = new Date();
+      let startDate = new Date();
+      let endDate = now;
+      //Status Filter
+      const matchStatus = statusFilter === "all" ? true : item.state === statusFilter;
+      //Category Filter
+      const matchCategory = categoryFilter === "all" ? true : item.categoryId === Number(categoryFilter);
+      //Project Filter
+      const matchProject = projectFilter === "all" ? true : item.projectId === Number(projectFilter);
+      // Date Filter
+      let matchDate = true;
+      if (dateFilter) {
+        switch (dateFilter) {
+          case "today":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "week":
+            startDate.setDate(
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+            );
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "month":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          case "custom":
+            if (customDateRange?.from && customDateRange?.to) {
+              startDate = customDateRange.from;
+              endDate = customDateRange.to;
+            }
+            break;
+        }
 
-    // Filtrer par statut local
-    if (statusFilter && statusFilter !== "all") {
-      filtered = filtered.filter((item) => item.state === statusFilter);
-    }
-
-    // Filtrer par catégorie locale
-    if (categoryFilter && categoryFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => String(item.categoryId) === String(categoryFilter),
-      );
-    }
-
-    // Filtrer par recherche globale locale
-    if (globalFilter) {
-      const searchValue = globalFilter.toLowerCase();
-      filtered = filtered.filter((item) => {
-        const searchText = [
-          item.label || "",
-          item.ref || "",
-          getProjectName(String(item.projectId)) || "",
-        ]
-          .join(" ")
-          .toLowerCase();
-        return searchText.includes(searchValue);
-      });
-    }
-
-    // Filtre par projet local
-    if (projectFilter && projectFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => String(item.projectId) === String(projectFilter),
-      );
-    }
-
-    return filtered;
-  }, [data, projectFilter, categoryFilter, statusFilter, globalFilter]);
+        if (
+          dateFilter !== "custom" ||
+          (customDateRange?.from && customDateRange?.to)
+        ) {
+          matchDate =
+            new Date(item.createdAt) >= startDate &&
+            new Date(item.createdAt) <= endDate;
+        }
+      }
+      return matchCategory && matchProject && matchStatus && matchDate;
+    })
+  }, [data, projectFilter, categoryFilter, statusFilter, globalFilter, dateFilter, customDateRange]);
 
   function getTypeBadge(
     type:

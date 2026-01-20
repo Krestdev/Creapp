@@ -48,11 +48,19 @@ export default function CreateDriverForm() {
       >,
     ) => driverQ.create(data),
     onSuccess: (data: ResponseT<Driver>) => {
-      toast.success("Fournisseur créé avec succès.");
+      toast.success("Chauffeur créé avec succès.");
+      form.reset(
+        {
+          firstName: "",
+          lastName: "",
+          idCard: "",
+          licence: "",
+        }
+      );
     },
     onError: (error: any) => {
       toast.error(
-        "Une erreur est survenue lors de la creation du fournisseur.",
+        "Une erreur est survenue lors de la creation du chauffeur.",
       );
       console.error("Register error:", error);
     },
@@ -73,7 +81,7 @@ export default function CreateDriverForm() {
       registerAPI.mutate(updateData);
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      toast.error("Une erreur est survenue lors de la creation du chauffeur.");
     }
   }
 
@@ -97,7 +105,7 @@ export default function CreateDriverForm() {
           name="firstName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nom</FormLabel>
+              <FormLabel>{"Nom"}</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Nom "
@@ -115,7 +123,7 @@ export default function CreateDriverForm() {
           name="lastName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Prénom</FormLabel>
+              <FormLabel>{"Prénom"}</FormLabel>
               <FormControl>
                 <Input
                   placeholder="prenom"

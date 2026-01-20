@@ -664,7 +664,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             <SelectValue placeholder="Filtrer par rôle" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les Rôles</SelectItem>
+            <SelectItem value="all">{"Tous les Rôles"}</SelectItem>
             {uniqueRoles.map((role) => (
               <SelectItem key={role} value={role.toLowerCase()}>
                 {TranslateRole(role.charAt(0).toUpperCase() + role.slice(1))}
@@ -684,9 +684,9 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             <SelectValue placeholder="Statut compte" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les statuts</SelectItem>
-            <SelectItem value="active">Actif</SelectItem>
-            <SelectItem value="inactive">Suspendu</SelectItem>
+            <SelectItem value="all">{"Tous les statuts"}</SelectItem>
+            <SelectItem value="active">{"Actif"}</SelectItem>
+            <SelectItem value="inactive">{"Suspendu"}</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -704,15 +704,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             <SelectValue placeholder="Vérification email" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les états</SelectItem>
-            <SelectItem value="true">Vérifié</SelectItem>
-            <SelectItem value="false">Non vérifié</SelectItem>
+            <SelectItem value="all">{"Tous les états"}</SelectItem>
+            <SelectItem value="true">{"Vérifié"}</SelectItem>
+            <SelectItem value="false">{"Non vérifié"}</SelectItem>
           </SelectContent>
         </Select>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-transparent">
-              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
+              {"Colonnes"} <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -750,11 +750,11 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
       {table.getFilteredSelectedRowModel().rows.length > 0 && (
         <div className="flex items-center justify-between gap-2 py-2">
           <span className="text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} utilisateur(s)
-            sélectionné(s)
+            {`${table.getFilteredSelectedRowModel().rows.length} utilisateur(s)
+            sélectionné(s)`}
           </span>
           <Button variant="outline" size="sm">
-            Actions groupées
+            {"Actions groupées"}
           </Button>
         </div>
       )}

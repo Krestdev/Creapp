@@ -153,7 +153,7 @@ function ViewBank({ open, openChange, bank }: Props) {
                 <Link
                   href={`${
                     process.env.NEXT_PUBLIC_API
-                  }/${encodeURIComponent(bank.justification)}`}
+                  }/${bank.justification}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >

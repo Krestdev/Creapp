@@ -11,18 +11,17 @@ interface Props {
 
 const TitleValueCard = ({ title, value, className, valColor }: Props) => {
   return (
-    <div className={`${className} w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px]`}>
+    <div className={`${className} w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px] box-border min-h-0`}>
       <p className='text-sm font-medium'>{title}</p>
-      <p className={`${valColor} text-[32px]`}>{value}</p>
+      <p className={`${valColor} text-[32px] leading-[1.2]`}>{value}</p> {/* Ajouter leading */}
     </div>
   )
 }
 
 export default TitleValueCard
 
-
 const statisticVariants = cva(
-  "w-full h-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px]",
+  "w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px] box-border min-h-0", // Retirer h-full, ajouter box-border et min-h-0
   {
     variants: {
       variant: {
@@ -61,6 +60,7 @@ function getMoreClassName(variant: StatisticProps["variant"]): HTMLHRElement["cl
     default: return "text-gray-200";
   }
 }
+
 function getBorderClassName(variant: StatisticProps["variant"]): HTMLHRElement["className"] {
   switch (variant) {
     case "dark":
@@ -77,14 +77,50 @@ function getBorderClassName(variant: StatisticProps["variant"]): HTMLHRElement["
   }
 }
 
-export const StatisticCard = ({ title, value, more, className = "", variant, valueClassName="" }: StatisticProps) => {
+export const StatisticCard = ({ 
+  title, 
+  value, 
+  more, 
+  className = "", 
+  variant, 
+  valueClassName = "" 
+}: StatisticProps) => {
   return (
-    <div className={cn(statisticVariants({ variant: variant }), className)}>
-      <h4 className={cn("text-sm font-medium", variant === "default" ? "text-gray-600" : "text-gray-200")}>{title}</h4>
-      <span className={cn("font-mono font-medium text-[32px] leading-[120%] tracking-tight", valueClassName)}>{value}</span>
-      {!!more && <hr className={getBorderClassName(variant)} />}
-      {!!more &&
-        <span className={cn("font-mono text-xs", getMoreClassName(variant))}>{`${more.title} : `}<span className={cn("font-medium", variant === "default" ? "text-foreground" : "text-white")}>{more.value}</span></span>}
+    <div className={cn(
+      statisticVariants({ variant: variant }), 
+      className,
+      "overflow-hidden" // Ajouter overflow-hidden
+    )}>
+      <h4 className={cn(
+        "text-sm font-medium line-clamp-1", // Ajouter line-clamp-1
+        variant === "default" ? "text-gray-600" : "text-gray-200"
+      )}>
+        {title}
+      </h4>
+      
+      <span className={cn(
+        "font-mono font-medium text-[32px] leading-[1.2] tracking-tight", // Changer leading
+        valueClassName
+      )}>
+        {value}
+      </span>
+      
+      {!!more && (
+        <>
+          <hr className={getBorderClassName(variant)} />
+          <div className="flex items-center text-xs"> {/* Conteneur flex */}
+            <span className={cn("font-mono", getMoreClassName(variant))}>
+              {more.title}:
+            </span>
+            <span className={cn(
+              "font-medium ml-1",
+              variant === "default" ? "text-foreground" : "text-white"
+            )}>
+              {more.value}
+            </span>
+          </div>
+        </>
+      )}
     </div>
   )
 }
