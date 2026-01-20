@@ -58,7 +58,7 @@ const Page = () => {
         ?.validators.find((v) => v.userId === user?.id);
       return !!isValidator && r.type !== "ressource_humaine" && r.type !== "speciaux" && r.state !== "cancel";
     });
-  }, [requestData.data]);
+  }, [requestData.data, categoriesData.data]);
 
   // Calcul des statistiques à partir des données filtrées
   const pending = React.useMemo(() => {
@@ -67,7 +67,7 @@ const Page = () => {
       const canValidate = !!item.revieweeList ? validator?.rank === item.revieweeList.length + 1 : validator?.rank === 1;
       return item.state === "pending" && canValidate;
     }).length;
-  }, [data, categoriesData.data, user]);
+  }, [data, categoriesData.data, user?.id]);
 
   const approved = React.useMemo(() => {
     return data.filter((item) =>{ 
@@ -75,7 +75,7 @@ const Page = () => {
       const isValidated = item.state !== "rejected" && !!validator && !!item.revieweeList && item.revieweeList.length > 0 && item.revieweeList.some(u => u.validatorId === validator.id);
       return isValidated;
     }).length;
-  }, [data, categoriesData.data, user]);
+  }, [data, categoriesData.data, user?.id]);
 
   const received = React.useMemo(() => {
     return data.filter(r=>{
@@ -84,7 +84,7 @@ const Page = () => {
       const result = r.state === "pending" ? canValidate : true;
       return result;
     }).length;
-  }, [data, categoriesData.data, user]);
+  }, [data, categoriesData.data, user?.id]);
 
   const rejected = React.useMemo(() => {
     return data.filter((item) =>{ 
@@ -92,7 +92,7 @@ const Page = () => {
       const isRejected = item.state === "rejected" && !!validator && !!item.revieweeList && item.revieweeList.length > 0 && item.revieweeList.some(u => u.validatorId === validator.id);
       return isRejected;
     }).length;
-  }, [data, categoriesData.data, user]);
+  }, [data, categoriesData.data, user?.id]);
 
   const Statistics: Array<StatisticProps> = [
     {
