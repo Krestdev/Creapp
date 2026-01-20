@@ -320,13 +320,13 @@ function AppSidebar() {
         {
           pageId: "PG-02-01",
           title: "Créer un besoin",
-          href: "/tableau-de-bord/besoins/create",
+          href: "/tableau-de-bord/besoins/creer",
           authorized: ["ADMIN", "MANAGER", "USER"],
         },
         {
           pageId: "PG-02-02",
           title: "Mes besoins",
-          href: "/tableau-de-bord/besoins/mylist",
+          href: "/tableau-de-bord/besoins/mes-besoins",
           authorized: ["ADMIN", "MANAGER", "USER"],
           badgeValue: besoinDéstocké > 0 ? besoinDéstocké : undefined,
         },

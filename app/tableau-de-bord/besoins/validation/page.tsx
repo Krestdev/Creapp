@@ -56,26 +56,43 @@ const Page = () => {
       const isValidator = categoriesData.data.data
         .find((c) => c.id === r.categoryId)
         ?.validators.find((v) => v.userId === user?.id);
-      return isValidator;
+      return !!isValidator && r.type !== "ressource_humaine" && r.type !== "speciaux";
     });
   }, [requestData.data]);
 
   // Calcul des statistiques à partir des données filtrées
   const pending = React.useMemo(() => {
-    return data.filter((item) => item.state === "pending").length;
-  }, [data]);
+    return data.filter((item) =>{
+      const validator = categoriesData.data?.data.find(c=> c.id === item.categoryId)?.validators.find(v=> v.userId === user?.id);
+      const canValidate = !!item.revieweeList ? validator?.rank === item.revieweeList.length + 1 : validator?.rank === 1;
+      return item.state === "pending" && canValidate;
+    }).length;
+  }, [data, categoriesData.data, user]);
 
   const approved = React.useMemo(() => {
-    return data.filter((item) => item.state === "validated").length;
-  }, [data]);
+    return data.filter((item) =>{ 
+      const validator = categoriesData.data?.data.find(c=> c.id === item.categoryId)?.validators.find(v=> v.userId === user?.id);
+      const isValidated = item.state !== "rejected" && !!validator && !!item.revieweeList && item.revieweeList.length > 0 && item.revieweeList.some(u => u.validatorId === validator.id);
+      return isValidated;
+    }).length;
+  }, [data, categoriesData.data, user]);
 
   const received = React.useMemo(() => {
-    return data.length;
-  }, [data]);
+    return data.filter(r=>{
+      const validator = categoriesData.data?.data.find(c=> c.id === r.categoryId)?.validators.find(v=> v.userId === user?.id);
+      const canValidate = !!r.revieweeList ? validator?.rank === r.revieweeList.length + 1 : validator?.rank === 1;
+      const result = r.state === "pending" ? canValidate : true;
+      return result;
+    }).length;
+  }, [data, categoriesData.data, user]);
 
   const rejected = React.useMemo(() => {
-    return data.filter((item) => item.state === "rejected").length;
-  }, [data]);
+    return data.filter((item) =>{ 
+      const validator = categoriesData.data?.data.find(c=> c.id === item.categoryId)?.validators.find(v=> v.userId === user?.id);
+      const isRejected = item.state === "rejected" && !!validator && !!item.revieweeList && item.revieweeList.length > 0 && item.revieweeList.some(u => u.validatorId === validator.id);
+      return isRejected;
+    }).length;
+  }, [data, categoriesData.data, user]);
 
   const Statistics: Array<StatisticProps> = [
     {
@@ -154,7 +171,7 @@ const Page = () => {
           ))}
         </div>
         <DataVal
-          data={requestData.data.data}
+          data={data}
           empty="Aucun besoin en attente"
           isCheckable={true}
           categoriesData={categoriesData.data.data}
