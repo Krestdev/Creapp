@@ -295,7 +295,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
         );
       },
       cell: ({ row }) => (
-        <div className="uppercase">{row.getValue("title")}</div>
+        <div className="uppercase truncate max-w-60">{row.getValue("title")}</div>
       ),
     },
     {
