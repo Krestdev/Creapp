@@ -304,6 +304,7 @@ export default function UpdateSignatair({
                   Signataires <span className="text-destructive">*</span>
                 </FormLabel>
                 <MultiSelectUsers
+                  showMail
                   display="user"
                   users={userData?.data?.data || []}
                   selected={selectedUser}

@@ -54,7 +54,6 @@ export default function UpdateUser({
   userData,
   onSuccess,
 }: UpdateRequestProps) {
-  const queryClient = useQueryClient();
 
   const [selectedRole, setSelectedRole] = useState<
     { id: number; label: string }[]

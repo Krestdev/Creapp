@@ -36,7 +36,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{`Fournisseur - ${data?.name}`}</DialogTitle>
+          <DialogTitle className="uppercase">{`Fournisseur - ${data?.name}`}</DialogTitle>
           <DialogDescription>
             {"Informations relatives au fournisseur"}
           </DialogDescription>
@@ -106,8 +106,8 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               <p className="font-semibold">
                 {!!data.updatedAt
                   ? format(new Date(data.updatedAt), "dd MMMM yyyy, p", {
-                      locale: fr,
-                    })
+                    locale: fr,
+                  })
                   : "--"}
               </p>
             </div>
@@ -121,9 +121,8 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               <p className="view-group-title">{"Carte Contribuable"}</p>
               {!!data.carte_contribuable ? (
                 <Link
-                  href={`${
-                    process.env.NEXT_PUBLIC_API
-                  }/${data.carte_contribuable as string}`}
+                  href={`${process.env.NEXT_PUBLIC_API
+                    }/${data.carte_contribuable as string}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >
@@ -152,9 +151,8 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               </p>
               {!!data.acf ? (
                 <Link
-                  href={`${
-                    process.env.NEXT_PUBLIC_API
-                  }/${data.acf as string}`}
+                  href={`${process.env.NEXT_PUBLIC_API
+                    }/${data.acf as string}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >
@@ -179,9 +177,8 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               <p className="view-group-title">{"Plan de localisation"}</p>
               {!!data.plan_localisation ? (
                 <Link
-                  href={`${
-                    process.env.NEXT_PUBLIC_API
-                  }/${data.plan_localisation as string}`}
+                  href={`${process.env.NEXT_PUBLIC_API
+                    }/${data.plan_localisation as string}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >
@@ -206,9 +203,8 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               <p className="view-group-title">{"Régistre du Commerce"}</p>
               {!!data.RCCM ? (
                 <Link
-                  href={`${
-                    process.env.NEXT_PUBLIC_API
-                  }/${data.RCCM as string}`}
+                  href={`${process.env.NEXT_PUBLIC_API
+                    }/${data.RCCM as string}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >
@@ -233,9 +229,8 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               <p className="view-group-title">{"Régistre du Commerce"}</p>
               {!!data.banck_attestation ? (
                 <Link
-                  href={`${
-                    process.env.NEXT_PUBLIC_API
-                  }/${data.banck_attestation as string}`}
+                  href={`${process.env.NEXT_PUBLIC_API
+                    }/${data.banck_attestation as string}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >

@@ -68,7 +68,7 @@ export default function CreateSignatairForm() {
     mutationFn: (data: Omit<Signatair, "id" | "createdAt" | "updatedAt">) =>
       signatairQ.create(data),
     onSuccess: () => {
-      toast.success("Signatair créé avec succès.");
+      toast.success("Signataire créé avec succès.");
       form.reset({
         bank: "",
         type: "",
@@ -83,7 +83,7 @@ export default function CreateSignatairForm() {
     },
     onError: () => {
       toast.error(
-        "Une erreur est survenue lors de la creation des Signatairs.",
+        "Une erreur est survenue lors de la creation des Signataires.",
       );
     },
   });
@@ -103,8 +103,7 @@ export default function CreateSignatairForm() {
       };
       signatairMutation.mutate(data);
     } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      toast.error("Une erreur est survenue lors de la creation du Signataire.");
     }
   }
 
