@@ -44,7 +44,7 @@ function Roles({ data }: Props) {
       case "SALES":
         return {
           description:
-            "Il a accès aux commandes, c'est-à-dire : demandes de cotation, devis, bon de commande, réceptions.",
+            "Il a accès aux commandes, c'est-à-dire : demandes de cotation, devis, bon de commande, réceptions et paiements.",
           className: "border-sky-200 bg-sky-50 text-sky-600",
         };
       case "SALES_MANAGER":
@@ -67,7 +67,7 @@ function Roles({ data }: Props) {
         };
       case "VOLT_MANAGER":
         return {
-          description: "Approbation des paiements via les Tickets.",
+          description: "Approbation des paiements via les Tickets et besoins spéciaux.",
           className: "border-red-200 bg-red-50 text-red-600",
         };
       case "RH":
@@ -77,7 +77,7 @@ function Roles({ data }: Props) {
         };
       case "ACCOUNTANT":
         return {
-          description: "Accès aux banques(Transactions, comptes).",
+          description: "Accès aux banques(Transactions, comptes) et factures.",
           className: "border-blue-200 bg-blue-50 text-blue-600",
         };
       default:
