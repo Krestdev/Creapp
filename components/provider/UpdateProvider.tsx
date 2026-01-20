@@ -205,7 +205,7 @@ export default function UpdateProvider({
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"secondary"}>
           <DialogTitle>
-            {`Modifier ${providerData.name}`}
+            {`Fournisseur - ${providerData.name}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Modifiez les informations du fournisseur existant"}
@@ -296,7 +296,7 @@ export default function UpdateProvider({
               control={form.control}
               name="RCCM"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel>{"Régistre du Commerce(RCCM)"}</FormLabel>
                   <FormControl>
                     <Input
@@ -332,7 +332,7 @@ export default function UpdateProvider({
               control={form.control}
               name="regem"
               render={({ field }) => (
-                <FormItem className="@min-[640px]:col-span-2">
+                <FormItem>
                   <FormLabel>
                     {"Régime"}
                   </FormLabel>
@@ -360,7 +360,7 @@ export default function UpdateProvider({
               control={form.control}
               name="carte_contribuable"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel>{"Carte de contribuable"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -382,7 +382,7 @@ export default function UpdateProvider({
               control={form.control}
               name="acf"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel>{"Attestation de Conformité Fiscale"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -404,7 +404,7 @@ export default function UpdateProvider({
               control={form.control}
               name="plan_localisation"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel>{"Plan de localisation"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -426,7 +426,7 @@ export default function UpdateProvider({
               control={form.control}
               name="commerce_registre"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel>{"Registre de commerce"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -448,7 +448,7 @@ export default function UpdateProvider({
               control={form.control}
               name="banck_attestation"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel>{"Attestation bancaire"}</FormLabel>
                   <FormControl>
                     <FilesUpload
