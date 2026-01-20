@@ -20,7 +20,7 @@ const ProjectListPage = () => {
   if (projectData.isLoading || usersData.isLoading) return <LoadingPage />;
   if (projectData.isError || usersData.isError) return <ErrorPage />;
 
-  if (projectData.data && usersData.data)
+  if (projectData.isSuccess && usersData.isSuccess)
     return (
       <div className="content">
         <ProjectTable

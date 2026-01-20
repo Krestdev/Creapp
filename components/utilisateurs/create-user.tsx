@@ -267,8 +267,9 @@ export default function CreateUserForm() {
           variant={"primary"}
           type="submit"
           className="ml-auto @min-[640px]:col-span-2"
+          disabled={registerAPI.isPending}
         >
-          {"Enregistrer"}
+          {registerAPI.isPending ? "Enregistrement..." : "Enregistrer"}
         </Button>
       </form>
     </Form>

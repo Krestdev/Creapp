@@ -88,11 +88,11 @@ export function DriverTable({ data }: DriversTableProps) {
   const driverMutation = useMutation({
     mutationFn: (id: number) => driverQ.delete(id),
     onSuccess: () => {
-      toast.success("Fournisseur supprimé avec succès !");
+      toast.success("Chauffeur supprimé avec succès !");
     },
   });
 
-  // Fonction pour vérifier les informations du fournisseur
+  // Fonction pour vérifier les informations du chauffeur
   const checkDriverInfo = (driver: Driver): "complet" | "incomplet" => {
     const allFields = [
       driver.firstName,
@@ -403,9 +403,9 @@ export function DriverTable({ data }: DriversTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}
@@ -459,9 +459,9 @@ export function DriverTable({ data }: DriversTableProps) {
       />
       <ModalWarning
         variant="error"
-        title="Supprimer"
+        title="Chauffeur - "
         name={selectedItem?.firstName}
-        description="êtes-vous sur de vouloir supprimer ce fournisseur ?"
+        description="êtes-vous sur de vouloir supprimer ce chauffeur ?"
         open={openWarning}
         onOpenChange={SetOpenWarning}
         onAction={() => driverMutation.mutate(selectedItem?.id!)}

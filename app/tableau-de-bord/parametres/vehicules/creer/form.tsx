@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import * as z from "zod";
 
 export interface ActionResponse<T = any> {
@@ -53,6 +54,7 @@ export function VehicleForm() {
     mutationFn: (data: Omit<Vehicle, "id" | "createdAt" | "updatedAt">) =>
       vehicleQ.create(data),
     onSuccess: () => {
+      toast.success("Véhicule ajouté avec succès");
       form.reset({
         label: "",
         mark: "",

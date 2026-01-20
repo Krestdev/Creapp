@@ -223,13 +223,7 @@ export function UpdateCategory({
     // Vérifier si c'est un ascendant existant (avec ID)
     const validator = fields[index];
     if (validator.id) {
-      // C'est un ascendant existant, demander confirmation
-      const userName = getUserName(validator.userId);
-      if (
-        confirm(`Êtes-vous sûr de vouloir supprimer l'ascendant ${userName} ?`)
-      ) {
-        remove(index);
-      }
+      remove(index);
     } else {
       // C'est un nouvel ascendant, suppression directe
       remove(index);
@@ -423,11 +417,10 @@ export function UpdateCategory({
                             size="icon"
                             onClick={() => removeValidator(index)}
                             disabled={fields.length <= 1 || isLoading} // MODIFICATION: désactivé si seul ascendant
-                            className={`text-red-500 hover:text-red-700 ${
-                              fields.length <= 1
+                            className={`text-red-500 hover:text-red-700 ${fields.length <= 1
                                 ? "opacity-50 cursor-not-allowed"
                                 : ""
-                            }`}
+                              }`}
                             title={
                               fields.length <= 1
                                 ? "Au moins un ascendant est requis"
