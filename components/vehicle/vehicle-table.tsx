@@ -117,8 +117,8 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Marque
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Marque"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -133,8 +133,8 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
             className="tablehead cursor-pointer select-none flex items-center"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Modèle
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            {"Modèle"}
+            <ArrowUpDown />
           </span>
         ),
 
@@ -160,8 +160,8 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Matricule
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Matricule"}
+              <ArrowUpDown/>
             </span>
           );
         },
@@ -191,8 +191,8 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Date d'ajout
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Date d'ajout"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -228,7 +228,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
@@ -236,8 +236,8 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                     setIsShowModalOpen(true);
                   }}
                 >
-                  <LucideEye className="mr-2 h-4 w-4" />
-                  Voir
+                  <LucideEye/>
+                  {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
@@ -245,18 +245,18 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                     setIsUpdateModalOpen(true);
                   }}
                 >
-                  <LucidePen className="mr-2 h-4 w-4" />
-                  Modifier
+                  <LucidePen/>
+                  {"Modifier"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-red-600"
+                  className="text-destructive"
                   onClick={() => {
                     setSelectedItem(vehicle);
                     setIsDeleteModalOpen(true);
                   }}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Supprimer
+                  <Trash2 />
+                  {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -442,7 +442,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Aucun vehicle trouvé.
+                  {"Aucun vehicle trouvé."}
                 </TableCell>
               </TableRow>
             )}
