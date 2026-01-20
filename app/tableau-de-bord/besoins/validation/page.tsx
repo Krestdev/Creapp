@@ -17,7 +17,7 @@ import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
+import React, { useMemo } from "react";
 
 const Page = () => {
   const { user } = useStore();
@@ -50,46 +50,73 @@ const Page = () => {
     queryFn: requestTypeQ.getAll,
   });
 
-  const data: Array<RequestModelT> = React.useMemo(() => {
+  const data: Array<RequestModelT> = useMemo(() => {
     if (!requestData.data || !categoriesData.data) return [];
     return requestData.data.data.filter((r) => {
       const isValidator = categoriesData.data.data
         .find((c) => c.id === r.categoryId)
         ?.validators.find((v) => v.userId === user?.id);
-      return !!isValidator && r.type !== "ressource_humaine" && r.type !== "speciaux" && r.state !== "cancel";
+      return (
+        !!isValidator &&
+        r.type !== "ressource_humaine" &&
+        r.type !== "speciaux" &&
+        r.state !== "cancel"
+      );
     });
-  }, [requestData.data, categoriesData.data]);
+  }, [requestData.data, categoriesData.data, user, categoriesData.data]);
 
   // Calcul des statistiques à partir des données filtrées
-  const pending = React.useMemo(() => {
-    return data.filter((item) =>{
-      const validator = categoriesData.data?.data.find(c=> c.id === item.categoryId)?.validators.find(v=> v.userId === user?.id);
-      const canValidate = !!item.revieweeList ? validator?.rank === item.revieweeList.length + 1 : validator?.rank === 1;
+  const pending = useMemo(() => {
+    return data.filter((item) => {
+      const validator = categoriesData.data?.data
+        .find((c) => c.id === item.categoryId)
+        ?.validators.find((v) => v.userId === user?.id);
+      const canValidate = !!item.revieweeList
+        ? validator?.rank === item.revieweeList.length + 1
+        : validator?.rank === 1;
       return item.state === "pending" && canValidate;
     }).length;
   }, [data, categoriesData.data, user?.id]);
 
-  const approved = React.useMemo(() => {
-    return data.filter((item) =>{ 
-      const validator = categoriesData.data?.data.find(c=> c.id === item.categoryId)?.validators.find(v=> v.userId === user?.id);
-      const isValidated = item.state !== "rejected" && !!validator && !!item.revieweeList && item.revieweeList.length > 0 && item.revieweeList.some(u => u.validatorId === validator.id);
+  const approved = useMemo(() => {
+    return data.filter((item) => {
+      const validator = categoriesData.data?.data
+        .find((c) => c.id === item.categoryId)
+        ?.validators.find((v) => v.userId === user?.id);
+      const isValidated =
+        item.state !== "rejected" &&
+        !!validator &&
+        !!item.revieweeList &&
+        item.revieweeList.length > 0 &&
+        item.revieweeList.some((u) => u.validatorId === validator.id);
       return isValidated;
     }).length;
   }, [data, categoriesData.data, user?.id]);
 
-  const received = React.useMemo(() => {
-    return data.filter(r=>{
-      const validator = categoriesData.data?.data.find(c=> c.id === r.categoryId)?.validators.find(v=> v.userId === user?.id);
-      const canValidate = !!r.revieweeList ? validator?.rank === r.revieweeList.length + 1 : validator?.rank === 1;
+  const received = useMemo(() => {
+    return data.filter((r) => {
+      const validator = categoriesData.data?.data
+        .find((c) => c.id === r.categoryId)
+        ?.validators.find((v) => v.userId === user?.id);
+      const canValidate = !!r.revieweeList
+        ? validator?.rank === r.revieweeList.length + 1
+        : validator?.rank === 1;
       const result = r.state === "pending" ? canValidate : true;
       return result;
     }).length;
   }, [data, categoriesData.data, user?.id]);
 
-  const rejected = React.useMemo(() => {
-    return data.filter((item) =>{ 
-      const validator = categoriesData.data?.data.find(c=> c.id === item.categoryId)?.validators.find(v=> v.userId === user?.id);
-      const isRejected = item.state === "rejected" && !!validator && !!item.revieweeList && item.revieweeList.length > 0 && item.revieweeList.some(u => u.validatorId === validator.id);
+  const rejected = useMemo(() => {
+    return data.filter((item) => {
+      const validator = categoriesData.data?.data
+        .find((c) => c.id === item.categoryId)
+        ?.validators.find((v) => v.userId === user?.id);
+      const isRejected =
+        item.state === "rejected" &&
+        !!validator &&
+        !!item.revieweeList &&
+        item.revieweeList.length > 0 &&
+        item.revieweeList.some((u) => u.validatorId === validator.id);
       return isRejected;
     }).length;
   }, [data, categoriesData.data, user?.id]);

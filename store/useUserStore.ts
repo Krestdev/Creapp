@@ -7,6 +7,7 @@ interface store {
   isHydrated: boolean;
   login: (data: User) => void;
   logout: () => void;
+  updateUser: (data: User) => void;
 }
 
 const useStore = create<store>()(
@@ -16,6 +17,7 @@ const useStore = create<store>()(
       isHydrated: false,
       login: (data: User) => set({ user: data }),
       logout: () => set({ user: undefined }),
+      updateUser: (data: User) => set({ user: data }),
     }),
     {
       name: "creapp",
@@ -25,8 +27,8 @@ const useStore = create<store>()(
           state.isHydrated = true;
         }
       },
-    }
-  )
+    },
+  ),
 );
 
 export default useStore;

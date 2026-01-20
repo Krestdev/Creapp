@@ -8,8 +8,9 @@ interface Store {
   isHydrated: boolean;
   token?: string;
   setIsHydrated: (v: boolean) => void;
-  login: ({user, token}: {user:storedUser, token:string}) => void;
+  login: ({ user, token }: { user: storedUser; token: string }) => void;
   logout: () => void;
+  update: ({ user }: { user: storedUser }) => void;
 }
 
 export const useStore = create<Store>()(
@@ -19,8 +20,9 @@ export const useStore = create<Store>()(
       isHydrated: false,
       token: undefined,
       setIsHydrated: (v: boolean) => set({ isHydrated: v }),
-      login: ({user, token}) => set({ user: user, token:token }),
+      login: ({ user, token }) => set({ user: user, token: token }),
       logout: () => set({ user: undefined }),
+      update: ({ user }) => set({ user: user }),
     }),
     {
       name: "creapp-store",
@@ -32,6 +34,6 @@ export const useStore = create<Store>()(
       onRehydrateStorage: () => (state) => {
         state?.setIsHydrated(true);
       },
-    }
-  )
+    },
+  ),
 );
