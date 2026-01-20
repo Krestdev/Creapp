@@ -251,7 +251,7 @@ export function BesoinsTraiter({
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("label")}</div>,
+      cell: ({ row }) => <div className="max-w-[300px] truncate">{row.getValue("label")}</div>,
     },
     {
       accessorKey: "categoryId",
