@@ -17,7 +17,7 @@ const Page = () => {
 
   // Récupérer les besoins de l'utilisateur
   const { data, isSuccess, isLoading, isError, error } = useQuery({
-    queryKey: ["requests", user?.id],
+    queryKey: ["requests-user", user?.id],
     queryFn: () => {
       if (!user?.id) {
         throw new Error("ID utilisateur non disponible");
@@ -37,7 +37,7 @@ const Page = () => {
     // Calcul des statistiques
     const cancel =
       data.data.filter((item) => item.state === "cancel").length ?? 0;
-    const sent = data.data.length - cancel || 0;
+    const sent = data.data.length /* - cancel */ || 0;
     const awaiting =
       data.data.filter((item) => item.state === "pending").length ?? 0;
     const rejected =

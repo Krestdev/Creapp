@@ -56,7 +56,7 @@ const Page = () => {
       const isValidator = categoriesData.data.data
         .find((c) => c.id === r.categoryId)
         ?.validators.find((v) => v.userId === user?.id);
-      return !!isValidator && r.type !== "ressource_humaine" && r.type !== "speciaux";
+      return !!isValidator && r.type !== "ressource_humaine" && r.type !== "speciaux" && r.state !== "cancel";
     });
   }, [requestData.data]);
 

@@ -1031,8 +1031,8 @@ export function DataVal({
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Statuts
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Statuts"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -1042,7 +1042,7 @@ export function DataVal({
 
           return (
             <Badge variant={state.variant} className="text-xs">
-              {Icon && <Icon className="h-3 w-3 mr-1" />}
+              {Icon && <Icon />}
               {state.label}
             </Badge>
           );
@@ -1081,7 +1081,7 @@ export function DataVal({
                     setIsModalOpen(true);
                   }}
                 >
-                  <Eye className="mr-2 h-4 w-4" />
+                  <Eye />
                   {"Voir les détails"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -1098,7 +1098,7 @@ export function DataVal({
                     item.state !== "pending"
                   }
                 >
-                  <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
+                  <CheckCheck className="text-green-500" />
                   {"Approuver"}
                   {validationInfo.isLastValidator}
                 </DropdownMenuItem>
@@ -1115,13 +1115,13 @@ export function DataVal({
                       : ""
                   }
                 >
-                  <LucideBan className="text-red-500 mr-2 h-4 w-4" />
+                  <LucideBan className="text-destructive" />
                   {"Rejeter"}
                   {validationInfo.isLastValidator}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {isAttach ? <Paperclip /> : ""}
+            {isAttach ? <Paperclip size={16} /> : ""}
           </div>
         );
       },
