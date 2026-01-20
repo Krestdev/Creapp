@@ -305,44 +305,55 @@ export function DataTable({ data }: Props) {
 
   // Fonction pour filtrer les données avec TOUS les filtres
   const filteredData = React.useMemo(() => {
-    let filtered = [...data];
+    return data.filter(item=>{
+      const now = new Date();
+      let startDate = new Date();
+      let endDate = now;
+      //Status Filter
+      const matchStatus = statusFilter === "all" ? true : item.state === statusFilter;
+      //Category Filter
+      const matchCategory = categoryFilter === "all" ? true : item.categoryId === Number(categoryFilter);
+      //Project Filter
+      const matchProject = projectFilter === "all" ? true : item.projectId === Number(projectFilter);
+      // Date Filter
+      let matchDate = true;
+      if (dateFilter) {
+        switch (dateFilter) {
+          case "today":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "week":
+            startDate.setDate(
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+            );
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "month":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          case "custom":
+            if (customDateRange?.from && customDateRange?.to) {
+              startDate = customDateRange.from;
+              endDate = customDateRange.to;
+            }
+            break;
+        }
 
-    // Filtrer par statut local
-    if (statusFilter && statusFilter !== "all") {
-      filtered = filtered.filter((item) => item.state === statusFilter);
-    }
-
-    // Filtrer par catégorie locale
-    if (categoryFilter && categoryFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => String(item.categoryId) === String(categoryFilter),
-      );
-    }
-
-    // Filtrer par recherche globale locale
-    if (globalFilter) {
-      const searchValue = globalFilter.toLowerCase();
-      filtered = filtered.filter((item) => {
-        const searchText = [
-          item.label || "",
-          item.ref || "",
-          getProjectName(String(item.projectId)) || "",
-        ]
-          .join(" ")
-          .toLowerCase();
-        return searchText.includes(searchValue);
-      });
-    }
-
-    // Filtre par projet local
-    if (projectFilter && projectFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => String(item.projectId) === String(projectFilter),
-      );
-    }
-
-    return filtered;
-  }, [data, projectFilter, categoryFilter, statusFilter, globalFilter]);
+        if (
+          dateFilter !== "custom" ||
+          (customDateRange?.from && customDateRange?.to)
+        ) {
+          matchDate =
+            new Date(item.createdAt) >= startDate &&
+            new Date(item.createdAt) <= endDate;
+        }
+      }
+      return matchCategory && matchProject && matchStatus && matchDate;
+    })
+  }, [data, projectFilter, categoryFilter, statusFilter, globalFilter, dateFilter, customDateRange]);
 
   function getTypeBadge(
     type:
