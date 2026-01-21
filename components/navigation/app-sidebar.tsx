@@ -274,7 +274,8 @@ function AppSidebar() {
       ticket.status !== "ghost" &&
       ticket.status !== "pending" &&
       ticket.status !== "rejected" &&
-      ticket.status !== "validated"
+      ticket.status !== "validated" &&
+      ticket.status !== "pending_depense"
   );
 
   const overall = approvedDepense?.concat(approvedDepense);
@@ -429,7 +430,7 @@ function AppSidebar() {
           title: "Tickets",
           href: "/tableau-de-bord/ticket",
           authorized: ["ADMIN", "VOLT_MANAGER"],
-          badgeValue: ticketsDataP?.length
+          badgeValue: ticketsDataP && ticketsDataP.length > 0 ? ticketsDataP?.length : undefined,
         },
         {
           pageId: "PG-04-02",

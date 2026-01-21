@@ -129,6 +129,10 @@ export default function FacilitationRequestForm() {
   });
 
   function onSubmit(values: z.input<typeof formSchema>) {
+    if (beneficiairesList.length === 0) {
+      toast.error("Veuillez ajouter au moins un bénéficiaire.");
+      return;
+    }
     // Préparation des données
     const requestData: Omit<
       RequestModelT,

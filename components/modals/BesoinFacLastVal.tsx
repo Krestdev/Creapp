@@ -516,6 +516,7 @@ export default function BesoinFacLastVal({
                   <BeneficiairesList
                     onBeneficiairesChange={setBeneficiairesList}
                     initialBeneficiaires={beneficiairesList}
+                    disabledName={true}
                   />
                 </div>
 

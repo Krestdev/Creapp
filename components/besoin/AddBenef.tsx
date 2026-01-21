@@ -15,11 +15,13 @@ type Beneficiaire = {
 interface BeneficiairesListProps {
   onBeneficiairesChange?: (beneficiaires: Beneficiaire[]) => void;
   initialBeneficiaires: Beneficiaire[];
+  disabledName?: boolean;
 }
 
 export default function BeneficiairesList({
   onBeneficiairesChange,
   initialBeneficiaires,
+  disabledName = false,
 }: BeneficiairesListProps) {
   const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>(
     initialBeneficiaires ?? []
@@ -208,6 +210,7 @@ export default function BeneficiairesList({
                     type="text"
                     id="nom"
                     value={nom}
+                    disabled={disabledName}
                     onChange={(e) => {
                       setNom(e.target.value);
                       if (errors.nom) setErrors({ ...errors, nom: undefined });
@@ -234,9 +237,8 @@ export default function BeneficiairesList({
                       placeholder="0"
                       min="0"
                       step="1"
-                      className={`pr-10 ${
-                        errors.montant ? "border-red-500" : ""
-                      }`}
+                      className={`pr-10 ${errors.montant ? "border-red-500" : ""
+                        }`}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                       FCFA

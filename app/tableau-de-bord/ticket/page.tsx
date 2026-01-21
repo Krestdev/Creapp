@@ -89,7 +89,7 @@ function Page() {
         )}
         {ticketsData.length > 0 ? (
           <Tickets
-            ticketsData={ticketsData.reverse()}
+            ticketsData={ticketsData}
             requestTypeData={getRequestType.data?.data}
           />
         ) : (
