@@ -277,7 +277,7 @@ export default function BesoinFacLastVal({
       unit: "unit",
       beneficiary: values.beneficiaire,
       benef: Array(user?.id),
-      userId: Number(user?.id),
+      userId: requestData.userId,
       dueDate: values.delai,
       projectId: Number(values.projet),
       proof: values.justificatif,
@@ -516,6 +516,7 @@ export default function BesoinFacLastVal({
                   <BeneficiairesList
                     onBeneficiairesChange={setBeneficiairesList}
                     initialBeneficiaires={beneficiairesList}
+                    disabledName={true}
                   />
                 </div>
 
@@ -557,7 +558,7 @@ export default function BesoinFacLastVal({
             <Button
               type="submit"
               disabled={updateMutation.isPending || !isFormInitialized}
-              className="bg-[#8B1538] hover:bg-[#7A1230]"
+              className="bg-green-500 hover:bg-green-600"
               onClick={() => form.handleSubmit(onSubmit)()}
             >
               Approuver la demande

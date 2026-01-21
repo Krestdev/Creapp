@@ -47,8 +47,8 @@ function Page() {
   const filteredData = useMemo(() => {
     if (!data?.data || !signatair.data?.data || !user) {
       return {
-        unsignedPayments: [], // unsigned seulement
-        signedPayments: [], // pending_depense + unsigned (pour l'onglet)
+        unsignedPayments: [],
+        signedPayments: [],
         statistics: [],
       };
     }
@@ -89,7 +89,7 @@ function Page() {
     );
 
     const signedPayments = authorizedPayments.filter(
-      (p) => p.status === "signed"
+      (p) => p.status === "signed" || p.status === "paid"
     );
 
     // Tous les paiements en attente (pour l'onglet)
@@ -153,8 +153,7 @@ function Page() {
       },
       {
         id: 1,
-        title: "Tickets signés",
-        badge: filteredData.signedPayments.length,
+        title: "Tickets signés"
       },
     ],
     [filteredData.unsignedPayments.length, filteredData.signedPayments.length]

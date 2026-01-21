@@ -78,7 +78,7 @@ function Page() {
       {
         title: "Tickets en attente",
         value: data.data.filter(
-          (p) => p.status === "pending_depense" && p.type === "CURRENT"
+          (p) => p.status === "pending_depense" || p.status === "validated",
         ).length,
         variant: "primary",
         more: {
@@ -86,7 +86,7 @@ function Page() {
           value: XAF.format(
             data.data
               .filter(
-                (p) => p.status === "pending_depense" && p.type === "CURRENT"
+                (p) => p.status === "pending_depense" || p.status === "validated"
               )
               .reduce((total, el) => total + el.price, 0)
           ),
@@ -95,14 +95,14 @@ function Page() {
       {
         title: "Tickets payés",
         value: data.data.filter(
-          (p) => p.status === "paid" && p.type === "CURRENT"
+          (p) => p.status === "paid"
         ).length,
         variant: "secondary",
         more: {
           title: "Montant total",
           value: XAF.format(
             data.data
-              .filter((p) => p.status === "paid" && p.type === "CURRENT")
+              .filter((p) => p.status === "paid")
               .reduce((total, el) => total + el.price, 0)
           ),
         },

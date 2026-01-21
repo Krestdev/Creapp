@@ -300,19 +300,20 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
 
               {/* Catégorie - MAJ */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <FolderTree className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {"Catégorie"}
-                  </p>
-                  <p className="font-semibold">
-                    {getCategoryName(String(data.categoryId))}
-                  </p>
-                </div>
-              </div>
+              {data.type === "achat" || data.type === "facilitation" &&
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <FolderTree className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {"Catégorie"}
+                    </p>
+                    <p className="font-semibold">
+                      {getCategoryName(String(data.categoryId))}
+                    </p>
+                  </div>
+                </div>}
 
               {/* Statut */}
               <div className="flex items-start gap-3">
@@ -350,15 +351,14 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     {"Priorité"}
                   </p>
                   <Badge
-                    className={`${
-                      data.priority === "urgent"
-                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                        : data.priority === "medium"
-                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                          : data.priority === "low"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    }`}
+                    className={`${data.priority === "urgent"
+                      ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                      : data.priority === "medium"
+                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                        : data.priority === "low"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      }`}
                   >
                     {data.priority === "urgent" ? (
                       <X className="h-3 w-3 mr-1" />
@@ -373,40 +373,40 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
 
               {/* Justificatif */}
-              <div className="view-group">
-                <span className="view-icon">
-                  <FileIcon />
-                </span>
-                <div className="flex flex-col">
-                  <p className="view-group-title">{"Justificatif"}</p>
-                  <div className="space-y-1">
-                    {!!paiement?.proof ? (
-                      <Link
-                        href={`${
-                          process.env.NEXT_PUBLIC_API
-                        }/${paiement?.proof as string}`}
-                        target="_blank"
-                        className="flex gap-0.5 items-center"
-                      >
-                        <img
-                          src="/images/pdf.png"
-                          alt="justificatif"
-                          className="h-7 w-auto aspect-square"
-                        />
-                        {/* <p className="text-foreground font-medium">
+              {data.type !== "speciaux" &&
+                <div className="view-group">
+                  <span className="view-icon">
+                    <FileIcon />
+                  </span>
+                  <div className="flex flex-col">
+                    <p className="view-group-title">{"Justificatif"}</p>
+                    <div className="space-y-1">
+                      {!!paiement?.proof ? (
+                        <Link
+                          href={`${process.env.NEXT_PUBLIC_API
+                            }/${paiement?.proof as string}`}
+                          target="_blank"
+                          className="flex gap-0.5 items-center"
+                        >
+                          <img
+                            src="/images/pdf.png"
+                            alt="justificatif"
+                            className="h-7 w-auto aspect-square"
+                          />
+                          {/* <p className="text-foreground font-medium">
                             {`Fichier_${index + 1}`}
                           </p> */}
-                      </Link>
-                    ) : (
-                      <p className="italic">{"Aucun justificatif"}</p>
-                    )}
+                        </Link>
+                      ) : (
+                        <p className="italic">{"Aucun justificatif"}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
+                </div>}
 
               {/* Historique de validation - NOUVELLE VERSION */}
               {data.type === "ressource_humaine" ||
-              data.type === "speciaux" ? null : (
+                data.type === "speciaux" ? null : (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     <UserCheck className="h-5 w-5 text-muted-foreground" />
@@ -553,11 +553,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${
-                                  beneficiary?.firstName +
-                                    " " +
-                                    beneficiary?.lastName || ben.id
-                                }`}</p>
+                                >{`${beneficiary?.firstName +
+                                  " " +
+                                  beneficiary?.lastName || ben.id
+                                  }`}</p>
                               );
                             })}
                           </div>
@@ -597,33 +596,34 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
               {(data.type === "facilitation" ||
                 data.type === "ressource_humaine") && (
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      <DollarSign className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {"Montant total"}
+                      </p>
+                      <p>{XAF.format(data.amount!)}</p>
+                    </div>
+                  </div>
+                )}
+
+              {/* Quantité */}
+              {data.type === "achat" &&
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
-                    <DollarSign className="h-5 w-5 text-muted-foreground" />
+                    <LucidePieChart className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground mb-1">
-                      {"Montant"}
+                      {"Quantité"}
                     </p>
-                    <p>{XAF.format(data.amount!)}</p>
+                    <p className="font-semibold">
+                      {data.quantity + " " + data.unit}
+                    </p>
                   </div>
-                </div>
-              )}
-
-              {/* Quantité */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <LucidePieChart className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {"Quantité"}
-                  </p>
-                  <p className="font-semibold">
-                    {data.quantity + " " + data.unit}
-                  </p>
-                </div>
-              </div>
+                </div>}
 
               {/* Initié par - MAJ */}
               <div className="flex items-start gap-3">

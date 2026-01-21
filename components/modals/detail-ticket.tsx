@@ -21,6 +21,7 @@ import {
   Calendar,
   CalendarClock,
   CreditCard,
+  FileText,
   FolderOpen,
   Hash,
   LucideFile,
@@ -31,6 +32,7 @@ import { useState } from "react";
 import { DownloadFile } from "../base/downLoadFile";
 import ShowFile from "../base/show-file";
 import { useQuery } from "@tanstack/react-query";
+import { payTypeQ } from "@/queries/payType";
 
 interface DetailTicketProps {
   open: boolean;
@@ -55,10 +57,8 @@ export function DetailTicket({
   const { user } = useStore();
 
   const usersData = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
-  const requestData = useQuery({
-    queryKey: ["requests"],
-    queryFn: requestQ.getAll,
-  });
+  const requestData = useQuery({ queryKey: ["requests"], queryFn: requestQ.getAll, });
+  const getPaymentType = useQuery({ queryKey: ["paymentType"], queryFn: payTypeQ.getAll, });
 
   const [page, setPage] = useState(1);
   const [file, setFile] = useState<string | File | undefined>(undefined);
@@ -66,6 +66,7 @@ export function DetailTicket({
   const request = requestData.data?.data.find(
     (req) => req.id === data?.requestId
   );
+
 
   // Fonction pour obtenir la couleur du badge selon la priorité
   const getPrioriteColor = (priorite: string | undefined) => {
@@ -202,6 +203,22 @@ export function DetailTicket({
                 </div>
               </div>
 
+              {/* Description */}
+              {data?.description !== "none" &&
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Description
+                    </p>
+                    <p className="font-semibold text-lg">
+                      {data?.description || "N/A"}
+                    </p>
+                  </div>
+                </div>}
+
               {/* Periode */}
               {data?.type === "ressource_humaine" && (
                 <>
@@ -230,7 +247,7 @@ export function DetailTicket({
                   </div>
 
                   {/* Bénéficiaires */}
-                  <div className="flex items-start gap-3">
+                  {<div className="flex items-start gap-3">
                     <div className="mt-1">
                       <Users className="h-5 w-5 text-muted-foreground" />
                     </div>
@@ -241,7 +258,11 @@ export function DetailTicket({
                       <div className="flex flex-col">
                         {request?.beneficiary === "me" ? (
                           <p className="font-semibold capitalize">
-                            {user?.lastName + " " + user?.firstName}
+                            {usersData.data?.data?.find(
+                              (x) => x.id === Number(request?.beneficiary)
+                            )?.lastName + " " + usersData.data?.data?.find(
+                              (x) => x.id === Number(request?.beneficiary)
+                            )?.firstName}
                           </p>
                         ) : (
                           <div className="flex flex-col">
@@ -253,18 +274,17 @@ export function DetailTicket({
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${
-                                  beneficiary?.firstName +
-                                    " " +
-                                    beneficiary?.lastName || ben.id
-                                }`}</p>
+                                >{`${beneficiary?.firstName +
+                                  " " +
+                                  beneficiary?.lastName || ben.id
+                                  }`}</p>
                               );
                             })}
                           </div>
                         )}
                       </div>
                     </div>
-                  </div>
+                  </div>}
                 </>
               )}
 
@@ -305,11 +325,10 @@ export function DetailTicket({
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${
-                                  beneficiary?.firstName +
-                                    " " +
-                                    beneficiary?.lastName || ben.id
-                                }`}</p>
+                                >{`${beneficiary?.firstName +
+                                  " " +
+                                  beneficiary?.lastName || ben.id
+                                  }`}</p>
                               );
                             })}
                           </div>
@@ -435,7 +454,7 @@ export function DetailTicket({
                     Moyen de paiement
                   </p>
                   <p className="text-sm">
-                    {translateMoyenPaiement(commands?.paymentMethod) || "N/A"}
+                    {translateMoyenPaiement(getPaymentType.data?.data.find((p) => p.id === Number(commands?.paymentMethod))?.label || "N/A")}
                   </p>
                 </div>
               </div>

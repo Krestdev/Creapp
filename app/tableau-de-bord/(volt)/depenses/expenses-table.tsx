@@ -288,8 +288,8 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
       const matchTab =
         selectedTab === 0
           ? p.status === "pending_depense" ||
-            p.status === "validated" ||
-            p.status === "unsigned"
+          p.status === "validated" ||
+          p.status === "unsigned"
           : selectedTab === 1
             ? p.status === "signed"
             : p.status === "paid";
@@ -431,11 +431,11 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
 
         const priorityA =
           priorityOrder[
-            rowA.getValue(columnId) as keyof typeof priorityOrder
+          rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-            rowB.getValue(columnId) as keyof typeof priorityOrder
+          rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -720,13 +720,6 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
           </DropdownMenu>
         </div>
       </div>
-      <h3>{`Tickets ${
-        selectedTab === 0
-          ? "en attente"
-          : selectedTab === 1
-            ? "signés"
-            : "payés"
-      } (${payments.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -741,9 +734,9 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}
