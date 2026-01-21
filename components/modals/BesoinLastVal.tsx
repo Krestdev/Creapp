@@ -179,6 +179,7 @@ export function BesoinLastVal({
         quantity: Number(values.quantite),
         dueDate: values.limiteDate,
         unit: values.unite,
+        userId: data?.userId,
       });
     } catch {
       toast.error("Une erreur est survenue");
