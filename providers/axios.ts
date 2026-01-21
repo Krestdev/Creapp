@@ -71,15 +71,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const errorMessage = formatErrorMessage(error);
-
     // Gestion des codes d'erreur spécifiques
     switch (error.response?.status) {
       case 401:
         // Rediriger vers login si token expiré - On va plutôt rediriger vers le tableau de bord
-        if (typeof window !== "undefined") {
+        if(errorMessage.toLocaleLowerCase().includes("token") && typeof window !== "undefined"){
+          localStorage.removeItem("creapp-store");
+          window.location.href = "/connexion";
+        }
+        if (typeof window !== "undefined" && window.location.pathname !== "/tableau-de-bord") {
            window.location.replace("/tableau-de-bord");
-          //localStorage.removeItem("creapp-store");
-          //window.location.href = "/connexion";
         }
         toast.error("Session expirée. Veuillez vous reconnecter.");
         break;
