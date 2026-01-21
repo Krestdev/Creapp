@@ -1,7 +1,10 @@
+'use client'
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface ErrorProps {
   error?: Error;
@@ -18,6 +21,7 @@ function ErrorPage({
   title = "Quelque chose s'est mal passé",
   message = "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
 }: ErrorProps) {
+  const router = useRouter();
   // Messages d'erreur par statut
   const errorMessages: Record<number, { title: string; message: string }> = {
     404: {
@@ -39,6 +43,10 @@ function ErrorPage({
         "Le serveur a rencontré une erreur interne. Veuillez réessayer plus tard.",
     },
   };
+  if(statusCode === 401){
+    router.replace("/tableau-de-bord");
+    toast.error(errorMessages[401].title)
+  }
 
   // Utiliser le message d'erreur spécifique au statut si disponible
   const errorInfo = errorMessages[statusCode] || { title, message };
