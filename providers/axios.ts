@@ -77,8 +77,9 @@ api.interceptors.response.use(
       case 401:
         // Rediriger vers login si token expiré - On va plutôt rediriger vers le tableau de bord
         if (typeof window !== "undefined") {
-          localStorage.removeItem("creapp-store");
-          window.location.href = "/connexion";
+           window.location.href = "/tableau-de-bord";
+          //localStorage.removeItem("creapp-store");
+          //window.location.href = "/connexion";
         }
         toast.error("Session expirée. Veuillez vous reconnecter.");
         break;

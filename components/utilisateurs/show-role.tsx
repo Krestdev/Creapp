@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { TranslateRole } from "@/lib/utils";
 import { Role } from "@/types/types";
-import { CheckCircle, Hash, HashIcon, Key, Lock, LucideFlag, ScanEyeIcon, ShieldCheck, ShieldIcon, Users, UsersIcon } from "lucide-react";
+import { CheckCircle, Hash, HashIcon, InfoIcon, Key, Lock, LucideFlag, ScanEyeIcon, ShieldCheck, ShieldIcon, Users, UsersIcon } from "lucide-react";
 
 interface ShowRoleProps {
   open: boolean;
@@ -209,6 +209,7 @@ export function ShowRole({
                 </div>
             </div>
           </div>
+          <p className="text-sm text-gray-600 mt-2 flex gap-1 items-center"><InfoIcon className="text-sky-600" size={14}/>{"Tout utilisateur a accès à l'émission des besoins."}</p> 
         </div>
         <DialogFooter>
           <Button
