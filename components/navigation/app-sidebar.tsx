@@ -97,10 +97,10 @@ function AppSidebar() {
   const approbationDevis =
     providers?.data?.data && cotation?.data && quotationsData?.data
       ? groupQuotationsByCommandRequest(
-          cotation?.data!,
-          quotationsData?.data!,
-          providers?.data?.data!,
-        ).filter((c) => c.status === "NOT_PROCESSED")
+        cotation?.data!,
+        quotationsData?.data!,
+        providers?.data?.data!,
+      ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
 
   // Récupérer toutes les catégories avec leurs validateurs
@@ -269,6 +269,14 @@ function AppSidebar() {
     (ticket) => ticket.status === "pending_depense",
   );
 
+  const ticketsDataP = data?.data.filter(
+    (ticket) =>
+      ticket.status !== "ghost" &&
+      ticket.status !== "pending" &&
+      ticket.status !== "rejected" &&
+      ticket.status !== "validated"
+  );
+
   const overall = approvedDepense?.concat(approvedDepense);
 
   // Si en cours de vérification, afficher un loader
@@ -421,10 +429,7 @@ function AppSidebar() {
           title: "Tickets",
           href: "/tableau-de-bord/ticket",
           authorized: ["ADMIN", "VOLT_MANAGER"],
-          badgeValue:
-            pendingTicket && pendingTicket?.length > 0
-              ? pendingTicket?.length
-              : undefined,
+          badgeValue: ticketsDataP?.length
         },
         {
           pageId: "PG-04-02",
@@ -454,8 +459,8 @@ function AppSidebar() {
           href: "/tableau-de-bord/depenses",
           badgeValue:
             approvedTicket &&
-            approvedDepense &&
-            approvedTicket?.length + approvedDepense?.length > 0
+              approvedDepense &&
+              approvedTicket?.length + approvedDepense?.length > 0
               ? approvedTicket?.length + approvedDepense?.length
               : undefined,
           authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
