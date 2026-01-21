@@ -77,7 +77,7 @@ api.interceptors.response.use(
       case 401:
         // Rediriger vers login si token expiré - On va plutôt rediriger vers le tableau de bord
         if (typeof window !== "undefined") {
-           window.location.href = "/tableau-de-bord";
+           window.location.replace("/tableau-de-bord");
           //localStorage.removeItem("creapp-store");
           //window.location.href = "/connexion";
         }
