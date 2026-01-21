@@ -52,6 +52,7 @@ import {
 import { toast } from "sonner";
 import { ShowCategory } from "./show-category";
 import { UpdateCategory } from "./UpdateCategory";
+import { ModalWarning } from "../modals/modal-warning";
 
 interface CategoriesTableProps {
   data: Category[];
@@ -72,6 +73,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
   const [selectedItem, setSelectedItem] = React.useState<Category | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [showDetail, setShowDetail] = React.useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
 
   const categoryData = useMutation({
     mutationFn: (id: number) => categoryQ.deleteCategory(id),
@@ -122,9 +124,8 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         cell: ({ row }) => {
           return (
             <div
-              className={`${
-                row.getValue("description") ? "" : "italic"
-              } first-letter:uppercase lowercase`}
+              className={`${row.getValue("description") ? "" : "italic"
+                } first-letter:uppercase lowercase`}
             >
               {row.getValue("description")
                 ? row.getValue("description")
@@ -173,7 +174,10 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 {row.original.id !== 0 && (
                   <DropdownMenuItem
                     className="text-red-600"
-                    onClick={() => categoryData.mutate(categories.id)}
+                    onClick={() => {
+                      setSelectedItem(categories);
+                      setIsDeleteModalOpen(true);
+                    }}
                   >
                     <LucideTrash2 className="mr-2 h-4 w-4 text-red-400" />
                     {"Supprimer"}
@@ -274,9 +278,9 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}
@@ -289,7 +293,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  // className={getRowClassName(row.original.status)}
+                // className={getRowClassName(row.original.status)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
                     <TableCell
@@ -362,6 +366,17 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
           </Button>
         </div>
       </div>
+
+      <ModalWarning
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        title="Supprimer la catégorie"
+        description="Êtes-vous sûr de vouloir supprimer cette catégorie ?"
+        message="Suprimer cette catégorie suprimera tous les besoins associés. Cette action est irreversible"
+        onAction={() => categoryData.mutate(selectedItem?.id || 0)}
+        actionText="Supprimer"
+        variant="error"
+      />
 
       <UpdateCategory
         open={isUpdateModalOpen}
