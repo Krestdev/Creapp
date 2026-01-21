@@ -602,7 +602,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-muted-foreground mb-1">
-                        {"Montant"}
+                        {"Montant total"}
                       </p>
                       <p>{XAF.format(data.amount!)}</p>
                     </div>

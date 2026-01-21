@@ -277,7 +277,7 @@ export default function BesoinFacLastVal({
       unit: "unit",
       beneficiary: values.beneficiaire,
       benef: Array(user?.id),
-      userId: Number(user?.id),
+      userId: requestData.userId,
       dueDate: values.delai,
       projectId: Number(values.projet),
       proof: values.justificatif,
