@@ -76,7 +76,7 @@ import {
   LucideCheck,
   Settings2,
 } from "lucide-react";
-import * as React from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface TicketsTableProps {
@@ -147,23 +147,23 @@ const getStatusVariant = (
 };
 
 export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
-  const [searchFilter, setSearchFilter] = React.useState<string>("");
-  const [typeFilter, setTypeFilter] = React.useState<
-    "all" | PaymentRequest["type"]
-  >("all");
-  const [statusFilter, setStatusFilter] = React.useState<
+  const [searchFilter, setSearchFilter] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<"all" | PaymentRequest["type"]>(
+    "all",
+  );
+  const [statusFilter, setStatusFilter] = useState<
     "all" | PaymentRequest["status"]
   >("all");
-  const [priorityFilter, setPriorityFilter] = React.useState<
+  const [priorityFilter, setPriorityFilter] = useState<
     "all" | PaymentRequest["priority"]
   >("all");
-  const [selectedTab, setSelectedTab] = React.useState<number>(0);
+  const [selectedTab, setSelectedTab] = useState<number>(0);
   const tabs = [
     { id: 0, title: "En attentes d'approbation" },
     { id: 1, title: "Tickets traités" },
   ];
 
-  const filteredData = React.useMemo(() => {
+  const filteredData = useMemo(() => {
     return data.filter((c) => {
       //selectTab
       const matchTab =
@@ -239,25 +239,22 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
     }
   }
 
-  const [sorting, setSorting] = React.useState<SortingState>([
+  const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({
-      createdAt: false,
-    });
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState("");
-  const [openDetailModal, setOpenDetailModal] = React.useState(false);
-  const [openValidationModal, setOpenValidationModal] = React.useState(false);
-  const [openPaiementModal, setOpenPaiementModal] = React.useState(false);
-  const [selectedTicket, setSelectedTicket] = React.useState<PaymentRequest>();
-  const [commands, setCommands] = React.useState<BonsCommande>();
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    createdAt: false,
+  });
+  const [rowSelection, setRowSelection] = useState({});
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [openDetailModal, setOpenDetailModal] = useState(false);
+  const [openValidationModal, setOpenValidationModal] = useState(false);
+  const [openPaiementModal, setOpenPaiementModal] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<PaymentRequest>();
+  const [commands, setCommands] = useState<BonsCommande>();
   const queryClient = useQueryClient();
-  const [message, setMessage] = React.useState<string>("");
+  const [message, setMessage] = useState<string>("");
 
   const { user } = useStore();
 
