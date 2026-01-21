@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
 import { getSocket } from "@/lib/sockets";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useStore } from "./datastore";
 import { userQ } from "@/queries/baseModule";
-import { storedUser } from "@/types/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useStore } from "./datastore";
 
 export default function SocketProvider({
   children,
