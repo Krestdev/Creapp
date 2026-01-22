@@ -171,7 +171,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                   <LucidePen className="mr-2 h-4 w-4" />
                   {"Modifier"}
                 </DropdownMenuItem>
-                {row.original.id !== 0 && (
+                {row.original.id !== 0 && row.original.id !== 1 && (
                   <DropdownMenuItem
                     className="text-red-600"
                     onClick={() => {

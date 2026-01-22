@@ -161,7 +161,7 @@ export default function RHRequestForm() {
       description: values.description || null,
       amount: Number(values.montant),
       projectId: Number(values.projet),
-      categoryId: 0,
+      categoryId: 1,
       quantity: 1,
       unit: "unit",
       userId: Number(user?.id),
