@@ -73,10 +73,10 @@ import { toast } from "sonner";
 import { DetailBesoin } from "../besoin/detail-besoin";
 import BesoinFacLastVal from "../modals/BesoinFacLastVal";
 import { BesoinLastVal } from "../modals/BesoinLastVal";
+import BesoinRHLastVal from "../modals/BesoinRHLastVal";
 import { ValidationModal } from "../modals/ValidationModal";
 import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
-import { Checkbox } from "../ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
@@ -103,7 +103,6 @@ import { Textarea } from "../ui/textarea";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { TabBar } from "./TabBar";
-import BesoinRHLastVal from "../modals/BesoinRHLastVal";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -195,12 +194,6 @@ export function DataVal({
   const [rejectionReason, setRejectionReason] = React.useState("");
   const [isProcessingGroupAction, setIsProcessingGroupAction] =
     React.useState(false);
-
-  // Fonction pour obtenir la position de l'utilisateur pour un besoin donné
-  const getUserPositionForRequest = (request: RequestModelT):number | undefined => {
-    const rank = request.validators.find(v=> v.userId === user?.id)?.rank;
-    return rank;
-  };
 
   // Fonction pour vérifier si l'utilisateur est le dernier validateur pour un besoin
   const isUserLastValidatorForRequest = (request: RequestModelT):boolean => {
@@ -648,9 +641,7 @@ export function DataVal({
       validatedCount,
       progress:
         totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
-      canValidate:
-        // !hasUserAlreadyValidated(request) &&
-        request.state === "pending" && userPosition !== null,
+      canValidate: request.state === "pending" && request.validators.find(v=> v.rank === userPosition)?.validated === false,
     };
   };
 

@@ -17,7 +17,7 @@ import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 const Page = () => {
   const { user } = useStore();
@@ -75,15 +75,15 @@ const Page = () => {
   // Calcul des statistiques à partir des données filtrées
   const pending = useMemo(() => {
     return data.filter((item) => {
-      return item.state === "pending";
+      return item.state === "pending" && item.validators.find(v=> v.userId === user?.id)?.validated === false;
     }).length;
-  }, [data]);
+  }, [data, user?.id]);
 
   const approved = useMemo(() => {
     return data.filter((item) => {
-      return item.state === "validated";
+      return item.state === "validated" || item.state === "pending" && item.validators.find(v=> v.userId === user?.id)?.validated === true;
     }).length;
-  }, [data]);
+  }, [data, user?.id]);
 
   const rejected = useMemo(() => {
     return data.filter((item) => {
