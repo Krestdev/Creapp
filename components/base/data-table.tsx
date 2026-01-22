@@ -89,6 +89,7 @@ import {
 } from "../ui/sheet";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
+import UpdateRHRequest from "../besoin/UpdateRequestRH";
 
 const statusConfig = {
   pending: {
@@ -155,6 +156,7 @@ export function DataTable({ data }: Props) {
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT>();
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isUpdateFacModalOpen, setIsUpdateFacModalOpen] = React.useState(false);
+  const [isUpdateRHModalOpen, setIsUpdateRHModalOpen] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
 
@@ -305,7 +307,7 @@ export function DataTable({ data }: Props) {
 
   // Fonction pour filtrer les données avec TOUS les filtres
   const filteredData = React.useMemo(() => {
-    return data.filter(item=>{
+    return data.filter(item => {
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
@@ -565,7 +567,7 @@ export function DataTable({ data }: Props) {
                     setIsModalOpen(true);
                   }}
                 >
-                  <Eye/>
+                  <Eye />
                   {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -574,7 +576,9 @@ export function DataTable({ data }: Props) {
                     setSelectedItem(item);
                     item.type === "facilitation"
                       ? setIsUpdateFacModalOpen(true)
-                      : setIsUpdateModalOpen(true);
+                      : item.type === "ressource_humaine" ?
+                        setIsUpdateRHModalOpen(true) :
+                        setIsUpdateModalOpen(true);
                   }}
                   disabled={item.state !== "pending"}
                 >
@@ -616,41 +620,41 @@ export function DataTable({ data }: Props) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-       if (!filterValue || filterValue === '') return true;
-    
-    const searchValue = filterValue.toLowerCase().trim();
-    const item = row.original;
-    
-    // 1. Recherche dans la référence
-    if (item.ref?.toLowerCase().includes(searchValue)) return true;
-    
-    // 2. Recherche dans le label/titre
-    if (item.label?.toLowerCase().includes(searchValue)) return true;
-    
-    // 3. Recherche dans le projet
-    const projectName = getProjectName(String(item.projectId)).toLowerCase();
-    if (projectName.includes(searchValue)) return true;
-    
-    // 4. Recherche dans la catégorie
-    const categoryName = categoryData.data?.data?.find(
-      cat => cat.id === Number(item.categoryId)
-    )?.label?.toLowerCase() || '';
-    if (categoryName.includes(searchValue)) return true;
-    
-    // 5. Recherche dans le statut
-    const statusConfig = getStatusConfig(item.state || '');
-    const statusLabel = getTranslatedLabel(statusConfig.label).toLowerCase();
-    if (statusLabel.includes(searchValue)) return true;
-    
-    // 6. Recherche dans le type
-    const typeBadge = getTypeBadge(item.type);
-    if (typeBadge.label.toLowerCase().includes(searchValue)) return true;
-    
-    // 7. Recherche dans la date (formatée)
-    const formattedDate = format(new Date(item.createdAt), "PP", { locale: fr }).toLowerCase();
-    if (formattedDate.includes(searchValue)) return true;
-    
-    return false;
+      if (!filterValue || filterValue === '') return true;
+
+      const searchValue = filterValue.toLowerCase().trim();
+      const item = row.original;
+
+      // 1. Recherche dans la référence
+      if (item.ref?.toLowerCase().includes(searchValue)) return true;
+
+      // 2. Recherche dans le label/titre
+      if (item.label?.toLowerCase().includes(searchValue)) return true;
+
+      // 3. Recherche dans le projet
+      const projectName = getProjectName(String(item.projectId)).toLowerCase();
+      if (projectName.includes(searchValue)) return true;
+
+      // 4. Recherche dans la catégorie
+      const categoryName = categoryData.data?.data?.find(
+        cat => cat.id === Number(item.categoryId)
+      )?.label?.toLowerCase() || '';
+      if (categoryName.includes(searchValue)) return true;
+
+      // 5. Recherche dans le statut
+      const statusConfig = getStatusConfig(item.state || '');
+      const statusLabel = getTranslatedLabel(statusConfig.label).toLowerCase();
+      if (statusLabel.includes(searchValue)) return true;
+
+      // 6. Recherche dans le type
+      const typeBadge = getTypeBadge(item.type);
+      if (typeBadge.label.toLowerCase().includes(searchValue)) return true;
+
+      // 7. Recherche dans la date (formatée)
+      const formattedDate = format(new Date(item.createdAt), "PP", { locale: fr }).toLowerCase();
+      if (formattedDate.includes(searchValue)) return true;
+
+      return false;
     },
     state: {
       sorting,
@@ -795,9 +799,9 @@ export function DataTable({ data }: Props) {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            customDateRange.from,
+                            "dd/MM/yyyy",
+                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -911,9 +915,9 @@ export function DataTable({ data }: Props) {
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                       </TableHead>
                     );
                   })}
@@ -982,6 +986,11 @@ export function DataTable({ data }: Props) {
           <UpdateRequestFac
             open={isUpdateFacModalOpen}
             setOpen={setIsUpdateFacModalOpen}
+            requestData={selectedItem}
+          />
+          <UpdateRHRequest
+            open={isUpdateRHModalOpen}
+            setOpen={setIsUpdateRHModalOpen}
             requestData={selectedItem}
           />
         </>

@@ -18,6 +18,7 @@ type Props = {
   onChange: (list: User[]) => void;
   display: "user" | "request";
   className?: string;
+  disabled?: boolean;
 };
 
 export default function MultiSelectUsers({
@@ -26,6 +27,7 @@ export default function MultiSelectUsers({
   onChange,
   display,
   className,
+  disabled = false,
 }: Props) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -71,17 +73,17 @@ export default function MultiSelectUsers({
       ref={dropdownRef}
     >
       <div
-        className={`relative ${
-          display === "user" && "p-3 border"
-        } rounded-lg flex flex-wrap gap-2 items-center`}
+        className={`relative ${display === "user" && "p-3 border"
+          } rounded-lg flex flex-wrap gap-2 items-center`}
       >
         {/* Tags */}
         {display === "user" &&
           (selected.length > 0 ? (
             selected.map((user) => (
-              <span
+              <button
+                disabled={disabled}
                 key={user.id}
-                className="bg-[#8B0E4E] text-white px-3 py-1 rounded-md flex items-center gap-2"
+                className={`${disabled ? "bg-[#8B0E4E]/50" : "bg-[#8B0E4E]"} text-white px-3 py-1 rounded-md flex items-center gap-2`}
               >
                 {user.name}
                 <X
@@ -89,7 +91,7 @@ export default function MultiSelectUsers({
                   className="cursor-pointer"
                   onClick={() => removeUser(user.id)}
                 />
-              </span>
+              </button>
             ))
           ) : (
             <span className="text-gray-500">
@@ -101,9 +103,8 @@ export default function MultiSelectUsers({
           variant={"ghost"}
           type="button"
           onClick={() => setOpen(!open)}
-          className={`${
-            display === "user" ? "ml-auto" : "mx-auto w-full border"
-          }`}
+          className={`${display === "user" ? "ml-auto" : "mx-auto w-full border"
+            }`}
         >
           {display === "request" ? "Ajouter un besoin" : ""}
           <LucidePlus
@@ -132,6 +133,7 @@ export default function MultiSelectUsers({
                   onClick={() => removeUser(item.id)}
                   variant={"outline"}
                   className="h-full"
+                  disabled={disabled}
                 >
                   <LucideX size={16} color="red" />
                 </Button>

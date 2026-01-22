@@ -260,7 +260,7 @@ export default function FilesUpload({
             <p className="text-sm font-medium">
               {files.length} fichier{files.length > 1 ? "s" : ""}
             </p>
-            <Button onClick={clearFiles} variant="delete" size="sm">
+            <Button disabled={disabled} onClick={clearFiles} variant="delete" size="sm">
               {"Tout supprimer"}
             </Button>
           </div>
@@ -315,6 +315,7 @@ export default function FilesUpload({
                   </div>
 
                   <Button
+                    disabled={disabled}
                     onClick={() => removeFile(item.id)}
                     size="icon"
                     variant="ghost"
