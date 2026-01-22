@@ -121,8 +121,8 @@ interface DataTableProps {
   usersData: User[];
   paymentsData: PaymentRequest[];
   requestTypeData: RequestType[];
-  pending:number;
-  cleared:number;
+  pending: number;
+  cleared: number;
 }
 
 export function DataVal({
@@ -168,8 +168,7 @@ export function DataVal({
     },
     {
       id: 1,
-      title: "Traités",
-      badge: cleared,
+      title: "Traités"
     },
   ];
 

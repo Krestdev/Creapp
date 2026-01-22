@@ -238,7 +238,7 @@ export default function MyForm() {
                   allLabel=""
                   options={
                     categoriesData.data?.data
-                      ?.filter((c) => c.id !== 0)
+                      ?.filter((c) => c.id !== 0 && c.id !== 1)
                       .map((c) => ({
                         value: c.id!.toString(),
                         label: c.label,
