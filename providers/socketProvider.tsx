@@ -66,6 +66,10 @@ export default function SocketProvider({
         refetchType: "active",
       });
       queryClient.invalidateQueries({
+        queryKey: ["requests"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
         queryKey: ["requests-user", userId],
         refetchType: "active",
       });
