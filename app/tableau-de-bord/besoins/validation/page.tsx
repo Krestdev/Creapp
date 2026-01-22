@@ -41,7 +41,7 @@ const Page = () => {
   });
 
   const requestData = useQuery({
-    queryKey: ["requests"],
+    queryKey: ["requests", user?.id],
     queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
     enabled: !!user,
   });
