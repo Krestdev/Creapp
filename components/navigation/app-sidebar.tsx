@@ -246,7 +246,9 @@ function AppSidebar() {
 
   const filteredData = useFilteredRequests(requestData);
 
+
   const pendingData = usePendingData(filteredData, user!, categoriesData);
+
   // Utilisation du hook pour la protection globale
   const { hasAccess, isChecking, userRoles } = useAuthGuard({
     requireAuth: true,

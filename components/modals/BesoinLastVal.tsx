@@ -223,7 +223,7 @@ export function BesoinLastVal({
         {/* HEADER - Fixé en haut */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            {headerTitle}
+            {"Approbation"}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">{headerDescription}</p>
         </DialogHeader>

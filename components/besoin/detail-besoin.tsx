@@ -83,79 +83,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
   if (!data) return null;
 
-  // Fonction pour vérifier si un champ a été modifié
-  const hasFieldChanged = (field: keyof RequestModelT, compareValue: any): boolean => {
-    if (!data.requestOlds || data.requestOlds.length === 0) {
-      return false;
-    }
-
-    const oldestRequest = findOldestRequest(data.requestOlds);
-    if (!oldestRequest) return false;
-
-    // Vérifier si le champ existe dans l'ancien enregistrement
-    // Note: requestOlds contient seulement certains champs, pas tous
-    const oldValue = (oldestRequest as any)[field];
-    if (oldValue === undefined) return false;
-
-    // Comparer les valeurs
-    if (field === 'amount' || field === 'quantity') {
-      return oldValue !== compareValue;
-    }
-    
-    if (field === 'priority') {
-      return oldValue !== compareValue;
-    }
-    
-    if (field === 'dueDate') {
-      return new Date(oldValue).getTime() !== new Date(compareValue).getTime();
-    }
-
-    return oldValue !== compareValue;
-  };
-
-  // Fonction pour vérifier si c'est modifié par un utilisateur différent
-  const isModifiedByDifferentUser = (): boolean => {
-    if (!data.requestOlds || data.requestOlds.length === 0) {
-      return false;
-    }
-
-    const oldestRequest = findOldestRequest(data.requestOlds);
-    if (!oldestRequest) return false;
-
-    // Vérifier si l'utilisateur de l'ancien enregistrement est différent de l'utilisateur actuel
-    return oldestRequest.userId !== data.userId;
-  };
-
-  // Fonction pour récupérer le nom de l'utilisateur qui a fait la modification
-  const getModifierName = (): string | null => {
-    if (!isModifiedByDifferentUser() || !data.requestOlds) {
-      return null;
-    }
-
-    // Prendre le dernier enregistrement modifié (le plus récent après l'ancien)
-    const sortedRequests = [...data.requestOlds].sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-
-    const latestModifierId = sortedRequests.find(req => req.userId !== data.userId)?.userId;
-    if (!latestModifierId) return null;
-
-    const modifier = usersData.data?.data?.find(u => u.id === latestModifierId);
-    return modifier ? `${modifier.firstName} ${modifier.lastName}` : null;
-  };
-
-  //Get the first value of our request
-  const findOldestRequest = (requests: RequestModelT["requestOlds"]) => {
-    if (!requests || requests.length === 0) {
-      return null;
-    }
-
-    return requests.reduce((oldest, current) => {
-      return new Date(current.createdAt) < new Date(oldest.createdAt)
-        ? current
-        : oldest;
-    });
-  };
+  //Get old values
+  const initialValues = data.requestOlds?.find(r => r.userId !== user?.id);
 
   // Fonctions pour récupérer les noms
   const getProjectName = (projectId: string) => {
@@ -347,13 +276,12 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   const validationHistory = getValidationHistory();
 
   // Récupérer l'ancienne valeur pour l'affichage
-  const oldestRequest = findOldestRequest(data.requestOlds);
-  const hasAmountChanged = hasFieldChanged('amount', data.amount);
-  const hasPriorityChanged = hasFieldChanged('priority', data.priority);
-  const hasDueDateChanged = hasFieldChanged('dueDate', data.dueDate);
-  const hasQuantityChanged = data.type === "achat" && hasFieldChanged('quantity', data.quantity);
-  const modifiedByDifferentUser = isModifiedByDifferentUser();
-  const modifierName = getModifierName();
+  const oldestRequest = initialValues;
+  const hasAmountChanged = !!data.amount && !!initialValues && initialValues.amount !== data.amount;
+  const hasPriorityChanged = !!initialValues && initialValues.priority !== data.priority;
+  const hasDueDateChanged = !!initialValues && initialValues.dueDate !== data.dueDate;
+  const hasQuantityChanged = data.type === "achat" && !!initialValues && initialValues.quantity !== data.quantity;
+  const modifier = usersData.data?.data.find(u => u.id === oldestRequest?.id);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -375,7 +303,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
             </div>
           </div>
-          
+
           {/**Amount */}
           {!!data.amount && (
             <div className="view-group">
@@ -401,7 +329,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
             </div>
           )}
-          
+
           {/* Project */}
           {!!data.projectId && (
             <div className="view-group">
@@ -416,7 +344,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
             </div>
           )}
-          
+
           {/* Description */}
           <div className="view-group">
             <span className="view-icon">
@@ -459,7 +387,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <p className="view-group-title">{"Priorité"}</p>
                 {hasPriorityChanged && (
                   <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
-                    <Edit/>
+                    <Edit />
                     {"Modifié"}
                   </Badge>
                 )}
@@ -478,7 +406,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 {data.priority === "urgent" ? (
                   <X />
                 ) : data.priority === "medium" ? (
-                  <Clock/>
+                  <Clock />
                 ) : (
                   <Check />
                 )}
@@ -486,9 +414,9 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </Badge>
               {hasPriorityChanged && oldestRequest?.priority && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Ancienne valeur: {oldestRequest.priority === "urgent" ? "Urgent" : 
-                  oldestRequest.priority === "medium" ? "Moyen" : 
-                  oldestRequest.priority === "low" ? "Faible" : "Élevé"}
+                  Ancienne valeur: {oldestRequest.priority === "urgent" ? "Urgent" :
+                    oldestRequest.priority === "medium" ? "Moyen" :
+                      oldestRequest.priority === "low" ? "Faible" : "Élevé"}
                 </p>
               )}
             </div>
@@ -526,7 +454,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
           )}
 
           {/* Justificatif */}
-          {data.type !== "speciaux" && (
+          {data.type !== "speciaux" && data.type !== "achat" && (
             <div className="view-group">
               <span className="view-icon">
                 <FileIcon />
@@ -536,9 +464,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <div className="space-y-1">
                   {!!paiement?.proof ? (
                     <Link
-                      href={`${
-                        process.env.NEXT_PUBLIC_API
-                      }/${paiement?.proof as string}`}
+                      href={`${process.env.NEXT_PUBLIC_API
+                        }/${paiement?.proof as string}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -645,11 +572,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                             <p
                               key={ben.id}
                               className="font-semibold capitalize"
-                            >{`${
-                              beneficiary?.firstName +
-                                " " +
-                                beneficiary?.lastName || ben.id
-                            }`}</p>
+                            >{`${beneficiary?.firstName +
+                              " " +
+                              beneficiary?.lastName || ben.id
+                              }`}</p>
                           );
                         })}
                       </div>
@@ -692,18 +618,88 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <p className="font-semibold capitalize">
                 {getUserName(String(data.userId))}
               </p>
-              {modifiedByDifferentUser && modifierName && (
+              {!!oldestRequest && !!modifier && (
                 <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
                   <Edit className="h-3 w-3" />
-                  Modifié par: {modifierName}
+                  {`Modifié par: ${modifier.firstName.concat(" ", modifier.lastName)}`}
                 </p>
               )}
             </div>
           </div>
 
+          {/* Date de création */}
+          <div className="view-group">
+            <span className="view-icon">
+              <Calendar />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Créé le"}</p>
+              <p className="font-semibold">
+                {format(data.createdAt, "PPP", { locale: fr })}
+              </p>
+            </div>
+          </div>
+
+          {/* Date de modification */}
+          <div className="view-group">
+            <span className="view-icon">
+              <Calendar />
+            </span>
+            <div className="flex flex-col">
+              {data.state === "rejected" ? (
+                <>
+                  <p className="view-group-title">{"Supprimé le"}</p>
+                  <p className="font-semibold">
+                    {format(
+                      data.revieweeList
+                        ?.filter((r) => r.decision?.startsWith("rejected"))
+                        .pop()?.updatedAt!,
+                      "dd MMMM yyyy, p",
+                      { locale: fr },
+                    )}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <p className="view-group-title">{"Modifié le"}</p>
+                  </div>
+                  <p className="font-semibold">
+                    {format(data.updatedAt, "PPP", { locale: fr })}
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Date limite */}
+          <div className="view-group">
+            <span className="view-icon">
+              <Calendar />
+            </span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <p className="view-group-title">{"Date limite"}</p>
+                {hasDueDateChanged && (
+                  <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
+                    <Edit />
+                    {"Modifié"}
+                  </Badge>
+                )}
+              </div>
+              <p className="font-semibold">
+                {format(data.dueDate!, "PPP", { locale: fr })}
+              </p>
+              {hasDueDateChanged && oldestRequest?.dueDate && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {` Ancienne date: ${format(oldestRequest.dueDate, "PPP", { locale: fr })}`}
+                </p>
+              )}
+            </div>
+          </div>
           {/* Validation History */}
           {data.type === "ressource_humaine" ||
-          data.type === "speciaux" ? null : (
+            data.type === "speciaux" ? null : (
             <div className="view-group">
               <span className="view-icon">
                 <SquareStackIcon />
@@ -757,82 +753,6 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
             </div>
           )}
-
-          {/* Date de création */}
-          <div className="view-group">
-            <span className="view-icon">
-              <Calendar />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Créé le"}</p>
-              <p className="font-semibold">
-                {format(data.createdAt, "PPP", { locale: fr })}
-              </p>
-            </div>
-          </div>
-
-          {/* Date de modification */}
-          <div className="view-group">
-            <span className="view-icon">
-              <Calendar />
-            </span>
-            <div className="flex flex-col">
-              {data.state === "rejected" ? (
-                <>
-                  <p className="view-group-title">{"Supprimé le"}</p>
-                  <p className="font-semibold">
-                    {format(
-                      data.revieweeList
-                        ?.filter((r) => r.decision?.startsWith("rejected"))
-                        .pop()?.updatedAt!,
-                      "dd MMMM yyyy, p",
-                      { locale: fr },
-                    )}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2">
-                    <p className="view-group-title">{"Modifié le"}</p>
-                    {modifiedByDifferentUser && (
-                      <Badge variant="outline">
-                        {"Par un autre utilisateur"}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="font-semibold">
-                    {format(data.updatedAt, "PPP", { locale: fr })}
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Date limite */}
-          <div className="view-group">
-            <span className="view-icon">
-              <Calendar />
-            </span>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <p className="view-group-title">{"Date limite"}</p>
-                {hasDueDateChanged && (
-                  <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
-                    <Edit />
-                    {"Modifié"}
-                  </Badge>
-                )}
-              </div>
-              <p className="font-semibold">
-                {format(data.dueDate!, "PPP", { locale: fr })}
-              </p>
-              {hasDueDateChanged && oldestRequest?.dueDate && (
-                <p className="text-xs text-muted-foreground mt-1">
-                 {` Ancienne date: ${format(oldestRequest.dueDate, "PPP", { locale: fr })}`}
-                </p>
-              )}
-            </div>
-          </div>
         </div>
         {/* Boutons du footer */}
         <DialogFooter>

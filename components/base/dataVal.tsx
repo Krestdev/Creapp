@@ -121,8 +121,8 @@ interface DataTableProps {
   usersData: User[];
   paymentsData: PaymentRequest[];
   requestTypeData: RequestType[];
-  pending:number;
-  cleared:number;
+  pending: number;
+  cleared: number;
 }
 
 export function DataVal({
@@ -168,8 +168,7 @@ export function DataVal({
     },
     {
       id: 1,
-      title: "Traités",
-      badge: cleared,
+      title: "Traités"
     },
   ];
 
@@ -796,39 +795,39 @@ export function DataVal({
     const baseColumns: ColumnDef<RequestModelT>[] = [];
 
     // Ajouter la colonne checkbox seulement si isCheckable est true
-    if (isCheckable) {
-      baseColumns.push({
-        id: "select",
-        header: ({ table }) => (
-          <div className="flex items-center">
-            <Checkbox
-              checked={
-                table.getIsAllPageRowsSelected() ||
-                (table.getIsSomePageRowsSelected() && "indeterminate")
-              }
-              onCheckedChange={(value) =>
-                table.toggleAllPageRowsSelected(!!value)
-              }
-              aria-label="Sélectionner toutes les lignes"
-            />
-          </div>
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Sélectionner cette ligne"
-            disabled={
-              !getValidationInfo(row.original).canValidate ||
-              row.original.state !== "pending" ||
-              hasUserAlreadyValidated(row.original)
-            }
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      });
-    }
+    // if (isCheckable) {
+    //   baseColumns.push({
+    //     id: "select",
+    //     header: ({ table }) => (
+    //       <div className="flex items-center">
+    //         <Checkbox
+    //           checked={
+    //             table.getIsAllPageRowsSelected() ||
+    //             (table.getIsSomePageRowsSelected() && "indeterminate")
+    //           }
+    //           onCheckedChange={(value) =>
+    //             table.toggleAllPageRowsSelected(!!value)
+    //           }
+    //           aria-label="Sélectionner toutes les lignes"
+    //         />
+    //       </div>
+    //     ),
+    //     cell: ({ row }) => (
+    //       <Checkbox
+    //         checked={row.getIsSelected()}
+    //         onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //         aria-label="Sélectionner cette ligne"
+    //         disabled={
+    //           !getValidationInfo(row.original).canValidate ||
+    //           row.original.state !== "pending" ||
+    //           hasUserAlreadyValidated(row.original)
+    //         }
+    //       />
+    //     ),
+    //     enableSorting: false,
+    //     enableHiding: false,
+    //   });
+    // }
 
     // Ajouter les autres colonnes
     baseColumns.push(
@@ -1005,7 +1004,7 @@ export function DataVal({
               <div className="flex-1">
                 <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                    className={`h-full ${row.original.state === "rejected" ? "bg-red-500" : "bg-blue-500"} rounded-full transition-all duration-300`}
                     style={{ width: `${validationInfo.progress}%` }}
                   />
                 </div>
