@@ -1004,7 +1004,7 @@ export function DataVal({
               <div className="flex-1">
                 <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className={`h-full ${row.original.state === "rejected" ? "bg-destructive" : "bg-blue-500"} rounded-full transition-all duration-300`}
+                    className={`h-full ${row.original.state === "rejected" ? "bg-red-500" : "bg-blue-500"} rounded-full transition-all duration-300`}
                     style={{ width: `${validationInfo.progress}%` }}
                   />
                 </div>
