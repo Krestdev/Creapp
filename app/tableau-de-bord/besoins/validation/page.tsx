@@ -206,6 +206,8 @@ const Page = () => {
           usersData={usersData.data.data}
           paymentsData={paymentsData.data.data}
           requestTypeData={getRequestType.data.data}
+          pending={pending}
+          cleared={approved + rejected}
         />
       </div>
     );

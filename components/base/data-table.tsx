@@ -413,11 +413,15 @@ export function DataTable({ data }: Props) {
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div className="max-w-[200px] truncate uppercase">
+      cell: ({ row }) => {
+        const original = row.original;
+        const modified = original.requestOld?.some(x=> x.userId !== user?.id);
+        return (
+        <div className="flex items-center gap-1.5 max-w-[200px] truncate uppercase">
+          {!!modified && <span className="bg-blue-600 border border-blue-200 text-white p-2 rounded-sm text-sm">{"M"}</span>}
           {row.getValue("label")}
         </div>
-      ),
+      )},
     },
     {
       accessorKey: "type",

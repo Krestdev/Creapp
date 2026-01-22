@@ -121,6 +121,8 @@ interface DataTableProps {
   usersData: User[];
   paymentsData: PaymentRequest[];
   requestTypeData: RequestType[];
+  pending:number;
+  cleared:number;
 }
 
 export function DataVal({
@@ -133,6 +135,8 @@ export function DataVal({
   usersData,
   paymentsData,
   requestTypeData,
+  pending,
+  cleared
 }: DataTableProps) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -160,10 +164,12 @@ export function DataVal({
     {
       id: 0,
       title: "En attente",
+      badge: pending,
     },
     {
       id: 1,
       title: "Traités",
+      badge: cleared,
     },
   ];
 

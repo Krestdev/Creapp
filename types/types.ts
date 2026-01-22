@@ -203,13 +203,23 @@ export type RequestModelT = {
   type?: "speciaux" | "ressource_humaine" | "facilitation" | "achat";
   amount?: number;
   benFac?: { list: { id: number; name: string; amount: number }[] } | null;
-  old?:{
-    dueDate?: Date;
-    priority?:"medium" | "high" | "low" | "urgent";
-    quantity?:number;
-    unit?:string;
+  requestOld?: Array<{
+    id: number;
+    dueDate: Date;
+    priority:"medium" | "high" | "low" | "urgent";
+    quantity:number;
+    unit:string;
     amount?:number;
-  }
+    createdAt: Date;
+    userId: number;
+  }>;
+  validators:Array<{
+    id:number;
+    validated:false;
+    rank:number;
+    userId: number;
+    requestModelId:number;
+  }>
 };
 
 export type TableData = {
