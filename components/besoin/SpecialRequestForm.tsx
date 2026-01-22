@@ -68,7 +68,7 @@ export default function SpecialRequestForm() {
 
   const requestMutation = useMutation({
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">,
+      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators">,
     ) => requestQ.special(data),
 
     onSuccess: () => {
@@ -87,7 +87,7 @@ export default function SpecialRequestForm() {
     // Préparation des données
     const requestData: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref"
+      "id" | "createdAt" | "updatedAt" | "ref" | "validators"
     > = {
       label: values.titre,
       amount: Number(values.montant),

@@ -137,7 +137,7 @@ export default function MyForm() {
 
   const requestMutation = useMutation({
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">,
+      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators">,
     ) => requestQ.create(data),
 
     onSuccess: () => {
@@ -156,7 +156,7 @@ export default function MyForm() {
     // Préparation des données
     const requestData: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref"
+      "id" | "createdAt" | "updatedAt" | "ref" | "validators"
     > = {
       label: values.titre,
       description: values.description || null,

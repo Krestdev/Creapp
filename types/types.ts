@@ -213,6 +213,13 @@ export type RequestModelT = {
     createdAt: Date;
     userId: number;
   }>;
+  validators:Array<{
+    id:number;
+    validated:false;
+    rank:number;
+    userId: number;
+    requestModelId:number;
+  }>
 };
 
 export type TableData = {
