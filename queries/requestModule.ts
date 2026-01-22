@@ -12,14 +12,14 @@ class RequestQueries {
   create = async (
     data: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref" | "project"
+      "id" | "createdAt" | "updatedAt" | "ref" | "project" | "validators"
     >
   ): Promise<{ data: RequestModelT }> => {
     return api.post(this.route, data).then((res) => res.data);
   };
 
   special = async (
-    data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">
+    data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators">
   ): Promise<{ data: RequestModelT }> => {
     const formData = new FormData();
 

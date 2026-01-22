@@ -103,6 +103,7 @@ import { Textarea } from "../ui/textarea";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { TabBar } from "./TabBar";
+import BesoinRHLastVal from "../modals/BesoinRHLastVal";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -120,6 +121,8 @@ interface DataTableProps {
   usersData: User[];
   paymentsData: PaymentRequest[];
   requestTypeData: RequestType[];
+  pending:number;
+  cleared:number;
 }
 
 export function DataVal({
@@ -132,6 +135,8 @@ export function DataVal({
   usersData,
   paymentsData,
   requestTypeData,
+  pending,
+  cleared
 }: DataTableProps) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -159,10 +164,12 @@ export function DataVal({
     {
       id: 0,
       title: "En attente",
+      badge: pending,
     },
     {
       id: 1,
       title: "Traités",
+      badge: cleared,
     },
   ];
 
@@ -175,6 +182,7 @@ export function DataVal({
     React.useState(false);
   const [isLastValModalOpen, setIsLastValModalOpen] = React.useState(false);
   const [isUpdateFacModalOpen, setIsUpdateFacModalOpen] = React.useState(false);
+  const [isUpdateRHModalOpen, setIsUpdateRHModalOpen] = React.useState(false);
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
@@ -262,7 +270,7 @@ export function DataVal({
       const validator = categoriesData
         .find((c) => c.id === b.categoryId)
         ?.validators.find((v) => v.userId === user?.id); //Validator value
-        const canValidate = !!b.revieweeList ? validator?.rank === b.revieweeList.length + 1
+      const canValidate = !!b.revieweeList ? validator?.rank === b.revieweeList.length + 1
         : validator?.rank === 1; //Check if he can validate  
       const validated = !b.revieweeList ? false : b.revieweeList.some(
         (r) => r.validatorId === validator?.id, //Lets know if he validated this request
@@ -510,12 +518,12 @@ export function DataVal({
       decision?: string;
       validatorId?: number;
       validator?:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     }) => {
       await requestQ.review(id, {
         validated: validated,
@@ -1084,7 +1092,9 @@ export function DataVal({
                     validationInfo.isLastValidator
                       ? item.type === "facilitation"
                         ? (setSelectedItem(item), setIsUpdateFacModalOpen(true))
-                        : (setSelectedItem(item), setIsLastValModalOpen(true))
+                        : item.type === "ressource_humaine"
+                          ? (setSelectedItem(item), setIsUpdateRHModalOpen(true))
+                          : (setSelectedItem(item), setIsLastValModalOpen(true))
                       : openValidationModal("approve", item)
                   }
                   disabled={
@@ -1302,9 +1312,9 @@ export function DataVal({
                         <span className="text-muted-foreground text-xs">
                           {customDateRange?.from && customDateRange.to
                             ? `${format(
-                                customDateRange.from,
-                                "dd/MM/yyyy",
-                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy",
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -1443,9 +1453,9 @@ export function DataVal({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                       </TableHead>
                     );
                   })}
@@ -1471,8 +1481,8 @@ export function DataVal({
                       validationInfo.userPosition === 3 && "border-l-red-400",
                       validationInfo.isLastValidator && "border-l-red-400",
                       isSelected &&
-                        isCheckable &&
-                        "bg-blue-50 hover:bg-blue-100",
+                      isCheckable &&
+                      "bg-blue-50 hover:bg-blue-100",
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -1661,6 +1671,11 @@ export function DataVal({
       <BesoinFacLastVal
         open={isUpdateFacModalOpen}
         setOpen={setIsUpdateFacModalOpen}
+        requestData={selectedItem}
+      />
+      <BesoinRHLastVal
+        open={isUpdateRHModalOpen}
+        setOpen={setIsUpdateRHModalOpen}
         requestData={selectedItem}
       />
     </div>

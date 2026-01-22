@@ -132,7 +132,7 @@ export default function RHRequestForm() {
 
   const requestMutation = useMutation({
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref">,
+      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators">,
     ) => requestQ.special(data),
 
     onSuccess: () => {
@@ -151,7 +151,7 @@ export default function RHRequestForm() {
     // Préparation des données
     const requestData: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref"
+      "id" | "createdAt" | "updatedAt" | "ref" | "validators"
     > = {
       label: values.titre,
       dueDate: values.date_limite,
@@ -161,7 +161,7 @@ export default function RHRequestForm() {
       description: values.description || null,
       amount: Number(values.montant),
       projectId: Number(values.projet),
-      categoryId: 0,
+      categoryId: 1,
       quantity: 1,
       unit: "unit",
       userId: Number(user?.id),

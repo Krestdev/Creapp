@@ -275,7 +275,10 @@ function AppSidebar() {
       ticket.status !== "pending" &&
       ticket.status !== "rejected" &&
       ticket.status !== "validated" &&
-      ticket.status !== "pending_depense"
+      ticket.status !== "pending_depense" &&
+      ticket.status !== "unsigned" &&
+      ticket.status !== "paid"
+
   );
 
   const overall = approvedDepense?.concat(approvedDepense);
@@ -599,7 +602,8 @@ function AppSidebar() {
                 {user?.lastName + " " + user?.firstName || "Utilisateur"}
               </span>
               <span className="text-xs leading-[120%] text-gray-500">
-                {getRoleName(user?.role || [])}
+                {/* {getRoleName(user?.role || [])} */}
+                {user?.post}
               </span>
             </div>
             <EllipsisVertical size={16} className="text-gray-900!" />
