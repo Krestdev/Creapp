@@ -535,59 +535,6 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
             </div>
           )}
 
-          {/* Bénéficiaires */}
-          {data.type !== "speciaux" && (
-            <div className="view-group">
-              <span className="view-icon">
-                <Users />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">
-                  {data.type === "facilitation"
-                    ? "Recepteur pour compte"
-                    : "Bénéficiaires"}
-                </p>
-                {data.type === "facilitation" ? (
-                  <p className="font-semibold capitalize">
-                    {usersData.data?.data?.find(
-                      (u) => u.id === Number(data.beneficiary),
-                    )?.firstName +
-                      " " +
-                      usersData.data?.data?.find(
-                        (u) => u.id === Number(data.beneficiary),
-                      )?.lastName}
-                  </p>
-                ) : (
-                  <div className="flex flex-col">
-                    {data.beneficiary === "me" ? (
-                      <p className="font-semibold capitalize">
-                        {user?.lastName + " " + user?.firstName}
-                      </p>
-                    ) : (
-                      <div className="flex flex-col">
-                        {data.beficiaryList?.map((ben) => {
-                          const beneficiary = usersData.data?.data?.find(
-                            (x) => x.id === ben.id,
-                          );
-                          return (
-                            <p
-                              key={ben.id}
-                              className="font-semibold capitalize"
-                            >{`${
-                              beneficiary?.firstName +
-                                " " +
-                                beneficiary?.lastName || ben.id
-                            }`}</p>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Pour le compte de (facilitation) */}
           {data.type === "facilitation" && (
             <div className="view-group">
@@ -699,6 +646,60 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               )}
             </div>
           </div>
+
+          {/* Bénéficiaires */}
+          {data.type !== "speciaux" && (
+            <div className="view-group">
+              <span className="view-icon">
+                <Users />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">
+                  {data.type === "facilitation"
+                    ? "Recepteur pour compte"
+                    : "Bénéficiaires"}
+                </p>
+                {data.type === "facilitation" ? (
+                  <p className="font-semibold capitalize">
+                    {usersData.data?.data?.find(
+                      (u) => u.id === Number(data.beneficiary),
+                    )?.firstName +
+                      " " +
+                      usersData.data?.data?.find(
+                        (u) => u.id === Number(data.beneficiary),
+                      )?.lastName}
+                  </p>
+                ) : (
+                  <div className="flex flex-col">
+                    {data.beneficiary === "me" ? (
+                      <p className="font-semibold capitalize">
+                        {user?.lastName + " " + user?.firstName}
+                      </p>
+                    ) : (
+                      <div className="flex flex-col">
+                        {data.beficiaryList?.map((ben) => {
+                          const beneficiary = usersData.data?.data?.find(
+                            (x) => x.id === ben.id,
+                          );
+                          return (
+                            <p
+                              key={ben.id}
+                              className="font-semibold capitalize"
+                            >{`${
+                              beneficiary?.firstName +
+                                " " +
+                                beneficiary?.lastName || ben.id
+                            }`}</p>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Validation History */}
           {data.type === "ressource_humaine" ||
           data.type === "speciaux" ? null : (

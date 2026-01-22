@@ -135,6 +135,11 @@ class RequestQueries {
     return api.get(`${this.route}/mine/${userId}`).then((res) => res.data);
   };
 
+  // Request to approve/reject
+  getValidatorRequests = async (userId: number):Promise<{data: Array<RequestModelT>}> => {
+    return api.get(`${this.route}/validator/${userId}`).then((res)=>res.data);
+  };
+
   // ============================
   //         VALIDATION
   // ============================

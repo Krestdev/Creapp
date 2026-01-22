@@ -215,7 +215,7 @@ export type RequestModelT = {
   }>;
   validators:Array<{
     id:number;
-    validated:false;
+    validated:boolean;
     rank:number;
     userId: number;
     requestModelId:number;
