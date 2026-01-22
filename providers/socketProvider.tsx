@@ -84,14 +84,9 @@ export default function SocketProvider({
         queryKey: ["requests"],
         refetchType: "active",
       });
-      queryClient.invalidateQueries({
-        queryKey: ["payments", user?.id],
-        refetchType: "active",
-      });
     });
 
     socket.on("request:update", () => {
-      console.log("Request updated - invalidating queries");
       queryClient.invalidateQueries({
         queryKey: ["requests"],
         refetchType: "active",
@@ -102,10 +97,6 @@ export default function SocketProvider({
       });
       queryClient.invalidateQueries({
         queryKey: ["requests-user"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["payments", user?.id],
         refetchType: "active",
       });
       queryClient.invalidateQueries({
