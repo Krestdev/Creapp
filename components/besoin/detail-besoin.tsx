@@ -281,7 +281,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   const hasPriorityChanged = !!initialValues && initialValues.priority !== data.priority;
   const hasDueDateChanged = !!initialValues && initialValues.dueDate !== data.dueDate;
   const hasQuantityChanged = data.type === "achat" && !!initialValues && initialValues.quantity !== data.quantity;
-  const modifier = usersData.data?.data.find(u=> u.id === oldestRequest?.id) ;
+  const modifier = usersData.data?.data.find(u => u.id === oldestRequest?.id);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -303,7 +303,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
             </div>
           </div>
-          
+
           {/**Amount */}
           {!!data.amount && (
             <div className="view-group">
@@ -329,7 +329,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
             </div>
           )}
-          
+
           {/* Project */}
           {!!data.projectId && (
             <div className="view-group">
@@ -344,7 +344,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </div>
             </div>
           )}
-          
+
           {/* Description */}
           <div className="view-group">
             <span className="view-icon">
@@ -387,7 +387,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <p className="view-group-title">{"Priorité"}</p>
                 {hasPriorityChanged && (
                   <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
-                    <Edit/>
+                    <Edit />
                     {"Modifié"}
                   </Badge>
                 )}
@@ -406,7 +406,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 {data.priority === "urgent" ? (
                   <X />
                 ) : data.priority === "medium" ? (
-                  <Clock/>
+                  <Clock />
                 ) : (
                   <Check />
                 )}
@@ -414,9 +414,9 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </Badge>
               {hasPriorityChanged && oldestRequest?.priority && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Ancienne valeur: {oldestRequest.priority === "urgent" ? "Urgent" : 
-                  oldestRequest.priority === "medium" ? "Moyen" : 
-                  oldestRequest.priority === "low" ? "Faible" : "Élevé"}
+                  Ancienne valeur: {oldestRequest.priority === "urgent" ? "Urgent" :
+                    oldestRequest.priority === "medium" ? "Moyen" :
+                      oldestRequest.priority === "low" ? "Faible" : "Élevé"}
                 </p>
               )}
             </div>
@@ -454,7 +454,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
           )}
 
           {/* Justificatif */}
-          {data.type !== "speciaux" && (
+          {data.type !== "speciaux" && data.type !== "achat" && (
             <div className="view-group">
               <span className="view-icon">
                 <FileIcon />
@@ -464,9 +464,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <div className="space-y-1">
                   {!!paiement?.proof ? (
                     <Link
-                      href={`${
-                        process.env.NEXT_PUBLIC_API
-                      }/${paiement?.proof as string}`}
+                      href={`${process.env.NEXT_PUBLIC_API
+                        }/${paiement?.proof as string}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -641,7 +640,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </p>
               {hasDueDateChanged && oldestRequest?.dueDate && (
                 <p className="text-xs text-muted-foreground mt-1">
-                 {` Ancienne date: ${format(oldestRequest.dueDate, "PPP", { locale: fr })}`}
+                  {` Ancienne date: ${format(oldestRequest.dueDate, "PPP", { locale: fr })}`}
                 </p>
               )}
             </div>
@@ -702,7 +701,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
           {/* Validation History */}
           {data.type === "ressource_humaine" ||
-          data.type === "speciaux" ? null : (
+            data.type === "speciaux" ? null : (
             <div className="view-group">
               <span className="view-icon">
                 <SquareStackIcon />
