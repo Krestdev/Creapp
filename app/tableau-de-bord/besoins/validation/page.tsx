@@ -58,7 +58,6 @@ const Page = () => {
         ?.validators.find((v) => v.userId === user?.id);
       return (
         !!isValidator &&
-        // r.type === "ressource_humaine" &&
         r.type !== "speciaux" &&
         r.state !== "cancel"
       );
