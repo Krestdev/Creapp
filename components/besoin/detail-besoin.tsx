@@ -85,15 +85,15 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
   // Fonction pour vérifier si un champ a été modifié
   const hasFieldChanged = (field: keyof RequestModelT, compareValue: any): boolean => {
-    if (!data.requestOld || data.requestOld.length === 0) {
+    if (!data.requestOlds || data.requestOlds.length === 0) {
       return false;
     }
 
-    const oldestRequest = findOldestRequest(data.requestOld);
+    const oldestRequest = findOldestRequest(data.requestOlds);
     if (!oldestRequest) return false;
 
     // Vérifier si le champ existe dans l'ancien enregistrement
-    // Note: requestOld contient seulement certains champs, pas tous
+    // Note: requestOlds contient seulement certains champs, pas tous
     const oldValue = (oldestRequest as any)[field];
     if (oldValue === undefined) return false;
 
@@ -115,11 +115,11 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
   // Fonction pour vérifier si c'est modifié par un utilisateur différent
   const isModifiedByDifferentUser = (): boolean => {
-    if (!data.requestOld || data.requestOld.length === 0) {
+    if (!data.requestOlds || data.requestOlds.length === 0) {
       return false;
     }
 
-    const oldestRequest = findOldestRequest(data.requestOld);
+    const oldestRequest = findOldestRequest(data.requestOlds);
     if (!oldestRequest) return false;
 
     // Vérifier si l'utilisateur de l'ancien enregistrement est différent de l'utilisateur actuel
@@ -128,12 +128,12 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
   // Fonction pour récupérer le nom de l'utilisateur qui a fait la modification
   const getModifierName = (): string | null => {
-    if (!isModifiedByDifferentUser() || !data.requestOld) {
+    if (!isModifiedByDifferentUser() || !data.requestOlds) {
       return null;
     }
 
     // Prendre le dernier enregistrement modifié (le plus récent après l'ancien)
-    const sortedRequests = [...data.requestOld].sort((a, b) => 
+    const sortedRequests = [...data.requestOlds].sort((a, b) => 
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
@@ -145,7 +145,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   };
 
   //Get the first value of our request
-  const findOldestRequest = (requests: RequestModelT["requestOld"]) => {
+  const findOldestRequest = (requests: RequestModelT["requestOlds"]) => {
     if (!requests || requests.length === 0) {
       return null;
     }
@@ -347,7 +347,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   const validationHistory = getValidationHistory();
 
   // Récupérer l'ancienne valeur pour l'affichage
-  const oldestRequest = findOldestRequest(data.requestOld);
+  const oldestRequest = findOldestRequest(data.requestOlds);
   const hasAmountChanged = hasFieldChanged('amount', data.amount);
   const hasPriorityChanged = hasFieldChanged('priority', data.priority);
   const hasDueDateChanged = hasFieldChanged('dueDate', data.dueDate);
