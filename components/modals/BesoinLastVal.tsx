@@ -23,11 +23,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
+import { categoryQ } from "@/queries/categoryModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ChevronDownIcon, Loader2 } from "lucide-react";
@@ -37,8 +39,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { categoryQ } from "@/queries/categoryModule";
-import { units } from "@/data/unit";
 
 // Validation Zod
 const formSchema = z.object({
@@ -84,7 +84,6 @@ export function BesoinLastVal({
     },
   });
 
-  const queryClient = useQueryClient();
 
   const requestData = useQuery({
     queryKey: ["requests"],
