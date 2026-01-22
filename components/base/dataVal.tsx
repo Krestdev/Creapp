@@ -197,53 +197,21 @@ export function DataVal({
     React.useState(false);
 
   // Fonction pour obtenir la position de l'utilisateur pour un besoin donné
-  const getUserPositionForRequest = (request: RequestModelT) => {
-    if (
-      request.categoryId === null ||
-      user?.id === null ||
-      categoriesData === undefined
-    )
-      return null;
-
-    const category = categoriesData.find(
-      (cat) => cat.id === request.categoryId,
-    );
-    if (!category || !category.validators) return null;
-
-    const validator = category.validators.find((v) => v.userId === user?.id);
-    return validator?.rank || null;
+  const getUserPositionForRequest = (request: RequestModelT):number | undefined => {
+    const rank = request.validators.find(v=> v.userId === user?.id)?.rank;
+    return rank;
   };
 
   // Fonction pour vérifier si l'utilisateur est le dernier validateur pour un besoin
-  const isUserLastValidatorForRequest = (request: RequestModelT) => {
-    if (
-      request.categoryId === null ||
-      user?.id === null ||
-      categoriesData === undefined
-    )
-      return false;
-
-    const category = categoriesData.find(
-      (cat) => cat.id === request.categoryId,
-    );
-    if (!category || !category.validators || category.validators.length === 0) {
-      return false;
-    }
-
-    // Trouver le validateur avec la position la plus élevée
-    const maxPosition = Math.max(...category.validators.map((v) => v.rank));
-    const lastValidator = category.validators.find(
-      (v) => v.rank === maxPosition,
-    );
-
-    return lastValidator?.userId === user?.id;
+  const isUserLastValidatorForRequest = (request: RequestModelT):boolean => {
+    const rank = request.validators.find(v=> v.userId === user?.id)?.rank;
+    return !!rank && !request.validators.some(x=> x.rank > rank);
   };
 
   // Fonction pour vérifier si l'utilisateur a déjà validé un besoin
-  const hasUserAlreadyValidated = (request: RequestModelT) => {
-    return (
-      request.revieweeList?.some((r) => r.validatorId === user?.id) || false
-    );
+  const hasUserAlreadyValidated = (request: RequestModelT):boolean => {
+    const rank = request.validators.find(v=> v.userId === user?.id)?.rank;
+    return !request.revieweeList ? false : request.revieweeList.length === 0 ? false : request.revieweeList.length === rank;
   };
 
   const getProjectName = (projectId: string) => {
