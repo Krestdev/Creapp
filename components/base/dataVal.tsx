@@ -795,39 +795,39 @@ export function DataVal({
     const baseColumns: ColumnDef<RequestModelT>[] = [];
 
     // Ajouter la colonne checkbox seulement si isCheckable est true
-    if (isCheckable) {
-      baseColumns.push({
-        id: "select",
-        header: ({ table }) => (
-          <div className="flex items-center">
-            <Checkbox
-              checked={
-                table.getIsAllPageRowsSelected() ||
-                (table.getIsSomePageRowsSelected() && "indeterminate")
-              }
-              onCheckedChange={(value) =>
-                table.toggleAllPageRowsSelected(!!value)
-              }
-              aria-label="Sélectionner toutes les lignes"
-            />
-          </div>
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Sélectionner cette ligne"
-            disabled={
-              !getValidationInfo(row.original).canValidate ||
-              row.original.state !== "pending" ||
-              hasUserAlreadyValidated(row.original)
-            }
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      });
-    }
+    // if (isCheckable) {
+    //   baseColumns.push({
+    //     id: "select",
+    //     header: ({ table }) => (
+    //       <div className="flex items-center">
+    //         <Checkbox
+    //           checked={
+    //             table.getIsAllPageRowsSelected() ||
+    //             (table.getIsSomePageRowsSelected() && "indeterminate")
+    //           }
+    //           onCheckedChange={(value) =>
+    //             table.toggleAllPageRowsSelected(!!value)
+    //           }
+    //           aria-label="Sélectionner toutes les lignes"
+    //         />
+    //       </div>
+    //     ),
+    //     cell: ({ row }) => (
+    //       <Checkbox
+    //         checked={row.getIsSelected()}
+    //         onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //         aria-label="Sélectionner cette ligne"
+    //         disabled={
+    //           !getValidationInfo(row.original).canValidate ||
+    //           row.original.state !== "pending" ||
+    //           hasUserAlreadyValidated(row.original)
+    //         }
+    //       />
+    //     ),
+    //     enableSorting: false,
+    //     enableHiding: false,
+    //   });
+    // }
 
     // Ajouter les autres colonnes
     baseColumns.push(
