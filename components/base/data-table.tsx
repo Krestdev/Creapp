@@ -15,6 +15,7 @@ import {
 import {
   AlertCircle,
   ArrowUpDown,
+  AsteriskIcon,
   Ban,
   CheckCircle,
   ChevronDown,
@@ -418,7 +419,7 @@ export function DataTable({ data }: Props) {
         const modified = original.requestOlds?.some(x=> x.userId !== user?.id);
         return (
         <div className="flex items-center gap-1.5 max-w-[200px] truncate uppercase">
-          {!!modified && <span className="bg-blue-600 border border-blue-200 text-white p-2 rounded-sm text-sm">{"M"}</span>}
+          {!!modified && <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs"><AsteriskIcon size={16}/></span>}
           {row.getValue("label")}
         </div>
       )},
