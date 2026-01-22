@@ -333,7 +333,7 @@ export default function BesoinRHLastVal({
                 {/* Header avec fond bordeaux - FIXE */}
                 <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
                     <DialogTitle className="text-xl font-semibold text-white">
-                        {"VALIDATION BESOIN RH - " + (requestData?.label || "")}
+                        {"Approbation"}
                     </DialogTitle>
                     <p className="text-sm text-white/80 mt-1">
                         {"Validez les informations du besoin en ressources humaines"}

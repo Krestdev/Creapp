@@ -307,8 +307,7 @@ export default function BesoinFacLastVal({
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
           <DialogTitle className="text-xl font-semibold text-white">
-            {"BESOIN DE FACILITATION - " +
-              (requestData?.label || "")}
+            {"Approbation"}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {
