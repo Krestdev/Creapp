@@ -240,8 +240,8 @@ export function DataVal({
       //Selected Tab
       const matchTab =
         selectedTab === 0
-          ? b.state === "pending"
-          : selectedTab === 1 && b.state === "rejected" || b.state === "validated";
+          ? b.state === "pending" && b.validators.find(v=> v.userId === user?.id)?.validated === false
+          : selectedTab === 1 && b.validators.find(v=> v.userId === user?.id)?.validated === true;
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : b.state === statusFilter;
@@ -325,49 +325,7 @@ export function DataVal({
   };
 
   const categoryIds = [...new Set(data.map((req) => req.categoryId))];
-  const uniqueCategories = React.useMemo(() => {
-    if (!data.length || !categoriesData) return [];
 
-    return categoryIds.map((categoryId) => {
-      const category = categoriesData.find(
-        (cat) => cat.id === Number(categoryId),
-      );
-      return {
-        id: categoryId,
-        name: category?.label || `Catégorie ${categoryId}`,
-      };
-    });
-  }, [data, categoriesData]);
-
-  const uniqueProjects = React.useMemo(() => {
-    if (!data.length || !projectsData) return [];
-
-    const projectIds = [...new Set(data.map((req) => req.projectId))];
-
-    return projectIds.map((projectId) => {
-      const project = projectsData.find(
-        (proj) => proj.id === Number(projectId),
-      );
-      return {
-        id: projectId,
-        name: project?.label || `Projet ${projectId}`,
-      };
-    });
-  }, [data, projectsData]);
-
-  const uniqueUsers = React.useMemo(() => {
-    if (!data.length || !usersData) return [];
-
-    const userIds = [...new Set(data.map((req) => req.userId))];
-
-    return userIds.map((userId) => {
-      const user = usersData.find((u) => u.id === Number(userId));
-      return {
-        id: userId,
-        name: user?.lastName + " " + user?.firstName || `Utilisateur ${userId}`,
-      };
-    });
-  }, [data, usersData]);
 
   const getStatusConfig = (
     status: string,
