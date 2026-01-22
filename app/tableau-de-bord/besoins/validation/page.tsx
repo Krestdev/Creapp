@@ -83,7 +83,7 @@ const Page = () => {
         .find((c) => c.id === item.categoryId)
         ?.validators.find((v) => v.userId === user?.id);
       const isValidated =
-        item.state !== "rejected" &&
+        // item.state !== "rejected" &&
         !!validator &&
         !!item.revieweeList &&
         item.revieweeList.length > 0 &&
@@ -92,18 +92,18 @@ const Page = () => {
     }).length;
   }, [data, categoriesData.data, user?.id]);
 
-  const received = useMemo(() => {
-    return data.filter((r) => {
-      const validator = categoriesData.data?.data
-        .find((c) => c.id === r.categoryId)
-        ?.validators.find((v) => v.userId === user?.id);
-      const canValidate = !!r.revieweeList
-        ? validator?.rank === r.revieweeList.length + 1
-        : validator?.rank === 1;
-      const result = r.state === "pending" ? canValidate : true;
-      return result;
-    }).length;
-  }, [data, categoriesData.data, user?.id]);
+  // const received = useMemo(() => {
+  //   return data.filter((r) => {
+  //     const validator = categoriesData.data?.data
+  //       .find((c) => c.id === r.categoryId)
+  //       ?.validators.find((v) => v.userId === user?.id);
+  //     const canValidate = !!r.revieweeList
+  //       ? validator?.rank === r.revieweeList.length + 1
+  //       : validator?.rank === 1;
+  //     const result = r.state === "pending" ? canValidate : true;
+  //     return result;
+  //   }).length;
+  // }, [data, categoriesData.data, user?.id]);
 
   const rejected = useMemo(() => {
     return data.filter((item) => {
@@ -119,6 +119,8 @@ const Page = () => {
       return isRejected;
     }).length;
   }, [data, categoriesData.data, user?.id]);
+
+  const received = pending + approved + rejected;
 
   const Statistics: Array<StatisticProps> = [
     {

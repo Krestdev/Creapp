@@ -609,7 +609,7 @@ export default function BesoinRHLastVal({
                         <Button
                             type="submit"
                             disabled={updateMutation.isPending || !isFormInitialized}
-                            className="bg-[#8B1538] hover:bg-[#7A1230]"
+                            className="bg-green-500 hover:bg-green-600"
                             onClick={() => form.handleSubmit(onSubmit)()}
                         >
                             Valider le besoin RH
