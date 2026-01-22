@@ -64,6 +64,9 @@ const Page = () => {
       if(myRank === 1){
         return true;
       }
+      if(r.state === "validated" || r.state === "rejected"){
+        return true;
+      }
       return r.validators.find(v=> v.rank === myRank - 1)?.validated === true;
       
     });

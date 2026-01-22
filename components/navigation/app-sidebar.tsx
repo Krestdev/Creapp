@@ -142,7 +142,7 @@ function AppSidebar() {
         </Link>
       </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
-          {[...Array(8)].map((_, i) => (
+          {[...Array(12)].map((_, i) => (
             <Skeleton
               key={i}
               className="w-full h-10"
@@ -161,7 +161,7 @@ function AppSidebar() {
         </Link>
       </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
-          {[...Array(8)].map((_, i) => (
+          {[...Array(12)].map((_, i) => (
             <Skeleton
               key={i}
               className="w-full h-10"
@@ -208,24 +208,10 @@ function AppSidebar() {
         !besoinsDansCotation.includes(x.id),
     );
   
-    const isValidCategoryId = (id: number | null | undefined): id is number =>
-      id !== null && id !== undefined;
-  
-    const isUserValidatorForCategory = (
-      categoryId: number | null | undefined,
-      userId: number,
-      categories: Category[],
-    ): boolean => {
-      if (!isValidCategoryId(categoryId)) return false;
-  
-      const category = categories.find((c) => c.id === categoryId);
-      if (!category?.validators) return false;
-  
-      return category.validators.some((v) => v.userId === userId);
-    };
-  
-  
-    const pendingData = filteredData.filter(d=> d.state === "pending");
+    const pendingData = filteredData.filter(d=>{
+       const status = d.state === "pending";
+       return status && d.validators.find(v=> v.userId === user?.id)?.validated === false;
+      });
   
     const ticketsData = getPayments.data.data.filter((ticket) => ticket.status !== "ghost");
     const pendingTicket = ticketsData.filter(
