@@ -210,8 +210,8 @@ export function DataVal({
 
   // Fonction pour vérifier si l'utilisateur a déjà validé un besoin
   const hasUserAlreadyValidated = (request: RequestModelT):boolean => {
-    const rank = request.validators.find(v=> v.userId === user?.id)?.rank;
-    return !request.revieweeList ? false : request.revieweeList.length === 0 ? false : request.revieweeList.length === rank;
+    const validator = request.validators.find(v=> v.userId === user?.id);
+    return !!validator && validator.validated === true ;
   };
 
   const getProjectName = (projectId: string) => {
@@ -675,16 +675,12 @@ export function DataVal({
 
   // Fonction pour obtenir l'info de validation pour un besoin
   const getValidationInfo = (request: RequestModelT) => {
-    const userPosition = getUserPositionForRequest(request);
+    const userPosition = request.validators.find(v=> v.userId === user?.id)?.rank;
     const isLastValidator = isUserLastValidatorForRequest(request);
     const categoryName = getCategoryName(String(request.categoryId));
 
-    // Trouver la catégorie pour obtenir le nombre total de validateurs
-    const category = categoriesData?.find(
-      (cat) => cat.id === request.categoryId,
-    );
-    const totalValidators = category?.validators?.length || 0;
-    const validatedCount = request.revieweeList?.length || 0;
+    const totalValidators = request.validators.length;
+    const validatedCount = request.validators.filter(v=>v.validated === true).length;
 
     return {
       userPosition,

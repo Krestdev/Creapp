@@ -593,7 +593,7 @@ export function DataTable({ data }: Props) {
                   }}
                   disabled={
                     item.state !== "pending" ||
-                    (item.revieweeList?.length ?? 0) > 0
+                    item.validators.some(v=> v.validated === true)
                   }
                 >
                   <LucideBan className="mr-2 h-4 w-4 text-red-500" />

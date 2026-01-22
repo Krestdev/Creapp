@@ -64,10 +64,7 @@ const Page = () => {
       if(myRank === 1){
         return true;
       }
-      if(!r.revieweeList || r.revieweeList.length === 0){
-        return false;
-      }
-      return r.revieweeList.length === myRank - 1;
+      return r.validators.find(v=> v.rank === myRank - 1)?.validated === true;
       
     });
   }, [requestData.data, user?.id]);
