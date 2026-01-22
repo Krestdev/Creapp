@@ -60,14 +60,14 @@ export default function SocketProvider({
      * Requests
      */
 
-    socket.on("request:new", ({ userId }: { userId?: number }) => {
-      if (userId !== undefined) {
+    socket.on("request:new", (data: { userId?: number }) => {
+      if (data && data.userId !== undefined) {
         queryClient.invalidateQueries({
-          queryKey: ["requests", userId],
+          queryKey: ["requests", data.userId],
           refetchType: "active",
         });
         queryClient.invalidateQueries({
-          queryKey: ["requests-user", userId],
+          queryKey: ["requests-user", data.userId],
           refetchType: "active",
         });
       } else {
