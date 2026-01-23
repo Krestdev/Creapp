@@ -194,7 +194,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   const hasQuantityChanged = data.type === "achat" && !!initialValues && initialValues.quantity !== data.quantity;
   const modifier = usersData.data?.data.find(u => u.id === oldestRequest?.id);
 
-  if(paymentsData.isLoading || usersData.isLoading || projectsData.isLoading || categoriesData.isLoading){
+  if (paymentsData.isLoading || usersData.isLoading || projectsData.isLoading || categoriesData.isLoading) {
     return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-3-xl">
         <DialogHeader>
@@ -202,7 +202,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
           <DialogDescription>{"Détails du besoin"}</DialogDescription>
           <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
             {
-              Array.from({length : 12}).map((_,id)=>(
+              Array.from({ length: 12 }).map((_, id) => (
                 <Skeleton key={id} className="w-full h-12" />
               ))
             }
@@ -211,7 +211,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
       </DialogContent>
     </Dialog>
   }
-  if(paymentsData.isError || usersData.isError || projectsData.isError || categoriesData.isError){
+  if (paymentsData.isError || usersData.isError || projectsData.isError || categoriesData.isError) {
     return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"error"}>
@@ -226,7 +226,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
       </DialogContent>
     </Dialog>
   }
-  if(paymentsData.isSuccess && usersData.isSuccess && projectsData.isSuccess && categoriesData.isSuccess){
+  if (paymentsData.isSuccess && usersData.isSuccess && projectsData.isSuccess && categoriesData.isSuccess) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-3xl">
@@ -247,7 +247,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               </div>
             </div>
-  
+
             {/**Amount */}
             {!!data.amount && (
               <div className="view-group">
@@ -273,7 +273,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               </div>
             )}
-  
+
             {/* Project */}
             {!!data.projectId && (
               <div className="view-group">
@@ -288,7 +288,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               </div>
             )}
-  
+
             {/* Description */}
             <div className="view-group">
               <span className="view-icon">
@@ -301,7 +301,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </p>
               </div>
             </div>
-  
+
             {/* Catégorie */}
             <div className="view-group">
               <span className="view-icon">
@@ -320,7 +320,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </p>
               </div>
             </div>
-  
+
             {/* Priorité */}
             <div className="view-group">
               <span className="view-icon">
@@ -365,7 +365,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 )}
               </div>
             </div>
-  
+
             {/* Statut */}
             <div className="view-group">
               <span className="view-icon">
@@ -378,7 +378,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </Badge>
               </div>
             </div>
-  
+
             {/* Motif de rejet */}
             {data.state === "rejected" && (
               <div className="view-group">
@@ -390,13 +390,13 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   <p className="text-destructive">
                     {data.validators
                       ?.filter((r) => r.decision?.startsWith("rejected"))
-                      .map((r) => r.decision?.replace(/^rejected\s*/i, "").trim())
+                      .map((r) => r.decision?.replace(/^rejected - \s*/i, "").trim())
                       .join(", ") || "Aucun motif fourni"}
                   </p>
                 </div>
               </div>
             )}
-  
+
             {/* Justificatif */}
             {data.type !== "speciaux" && data.type !== "achat" && (
               <div className="view-group">
@@ -426,7 +426,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               </div>
             )}
-  
+
             {/* Quantité pour achat */}
             {data.type === "achat" && (
               <div className="view-group">
@@ -454,7 +454,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               </div>
             )}
-  
+
             {/* Période pour ressources humaines */}
             {data.type === "ressource_humaine" && (
               <div className="view-group">
@@ -477,7 +477,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               </div>
             )}
-  
+
             {/* Pour le compte de (facilitation) */}
             {data.type === "facilitation" && (
               <div className="view-group">
@@ -499,7 +499,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               </div>
             )}
-  
+
             {/* Initié par */}
             <div className="view-group">
               <span className="view-icon">
@@ -518,7 +518,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 )}
               </div>
             </div>
-  
+
             {/* Date de création */}
             <div className="view-group">
               <span className="view-icon">
@@ -531,22 +531,22 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </p>
               </div>
             </div>
-  
+
             {/* Date de modification */}
             <div className="view-group">
               <span className="view-icon">
                 <Calendar />
               </span>
               <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <p className="view-group-title">{"Modifié le"}</p>
-                    </div>
-                    <p className="font-semibold">
-                      {format(data.updatedAt, "PPP", { locale: fr })}
-                    </p>
+                <div className="flex items-center gap-2">
+                  <p className="view-group-title">{"Modifié le"}</p>
+                </div>
+                <p className="font-semibold">
+                  {format(data.updatedAt, "PPP", { locale: fr })}
+                </p>
               </div>
             </div>
-  
+
             {/* Date limite */}
             <div className="view-group">
               <span className="view-icon">
@@ -572,7 +572,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 )}
               </div>
             </div>
-  
+
             {/* Bénéficiaires */}
             {data.type !== "speciaux" && (
               <div className="view-group">
@@ -611,11 +611,10 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                               <p
                                 key={ben.id}
                                 className="font-semibold capitalize"
-                              >{`${
-                                beneficiary?.firstName +
-                                  " " +
-                                  beneficiary?.lastName || ben.id
-                              }`}</p>
+                              >{`${beneficiary?.firstName +
+                                " " +
+                                beneficiary?.lastName || ben.id
+                                }`}</p>
                             );
                           })}
                         </div>
@@ -625,28 +624,29 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 </div>
               </div>
             )}
-  
+
             {/* Validation History */}
             {
               data.type === "speciaux" ? null : (
-              <div className="view-group">
-                <span className="view-icon">
-                  <SquareStackIcon />
-                </span>
-                <div className="flex flex-col">
-                  <p className="view-group-title">{"Historique de validation"}</p>
-                  <div className="grid gap-2">
-                    {data.validators.sort((a, b)=> a.rank - b.rank).map(v=>{
-                      return(
-                      <div key={v.id} className={cn("px-3 py-2 flex flex-col gap-1 border", !v.decision ? "bg-gray-50 border-gray-200" : v.decision.includes("reject") ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200")}>
-                        <p className={cn("text-sm font-medium", !v.decision ? "text-gray-600" : v.decision.includes("reject") ? "text-red-600" : "text-green-600")}>{!v.decision ? "En attente" : v.decision.includes("reject") ? "Rejeté" : "Approuvé"}</p>
-                        <span>{usersData.data.data.find(u => u.id === v.userId)?.firstName + " " + usersData.data.data.find(u => u.id === v.userId)?.lastName}</span>
-                      </div>
-                    )})}
+                <div className="view-group">
+                  <span className="view-icon">
+                    <SquareStackIcon />
+                  </span>
+                  <div className="flex flex-col">
+                    <p className="view-group-title">{"Historique de validation"}</p>
+                    <div className="grid gap-2">
+                      {data.validators.sort((a, b) => a.rank - b.rank).map(v => {
+                        return (
+                          <div key={v.id} className={cn("px-3 py-2 flex flex-col gap-1 border", !v.decision ? "bg-gray-50 border-gray-200" : v.decision.includes("reject") ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200")}>
+                            <p className={cn("text-sm font-medium", !v.decision ? "text-gray-600" : v.decision.includes("reject") ? "text-red-600" : "text-green-600")}>{!v.decision ? "En attente" : v.decision.includes("reject") ? "Rejeté" : "Approuvé"}</p>
+                            <span>{usersData.data.data.find(u => u.id === v.userId)?.firstName + " " + usersData.data.data.find(u => u.id === v.userId)?.lastName}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
           {/* Boutons du footer */}
           <DialogFooter>
