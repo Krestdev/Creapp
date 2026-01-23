@@ -48,6 +48,7 @@ import {
 } from "../ui/sidebar";
 import { Skeleton } from "../ui/skeleton";
 import NavigationItem from "./navigation-item";
+import { approbatorRequests, pendingApprobation } from "@/lib/requests-helpers";
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
@@ -128,24 +129,8 @@ function AppSidebar() {
 
   const filteredData = React.useMemo(()=>{
       if(!requestData.data) return [];
-      return requestData.data.data.filter((r) => {
-      const myRank = r.validators.find((u) => u.userId === user?.id)?.rank;
-      if(!myRank){
-        return false;
-      }
-      if(r.state === "cancel"){
-        return false;
-      }
-      if(myRank === 1){
-        return true;
-      }
-      if(r.state === "validated" || r.state === "rejected"){
-        return true;
-      }
-      return r.validators.find(v=> v.rank === myRank - 1)?.validated === true;
-      
-    })
-    },[requestData.data]);
+      return approbatorRequests(requestData.data.data, user?.id);
+    },[requestData.data, user?.id]);
 
   if(getQuotationRequests.isLoading || getQuotations.isLoading || getPayments.isLoading || signatories.isLoading || myList.isLoading ||requestData.isLoading || categoriesData.isLoading || providers.isLoading || getPurchases.isLoading){
     return (
@@ -222,10 +207,7 @@ function AppSidebar() {
         !besoinsDansCotation.includes(x.id),
     );
   
-    const pendingData = filteredData.filter(d=>{
-       const status = d.state === "pending";
-       return status && d.validators.find(v=> v.userId === user?.id)?.validated === false;
-      });
+    const pendingData = pendingApprobation(filteredData);
   
     const ticketsData = getPayments.data.data.filter((ticket) => ticket.status !== "ghost");
     const pendingTicket = ticketsData.filter(

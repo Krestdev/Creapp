@@ -8,6 +8,7 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
+import { approbatorRequests, decidedRequests, pendingApprobation } from "@/lib/requests-helpers";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
@@ -53,42 +54,20 @@ const Page = () => {
 
   const data: Array<RequestModelT> = useMemo(() => {
     if (!requestData.data) return [];
-    return requestData.data.data.filter((r) => {
-      const myRank = r.validators.find((u) => u.userId === user?.id)?.rank;
-      if(!myRank){
-        return false;
-      }
-      if(r.state === "cancel"){
-        return false;
-      }
-      if(myRank === 1){
-        return true;
-      }
-      if(r.state === "validated" || r.state === "rejected"){
-        return true;
-      }
-      return r.validators.find(v=> v.rank === myRank - 1)?.validated === true;
-      
-    });
+    return approbatorRequests(requestData.data.data, user?.id)
   }, [requestData.data, user?.id]);
 
   // Calcul des statistiques à partir des données filtrées
   const pending = useMemo(() => {
-    return data.filter((item) => {
-      return item.state === "pending" && item.validators.find(v=> v.userId === user?.id)?.validated === false;
-    }).length;
+    return pendingApprobation(data, user?.id).length;
   }, [data, user?.id]);
 
   const approved = useMemo(() => {
-    return data.filter((item) => {
-      return item.state === "validated" || item.state === "pending" && item.validators.find(v=> v.userId === user?.id)?.validated === true;
-    }).length;
+    return decidedRequests(data, user?.id).filter(r=> r.state !== "rejected").length;
   }, [data, user?.id]);
 
   const rejected = useMemo(() => {
-    return data.filter((item) => {
-      return item.state === "rejected";
-    }).length;
+    return decidedRequests(data, user?.id).filter(r=> r.state === "rejected").length;
   }, [data]);
 
   const Statistics: Array<StatisticProps> = [
@@ -98,7 +77,7 @@ const Page = () => {
       variant: "secondary",
       more: {
         title: "Total recus",
-        value: data.length,
+        value: pending,
       },
     },
     {
