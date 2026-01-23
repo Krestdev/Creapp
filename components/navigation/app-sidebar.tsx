@@ -28,7 +28,7 @@ import {
   Ticket,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo } from "react";
+import React, { use, useMemo } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,16 +54,6 @@ function AppSidebar() {
     requireAuth: true,
     authorizedRoles: [],
   });
-
-  /*  function getRoleName(roles: Array<Role>): string {
-    if (roles.some((r) => r.label === "ADMIN")) return "Administrateur";
-    if (roles.some((r) => r.label === "VOLT_MANAGER")) return "DO Décaissement";
-    if (roles.some((r) => r.label === "VOLT")) return "Trésorier";
-    if (roles.some((r) => r.label === "SALES_MANAGER")) return "DO d'Achats";
-    if (roles.some((r) => r.label === "SALES")) return "Responsable d'Achats";
-    if (roles.some((r) => r.label === "ACCOUNTING")) return "Comptable";
-    return "Employé";
-  } */
 
   //Get Quotation requests
   const getQuotationRequests = useQuery({
@@ -128,6 +118,105 @@ function AppSidebar() {
     return approbatorRequests(requestData.data.data, user?.id);
   }, [requestData.data, user?.id]);
 
+  const purchase = useMemo(() => {
+    if (!getPurchases.data) return [];
+    return getPurchases.data?.data.filter(
+      (c) => c.status === "IN-REVIEW" || c.status === "PENDING",
+    );
+  }, [getPurchases.data]);
+
+  const devisTraite = useMemo(() => {
+    if (!getQuotations.data || !getPurchases.data) return [];
+    return (
+      getPurchases.isSuccess &&
+      getQuotations.data.data.filter(
+        (c) =>
+          c.status === "APPROVED" &&
+          !getPurchases.data.data.some((a) => a.deviId === c.id),
+      )
+    );
+  }, [getQuotations.data, getPurchases.data]);
+
+  const approbationDevis = useMemo(() => {
+    if (!providers.data || !getQuotationRequests.data || !getQuotations.data)
+      return [];
+    return providers.data.data &&
+      getQuotationRequests.data &&
+      getQuotations.data
+      ? groupQuotationsByCommandRequest(
+          getQuotationRequests.data.data,
+          getQuotations.data.data,
+          providers.data.data,
+        ).filter((c) => c.status === "NOT_PROCESSED")
+      : [];
+  }, [providers.data, getQuotationRequests.data, getQuotations.data]);
+
+  // Récupérer tous les IDs des besoins présents dans les cotations
+
+  const besoinsDansCotation = useMemo(() => {
+    if (!getQuotationRequests.data) return [];
+    return (
+      getQuotationRequests.data.data.flatMap((item) =>
+        item.besoins.map((b) => b.id),
+      ) ?? []
+    );
+  }, [getQuotationRequests.data]);
+
+  // Filtrer les besoins validés qui ne sont pas dans une cotation
+  const besoinVal = useMemo(() => {
+    if (!requestData.data) return [];
+    return requestData.data.data.filter(
+      (x) =>
+        x.categoryId !== 0 &&
+        x.state === "validated" &&
+        !besoinsDansCotation.includes(x.id),
+    );
+  }, [requestData.data, besoinsDansCotation]);
+
+  const pendingData = useMemo(() => {
+    if (!data) return [];
+    return data.filter((b) => {
+      return (
+        b.state === "pending" &&
+        b.validators.find((v) => v.userId === user?.id)?.validated === false
+      );
+    });
+  }, [data, user?.id]);
+
+  const ticketsData = useMemo(() => {
+    if (!getPayments.data) return [];
+    return getPayments.data.data.filter((ticket) => ticket.status !== "ghost");
+  }, [getPayments.data]);
+
+  const approvedTicket = useMemo(() => {
+    if (!ticketsData) return [];
+    return ticketsData.filter((ticket) => ticket.status === "validated");
+  }, [ticketsData]);
+
+  const approvedDepense = useMemo(() => {
+    if (!ticketsData) return [];
+    return ticketsData.filter((ticket) => ticket.status === "pending_depense");
+  }, [ticketsData]);
+
+  const ticketsDataP = useMemo(() => {
+    if (!getPayments.data) return [];
+    return getPayments.data.data.filter(
+      (ticket) =>
+        ticket.status !== "ghost" &&
+        ticket.status !== "pending" &&
+        ticket.status !== "rejected" &&
+        ticket.status !== "validated" &&
+        ticket.status !== "pending_depense" &&
+        ticket.status !== "unsigned" &&
+        ticket.status !== "paid",
+    );
+  }, [getPayments.data]);
+
+  const overall = useMemo(() => {
+    if (!approvedTicket || !approvedDepense) return [];
+    return approvedTicket?.concat(approvedDepense);
+  }, [approvedTicket, approvedDepense]);
+
   if (
     getQuotationRequests.isLoading ||
     getQuotations.isLoading ||
@@ -191,83 +280,6 @@ function AppSidebar() {
     providers.isSuccess &&
     getPurchases.isSuccess
   ) {
-    const purchase = getPurchases.data?.data.filter(
-      (c) => c.status === "IN-REVIEW" || c.status === "PENDING",
-    );
-
-    const devisTraite =
-      getPurchases.isSuccess &&
-      getQuotations.data.data.filter(
-        (c) =>
-          c.status === "APPROVED" &&
-          !getPurchases.data.data.some((a) => a.deviId === c.id),
-      );
-
-    const approbationDevis =
-      providers.data.data && getQuotationRequests.data && getQuotations.data
-        ? groupQuotationsByCommandRequest(
-            getQuotationRequests.data.data,
-            getQuotations.data.data,
-            providers.data.data,
-          ).filter((c) => c.status === "NOT_PROCESSED")
-        : [];
-
-    const besoinDéstocké =
-      myList.data?.data.filter((x) => x.state === "store").length ?? 0;
-
-    // Récupérer tous les IDs des besoins présents dans les cotations
-    const besoinsDansCotation =
-      getQuotationRequests.data.data.flatMap((item) =>
-        item.besoins.map((b) => b.id),
-      ) ?? [];
-
-    // Filtrer les besoins validés qui ne sont pas dans une cotation
-    const besoinVal = requestData.data.data.filter(
-      (x) =>
-        x.categoryId !== 0 &&
-        x.state === "validated" &&
-        !besoinsDansCotation.includes(x.id),
-    );
-
-    const pendingData = data.filter((b) => {
-      return (
-        b.state === "pending" &&
-        b.validators.find((v) => v.userId === user?.id)?.validated === false
-      );
-    });
-    // const pendingData = requestData.data.data.filter((b) => {
-    //   return (
-    //     b.state === "pending" &&
-    //     b.validators.find((v) => v.userId === user?.id)?.validated === false
-    //   );
-    // });
-
-    const ticketsData = getPayments.data.data.filter(
-      (ticket) => ticket.status !== "ghost",
-    );
-    const pendingTicket = ticketsData.filter(
-      (ticket) => ticket.status === "pending",
-    );
-    const approvedTicket = ticketsData.filter(
-      (ticket) => ticket.status === "validated",
-    );
-    const approvedDepense = ticketsData.filter(
-      (ticket) => ticket.status === "pending_depense",
-    );
-
-    const ticketsDataP = getPayments.data.data.filter(
-      (ticket) =>
-        ticket.status !== "ghost" &&
-        ticket.status !== "pending" &&
-        ticket.status !== "rejected" &&
-        ticket.status !== "validated" &&
-        ticket.status !== "pending_depense" &&
-        ticket.status !== "unsigned" &&
-        ticket.status !== "paid",
-    );
-
-    const overall = approvedDepense?.concat(approvedDepense);
-
     const navLinks: NavigationItemProps[] = [
       {
         pageId: "PG-00-00",
@@ -482,51 +494,6 @@ function AppSidebar() {
         href: "/tableau-de-bord/parametres",
         authorized: ["ADMIN"],
         title: "Paramètres",
-        // items: [
-        //   {
-        //     pageId: "PG-08",
-        //     icon: UsersRound,
-        //     href: "/tableau-de-bord/settings/utilisateurs",
-        //     authorized: ["ADMIN"],
-        //     title: "Utilisateurs",
-        //     items: [
-        //       {
-        //         pageId: "PG-08-02",
-        //         title: "Liste",
-        //         href: "/tableau-de-bord/settings/utilisateurs/liste",
-        //         authorized: ["ADMIN"],
-        //       },
-        //     ],
-        //   },
-        //   {
-        //     pageId: "PG-09-5",
-        //     icon: UserLock,
-        //     title: "Rôles",
-        //     href: "/tableau-de-bord/settings/roles",
-        //     authorized: ["ADMIN"],
-        //   },
-        //   {
-        //     pageId: "PG-08",
-        //     icon: Truck,
-        //     href: "/tableau-de-bord/settings/provider",
-        //     authorized: ["ADMIN"],
-        //     title: "Fournisseurs",
-        //     items: [
-        //       {
-        //         pageId: "PG-08-01",
-        //         title: "Créer un fournisseur",
-        //         href: "/tableau-de-bord/settings/provider/create",
-        //         authorized: ["ADMIN"],
-        //       },
-        //       {
-        //         pageId: "PG-08-02",
-        //         title: "Liste des fournisseurs",
-        //         href: "/tableau-de-bord/settings/provider/liste",
-        //         authorized: ["ADMIN"],
-        //       },
-        //     ],
-        //   },
-        // ],
       },
     ];
 
