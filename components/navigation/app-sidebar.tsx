@@ -52,21 +52,21 @@ import NavigationItem from "./navigation-item";
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
 
-   // Utilisation du hook pour la protection globale
+  // Utilisation du hook pour la protection globale
   const { userRoles } = useAuthGuard({
     requireAuth: true,
     authorizedRoles: [],
   });
 
- /*  function getRoleName(roles: Array<Role>): string {
-    if (roles.some((r) => r.label === "ADMIN")) return "Administrateur";
-    if (roles.some((r) => r.label === "VOLT_MANAGER")) return "DO Décaissement";
-    if (roles.some((r) => r.label === "VOLT")) return "Trésorier";
-    if (roles.some((r) => r.label === "SALES_MANAGER")) return "DO d'Achats";
-    if (roles.some((r) => r.label === "SALES")) return "Responsable d'Achats";
-    if (roles.some((r) => r.label === "ACCOUNTING")) return "Comptable";
-    return "Employé";
-  } */
+  /*  function getRoleName(roles: Array<Role>): string {
+     if (roles.some((r) => r.label === "ADMIN")) return "Administrateur";
+     if (roles.some((r) => r.label === "VOLT_MANAGER")) return "DO Décaissement";
+     if (roles.some((r) => r.label === "VOLT")) return "Trésorier";
+     if (roles.some((r) => r.label === "SALES_MANAGER")) return "DO d'Achats";
+     if (roles.some((r) => r.label === "SALES")) return "Responsable d'Achats";
+     if (roles.some((r) => r.label === "ACCOUNTING")) return "Comptable";
+     return "Employé";
+   } */
 
   //Get Quotation requests
   const getQuotationRequests = useQuery({
@@ -103,10 +103,10 @@ function AppSidebar() {
 
   // Get requests for approvals
   const requestData = useQuery({
-      queryKey: ["requests", user?.id],
-      queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
-      enabled: !!user,
-    });
+    queryKey: ["requests", user?.id],
+    queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
+    enabled: !!user,
+  });
 
   //Get my requests sent
   const myList = useQuery({
@@ -126,35 +126,35 @@ function AppSidebar() {
     queryFn: paymentQ.getAll,
   });
 
-  const filteredData = React.useMemo(()=>{
-      if(!requestData.data) return [];
-      return requestData.data.data.filter((r) => {
+  const filteredData = React.useMemo(() => {
+    if (!requestData.data) return [];
+    return requestData.data.data.filter((r) => {
       const myRank = r.validators.find((u) => u.userId === user?.id)?.rank;
-      if(!myRank){
+      if (!myRank) {
         return false;
       }
-      if(r.state === "cancel"){
+      if (r.state === "cancel") {
         return false;
       }
-      if(myRank === 1){
+      if (myRank === 1) {
         return true;
       }
-      if(r.state === "validated" || r.state === "rejected"){
+      if (r.state === "validated" || r.state === "rejected") {
         return true;
       }
-      return r.validators.find(v=> v.rank === myRank - 1)?.validated === true;
-      
-    })
-    },[requestData.data]);
+      return r.validators.find(v => v.rank === myRank - 1)?.validated === true;
 
-  if(getQuotationRequests.isLoading || getQuotations.isLoading || getPayments.isLoading || signatories.isLoading || myList.isLoading ||requestData.isLoading || categoriesData.isLoading || providers.isLoading || getPurchases.isLoading){
+    })
+  }, [requestData.data]);
+
+  if (getQuotationRequests.isLoading || getQuotations.isLoading || getPayments.isLoading || signatories.isLoading || myList.isLoading || requestData.isLoading || categoriesData.isLoading || providers.isLoading || getPurchases.isLoading) {
     return (
       <Sidebar>
         <SidebarHeader>
-        <Link href={"/tableau-de-bord"}>
-          <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
-        </Link>
-      </SidebarHeader>
+          <Link href={"/tableau-de-bord"}>
+            <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
+          </Link>
+        </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(12)].map((_, i) => (
             <Skeleton
@@ -166,14 +166,14 @@ function AppSidebar() {
       </Sidebar>
     );
   }
-  if(getQuotationRequests.isError || getQuotations.isError || getPayments.isError || signatories.isError || myList.isError ||requestData.isError || categoriesData.isError || providers.isError || getPurchases.isError){
+  if (getQuotationRequests.isError || getQuotations.isError || getPayments.isError || signatories.isError || myList.isError || requestData.isError || categoriesData.isError || providers.isError || getPurchases.isError) {
     return (
       <Sidebar>
         <SidebarHeader>
-        <Link href={"/tableau-de-bord"}>
-          <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
-        </Link>
-      </SidebarHeader>
+          <Link href={"/tableau-de-bord"}>
+            <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
+          </Link>
+        </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(12)].map((_, i) => (
             <Skeleton
@@ -185,11 +185,11 @@ function AppSidebar() {
       </Sidebar>
     )
   }
-  if(getQuotationRequests.isSuccess && getQuotations.isSuccess && getPayments.isSuccess && signatories.isSuccess && myList.isSuccess &&requestData.isSuccess && categoriesData.isSuccess && providers.isSuccess && getPurchases.isSuccess){
+  if (getQuotationRequests.isSuccess && getQuotations.isSuccess && getPayments.isSuccess && signatories.isSuccess && myList.isSuccess && requestData.isSuccess && categoriesData.isSuccess && providers.isSuccess && getPurchases.isSuccess) {
     const purchase = getPurchases.data?.data.filter(
       (c) => c.status === "IN-REVIEW" || c.status === "PENDING",
     );
-  
+
     const devisTraite =
       getPurchases.isSuccess &&
       getQuotations.data.data.filter(
@@ -197,7 +197,7 @@ function AppSidebar() {
           c.status === "APPROVED" &&
           !getPurchases.data.data.some((a) => a.deviId === c.id),
       );
-  
+
     const approbationDevis =
       providers.data.data && getQuotationRequests.data && getQuotations.data
         ? groupQuotationsByCommandRequest(
@@ -206,14 +206,14 @@ function AppSidebar() {
           providers.data.data,
         ).filter((c) => c.status === "NOT_PROCESSED")
         : [];
-  
+
     const besoinDéstocké =
       myList.data?.data.filter((x) => x.state === "store").length ?? 0;
-  
+
     // Récupérer tous les IDs des besoins présents dans les cotations
     const besoinsDansCotation =
       getQuotationRequests.data.data.flatMap((item) => item.besoins.map((b) => b.id)) ?? [];
-  
+
     // Filtrer les besoins validés qui ne sont pas dans une cotation
     const besoinVal = requestData.data.data.filter(
       (x) =>
@@ -221,12 +221,12 @@ function AppSidebar() {
         x.state === "validated" &&
         !besoinsDansCotation.includes(x.id),
     );
-  
-    const pendingData = filteredData.filter(d=>{
-       const status = d.state === "pending";
-       return status && d.validators.find(v=> v.userId === user?.id)?.validated === false;
-      });
-  
+
+    const pendingData = filteredData.filter(d => {
+      const status = d.state === "pending";
+      return status && d.validators.find(v => v.userId === user?.id)?.validated === false;
+    });
+
     const ticketsData = getPayments.data.data.filter((ticket) => ticket.status !== "ghost");
     const pendingTicket = ticketsData.filter(
       (ticket) => ticket.status === "pending",
@@ -237,7 +237,7 @@ function AppSidebar() {
     const approvedDepense = ticketsData.filter(
       (ticket) => ticket.status === "pending_depense",
     );
-  
+
     const ticketsDataP = getPayments.data.data.filter(
       (ticket) =>
         ticket.status !== "ghost" &&
@@ -247,12 +247,12 @@ function AppSidebar() {
         ticket.status !== "pending_depense" &&
         ticket.status !== "unsigned" &&
         ticket.status !== "paid"
-  
+
     );
-  
+
     const overall = approvedDepense?.concat(approvedDepense);
-  
-  
+
+
     const navLinks: NavigationItemProps[] = [
       {
         pageId: "PG-00-00",
@@ -510,7 +510,7 @@ function AppSidebar() {
         // ],
       },
     ];
-  
+
     // Filtrer les liens de navigation selon les rôles de l'utilisateur
     const filteredNavLinks = navLinks.filter((navLink) => {
       const signPage = navLink.pageId === "PG-00001";
@@ -521,7 +521,7 @@ function AppSidebar() {
       if (navLink.authorized.length === 0) return true;
       return navLink.authorized.some((role) => userRoles.includes(role));
     });
-  
+
     return (
       <Sidebar>
         <SidebarHeader>

@@ -1,6 +1,7 @@
 "use client";
 
 import FilesUpload from "@/components/comp-547";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,9 +31,10 @@ import { useStore } from "@/providers/datastore";
 import { payTypeQ } from "@/queries/payType";
 import { signatairQ } from "@/queries/signatair";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
-import { Bank, PaymentRequest, PayType, Signatair } from "@/types/types";
+import { Bank, PAY_STATUS, PaymentRequest, PayType, Signatair } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -136,7 +138,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     );
   }, [payTypesQuery.data?.data, ticket.methodId, selectedMethodId]);
 
-  // Vérifier si le mode de paiement est "espèces"
+  // Vérifier si le mode de paiement est "espèces" en se basant aussi sur le select du formulaire
   const isCashPayment = useMemo(() => {
     return paymentMethod?.type?.toLowerCase() === "cash";
   }, [paymentMethod]);
@@ -322,12 +324,6 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                       {ticket.price.toLocaleString()} FCFA
                     </p>
                   </div>
-                  <div>
-                    <span className="font-medium text-muted-foreground">
-                      Statut :
-                    </span>
-                    <p className="font-semibold capitalize">{ticket.status}</p>
-                  </div>
                 </div>
               </div>
 
@@ -340,8 +336,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                     <FormItem className="@min-[640px]:col-span-2">
                       <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
                       <FormDescription className="text-amber-600">
-                        Ce paiement n'a pas encore de moyen de paiement défini.
-                        Veuillez en sélectionner un.
+                        Ce paiement n'a pas encore de moyen de paiement défini. Veuillez en sélectionner un.
                       </FormDescription>
                       <FormControl>
                         <Select
@@ -430,9 +425,9 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                       </FormControl>
 
                       {/* Affichage de la configuration de signature correspondante */}
-                      {selectedBankId &&
-                        paymentMethod &&
-                        relevantSignataireConfig && (
+                      {!!selectedBankId &&
+                        !!paymentMethod &&
+                        !!relevantSignataireConfig && (
                           <div className="mt-3 space-y-2 p-3 bg-muted/30 rounded-md">
                             <p className="text-sm font-medium">
                               Configuration de signature :
@@ -463,28 +458,25 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                         )}
 
                       {/* Message si aucune configuration trouvée */}
-                      {selectedBankId &&
-                        paymentMethod &&
-                        !relevantSignataireConfig && (
-                          <div className="mt-3 p-3 bg-muted/20 rounded-md border border-muted">
-                            <p className="text-sm text-muted-foreground">
-                              ⚠️ Aucune configuration de signature trouvée pour
-                              la combinaison :
-                            </p>
-                            <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
-                              <li>
-                                Compte source :{" "}
-                                {banks.find((b) => b.id === selectedBankId)
-                                  ?.label || `#${selectedBankId}`}
-                              </li>
-                              <li>
-                                Méthode de paiement :{" "}
-                                {paymentMethod?.label ||
-                                  `Type ${paymentMethod?.id}`}
-                              </li>
-                            </ul>
-                          </div>
-                        )}
+                      {!isCashPayment && !!selectedBankId && !!paymentMethod && !relevantSignataireConfig && (
+                        <div className="mt-3 p-3 bg-muted/20 rounded-md border border-muted">
+                          <p className="text-sm text-muted-foreground">
+                            ⚠️ Aucune configuration de signature trouvée pour la combinaison :
+                          </p>
+                          <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
+                            <li>
+                              Compte source :{" "}
+                              {banks.find((b) => b.id === selectedBankId)
+                                ?.label || `#${selectedBankId}`}
+                            </li>
+                            <li>
+                              Méthode de paiement :{" "}
+                              {paymentMethod?.label ||
+                                `Type ${paymentMethod?.id}`}
+                            </li>
+                          </ul>
+                        </div>
+                      )}
 
                       <FormMessage />
                     </FormItem>

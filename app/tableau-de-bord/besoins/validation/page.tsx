@@ -55,33 +55,33 @@ const Page = () => {
     if (!requestData.data) return [];
     return requestData.data.data.filter((r) => {
       const myRank = r.validators.find((u) => u.userId === user?.id)?.rank;
-      if(!myRank){
+      if (!myRank) {
         return false;
       }
-      if(r.state === "cancel"){
+      if (r.state === "cancel") {
         return false;
       }
-      if(myRank === 1){
+      if (myRank === 1) {
         return true;
       }
-      if(r.state === "validated" || r.state === "rejected"){
+      if (r.state === "validated" || r.state === "rejected") {
         return true;
       }
-      return r.validators.find(v=> v.rank === myRank - 1)?.validated === true;
-      
+      return r.validators.find(v => v.rank === myRank - 1)?.validated === true;
+
     });
   }, [requestData.data, user?.id]);
 
   // Calcul des statistiques à partir des données filtrées
   const pending = useMemo(() => {
     return data.filter((item) => {
-      return item.state === "pending" && item.validators.find(v=> v.userId === user?.id)?.validated === false;
+      return item.state === "pending" && item.validators.find(v => v.userId === user?.id)?.validated === false;
     }).length;
   }, [data, user?.id]);
 
   const approved = useMemo(() => {
     return data.filter((item) => {
-      return item.state === "validated" || item.state === "pending" && item.validators.find(v=> v.userId === user?.id)?.validated === true;
+      return item.state === "validated" || item.state === "pending" && item.validators.find(v => v.userId === user?.id)?.validated === true;
     }).length;
   }, [data, user?.id]);
 
