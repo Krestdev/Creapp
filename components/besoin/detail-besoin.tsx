@@ -448,7 +448,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   </p>
                   {hasQuantityChanged && oldestRequest?.quantity && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      {`Ancienne valeur: ${oldestRequest.quantity} {oldestRequest.unit}`}
+                      {`Ancienne valeur: ${oldestRequest.quantity} ${oldestRequest.unit}`}
                     </p>
                   )}
                 </div>
