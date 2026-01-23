@@ -301,7 +301,6 @@ function AppSidebar() {
             title: "Mes besoins",
             href: "/tableau-de-bord/besoins/mes-besoins",
             authorized: ["ADMIN", "MANAGER", "USER"],
-            badgeValue: besoinDéstocké > 0 ? besoinDéstocké : undefined,
           },
           {
             pageId: "PG-02-03",
