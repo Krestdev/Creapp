@@ -207,10 +207,10 @@ function AppSidebar() {
     const approbationDevis =
       providers.data.data && getQuotationRequests.data && getQuotations.data
         ? groupQuotationsByCommandRequest(
-            getQuotationRequests.data.data,
-            getQuotations.data.data,
-            providers.data.data,
-          ).filter((c) => c.status === "NOT_PROCESSED")
+          getQuotationRequests.data.data,
+          getQuotations.data.data,
+          providers.data.data,
+        ).filter((c) => c.status === "NOT_PROCESSED")
         : [];
 
     const besoinDéstocké =
@@ -302,7 +302,6 @@ function AppSidebar() {
             title: "Mes besoins",
             href: "/tableau-de-bord/besoins/mes-besoins",
             authorized: ["ADMIN", "MANAGER", "USER"],
-            badgeValue: besoinDéstocké > 0 ? besoinDéstocké : undefined,
           },
           {
             pageId: "PG-02-03",
@@ -430,8 +429,8 @@ function AppSidebar() {
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
-              approvedDepense &&
-              approvedTicket?.length + approvedDepense?.length > 0
+                approvedDepense &&
+                approvedTicket?.length + approvedDepense?.length > 0
                 ? approvedTicket?.length + approvedDepense?.length
                 : undefined,
             authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],

@@ -42,7 +42,7 @@ const Page = () => {
       data.data.filter((item) => item.state === "pending").length ?? 0;
     const rejected =
       data.data.filter((item) => item.state === "rejected").length ?? 0;
-    const validated = sent - awaiting - rejected;
+    const validated = data.data.filter(item=> item.state ==="validated").length;
 
     const Statistics: Array<StatisticProps> = [
       {

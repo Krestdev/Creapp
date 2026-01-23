@@ -132,10 +132,10 @@ export function SearchableSelect({
                 .filter((option) =>
                   option.label.toLowerCase().includes(search.toLowerCase())
                 )
-                .map((option) => (
+                .map((option, index) => (
                   <CommandItem
-                    key={option.value}
-                    value={option.label}
+                    key={index}
+                    value={option.value}
                     onSelect={() => {
                       onChange(option.value);
                       setOpen(false);

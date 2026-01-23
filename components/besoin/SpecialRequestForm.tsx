@@ -38,7 +38,7 @@ const formSchema = z.object({
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Le montant doit être un nombre positif",
     }),
-  raison: z.string().min(1, "La raison est requise"),
+  raison: z.string().optional(),
   delai: z
     .date()
     .min(new Date(), "Le delai d'exécution doit être dans le futur"),
@@ -57,7 +57,7 @@ export default function SpecialRequestForm() {
     defaultValues: {
       titre: "",
       montant: "",
-      raison: "",
+      raison: undefined,
       delai: undefined,
     },
   });
@@ -202,7 +202,6 @@ export default function SpecialRequestForm() {
               <FormItem className="md:col-span-2">
                 <FormLabel>
                   Justification / Raison
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Textarea
