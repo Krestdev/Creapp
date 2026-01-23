@@ -235,20 +235,6 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     },
   });
 
-  const pay = useMutation({
-    mutationFn: async (payload: Omit<TransactionProps, "userId">) =>
-      transactionQ.update(ticket.transactionId!, payload),
-    onSuccess: () => {
-      toast.success("Votre transaction a été enregistrée avec succès !");
-      onOpenChange(false);
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
-
-  console.log(ticket);
-
   const trans = gettransaction.data?.data.find(
     (item) => item.id === ticket.transactionId,
   );
@@ -264,9 +250,6 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       return;
     }
 
-    // Déterminer le statut en fonction du type de paiement
-    const status = isCashPayment ? "paid" : "pending";
-
     // Créer l'objet payload
     const payload: TransactionProps = {
       ...rest,
@@ -277,7 +260,6 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       userId: user?.id ?? 0,
       paymentId: ticket.id,
       label: ticket.title,
-      status: status,
       to,
       fromBankId,
       // Inclure methodId dans le payload

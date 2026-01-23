@@ -63,11 +63,11 @@ export default function MultiSelectRole({
                   className="bg-transparent hover:bg-transparent px-0"
                   type="button"
                   key={role.id}
-                  disabled={role.label === "MANAGER"}
+                  disabled={role.label === "MANAGER" || role.label === "USER"}
                 >
                   {TranslateRole(role.label)}
                 </Button>
-                {role.label === "MANAGER" ? (
+                {role.label === "MANAGER" || role.label === "USER" ? (
                   <X
                     size={20}
                     className="cursor-pointer z-10 absolute top-3 right-2 opacity-40"
