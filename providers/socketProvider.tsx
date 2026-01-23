@@ -81,6 +81,10 @@ export default function SocketProvider({
         });
       }
       queryClient.invalidateQueries({
+        queryKey: ["requests-for-approval"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
         queryKey: ["requests"],
         refetchType: "active",
       });
@@ -89,6 +93,10 @@ export default function SocketProvider({
     socket.on("request:update", () => {
       queryClient.invalidateQueries({
         queryKey: ["requests"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["requests-for-approval"],
         refetchType: "active",
       });
       queryClient.invalidateQueries({
