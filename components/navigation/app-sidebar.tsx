@@ -229,12 +229,21 @@ function AppSidebar() {
         !besoinsDansCotation.includes(x.id),
     );
 
-    const pendingData = requestData.data.data.filter((b) => {
+    const pendingData = approbatorRequests(
+      requestData.data.data,
+      user?.id,
+    ).filter((b) => {
       return (
         b.state === "pending" &&
         b.validators.find((v) => v.userId === user?.id)?.validated === false
       );
     });
+    // const pendingData = requestData.data.data.filter((b) => {
+    //   return (
+    //     b.state === "pending" &&
+    //     b.validators.find((v) => v.userId === user?.id)?.validated === false
+    //   );
+    // });
 
     const ticketsData = getPayments.data.data.filter(
       (ticket) => ticket.status !== "ghost",
