@@ -661,14 +661,14 @@ export function DataValidation({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedItem(item);
                   setIsModalOpen(true);
                 }}
               >
-                <Eye className="mr-2 h-4 w-4" />
+                <Eye />
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -680,20 +680,20 @@ export function DataValidation({
                 }
                 disabled={
                   item.state !== "pending" ||
-                  item.revieweeList?.some((x) => x.validatorId === user?.id)
+                  item.validators.some((x) => x.userId === user?.id && !!x.decision)
                 }
               >
-                <CheckCheck className="text-green-500 mr-2 h-4 w-4" />
+                <CheckCheck className="text-green-500" />
                 {"Approuver"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => openValidationModal("reject", item)}
                 disabled={
                   item.state !== "pending" ||
-                  item.revieweeList?.some((x) => x.validatorId === user?.id)
+                  item.validators.some((x) => x.userId === user?.id && !!x.decision)
                 }
               >
-                <LucideBan className="text-red-500 mr-2 h-4 w-4" />
+                <LucideBan className="text-destructive" />
                 {"Rejeter"}
               </DropdownMenuItem>
             </DropdownMenuContent>

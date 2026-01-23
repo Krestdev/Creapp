@@ -198,9 +198,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
         (u) => u.id === validator.userId,
       );
 
-      const review = data.revieweeList?.find(
-        (r) => r.validatorId === validator.id,
-      );
+      const review = data.validators.find(v => v.userId === user?.id);
 
       let status = "pending";
       let icon = <Clock className="h-4 w-4 text-yellow-600" />;
@@ -444,7 +442,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Motif du rejet"}</p>
                 <p className="text-destructive">
-                  {data.revieweeList
+                  {data.validators
                     ?.filter((r) => r.decision?.startsWith("rejected"))
                     .map((r) => r.decision?.replace(/^rejected\s*/i, "").trim())
                     .join(", ") || "Aucun motif fourni"}
@@ -594,29 +592,12 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <Calendar />
             </span>
             <div className="flex flex-col">
-              {data.state === "rejected" ? (
-                <>
-                  <p className="view-group-title">{"Supprimé le"}</p>
-                  <p className="font-semibold">
-                    {format(
-                      data.revieweeList
-                        ?.filter((r) => r.decision?.startsWith("rejected"))
-                        .pop()?.updatedAt!,
-                      "dd MMMM yyyy, p",
-                      { locale: fr },
-                    )}
-                  </p>
-                </>
-              ) : (
-                <>
                   <div className="flex items-center gap-2">
                     <p className="view-group-title">{"Modifié le"}</p>
                   </div>
                   <p className="font-semibold">
                     {format(data.updatedAt, "PPP", { locale: fr })}
                   </p>
-                </>
-              )}
             </div>
           </div>
 

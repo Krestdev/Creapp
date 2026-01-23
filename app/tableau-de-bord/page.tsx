@@ -52,7 +52,7 @@ import {
 } from "lucide-react";
 
 const DashboardPage = () => {
-  const { user, isHydrated } = useStore();
+  const { user } = useStore();
 
   // Récupérer les paiements
   const { data: paymentsData } = useQuery({
@@ -143,21 +143,21 @@ const DashboardPage = () => {
 
   // Requête pour récupérer les données des besoins de l'utilisateur
   const myRequestsData = useQuery({
-    queryKey: ["myRequests", user?.id],
+    queryKey: ["requests-user", user?.id],
     queryFn: () => {
       if (!user?.id) {
         throw new Error("ID utilisateur non disponible");
       }
       return requestQ.getMine(user.id);
     },
-    enabled: !!user?.id && isHydrated,
+    enabled: !!user?.id,
   });
 
   // Requête pour récupérer TOUS les besoins (pour "Besoins reçus")
   const allRequestsData = useQuery({
     queryKey: ["requests"],
     queryFn: () => requestQ.getAll(),
-    enabled: isHydrated && !!user,
+    enabled: !!user,
   });
 
   // Hook personnalisé pour filtrer les besoins

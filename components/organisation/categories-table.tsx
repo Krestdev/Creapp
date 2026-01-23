@@ -14,10 +14,11 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
+  AsteriskIcon,
   ChevronDown,
   LucideEye,
   LucidePen,
-  LucideTrash2,
+  LucideTrash2
 } from "lucide-react";
 import * as React from "react";
 
@@ -50,9 +51,9 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ModalWarning } from "../modals/modal-warning";
 import { ShowCategory } from "./show-category";
 import { UpdateCategory } from "./UpdateCategory";
-import { ModalWarning } from "../modals/modal-warning";
 
 interface CategoriesTableProps {
   data: Category[];
@@ -98,13 +99,16 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
               }
             >
               {"Nom de la catégorie"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown />
             </span>
           );
         },
-        cell: ({ row }) => (
-          <div className="font-medium uppercase">{row.getValue("label")}</div>
-        ),
+        cell: ({ row }) => {
+          const id = row.original.id;
+          const isProtected = id === 0 ? true : id === 1 ? true : false;
+          return(
+          <div className="font-medium uppercase flex items-center gap-1.5">{isProtected && <span className="size-4.5 rounded-full flex items-center justify-center bg-linear-to-t from-red-700 to-red-500 text-white"><AsteriskIcon size={16} /></span>}{row.getValue("label")}</div>
+        )},
       },
       {
         accessorKey: "description",

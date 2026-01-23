@@ -73,10 +73,10 @@ import { toast } from "sonner";
 import { DetailBesoin } from "../besoin/detail-besoin";
 import BesoinFacLastVal from "../modals/BesoinFacLastVal";
 import { BesoinLastVal } from "../modals/BesoinLastVal";
+import BesoinRHLastVal from "../modals/BesoinRHLastVal";
 import { ValidationModal } from "../modals/ValidationModal";
 import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
-import { Checkbox } from "../ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
@@ -103,7 +103,6 @@ import { Textarea } from "../ui/textarea";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { TabBar } from "./TabBar";
-import BesoinRHLastVal from "../modals/BesoinRHLastVal";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -196,12 +195,6 @@ export function DataVal({
   const [isProcessingGroupAction, setIsProcessingGroupAction] =
     React.useState(false);
 
-  // Fonction pour obtenir la position de l'utilisateur pour un besoin donné
-  const getUserPositionForRequest = (request: RequestModelT):number | undefined => {
-    const rank = request.validators.find(v=> v.userId === user?.id)?.rank;
-    return rank;
-  };
-
   // Fonction pour vérifier si l'utilisateur est le dernier validateur pour un besoin
   const isUserLastValidatorForRequest = (request: RequestModelT):boolean => {
     const rank = request.validators.find(v=> v.userId === user?.id)?.rank;
@@ -210,8 +203,8 @@ export function DataVal({
 
   // Fonction pour vérifier si l'utilisateur a déjà validé un besoin
   const hasUserAlreadyValidated = (request: RequestModelT):boolean => {
-    const rank = request.validators.find(v=> v.userId === user?.id)?.rank;
-    return !request.revieweeList ? false : request.revieweeList.length === 0 ? false : request.revieweeList.length === rank;
+    const validator = request.validators.find(v=> v.userId === user?.id);
+    return !!validator && validator.validated === true ;
   };
 
   const getProjectName = (projectId: string) => {
@@ -240,8 +233,8 @@ export function DataVal({
       //Selected Tab
       const matchTab =
         selectedTab === 0
-          ? b.state === "pending"
-          : selectedTab === 1 && b.state === "rejected" || b.state === "validated";
+          ? b.state === "pending" && b.validators.find(v=> v.userId === user?.id)?.validated === false
+          : selectedTab === 1 && b.validators.find(v=> v.userId === user?.id)?.validated === true;
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : b.state === statusFilter;
@@ -325,49 +318,7 @@ export function DataVal({
   };
 
   const categoryIds = [...new Set(data.map((req) => req.categoryId))];
-  const uniqueCategories = React.useMemo(() => {
-    if (!data.length || !categoriesData) return [];
 
-    return categoryIds.map((categoryId) => {
-      const category = categoriesData.find(
-        (cat) => cat.id === Number(categoryId),
-      );
-      return {
-        id: categoryId,
-        name: category?.label || `Catégorie ${categoryId}`,
-      };
-    });
-  }, [data, categoriesData]);
-
-  const uniqueProjects = React.useMemo(() => {
-    if (!data.length || !projectsData) return [];
-
-    const projectIds = [...new Set(data.map((req) => req.projectId))];
-
-    return projectIds.map((projectId) => {
-      const project = projectsData.find(
-        (proj) => proj.id === Number(projectId),
-      );
-      return {
-        id: projectId,
-        name: project?.label || `Projet ${projectId}`,
-      };
-    });
-  }, [data, projectsData]);
-
-  const uniqueUsers = React.useMemo(() => {
-    if (!data.length || !usersData) return [];
-
-    const userIds = [...new Set(data.map((req) => req.userId))];
-
-    return userIds.map((userId) => {
-      const user = usersData.find((u) => u.id === Number(userId));
-      return {
-        id: userId,
-        name: user?.lastName + " " + user?.firstName || `Utilisateur ${userId}`,
-      };
-    });
-  }, [data, usersData]);
 
   const getStatusConfig = (
     status: string,
@@ -675,16 +626,12 @@ export function DataVal({
 
   // Fonction pour obtenir l'info de validation pour un besoin
   const getValidationInfo = (request: RequestModelT) => {
-    const userPosition = getUserPositionForRequest(request);
+    const userPosition = request.validators.find(v=> v.userId === user?.id)?.rank;
     const isLastValidator = isUserLastValidatorForRequest(request);
     const categoryName = getCategoryName(String(request.categoryId));
 
-    // Trouver la catégorie pour obtenir le nombre total de validateurs
-    const category = categoriesData?.find(
-      (cat) => cat.id === request.categoryId,
-    );
-    const totalValidators = category?.validators?.length || 0;
-    const validatedCount = request.revieweeList?.length || 0;
+    const totalValidators = request.validators.length;
+    const validatedCount = request.validators.filter(v=>v.validated === true).length;
 
     return {
       userPosition,
@@ -694,9 +641,7 @@ export function DataVal({
       validatedCount,
       progress:
         totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
-      canValidate:
-        // !hasUserAlreadyValidated(request) &&
-        request.state === "pending" && userPosition !== null,
+      canValidate: request.state === "pending" && request.validators.find(v=> v.rank === userPosition)?.validated === false,
     };
   };
 

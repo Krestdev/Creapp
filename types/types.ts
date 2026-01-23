@@ -198,7 +198,6 @@ export type RequestModelT = {
   project?: ProjectT;
   categoryId?: number | null;
   category?: number | null;
-  revieweeList?: Review[] | null;
   proof?: (string | File)[] | null | undefined;
   type?: "speciaux" | "ressource_humaine" | "facilitation" | "achat";
   amount?: number;
@@ -216,6 +215,7 @@ export type RequestModelT = {
   validators:Array<{
     id:number;
     validated:boolean;
+    decision?: string;
     rank:number;
     userId: number;
     requestModelId:number;
