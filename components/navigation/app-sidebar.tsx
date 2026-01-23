@@ -10,9 +10,7 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
-import {
-  NavigationItemProps
-} from "@/types/types";
+import { NavigationItemProps, RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
@@ -30,7 +28,7 @@ import {
   Ticket,
 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,13 +49,13 @@ import NavigationItem from "./navigation-item";
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
 
-   // Utilisation du hook pour la protection globale
+  // Utilisation du hook pour la protection globale
   const { userRoles } = useAuthGuard({
     requireAuth: true,
     authorizedRoles: [],
   });
 
- /*  function getRoleName(roles: Array<Role>): string {
+  /*  function getRoleName(roles: Array<Role>): string {
     if (roles.some((r) => r.label === "ADMIN")) return "Administrateur";
     if (roles.some((r) => r.label === "VOLT_MANAGER")) return "DO Décaissement";
     if (roles.some((r) => r.label === "VOLT")) return "Trésorier";
@@ -102,10 +100,10 @@ function AppSidebar() {
 
   // Get requests for approvals
   const requestData = useQuery({
-      queryKey: ["requests", user?.id],
-      queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
-      enabled: !!user,
-    });
+    queryKey: ["requests-for-approval"],
+    queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
+    enabled: !!user,
+  });
 
   //Get my requests sent
   const myList = useQuery({
@@ -125,54 +123,78 @@ function AppSidebar() {
     queryFn: paymentQ.getAll,
   });
 
-  const filteredData = React.useMemo(()=>{
-      if(!requestData.data) return [];
-      return approbatorRequests(requestData.data.data, user?.id);
-    },[requestData.data, user?.id]);
+  const data: Array<RequestModelT> = useMemo(() => {
+    if (!requestData.data) return [];
+    return approbatorRequests(requestData.data.data, user?.id);
+  }, [requestData.data, user?.id]);
 
-  if(getQuotationRequests.isLoading || getQuotations.isLoading || getPayments.isLoading || signatories.isLoading || myList.isLoading ||requestData.isLoading || categoriesData.isLoading || providers.isLoading || getPurchases.isLoading){
+  if (
+    getQuotationRequests.isLoading ||
+    getQuotations.isLoading ||
+    getPayments.isLoading ||
+    signatories.isLoading ||
+    myList.isLoading ||
+    requestData.isLoading ||
+    categoriesData.isLoading ||
+    providers.isLoading ||
+    getPurchases.isLoading
+  ) {
     return (
       <Sidebar>
         <SidebarHeader>
-        <Link href={"/tableau-de-bord"}>
-          <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
-        </Link>
-      </SidebarHeader>
+          <Link href={"/tableau-de-bord"}>
+            <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
+          </Link>
+        </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(12)].map((_, i) => (
-            <Skeleton
-              key={i}
-              className="w-full h-10"
-            ></Skeleton>
+            <Skeleton key={i} className="w-full h-10"></Skeleton>
           ))}
         </SidebarContent>
       </Sidebar>
     );
   }
-  if(getQuotationRequests.isError || getQuotations.isError || getPayments.isError || signatories.isError || myList.isError ||requestData.isError || categoriesData.isError || providers.isError || getPurchases.isError){
+  if (
+    getQuotationRequests.isError ||
+    getQuotations.isError ||
+    getPayments.isError ||
+    signatories.isError ||
+    myList.isError ||
+    requestData.isError ||
+    categoriesData.isError ||
+    providers.isError ||
+    getPurchases.isError
+  ) {
     return (
       <Sidebar>
         <SidebarHeader>
-        <Link href={"/tableau-de-bord"}>
-          <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
-        </Link>
-      </SidebarHeader>
+          <Link href={"/tableau-de-bord"}>
+            <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
+          </Link>
+        </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(12)].map((_, i) => (
-            <Skeleton
-              key={i}
-              className="w-full h-10"
-            ></Skeleton>
+            <Skeleton key={i} className="w-full h-10"></Skeleton>
           ))}
         </SidebarContent>
       </Sidebar>
-    )
+    );
   }
-  if(getQuotationRequests.isSuccess && getQuotations.isSuccess && getPayments.isSuccess && signatories.isSuccess && myList.isSuccess &&requestData.isSuccess && categoriesData.isSuccess && providers.isSuccess && getPurchases.isSuccess){
+  if (
+    getQuotationRequests.isSuccess &&
+    getQuotations.isSuccess &&
+    getPayments.isSuccess &&
+    signatories.isSuccess &&
+    myList.isSuccess &&
+    requestData.isSuccess &&
+    categoriesData.isSuccess &&
+    providers.isSuccess &&
+    getPurchases.isSuccess
+  ) {
     const purchase = getPurchases.data?.data.filter(
       (c) => c.status === "IN-REVIEW" || c.status === "PENDING",
     );
-  
+
     const devisTraite =
       getPurchases.isSuccess &&
       getQuotations.data.data.filter(
@@ -180,23 +202,25 @@ function AppSidebar() {
           c.status === "APPROVED" &&
           !getPurchases.data.data.some((a) => a.deviId === c.id),
       );
-  
+
     const approbationDevis =
       providers.data.data && getQuotationRequests.data && getQuotations.data
         ? groupQuotationsByCommandRequest(
-          getQuotationRequests.data.data,
-          getQuotations.data.data,
-          providers.data.data,
-        ).filter((c) => c.status === "NOT_PROCESSED")
+            getQuotationRequests.data.data,
+            getQuotations.data.data,
+            providers.data.data,
+          ).filter((c) => c.status === "NOT_PROCESSED")
         : [];
-  
+
     const besoinDéstocké =
       myList.data?.data.filter((x) => x.state === "store").length ?? 0;
-  
+
     // Récupérer tous les IDs des besoins présents dans les cotations
     const besoinsDansCotation =
-      getQuotationRequests.data.data.flatMap((item) => item.besoins.map((b) => b.id)) ?? [];
-  
+      getQuotationRequests.data.data.flatMap((item) =>
+        item.besoins.map((b) => b.id),
+      ) ?? [];
+
     // Filtrer les besoins validés qui ne sont pas dans une cotation
     const besoinVal = requestData.data.data.filter(
       (x) =>
@@ -204,12 +228,23 @@ function AppSidebar() {
         x.state === "validated" &&
         !besoinsDansCotation.includes(x.id),
     );
-  
-    const pendingData =  requestData.data.data.filter(b=>{
-        return b.state === "pending" && b.validators.find(v=> v.userId === user?.id)?.validated === false
-      });
-  
-    const ticketsData = getPayments.data.data.filter((ticket) => ticket.status !== "ghost");
+
+    const pendingData = data.filter((b) => {
+      return (
+        b.state === "pending" &&
+        b.validators.find((v) => v.userId === user?.id)?.validated === false
+      );
+    });
+    // const pendingData = requestData.data.data.filter((b) => {
+    //   return (
+    //     b.state === "pending" &&
+    //     b.validators.find((v) => v.userId === user?.id)?.validated === false
+    //   );
+    // });
+
+    const ticketsData = getPayments.data.data.filter(
+      (ticket) => ticket.status !== "ghost",
+    );
     const pendingTicket = ticketsData.filter(
       (ticket) => ticket.status === "pending",
     );
@@ -219,7 +254,7 @@ function AppSidebar() {
     const approvedDepense = ticketsData.filter(
       (ticket) => ticket.status === "pending_depense",
     );
-  
+
     const ticketsDataP = getPayments.data.data.filter(
       (ticket) =>
         ticket.status !== "ghost" &&
@@ -228,13 +263,11 @@ function AppSidebar() {
         ticket.status !== "validated" &&
         ticket.status !== "pending_depense" &&
         ticket.status !== "unsigned" &&
-        ticket.status !== "paid"
-  
+        ticket.status !== "paid",
     );
-  
+
     const overall = approvedDepense?.concat(approvedDepense);
-  
-  
+
     const navLinks: NavigationItemProps[] = [
       {
         pageId: "PG-00-00",
@@ -275,7 +308,8 @@ function AppSidebar() {
             title: "Approbation",
             href: "/tableau-de-bord/besoins/validation",
             authorized: ["ADMIN", "MANAGER"],
-            badgeValue: pendingData?.length > 0 ? pendingData?.length : undefined,
+            badgeValue:
+              pendingData?.length > 0 ? pendingData?.length : undefined,
           },
         ],
       },
@@ -361,7 +395,10 @@ function AppSidebar() {
             title: "Tickets",
             href: "/tableau-de-bord/ticket",
             authorized: ["ADMIN", "VOLT_MANAGER"],
-            badgeValue: ticketsDataP && ticketsDataP.length > 0 ? ticketsDataP?.length : undefined,
+            badgeValue:
+              ticketsDataP && ticketsDataP.length > 0
+                ? ticketsDataP?.length
+                : undefined,
           },
           {
             pageId: "PG-04-02",
@@ -383,7 +420,8 @@ function AppSidebar() {
         href: "/tableau-de-bord/depenses",
         authorized: ["VOLT", "ADMIN"],
         title: "Dépenses",
-        badgeValue: overall && overall?.length > 0 ? overall?.length : undefined,
+        badgeValue:
+          overall && overall?.length > 0 ? overall?.length : undefined,
         items: [
           {
             pageId: "PG-23354987-00",
@@ -391,8 +429,8 @@ function AppSidebar() {
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
-                approvedDepense &&
-                approvedTicket?.length + approvedDepense?.length > 0
+              approvedDepense &&
+              approvedTicket?.length + approvedDepense?.length > 0
                 ? approvedTicket?.length + approvedDepense?.length
                 : undefined,
             authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
@@ -492,7 +530,7 @@ function AppSidebar() {
         // ],
       },
     ];
-  
+
     // Filtrer les liens de navigation selon les rôles de l'utilisateur
     const filteredNavLinks = navLinks.filter((navLink) => {
       const signPage = navLink.pageId === "PG-00001";
@@ -503,7 +541,7 @@ function AppSidebar() {
       if (navLink.authorized.length === 0) return true;
       return navLink.authorized.some((role) => userRoles.includes(role));
     });
-  
+
     return (
       <Sidebar>
         <SidebarHeader>
@@ -563,7 +601,6 @@ function AppSidebar() {
       </Sidebar>
     );
   }
-
 }
 
 export default AppSidebar;

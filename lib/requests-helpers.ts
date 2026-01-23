@@ -5,7 +5,7 @@ export const approbatorRequests = (
   userId?: number,
 ): Array<RequestModelT> => {
   if (!userId) return [];
-  return requests.filter((r) => {
+  const res = requests.filter((r) => {
     const myRank = r.validators.find((u) => u.userId === userId)?.rank;
     if (!myRank) {
       return false;
@@ -16,9 +16,10 @@ export const approbatorRequests = (
     if (myRank === 1) {
       return true;
     }
-    if (r.state === "validated" || r.state === "rejected") {
+    if (r.state === "validated" || r.state.includes("rejected")) {
       return true;
     }
     return r.validators.find((v) => v.rank === myRank - 1)?.validated === true;
   });
+  return res;
 };
