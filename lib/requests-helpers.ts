@@ -28,12 +28,8 @@ export const pendingApprobation = (
   userId?: number,
 ): Array<RequestModelT> => {
   if (!userId) return [];
-  return requests.filter((d) => {
-    const status = d.state === "pending";
-    return (
-      status &&
-      d.validators.find((v) => v.userId === userId)?.validated === false
-    );
+  return requests.filter((b) => {
+    b.state === "pending" && b.validators.find(v=> v.userId === userId)?.validated === false
   });
 };
 
