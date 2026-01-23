@@ -53,7 +53,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, getUserName } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
@@ -219,11 +219,6 @@ export function DataVal({
     return category?.label || categoryId;
   };
 
-  const getUserName = (userId: string) => {
-    const user = usersData?.find((u) => u.id === Number(userId));
-    return user?.lastName + " " + user?.firstName || userId;
-  };
-
   // Major Filter *******************************************
   const filteredData = React.useMemo(() => {
     return data.filter((b) => {
@@ -376,44 +371,6 @@ export function DataVal({
     });
   }, [data]);
 
-  const getBeneficiaryDisplay = (request: RequestModelT) => {
-    if (request.beneficiary === "me") {
-      return getUserName(String(request.userId));
-    } else if (
-      request.beneficiary === "autre" &&
-      request.benef &&
-      request.benef.length === 1
-    ) {
-      return request.beficiaryList![0].name;
-    } else if (
-      request.beneficiary === "autre" &&
-      request.beficiaryList &&
-      request.beficiaryList.length > 0
-    ) {
-      if (request.beficiaryList.length > 1) {
-        return (
-          request.beficiaryList
-            .slice(0, 1)
-            .map((ben) => getUserName(String(ben.name)))
-            .join(", ") +
-          " + " +
-          (request.beficiaryList.length - 1) +
-          " autre" +
-          (request.beficiaryList.length - 1 > 1 ? "s" : "")
-        );
-      }
-      return request.beficiaryList
-        .map((ben) => getUserName(String(ben.name)))
-        .join(", ");
-    } else if (request.type === "facilitation") {
-      return (
-        usersData.find((u) => u.id === Number(request.beneficiary))?.firstName +
-        " " +
-        usersData.find((u) => u.id === Number(request.beneficiary))?.lastName
-      );
-    }
-    return "Aucun bénéficiaire";
-  };
 
   const reviewRequest = useMutation({
     mutationFn: async ({
@@ -844,7 +801,7 @@ export function DataVal({
         },
         cell: ({ row }) => (
           <div className="text-sm first-letter:uppercase lowercase">
-            {getUserName(row.getValue("userId"))}
+            {getUserName(usersData,row.getValue("userId"))}
           </div>
         ),
       },
@@ -887,11 +844,35 @@ export function DataVal({
           );
         },
         cell: ({ row }) => {
-          return(
-          <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
-            {getBeneficiaryDisplay(row.original)}
-          </div>
-        )},
+  const list = row.original.beficiaryList; // Attention à la faute de frappe "beficiary" si elle est aussi dans ton API
+  const beneficiary = row.original.beneficiary;
+
+  const renderBeneficiaries = () => {
+    // Cas 1: C'est "me"
+    if (beneficiary?.toLocaleLowerCase() === "me") {
+      return getUserName(usersData, user?.id);
+    }
+
+    // Cas 2: C'est une liste d'utilisateurs
+    if (list && list.length > 0) {
+      const firstTwo = list.slice(0, 2).map(u => u.name).join(", ");
+      const remainingCount = list.length - 2;
+
+      return remainingCount > 0 
+        ? `${firstTwo}, +${remainingCount} autres` 
+        : firstTwo;
+    }
+
+    // Cas par défaut (si list est null ou vide)
+    return beneficiary || "N/A";
+  };
+
+  return (
+    <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase" title={list?.map(u => u.name).join(", ")}>
+      {renderBeneficiaries()}
+    </div>
+  );
+},
       },
     );
 

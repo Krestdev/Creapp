@@ -1,4 +1,4 @@
-import { BonsCommande, Provider, Role } from "@/types/types";
+import { BonsCommande, Provider, Role, User } from "@/types/types";
 import { clsx, type ClassValue } from "clsx";
 import { DateRange } from "react-day-picker";
 import { twMerge } from "tailwind-merge";
@@ -189,3 +189,12 @@ export const getPeriodType = (
   if (diffDays <= 31) return "week";
   return "month";
 };
+
+export const getUserName = (users: Array<User> ,userId?: number):string | undefined => {
+    if(!userId) return undefined;
+    const user = users.find((u) => u.id === userId);
+    if(!user){
+      return "Utilisateur introuvable"
+    }
+    return user.firstName.concat(" ", user.lastName);
+  };
