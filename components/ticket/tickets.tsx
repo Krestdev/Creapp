@@ -6,8 +6,6 @@ interface Props {
   requestTypeData: RequestType[];
 }
 
-const Tickets = ({ ticketsData, requestTypeData }: Props) => {
+export default function Tickets({ ticketsData, requestTypeData }: Props) {
   return <TicketTable data={ticketsData} requestTypeData={requestTypeData} />;
-};
-
-export default Tickets;
+}
