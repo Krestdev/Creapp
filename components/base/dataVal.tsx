@@ -380,13 +380,13 @@ export function DataVal({
     if (request.beneficiary === "me") {
       return getUserName(String(request.userId));
     } else if (
-      request.beneficiary === "groupe" &&
+      request.beneficiary === "autre" &&
       request.benef &&
       request.benef.length === 1
     ) {
       return request.beficiaryList![0].name;
     } else if (
-      request.beneficiary === "groupe" &&
+      request.beneficiary === "autre" &&
       request.beficiaryList &&
       request.beficiaryList.length > 0
     ) {
@@ -886,11 +886,12 @@ export function DataVal({
             </span>
           );
         },
-        cell: ({ row }) => (
+        cell: ({ row }) => {
+          return(
           <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
             {getBeneficiaryDisplay(row.original)}
           </div>
-        ),
+        )},
       },
     );
 
