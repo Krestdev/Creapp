@@ -10,7 +10,7 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
-import { NavigationItemProps } from "@/types/types";
+import { NavigationItemProps, RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
@@ -28,7 +28,7 @@ import {
   Ticket,
 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -123,7 +123,7 @@ function AppSidebar() {
     queryFn: paymentQ.getAll,
   });
 
-  const filteredData = React.useMemo(() => {
+  const data: Array<RequestModelT> = useMemo(() => {
     if (!requestData.data) return [];
     return approbatorRequests(requestData.data.data, user?.id);
   }, [requestData.data, user?.id]);
@@ -229,12 +229,18 @@ function AppSidebar() {
         !besoinsDansCotation.includes(x.id),
     );
 
-    const pendingData = requestData.data.data.filter((b) => {
+    const pendingData = data.filter((b) => {
       return (
         b.state === "pending" &&
         b.validators.find((v) => v.userId === user?.id)?.validated === false
       );
     });
+    // const pendingData = requestData.data.data.filter((b) => {
+    //   return (
+    //     b.state === "pending" &&
+    //     b.validators.find((v) => v.userId === user?.id)?.validated === false
+    //   );
+    // });
 
     const ticketsData = getPayments.data.data.filter(
       (ticket) => ticket.status !== "ghost",

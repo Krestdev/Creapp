@@ -39,6 +39,7 @@ function NavigationItem(
               />
             )}
             {item.title}
+            {!!item.items && item.items.some(i=> !!i.badgeValue && i.badgeValue>0) && <span className="size-1.5 rounded-full bg-primary-700 animate-ping"/>}
           </span>
         </AccordionTrigger>
         <AccordionContent className="relative pl-6">
