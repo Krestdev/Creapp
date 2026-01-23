@@ -124,6 +124,7 @@ function AppSidebar() {
   });
 
   const data: Array<RequestModelT> = useMemo(() => {
+    console.log("Request Data:", requestData.data);
     if (!requestData.data) return [];
     return approbatorRequests(requestData.data.data, user?.id);
   }, [requestData.data, user?.id]);

@@ -9,7 +9,9 @@ import Tickets from "@/components/ticket/tickets";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
 import { requestTypeQ } from "@/queries/requestType";
+import { PaymentRequest } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 function Page() {
   const { user } = useStore();
@@ -24,6 +26,29 @@ function Page() {
     queryFn: requestTypeQ.getAll,
   });
 
+  const ticketsData: Array<PaymentRequest> = useMemo(() => {
+    if (!data?.data) return [];
+    return data?.data.filter(
+      (ticket) =>
+        ticket.status !== "ghost" &&
+        ticket.status !== "pending" &&
+        ticket.status !== "rejected",
+    );
+  }, [data?.data]);
+
+  const pending = useMemo(() => {
+    return ticketsData.filter((ticket) => ticket.status === "pending");
+  }, [ticketsData]);
+
+  const approved = useMemo(() => {
+    return ticketsData.filter((ticket) => ticket.status !== "pending");
+  }, [ticketsData]);
+  const unPaid = useMemo(() => {
+    return ticketsData.filter(
+      (ticket) => ticket.status !== "paid" && ticket.status !== "pending",
+    );
+  }, [ticketsData]);
+
   if (isLoading || getRequestType.isLoading) {
     return <LoadingPage />;
   }
@@ -31,20 +56,6 @@ function Page() {
     return <ErrorPage error={error || getRequestType.error!} />;
   }
   if (isSuccess && getRequestType.isSuccess) {
-    const ticketsData = data?.data.filter(
-      (ticket) =>
-        ticket.status !== "ghost" &&
-        ticket.status !== "pending" &&
-        ticket.status !== "rejected"
-    );
-    const pending = ticketsData.filter((ticket) => ticket.status === "pending");
-    const approved = ticketsData.filter(
-      (ticket) => ticket.status !== "pending"
-    );
-    const unPaid = ticketsData.filter(
-      (ticket) => ticket.status !== "paid" && ticket.status !== "pending"
-    );
-
     return (
       <div className="flex flex-col gap-6">
         {user?.role.flatMap((r) => r.label).includes("VOLT") ? (

@@ -311,7 +311,7 @@ export default function BesoinRHLastVal({
             categoryId: 0,
             quantity: 1,
             unit: "unit",
-            userId: Number(user?.id),
+            userId: requestData.userId,
             type: "ressource_humaine",
             // Garder les valeurs originales pour les champs non modifiables
             state: requestData?.state || "pending",

@@ -417,22 +417,23 @@ export function DetailTicket({
               </Button>
 
               {/* Fournisseur */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <Building className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {"Fournisseur"}
-                  </p>
-                  <p className="font-semibold">
-                    {commands?.provider.name || "N/A"}
-                  </p>
-                </div>
-              </div>
+              {data?.type === "achat" &&
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <Building className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {"Fournisseur"}
+                    </p>
+                    <p className="font-semibold">
+                      {commands?.provider.name || "N/A"}
+                    </p>
+                  </div>
+                </div>}
 
               {/* Bon de commande */}
-              <div className="flex items-start gap-3">
+              {data?.type === "achat" && <div className="flex items-start gap-3">
                 <div className="mt-1">
                   <Receipt className="h-5 w-5 text-muted-foreground" />
                 </div>
@@ -442,22 +443,23 @@ export function DetailTicket({
                   </p>
                   <p className="text-sm">{commands?.reference || "N/A"}</p>
                 </div>
-              </div>
+              </div>}
 
               {/* Moyen de paiement */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <CreditCard className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Moyen de paiement
-                  </p>
-                  <p className="text-sm">
-                    {translateMoyenPaiement(getPaymentType.data?.data.find((p) => p.id === Number(commands?.paymentMethod))?.label || "N/A")}
-                  </p>
-                </div>
-              </div>
+              {data?.type === "achat" &&
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <CreditCard className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Moyen de paiement
+                    </p>
+                    <p className="text-sm">
+                      {translateMoyenPaiement(getPaymentType.data?.data.find((p) => p.id === Number(commands?.paymentMethod))?.label || "N/A")}
+                    </p>
+                  </div>
+                </div>}
 
               {/* Compte Payeur */}
               {/* <div className="flex items-start gap-3">
