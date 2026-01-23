@@ -42,7 +42,7 @@ const Page = () => {
   });
 
   const requestData = useQuery({
-    queryKey: ["requests", user?.id],
+    queryKey: ["requests-for-approval"],
     queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
     enabled: !!user,
   });
@@ -54,22 +54,35 @@ const Page = () => {
 
   const data: Array<RequestModelT> = useMemo(() => {
     if (!requestData.data) return [];
-    return approbatorRequests(requestData.data.data, user?.id)
+    return approbatorRequests(requestData.data.data, user?.id);
   }, [requestData.data, user?.id]);
 
   // Calcul des statistiques à partir des données filtrées
   const pending = useMemo(() => {
-    return data.filter(b => {
-      return b.state === "pending" && b.validators.find(v => v.userId === user?.id)?.validated === false
-    }).length
+    return data.filter((b) => {
+      return (
+        b.state === "pending" &&
+        b.validators.find((v) => v.userId === user?.id)?.validated === false
+      );
+    }).length;
   }, [data, user?.id]);
 
   const approved = useMemo(() => {
-    return data.filter(b => b.validators.find(v => v.userId === user?.id)?.validated === true).filter(r => r.state !== "rejected").length;
+    return data
+      .filter(
+        (b) =>
+          b.validators.find((v) => v.userId === user?.id)?.validated === true,
+      )
+      .filter((r) => r.state !== "rejected").length;
   }, [data, user?.id]);
 
   const rejected = useMemo(() => {
-    return data.filter(b => b.validators.find(v => v.userId === user?.id)?.validated === true).filter(r => r.state === "rejected").length;
+    return data
+      .filter(
+        (b) =>
+          b.validators.find((v) => v.userId === user?.id)?.validated === true,
+      )
+      .filter((r) => r.state === "rejected").length;
   }, [data, user?.id]);
 
   const Statistics: Array<StatisticProps> = [

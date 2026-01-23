@@ -10,9 +10,7 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
-import {
-  NavigationItemProps
-} from "@/types/types";
+import { NavigationItemProps } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
@@ -58,14 +56,14 @@ function AppSidebar() {
   });
 
   /*  function getRoleName(roles: Array<Role>): string {
-     if (roles.some((r) => r.label === "ADMIN")) return "Administrateur";
-     if (roles.some((r) => r.label === "VOLT_MANAGER")) return "DO Décaissement";
-     if (roles.some((r) => r.label === "VOLT")) return "Trésorier";
-     if (roles.some((r) => r.label === "SALES_MANAGER")) return "DO d'Achats";
-     if (roles.some((r) => r.label === "SALES")) return "Responsable d'Achats";
-     if (roles.some((r) => r.label === "ACCOUNTING")) return "Comptable";
-     return "Employé";
-   } */
+    if (roles.some((r) => r.label === "ADMIN")) return "Administrateur";
+    if (roles.some((r) => r.label === "VOLT_MANAGER")) return "DO Décaissement";
+    if (roles.some((r) => r.label === "VOLT")) return "Trésorier";
+    if (roles.some((r) => r.label === "SALES_MANAGER")) return "DO d'Achats";
+    if (roles.some((r) => r.label === "SALES")) return "Responsable d'Achats";
+    if (roles.some((r) => r.label === "ACCOUNTING")) return "Comptable";
+    return "Employé";
+  } */
 
   //Get Quotation requests
   const getQuotationRequests = useQuery({
@@ -102,7 +100,7 @@ function AppSidebar() {
 
   // Get requests for approvals
   const requestData = useQuery({
-    queryKey: ["requests", user?.id],
+    queryKey: ["requests-for-approval"],
     queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
     enabled: !!user,
   });
@@ -130,7 +128,17 @@ function AppSidebar() {
     return approbatorRequests(requestData.data.data, user?.id);
   }, [requestData.data, user?.id]);
 
-  if (getQuotationRequests.isLoading || getQuotations.isLoading || getPayments.isLoading || signatories.isLoading || myList.isLoading || requestData.isLoading || categoriesData.isLoading || providers.isLoading || getPurchases.isLoading) {
+  if (
+    getQuotationRequests.isLoading ||
+    getQuotations.isLoading ||
+    getPayments.isLoading ||
+    signatories.isLoading ||
+    myList.isLoading ||
+    requestData.isLoading ||
+    categoriesData.isLoading ||
+    providers.isLoading ||
+    getPurchases.isLoading
+  ) {
     return (
       <Sidebar>
         <SidebarHeader>
@@ -140,16 +148,23 @@ function AppSidebar() {
         </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(12)].map((_, i) => (
-            <Skeleton
-              key={i}
-              className="w-full h-10"
-            ></Skeleton>
+            <Skeleton key={i} className="w-full h-10"></Skeleton>
           ))}
         </SidebarContent>
       </Sidebar>
     );
   }
-  if (getQuotationRequests.isError || getQuotations.isError || getPayments.isError || signatories.isError || myList.isError || requestData.isError || categoriesData.isError || providers.isError || getPurchases.isError) {
+  if (
+    getQuotationRequests.isError ||
+    getQuotations.isError ||
+    getPayments.isError ||
+    signatories.isError ||
+    myList.isError ||
+    requestData.isError ||
+    categoriesData.isError ||
+    providers.isError ||
+    getPurchases.isError
+  ) {
     return (
       <Sidebar>
         <SidebarHeader>
@@ -159,16 +174,23 @@ function AppSidebar() {
         </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(12)].map((_, i) => (
-            <Skeleton
-              key={i}
-              className="w-full h-10"
-            ></Skeleton>
+            <Skeleton key={i} className="w-full h-10"></Skeleton>
           ))}
         </SidebarContent>
       </Sidebar>
-    )
+    );
   }
-  if (getQuotationRequests.isSuccess && getQuotations.isSuccess && getPayments.isSuccess && signatories.isSuccess && myList.isSuccess && requestData.isSuccess && categoriesData.isSuccess && providers.isSuccess && getPurchases.isSuccess) {
+  if (
+    getQuotationRequests.isSuccess &&
+    getQuotations.isSuccess &&
+    getPayments.isSuccess &&
+    signatories.isSuccess &&
+    myList.isSuccess &&
+    requestData.isSuccess &&
+    categoriesData.isSuccess &&
+    providers.isSuccess &&
+    getPurchases.isSuccess
+  ) {
     const purchase = getPurchases.data?.data.filter(
       (c) => c.status === "IN-REVIEW" || c.status === "PENDING",
     );
@@ -195,7 +217,9 @@ function AppSidebar() {
 
     // Récupérer tous les IDs des besoins présents dans les cotations
     const besoinsDansCotation =
-      getQuotationRequests.data.data.flatMap((item) => item.besoins.map((b) => b.id)) ?? [];
+      getQuotationRequests.data.data.flatMap((item) =>
+        item.besoins.map((b) => b.id),
+      ) ?? [];
 
     // Filtrer les besoins validés qui ne sont pas dans une cotation
     const besoinVal = requestData.data.data.filter(
@@ -205,11 +229,16 @@ function AppSidebar() {
         !besoinsDansCotation.includes(x.id),
     );
 
-    const pendingData = requestData.data.data.filter(b => {
-      return b.state === "pending" && b.validators.find(v => v.userId === user?.id)?.validated === false
+    const pendingData = requestData.data.data.filter((b) => {
+      return (
+        b.state === "pending" &&
+        b.validators.find((v) => v.userId === user?.id)?.validated === false
+      );
     });
 
-    const ticketsData = getPayments.data.data.filter((ticket) => ticket.status !== "ghost");
+    const ticketsData = getPayments.data.data.filter(
+      (ticket) => ticket.status !== "ghost",
+    );
     const pendingTicket = ticketsData.filter(
       (ticket) => ticket.status === "pending",
     );
@@ -228,12 +257,10 @@ function AppSidebar() {
         ticket.status !== "validated" &&
         ticket.status !== "pending_depense" &&
         ticket.status !== "unsigned" &&
-        ticket.status !== "paid"
-
+        ticket.status !== "paid",
     );
 
     const overall = approvedDepense?.concat(approvedDepense);
-
 
     const navLinks: NavigationItemProps[] = [
       {
@@ -275,7 +302,8 @@ function AppSidebar() {
             title: "Approbation",
             href: "/tableau-de-bord/besoins/validation",
             authorized: ["ADMIN", "MANAGER"],
-            badgeValue: pendingData?.length > 0 ? pendingData?.length : undefined,
+            badgeValue:
+              pendingData?.length > 0 ? pendingData?.length : undefined,
           },
         ],
       },
@@ -361,7 +389,10 @@ function AppSidebar() {
             title: "Tickets",
             href: "/tableau-de-bord/ticket",
             authorized: ["ADMIN", "VOLT_MANAGER"],
-            badgeValue: ticketsDataP && ticketsDataP.length > 0 ? ticketsDataP?.length : undefined,
+            badgeValue:
+              ticketsDataP && ticketsDataP.length > 0
+                ? ticketsDataP?.length
+                : undefined,
           },
           {
             pageId: "PG-04-02",
@@ -383,7 +414,8 @@ function AppSidebar() {
         href: "/tableau-de-bord/depenses",
         authorized: ["VOLT", "ADMIN"],
         title: "Dépenses",
-        badgeValue: overall && overall?.length > 0 ? overall?.length : undefined,
+        badgeValue:
+          overall && overall?.length > 0 ? overall?.length : undefined,
         items: [
           {
             pageId: "PG-23354987-00",
@@ -563,7 +595,6 @@ function AppSidebar() {
       </Sidebar>
     );
   }
-
 }
 
 export default AppSidebar;
