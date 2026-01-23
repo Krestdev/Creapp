@@ -24,7 +24,7 @@ import {
   LucideBan,
   LucideIcon,
   Paperclip,
-  Settings2
+  Settings2,
 } from "lucide-react";
 import * as React from "react";
 
@@ -135,7 +135,7 @@ export function DataVal({
   paymentsData,
   requestTypeData,
   pending,
-  cleared
+  cleared,
 }: DataTableProps) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -167,7 +167,7 @@ export function DataVal({
     },
     {
       id: 1,
-      title: "Traités"
+      title: "Traités",
     },
   ];
 
@@ -197,13 +197,13 @@ export function DataVal({
 
   // Fonction pour vérifier si l'utilisateur est le dernier validateur pour un besoin
   const isUserLastValidatorForRequest = (request: RequestModelT): boolean => {
-    const rank = request.validators.find(v => v.userId === user?.id)?.rank;
-    return !!rank && !request.validators.some(x => x.rank > rank);
+    const rank = request.validators.find((v) => v.userId === user?.id)?.rank;
+    return !!rank && !request.validators.some((x) => x.rank > rank);
   };
 
   // Fonction pour vérifier si l'utilisateur a déjà validé un besoin
   const hasUserAlreadyValidated = (request: RequestModelT): boolean => {
-    const validator = request.validators.find(v => v.userId === user?.id);
+    const validator = request.validators.find((v) => v.userId === user?.id);
     return !!validator && validator.validated === true;
   };
 
@@ -228,8 +228,10 @@ export function DataVal({
       //Selected Tab
       const matchTab =
         selectedTab === 0
-          ? b.state === "pending" && b.validators.find(v => v.userId === user?.id)?.validated === false
-          : selectedTab === 1 && b.validators.find(v => v.userId === user?.id)?.validated === true;
+          ? b.state === "pending" &&
+            b.validators.find((v) => v.userId === user?.id)?.validated === false
+          : selectedTab === 1 &&
+            b.validators.find((v) => v.userId === user?.id)?.validated === true;
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : b.state === statusFilter;
@@ -314,7 +316,6 @@ export function DataVal({
 
   const categoryIds = [...new Set(data.map((req) => req.categoryId))];
 
-
   const getStatusConfig = (
     status: string,
   ): {
@@ -371,7 +372,6 @@ export function DataVal({
     });
   }, [data]);
 
-
   const reviewRequest = useMutation({
     mutationFn: async ({
       id,
@@ -385,20 +385,19 @@ export function DataVal({
       decision?: string;
       validatorId?: number;
       validator?:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
-    }) => {
-      await requestQ.review(id, {
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
+    }) =>
+      requestQ.review(id, {
         validated: validated,
         decision: decision,
         userId: validatorId ?? -1,
         validator: validator,
-      });
-    },
+      }),
     onSuccess: () => {
       toast.success(
         validationType === "approve"
@@ -583,12 +582,16 @@ export function DataVal({
 
   // Fonction pour obtenir l'info de validation pour un besoin
   const getValidationInfo = (request: RequestModelT) => {
-    const userPosition = request.validators.find(v => v.userId === user?.id)?.rank;
+    const userPosition = request.validators.find(
+      (v) => v.userId === user?.id,
+    )?.rank;
     const isLastValidator = isUserLastValidatorForRequest(request);
     const categoryName = getCategoryName(String(request.categoryId));
 
     const totalValidators = request.validators.length;
-    const validatedCount = request.validators.filter(v => v.validated === true).length;
+    const validatedCount = request.validators.filter(
+      (v) => v.validated === true,
+    ).length;
 
     return {
       userPosition,
@@ -598,7 +601,10 @@ export function DataVal({
       validatedCount,
       progress:
         totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
-      canValidate: request.state === "pending" && request.validators.find(v => v.rank === userPosition)?.validated === false,
+      canValidate:
+        request.state === "pending" &&
+        request.validators.find((v) => v.rank === userPosition)?.validated ===
+          false,
     };
   };
 
@@ -849,9 +855,21 @@ export function DataVal({
           const beneficiary = row.original.beneficiary;
           return (
             <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
-              {beneficiary.toLocaleLowerCase() === "me" ? getUserName(usersData, user?.id) : item.type?.toLocaleLowerCase().includes("facili") ? item.benFac?.list.map(li => li.name).join(", ").substring(0, 21) : !!list && list.length > 0 ? list.map(u => u.firstName.concat(" ", u.lastName)).join(", ").substring(0, 21) : "Aucun bénéficiaire"}
+              {beneficiary.toLocaleLowerCase() === "me"
+                ? getUserName(usersData, user?.id)
+                : item.type?.toLocaleLowerCase().includes("facili")
+                  ? item.benFac?.list
+                      .map((li) => li.name)
+                      .join(", ")
+                      .substring(0, 21)
+                  : !!list && list.length > 0
+                    ? list
+                        .map((u) => u.firstName.concat(" ", u.lastName))
+                        .join(", ")
+                        .substring(0, 21)
+                    : "Aucun bénéficiaire"}
             </div>
-          )
+          );
         },
       },
     );
@@ -959,7 +977,8 @@ export function DataVal({
                       ? item.type === "facilitation"
                         ? (setSelectedItem(item), setIsUpdateFacModalOpen(true))
                         : item.type === "ressource_humaine"
-                          ? (setSelectedItem(item), setIsUpdateRHModalOpen(true))
+                          ? (setSelectedItem(item),
+                            setIsUpdateRHModalOpen(true))
                           : (setSelectedItem(item), setIsLastValModalOpen(true))
                       : openValidationModal("approve", item)
                   }
@@ -1178,9 +1197,9 @@ export function DataVal({
                         <span className="text-muted-foreground text-xs">
                           {customDateRange?.from && customDateRange.to
                             ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                                customDateRange.from,
+                                "dd/MM/yyyy",
+                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -1319,9 +1338,9 @@ export function DataVal({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                       </TableHead>
                     );
                   })}
@@ -1347,8 +1366,8 @@ export function DataVal({
                       validationInfo.userPosition === 3 && "border-l-red-400",
                       validationInfo.isLastValidator && "border-l-red-400",
                       isSelected &&
-                      isCheckable &&
-                      "bg-blue-50 hover:bg-blue-100",
+                        isCheckable &&
+                        "bg-blue-50 hover:bg-blue-100",
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
