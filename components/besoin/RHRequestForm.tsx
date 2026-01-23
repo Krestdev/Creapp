@@ -19,22 +19,22 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
+import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, LoaderIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { SearchableSelect } from "../base/searchableSelect";
-import { userQ } from "@/queries/baseModule";
-import FilesUpload from "../comp-547";
 import MultiSelectUsers from "../base/multiSelectUsers";
-import { projectQ } from "@/queries/projectModule";
+import { SearchableSelect } from "../base/searchableSelect";
+import FilesUpload from "../comp-547";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -221,9 +221,8 @@ export default function RHRequestForm() {
             name="titre"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Titre du besoin"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="Titre du besoin" {...field} />
@@ -239,9 +238,8 @@ export default function RHRequestForm() {
             name="periode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Période"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Popover>
@@ -288,9 +286,8 @@ export default function RHRequestForm() {
             name="date_limite"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Date limite"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <Popover>
                   <PopoverTrigger asChild className="h-10 w-full">
@@ -303,7 +300,7 @@ export default function RHRequestForm() {
                         {field.value ? (
                           format(field.value, "PPP", { locale: fr })
                         ) : (
-                          <span>Choisir une date</span>
+                          <span>{"Choisir une date"}</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -330,9 +327,8 @@ export default function RHRequestForm() {
             name="montant"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Montant"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="Montant" {...field} />
@@ -348,9 +344,8 @@ export default function RHRequestForm() {
             name="beneficiaire"
             render={({ field }) => (
               <FormItem className="col-span-2">
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Bénéficiaire"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <MultiSelectUsers
@@ -373,9 +368,8 @@ export default function RHRequestForm() {
             name="justificatif"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Justificatif"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <FilesUpload
@@ -398,9 +392,8 @@ export default function RHRequestForm() {
             name="description"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Description détaillée du besoin"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Textarea
@@ -422,15 +415,10 @@ export default function RHRequestForm() {
             disabled={requestMutation.isPending}
             type="submit"
             className="min-w-[200px]"
+            isLoading={requestMutation.isPending}
           >
-            {requestMutation.isPending ? (
-              <>
-                <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
-                Soumission en cours...
-              </>
-            ) : (
-              "Soumettre la demande RH"
-            )}
+
+              {"Soumettre la demande RH"}
           </Button>
         </div>
       </form>
