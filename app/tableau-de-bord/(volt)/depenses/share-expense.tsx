@@ -103,6 +103,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     defaultValues: {
       label: ticket.title,
       fromBankId: undefined,
+      proof: [],
       // Si le ticket n'a pas de methodId, laisser undefined
       ...(hasExistingMethodId ? {} : { methodId: undefined }),
       to: { label: "", accountNumber: "", phoneNum: "" },
@@ -250,10 +251,12 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       return;
     }
 
+    const status = isCashPayment ? "paid" : "unsigned"
+
     // Créer l'objet payload
     const payload: TransactionProps = {
       ...rest,
-      proof,
+      ...(isCashPayment ? { proof } : {}),
       Type: trans?.Type!,
       date: new Date(),
       amount: ticket.price,
@@ -262,6 +265,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       label: ticket.title,
       to,
       fromBankId,
+      status: status,
       // Inclure methodId dans le payload
       methodId: finalMethodId,
     };
