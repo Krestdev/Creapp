@@ -31,10 +31,9 @@ import { useStore } from "@/providers/datastore";
 import { payTypeQ } from "@/queries/payType";
 import { signatairQ } from "@/queries/signatair";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
-import { Bank, PAY_STATUS, PaymentRequest, PayType, Signatair } from "@/types/types";
+import { Bank, PaymentRequest, PayType, Signatair } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -499,26 +498,29 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="to.accountNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{"Compte bancaire destinataire"}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          placeholder="Ex. 2350 0054"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        {"Numéro de Compte Bancaire du client si applicable"}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!isCashPayment &&
+                  <FormField
+                    control={form.control}
+                    name="to.accountNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{"Compte bancaire destinataire"}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            placeholder="Ex. 2350 0054"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {"Numéro de Compte Bancaire du client si applicable"}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                }
+
                 <FormField
                   control={form.control}
                   name="to.phoneNum"
@@ -534,9 +536,6 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                           placeholder="Ex. 694 562 002"
                         />
                       </FormControl>
-                      <FormDescription>
-                        {"Numéro de téléphone si applicable"}
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
