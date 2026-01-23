@@ -849,7 +849,7 @@ export function DataVal({
           const beneficiary = row.original.beneficiary;
           return (
             <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
-              {beneficiary.toLocaleLowerCase() === "me" ? getUserName(usersData, user?.id) : item.type?.toLocaleLowerCase().includes("facili") ? item.benFac?.list.map(li=> li.name).join(", ").substring(0, 21) : !!list && list.length > 0 ? list.map(u => u.firstName.concat(" ", u.lastName)).join(", ").substring(0, 21) : "Aucun bénéficiaire"}
+              {beneficiary.toLocaleLowerCase() === "me" ? getUserName(usersData, user?.id) : item.type?.toLocaleLowerCase().includes("facili") ? item.benFac?.list.map(li => li.name).join(", ").substring(0, 21) : !!list && list.length > 0 ? list.map(u => u.firstName.concat(" ", u.lastName)).join(", ").substring(0, 21) : "Aucun bénéficiaire"}
             </div>
           )
         },
@@ -1492,8 +1492,8 @@ export function DataVal({
         type={validationType}
         title={
           validationType === "approve"
-            ? "Approuver le besoin"
-            : "Rejeter le besoin"
+            ? `Approuver - ${selectedItem?.label}`
+            : `Rejeter - ${selectedItem?.label}`
         }
         description={
           validationType === "approve"
