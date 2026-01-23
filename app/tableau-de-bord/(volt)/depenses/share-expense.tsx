@@ -1,5 +1,6 @@
 "use client";
 
+import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -53,16 +54,19 @@ const createFormSchema = (hasMethodId: boolean) =>
     ...(hasMethodId
       ? {}
       : {
-          methodId: z
-            .number()
-            .int()
-            .positive("Veuillez sélectionner un moyen de paiement"),
-        }),
+        methodId: z
+          .number()
+          .int()
+          .positive("Veuillez sélectionner un moyen de paiement"),
+      }),
     to: z.object({
       label: z.string().min(2, "Libellé trop court"),
       accountNumber: z.string().optional(),
       phoneNum: z.string().optional(),
     }),
+    proof: z
+      .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
+      .min(0),
   });
 
 type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
@@ -130,6 +134,11 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       (payType: PayType) => payType.id === methodId,
     );
   }, [payTypesQuery.data?.data, ticket.methodId, selectedMethodId]);
+
+  // Vérifier si le mode de paiement est "espèces"
+  const isCashPayment = useMemo(() => {
+    return paymentMethod?.type?.toLowerCase() === "cash";
+  }, [paymentMethod]);
 
   // Filtrer les comptes en fonction du type de paiement
   const filteredBanks = useMemo(() => {
@@ -209,7 +218,12 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     }
   };
 
-  const pay = useMutation({
+  const gettransaction = useQuery({
+    queryKey: ["transactions"],
+    queryFn: transactionQ.getAll,
+  });
+
+  const share = useMutation({
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.create(payload),
     onSuccess: () => {
@@ -221,8 +235,26 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     },
   });
 
+  const pay = useMutation({
+    mutationFn: async (payload: Omit<TransactionProps, "userId">) =>
+      transactionQ.update(ticket.transactionId!, payload),
+    onSuccess: () => {
+      toast.success("Votre transaction a été enregistrée avec succès !");
+      onOpenChange(false);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  console.log(ticket);
+
+  const trans = gettransaction.data?.data.find(
+    (item) => item.id === ticket.transactionId,
+  );
+
   function onSubmit(values: FormValues) {
-    const { to, fromBankId, methodId, ...rest } = values;
+    const { to, fromBankId, methodId, proof, ...rest } = values;
 
     // Utiliser methodId du formulaire si présent, sinon celui du ticket
     const finalMethodId = Number(methodId) || ticket.methodId;
@@ -232,29 +264,40 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       return;
     }
 
+    // Déterminer le statut en fonction du type de paiement
+    const status = isCashPayment ? "paid" : "pending";
+
     // Créer l'objet payload
     const payload: TransactionProps = {
       ...rest,
-      Type: "DEBIT",
+      proof,
+      Type: trans?.Type!,
       date: new Date(),
       amount: ticket.price,
       userId: user?.id ?? 0,
       paymentId: ticket.id,
+      label: ticket.title,
+      status: status,
       to,
       fromBankId,
       // Inclure methodId dans le payload
       methodId: finalMethodId,
     };
-
-    pay.mutate(payload);
+    share.mutate(payload);
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="uppercase">{`Soumettre - ${ticket.title}`}</DialogTitle>
-          <DialogDescription>{`Soumission du ticket ${ticket.reference}`}</DialogDescription>
+          <DialogTitle className="uppercase">
+            {isCashPayment ? `Payer - ${ticket.title}` : `Soumettre - ${ticket.title}`}
+          </DialogTitle>
+          <DialogDescription>
+            {isCashPayment
+              ? `Paiement du ticket ${ticket.reference} en espèces`
+              : `Soumission du ticket ${ticket.reference}`}
+          </DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto px-6 pb-4">
           <Form {...form}>
@@ -390,8 +433,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                                     {bank.type === "CASH_REGISTER" &&
                                       `Caisse principale - Solde: ${bank.balance?.toLocaleString()} FCFA`}
                                     {bank.type === "MOBILE_WALLET" &&
-                                      `Portefeuille mobile (${bank.label}) - ${
-                                        bank.phoneNum || "N/A"
+                                      `Portefeuille mobile (${bank.label}) - ${bank.phoneNum || "N/A"
                                       }`}
                                   </span>
                                 </div>
@@ -521,6 +563,32 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                     </FormItem>
                   )}
                 />
+                {/* Afficher le champ proof seulement si c'est un paiement en espèces */}
+                {isCashPayment && (
+                  <FormField
+                    control={form.control}
+                    name="proof"
+                    render={({ field }) => (
+                      <FormItem className="@min-[640px]:col-span-2">
+                        <FormLabel isRequired>{"Justificatif"}</FormLabel>
+                        <FormDescription>
+                          Justificatif obligatoire pour les paiements en espèces
+                        </FormDescription>
+                        <FormControl>
+                          <FilesUpload
+                            value={field.value}
+                            onChange={field.onChange}
+                            name={field.name}
+                            acceptTypes="images"
+                            multiple={true}
+                            maxFiles={4}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
             </form>
           </Form>
@@ -530,17 +598,17 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
             onClick={form.handleSubmit(onSubmit)}
             variant={"primary"}
             disabled={
-              pay.isPending ||
+              share.isPending ||
               filteredBanks.length === 0 ||
               (!hasExistingMethodId && !selectedMethodId)
             }
-            isLoading={pay.isPending}
+            isLoading={share.isPending}
           >
-            {"Soumettre"}
+            {isCashPayment ? "Payer" : "Soumettre au signataire"}
           </Button>
           <Button
             variant={"outline"}
-            disabled={pay.isPending}
+            disabled={share.isPending}
             onClick={(e) => {
               e.preventDefault();
               form.reset();

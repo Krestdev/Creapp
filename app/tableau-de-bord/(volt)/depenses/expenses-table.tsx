@@ -531,7 +531,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                   }}
                 >
                   <Signature />
-                  {"Soumettre aux signataires"}
+                  {"Traiter"}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

@@ -65,7 +65,6 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
     onSuccess: () => {
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
-      // router.push("./");
     },
     onError: (error: Error) => {
       toast.error(error.message);

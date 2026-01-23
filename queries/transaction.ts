@@ -53,6 +53,7 @@ class TransactionQuery {
     formData.append("userId", String(payload.userId));
     formData.append("paymentId", String(payload.paymentId));
     formData.append("methodId", String(payload.methodId));
+    formData.append("status", String(payload.status));
     if (payload.from) formData.append("from", JSON.stringify(payload.from));
     if (payload.fromBankId)
       formData.append("fromBankId", String(payload.fromBankId));
