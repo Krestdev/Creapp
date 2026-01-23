@@ -119,9 +119,8 @@ export default function SpecialRequestForm() {
             name="titre"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>
-                  Titre du besoin spécial
-                  <span className="text-red-500">*</span>
+                <FormLabel isRequired>
+                  {"Titre du besoin spécial"}
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -140,9 +139,8 @@ export default function SpecialRequestForm() {
             name="montant"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Montant (FCFA)
-                  <span className="text-red-500">*</span>
+                <FormLabel isRequired>
+                  {"Montant (FCFA)"}
                 </FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="ex. 500000" {...field} />
@@ -158,9 +156,8 @@ export default function SpecialRequestForm() {
             name="delai"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Délai d'exécution
-                  <span className="text-red-500">*</span>
+                <FormLabel isRequired>
+                  {"Délai d'exécution"}
                 </FormLabel>
                 <FormControl>
                   <Popover>
@@ -174,7 +171,7 @@ export default function SpecialRequestForm() {
                           {field.value ? (
                             format(field.value, "PPP", { locale: fr })
                           ) : (
-                            <span>Choisir une date</span>
+                            <span>{"Choisir une date"}</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -185,6 +182,7 @@ export default function SpecialRequestForm() {
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
+                        disabled={(date) => date < new Date()}
                       />
                     </PopoverContent>
                   </Popover>
@@ -201,7 +199,7 @@ export default function SpecialRequestForm() {
             render={({ field }) => (
               <FormItem className="md:col-span-2">
                 <FormLabel>
-                  Justification / Raison
+                  {"Justification / Raison"}
                 </FormLabel>
                 <FormControl>
                   <Textarea
@@ -223,15 +221,9 @@ export default function SpecialRequestForm() {
             disabled={requestMutation.isPending}
             type="submit"
             className="min-w-[200px]"
+            isLoading={requestMutation.isPending}
           >
-            {requestMutation.isPending ? (
-              <>
-                <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
-                Soumission en cours...
-              </>
-            ) : (
-              "Soumettre le besoin spécial"
-            )}
+              {"Soumettre le besoin spécial"}
           </Button>
         </div>
       </form>

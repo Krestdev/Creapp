@@ -39,7 +39,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, LoaderIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -195,9 +195,8 @@ export default function MyForm() {
             name="projet"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Projet concerné"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <SearchableSelect
                   onChange={field.onChange}
@@ -229,9 +228,8 @@ export default function MyForm() {
             name="categorie"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Catégorie"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <SearchableSelect
                   width="w-full"
@@ -259,9 +257,8 @@ export default function MyForm() {
             name="titre"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Titre"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="Titre du besoin" {...field} />
@@ -277,9 +274,8 @@ export default function MyForm() {
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Quantité"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="ex. 10" {...field} />
@@ -295,9 +291,8 @@ export default function MyForm() {
             name="unite"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Unité"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
@@ -324,9 +319,8 @@ export default function MyForm() {
             name="datelimite"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Date limite"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <Popover>
                   <PopoverTrigger asChild className="h-10 w-full!">
@@ -353,6 +347,7 @@ export default function MyForm() {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={(date) => date < new Date()}
                     />
                   </PopoverContent>
                 </Popover>
@@ -367,8 +362,8 @@ export default function MyForm() {
             name="beneficiaire"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  {"Bénéficiaire"} <span className="text-red-500">*</span>
+                <FormLabel isRequired>
+                  {"Bénéficiaire"}
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
@@ -393,9 +388,8 @@ export default function MyForm() {
               name="beneficiaireId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Sélectionner le bénéficiaire{" "}
-                    <span className="text-red-500">*</span>
+                  <FormLabel isRequired>
+                    {"Sélectionner le bénéficiaire"}
                   </FormLabel>
                   <SearchableSelect
                     width="w-full"
@@ -443,15 +437,9 @@ export default function MyForm() {
             disabled={requestMutation.isPending}
             type="submit"
             className="min-w-[200px]"
+            isLoading={requestMutation.isPending}
           >
-            {requestMutation.isPending ? (
-              <>
-                <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
-                {"Soumission en cours..."}
-              </>
-            ) : (
-              "Soumettre le besoin"
-            )}
+              {"Soumettre le besoin"}
           </Button>
         </div>
       </form>

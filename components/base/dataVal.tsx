@@ -1511,8 +1511,8 @@ export function DataVal({
         type={validationType}
         title={
           validationType === "approve"
-            ? "Approuver le besoin"
-            : "Rejeter le besoin"
+            ? `Approuver - ${selectedItem?.label}`
+            : `Rejeter - ${selectedItem?.label}`
         }
         description={
           validationType === "approve"
