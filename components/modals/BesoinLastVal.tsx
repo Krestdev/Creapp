@@ -84,7 +84,6 @@ export function BesoinLastVal({
     },
   });
 
-
   const requestData = useQuery({
     queryKey: ["requests"],
     queryFn: () => {
@@ -112,15 +111,13 @@ export function BesoinLastVal({
     }: {
       id: number;
       validator:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
-    }) => {
-      await requestQ.validate(id, validator?.id!, validator);
-    },
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
+    }) => requestQ.validate(id, validator?.id!, validator),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
       requestData.refetch();

@@ -91,6 +91,7 @@ export default function SocketProvider({
     });
 
     socket.on("request:update", () => {
+      console.log("Request updated - invalidating relevant queries");
       queryClient.invalidateQueries({
         queryKey: ["requests"],
         refetchType: "active",

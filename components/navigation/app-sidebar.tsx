@@ -124,7 +124,6 @@ function AppSidebar() {
   });
 
   const data: Array<RequestModelT> = useMemo(() => {
-    console.log("Request Data:", requestData.data);
     if (!requestData.data) return [];
     return approbatorRequests(requestData.data.data, user?.id);
   }, [requestData.data, user?.id]);
@@ -207,10 +206,10 @@ function AppSidebar() {
     const approbationDevis =
       providers.data.data && getQuotationRequests.data && getQuotations.data
         ? groupQuotationsByCommandRequest(
-          getQuotationRequests.data.data,
-          getQuotations.data.data,
-          providers.data.data,
-        ).filter((c) => c.status === "NOT_PROCESSED")
+            getQuotationRequests.data.data,
+            getQuotations.data.data,
+            providers.data.data,
+          ).filter((c) => c.status === "NOT_PROCESSED")
         : [];
 
     const besoinDéstocké =
@@ -429,8 +428,8 @@ function AppSidebar() {
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
-                approvedDepense &&
-                approvedTicket?.length + approvedDepense?.length > 0
+              approvedDepense &&
+              approvedTicket?.length + approvedDepense?.length > 0
                 ? approvedTicket?.length + approvedDepense?.length
                 : undefined,
             authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
