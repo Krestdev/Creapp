@@ -185,6 +185,7 @@ export function DataTable({ data }: Props) {
     queryKey: ["payments"],
     queryFn: async () => paymentQ.getAll(),
   });
+
   const categoryData = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -416,13 +417,14 @@ export function DataTable({ data }: Props) {
       },
       cell: ({ row }) => {
         const original = row.original;
-        const modified = original.requestOlds?.some(x=> x.userId !== user?.id);
+        const modified = original.requestOlds?.some(x => x.userId !== user?.id);
         return (
-        <div className="flex items-center gap-1.5 max-w-[200px] truncate uppercase">
-          {!!modified && <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs"><AsteriskIcon size={16}/></span>}
-          {row.getValue("label")}
-        </div>
-      )},
+          <div className="flex items-center gap-1.5 max-w-[200px] truncate uppercase">
+            {!!modified && <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs"><AsteriskIcon size={16} /></span>}
+            {row.getValue("label")}
+          </div>
+        )
+      },
     },
     {
       accessorKey: "type",
@@ -593,7 +595,7 @@ export function DataTable({ data }: Props) {
                   }}
                   disabled={
                     item.state !== "pending" ||
-                    item.validators.some(v=> v.validated === true)
+                    item.validators.some(v => v.validated === true)
                   }
                 >
                   <LucideBan className="mr-2 h-4 w-4 text-red-500" />
