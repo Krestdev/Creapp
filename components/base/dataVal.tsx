@@ -844,35 +844,13 @@ export function DataVal({
           );
         },
         cell: ({ row }) => {
-  const list = row.original.beficiaryList; // Attention à la faute de frappe "beficiary" si elle est aussi dans ton API
-  const beneficiary = row.original.beneficiary;
-
-  const renderBeneficiaries = () => {
-    // Cas 1: C'est "me"
-    if (beneficiary?.toLocaleLowerCase() === "me") {
-      return getUserName(usersData, user?.id);
-    }
-
-    // Cas 2: C'est une liste d'utilisateurs
-    if (list && list.length > 0) {
-      const firstTwo = list.slice(0, 2).map(u => u.name).join(", ");
-      const remainingCount = list.length - 2;
-
-      return remainingCount > 0 
-        ? `${firstTwo}, +${remainingCount} autres` 
-        : firstTwo;
-    }
-
-    // Cas par défaut (si list est null ou vide)
-    return beneficiary || "N/A";
-  };
-
-  return (
-    <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase" title={list?.map(u => u.name).join(", ")}>
-      {renderBeneficiaries()}
-    </div>
-  );
-},
+          const list = row.original.beficiaryList;
+          const beneficiary = row.original.beneficiary;
+          return(
+          <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
+            {beneficiary.toLocaleLowerCase() === "me" ? getUserName(usersData, user?.id) : !!list && list.length > 0 ? list.map(u=>u.name).join(", ").substring(0,15) : "Aucun bénéficiaire"}
+          </div>
+        )},
       },
     );
 

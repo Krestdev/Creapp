@@ -77,7 +77,7 @@ const Page = () => {
       variant: "secondary",
       more: {
         title: "Total recus",
-        value: pending,
+        value: data.length,
       },
     },
     {
