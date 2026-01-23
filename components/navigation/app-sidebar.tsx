@@ -128,9 +128,23 @@ function AppSidebar() {
 
   const filteredData = React.useMemo(()=>{
       if(!requestData.data) return [];
-      return requestData.data.data.filter(r=>{
-        return r.state !== "cancel";
-      })
+      return requestData.data.data.filter((r) => {
+      const myRank = r.validators.find((u) => u.userId === user?.id)?.rank;
+      if(!myRank){
+        return false;
+      }
+      if(r.state === "cancel"){
+        return false;
+      }
+      if(myRank === 1){
+        return true;
+      }
+      if(r.state === "validated" || r.state === "rejected"){
+        return true;
+      }
+      return r.validators.find(v=> v.rank === myRank - 1)?.validated === true;
+      
+    })
     },[requestData.data]);
 
   if(getQuotationRequests.isLoading || getQuotations.isLoading || getPayments.isLoading || signatories.isLoading || myList.isLoading ||requestData.isLoading || categoriesData.isLoading || providers.isLoading || getPurchases.isLoading){
