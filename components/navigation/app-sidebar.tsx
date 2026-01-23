@@ -1,5 +1,6 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
+import { approbatorRequests } from "@/lib/requests-helpers";
 import { useStore } from "@/providers/datastore";
 import { categoryQ } from "@/queries/categoryModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
@@ -10,9 +11,7 @@ import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
 import {
-  Category,
-  NavigationItemProps,
-  RequestModelT
+  NavigationItemProps
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -48,7 +47,6 @@ import {
 } from "../ui/sidebar";
 import { Skeleton } from "../ui/skeleton";
 import NavigationItem from "./navigation-item";
-import { approbatorRequests, pendingApprobation } from "@/lib/requests-helpers";
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
@@ -207,7 +205,9 @@ function AppSidebar() {
         !besoinsDansCotation.includes(x.id),
     );
   
-    const pendingData = pendingApprobation(filteredData);
+    const pendingData =  requestData.data.data.filter(b=>{
+        return b.state === "pending" && b.validators.find(v=> v.userId === user?.id)?.validated === false
+      });
   
     const ticketsData = getPayments.data.data.filter((ticket) => ticket.status !== "ghost");
     const pendingTicket = ticketsData.filter(

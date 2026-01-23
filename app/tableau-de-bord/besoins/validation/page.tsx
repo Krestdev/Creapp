@@ -8,7 +8,7 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { approbatorRequests, decidedRequests, pendingApprobation } from "@/lib/requests-helpers";
+import { approbatorRequests } from "@/lib/requests-helpers";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
@@ -59,16 +59,18 @@ const Page = () => {
 
   // Calcul des statistiques à partir des données filtrées
   const pending = useMemo(() => {
-    return pendingApprobation(data, user?.id).length;
+    return data.filter(b=>{
+      return b.state === "pending" && b.validators.find(v=> v.userId === user?.id)?.validated === false
+    }).length
   }, [data, user?.id]);
 
   const approved = useMemo(() => {
-    return decidedRequests(data, user?.id).filter(r=> r.state !== "rejected").length;
+    return data.filter(b=> b.validators.find(v=> v.userId === user?.id)?.validated === true).filter(r=> r.state !== "rejected").length;
   }, [data, user?.id]);
 
   const rejected = useMemo(() => {
-    return decidedRequests(data, user?.id).filter(r=> r.state === "rejected").length;
-  }, [data]);
+    return data.filter(b=> b.validators.find(v=> v.userId === user?.id)?.validated === true).filter(r=> r.state === "rejected").length;
+  }, [data, user?.id]);
 
   const Statistics: Array<StatisticProps> = [
     {
