@@ -191,7 +191,7 @@ export type RequestModelT = {
   beneficiary: string;
   benef?: number[] | null;
   period?: DateRange | undefined;
-  beficiaryList?: { id: number; name: string; email: string }[] | null;
+  beficiaryList?: { id: number; firstName: string; lastName:string; email: string }[] | null;
   state: string;
   priority: "medium" | "high" | "low" | "urgent";
   projectId?: number | null;

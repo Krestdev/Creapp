@@ -1,5 +1,6 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
+import { approbatorRequests } from "@/lib/requests-helpers";
 import { useStore } from "@/providers/datastore";
 import { categoryQ } from "@/queries/categoryModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
@@ -10,9 +11,7 @@ import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
 import {
-  Category,
-  NavigationItemProps,
-  RequestModelT
+  NavigationItemProps
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -128,24 +127,8 @@ function AppSidebar() {
 
   const filteredData = React.useMemo(() => {
     if (!requestData.data) return [];
-    return requestData.data.data.filter((r) => {
-      const myRank = r.validators.find((u) => u.userId === user?.id)?.rank;
-      if (!myRank) {
-        return false;
-      }
-      if (r.state === "cancel") {
-        return false;
-      }
-      if (myRank === 1) {
-        return true;
-      }
-      if (r.state === "validated" || r.state === "rejected") {
-        return true;
-      }
-      return r.validators.find(v => v.rank === myRank - 1)?.validated === true;
-
-    })
-  }, [requestData.data]);
+    return approbatorRequests(requestData.data.data, user?.id);
+  }, [requestData.data, user?.id]);
 
   if (getQuotationRequests.isLoading || getQuotations.isLoading || getPayments.isLoading || signatories.isLoading || myList.isLoading || requestData.isLoading || categoriesData.isLoading || providers.isLoading || getPurchases.isLoading) {
     return (
@@ -222,9 +205,8 @@ function AppSidebar() {
         !besoinsDansCotation.includes(x.id),
     );
 
-    const pendingData = filteredData.filter(d => {
-      const status = d.state === "pending";
-      return status && d.validators.find(v => v.userId === user?.id)?.validated === false;
+    const pendingData = requestData.data.data.filter(b => {
+      return b.state === "pending" && b.validators.find(v => v.userId === user?.id)?.validated === false
     });
 
     const ticketsData = getPayments.data.data.filter((ticket) => ticket.status !== "ghost");

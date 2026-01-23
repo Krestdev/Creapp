@@ -53,7 +53,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, getUserName } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
@@ -196,15 +196,15 @@ export function DataVal({
     React.useState(false);
 
   // Fonction pour vérifier si l'utilisateur est le dernier validateur pour un besoin
-  const isUserLastValidatorForRequest = (request: RequestModelT):boolean => {
-    const rank = request.validators.find(v=> v.userId === user?.id)?.rank;
-    return !!rank && !request.validators.some(x=> x.rank > rank);
+  const isUserLastValidatorForRequest = (request: RequestModelT): boolean => {
+    const rank = request.validators.find(v => v.userId === user?.id)?.rank;
+    return !!rank && !request.validators.some(x => x.rank > rank);
   };
 
   // Fonction pour vérifier si l'utilisateur a déjà validé un besoin
-  const hasUserAlreadyValidated = (request: RequestModelT):boolean => {
-    const validator = request.validators.find(v=> v.userId === user?.id);
-    return !!validator && validator.validated === true ;
+  const hasUserAlreadyValidated = (request: RequestModelT): boolean => {
+    const validator = request.validators.find(v => v.userId === user?.id);
+    return !!validator && validator.validated === true;
   };
 
   const getProjectName = (projectId: string) => {
@@ -219,11 +219,6 @@ export function DataVal({
     return category?.label || categoryId;
   };
 
-  const getUserName = (userId: string) => {
-    const user = usersData?.find((u) => u.id === Number(userId));
-    return user?.lastName + " " + user?.firstName || userId;
-  };
-
   // Major Filter *******************************************
   const filteredData = React.useMemo(() => {
     return data.filter((b) => {
@@ -233,8 +228,8 @@ export function DataVal({
       //Selected Tab
       const matchTab =
         selectedTab === 0
-          ? b.state === "pending" && b.validators.find(v=> v.userId === user?.id)?.validated === false
-          : selectedTab === 1 && b.validators.find(v=> v.userId === user?.id)?.validated === true;
+          ? b.state === "pending" && b.validators.find(v => v.userId === user?.id)?.validated === false
+          : selectedTab === 1 && b.validators.find(v => v.userId === user?.id)?.validated === true;
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : b.state === statusFilter;
@@ -376,44 +371,6 @@ export function DataVal({
     });
   }, [data]);
 
-  const getBeneficiaryDisplay = (request: RequestModelT) => {
-    if (request.beneficiary === "me") {
-      return getUserName(String(request.userId));
-    } else if (
-      request.beneficiary === "groupe" &&
-      request.benef &&
-      request.benef.length === 1
-    ) {
-      return request.beficiaryList![0].name;
-    } else if (
-      request.beneficiary === "groupe" &&
-      request.beficiaryList &&
-      request.beficiaryList.length > 0
-    ) {
-      if (request.beficiaryList.length > 1) {
-        return (
-          request.beficiaryList
-            .slice(0, 1)
-            .map((ben) => getUserName(String(ben.name)))
-            .join(", ") +
-          " + " +
-          (request.beficiaryList.length - 1) +
-          " autre" +
-          (request.beficiaryList.length - 1 > 1 ? "s" : "")
-        );
-      }
-      return request.beficiaryList
-        .map((ben) => getUserName(String(ben.name)))
-        .join(", ");
-    } else if (request.type === "facilitation") {
-      return (
-        usersData.find((u) => u.id === Number(request.beneficiary))?.firstName +
-        " " +
-        usersData.find((u) => u.id === Number(request.beneficiary))?.lastName
-      );
-    }
-    return "Aucun bénéficiaire";
-  };
 
   const reviewRequest = useMutation({
     mutationFn: async ({
@@ -626,12 +583,12 @@ export function DataVal({
 
   // Fonction pour obtenir l'info de validation pour un besoin
   const getValidationInfo = (request: RequestModelT) => {
-    const userPosition = request.validators.find(v=> v.userId === user?.id)?.rank;
+    const userPosition = request.validators.find(v => v.userId === user?.id)?.rank;
     const isLastValidator = isUserLastValidatorForRequest(request);
     const categoryName = getCategoryName(String(request.categoryId));
 
     const totalValidators = request.validators.length;
-    const validatedCount = request.validators.filter(v=>v.validated === true).length;
+    const validatedCount = request.validators.filter(v => v.validated === true).length;
 
     return {
       userPosition,
@@ -641,7 +598,7 @@ export function DataVal({
       validatedCount,
       progress:
         totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
-      canValidate: request.state === "pending" && request.validators.find(v=> v.rank === userPosition)?.validated === false,
+      canValidate: request.state === "pending" && request.validators.find(v => v.rank === userPosition)?.validated === false,
     };
   };
 
@@ -844,7 +801,7 @@ export function DataVal({
         },
         cell: ({ row }) => (
           <div className="text-sm first-letter:uppercase lowercase">
-            {getUserName(row.getValue("userId"))}
+            {getUserName(usersData, row.getValue("userId"))}
           </div>
         ),
       },
@@ -886,11 +843,15 @@ export function DataVal({
             </span>
           );
         },
-        cell: ({ row }) => (
-          <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
-            {getBeneficiaryDisplay(row.original)}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const list = row.original.beficiaryList;
+          const beneficiary = row.original.beneficiary;
+          return (
+            <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
+              {beneficiary.toLocaleLowerCase() === "me" ? getUserName(usersData, user?.id) : !!list && list.length > 0 ? list.map(u => u.firstName.concat(" ", u.lastName)).join(", ").substring(0, 15) : "Aucun bénéficiaire"}
+            </div>
+          )
+        },
       },
     );
 
