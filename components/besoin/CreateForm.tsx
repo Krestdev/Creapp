@@ -36,7 +36,7 @@ import { requestQ } from "@/queries/requestModule";
 
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -70,7 +70,6 @@ const formSchema = z.object({
 
 export default function MyForm() {
   const { user } = useStore();
-  const queryClient = useQueryClient();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
@@ -137,7 +136,10 @@ export default function MyForm() {
 
   const requestMutation = useMutation({
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators">,
+      data: Omit<
+        RequestModelT,
+        "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+      >,
     ) => requestQ.create(data),
 
     onSuccess: () => {
@@ -195,9 +197,7 @@ export default function MyForm() {
             name="projet"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Projet concerné"}
-                </FormLabel>
+                <FormLabel isRequired>{"Projet concerné"}</FormLabel>
                 <SearchableSelect
                   onChange={field.onChange}
                   options={
@@ -228,9 +228,7 @@ export default function MyForm() {
             name="categorie"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Catégorie"}
-                </FormLabel>
+                <FormLabel isRequired>{"Catégorie"}</FormLabel>
                 <SearchableSelect
                   width="w-full"
                   allLabel=""
@@ -257,9 +255,7 @@ export default function MyForm() {
             name="titre"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Titre"}
-                </FormLabel>
+                <FormLabel isRequired>{"Titre"}</FormLabel>
                 <FormControl>
                   <Input placeholder="Titre du besoin" {...field} />
                 </FormControl>
@@ -274,9 +270,7 @@ export default function MyForm() {
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Quantité"}
-                </FormLabel>
+                <FormLabel isRequired>{"Quantité"}</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="ex. 10" {...field} />
                 </FormControl>
@@ -291,9 +285,7 @@ export default function MyForm() {
             name="unite"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Unité"}
-                </FormLabel>
+                <FormLabel isRequired>{"Unité"}</FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
@@ -319,9 +311,7 @@ export default function MyForm() {
             name="datelimite"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel isRequired>
-                  {"Date limite"}
-                </FormLabel>
+                <FormLabel isRequired>{"Date limite"}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild className="h-10 w-full!">
                     <FormControl className="w-full">
@@ -362,9 +352,7 @@ export default function MyForm() {
             name="beneficiaire"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Bénéficiaire"}
-                </FormLabel>
+                <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
@@ -439,7 +427,7 @@ export default function MyForm() {
             className="min-w-[200px]"
             isLoading={requestMutation.isPending}
           >
-              {"Soumettre le besoin"}
+            {"Soumettre le besoin"}
           </Button>
         </div>
       </form>

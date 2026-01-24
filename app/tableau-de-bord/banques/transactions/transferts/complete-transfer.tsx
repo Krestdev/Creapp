@@ -26,7 +26,7 @@ import {
 import { transactionQ } from "@/queries/transaction";
 import { TransferTransaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
@@ -58,7 +58,7 @@ type FormValue = z.infer<typeof formSchema>;
 
 function CompleteTransfer({ open, openChange, transaction }: Props) {
   const [selectDate, setSelectDate] = React.useState<boolean>(false);
-  const queryClient = useQueryClient();
+
   const form = useForm<FormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {

@@ -23,7 +23,7 @@ import { projectQ } from "@/queries/projectModule";
 
 import { ProjectT, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -66,7 +66,6 @@ export default function UpdateProject({
   });
 
   const { isHydrated, user } = useStore();
-  const queryClient = useQueryClient();
 
   const projectApi = useMutation({
     mutationFn: (
@@ -79,10 +78,6 @@ export default function UpdateProject({
       toast.success("Projet mis à jour avec succès !");
       form.reset();
       setOpen(false);
-      // queryClient.invalidateQueries({
-      //   queryKey: ["projectsList"],
-      //   refetchType: "active",
-      // });
     },
     onError: (error: any) => {
       toast.error("Une erreur est survenue lors de la mise à jour du projet.");

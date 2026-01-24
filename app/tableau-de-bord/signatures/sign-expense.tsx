@@ -10,9 +10,8 @@ import {
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
 import { Bank, PaymentRequest } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import z from "zod";
 
 interface Props {
   ticket: PaymentRequest;
@@ -21,16 +20,8 @@ interface Props {
   banks: Array<Bank>;
 }
 
-const formSchema = z.object({
-  id: z.string(),
-  userId: z.number(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
 function SignExpense({ ticket, open, onOpenChange, banks }: Props) {
   const { user } = useStore();
-  const queryClient = useQueryClient();
 
   const pay = useMutation({
     mutationFn: async (userId: number) =>

@@ -33,7 +33,7 @@ import { quotationQ } from "@/queries/quotation";
 import { Quotation, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, FolderX, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -51,7 +51,7 @@ const formSchema = z.object({
       const d = new Date(val);
       return !isNaN(d.getTime());
     },
-    { message: "Date invalide" }
+    { message: "Date invalide" },
   ),
   elements: z
     .array(
@@ -64,14 +64,14 @@ const formSchema = z.object({
         quantity: z.number(),
         unit: z.string(),
         price: z.number({ message: "Veuillez renseigner un prix" }),
-      })
+      }),
     )
     .min(1),
   proof: z.array(
     z.union([
       z.instanceof(File, { message: "Doit être un fichier valide" }),
       z.string(),
-    ])
+    ]),
   ),
 });
 
@@ -83,7 +83,6 @@ interface Props {
 }
 
 function CreateQuotation({ quotation, openChange }: Props) {
-  const queryClient = useQueryClient();
   const router = useRouter();
   const intentRef = React.useRef<"save" | "saveAndCreate">("save");
   const [open, setOpen] = React.useState<boolean>(false);
@@ -169,12 +168,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
       toast.success(
         variables?.id
           ? "Votre devis a été modifié avec succès"
-          : "Votre devis a été créé avec succès"
+          : "Votre devis a été créé avec succès",
       );
-      queryClient.invalidateQueries({
-        queryKey: ["quotations"],
-        refetchType: "active",
-      });
       if (!!openChange) {
         openChange(false);
       }
@@ -206,8 +201,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
     if (form.watch("commandRequestId"))
       setSelectedNeeds(
         cmdRqstData.data?.data.find(
-          (c) => c.id === form.watch("commandRequestId")
-        )?.besoins
+          (c) => c.id === form.watch("commandRequestId"),
+        )?.besoins,
       );
   }, [form.watch("commandRequestId")]);
 
@@ -216,8 +211,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
     if (form.watch("commandRequestId"))
       setSelectedNeeds(
         cmdRqstData.data?.data.find(
-          (c) => c.id === form.watch("commandRequestId")
-        )?.besoins
+          (c) => c.id === form.watch("commandRequestId"),
+        )?.besoins,
       );
   }, [form.watch("commandRequestId")]);
 
@@ -237,7 +232,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
 
   const filteredProviders =
     providersData.data?.data.filter((provider) =>
-      normalizeText(provider.name).includes(normalizeText(search))
+      normalizeText(provider.name).includes(normalizeText(search)),
     ) ?? [];
 
   if (
@@ -278,9 +273,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
                               .filter(
                                 (c) =>
                                   c.status === "APPROVED" ||
-                                  c.status === "REJECTED"
+                                  c.status === "REJECTED",
                               )
-                              .some((d) => d.commandRequestId === w.id)
+                              .some((d) => d.commandRequestId === w.id),
                         )
                         .map((request) => ({
                           label: `${request.title} - ${request.reference}`,
@@ -347,7 +342,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                 .filter(
                                   (x) =>
                                     x.commandRequestId ===
-                                    form.getValues("commandRequestId")
+                                    form.getValues("commandRequestId"),
                                 )
                                 .some((u) => u.providerId === provider.id)}
                             >
@@ -478,7 +473,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           {} as Record<
                             string,
                             Array<any & { globalIndex: number }>
-                          >
+                          >,
                         );
 
                         return Object.entries(groupedElements).map(
@@ -490,7 +485,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                               <h3 className="font-semibold mb-2">
                                 {
                                   selectedNeeds?.find(
-                                    (n) => n.id === Number(need)
+                                    (n) => n.id === Number(need),
                                   )?.label
                                 }
                               </h3>
@@ -512,7 +507,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                         {`${item.designation} - ${
                                           item.quantity
                                         } ${item.unit} - ${XAF.format(
-                                          item.price
+                                          item.price,
                                         )}`}
                                       </span>
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
@@ -528,7 +523,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                         ];
                                         currentElements.splice(
                                           item.globalIndex,
-                                          1
+                                          1,
                                         );
                                         field.onChange(currentElements);
                                       }}
@@ -537,7 +532,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                 ))}
                               </div>
                             </div>
-                          )
+                          ),
                         );
                       })()
                     )}

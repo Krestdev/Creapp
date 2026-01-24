@@ -33,7 +33,7 @@ import { signatairQ } from "@/queries/signatair";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Bank, PaymentRequest, PayType, Signatair } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -55,11 +55,11 @@ const createFormSchema = (hasMethodId: boolean) =>
     ...(hasMethodId
       ? {}
       : {
-        methodId: z
-          .number()
-          .int()
-          .positive("Veuillez sélectionner un moyen de paiement"),
-      }),
+          methodId: z
+            .number()
+            .int()
+            .positive("Veuillez sélectionner un moyen de paiement"),
+        }),
     to: z.object({
       label: z.string().min(2, "Libellé trop court"),
       accountNumber: z.string().optional(),
@@ -74,7 +74,6 @@ type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   const { user } = useStore();
-  const queryClient = useQueryClient();
 
   // Récupérer la liste des signataires
   const getSignataires = useQuery({
@@ -252,7 +251,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       return;
     }
 
-    const status = isCashPayment ? "paid" : "unsigned"
+    const status = isCashPayment ? "paid" : "unsigned";
 
     // Créer l'objet payload
     const payload: TransactionProps = {
@@ -278,7 +277,9 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
           <DialogTitle className="uppercase">
-            {isCashPayment ? `Payer - ${ticket.title}` : `Soumettre - ${ticket.title}`}
+            {isCashPayment
+              ? `Payer - ${ticket.title}`
+              : `Soumettre - ${ticket.title}`}
           </DialogTitle>
           <DialogDescription>
             {isCashPayment
@@ -335,7 +336,8 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                     <FormItem className="@min-[640px]:col-span-2">
                       <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
                       <FormDescription className="text-amber-600">
-                        Ce paiement n'a pas encore de moyen de paiement défini. Veuillez en sélectionner un.
+                        Ce paiement n'a pas encore de moyen de paiement défini.
+                        Veuillez en sélectionner un.
                       </FormDescription>
                       <FormControl>
                         <Select
@@ -413,7 +415,8 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                                     {bank.type === "CASH_REGISTER" &&
                                       `Caisse principale - Solde: ${bank.balance?.toLocaleString()} FCFA`}
                                     {bank.type === "MOBILE_WALLET" &&
-                                      `Portefeuille mobile (${bank.label}) - ${bank.phoneNum || "N/A"
+                                      `Portefeuille mobile (${bank.label}) - ${
+                                        bank.phoneNum || "N/A"
                                       }`}
                                   </span>
                                 </div>
@@ -457,25 +460,29 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                         )}
 
                       {/* Message si aucune configuration trouvée */}
-                      {!isCashPayment && !!selectedBankId && !!paymentMethod && !relevantSignataireConfig && (
-                        <div className="mt-3 p-3 bg-muted/20 rounded-md border border-muted">
-                          <p className="text-sm text-muted-foreground">
-                            ⚠️ Aucune configuration de signature trouvée pour la combinaison :
-                          </p>
-                          <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
-                            <li>
-                              Compte source :{" "}
-                              {banks.find((b) => b.id === selectedBankId)
-                                ?.label || `#${selectedBankId}`}
-                            </li>
-                            <li>
-                              Méthode de paiement :{" "}
-                              {paymentMethod?.label ||
-                                `Type ${paymentMethod?.id}`}
-                            </li>
-                          </ul>
-                        </div>
-                      )}
+                      {!isCashPayment &&
+                        !!selectedBankId &&
+                        !!paymentMethod &&
+                        !relevantSignataireConfig && (
+                          <div className="mt-3 p-3 bg-muted/20 rounded-md border border-muted">
+                            <p className="text-sm text-muted-foreground">
+                              ⚠️ Aucune configuration de signature trouvée pour
+                              la combinaison :
+                            </p>
+                            <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
+                              <li>
+                                Compte source :{" "}
+                                {banks.find((b) => b.id === selectedBankId)
+                                  ?.label || `#${selectedBankId}`}
+                              </li>
+                              <li>
+                                Méthode de paiement :{" "}
+                                {paymentMethod?.label ||
+                                  `Type ${paymentMethod?.id}`}
+                              </li>
+                            </ul>
+                          </div>
+                        )}
 
                       <FormMessage />
                     </FormItem>
@@ -498,7 +505,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                     </FormItem>
                   )}
                 />
-                {!isCashPayment &&
+                {!isCashPayment && (
                   <FormField
                     control={form.control}
                     name="to.accountNumber"
@@ -519,7 +526,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                       </FormItem>
                     )}
                   />
-                }
+                )}
 
                 <FormField
                   control={form.control}

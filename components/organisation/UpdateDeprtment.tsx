@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { DepartmentT, DepartmentUpdateInput } from "@/types/types";
 import { userQ } from "@/queries/baseModule";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { departmentQ } from "@/queries/departmentModule";
 import { toast } from "sonner";
 import {
@@ -78,7 +78,6 @@ export default function UpdateDepartment({
       members: [],
     },
   });
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     form.reset({
@@ -111,10 +110,6 @@ export default function UpdateDepartment({
     onSuccess: () => {
       toast.success("Département mis à jour avec succès !");
       setOpen(false);
-      // queryClient.invalidateQueries({
-      //   queryKey: ["departmentList"],
-      //   refetchType: "active",
-      // });
       onSuccess?.();
     },
 

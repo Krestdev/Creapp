@@ -34,7 +34,7 @@ import { userQ } from "@/queries/baseModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon, ChevronDownIcon, LoaderIcon } from "lucide-react";
@@ -89,7 +89,7 @@ export default function BesoinFacLastVal({
   onSuccess,
 }: UpdateFacilitationRequestProps) {
   const { user } = useStore();
-  const queryClient = useQueryClient();
+
   const [openCalendar, setOpenCalendar] = useState(false);
   const [beneficiairesList, setBeneficiairesList] = useState<
     { id: number; nom: string; montant: number }[]
@@ -223,12 +223,12 @@ export default function BesoinFacLastVal({
     }: {
       id: number;
       validator:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => {
       await requestQ.validate(id, validator?.id!, validator);
     },
@@ -310,9 +310,7 @@ export default function BesoinFacLastVal({
             {"Approbation"}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            {
-              "Approuver la demande de facilitation existante"
-            }
+            {"Approuver la demande de facilitation existante"}
           </p>
         </DialogHeader>
 

@@ -9,7 +9,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable
+  useReactTable,
 } from "@tanstack/react-table";
 import {
   AlertTriangle,
@@ -19,7 +19,7 @@ import {
   Eye,
   LucidePen,
   Settings2,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import * as React from "react";
 
@@ -51,13 +51,20 @@ import {
 } from "@/components/ui/table";
 import { providerQ } from "@/queries/providers";
 import { Provider } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
 import { Badge } from "../ui/badge";
 import { Label } from "../ui/label";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
 import UpdateProvider from "./UpdateProvider";
 import { ShowProvider } from "./show-provider";
 
@@ -66,7 +73,6 @@ interface ProvidersTableProps {
 }
 
 export function ProviderTable({ data }: ProvidersTableProps) {
-
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
@@ -83,13 +89,11 @@ export function ProviderTable({ data }: ProvidersTableProps) {
   // États pour les filtres
   const [regimeFilter, setRegimeFilter] = React.useState<string>("all");
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
-  const queryClient = useQueryClient();
 
   const providerMutation = useMutation({
     mutationFn: (id: number) => providerQ.delete(id),
     onSuccess: () => {
       toast.success("Fournisseur supprimé avec succès !");
-      // queryClient.invalidateQueries({ queryKey: ["providersList"] });
     },
   });
 
@@ -273,7 +277,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
               }
             >
               {"Adresse mail"}
-              <ArrowUpDown/>
+              <ArrowUpDown />
             </span>
           );
         },
@@ -302,11 +306,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
           return (
             <div className="font-medium">
               <Badge variant={status === "complet" ? "success" : "amber"}>
-                {status === "complet" ? (
-                  <Check />
-                ) : (
-                  <AlertTriangle />
-                )}
+                {status === "complet" ? <Check /> : <AlertTriangle />}
                 {status === "complet" ? "Complet" : "Incomplet"}
               </Badge>
             </div>
@@ -408,85 +408,76 @@ export function ProviderTable({ data }: ProvidersTableProps) {
     <div className="w-full">
       <div className="flex flex-wrap items-center justify-between gap-3 py-4">
         <Sheet>
-            <SheetTrigger asChild>
-              <Button variant={"outline"}>
-                <Settings2 />
-                {"Filtres"}
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>{"Filtres"}</SheetTitle>
-                <SheetDescription>
-                  {"Configurer les fitres pour affiner les données"}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="px-5 grid gap-5">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                  <Input
-                    name="search"
-                    type="search"
-                    id="searchCommand"
-                    placeholder="Référence, libellé"
-                    value={globalFilter ?? ""}
-                    onChange={(event) => setGlobalFilter(event.target.value)}
-                    className="w-full"
-                  />
-                </div>
-                {/**Type Filter */}
-                <div className="grid gap-1.5">
-                  <Label>{"Régime"}</Label>
-                  <Select
-                    value={regimeFilter}
-                    onValueChange={setRegimeFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Filtrer par type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {uniqueRegimes.map((p) => (
-                        <SelectItem
-                          key={p}
-                          value={p}
-                        >
-                          {p}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/**Status Filter */}
-                <div className="grid gap-1.5">
-                  <Label>{"Priorité"}</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={setStatusFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Filtrer par priorité" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      <SelectItem value="complet">{"Complet"}</SelectItem>
-                      <SelectItem value="incomplet">{"Incomplet"}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/* Bouton pour réinitialiser les filtres */}
-                <div className="flex items-end">
-                  <Button
-                    variant="outline"
-                    onClick={resetAllFilters}
-                    className="w-full"
-                  >
-                    {"Réinitialiser"}
-                  </Button>
-                </div>
+          <SheetTrigger asChild>
+            <Button variant={"outline"}>
+              <Settings2 />
+              {"Filtres"}
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les fitres pour affiner les données"}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="px-5 grid gap-5">
+              <div className="grid gap-1.5">
+                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
+                <Input
+                  name="search"
+                  type="search"
+                  id="searchCommand"
+                  placeholder="Référence, libellé"
+                  value={globalFilter ?? ""}
+                  onChange={(event) => setGlobalFilter(event.target.value)}
+                  className="w-full"
+                />
               </div>
-            </SheetContent>
-          </Sheet>
+              {/**Type Filter */}
+              <div className="grid gap-1.5">
+                <Label>{"Régime"}</Label>
+                <Select value={regimeFilter} onValueChange={setRegimeFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filtrer par type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {uniqueRegimes.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {p}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {/**Status Filter */}
+              <div className="grid gap-1.5">
+                <Label>{"Priorité"}</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filtrer par priorité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    <SelectItem value="complet">{"Complet"}</SelectItem>
+                    <SelectItem value="incomplet">{"Incomplet"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Bouton pour réinitialiser les filtres */}
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={resetAllFilters}
+                  className="w-full"
+                >
+                  {"Réinitialiser"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
 
         {/* Menu des colonnes */}
         <DropdownMenu>
@@ -577,20 +568,20 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       </div>
 
       <Pagination table={table} />
-      {
-        selectedItem &&
+      {selectedItem && (
         <UpdateProvider
-        open={isUpdateModalOpen}
-        setOpen={setIsUpdateModalOpen}
-        providerData={selectedItem}
-      />}
-      {
-        selectedItem &&
+          open={isUpdateModalOpen}
+          setOpen={setIsUpdateModalOpen}
+          providerData={selectedItem}
+        />
+      )}
+      {selectedItem && (
         <ShowProvider
-        open={openUpdate}
-        onOpenChange={setOpenUpdate}
-        data={selectedItem}
-      />}
+          open={openUpdate}
+          onOpenChange={setOpenUpdate}
+          data={selectedItem}
+        />
+      )}
       <ModalWarning
         variant="error"
         title="Supprimer"

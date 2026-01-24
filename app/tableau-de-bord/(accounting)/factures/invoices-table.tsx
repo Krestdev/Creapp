@@ -25,7 +25,12 @@ import * as React from "react";
 import { Pagination } from "@/components//base/pagination";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -45,6 +50,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
   Table,
   TableBody,
   TableCell,
@@ -60,27 +73,13 @@ import {
   PAY_STATUS,
   PaymentRequest,
 } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
+import { format } from "date-fns";
 import Link from "next/link";
 import { toast } from "sonner";
-import ViewInvoice from "./view-invoice";
 import RejectInvoice from "./reject-invoice";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import ViewInvoice from "./view-invoice";
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -118,7 +117,6 @@ export function InvoicesTable({ payments, purchases }: Props) {
     undefined,
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
-  // const queryClient = useQueryClient();
   const [reject, setReject] = React.useState<boolean>(false);
 
   const [statusFilter, setStatusFilter] = React.useState<
@@ -262,9 +260,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
             {elements.map((proof, index) => (
               <Link
                 key={index}
-                href={`${
-                  process.env.NEXT_PUBLIC_API
-                }/${proof}`}
+                href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
                 target="_blank"
                 className="flex gap-0.5 items-center px-2 py-1 rounded border"
               >

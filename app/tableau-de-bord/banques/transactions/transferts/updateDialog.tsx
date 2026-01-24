@@ -27,7 +27,7 @@ import { bankQ } from "@/queries/bank";
 import { transactionQ, TransferProps } from "@/queries/transaction";
 import { Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -66,7 +66,6 @@ export function EditTransferDialog({
   transfer,
 }: EditTransferDialogProps) {
   const { user } = useStore();
-  const queryClient = useQueryClient();
 
   // Charger la liste des banques
   const {
@@ -85,47 +84,8 @@ export function EditTransferDialog({
     },
   });
 
-  // Réinitialiser le formulaire quand le transfert change ou quand le dialog s'ouvre
-  // useEffect(() => {
-  //     if (transfer && open) {
-  //         form.reset({
-  //             label: transfer.label,
-  //             amount: transfer.amount,
-  //             fromBankId: transfer.from,
-  //             toBankId: transfer.to,
-  //         });
-  //     }
-  // }, [transfer, open, form]);
-
-  //   const updateMutation = useMutation({
-  //     mutationFn: async ({ id, ...data }: { id: number } & TransferProps) =>
-  //       transactionQ.update(id, data),
-  //     onSuccess: () => {
-  //       queryClient.invalidateQueries({
-  //         queryKey: ["transactions"],
-  //         refetchType: "active",
-  //       });
-  //       queryClient.invalidateQueries({
-  //         queryKey: ["banks"],
-  //         refetchType: "active",
-  //       });
-  //       toast.success("Transfert modifié avec succès !");
-  //       onOpenChange(false);
-  //     },
-  //     onError: (error: Error) => {
-  //       toast.error(error.message || "Erreur lors de la modification");
-  //     },
-  //   });
-
   function onSubmit(values: FormValues) {
     if (!transfer) return;
-
-    // updateMutation.mutate({
-    //   id: transfer.id,
-    //   ...values,
-    //   Type: "TRANSFER",
-    //   userId: user?.id ?? 0,
-    // });
   }
 
   if (banksLoading) {

@@ -53,7 +53,7 @@ import {
   PaymentRequest,
   RequestType,
 } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -253,7 +253,7 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
   const [openPaiementModal, setOpenPaiementModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<PaymentRequest>();
   const [commands, setCommands] = useState<BonsCommande>();
-  const queryClient = useQueryClient();
+
   const [message, setMessage] = useState<string>("");
 
   const { user } = useStore();
@@ -268,10 +268,6 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
       return paymentQ.update(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
       toast.success(message);
       message.includes("payé")
         ? setOpenPaiementModal(false)
@@ -287,10 +283,6 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
       return paymentQ.vaidate(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
       toast.success(message);
       message.includes("payé")
         ? setOpenPaiementModal(false)

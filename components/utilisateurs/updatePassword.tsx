@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { User as UserT } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -48,7 +48,7 @@ const formSchema = z
     {
       message: "Les mots de passe ne correspondent pas",
       path: ["confirmPassword"],
-    }
+    },
   );
 
 type FormValues = z.infer<typeof formSchema>;
@@ -80,7 +80,7 @@ export default function UpdatePassword({
       userQ.changePassword(userData?.id ?? 0, password),
     onSuccess: (data) => {
       toast.success(
-        `Vous avez modifié le mot de passe de ${userData?.firstName} ${userData?.lastName} avec succès !`
+        `Vous avez modifié le mot de passe de ${userData?.firstName} ${userData?.lastName} avec succès !`,
       );
       setOpen(false);
       onSuccess?.();
@@ -111,7 +111,6 @@ export default function UpdatePassword({
           </p>
         </DialogHeader>
         <div className="px-6 pb-6">
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
               <FormField

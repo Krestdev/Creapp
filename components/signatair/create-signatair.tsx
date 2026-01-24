@@ -21,7 +21,7 @@ import { payTypeQ } from "@/queries/payType";
 import { signatairQ } from "@/queries/signatair";
 import { ResponseT, Signatair, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -62,8 +62,6 @@ export default function CreateSignatairForm() {
     queryFn: () => payTypeQ.getAll(),
   });
 
-  const queryClient = useQueryClient();
-
   const signatairMutation = useMutation({
     mutationFn: (data: Omit<Signatair, "id" | "createdAt" | "updatedAt">) =>
       signatairQ.create(data),
@@ -75,10 +73,6 @@ export default function CreateSignatairForm() {
         signatair: [],
         mode: "ONE",
       });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["SignatairList"],
-      //   refetchType: "active",
-      // });
       setSelectedUser([]);
     },
     onError: () => {

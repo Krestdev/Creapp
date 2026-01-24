@@ -20,7 +20,7 @@ import { useStore } from "@/providers/datastore";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Bank, PaymentRequest, Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -42,7 +42,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 function PayExpense({ ticket, open, onOpenChange }: Props) {
   const { user } = useStore();
-  const queryClient = useQueryClient();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
