@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { paymentQ } from "@/queries/payment";
 import { BonsCommande, PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -41,7 +41,6 @@ const formSchema = z.object({
 type FormValue = z.infer<typeof formSchema>;
 
 function RejectInvoice({ open, openChange, payment, purchases }: Props) {
-  const queryClient = useQueryClient();
   const form = useForm<FormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {

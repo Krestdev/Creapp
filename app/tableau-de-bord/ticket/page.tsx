@@ -11,6 +11,7 @@ import { paymentQ } from "@/queries/payment";
 import { requestTypeQ } from "@/queries/requestType";
 import { PaymentRequest } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
+import { da } from "date-fns/locale";
 import { useMemo } from "react";
 
 function Page() {
@@ -29,25 +30,33 @@ function Page() {
   const ticketsData: Array<PaymentRequest> = useMemo(() => {
     if (!data?.data) return [];
     return data?.data.filter(
-      (ticket) =>
-        ticket.status !== "ghost" &&
-        ticket.status !== "pending" &&
-        ticket.status !== "rejected",
+      (ticket) => ticket.status !== "ghost" && ticket.status !== "unsigned",
     );
   }, [data?.data]);
 
   const pending = useMemo(() => {
-    return ticketsData.filter((ticket) => ticket.status === "pending");
-  }, [ticketsData]);
+    if (!data?.data) return [];
+    return data?.data.filter((ticket) => ticket.status === "accepted");
+  }, [data?.data]);
 
   const approved = useMemo(() => {
-    return ticketsData.filter((ticket) => ticket.status !== "pending");
-  }, [ticketsData]);
-  const unPaid = useMemo(() => {
-    return ticketsData.filter(
-      (ticket) => ticket.status !== "paid" && ticket.status !== "pending",
+    if (!data?.data) return [];
+    return data?.data.filter(
+      (ticket) => ticket.status !== "pending" && ticket.status !== "accepted",
+      // ticket.status !== "unsigned",
     );
-  }, [ticketsData]);
+  }, [data?.data]);
+  const unPaid = useMemo(() => {
+    if (!data?.data) return [];
+    return data?.data.filter(
+      (ticket) =>
+        ticket.status !== "validated" &&
+        ticket.status !== "pending_depense" &&
+        ticket.status !== "unsigned" &&
+        ticket.status !== "rejected" &&
+        ticket.status !== "paid",
+    );
+  }, [data?.data]);
 
   if (isLoading || getRequestType.isLoading) {
     return <LoadingPage />;

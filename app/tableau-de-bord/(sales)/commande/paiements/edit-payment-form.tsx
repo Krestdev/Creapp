@@ -36,7 +36,7 @@ import {
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
@@ -88,7 +88,6 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
   /**Data states */
   const { user } = useStore();
 
-  const queryClient = useQueryClient();
   const [dueDate, setDueDate] = React.useState<boolean>(false);
   const today = new Date(); //On part sur 3 jours de delai de base :)
   today.setDate(today.getDate() + 3);

@@ -10,7 +10,7 @@ import {
 import { quotationQ } from "@/queries/quotation";
 import { Quotation } from "@/types/types";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
@@ -21,16 +21,10 @@ interface Props {
 }
 
 function CancelQuotation({ open, openChange, quotation }: Props) {
-  const queryClient = useQueryClient();
-
   const { mutate, isPending } = useMutation({
     mutationFn: async () => quotationQ.cancel(quotation.id),
     onSuccess: () => {
       toast.success("Devis annulé avec succès !");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["quotations"],
-      //   refetchType: "active",
-      // });
       openChange(false);
     },
     onError: (error) => {

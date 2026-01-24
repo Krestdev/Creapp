@@ -43,7 +43,7 @@ import {
 } from "@/components/ui/table";
 import { userQ } from "@/queries/baseModule";
 import { PayType, Signatair } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import UpdateUser from "./updateSignatair";
@@ -80,16 +80,11 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
 
   const { user } = useStore();
-  const queryClient = useQueryClient();
 
   const signatairMutation = useMutation({
     mutationFn: (id: number) => signatairQ.delete(id),
     onSuccess: () => {
       toast.success("Signatair supprimer");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["SignatairList"],
-      //   refetchType: "active",
-      // });
     },
     onError: (e) => {
       console.error(e);
@@ -309,10 +304,6 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
   const handleUpdateSuccess = () => {
     setIsUpdateModalOpen(false);
     setSelectedItem(null);
-    queryClient.invalidateQueries({
-      queryKey: ["SignatairList"],
-      refetchType: "active",
-    });
   };
 
   return (

@@ -51,7 +51,7 @@ import { cn } from "@/lib/utils";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { quotationQ } from "@/queries/quotation";
 import { CommandRequestT, DateFilter } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -114,7 +114,6 @@ export function CommandeTable({ data }: CommandeTableProps) {
     { from: Date; to: Date } | undefined
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-  const queryClient = useQueryClient();
 
   const commandData = useQuery({
     queryKey: ["commands"],
@@ -295,7 +294,9 @@ export function CommandeTable({ data }: CommandeTableProps) {
         );
       },
       cell: ({ row }) => (
-        <div className="uppercase truncate max-w-60">{row.getValue("title")}</div>
+        <div className="uppercase truncate max-w-60">
+          {row.getValue("title")}
+        </div>
       ),
     },
     {

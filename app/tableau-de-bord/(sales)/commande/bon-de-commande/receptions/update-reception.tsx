@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
@@ -31,8 +31,6 @@ export default function UpdateReception({
   onOpenChange,
   reception,
 }: Props) {
-  const queryClient = useQueryClient();
-
   const defaultFiles: Array<string> = !!reception.Proof
     ? reception.Proof.split(";")
     : [];
@@ -41,7 +39,7 @@ export default function UpdateReception({
     Reception["Deliverables"]
   >(reception?.Deliverables ?? []);
   const [proof, setProof] = React.useState<Array<File | string> | null>(
-    defaultFiles
+    defaultFiles,
   );
 
   React.useEffect(() => {
@@ -57,8 +55,6 @@ export default function UpdateReception({
     onSuccess: () => {
       toast.success("Réception mise à jour");
       onOpenChange(false);
-      // adapte la clé à ta query réelle
-      // queryClient.invalidateQueries({ queryKey: ["receptions"] });
     },
     onError: (error: Error) => {
       toast.error(error.message ?? "Une erreur est survenue");

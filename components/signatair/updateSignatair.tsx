@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { userQ } from "@/queries/baseModule";
 import { Signatair, User } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { signatairQ } from "@/queries/signatair";
@@ -109,7 +109,6 @@ export default function EditSignatairForm({
   signatair,
   onSuccess,
 }: UpdateSignatairProps) {
-  const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<User[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -169,10 +168,6 @@ export default function EditSignatairForm({
 
     onSuccess: () => {
       toast.success("Signataire modifié avec succès !");
-      queryClient.invalidateQueries({
-        queryKey: ["signatair"],
-        refetchType: "active",
-      });
       setOpen(false);
       onSuccess?.();
     },

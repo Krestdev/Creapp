@@ -30,7 +30,7 @@ import {
   PaymentRequest,
   RequestType,
 } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -173,7 +173,7 @@ export function TicketsTable({
   const [openPaiementModal, setOpenPaiementModal] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<PaymentRequest>();
   const [commands, setCommands] = React.useState<BonsCommande>();
-  const queryClient = useQueryClient();
+
   const [message, setMessage] = React.useState<string>("");
 
   const { user } = useStore();

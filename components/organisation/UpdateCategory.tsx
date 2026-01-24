@@ -21,7 +21,7 @@ import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { Category, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -93,7 +93,6 @@ export function UpdateCategory({
   });
 
   const { isHydrated } = useStore();
-  const queryClient = useQueryClient();
 
   // Récupérer la liste des utilisateurs
 
@@ -145,8 +144,6 @@ export function UpdateCategory({
     },
     onSuccess: (data: ResponseT<Category>) => {
       toast.success("Catégorie mise à jour avec succès !");
-      // queryClient.invalidateQueries({ queryKey: ["categories"] });
-      // queryClient.invalidateQueries({ queryKey: ["categoryList"] });
       setOpen(false);
       onSuccess?.();
     },
@@ -417,10 +414,11 @@ export function UpdateCategory({
                             size="icon"
                             onClick={() => removeValidator(index)}
                             disabled={fields.length <= 1 || isLoading} // MODIFICATION: désactivé si seul ascendant
-                            className={`text-red-500 hover:text-red-700 ${fields.length <= 1
+                            className={`text-red-500 hover:text-red-700 ${
+                              fields.length <= 1
                                 ? "opacity-50 cursor-not-allowed"
                                 : ""
-                              }`}
+                            }`}
                             title={
                               fields.length <= 1
                                 ? "Au moins un ascendant est requis"

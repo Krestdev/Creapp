@@ -32,7 +32,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { requestQ } from "@/queries/requestModule";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { CommandRequestT, RequestModelT } from "@/types/types";
 import { useStore } from "@/providers/datastore";
 import { toast } from "sonner";
@@ -82,7 +82,6 @@ export function UpdateCotationModal({
   const [dataSup, setDataSup] = useState<RequestModelT[] | undefined>();
   const [successOpen, setSuccessOpen] = useState(false);
   const { user } = useStore();
-  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

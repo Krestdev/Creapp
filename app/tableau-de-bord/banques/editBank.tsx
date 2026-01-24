@@ -30,7 +30,7 @@ import { Switch } from "@/components/ui/switch";
 import { BankPayload, bankQ } from "@/queries/bank";
 import { Bank, BANK_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -160,7 +160,7 @@ function EditBank({ open, openChange, bank }: Props) {
   });
 
   const type = form.watch("type");
-  const queryClient = useQueryClient();
+
   const update = useMutation({
     mutationFn: async (payload: BankPayload) => bankQ.update(bank.id, payload),
     onSuccess: () => {

@@ -44,7 +44,7 @@ import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { transactionQ } from "@/queries/transaction";
 import { DateFilter, Transaction } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -108,7 +108,6 @@ function TransferTable({ data }: Props) {
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
 
-  const queryClient = useQueryClient();
   const approve = useMutation({
     mutationFn: async ({ id }: { id: number }) =>
       transactionQ.approve({

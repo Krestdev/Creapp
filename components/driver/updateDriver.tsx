@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { driverQ } from "@/queries/driver";
 import { Driver } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";

@@ -16,7 +16,7 @@ import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { CalendarIcon, LoaderIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -46,7 +46,7 @@ const formSchema = z.object({
 
 export default function SpecialRequestForm() {
   const { user } = useStore();
-  const queryClient = useQueryClient();
+
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   // ----------------------------------------------------------------------
@@ -68,7 +68,10 @@ export default function SpecialRequestForm() {
 
   const requestMutation = useMutation({
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators">,
+      data: Omit<
+        RequestModelT,
+        "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+      >,
     ) => requestQ.special(data),
 
     onSuccess: () => {
@@ -119,9 +122,7 @@ export default function SpecialRequestForm() {
             name="titre"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel isRequired>
-                  {"Titre du besoin spécial"}
-                </FormLabel>
+                <FormLabel isRequired>{"Titre du besoin spécial"}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="ex. Budget pour déplacement urgent"
@@ -139,9 +140,7 @@ export default function SpecialRequestForm() {
             name="montant"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Montant (FCFA)"}
-                </FormLabel>
+                <FormLabel isRequired>{"Montant (FCFA)"}</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="ex. 500000" {...field} />
                 </FormControl>
@@ -156,9 +155,7 @@ export default function SpecialRequestForm() {
             name="delai"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Délai d'exécution"}
-                </FormLabel>
+                <FormLabel isRequired>{"Délai d'exécution"}</FormLabel>
                 <FormControl>
                   <Popover>
                     <PopoverTrigger asChild className="h-10 w-full">
@@ -198,9 +195,7 @@ export default function SpecialRequestForm() {
             name="raison"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>
-                  {"Justification / Raison"}
-                </FormLabel>
+                <FormLabel>{"Justification / Raison"}</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Expliquez la raison de ce besoin spécial..."
@@ -223,7 +218,7 @@ export default function SpecialRequestForm() {
             className="min-w-[200px]"
             isLoading={requestMutation.isPending}
           >
-              {"Soumettre le besoin spécial"}
+            {"Soumettre le besoin spécial"}
           </Button>
         </div>
       </form>

@@ -27,7 +27,7 @@ import {
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Bank, TRANSACTION_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -127,7 +127,7 @@ function TransactionForm({ banks, userId }: Props) {
   });
 
   const router = useRouter();
-  const queryClient = useQueryClient();
+
   const create = useMutation({
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.create(payload),

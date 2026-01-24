@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { Role, User as UserT } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import MultiSelectRole from "../base/multiSelectRole";
@@ -31,15 +31,14 @@ import MultiSelectRole from "../base/multiSelectRole";
 /* =========================
    SCHEMA ZOD
 ========================= */
-const formSchema = z
-  .object({
-    email: z.string().email("Email invalide"),
-    firstName: z.string().optional(),
-    lastName: z.string().min(1, "Le nom est requis"),
-    phone: z.string().optional(),
-    role: z.array(z.number()).min(1, "Le rôle est requis"),
-    post: z.string().min(1, "Le poste est requis"),
-  });
+const formSchema = z.object({
+  email: z.string().email("Email invalide"),
+  firstName: z.string().optional(),
+  lastName: z.string().min(1, "Le nom est requis"),
+  phone: z.string().optional(),
+  role: z.array(z.number()).min(1, "Le rôle est requis"),
+  post: z.string().min(1, "Le poste est requis"),
+});
 
 interface UpdateRequestProps {
   open: boolean;
@@ -54,7 +53,6 @@ export default function UpdateUser({
   userData,
   onSuccess,
 }: UpdateRequestProps) {
-
   const [selectedRole, setSelectedRole] = useState<
     { id: number; label: string }[]
   >([]);

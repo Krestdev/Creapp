@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { ResponseT, Role, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -178,10 +178,7 @@ export default function CreateUserForm() {
             <FormItem>
               <FormLabel>{"Adresse E-mail"}</FormLabel>
               <FormControl className="w-full">
-                <Input
-                  placeholder="ex. johndoe@gemail.com"
-                  {...field}
-                />
+                <Input placeholder="ex. johndoe@gemail.com" {...field} />
               </FormControl>
 
               <FormMessage />

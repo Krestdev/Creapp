@@ -60,7 +60,7 @@ import {
 } from "@/components/ui/table";
 import { userQ } from "@/queries/baseModule";
 import { Role, User as UserT } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import UpdateUser from "./UpdateUser";
@@ -185,7 +185,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   };
 
   const { user } = useStore();
-  const queryClient = useQueryClient();
 
   const userMutationData = useMutation({
     mutationFn: (data: { id: number; status: string }) =>
