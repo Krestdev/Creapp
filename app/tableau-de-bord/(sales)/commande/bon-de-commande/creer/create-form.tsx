@@ -31,7 +31,7 @@ import { CreatePurchasePayload, purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { PENALITY_MODE, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import React from "react";
@@ -41,7 +41,7 @@ import z from "zod";
 
 const PO_PRIORITIES = PRIORITIES.map((s) => s.value) as [
   (typeof PRIORITIES)[number]["value"],
-  ...(typeof PRIORITIES)[number]["value"][]
+  ...(typeof PRIORITIES)[number]["value"][],
 ];
 
 const paymentSchema = z.object({
@@ -58,7 +58,7 @@ const paymentSchema = z.object({
         const now = new Date();
         return !isNaN(d.getTime()) && d >= now;
       },
-      { message: "Date invalide" }
+      { message: "Date invalide" },
     )
     .optional(),
 });
@@ -72,18 +72,18 @@ export const formSchema = z
         const now = new Date();
         return !isNaN(d.getTime()) && d >= now;
       },
-      { message: "Date invalide" }
+      { message: "Date invalide" },
     ),
     paymentTerms: z.string().min(1, "Ce champ est requis"),
     instalments: z.array(paymentSchema).refine(
       (data) => {
         const total = data.reduce(
           (sum, payment) => sum + payment.percentage,
-          0
+          0,
         );
         return total === 100;
       },
-      { message: "Le total des paiements doit être égal à 100%" }
+      { message: "Le total des paiements doit être égal à 100%" },
     ),
     paymentMethod: z.string().min(1, "Ce champ est requis"),
     priority: z.enum(PO_PRIORITIES),
@@ -114,10 +114,8 @@ export const formSchema = z
 function CreateForm() {
   const [selectDate, setSelectDate] = React.useState(false);
   const [duePopovers, setDuePopovers] = React.useState<Record<number, boolean>>(
-    {}
+    {},
   );
-
-  const queryClient = useQueryClient();
 
   const getQuotations = useQuery({
     queryKey: ["quotations"],
@@ -182,7 +180,7 @@ function CreateForm() {
   const instalments = form.watch("instalments");
   const totalAmount = instalments.reduce(
     (sum, payment) => sum + payment.percentage,
-    0
+    0,
   ); //total amount
   const paymentsError = form.formState.errors.instalments?.root?.message;
 
@@ -202,10 +200,6 @@ function CreateForm() {
         instalments: [{ percentage: 100, deadLine: undefined }],
         paymentMethod: defaultPaymentMethod,
       });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["purchaseOrders"],
-      //   refetchType: "active",
-      // });
     },
     onError: (error: Error) => {
       toast.error(error.message ?? "Une erreur est survenue");
@@ -214,7 +208,7 @@ function CreateForm() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const quotation = getQuotations.data?.data.find(
-      (q) => q.id === values.deviId
+      (q) => q.id === values.deviId,
     );
 
     if (!quotation) {
@@ -222,13 +216,13 @@ function CreateForm() {
       return;
     }
     const provider = getProviders.data?.data.find(
-      (p) => p.id === quotation.providerId
+      (p) => p.id === quotation.providerId,
     );
     const result = provider ? isProviderValid(provider) : false;
 
     if (!result) {
       toast.error(
-        "Fournisseur Invalide ! Veuillez compléter les informations relatives au fournisseurs"
+        "Fournisseur Invalide ! Veuillez compléter les informations relatives au fournisseurs",
       );
       return;
     }
@@ -286,8 +280,8 @@ function CreateForm() {
                           (c) =>
                             c.status === "APPROVED" &&
                             !getPurchases.data.data.some(
-                              (a) => a.deviId === c.id
-                            )
+                              (a) => a.deviId === c.id,
+                            ),
                         )
                         .map((quote) => (
                           <SelectItem
@@ -299,8 +293,8 @@ function CreateForm() {
                               quote.commandRequest.title
                             } - ${formatToShortName(
                               getProviders.data?.data.find(
-                                (p) => p.id === quote.providerId
-                              )?.name
+                                (p) => p.id === quote.providerId,
+                              )?.name,
                             )}`}
                           </SelectItem>
                         ))}

@@ -24,7 +24,7 @@ import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -79,7 +79,7 @@ const formSchema = z.object({
 
 export default function RHRequestForm() {
   const { user } = useStore();
-  const queryClient = useQueryClient();
+
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   // ----------------------------------------------------------------------
@@ -132,7 +132,10 @@ export default function RHRequestForm() {
 
   const requestMutation = useMutation({
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators">,
+      data: Omit<
+        RequestModelT,
+        "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+      >,
     ) => requestQ.special(data),
 
     onSuccess: () => {
@@ -221,9 +224,7 @@ export default function RHRequestForm() {
             name="titre"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Titre du besoin"}
-                </FormLabel>
+                <FormLabel isRequired>{"Titre du besoin"}</FormLabel>
                 <FormControl>
                   <Input placeholder="Titre du besoin" {...field} />
                 </FormControl>
@@ -238,9 +239,7 @@ export default function RHRequestForm() {
             name="periode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Période"}
-                </FormLabel>
+                <FormLabel isRequired>{"Période"}</FormLabel>
                 <FormControl>
                   <Popover>
                     <PopoverTrigger asChild className="h-10 w-full">
@@ -286,9 +285,7 @@ export default function RHRequestForm() {
             name="date_limite"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel isRequired>
-                  {"Date limite"}
-                </FormLabel>
+                <FormLabel isRequired>{"Date limite"}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild className="h-10 w-full">
                     <FormControl>
@@ -327,9 +324,7 @@ export default function RHRequestForm() {
             name="montant"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Montant"}
-                </FormLabel>
+                <FormLabel isRequired>{"Montant"}</FormLabel>
                 <FormControl>
                   <Input placeholder="Montant" {...field} />
                 </FormControl>
@@ -344,9 +339,7 @@ export default function RHRequestForm() {
             name="beneficiaire"
             render={({ field }) => (
               <FormItem className="col-span-2">
-                <FormLabel isRequired>
-                  {"Bénéficiaire"}
-                </FormLabel>
+                <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
                 <FormControl>
                   <MultiSelectUsers
                     users={USERS}
@@ -368,9 +361,7 @@ export default function RHRequestForm() {
             name="justificatif"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel isRequired>
-                  {"Justificatif"}
-                </FormLabel>
+                <FormLabel isRequired>{"Justificatif"}</FormLabel>
                 <FormControl>
                   <FilesUpload
                     value={field.value || []}
@@ -417,8 +408,7 @@ export default function RHRequestForm() {
             className="min-w-[200px]"
             isLoading={requestMutation.isPending}
           >
-
-              {"Soumettre la demande RH"}
+            {"Soumettre la demande RH"}
           </Button>
         </div>
       </form>

@@ -17,7 +17,7 @@ import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -67,7 +67,7 @@ const formSchema = z.object({
 
 export default function FacilitationRequestForm() {
   const { user } = useStore();
-  const queryClient = useQueryClient();
+
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [beneficiairesList, setBeneficiairesList] = useState<
     { id: number; nom: string; montant: number }[]
@@ -113,7 +113,10 @@ export default function FacilitationRequestForm() {
 
   const requestMutation = useMutation({
     mutationFn: async (
-      data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators">,
+      data: Omit<
+        RequestModelT,
+        "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+      >,
     ) => requestQ.special(data),
 
     onSuccess: () => {
@@ -177,9 +180,7 @@ export default function FacilitationRequestForm() {
             name="projet"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Projet concerné"}
-                </FormLabel>
+                <FormLabel isRequired>{"Projet concerné"}</FormLabel>
                 <SearchableSelect
                   onChange={field.onChange}
                   options={
@@ -211,9 +212,7 @@ export default function FacilitationRequestForm() {
             name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Categorie"}
-                </FormLabel>
+                <FormLabel isRequired>{"Categorie"}</FormLabel>
                 <Select value={field.value}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Sélectionner une categorie" />
@@ -235,9 +234,7 @@ export default function FacilitationRequestForm() {
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Titre"}
-                </FormLabel>
+                <FormLabel isRequired>{"Titre"}</FormLabel>
                 <Input {...field} placeholder="ex. Achat du carburant groupe" />
                 <FormMessage />
               </FormItem>
@@ -250,9 +247,7 @@ export default function FacilitationRequestForm() {
             name="beneficiaire"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Recepteur pour compte"}
-                </FormLabel>
+                <FormLabel isRequired>{"Recepteur pour compte"}</FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Sélectionner un recepteur pour compte" />
@@ -276,9 +271,7 @@ export default function FacilitationRequestForm() {
             name="delai"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Date limite"}
-                </FormLabel>
+                <FormLabel isRequired>{"Date limite"}</FormLabel>
                 <FormControl>
                   <Popover>
                     <PopoverTrigger asChild className="h-10 w-full">
@@ -318,9 +311,7 @@ export default function FacilitationRequestForm() {
             name="description"
             render={({ field }) => (
               <FormItem className="@min-[640px]:col-span-2">
-                <FormLabel isRequired>
-                  {"Description/Détail"}
-                </FormLabel>
+                <FormLabel isRequired>{"Description/Détail"}</FormLabel>
                 <Textarea {...field} placeholder="Décrivez le besoin" />
                 <FormMessage />
               </FormItem>
@@ -364,8 +355,7 @@ export default function FacilitationRequestForm() {
             className="min-w-[200px]"
             isLoading={requestMutation.isPending}
           >
-
-              {"Soumettre la demande de facilitation"}
+            {"Soumettre la demande de facilitation"}
           </Button>
         </div>
       </form>

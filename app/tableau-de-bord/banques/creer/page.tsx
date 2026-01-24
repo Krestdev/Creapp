@@ -1,13 +1,15 @@
 "use client";
 import PageTitle from "@/components/pageTitle";
-import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
 import { BANK_TYPES } from "@/types/types"; // ou "@/types/bank" selon ton projet
 
 import FilesUpload from "@/components/comp-547";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -26,11 +28,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BankPayload, bankQ } from "@/queries/bank";
-import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import LoadingPage from "@/components/loading-page";
-import ErrorPage from "@/components/error-page";
 
 const banks = BANK_TYPES.filter((t) => t.value !== "CASH_REGISTER");
 // ✅ Schema: champs communs + validations conditionnelles
@@ -136,7 +136,6 @@ function Page() {
 
   const type = form.watch("type");
 
-  const queryClient = new QueryClient();
   const router = useRouter();
   const createBankAccount = useMutation({
     mutationFn: async (payload: BankPayload) => bankQ.create(payload),

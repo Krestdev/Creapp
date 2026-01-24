@@ -26,7 +26,6 @@ import * as React from "react";
 import { Pagination } from "@/components/base/pagination";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -69,15 +68,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { TabBar } from "@/components/base/TabBar";
 import { Textarea } from "@/components/ui/textarea";
 import { formatToShortName, XAF } from "@/lib/utils";
 import { purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ViewPurchase from "../viewPurchase";
-import { TabBar } from "@/components/base/TabBar";
 
 interface Props {
   data: Array<BonsCommande>;
@@ -131,7 +130,6 @@ const canDecide = (status: Status) =>
 
 export function PurchaseApprovalTable({ data }: Props) {
   const purchaseOrderQuery = React.useMemo(() => purchaseQ, []);
-  const queryClient = useQueryClient();
 
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -202,10 +200,6 @@ export function PurchaseApprovalTable({ data }: Props) {
     },
     onSuccess: () => {
       toast.success("Bon de commande approuvé ✅");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["purchaseOrders"],
-      //   refetchType: "active",
-      // });
       setDecisionOpen(false);
     },
     onError: (e: any) => toast.error(e?.message ?? "Impossible d'approuver"),
@@ -219,10 +213,6 @@ export function PurchaseApprovalTable({ data }: Props) {
     },
     onSuccess: () => {
       toast.success("Bon de commande rejeté ❌");
-      // queryClient.invalidateQueries({
-      //   queryKey: ["purchaseOrders"],
-      //   refetchType: "active",
-      // });
       setDecisionOpen(false);
       setRejectReason("");
     },

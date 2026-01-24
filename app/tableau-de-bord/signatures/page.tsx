@@ -13,31 +13,32 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { requestTypeQ } from "@/queries/requestType";
 import ExpensesTableSign from "./expenses-table-sign";
 import { signatairQ } from "@/queries/signatair";
-import { Signatair } from "@/types/types";
 import { useStore } from "@/providers/datastore";
 import { TabBar } from "@/components/base/TabBar";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 function Page() {
-
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: ["payments"],
     queryFn: paymentQ.getAll,
   });
 
-  const signatair = useQuery({ queryKey: ["signatairs"], queryFn: signatairQ.getAll });
+  const signatair = useQuery({
+    queryKey: ["signatairs"],
+    queryFn: signatairQ.getAll,
+  });
   const getRequestType = useQuery({
     queryKey: ["requestType"],
-    queryFn: requestTypeQ.getAll
+    queryFn: requestTypeQ.getAll,
   });
   const getPurchases = useQuery({
     queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll
+    queryFn: purchaseQ.getAll,
   });
   const getBanks = useQuery({
     queryKey: ["banks"],
-    queryFn: bankQ.getAll
+    queryFn: bankQ.getAll,
   });
 
   const [selectedTab, setSelectedTab] = useState(0);
@@ -76,20 +77,33 @@ function Page() {
 
     // Filtrer les paiements selon les permissions - version optimisée
     const authorizedPayments = allPayments.filter((p) =>
-      userCanSign(p.bankId!, p.methodId!)
+      userCanSign(p.bankId!, p.methodId!),
     );
 
     // Séparation des paiements par statut
+    // const pendingDepensePayments = authorizedPayments.filter(
+    //   (p) => p.status === "pending_depense"
+    // );
+
+    // const unsignedPayments = authorizedPayments.filter(
+    //   (p) => p.status === "unsigned"
+    // );
+
+    // const signedPayments = authorizedPayments.filter(
+    //   (p) => p.status === "signed" || p.status === "paid"
+    // );
+
+    // Séparation des paiements par statut
     const pendingDepensePayments = authorizedPayments.filter(
-      (p) => p.status === "pending_depense"
+      (p) => p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "pending_depense"
     );
 
     const unsignedPayments = authorizedPayments.filter(
-      (p) => p.status === "unsigned"
+      (p) => !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "unsigned"
     );
 
     const signedPayments = authorizedPayments.filter(
-      (p) => p.status === "signed" || p.status === "paid"
+      (p) => p.signer?.flatMap((u) => u.id)?.includes(currentUserId) || (p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && (p.status === "signed" || p.status === "paid"))
     );
 
     // Tous les paiements en attente (pour l'onglet)
@@ -98,17 +112,17 @@ function Page() {
     // Calcul des statistiques détaillées
     const pendingDepenseTotal = pendingDepensePayments.reduce(
       (total, el) => total + (el.price || 0),
-      0
+      0,
     );
 
     const unsignedTotal = unsignedPayments.reduce(
       (total, el) => total + (el.price || 0),
-      0
+      0,
     );
 
     const signedTotal = signedPayments.reduce(
       (total, el) => total + (el.price || 0),
-      0
+      0,
     );
 
     const allPendingTotal = pendingDepenseTotal + unsignedTotal;
@@ -153,10 +167,10 @@ function Page() {
       },
       {
         id: 1,
-        title: "Tickets signés"
+        title: "Tickets signés",
       },
     ],
-    [filteredData.unsignedPayments.length, filteredData.signedPayments.length]
+    [filteredData.unsignedPayments.length, filteredData.signedPayments.length],
   );
 
   if (
@@ -189,6 +203,9 @@ function Page() {
       />
     );
   }
+
+  console.log(filteredData);
+
 
   if (
     isSuccess &&

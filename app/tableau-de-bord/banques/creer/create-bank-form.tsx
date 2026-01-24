@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BankPayload, bankQ } from "@/queries/bank";
-import { QueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -120,7 +120,6 @@ function CreateBank() {
 
   const type = form.watch("type");
 
-  const queryClient = new QueryClient();
   const router = useRouter();
   const createBankAccount = useMutation({
     mutationFn: async (payload: BankPayload) => bankQ.create(payload),

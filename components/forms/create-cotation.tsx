@@ -21,10 +21,10 @@ import { commandRqstQ } from "@/queries/commandRqstModule";
 import { requestQ } from "@/queries/requestModule";
 import { CommandRequestT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -55,7 +55,6 @@ export default function CreateCotationForm() {
   const { user } = useStore();
   const [selected, setSelected] = useState<Request[]>([]);
   const [successOpen, setSuccessOpen] = useState(false);
-  const queryCLient = useQueryClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -78,18 +77,6 @@ export default function CreateCotationForm() {
       setSuccessOpen(true);
       // Invalider TOUTES les requêtes pertinentes
       form.reset();
-      queryCLient.invalidateQueries({
-        queryKey: ["commands"],
-        refetchType: "active",
-      });
-      queryCLient.invalidateQueries({
-        queryKey: ["requests-validation"],
-        refetchType: "active",
-      });
-      queryCLient.invalidateQueries({
-        queryKey: ["requests", user?.id],
-        refetchType: "active",
-      });
     },
     onError: () => {
       toast.error(
@@ -258,9 +245,12 @@ export default function CreateCotationForm() {
           variant={"primary"}
           onClick={form.handleSubmit(onSubmit)}
           type="submit"
-          disabled={form.formState.isSubmitting}
+          disabled={createCommand.isPending}
         >
-          {form.formState.isSubmitting ? "Création..." : "Créer la demande"}
+          {createCommand.isPending ? "Création..." : "Créer la demande"}
+          {createCommand.isPending && (
+            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+          )}
         </Button>
       </div>
       <SuccessModal

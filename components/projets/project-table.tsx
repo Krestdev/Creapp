@@ -57,7 +57,7 @@ import {
 } from "@/components/ui/table";
 import { projectQ } from "@/queries/projectModule";
 import { ProjectT, User } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -134,8 +134,10 @@ export function ProjectTable({
   // Obtenir la liste unique des chefs de projet
   const uniqueChiefs = React.useMemo(() => {
     const chiefs = data
-    .filter(p=>!!p.chief)
-    .map((project) => project.chief.firstName.concat(" ", project.chief.lastName))
+      .filter((p) => !!p.chief)
+      .map((project) =>
+        project.chief.firstName.concat(" ", project.chief.lastName),
+      );
 
     return [...new Set(chiefs)].sort();
   }, [data]);
@@ -209,16 +211,12 @@ export function ProjectTable({
     }).format(amount);
   };
 
-  const queryClient = useQueryClient();
-
   const projectMutationData = useMutation({
     mutationFn: (data: { id: number; status: string }) =>
       projectQ.update(data.id, { status: data.status }),
     onSuccess: () => {
       // invalidate and refetch
       toast.success("Projet mis à jour avec succès !");
-      // queryClient.invalidateQueries({ queryKey: ["projectsList"] });
-      // queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
     onError: () => {
       toast.error(
@@ -289,7 +287,9 @@ export function ProjectTable({
       effectiveFilters.chiefFilter !== "all"
     ) {
       filtered = filtered.filter(
-        (project) => project.chief.firstName.concat(" ", project.chief.lastName) === effectiveFilters.chiefFilter,
+        (project) =>
+          project.chief.firstName.concat(" ", project.chief.lastName) ===
+          effectiveFilters.chiefFilter,
       );
     }
 

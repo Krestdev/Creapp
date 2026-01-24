@@ -72,6 +72,8 @@ export type PaymentRequest = {
   id: number;
   reference: string;
   proof?: File | string | undefined;
+  signeDoc?: File | string | undefined;
+  signed?: boolean;
   account?: string;
   justification?: (string | File)[];
   status: (typeof PAY_STATUS)[number]["value"];
@@ -102,6 +104,7 @@ export type PaymentRequest = {
   bankId?: number | null;
   transactionId?: number | null;
   methodId?: number | null;
+  signer?: User[] | null;
 };
 
 export type User = {
@@ -170,7 +173,7 @@ export type ProjectT = {
   updatedAt?: Date;
   label: string;
   description: string | null;
-  chief: { id: number; firstName: string; lastName:string; post:string };
+  chief: { id: number; firstName: string; lastName: string; post: string };
   status: string;
   budget: number;
 };
@@ -191,7 +194,7 @@ export type RequestModelT = {
   beneficiary: string;
   benef?: number[] | null;
   period?: DateRange | undefined;
-  beficiaryList?: { id: number; firstName: string; lastName:string; email: string }[] | null;
+  beficiaryList?: { id: number; firstName: string; lastName: string; email: string }[] | null;
   state: string;
   priority: "medium" | "high" | "low" | "urgent";
   projectId?: number | null;
@@ -205,20 +208,20 @@ export type RequestModelT = {
   requestOlds?: Array<{
     id: number;
     dueDate: Date;
-    priority:"medium" | "high" | "low" | "urgent";
-    quantity:number;
-    unit:string;
-    amount?:number;
+    priority: "medium" | "high" | "low" | "urgent";
+    quantity: number;
+    unit: string;
+    amount?: number;
     createdAt: Date;
     userId: number;
   }>;
-  validators:Array<{
-    id:number;
-    validated:boolean;
+  validators: Array<{
+    id: number;
+    validated: boolean;
     decision?: string;
-    rank:number;
+    rank: number;
     userId: number;
-    requestModelId:number;
+    requestModelId: number;
   }>
 };
 

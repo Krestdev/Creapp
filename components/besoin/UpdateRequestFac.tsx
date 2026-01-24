@@ -34,7 +34,7 @@ import { userQ } from "@/queries/baseModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon, ChevronDownIcon, LoaderIcon } from "lucide-react";
@@ -88,7 +88,7 @@ export default function UpdateRequestFac({
   onSuccess,
 }: UpdateFacilitationRequestProps) {
   const { user } = useStore();
-  const queryClient = useQueryClient();
+
   const [openCalendar, setOpenCalendar] = useState(false);
   const [beneficiairesList, setBeneficiairesList] = useState<
     { id: number; nom: string; montant: number }[]

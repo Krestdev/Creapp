@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { requestTypeQ } from "@/queries/requestType";
 import { RequestType } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -59,8 +59,6 @@ export function UpdateRequestType({
       description: "",
     },
   });
-
-  const queryClient = useQueryClient();
 
   // Mutation pour la mise à jour
   const updateMutation = useMutation({

@@ -13,7 +13,7 @@ import { providerQ } from "@/queries/providers";
 import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import type { Provider, QuotationGroup } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { notFound, useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
@@ -35,8 +35,8 @@ const computePreselected = (quotationGroup: QuotationGroup) => {
   for (const besoin of quotationGroup.commandRequest.besoins) {
     const quoteSelected = quotationGroup.quotations.find((q) =>
       (q.element || []).some(
-        (el) => el.requestModelId === besoin.id && el.status === "SELECTED"
-      )
+        (el) => el.requestModelId === besoin.id && el.status === "SELECTED",
+      ),
     );
 
     if (quoteSelected) {
@@ -49,13 +49,12 @@ const computePreselected = (quotationGroup: QuotationGroup) => {
 
 function SelectQuotation({ id }: { id: string }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const { user } = useStore();
 
   const buildSubmitPayload = (
     quotationGroup: QuotationGroup,
-    selected: Record<number, number>
+    selected: Record<number, number>,
   ): SubmitPayload => {
     const byDevi = new Map<number, SubmitPayload[number]>();
 
@@ -64,7 +63,7 @@ function SelectQuotation({ id }: { id: string }) {
       if (!providerId) continue;
 
       const quote = quotationGroup.quotations.find(
-        (q) => q.providerId === providerId
+        (q) => q.providerId === providerId,
       );
       if (!quote) continue;
 
@@ -79,7 +78,7 @@ function SelectQuotation({ id }: { id: string }) {
 
       if (existing) {
         const already = existing.elements.some(
-          (e) => e.name === groupItem.name
+          (e) => e.name === groupItem.name,
         );
         if (!already) existing.elements.push(groupItem);
       } else {
@@ -123,7 +122,7 @@ function SelectQuotation({ id }: { id: string }) {
     return groupQuotationsByCommandRequest(
       commands.data.data,
       quotations.data.data,
-      providers.data.data
+      providers.data.data,
     );
   }, [commands.data, quotations.data, providers.data]);
 
@@ -163,8 +162,6 @@ function SelectQuotation({ id }: { id: string }) {
     mutationFn: async (value: SubmitPayload) => quotationQ.validate(value),
     onSuccess: () => {
       toast.success("Décision enregistrée !");
-      // queryClient.invalidateQueries({ queryKey: ["quotations"] });
-      // queryClient.invalidateQueries({ queryKey: ["commands"] });
       router.push("/tableau-de-bord/commande/devis/approbation");
     },
     onError: (error: Error) => {
@@ -214,7 +211,7 @@ function SelectQuotation({ id }: { id: string }) {
     purchaseOrder.data &&
     quotationGroup &&
     purchaseOrder.data.data.find((x) =>
-      quotationGroup.quotations.some((y) => y.id === x.deviId)
+      quotationGroup.quotations.some((y) => y.id === x.deviId),
     )
   )
     return (
@@ -235,7 +232,7 @@ function SelectQuotation({ id }: { id: string }) {
             <div className="grid gap-3 grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-3 @min-[1280px]:grid-cols-4 @min-[1600px]:grid-cols-5">
               {quotationGroup.quotations.map((quote) => {
                 const elements = (quote.element || []).filter(
-                  (el) => el.requestModelId === besoin.id
+                  (el) => el.requestModelId === besoin.id,
                 );
                 if (elements.length === 0) return null;
 
@@ -244,7 +241,7 @@ function SelectQuotation({ id }: { id: string }) {
 
                 // ✅ indique si ce fournisseur est déjà validé pour ce besoin
                 const alreadyValidated = elements.some(
-                  (e) => e.status === "SELECTED"
+                  (e) => e.status === "SELECTED",
                 );
 
                 return (
@@ -252,7 +249,7 @@ function SelectQuotation({ id }: { id: string }) {
                     key={`${besoin.id}-${quote.providerId}`}
                     className={cn(
                       "rounded-lg shadow-sm p-4 flex flex-row gap-3 items-start border cursor-pointer",
-                      checked && "border-primary ring-2 ring-primary/30"
+                      checked && "border-primary ring-2 ring-primary/30",
                     )}
                     role="button"
                     tabIndex={0}

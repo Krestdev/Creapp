@@ -21,7 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { providerQ } from "@/queries/providers";
 import { Provider } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import FilesUpload from "../comp-547";
@@ -122,8 +122,6 @@ export default function UpdateProvider({
     }
   }, [open, providerData, form, defaultValues]);
 
-  const queryClient = useQueryClient();
-
   const providerMutation = useMutation({
     mutationFn: async (data: Partial<Provider>) => {
       if (!providerData?.id) {
@@ -136,10 +134,6 @@ export default function UpdateProvider({
       setOpen(false);
       form.reset(defaultValues);
       onSuccess?.();
-      // queryClient.invalidateQueries({
-      //   queryKey: ["providersList"],
-      //   refetchType: "active",
-      // });
     },
     onError: (error: Error) => {
       console.error("Erreur de mise à jour:", error);
@@ -204,9 +198,7 @@ export default function UpdateProvider({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"secondary"}>
-          <DialogTitle>
-            {`Fournisseur - ${providerData.name}`}
-          </DialogTitle>
+          <DialogTitle>{`Fournisseur - ${providerData.name}`}</DialogTitle>
           <p className="text-sm text-white/80 mt-1">
             {"Modifiez les informations du fournisseur existant"}
           </p>
@@ -226,10 +218,7 @@ export default function UpdateProvider({
                 <FormItem>
                   <FormLabel isRequired>{"Nom de l'entreprise"}</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Nom de l'entreprise"
-                      {...field}
-                    />
+                    <Input placeholder="Nom de l'entreprise" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -299,10 +288,7 @@ export default function UpdateProvider({
                 <FormItem className="col-span-2">
                   <FormLabel>{"Régistre du Commerce(RCCM)"}</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="RC/234/456/..."
-                      {...field}
-                    />
+                    <Input placeholder="RC/234/456/..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -317,10 +303,7 @@ export default function UpdateProvider({
                 <FormItem>
                   <FormLabel>{"NIU"}</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="QA123..."
-                      {...field}
-                    />
+                    <Input placeholder="QA123..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -333,13 +316,8 @@ export default function UpdateProvider({
               name="regem"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    {"Régime"}
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
+                  <FormLabel>{"Régime"}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner un Régime" />
