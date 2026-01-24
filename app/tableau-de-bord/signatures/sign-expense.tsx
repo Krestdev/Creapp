@@ -116,7 +116,7 @@ function SignExpense({ ticket, open, onOpenChange }: Props) {
           <Button
             onClick={form.handleSubmit(onSubmit)}
             variant={"primary"}
-            disabled={sign.isPending || form.getValues("proof").length === 0}
+            disabled={sign.isPending}
             isLoading={sign.isPending}
           >
             {"Signer"}
