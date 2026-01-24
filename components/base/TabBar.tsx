@@ -3,17 +3,17 @@ import { cva, VariantProps } from 'class-variance-authority'
 import React from 'react'
 import { Button } from '../ui/button'
 
-interface Props {
+export interface TabProps {
     tabs: { id: number, title: string, badge?: number }[]
     setSelectedTab: (value: React.SetStateAction<number>) => void
     selectedTab: number;
     className?:string;
 }
 
-export const TabBar = ({ tabs, setSelectedTab, selectedTab, className="" }: Props) => {
+export const TabBar = ({ tabs, setSelectedTab, selectedTab, className="" }: TabProps) => {
     return (
         <div className={cn("w-fit flex border rounded overflow-hidden", className)}>
-            {tabs.map(x => {
+            {tabs.sort((a,b)=> a.id - b.id).map(x => {
                 return (
                     <div
                         onClick={() => setSelectedTab(x.id)}

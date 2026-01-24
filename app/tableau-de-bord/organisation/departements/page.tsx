@@ -1,10 +1,11 @@
 import DepartementPage from "@/components/organisation/departements";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
+import { NavLink } from "@/types/types";
 import Link from "next/link";
 
 function Page() {
-  const links: Array<{ title: string; href: string }> = [
+  const links: Array<NavLink> = [
     {
       title: "Créer un département",
       href: "/tableau-de-bord/organisation/createdepartement",
@@ -18,18 +19,8 @@ function Page() {
         title="Départements"
         subtitle="Consultez la liste des départements."
         color="red"
-      >
-        {links.map((link, id) => {
-          const isLast = links.length > 1 ? false : id === links.length - 1;
-          return (
-            <Link key={id} href={link.href}>
-              <Button size={"lg"} variant={isLast ? "accent" : "ghost"}>
-                {link.title}
-              </Button>
-            </Link>
-          );
-        })}
-      </PageTitle>
+        links={links}
+      />
       <DepartementPage />
     </div>
   );

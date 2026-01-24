@@ -2,14 +2,11 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { bankQ } from "@/queries/bank";
 import { transactionQ } from "@/queries/transaction";
 import { NavLink } from "@/types/types";
-import Link from "next/link";
-import TransferTable from "./transfer-table";
 import { useQuery } from "@tanstack/react-query";
+import TransferTable from "./transfer-table";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -35,31 +32,7 @@ function Page() {
   if (getTransactions.isSuccess && getBanks.isSuccess)
     return (
       <div className="content">
-        <PageTitle title="Transferts" subtitle="Historique des transferts">
-          {links
-            .filter((x) => (!x.hide ? true : x.hide === true && false))
-            .map((link, id) => {
-              const isLast = links.length > 1 ? id === links.length - 1 : false;
-              return (
-                <Link
-                  key={id}
-                  href={link.href}
-                  onClick={(e) => {
-                    link.disabled && e.preventDefault();
-                  }}
-                  className={cn(link.disabled && "cursor-not-allowed")}
-                >
-                  <Button
-                    size={"lg"}
-                    variant={isLast ? "accent" : "ghost"}
-                    disabled={link.disabled}
-                  >
-                    {link.title}
-                  </Button>
-                </Link>
-              );
-            })}
-        </PageTitle>
+        <PageTitle title="Transferts" subtitle="Historique des transferts" links={links} />
         <TransferTable
           data={getTransactions.data.data.filter((t) => t.Type === "TRANSFER")}
           banks={getBanks.data.data}

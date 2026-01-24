@@ -152,26 +152,23 @@ function AppSidebar() {
   }, [providers.data, getQuotationRequests.data, getQuotations.data]);
 
   // Récupérer tous les IDs des besoins présents dans les cotations
+  const commandRequests = useMemo(()=>{
+    if(!getQuotationRequests.data) return [];
+    return getQuotationRequests.data.data
+  },[getQuotationRequests.data])
 
-  const besoinsDansCotation = useMemo(() => {
-    if (!getQuotationRequests.data) return [];
-    return (
-      getQuotationRequests.data.data.flatMap((item) =>
-        item.besoins.map((b) => b.id),
-      ) ?? []
-    );
-  }, [getQuotationRequests.data]);
+  const isRequestUsed = (requestId:number):boolean => commandRequests.some(c=> c.besoins.some(b=> b.id === requestId));
 
   // Filtrer les besoins validés qui ne sont pas dans une cotation
-  const besoinVal = useMemo(() => {
-    if (!requestData.data) return [];
+  const requestToUse = useMemo(() => {
+    if (!requestData.data || !getQuotationRequests.data) return [];
     return requestData.data.data.filter(
       (x) =>
-        x.categoryId !== 0 &&
+        x.type === "achat" &&
         x.state === "validated" &&
-        !besoinsDansCotation.includes(x.id),
+        isRequestUsed(x.id),
     );
-  }, [requestData.data, besoinsDansCotation]);
+  }, [requestData.data, getQuotationRequests.data]);
 
   const pendingData = useMemo(() => {
     if (!data) return [];
@@ -320,7 +317,7 @@ function AppSidebar() {
             href: "/tableau-de-bord/besoins/validation",
             authorized: ["ADMIN", "MANAGER"],
             badgeValue:
-              pendingData?.length > 0 ? pendingData?.length : undefined,
+              pendingData.length > 0 ? pendingData.length : undefined,
           },
         ],
       },
@@ -337,7 +334,7 @@ function AppSidebar() {
             href: "/tableau-de-bord/commande/cotation",
             authorized: ["ADMIN", "SALES"],
             badgeValue:
-              besoinVal && besoinVal.length > 0 ? besoinVal?.length : undefined,
+              requestToUse.length > 0 ? requestToUse.length : undefined,
           },
           {
             pageId: "PG-03-02",

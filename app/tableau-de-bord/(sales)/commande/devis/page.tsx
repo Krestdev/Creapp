@@ -9,6 +9,7 @@ import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { providerQ } from "@/queries/providers";
 import { quotationQ } from "@/queries/quotation";
+import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
@@ -18,7 +19,7 @@ const Page = () => {
     (r) => r.label === "SALES_MANAGER" || r.label === "ADMIN"
   );
 
-  const links = [
+  const links: Array<NavLink> = [
     {
       title: "Créer un devis",
       href: "./devis/creer",
@@ -58,20 +59,8 @@ const Page = () => {
           title="Devis"
           subtitle="Consultez et gérez les cotations."
           color="red"
-        >
-          {links
-            .filter((p) => (isAdmin ? true : p.href !== "./devis/approbation"))
-            .map((link, id) => {
-              const isLast = links.length > 1 ? id === links.length - 1 : false;
-              return (
-                <Link key={id} href={link.href}>
-                  <Button size={"lg"} variant={isLast ? "accent" : "ghost"}>
-                    {link.title}
-                  </Button>
-                </Link>
-              );
-            })}
-        </PageTitle>
+          links={links}
+        />
         <DevisTable
           data={data.data}
           commands={commands.data.data}

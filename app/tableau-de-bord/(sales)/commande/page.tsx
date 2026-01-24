@@ -1,11 +1,8 @@
-"use client";
+import React from "react";
+import { redirect } from "next/navigation";
 
-const Page = () => {
-  return (
-    <div className="flex flex-col gap-6">
+function page() {
+  redirect("/tableau-de-bord/");
+}
 
-    </div>
-  );
-};
-
-export default Page;
+export default page;

@@ -31,7 +31,7 @@ export interface PageTitleProps {
   title: string;
   subtitle: string;
   color?: "red" | "blue" | "green" | "none";
-  children?: React.ReactNode;
+  links?: Array<NavLink>
 }
 
 export type UserRole = "admin" | "user";
