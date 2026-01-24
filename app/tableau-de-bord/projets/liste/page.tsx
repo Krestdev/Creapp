@@ -1,21 +1,23 @@
-import ProjectListPage from "@/components/projets/liste";
 import PageTitle from "@/components/pageTitle";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import ProjectListPage from "@/components/projets/liste";
+import { NavLink } from "@/types/types";
 
 function Page() {
+  const links :Array<NavLink> = [
+    {
+      title: "Créer un Projet",
+      href: "./create",
+    },
+  ];
   return (
-    <div className="flex flex-col gap-6">
+    <div className="content">
       {/* page title */}
       <PageTitle
         title="Les Projets"
         subtitle="Consultez la liste des projets."
         color="red"
-      >
-        <Link href={"./create"}>
-          <Button variant={"ghost"}>{"Créer un Projet"}</Button>
-        </Link>
-      </PageTitle>
+        links={links}
+      />
       <ProjectListPage />
     </div>
   );

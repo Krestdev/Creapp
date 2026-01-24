@@ -1,18 +1,18 @@
 "use client";
-import ErrorPage from "@/components/error-page";
-import LoadingPage from "@/components/loading-page";
-import PageTitle from "@/components/pageTitle";
-import { XAF } from "@/lib/utils";
-import { paymentQ } from "@/queries/payment";
-import { purchaseQ } from "@/queries/purchase-order";
-import ExpensesTable from "../expenses-table";
 import {
   StatisticCard,
   StatisticProps,
 } from "@/components/base/TitleValueCard";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
+import PageTitle from "@/components/pageTitle";
+import { XAF } from "@/lib/utils";
 import { bankQ } from "@/queries/bank";
+import { paymentQ } from "@/queries/payment";
+import { purchaseQ } from "@/queries/purchase-order";
 import { requestTypeQ } from "@/queries/requestType";
 import { useQuery } from "@tanstack/react-query";
+import ExpensesTable from "../expenses-table";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({

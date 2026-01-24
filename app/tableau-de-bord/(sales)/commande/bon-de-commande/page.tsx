@@ -10,13 +10,12 @@ import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { cn, isRole, XAF } from "@/lib/utils";
+import { isRole, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande, NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
@@ -149,31 +148,8 @@ const Page = () => {
         <PageTitle
           title="Bons de commande"
           subtitle="Approbation des bons de commande"
-        >
-          {links
-            .filter((x) => (!x.hide ? true : x.hide === true && false))
-            .map((link, id) => {
-              const isLast = links.length > 1 ? id === links.length - 1 : false;
-              return (
-                <Link
-                  key={id}
-                  href={link.href}
-                  onClick={(e) => {
-                    link.disabled && e.preventDefault();
-                  }}
-                  className={cn(link.disabled && "cursor-not-allowed")}
-                >
-                  <Button
-                    size={"lg"}
-                    variant={isLast ? "accent" : "ghost"}
-                    disabled={link.disabled}
-                  >
-                    {link.title}
-                  </Button>
-                </Link>
-              );
-            })}
-        </PageTitle>
+          links={links}
+        />
         <div className="flex flex-wrap items-end gap-3">
           <div className="grid gap-2">
             <Label htmlFor="date">{"Période"}</Label>
