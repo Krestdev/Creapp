@@ -89,16 +89,14 @@ const Page = () => {
       />
       {selectedTab === 0 ? (
         <div className="content">
-          <h2>{"Besoins disponibles"}</h2>
           {besoinVal && besoinVal?.length > 0 ? (
-            <Besoins selected={[]} setSelected={() => {}} isHome />
+            <Besoins selected={[]} setSelected={() => { }} isHome />
           ) : (
             <Empty message="Aucun besoin disponible" />
           )}
         </div>
       ) : (
         <div className="content">
-          <h2>{"Demande de cotation"}</h2>
           <Cotation />
         </div>
       )}

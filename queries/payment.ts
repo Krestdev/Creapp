@@ -3,7 +3,7 @@ import { PaymentRequest } from "@/types/types";
 
 export interface NewPayment extends Omit<
   PaymentRequest,
-  "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status"
+  "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status" | "signer"
 > {
   proof: File;
   commandId: number;
@@ -15,7 +15,7 @@ export interface UpdatePayment extends Omit<Partial<PaymentRequest>, "proof"> {
 
 export type PayPayload = Omit<
   PaymentRequest,
-  "id" | "createdAt" | "updatedAt" | "status" | "justification"
+  "id" | "createdAt" | "updatedAt" | "status" | "justification" | "signer"
 > & { justification: File };
 
 class PaymentQueries {
@@ -25,7 +25,7 @@ class PaymentQueries {
   // CREATE (POST)
   // --------------------------------------
   create = async (
-    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">,
+    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "signer">,
   ): Promise<{ message: string; data: PaymentRequest }> => {
     const formData = new FormData();
 
@@ -58,7 +58,7 @@ class PaymentQueries {
   };
 
   createDepense = async (
-    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> & {
+    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "signer"> & {
       caisseId: number;
     },
   ): Promise<{ message: string; data: PaymentRequest }> => {
@@ -183,9 +183,15 @@ class PaymentQueries {
   validate = async (data: {
     paymentId: number;
     userId: number;
+    signeDoc: File | string | undefined;
   }): Promise<{ data: PaymentRequest }> => {
+    const formData = new FormData();
+    formData.append("userId", String(data.userId));
+    if (data.signeDoc) formData.append("signeDoc", data.signeDoc);
     return api
-      .put(`${this.route}/validate/${data.paymentId}`, { userId: data.userId })
+      .put(`${this.route}/validate/${data.paymentId}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
       .then((response) => response.data);
   };
 

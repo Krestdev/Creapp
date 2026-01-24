@@ -1,4 +1,5 @@
 "use client";
+import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,10 +8,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
-import { Bank, PaymentRequest } from "@/types/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { TransactionProps, transactionQ } from "@/queries/transaction";
+import { PaymentRequest } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
@@ -18,25 +30,34 @@ interface Props {
   ticket: PaymentRequest;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  banks: Array<Bank>;
 }
 
 const formSchema = z.object({
-  id: z.string(),
-  userId: z.number(),
+  proof: z
+    .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
+    .min(0),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-function SignExpense({ ticket, open, onOpenChange, banks }: Props) {
-  const { user } = useStore();
-  const queryClient = useQueryClient();
+function SignExpense({ ticket, open, onOpenChange }: Props) {
 
-  const pay = useMutation({
-    mutationFn: async (userId: number) =>
-      paymentQ.validate({ paymentId: ticket.id, userId }),
+  const { user } = useStore()
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      proof: [],
+    },
+  });
+
+  const sign = useMutation({
+    mutationFn: async (payload: {
+      userId: number;
+      signeDoc: File | string | undefined;
+      paymentId: number;
+    }) => paymentQ.validate(payload),
     onSuccess: () => {
-      toast.success("Votre signatur a été enregistrée avec succès !");
+      toast.success("Votre signature a été enregistrée avec succès !");
       onOpenChange(false);
     },
     onError: (error: Error) => {
@@ -44,37 +65,77 @@ function SignExpense({ ticket, open, onOpenChange, banks }: Props) {
     },
   });
 
+  function onSubmit(values: FormValues) {
+    const { proof, ...rest } = values;
+    const payload: {
+      paymentId: number;
+      userId: number;
+      signeDoc: File | string | undefined;
+    } = {
+      paymentId: ticket.id,
+      userId: user!.id,
+      signeDoc: proof[0],
+    };
+    sign.mutate(payload);
+  }
+
   return (
-    user && (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
-          <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-            <DialogTitle>{`Payer ${ticket.title}`}</DialogTitle>
-            <DialogDescription>{`Paiement du ticket ${ticket.reference}`}</DialogDescription>
-          </DialogHeader>
-          <div className="shrink-0 flex gap-3 p-6 pt-0 ml-auto">
-            <Button
-              onClick={() => pay.mutate(user.id)}
-              variant={"primary"}
-              disabled={pay.isPending}
-              isLoading={pay.isPending}
-            >
-              {"Signer"}
-            </Button>
-            <Button
-              variant={"outline"}
-              disabled={pay.isPending}
-              onClick={(e) => {
-                e.preventDefault();
-                onOpenChange(false);
-              }}
-            >
-              {"Annuler"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
+        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
+          <DialogTitle className="uppercase">{`Signer - ${ticket.title}`}</DialogTitle>
+          <DialogDescription>{`Signature du ticket ${ticket.reference}`}</DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto px-6 pb-4">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+              <FormField
+                control={form.control}
+                name="proof"
+                render={({ field }) => (
+                  <FormItem className="@min-[640px]:col-span-2">
+                    <FormLabel isRequired>{"Justificatif"}</FormLabel>
+                    <FormControl>
+                      <FilesUpload
+                        value={field.value}
+                        onChange={field.onChange}
+                        name={field.name}
+                        acceptTypes="images"
+                        multiple={true}
+                        maxFiles={4}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </div>
+        <div className="shrink-0 flex gap-3 p-6 pt-0 ml-auto">
+          <Button
+            onClick={form.handleSubmit(onSubmit)}
+            variant={"primary"}
+            disabled={sign.isPending || form.getValues("proof").length === 0}
+            isLoading={sign.isPending}
+          >
+            {"Signer"}
+          </Button>
+          <Button
+            variant={"outline"}
+            // Désactiver si il n'y a aucun fichier
+            disabled={sign.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              form.reset();
+              onOpenChange(false);
+            }}
+          >
+            {"Annuler"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
