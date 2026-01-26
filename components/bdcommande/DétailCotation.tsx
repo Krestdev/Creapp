@@ -30,7 +30,7 @@ Font.register({
 const CotationPDF = ({ data }: { data: CommandRequestT }) => {
   return (
     <Document>
-      <Page size="A4" style={styles.page} wrap break>
+      <Page size="A4" style={styles.page}>
         {/* Papier entete */}
         <Image style={styles.headerImage} src={"/images/crea.jpg"} fixed />
 
@@ -64,9 +64,7 @@ const CotationPDF = ({ data }: { data: CommandRequestT }) => {
             <View style={styles.contactSection}>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{"Contact principal : "}</Text>
-                <Text style={styles.infoValue}>
-                  {data.name}
-                </Text>
+                <Text style={styles.infoValue}>{data.name}</Text>
               </View>
 
               <View style={styles.infoRow}>
@@ -105,6 +103,7 @@ const CotationPDF = ({ data }: { data: CommandRequestT }) => {
             {data.besoins.map((item, index) => (
               <View
                 key={index}
+                wrap={false}
                 style={[
                   styles.tableRow,
                   index === data.besoins.length - 1
@@ -127,13 +126,21 @@ const CotationPDF = ({ data }: { data: CommandRequestT }) => {
               </View>
             ))}
           </View>
+        </View>
+        {/* --------- FOOTER --------- */}
+        {/* Footer with page numbers */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            `Page ${pageNumber} / ${totalPages}`
+          }
+          fixed
+        />
 
-          {/* --------- FOOTER --------- */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              {`Créé le ${format(data.createdAt, "PPP", { locale: fr })}.`}
-            </Text>
-          </View>
+        <View style={styles.footer} fixed>
+          <Text style={styles.footerText}>
+            {`Créé le ${format(data.createdAt, "PPP", { locale: fr })}.`}
+          </Text>
         </View>
       </Page>
     </Document>
@@ -144,32 +151,38 @@ export default CotationPDF;
 
 const styles = StyleSheet.create({
   page: {
-    display: "flex",
-    flexDirection: "column",
+    // display: "flex",
+    // flexDirection: "column",
     fontFamily: "Poppins",
     fontSize: 10,
     lineHeight: 1.4,
     backgroundColor: "#fff",
-    position: "relative",
-    height: "100%",
+    // position: "relative",
+    // height: "100%",
     objectFit: "cover",
+    paddingBottom: 120,
+    paddingTop: 100,
+    paddingLeft: 40,
+    paddingRight: 40,
   },
 
   content: {
-    paddingLeft: 40,
-    paddingRight: 40,
-    paddingTop: 100,
-    paddingBottom: 120,
-    minHeight: "100%",
+    // flexGrow: 1,
+    position: "relative",
+    wrap: true,
+    // minHeight: "100%",
   },
 
   headerImage: {
     width: "100%",
     height: "100%",
+    minHeight: "100%",
     zIndex: -1,
     position: "absolute",
     top: 0,
     left: 0,
+    bottom: 0,
+    // right: 0,
   },
 
   // ===== TITRE =====
@@ -342,12 +355,24 @@ const styles = StyleSheet.create({
 
   // ===== FOOTER =====
   footer: {
-    paddingTop: 10,
+    bottom: 115,
+    position: "absolute",
+    right: 40,
   },
 
   footerText: {
     fontSize: 10,
     color: "#666",
     textAlign: "right",
+  },
+
+  pageNumber: {
+    position: "absolute",
+    bottom: 115,
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    fontSize: 10,
+    color: "grey",
   },
 });
