@@ -500,7 +500,7 @@ function CreateForm() {
           name="keepTaxes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{"Pénalités"}</FormLabel>
+              <FormLabel>{"Retenir à la source"}</FormLabel>
               <FormControl>
                 <div className="flex items-center gap-2">
                   <Switch
@@ -510,6 +510,7 @@ function CreateForm() {
                   <span>{field.value ? "Oui" : "Non"}</span>
                 </div>
               </FormControl>
+              <FormDescription>{"Cocher si vous souhaitez retenir les taxes à la source sur ce bon de commande"}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -676,7 +677,7 @@ function CreateForm() {
             onClick={() => append({ percentage: 0, deadLine: undefined })}
           >
             <Plus />
-            {"Ajouter un paiement"}
+            {"Ajouter une échéance"}
           </Button>
 
           <div className="text-sm text-muted-foreground">
@@ -757,7 +758,7 @@ function CreateForm() {
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="penaltyMode"
           render={({ field }) => (
@@ -806,7 +807,7 @@ function CreateForm() {
               <FormMessage/>
             </FormItem>
           )}
-        />
+        /> */}
         <div className="@min-[560px]:col-span-2">
           <Button
             type="submit"
