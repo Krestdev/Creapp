@@ -115,31 +115,8 @@ function Page() {
           title="Dépenses Courantes"
           subtitle="Consulter et traiter les dépenses courantes"
           color="red"
-        >
-          {links
-            .filter((x) => (!x.hide ? true : x.hide === true && false))
-            .map((link, id) => {
-              const isLast = links.length > 1 ? id === links.length - 1 : false;
-              return (
-                <Link
-                  key={id}
-                  href={link.href}
-                  onClick={(e) => {
-                    link.disabled && e.preventDefault();
-                  }}
-                  className={cn(link.disabled && "cursor-not-allowed")}
-                >
-                  <Button
-                    size={"lg"}
-                    variant={isLast ? "accent" : "ghost"}
-                    disabled={link.disabled}
-                  >
-                    {link.title}
-                  </Button>
-                </Link>
-              );
-            })}
-        </PageTitle>
+          links={links}
+        />
         <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           {Statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" />

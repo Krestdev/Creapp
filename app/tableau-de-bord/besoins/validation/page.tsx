@@ -147,7 +147,8 @@ const Page = () => {
     categoriesData.data &&
     requestData.data &&
     getRequestType.data
-  )
+  ){
+    console.log(data);
     return (
       <div className="content">
         {/* page title */}
@@ -174,7 +175,7 @@ const Page = () => {
           cleared={approved + rejected}
         />
       </div>
-    );
+    );}
 };
 
 export default Page;

@@ -10,13 +10,13 @@ export const approbatorRequests = (
     if (!myRank) {
       return false;
     }
-    if (r.state === "cancel") {
+    if (r.state === "cancel" || r.type === "speciaux") {
       return false;
     }
     if (myRank === 1) {
       return true;
     }
-    if (r.state === "validated" || r.state.includes("rejected")) {
+    if (r.state === "validated" || r.state.includes("rejected") || r.state === "store") {
       return true;
     }
     return r.validators.find((v) => v.rank === myRank - 1)?.validated === true;

@@ -149,17 +149,24 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     }
 
     const paymentType = paymentMethod.type.toLowerCase();
+    const payTypeLabel = ticket.type?.toLowerCase() || "";
 
     switch (paymentType) {
       case "cash": // Espèces
-        // Pour les espèces : caisses + Orange Money
-        return banks.filter(
-          (bank) =>
-            (bank.type === "CASH" ||
-              bank.type === "CASH_REGISTER" ||
-              bank.type === "MOBILE_WALLET") &&
-            bank.Status === true,
-        );
+        if (payTypeLabel === "current") {
+          return banks.filter(
+            (bank) =>
+              (bank.type === "CASH" || bank.type === "MOBILE_WALLET") &&
+              bank.Status === true,
+          );
+        } else {
+          // Pour cash normal : CASH_REGISTER et MOBILE_WALLET
+          return banks.filter(
+            (bank) =>
+              (bank.type === "CASH_REGISTER" || bank.type === "MOBILE_WALLET") &&
+              bank.Status === true,
+          );
+        }
 
       case "ov": // Ordre de virement
       case "chq": // Chèque
@@ -172,7 +179,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
         // Par défaut, afficher tous les comptes actifs
         return banks.filter((x) => x.type !== null && x.Status === true);
     }
-  }, [banks, paymentMethod?.type]);
+  }, [banks, paymentMethod?.type, ticket.type]);
 
   // Récupérer la configuration de signature correspondante
   const relevantSignataireConfig = useMemo(() => {
@@ -271,6 +278,8 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     };
     share.mutate(payload);
   }
+
+  const selectedBank = banks.find((bank) => bank.id === selectedBankId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -485,6 +494,13 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                         )}
 
                       <FormMessage />
+                      {selectedBank && selectedBank.balance < ticket.price && (
+                        <div className="mt-3 p-3 bg-red-500/20 rounded-md border border-red-500">
+                          <p className="text-sm text-red-500">
+                            ⚠️ Solde insuffisant. Disponible: {selectedBank.balance.toLocaleString()} FCFA, Montant requis: {ticket.price.toLocaleString()} FCFA
+                          </p>
+                        </div>
+                      )}
                     </FormItem>
                   )}
                 />
@@ -579,7 +595,15 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
         </div>
         <div className="shrink-0 flex gap-3 p-6 pt-0 ml-auto">
           <Button
-            onClick={form.handleSubmit(onSubmit)}
+            onClick={() => {
+              // Vérifier si le solde est suffisant
+              if (selectedBank && selectedBank.balance < ticket.price) {
+                toast.error(`Solde insuffisant. Disponible: ${selectedBank.balance.toLocaleString()} FCFA, Montant requis: ${ticket.price.toLocaleString()} FCFA`);
+                return;
+              }
+              // Appeler la fonction retournée par handleSubmit
+              form.handleSubmit(onSubmit)();
+            }}
             variant={"primary"}
             disabled={
               share.isPending ||

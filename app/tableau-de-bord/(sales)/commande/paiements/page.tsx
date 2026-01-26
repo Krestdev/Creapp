@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
+import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
@@ -29,7 +30,7 @@ function Page() {
     );
   }
 
-  const links = [
+  const links: Array<NavLink> = [
     {
       title: "Créer un paiement",
       href: "./paiements/creer",
@@ -62,13 +63,8 @@ function Page() {
             "Créez et gérez les paiements des factures relatives aux bons de commande"
           }
           color={"red"}
-        >
-          {links.map((x) => (
-            <Link href={x.href} key={x.title}>
-              <Button variant={"ghost"}>{x.title}</Button>
-            </Link>
-          ))}
-        </PageTitle>
+          links={links}
+        />
         <PaiementsTable
           payments={getPayments.data.data.filter((p) => p.type === "achat")}
           purchases={getPurchases.data.data}

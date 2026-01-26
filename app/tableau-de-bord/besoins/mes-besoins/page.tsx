@@ -43,6 +43,8 @@ const Page = () => {
     const rejected =
       data.data.filter((item) => item.state === "rejected").length ?? 0;
     const validated = data.data.filter(item=> item.state ==="validated").length;
+    const fromStore = data.data.filter(item => item.state === "store").length;
+    const cancelled = data.data.filter(item => item.state === "cancel").length;
 
     const Statistics: Array<StatisticProps> = [
       {
@@ -57,10 +59,19 @@ const Page = () => {
       {
         title: "Besoins émis",
         value: sent,
-        variant: "default",
+        variant: "primary",
         more: {
           title: "Besoins approuvés",
           value: validated,
+        },
+      },
+      {
+        title: "Besoins Déstockés",
+        value: fromStore,
+        variant: "default",
+        more: {
+          title: "Besoins annulés",
+          value: cancelled,
         },
       },
     ];

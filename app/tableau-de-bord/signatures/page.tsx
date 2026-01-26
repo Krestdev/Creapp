@@ -81,16 +81,29 @@ function Page() {
     );
 
     // Séparation des paiements par statut
+    // const pendingDepensePayments = authorizedPayments.filter(
+    //   (p) => p.status === "pending_depense"
+    // );
+
+    // const unsignedPayments = authorizedPayments.filter(
+    //   (p) => p.status === "unsigned"
+    // );
+
+    // const signedPayments = authorizedPayments.filter(
+    //   (p) => p.status === "signed" || p.status === "paid"
+    // );
+
+    // Séparation des paiements par statut
     const pendingDepensePayments = authorizedPayments.filter(
-      (p) => p.status === "pending_depense",
+      (p) => p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "pending_depense"
     );
 
     const unsignedPayments = authorizedPayments.filter(
-      (p) => p.status === "unsigned",
+      (p) => !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "unsigned"
     );
 
     const signedPayments = authorizedPayments.filter(
-      (p) => p.status === "signed" || p.status === "paid",
+      (p) => p.signer?.flatMap((u) => u.id)?.includes(currentUserId) || (p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && (p.status === "signed" || p.status === "paid"))
     );
 
     // Tous les paiements en attente (pour l'onglet)
@@ -190,6 +203,9 @@ function Page() {
       />
     );
   }
+
+  console.log(filteredData);
+
 
   if (
     isSuccess &&

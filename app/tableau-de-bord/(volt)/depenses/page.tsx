@@ -6,16 +6,15 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { Button } from "@/components/ui/button";
-import { cn, XAF } from "@/lib/utils";
+import { XAF } from "@/lib/utils";
 import { bankQ } from "@/queries/bank";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import { requestTypeQ } from "@/queries/requestType";
 import { NavLink } from "@/types/types";
-import Link from "next/link";
-import ExpensesTable from "./expenses-table";
 import { useQuery } from "@tanstack/react-query";
+import ExpensesTable from "./expenses-table";
+import { providerQ } from "@/queries/providers";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -42,11 +41,13 @@ function Page() {
     queryFn: purchaseQ.getAll,
   });
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
+  const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll});
   if (
     isLoading ||
     getPurchases.isLoading ||
     getBanks.isLoading ||
-    getRequestType.isLoading
+    getRequestType.isLoading ||
+    getProviders.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -54,7 +55,8 @@ function Page() {
     isError ||
     getPurchases.isError ||
     getBanks.isError ||
-    getRequestType.isError
+    getRequestType.isError ||
+    getProviders.isError
   ) {
     return (
       <ErrorPage
@@ -63,6 +65,7 @@ function Page() {
           getPurchases.error ||
           getBanks.error ||
           getRequestType.error ||
+          getProviders.error ||
           undefined
         }
       />
@@ -72,7 +75,8 @@ function Page() {
     isSuccess &&
     getPurchases.isSuccess &&
     getBanks.isSuccess &&
-    getRequestType.isSuccess
+    getRequestType.isSuccess &&
+    getProviders.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -115,31 +119,8 @@ function Page() {
           title="Dépenses"
           subtitle="Consulter et traiter les dépenses"
           color="red"
-        >
-          {links
-            .filter((x) => (!x.hide ? true : x.hide === true && false))
-            .map((link, id) => {
-              const isLast = links.length > 1 ? id === links.length - 1 : false;
-              return (
-                <Link
-                  key={id}
-                  href={link.href}
-                  onClick={(e) => {
-                    link.disabled && e.preventDefault();
-                  }}
-                  className={cn(link.disabled && "cursor-not-allowed")}
-                >
-                  <Button
-                    size={"lg"}
-                    variant={isLast ? "accent" : "ghost"}
-                    disabled={link.disabled}
-                  >
-                    {link.title}
-                  </Button>
-                </Link>
-              );
-            })}
-        </PageTitle>
+          links={links}
+        />
         <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           {Statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" />
@@ -150,6 +131,7 @@ function Page() {
           banks={getBanks.data.data}
           purchases={getPurchases.data.data}
           requestTypes={getRequestType.data.data}
+          providers={getProviders.data.data}
         />
       </div>
     );

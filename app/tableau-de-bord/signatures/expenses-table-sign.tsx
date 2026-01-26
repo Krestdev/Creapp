@@ -66,8 +66,8 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "../(volt)/depenses/view-expense";
-import PayExpense from "./sign-expense";
 import { useMemo } from "react";
+import SignExpense from "./sign-expense";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -741,11 +741,10 @@ function ExpensesTableSign({
         />
       )}
       {selected && (
-        <PayExpense
+        <SignExpense
           ticket={selected}
           open={showPay}
           onOpenChange={setShowPay}
-          banks={banks}
         />
       )}
     </div>
