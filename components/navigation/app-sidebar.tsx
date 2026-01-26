@@ -335,7 +335,7 @@ function AppSidebar() {
         pageId: "PG-03",
         icon: ClipboardList,
         href: "/tableau-de-bord/commande",
-        authorized: ["ADMIN", "SALES"],
+        authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
         title: "Commande",
         items: [
           {
