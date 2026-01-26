@@ -1,19 +1,16 @@
-import { company, formatXAF, XAF } from "@/lib/utils";
-import { BonDeCommande, BonsCommande } from "@/types/types";
-import {
-  Document,
-  Page,
-  View,
-  Text,
-  StyleSheet,
-  Image,
-} from "@react-pdf/renderer";
+import { company, formatXAF } from "@/lib/utils";
+import { BonsCommande } from "@/types/types";
+import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-// Dimensions A4 en points (1 point = 1/72 inch)
-const A4_WIDTH = 595; // Largeur A4 en points
-const A4_HEIGHT = 842; // Hauteur A4 en points
+const A4_WIDTH = 595;
+const A4_HEIGHT = 842;
+
+const TVA = 0.1925;
+const IR = 0.05;
+const ACOMPTE_IS = 0.022;
+const PRECOMPTE = 0.02;
 
 const styles = StyleSheet.create({
   page: {
@@ -25,47 +22,26 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Helvetica",
     position: "relative",
-    overflow: "hidden", 
+    overflow: "hidden",
     display: "flex",
     flexDirection: "column",
-    gap: 19
+    gap: 19,
   },
-  backgroundImage: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: A4_WIDTH,
-    height: A4_HEIGHT,
-    zIndex: -1,
-  },
-  mainContent: {
-    width: "100%",
-    flexDirection: "column",
-    marginBottom: 200, // Maintenant ça devrait fonctionner
-  },
+  mainContent: { width: "100%", flexDirection: "column", marginBottom: 200 },
   header: {
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 8,
   },
-  name: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  name: { display: "flex", flexDirection: "row", alignItems: "center" },
   info: {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-  leftHeader: {
-    display: "flex",
-    flexDirection: "column",
-    alignContent: "flex-start",
-    justifyContent: "flex-start",
-  },
+  leftHeader: { display: "flex", flexDirection: "column" },
   rightHeaderBox: {
     borderWidth: 1,
     borderColor: "#000",
@@ -74,17 +50,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "space-between",
   },
-  logoBox: {
-    width: 90,
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#000",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 6,
-  },
   companyName: { fontSize: 12, marginBottom: 4 },
-  refTitle: { fontWeight: "bold", fontSize: 11, marginBottom: 4 },
   title: {
     textAlign: "center",
     fontSize: 16,
@@ -92,18 +58,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     color: "#700032",
   },
-  metaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  metaCol: { width: "33%" },
-  table: {
-    borderWidth: 1,
-    borderColor: "#000",
-    marginBottom: 8,
-    minHeight: 30,
-  },
+  table: { borderWidth: 1, borderColor: "#000", marginBottom: 8, minHeight: 30 },
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#eee",
@@ -117,31 +72,19 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "bold",
   },
-  tr: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderColor: "#ddd",
-    minHeight: 25,
-  },
-  td: {
-    padding: 4,
-    borderRightWidth: 1,
-    borderColor: "#ddd",
-    fontSize: 9,
-  },
-  colDesignation: { width: "30%" },
+  tr: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#ddd", minHeight: 25 },
+  td: { padding: 4, borderRightWidth: 1, borderColor: "#ddd", fontSize: 9 },
+  colDesignation: { width: "32%" },
   colQty: { width: "6%", textAlign: "right" },
-  colPu: { width: "13%", textAlign: "right" },
-  colTva: { width: "13%", textAlign: "right" },
-  colIris: { width: "13%", textAlign: "right" },
+  colPu: { width: "14%", textAlign: "right" },
+  colRrr: { width: "10%", textAlign: "right" },
+  colTaxes: { width: "12%", textAlign: "right" }, // TVA+IR+IS+PRECOMPTE (montant)
   colTotalHt: { width: "13%", textAlign: "right" },
   colTotalTtc: { width: "13%", textAlign: "right" },
-  summarySection: {
-    marginTop: 1,
-  },
+  summarySection: { marginTop: 1 },
   rightSummary: {
     marginLeft: "auto",
-    width: "40%",
+    width: "45%",
     padding: 6,
     backgroundColor: "#E4E4E7",
   },
@@ -152,22 +95,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   bold: { fontWeight: "bold" },
-  amountWords: {
-    marginTop: 6,
-    fontStyle: "italic",
-    fontSize: 9,
-  },
-  conditions: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    maxWidth: "70%",
-  },
-  conditionsList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 1,
-  },
+  conditions: { display: "flex", flexDirection: "column", gap: 8, maxWidth: "70%" },
+  conditionsList: { display: "flex", flexDirection: "column", gap: 1 },
   signRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -182,52 +111,62 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  footer: {
-    position: "absolute",
-    bottom: 30,
-    right: 30,
-    fontSize: 9,
-    color: "#666",
-  },
+  footer: { position: "absolute", bottom: 30, right: 30, fontSize: 9, color: "#666" },
 });
+
+const roundFCFA = (n: number) => Math.round(n);
+
+// supporte 5 ou 0.05
+const normalizeRate = (v?: number) => {
+  const n = Number(v ?? 0);
+  if (!isFinite(n) || n <= 0) return 0;
+  return n > 1 ? n / 100 : n;
+};
+
+const isRealRegime = (regem?: string) => {
+  const v = (regem ?? "").toLowerCase().trim();
+  return v === "reel" || v === "réel";
+};
 
 export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
   const itemsPerPage = 15;
   const totalPages = Math.ceil(doc.devi.element.length / itemsPerPage);
-  // Calcul des montant de la commande
-  const tvaRate = 19.25;
-  const irisRate = doc.provider.regem!.toLowerCase() === "reel" ? 2.2 : 5.5;
 
-  // Initialisation des totaux
-  let totalHt = 0;
-  let totalTva = 0;
-  let totalIris = 0;
-  let totalTtc = 0;
+  const real = isRealRegime(doc.provider.regem);
+  const applyTaxes = !!doc.keepTaxes;
 
-  // Calcul
+  // Taux RRR (rabais/remise/ristourne)
+  const rabaisRate = normalizeRate((doc as any).rabaisAmount);
+  const remiseRate = normalizeRate((doc as any).remiseAmount);
+  const ristourneRate = normalizeRate((doc as any).ristourneAmount);
+  const rrrRate = rabaisRate + remiseRate + ristourneRate;
+
+  // 1) Total brut HT (à partir des lignes)
+  let totalHTBrut = 0;
   doc.devi.element.forEach((el: any) => {
-    const ht = el.quantity * el.priceProposed;
-    const tva = (ht * tvaRate) / 100;
-    const iris = (ht * irisRate) / 100;
-    const ttc = ht + tva + iris;
-
-    totalHt += ht;
-    totalTva += tva;
-    totalIris += iris;
-    totalTtc += ttc;
+    totalHTBrut += el.quantity * el.priceProposed;
   });
 
-  // Arrondi si nécessaire
-  totalHt = Math.round(totalHt);
-  totalTva = Math.round(totalTva);
-  totalIris = Math.round(totalIris);
-  totalTtc = Math.round(totalTtc);
+  // 2) Net commercial = HT - RRR
+  const totalRRR = totalHTBrut * rrrRate;
+  const netCommercial = Math.max(0, totalHTBrut - totalRRR);
+
+  // 3) Taxes selon règle comptable (réel uniquement)
+  const taxFactor = 1 + TVA + IR + ACOMPTE_IS + PRECOMPTE; // 1.2645
+  const totalTaxes = applyTaxes && real ? netCommercial * (taxFactor - 1) : 0;
+
+  const totalNetAPayer = applyTaxes && real ? netCommercial * taxFactor : netCommercial;
+
+  // Détail taxes (pour le résumé)
+  const tvaAmount = applyTaxes && real ? netCommercial * TVA : 0;
+  const irAmount = applyTaxes && real ? netCommercial * IR : 0;
+  const acompteISAmount = applyTaxes && real ? netCommercial * ACOMPTE_IS : 0;
+  const precompteAmount = applyTaxes && real ? netCommercial * PRECOMPTE : 0;
 
   return (
     <Document>
       {Array.from({ length: totalPages }).map((_, pageIndex) => (
         <Page key={pageIndex} size="A4" style={styles.page} wrap={false}>
-          {/* En-tête uniquement sur la première page */}
           {pageIndex === 0 && (
             <>
               <View style={styles.header}>
@@ -239,37 +178,30 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                     </View>
                     <View style={styles.name}>
                       <Text style={styles.companyName}>{"Agent: "}</Text>
-                      <Text style={styles.companyName}>
-                        {doc.devi.commandRequest.name}
-                      </Text>
+                      <Text style={styles.companyName}>{doc.devi.commandRequest.name}</Text>
                     </View>
                     <View style={styles.name}>
                       <Text style={styles.companyName}>{"Téléphone: "}</Text>
-                      <Text style={styles.companyName}>
-                        {doc.devi.commandRequest.phone}
-                      </Text>
+                      <Text style={styles.companyName}>{doc.devi.commandRequest.phone}</Text>
                     </View>
                   </View>
+
                   <View style={styles.leftHeader}>
                     <View style={styles.name}>
-                      <Text style={styles.companyName}>
-                        {"Lieu de livraison: "}
-                      </Text>
-                      <Text style={styles.companyName}>
-                        {doc.deliveryLocation}
-                      </Text>
+                      <Text style={styles.companyName}>{"Lieu de livraison: "}</Text>
+                      <Text style={styles.companyName}>{doc.deliveryLocation}</Text>
                     </View>
                     <View style={styles.name}>
-                      <Text style={styles.companyName}>
-                        {"Delai de livraison: "}
-                      </Text>
+                      <Text style={styles.companyName}>{"Delai de livraison: "}</Text>
                       <Text style={styles.companyName}>
                         {format(doc.deliveryDelay, "dd/MM/yyyy")}
                       </Text>
                     </View>
                   </View>
+
                   <Text style={styles.title}>{"Bon de Commande"}</Text>
                 </View>
+
                 <View style={styles.rightHeaderBox}>
                   <View style={styles.name}>
                     <Text style={styles.companyName}>{"Nom:  "}</Text>
@@ -277,9 +209,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                   </View>
                   <View style={styles.name}>
                     <Text style={styles.companyName}>{"Addresse:  "}</Text>
-                    <Text style={styles.companyName}>
-                      {doc.provider.address}
-                    </Text>
+                    <Text style={styles.companyName}>{doc.provider.address}</Text>
                   </View>
                   <View style={styles.name}>
                     <Text style={styles.companyName}>{"NIU:  "}</Text>
@@ -293,141 +223,94 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                     <Text style={styles.companyName}>{"Téléphone:  "}</Text>
                     <Text style={styles.companyName}>{doc.provider.phone}</Text>
                   </View>
+
+                  <View style={{ marginTop: 6 }}>
+                    <Text style={{ fontSize: 9 }}>
+                      {"Régime: "}{real ? "Réel (taxes appliquées)" : "Simplifié (net commercial)"}
+                    </Text>
+                    <Text style={{ fontSize: 9 }}>
+                      {"Taxes: "}{applyTaxes ? "Oui" : "Non"}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
-              <View
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#000",
-                  marginBottom: 8,
-                }}
-              >
-                {/* Ligne 1 : Numéro du Bon */}
+              <View style={{ borderWidth: 1, borderColor: "#000", marginBottom: 8 }}>
                 <View style={{ flexDirection: "row" }}>
-                  {/* Cellule titre */}
-                  <View
-                    style={{
-                      flex: 1,
-                      borderRightWidth: 1,
-                      borderColor: "#000",
-                      padding: 4,
-                    }}
-                  >
-                    <Text style={{ fontSize: 11, fontWeight: "bold" }}>
-                      Numéro du Bon
-                    </Text>
+                  <View style={{ flex: 1, borderRightWidth: 1, borderColor: "#000", padding: 4 }}>
+                    <Text style={{ fontSize: 11, fontWeight: "bold" }}>Numéro du Bon</Text>
                   </View>
-                  <View
-                    style={{
-                      flex: 1,
-                      borderColor: "#000",
-                      padding: 4,
-                    }}
-                  >
-                    <Text style={{ fontSize: 11, fontWeight: "bold" }}>
-                      Date de création
-                    </Text>
+                  <View style={{ flex: 1, borderColor: "#000", padding: 4 }}>
+                    <Text style={{ fontSize: 11, fontWeight: "bold" }}>Date de création</Text>
                   </View>
                 </View>
 
-                {/* Ligne 2 : Date de création */}
-                <View
-                  style={{
-                    flexDirection: "row",
-                    borderTopWidth: 1,
-                    borderColor: "#000",
-                  }}
-                >
-                  {/* Cellule valeur */}
+                <View style={{ flexDirection: "row", borderTopWidth: 1, borderColor: "#000" }}>
                   <View style={{ flex: 2, padding: 4, borderRightWidth: 1 }}>
                     <Text>
-                      {doc.reference +
-                        "/" +
-                        format(doc.createdAt, "dd/MM/yyyy" + "/", {
-                          locale: fr,
-                        })}
+                      {doc.reference + "/" + format(doc.createdAt, "dd/MM/yyyy" + "/", { locale: fr })}
                     </Text>
                   </View>
                   <View style={{ flex: 2, padding: 4 }}>
-                    <Text>
-                      {format(doc.createdAt, "dd/MM/yyyy", { locale: fr })}
-                    </Text>
+                    <Text>{format(doc.createdAt, "dd/MM/yyyy", { locale: fr })}</Text>
                   </View>
                 </View>
               </View>
             </>
           )}
 
-          {/* Contenu principal */}
           <View style={styles.mainContent}>
             <View style={styles.table}>
               <View style={styles.tableHeader}>
-                <Text style={[styles.th, styles.colDesignation]}>
-                  {"Désignation"}
-                </Text>
+                <Text style={[styles.th, styles.colDesignation]}>{"Désignation"}</Text>
                 <Text style={[styles.th, styles.colQty]}>{"Qté"}</Text>
                 <Text style={[styles.th, styles.colPu]}>{"PU HT"}</Text>
-                <Text style={[styles.th, styles.colTva]}>{"TVA"}</Text>
-                <Text style={[styles.th, styles.colIris]}>{"SR/DA"}</Text>
+                <Text style={[styles.th, styles.colRrr]}>{"RRR"}</Text>
+                <Text style={[styles.th, styles.colTaxes]}>
+                  {real && applyTaxes ? "Taxes" : "Taxes"}
+                </Text>
                 <Text style={[styles.th, styles.colTotalHt]}>{"Total HT"}</Text>
                 <Text style={[styles.th, styles.colTotalTtc]}>
-                  {"Total TTC"}
+                  {real && applyTaxes ? "Net à payer" : "Net à payer"}
                 </Text>
               </View>
 
               {doc.devi.element
                 .slice(pageIndex * itemsPerPage, (pageIndex + 1) * itemsPerPage)
-                .map((it, idx) => {
-                  // Taux
-                  const irisRate = doc.provider.regem === "reel" ? 2.2 : 5.5;
-                  const tvaRate = 19.25;
+                .map((it: any, idx) => {
+                  const lineHT = it.quantity * it.priceProposed;
 
-                  // Total HT
-                  const totalHt = it.quantity * it.priceProposed;
+                  const lineRRR = lineHT * rrrRate;
+                  const lineNetCommercial = Math.max(0, lineHT - lineRRR);
 
-                  // Taxes (calculées sur le TOTAL HT)
-                  const tvaAmount = (totalHt * tvaRate) / 100;
-                  const irisAmount = (totalHt * irisRate) / 100;
-
-                  // Total TTC = HT + TVA + IRIS
-                  const totalTtc = Math.round(totalHt + tvaAmount + irisAmount);
+                  const lineTaxes = applyTaxes && real ? lineNetCommercial * (taxFactor - 1) : 0;
+                  const lineNetToPay = applyTaxes && real
+                    ? lineNetCommercial * taxFactor
+                    : lineNetCommercial;
 
                   return (
                     <View style={styles.tr} key={idx}>
-                      {/* Désignation */}
-                      <Text style={[styles.td, styles.colDesignation]}>
-                        {it.title}
-                      </Text>
+                      <Text style={[styles.td, styles.colDesignation]}>{it.title}</Text>
+                      <Text style={[styles.td, styles.colQty]}>{it.quantity}</Text>
 
-                      {/* Quantité */}
-                      <Text style={[styles.td, styles.colQty]}>
-                        {it.quantity}
-                      </Text>
-
-                      {/* Prix unitaire HT */}
                       <Text style={[styles.td, styles.colPu]}>
-                        {formatXAF(it.priceProposed)}
+                        {formatXAF(roundFCFA(it.priceProposed))}
                       </Text>
 
-                      {/* TVA */}
-                      <Text style={[styles.td, styles.colTva]}>
-                        {formatXAF(tvaAmount)}
+                      <Text style={[styles.td, styles.colRrr]}>
+                        {formatXAF(roundFCFA(lineRRR))}
                       </Text>
 
-                      {/* IRIS / IS */}
-                      <Text style={[styles.td, styles.colIris]}>
-                        {formatXAF(irisAmount)}
+                      <Text style={[styles.td, styles.colTaxes]}>
+                        {formatXAF(roundFCFA(lineTaxes))}
                       </Text>
 
-                      {/* Total HT */}
                       <Text style={[styles.td, styles.colTotalHt]}>
-                        {formatXAF(totalHt)}
+                        {formatXAF(roundFCFA(lineHT))}
                       </Text>
 
-                      {/* Total TTC */}
                       <Text style={[styles.td, styles.colTotalTtc]}>
-                        {formatXAF(totalTtc)}
+                        {formatXAF(roundFCFA(lineNetToPay))}
                       </Text>
                     </View>
                   );
@@ -438,27 +321,53 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
               <View style={styles.summarySection}>
                 <View style={styles.rightSummary}>
                   <View style={styles.summaryRow}>
-                    <Text>{"Total HT:"}</Text>
-                    <Text style={{ textAlign: "right" }}>
-                      {formatXAF(totalHt)}
-                    </Text>
+                    <Text>{"Total HT (brut):"}</Text>
+                    <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(totalHTBrut))}</Text>
                   </View>
+
                   <View style={styles.summaryRow}>
-                    <Text>{"TVA:"}</Text>
-                    <Text style={{ textAlign: "right" }}>
-                      {formatXAF(totalTva)}
+                    <Text>
+                      {"RRR ("}{Math.round(rrrRate * 100)}{"%):"}
                     </Text>
+                    <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(totalRRR))}</Text>
                   </View>
+
                   <View style={styles.summaryRow}>
-                    <Text>{"IS / IR / DA:"}</Text>
-                    <Text style={{ textAlign: "right" }}>
-                      {formatXAF(totalIris)}
+                    <Text style={styles.bold}>{"Net commercial:"}</Text>
+                    <Text style={[styles.bold, { textAlign: "right" }]}>
+                      {formatXAF(roundFCFA(netCommercial))}
                     </Text>
                   </View>
+
+                  {applyTaxes && real && (
+                    <>
+                      <View style={styles.summaryRow}>
+                        <Text>{"TVA (19,25%):"}</Text>
+                        <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(tvaAmount))}</Text>
+                      </View>
+                      <View style={styles.summaryRow}>
+                        <Text>{"IR (5%):"}</Text>
+                        <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(irAmount))}</Text>
+                      </View>
+                      <View style={styles.summaryRow}>
+                        <Text>{"Acompte IS (2,2%):"}</Text>
+                        <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(acompteISAmount))}</Text>
+                      </View>
+                      <View style={styles.summaryRow}>
+                        <Text>{"Précompte (2%):"}</Text>
+                        <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(precompteAmount))}</Text>
+                      </View>
+                      <View style={styles.summaryRow}>
+                        <Text>{"Total taxes:"}</Text>
+                        <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(totalTaxes))}</Text>
+                      </View>
+                    </>
+                  )}
+
                   <View style={[styles.summaryRow, { marginTop: 6 }]}>
                     <Text style={styles.bold}>{"Total Net à payer:"}</Text>
                     <Text style={[styles.bold, { textAlign: "right" }]}>
-                      {formatXAF(totalTtc)}
+                      {formatXAF(roundFCFA(totalNetAPayer))}
                     </Text>
                   </View>
                 </View>
@@ -473,33 +382,22 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                 </View>
 
                 <View style={styles.conditions}>
-                  <Text style={{ fontWeight: "semibold", color: "black" }}>
-                    {"Conditions"}
-                  </Text>
+                  <Text style={{ fontWeight: "semibold", color: "black" }}>{"Conditions"}</Text>
                   <View style={styles.conditionsList}>
                     <Text>
                       {
-                        "1- la responsabilité de Creaconsult ne sauraitven aucun cas être engagée après l'annulation de la commande par expiration de la date de livraison ci-dessus indiquée."
+                        "1- la responsabilité de Creaconsult ne saurait en aucun cas être engagée après l'annulation de la commande par expiration de la date de livraison ci-dessus indiquée."
                       }
                     </Text>
-                    <Text>
-                      {"2- Avant livraison vérifier la date et la qualité."}
-                    </Text>
-                    <Text>
-                      {
-                        "3- Le tribunal de siège (Douala) est compétent en cas de litige."
-                      }
-                    </Text>
+                    <Text>{"2- Avant livraison vérifier la date et la qualité."}</Text>
+                    <Text>{"3- Le tribunal de siège (Douala) est compétent en cas de litige."}</Text>
                   </View>
                 </View>
               </View>
             )}
           </View>
 
-          {/* Numéro de page dans le footer */}
-          <Text style={styles.footer}>
-            Page {pageIndex + 1} sur {totalPages}
-          </Text>
+          <Text style={styles.footer}>Page {pageIndex + 1} sur {totalPages}</Text>
         </Page>
       ))}
     </Document>
