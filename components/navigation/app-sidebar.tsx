@@ -166,7 +166,7 @@ function AppSidebar() {
       (x) =>
         x.type === "achat" &&
         x.state === "validated" &&
-        isRequestUsed(x.id),
+        !isRequestUsed(x.id),
     );
   }, [requestData.data, getQuotationRequests.data]);
 
@@ -234,7 +234,7 @@ function AppSidebar() {
         </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(12)].map((_, i) => (
-            <Skeleton key={i} className="w-full h-10"></Skeleton>
+            <Skeleton key={i} className="w-full h-10"/>
           ))}
         </SidebarContent>
       </Sidebar>
@@ -260,7 +260,7 @@ function AppSidebar() {
         </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(12)].map((_, i) => (
-            <Skeleton key={i} className="w-full h-10"></Skeleton>
+            <Skeleton key={i} className="w-full h-10"/>
           ))}
         </SidebarContent>
       </Sidebar>

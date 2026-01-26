@@ -3,6 +3,8 @@
 import { TabBar, TabProps } from "@/components/base/TabBar";
 import Cotation from "@/components/bdcommande/cotation";
 import CreateCotation from "@/components/bdcommande/createCommande";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
 import { isRole } from "@/lib/utils";
@@ -49,7 +51,7 @@ const Page = () => {
     if (!requestData.data || !getCommandRequests.data) return [];
     return requestData.data.data.filter(
       (x) =>
-        x.type === "achat" && x.state === "validated" && isRequestUsed(x.id),
+        x.type === "achat" && x.state === "validated" && !isRequestUsed(x.id),
     );
   }, [requestData.data, getCommandRequests.data]);
 
@@ -65,23 +67,30 @@ const Page = () => {
     },
   ];
   const [selectedTab, setSelectedTab] = useState(0);
-
-  return (
-    <div className="content">
-      <PageTitle
-        title="Demandes de cotation"
-        subtitle="Consultez et gérez vos demandes de cotation."
-        color="red"
-        links={links}
-      />
-      <TabBar
-        tabs={tabs}
-        setSelectedTab={setSelectedTab}
-        selectedTab={selectedTab}
-      />
-      {selectedTab === 1 ? <CreateCotation /> : <Cotation />}
-    </div>
-  );
+  if(getCommandRequests.isLoading || requestData.isLoading){
+    return <LoadingPage/>
+  }
+  if(getCommandRequests.isError || requestData.isError){
+    return <ErrorPage error={getCommandRequests.error || requestData.error || undefined} />
+  }
+  if(getCommandRequests.isSuccess && requestData.isSuccess){
+    return (
+      <div className="content">
+        <PageTitle
+          title="Demandes de cotation"
+          subtitle="Consultez et gérez vos demandes de cotation."
+          color="red"
+          links={links}
+        />
+        <TabBar
+          tabs={tabs}
+          setSelectedTab={setSelectedTab}
+          selectedTab={selectedTab}
+        />
+        {selectedTab === 1 ? <CreateCotation /> : <Cotation />}
+      </div>
+    );
+  }
 };
 
 export default Page;
