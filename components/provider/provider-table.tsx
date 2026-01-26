@@ -67,6 +67,7 @@ import {
 } from "../ui/sheet";
 import UpdateProvider from "./UpdateProvider";
 import { ShowProvider } from "./show-provider";
+import { AxiosError } from "axios";
 
 interface ProvidersTableProps {
   data: Provider[];
@@ -94,6 +95,9 @@ export function ProviderTable({ data }: ProvidersTableProps) {
     mutationFn: (id: number) => providerQ.delete(id),
     onSuccess: () => {
       toast.success("Fournisseur supprimé avec succès !");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message === "Cannot Delete Provider with active processes" ? "Impossible de supprimer le fournisseur car il est lié à un ou plusieurs bons de commande" : error.message);
     },
   });
 
@@ -524,9 +528,9 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}
