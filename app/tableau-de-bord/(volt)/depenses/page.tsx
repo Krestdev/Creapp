@@ -6,17 +6,16 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { Button } from "@/components/ui/button";
-import { cn, XAF } from "@/lib/utils";
+import { XAF } from "@/lib/utils";
 import { bankQ } from "@/queries/bank";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import { requestTypeQ } from "@/queries/requestType";
 import { NavLink } from "@/types/types";
-import Link from "next/link";
-import ExpensesTable from "./expenses-table";
 import { useQuery } from "@tanstack/react-query";
 import { payTypeQ } from "@/queries/payType";
+import ExpensesTable from "./expenses-table";
+import { providerQ } from "@/queries/providers";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -48,12 +47,14 @@ function Page() {
     queryFn: payTypeQ.getAll,
   });
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
+  const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll });
   if (
     isLoading ||
     getPurchases.isLoading ||
     getBanks.isLoading ||
     getRequestType.isLoading ||
-    getPaymentType.isLoading
+    getPaymentType.isLoading ||
+    getProviders.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -62,7 +63,8 @@ function Page() {
     getPurchases.isError ||
     getBanks.isError ||
     getRequestType.isError ||
-    getPaymentType.isError
+    getPaymentType.isError ||
+    getProviders.isError
   ) {
     return (
       <ErrorPage
@@ -72,6 +74,7 @@ function Page() {
           getBanks.error ||
           getRequestType.error ||
           getPaymentType.error ||
+          getProviders.error ||
           undefined
         }
       />
@@ -82,7 +85,8 @@ function Page() {
     getPurchases.isSuccess &&
     getBanks.isSuccess &&
     getRequestType.isSuccess &&
-    getPaymentType.isSuccess
+    getPaymentType.isSuccess &&
+    getProviders.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -138,6 +142,7 @@ function Page() {
           purchases={getPurchases.data.data}
           requestTypes={getRequestType.data.data}
           getPaymentType={getPaymentType}
+          providers={getProviders.data.data}
         />
       </div>
     );

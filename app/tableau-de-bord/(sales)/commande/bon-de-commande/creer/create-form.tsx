@@ -92,6 +92,9 @@ export const formSchema = z
     hasPenalties: z.boolean(),
     amountBase: z.coerce.number().optional(),
     penaltyMode: z.string().optional(),
+    isTTC: z.boolean(),
+    keepTaxes: z.boolean(),
+    discount: z.coerce.number().min(0, "Le montant doit être positif"),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -154,6 +157,9 @@ function CreateForm() {
       penaltyMode: "",
       instalments: [{ percentage: 100, deadLine: undefined }],
       paymentMethod: defaultPaymentMethod,
+      isTTC: false,
+      keepTaxes: false,
+      discount: 0
     },
   });
 
@@ -199,6 +205,9 @@ function CreateForm() {
         penaltyMode: "",
         instalments: [{ percentage: 100, deadLine: undefined }],
         paymentMethod: defaultPaymentMethod,
+        isTTC: false,
+        keepTaxes: false,
+        discount: 0
       });
     },
     onError: (error: Error) => {
@@ -247,6 +256,9 @@ function CreateForm() {
             ? new Date(instalment.deadLine)
             : undefined,
         })),
+        isTTC: values.isTTC,
+        keepTaxes: values.keepTaxes,
+        discount: values.discount
       },
       ids: ids,
     };
@@ -408,6 +420,64 @@ function CreateForm() {
                 </div>
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="isTTC"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Le devis est-il TTC ?"}</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  <span>{field.value ? "Oui" : "Non"}</span>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="keepTaxes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Retenir les taxes"}</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  <span>{field.value ? "Oui" : "Non"}</span>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="discount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Réduction"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 150 000"
+                    className="pr-12"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"FCFA"}</span>
+                </div>
+              </FormControl>
             </FormItem>
           )}
         />
@@ -667,12 +737,16 @@ function CreateForm() {
             <FormItem>
               <FormLabel>{"Montant des pénalités"}</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  {...field}
-                  placeholder="Ex. 150 000"
-                  disabled={!penalty}
-                />
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 150 000"
+                    disabled={!penalty}
+                    className="pr-12"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"FCFA"}</span>
+                </div>
               </FormControl>
             </FormItem>
           )}
