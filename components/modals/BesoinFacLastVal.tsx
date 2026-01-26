@@ -121,7 +121,7 @@ export default function BesoinFacLastVal({
     queryFn: async () => userQ.getAll(),
   });
 
-  const USERS = usersData.data?.data || [];
+  const USERS = usersData.data?.data.filter((u) => u.verified) || [];
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -223,12 +223,12 @@ export default function BesoinFacLastVal({
     }: {
       id: number;
       validator:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     }) => {
       await requestQ.validate(id, validator?.id!, validator);
     },

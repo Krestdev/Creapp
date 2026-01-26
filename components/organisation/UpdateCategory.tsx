@@ -162,7 +162,7 @@ export function UpdateCategory({
       return;
     }
 
-    const users = usersData.data?.data || [];
+    const users = usersData.data?.data.filter((u) => u.verified) || [];
     if (users.length === 0) {
       toast.error("Aucun utilisateur disponible");
       return;
@@ -414,11 +414,10 @@ export function UpdateCategory({
                             size="icon"
                             onClick={() => removeValidator(index)}
                             disabled={fields.length <= 1 || isLoading} // MODIFICATION: désactivé si seul ascendant
-                            className={`text-red-500 hover:text-red-700 ${
-                              fields.length <= 1
+                            className={`text-red-500 hover:text-red-700 ${fields.length <= 1
                                 ? "opacity-50 cursor-not-allowed"
                                 : ""
-                            }`}
+                              }`}
                             title={
                               fields.length <= 1
                                 ? "Au moins un ascendant est requis"
