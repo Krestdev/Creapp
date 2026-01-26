@@ -427,7 +427,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       cell: ({ row }) => {
         const value = row.original;
         const purchase = purchases.find((p) => p.id === value.commandId);
-        return <div>{purchase?.provider?.name ?? "Creaconsult"}</div>;
+        return <div>{purchase?.provider?.name ?? "-"}</div>;
       },
     },
     {
