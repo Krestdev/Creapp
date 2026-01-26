@@ -20,6 +20,7 @@ import {
   Clock,
   Coins,
   DollarSign,
+  Download,
   Eye,
   Settings2,
   Signature,
@@ -63,6 +64,7 @@ import {
   PAY_STATUS,
   PAYMENT_TYPES,
   PaymentRequest,
+  PayType,
   PRIORITIES,
   Provider,
   RequestType,
@@ -80,6 +82,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import PayExpense from "./pay-expense";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import DepenseDocument from "@/components/depense/depenseDoc";
+import { UseQueryResult } from "@tanstack/react-query";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -140,6 +145,9 @@ interface Props {
   purchases: Array<BonsCommande>;
   banks: Array<Bank>;
   requestTypes: Array<RequestType>;
+  getPaymentType: UseQueryResult<{
+    data: PayType[];
+  }, Error>;
   providers: Array<Provider>;
 }
 
@@ -178,32 +186,33 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
-  const statusData = PAY_STATUS.find((s) => s.value === status);
-  const label = statusData?.name ?? "Inconnu";
+  const label =
+    status === "unsigned" ?
+      "En attente de signature" :
+      status === "signed" ?
+        "Signé" :
+        status === "paid" ?
+          "Payé" :
+          status === "simple_signed" ?
+            "Paiement ouvert" : "En attente";
 
   switch (status) {
-    case "pending":
-      return { label, variant: "amber" };
-    case "validated":
-      return { label, variant: "sky" };
-    case "paid":
-      return { label, variant: "success" };
     case "pending_depense":
       return { label, variant: "yellow" };
     case "unsigned":
+      return { label, variant: "teal" };
+    case "signed":
       return { label, variant: "lime" };
+    case "paid":
+      return { label, variant: "success" };
+    case "simple_signed":
+      return { label, variant: "success" };
     default:
-      return { label, variant: "outline" };
+      return { label, variant: "yellow" };
   }
 }
 
-function ExpensesTable({
-  payments,
-  purchases,
-  banks,
-  requestTypes,
-  providers,
-}: Props) {
+function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentType, providers }: Props) {
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -291,8 +300,8 @@ function ExpensesTable({
     },
     {
       id: 1,
-      title: "Tickets signés",
-      badge: payments.filter((p) => p.status === "signed").length,
+      title: "Tickets traités",
+      badge: payments.filter((p) => p.status === "signed" || p.status === "simple_signed").length,
     },
     {
       id: 2,
@@ -311,16 +320,16 @@ function ExpensesTable({
             : p.price < amountFilter;
       //Filter provider
       const matchProvider =
-      providerFilter === "all" ? true :
-      purchases.find(c => c.id === p.commandId)?.providerId === Number(providerFilter);
+        providerFilter === "all" ? true :
+          purchases.find(c => c.id === p.commandId)?.providerId === Number(providerFilter);
       //Filter tab
       const matchTab =
         selectedTab === 0
           ? p.status === "pending_depense" ||
-            p.status === "validated" ||
-            p.status === "unsigned"
+          p.status === "validated" ||
+          p.status === "unsigned"
           : selectedTab === 1
-            ? p.status === "signed"
+            ? (p.status === "signed" || p.status === "simple_signed")
             : p.status === "paid";
       //Filter type
       const matchType = typeFilter === "all" ? true : p.type === typeFilter;
@@ -418,7 +427,7 @@ function ExpensesTable({
       cell: ({ row }) => {
         const value = row.original;
         const purchase = purchases.find((p) => p.id === value.commandId);
-        return <div>{purchase?.provider?.name ?? "Creaconsult"}</div>;
+        return <div>{purchase?.provider?.name ?? "-"}</div>;
       },
     },
     {
@@ -469,11 +478,11 @@ function ExpensesTable({
 
         const priorityA =
           priorityOrder[
-            rowA.getValue(columnId) as keyof typeof priorityOrder
+          rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-            rowB.getValue(columnId) as keyof typeof priorityOrder
+          rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -549,16 +558,32 @@ function ExpensesTable({
                 {"Voir"}
               </DropdownMenuItem>
               {selectedTab === 1 && (
-                <DropdownMenuItem
-                  disabled={item.status !== "signed"}
-                  onClick={() => {
-                    setSelected(item);
-                    setShowPay(true);
-                  }}
-                >
-                  <DollarSign />
-                  {"Payer"}
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem
+                    disabled={item.status !== "signed" && item.status !== "simple_signed"}
+                    onClick={() => {
+                      setSelected(item);
+                      setShowPay(true);
+                    }}
+                  >
+                    <DollarSign />
+                    {"Payer"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+
+                    <PDFDownloadLink
+                      document={<DepenseDocument getPaymentType={getPaymentType} paymentRequest={item} />}
+                      fileName={`recu-transport-${item.reference}.pdf`}
+                    >
+                      {({ loading }) => (
+                        <Button disabled={loading} variant={"ghost"} className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5">
+                          <Download />
+                          {loading ? "Génération du PDF..." : "Télécharger le PDF"}
+                        </Button>
+                      )}
+                    </PDFDownloadLink>
+                  </DropdownMenuItem>
+                </>
               )}
               {selectedTab === 0 && (
                 <DropdownMenuItem
@@ -828,9 +853,9 @@ function ExpensesTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}

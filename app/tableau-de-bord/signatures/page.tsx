@@ -103,7 +103,7 @@ function Page() {
     );
 
     const signedPayments = authorizedPayments.filter(
-      (p) => p.signer?.flatMap((u) => u.id)?.includes(currentUserId) || (p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && (p.status === "signed" || p.status === "paid"))
+      (p) => (p.status === "signed" || p.status === "paid")
     );
 
     // Tous les paiements en attente (pour l'onglet)

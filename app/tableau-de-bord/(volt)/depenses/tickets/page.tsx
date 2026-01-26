@@ -14,6 +14,7 @@ import { requestTypeQ } from "@/queries/requestType";
 import { useQuery } from "@tanstack/react-query";
 import ExpensesTable from "../expenses-table";
 import { providerQ } from "@/queries/providers";
+import { payTypeQ } from "@/queries/payType";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
@@ -29,14 +30,20 @@ function Page() {
     queryFn: requestTypeQ.getAll,
   });
 
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
+
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
-  const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll});
+  const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll });
   if (
     isLoading ||
     getPurchases.isLoading ||
     getRequestType.isLoading ||
     getBanks.isLoading ||
-    getProviders.isLoading
+    getProviders.isLoading ||
+    getPaymentType.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -45,7 +52,8 @@ function Page() {
     getPurchases.isError ||
     getRequestType.isError ||
     getBanks.isError ||
-    getProviders.isError
+    getProviders.isError ||
+    getPaymentType.isError
   ) {
     return (
       <ErrorPage
@@ -55,6 +63,7 @@ function Page() {
           getRequestType.error ||
           getBanks.error ||
           getProviders.error ||
+          getPaymentType.error ||
           undefined
         }
       />
@@ -65,7 +74,8 @@ function Page() {
     getPurchases.isSuccess &&
     getRequestType.isSuccess &&
     getBanks.isSuccess &&
-    getProviders.isSuccess
+    getProviders.isSuccess &&
+    getPaymentType.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -121,6 +131,7 @@ function Page() {
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
+          getPaymentType={getPaymentType}
         />
         <ExpensesTable
           payments={data.data.filter(
@@ -130,6 +141,7 @@ function Page() {
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
+          getPaymentType={getPaymentType}
         />
       </div>
     );

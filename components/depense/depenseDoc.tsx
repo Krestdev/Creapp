@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { payTypeQ } from "@/queries/payType";
-import { PaymentRequest } from "@/types/types";
+import { PAY_STATUS, PaymentRequest, PayType } from "@/types/types";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import React from "react";
 
@@ -108,9 +108,12 @@ const styles = StyleSheet.create({
 
 interface ReceiptPDFProps {
   paymentRequest: PaymentRequest;
+  getPaymentType: UseQueryResult<{
+    data: PayType[];
+  }, Error>;
 }
 
-const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest }) => {
+const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest, getPaymentType }) => {
   const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("fr-FR");
@@ -123,26 +126,21 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest }) => {
     return "N/A";
   };
 
-  const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
-    queryFn: payTypeQ.getAll,
-  });
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Recu {paymentRequest.title}</Text>
-          <Text style={styles.subtitle}>Reçu de paiement transport</Text>
+          <Text style={styles.title}>Reçu {paymentRequest.title}</Text>
+          {/* <Text style={styles.subtitle}>Reçu de paiement transport</Text> */}
         </View>
 
         {/* Additional Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Resume depense</Text>
+          <Text style={styles.sectionTitle}>Résumé dépense</Text>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Beneficier:</Text>
+            <Text style={styles.infoLabel}>Bénéficiaire:</Text>
             <Text style={styles.infoValue}>{getBeneficiaryName()}</Text>
           </View>
 
@@ -155,7 +153,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest }) => {
 
           {paymentRequest.model && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Vehicule:</Text>
+              <Text style={styles.infoLabel}>Véhicule:</Text>
               <Text style={styles.infoValue}>
                 {`${paymentRequest.model.label} - ${paymentRequest.model.mark} - ${paymentRequest.model.matricule}` ||
                   "N/A"}
@@ -165,7 +163,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest }) => {
 
           {paymentRequest.km && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Kilometrage:</Text>
+              <Text style={styles.infoLabel}>Kilométrage:</Text>
               <Text style={styles.infoValue}>
                 {paymentRequest.km ? `${paymentRequest.km} km` : "N/A"}
               </Text>
@@ -174,7 +172,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest }) => {
 
           {paymentRequest.liters && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Litre:</Text>
+              <Text style={styles.infoLabel}>Litrage:</Text>
               <Text style={styles.infoValue}>
                 {paymentRequest.liters ? `${paymentRequest.liters} L` : "N/A"}
               </Text>
@@ -228,7 +226,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest }) => {
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Statut:</Text>
-            <Text style={styles.infoValue}>{paymentRequest.status}</Text>
+            <Text style={styles.infoValue}>{PAY_STATUS.find(x => x.value === paymentRequest.status)?.name}</Text>
           </View>
 
           {paymentRequest.deadline && (
