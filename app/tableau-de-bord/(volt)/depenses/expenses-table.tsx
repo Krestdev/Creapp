@@ -64,6 +64,7 @@ import {
   PAYMENT_TYPES,
   PaymentRequest,
   PRIORITIES,
+  Provider,
   RequestType,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
@@ -139,6 +140,7 @@ interface Props {
   purchases: Array<BonsCommande>;
   banks: Array<Bank>;
   requestTypes: Array<RequestType>;
+  providers: Array<Provider>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -195,7 +197,13 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
+function ExpensesTable({
+  payments,
+  purchases,
+  banks,
+  requestTypes,
+  providers,
+}: Props) {
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -256,11 +264,21 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
   const [priorityFilter, setPriorityFilter] = React.useState<
     "all" | PaymentRequest["priority"]
   >("all");
+  const [providerFilter, setProviderFilter] = React.useState<"all" | string>(
+    "all",
+  );
+  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
+    "greater" | "inferior" | "equal"
+  >("greater");
+  const [amountFilter, setAmountFilter] = React.useState<number>(0);
 
   const resetAllFilters = () => {
     setGlobalFilter("");
     setPriorityFilter("all");
     setTypeFilter("all");
+    setAmountFilter(0);
+    setAmountTypeFilter("greater");
+    setProviderFilter("all");
   };
 
   const tabs = [
@@ -284,12 +302,23 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
 
   const filteredData = React.useMemo(() => {
     return payments.filter((p) => {
+      // Filter amount
+      const matchAmount =
+        amountTypeFilter === "greater"
+          ? p.price > amountFilter
+          : amountTypeFilter === "equal"
+            ? p.price === amountFilter
+            : p.price < amountFilter;
+      //Filter provider
+      const matchProvider =
+      providerFilter === "all" ? true :
+      purchases.find(c => c.id === p.commandId)?.providerId === Number(providerFilter);
       //Filter tab
       const matchTab =
         selectedTab === 0
           ? p.status === "pending_depense" ||
-          p.status === "validated" ||
-          p.status === "unsigned"
+            p.status === "validated" ||
+            p.status === "unsigned"
           : selectedTab === 1
             ? p.status === "signed"
             : p.status === "paid";
@@ -299,9 +328,18 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
       const matchPriority =
         priorityFilter === "all" ? true : p.priority === priorityFilter;
 
-      return matchTab && matchType && matchPriority;
+      return matchTab && matchType && matchPriority && matchAmount && matchProvider;
     });
-  }, [payments, selectedTab, priorityFilter, typeFilter]);
+  }, [
+    payments,
+    selectedTab,
+    priorityFilter,
+    typeFilter,
+    amountTypeFilter,
+    amountFilter,
+    providerFilter,
+    purchases
+  ]);
 
   const columns: ColumnDef<PaymentRequest>[] = [
     {
@@ -431,11 +469,11 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
 
         const priorityA =
           priorityOrder[
-          rowA.getValue(columnId) as keyof typeof priorityOrder
+            rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-          rowB.getValue(columnId) as keyof typeof priorityOrder
+            rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -656,6 +694,62 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                     </SelectContent>
                   </Select>
                 </div>
+                {/**Provider Filter */}
+                <div className="grid gap-1.5">
+                  <Label>{"Fournisseur"}</Label>
+                  <Select
+                    value={providerFilter}
+                    onValueChange={(v) =>
+                      setProviderFilter(v as typeof providerFilter)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrer par Fournisseur" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {providers.map((p) => (
+                        <SelectItem key={p.id} value={String(p.id)}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Filter by amount */}
+                <div className="grid gap-1.5">
+                  <Label>{"Comparer le montant"}</Label>
+                  <Select
+                    value={amountTypeFilter}
+                    onValueChange={(v) =>
+                      setAmountTypeFilter(v as "greater" | "inferior" | "equal")
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner une période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="greater">{"Supérieur"}</SelectItem>
+                      <SelectItem value="equal">{"Égal"}</SelectItem>
+                      <SelectItem value="inferior">{"Inférieur"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>{"Montant"}</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Ex. 250 000"
+                      value={amountFilter ?? 0}
+                      onChange={(e) => setAmountFilter(Number(e.target.value))}
+                      className="w-full pr-12"
+                    />
+                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                      {"FCFA"}
+                    </span>
+                  </div>
+                </div>
                 {/* Bouton pour réinitialiser les filtres */}
                 <div className="flex items-end">
                   <Button
@@ -734,9 +828,9 @@ function ExpensesTable({ payments, purchases, banks, requestTypes }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
