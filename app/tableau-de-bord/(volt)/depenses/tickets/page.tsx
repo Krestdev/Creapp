@@ -13,6 +13,7 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { requestTypeQ } from "@/queries/requestType";
 import { useQuery } from "@tanstack/react-query";
 import ExpensesTable from "../expenses-table";
+import { providerQ } from "@/queries/providers";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
@@ -29,11 +30,13 @@ function Page() {
   });
 
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
+  const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll});
   if (
     isLoading ||
     getPurchases.isLoading ||
     getRequestType.isLoading ||
-    getBanks.isLoading
+    getBanks.isLoading ||
+    getProviders.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -41,7 +44,8 @@ function Page() {
     isError ||
     getPurchases.isError ||
     getRequestType.isError ||
-    getBanks.isError
+    getBanks.isError ||
+    getProviders.isError
   ) {
     return (
       <ErrorPage
@@ -50,6 +54,7 @@ function Page() {
           getPurchases.error ||
           getRequestType.error ||
           getBanks.error ||
+          getProviders.error ||
           undefined
         }
       />
@@ -59,7 +64,8 @@ function Page() {
     isSuccess &&
     getPurchases.isSuccess &&
     getRequestType.isSuccess &&
-    getBanks.isSuccess
+    getBanks.isSuccess &&
+    getProviders.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -114,6 +120,7 @@ function Page() {
           purchases={getPurchases.data.data}
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}
+          providers={getProviders.data.data}
         />
         <ExpensesTable
           payments={data.data.filter(
@@ -122,6 +129,7 @@ function Page() {
           purchases={getPurchases.data.data}
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}
+          providers={getProviders.data.data}
         />
       </div>
     );

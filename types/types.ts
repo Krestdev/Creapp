@@ -451,6 +451,9 @@ export type BonsCommande = {
   motif?: string;
   createdAt: Date;
   updatedAt: Date;
+  isTTC: boolean;
+  keepTaxes: boolean;
+  discount: number;
 };
 
 export interface NavLink {
