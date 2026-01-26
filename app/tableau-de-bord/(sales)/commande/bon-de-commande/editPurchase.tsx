@@ -217,7 +217,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
       rabaisAmount: purchaseOrder.rabaisAmount ?? 0,
       ristourneAmount: purchaseOrder.ristourneAmount ?? 0,
       escompteRate: purchaseOrder.escompteRate ?? 0,
-      keepTaxes: purchaseOrder.keepTaxes ?? false
+      keepTaxes: purchaseOrder.keepTaxes ?? false,
     },
   });
 
@@ -289,7 +289,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
       rabaisAmount: values.rabaisAmount,
       remiseAmount: values.remiseAmount,
       escompteRate: values.escompteRate,
-      keepTaxes: values.keepTaxes
+      keepTaxes: values.keepTaxes,
     };
 
     mutate(payload);
@@ -513,109 +513,124 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                 )}
               />
               <FormField
-          control={form.control}
-          name="rabaisAmount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Rabais"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    {...field}
-                    placeholder="Ex. 3"
-                    className="pr-8"
-                  />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
-                </div>
-              </FormControl>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="ristourneAmount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Ristourne"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    {...field}
-                    placeholder="Ex. 3"
-                    className="pr-8"
-                  />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
-                </div>
-              </FormControl>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="remiseAmount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Remise"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    {...field}
-                    placeholder="Ex. 5"
-                    className="pr-8"
-                  />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
-                </div>
-              </FormControl>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="keepTaxes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Pénalités"}</FormLabel>
-              <FormControl>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                  <span>{field.value ? "Oui" : "Non"}</span>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="escompteRate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Escompte"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    {...field}
-                    placeholder="Ex. 2"
-                    className="pr-8"
-                  />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
-                </div>
-              </FormControl>
-              <FormDescription>{"Laissez à 0 si aucun escompte"}</FormDescription>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
+                control={form.control}
+                name="rabaisAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Rabais"}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          {...field}
+                          placeholder="Ex. 3"
+                          className="pr-8"
+                        />
+                        <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                          {"%"}
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="ristourneAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Ristourne"}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          {...field}
+                          placeholder="Ex. 3"
+                          className="pr-8"
+                        />
+                        <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                          {"%"}
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="remiseAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Remise"}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          {...field}
+                          placeholder="Ex. 5"
+                          className="pr-8"
+                        />
+                        <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                          {"%"}
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="keepTaxes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Retenir à la source"}</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <span>{field.value ? "Oui" : "Non"}</span>
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      {
+                        "Cocher si vous souhaitez retenir les taxes à la source sur ce bon de commande"
+                      }
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="escompteRate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Escompte"}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          {...field}
+                          placeholder="Ex. 2"
+                          className="pr-8"
+                        />
+                        <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                          {"%"}
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      {"Laissez à 0 si aucun escompte"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="w-full @min-[560px]:col-span-2 grid gap-3">
                 <div className="flex items-center justify-between">
                   <FormLabel isRequired>
@@ -768,7 +783,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                   disabled
                 >
                   <Plus />
-                  {"Ajouter un paiement"}
+                  {"Ajouter une échéance"}
                 </Button>
 
                 <div className="text-sm text-muted-foreground">
@@ -836,7 +851,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="hasPenalties"
                 render={({ field }) => (
@@ -903,7 +918,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
             </form>
           </Form>
         </div>
