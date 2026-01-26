@@ -103,7 +103,7 @@ export function CategoryCreateForm() {
       return;
     }
 
-    const users = usersData.data?.data || [];
+    const users = usersData.data?.data.filter((u) => u.verified) || [];
     if (users.length === 0) {
       toast.error("Aucun utilisateur disponible");
       return;
@@ -363,9 +363,9 @@ export function CategoryCreateForm() {
                             options={
                               availableUsers.length > 0
                                 ? availableUsers.map((user) => ({
-                                    value: user.id!.toString(),
-                                    label: user.lastName + " " + user.firstName,
-                                  }))
+                                  value: user.id!.toString(),
+                                  label: user.lastName + " " + user.firstName,
+                                }))
                                 : []
                             }
                             value={field.value?.toString() || ""}

@@ -355,7 +355,7 @@ export default function EditSignatairForm({
                       <MultiSelectUsers
                         showMail
                         display="user"
-                        users={userData?.data?.data || []}
+                        users={userData?.data?.data.filter((u) => u.verified) || []}
                         selected={selectedUser}
                         placeholder="Sélectionner des signataires"
                         onChange={(selected) => {

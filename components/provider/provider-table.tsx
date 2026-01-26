@@ -97,7 +97,9 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       toast.success("Fournisseur supprimé avec succès !");
     },
     onError: (error: Error) => {
-      toast.error(error.message === "Cannot Delete Provider with active processes" ? "Impossible de supprimer le fournisseur car il est lié à un ou plusieurs bons de commande" : error.message);
+      toast.error(error.message === "Cannot Delete Provider with active processes" ?
+        "Impossible de supprimer le fournisseur car il est lié à un ou plusieurs bons de commande" :
+        error.message);
     },
   });
 
