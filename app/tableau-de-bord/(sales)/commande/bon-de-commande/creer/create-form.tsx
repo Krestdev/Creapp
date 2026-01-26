@@ -4,6 +4,7 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -92,9 +93,11 @@ export const formSchema = z
     hasPenalties: z.boolean(),
     amountBase: z.coerce.number().optional(),
     penaltyMode: z.string().optional(),
-    isTTC: z.boolean(),
+    rabaisAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    remiseAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    ristourneAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
     keepTaxes: z.boolean(),
-    discount: z.coerce.number().min(0, "Le montant doit être positif"),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -157,9 +160,11 @@ function CreateForm() {
       penaltyMode: "",
       instalments: [{ percentage: 100, deadLine: undefined }],
       paymentMethod: defaultPaymentMethod,
-      isTTC: false,
+      rabaisAmount: 0,
+      remiseAmount: 0,
+      ristourneAmount: 0,
+      escompteRate: 0,
       keepTaxes: false,
-      discount: 0
     },
   });
 
@@ -205,9 +210,11 @@ function CreateForm() {
         penaltyMode: "",
         instalments: [{ percentage: 100, deadLine: undefined }],
         paymentMethod: defaultPaymentMethod,
-        isTTC: false,
+        rabaisAmount: 0,
+        remiseAmount: 0,
+        ristourneAmount: 0,
+        escompteRate: 0,
         keepTaxes: false,
-        discount: 0
       });
     },
     onError: (error: Error) => {
@@ -256,9 +263,11 @@ function CreateForm() {
             ? new Date(instalment.deadLine)
             : undefined,
         })),
-        isTTC: values.isTTC,
+        rabaisAmount: values.rabaisAmount,
+        remiseAmount: values.remiseAmount,
+        ristourneAmount: values.ristourneAmount,
+        escompteRate: values.escompteRate,
         keepTaxes: values.keepTaxes,
-        discount: values.discount
       },
       ids: ids,
     };
@@ -425,20 +434,64 @@ function CreateForm() {
         />
         <FormField
           control={form.control}
-          name="isTTC"
+          name="rabaisAmount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{"Le devis est-il TTC ?"}</FormLabel>
+              <FormLabel>{"Rabais"}</FormLabel>
               <FormControl>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 3"
+                    className="pr-8"
                   />
-                  <span>{field.value ? "Oui" : "Non"}</span>
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
                 </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="ristourneAmount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Ristourne"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 3"
+                    className="pr-8"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                </div>
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="remiseAmount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Remise"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 5"
+                    className="pr-8"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                </div>
+              </FormControl>
+              <FormMessage/>
             </FormItem>
           )}
         />
@@ -447,7 +500,7 @@ function CreateForm() {
           name="keepTaxes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{"Retenir les taxes"}</FormLabel>
+              <FormLabel>{"Pénalités"}</FormLabel>
               <FormControl>
                 <div className="flex items-center gap-2">
                   <Switch
@@ -463,21 +516,23 @@ function CreateForm() {
         />
         <FormField
           control={form.control}
-          name="discount"
+          name="escompteRate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{"Réduction"}</FormLabel>
+              <FormLabel>{"Escompte"}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type="number"
                     {...field}
-                    placeholder="Ex. 150 000"
-                    className="pr-12"
+                    placeholder="Ex. 2"
+                    className="pr-8"
                   />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"FCFA"}</span>
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
                 </div>
               </FormControl>
+              <FormDescription>{"Laissez à 0 si aucun escompte"}</FormDescription>
+              <FormMessage/>
             </FormItem>
           )}
         />
@@ -748,6 +803,7 @@ function CreateForm() {
                   <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"FCFA"}</span>
                 </div>
               </FormControl>
+              <FormMessage/>
             </FormItem>
           )}
         />

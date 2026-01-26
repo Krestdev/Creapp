@@ -13,6 +13,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -117,9 +118,11 @@ export const formSchema = z
     amountBase: z.coerce.number().optional(),
     penaltyMode: z.string().optional(),
     providerId: z.coerce.number({ message: "Veuillez définir un fournisseur" }),
-    isTTC: z.boolean(),
+    rabaisAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    remiseAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    ristourneAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
     keepTaxes: z.boolean(),
-    discount: z.coerce.number().min(0, "Le montant doit être positif"),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -210,9 +213,11 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
       deviId: purchaseOrder?.deviId || -1,
       providerId: purchaseOrder?.providerId || -1,
       instalments: defaultInstalments,
-      isTTC: purchaseOrder.isTTC ?? false,
-      keepTaxes: purchaseOrder.keepTaxes ?? false,
-      discount: purchaseOrder.discount ?? 0,
+      remiseAmount: purchaseOrder.remiseAmount ?? 0,
+      rabaisAmount: purchaseOrder.rabaisAmount ?? 0,
+      ristourneAmount: purchaseOrder.ristourneAmount ?? 0,
+      escompteRate: purchaseOrder.escompteRate ?? 0,
+      keepTaxes: purchaseOrder.keepTaxes ?? false
     },
   });
 
@@ -280,9 +285,11 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
       hasPenalties: values.hasPenalties,
       penaltyMode: values.penaltyMode,
       instalments: purchaseOrder.instalments,
-      isTTC: values.isTTC,
-      keepTaxes: values.keepTaxes,
-      discount: values.discount,
+      ristourneAmount: values.ristourneAmount,
+      rabaisAmount: values.rabaisAmount,
+      remiseAmount: values.remiseAmount,
+      escompteRate: values.escompteRate,
+      keepTaxes: values.keepTaxes
     };
 
     mutate(payload);
@@ -506,65 +513,109 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                 )}
               />
               <FormField
-                control={form.control}
-                name="isTTC"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{"Le devis est-il TTC ?"}</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <span>{field.value ? "Oui" : "Non"}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="keepTaxes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{"Retenir les taxes"}</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <span>{field.value ? "Oui" : "Non"}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="discount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{"Réduction"}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          {...field}
-                          placeholder="Ex. 150 000"
-                          className="pr-12"
-                        />
-                        <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
-                          {"FCFA"}
-                        </span>
-                      </div>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+          control={form.control}
+          name="rabaisAmount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Rabais"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 3"
+                    className="pr-8"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                </div>
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="ristourneAmount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Ristourne"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 3"
+                    className="pr-8"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                </div>
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="remiseAmount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Remise"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 5"
+                    className="pr-8"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                </div>
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="keepTaxes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Pénalités"}</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  <span>{field.value ? "Oui" : "Non"}</span>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="escompteRate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Escompte"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 2"
+                    className="pr-8"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                </div>
+              </FormControl>
+              <FormDescription>{"Laissez à 0 si aucun escompte"}</FormDescription>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
               <div className="w-full @min-[560px]:col-span-2 grid gap-3">
                 <div className="flex items-center justify-between">
                   <FormLabel isRequired>
@@ -849,6 +900,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                         disabled={!penalty}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

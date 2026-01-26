@@ -31,7 +31,7 @@ export interface PageTitleProps {
   title: string;
   subtitle: string;
   color?: "red" | "blue" | "green" | "none";
-  links?: Array<NavLink>
+  links?: Array<NavLink>;
 }
 
 export type UserRole = "admin" | "user";
@@ -194,7 +194,9 @@ export type RequestModelT = {
   beneficiary: string;
   benef?: number[] | null;
   period?: DateRange | undefined;
-  beficiaryList?: { id: number; firstName: string; lastName: string; email: string }[] | null;
+  beficiaryList?:
+    | { id: number; firstName: string; lastName: string; email: string }[]
+    | null;
   state: string;
   priority: "medium" | "high" | "low" | "urgent";
   projectId?: number | null;
@@ -222,7 +224,7 @@ export type RequestModelT = {
     rank: number;
     userId: number;
     requestModelId: number;
-  }>
+  }>;
 };
 
 export type TableData = {
@@ -451,9 +453,11 @@ export type BonsCommande = {
   motif?: string;
   createdAt: Date;
   updatedAt: Date;
-  isTTC: boolean;
+  rabaisAmount: number; // réduction exceptionnelle
+  remiseAmount: number; // réduction commerciale
+  ristourneAmount: number; // réduction a posteriori
+  escompteRate: number;
   keepTaxes: boolean;
-  discount: number;
 };
 
 export interface NavLink {
