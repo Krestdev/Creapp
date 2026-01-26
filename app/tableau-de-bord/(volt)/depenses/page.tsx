@@ -16,6 +16,7 @@ import { NavLink } from "@/types/types";
 import Link from "next/link";
 import ExpensesTable from "./expenses-table";
 import { useQuery } from "@tanstack/react-query";
+import { payTypeQ } from "@/queries/payType";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -41,12 +42,18 @@ function Page() {
     queryKey: ["purchaseOrders"],
     queryFn: purchaseQ.getAll,
   });
+
+  const getPaymentType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
   if (
     isLoading ||
     getPurchases.isLoading ||
     getBanks.isLoading ||
-    getRequestType.isLoading
+    getRequestType.isLoading ||
+    getPaymentType.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -54,7 +61,8 @@ function Page() {
     isError ||
     getPurchases.isError ||
     getBanks.isError ||
-    getRequestType.isError
+    getRequestType.isError ||
+    getPaymentType.isError
   ) {
     return (
       <ErrorPage
@@ -63,6 +71,7 @@ function Page() {
           getPurchases.error ||
           getBanks.error ||
           getRequestType.error ||
+          getPaymentType.error ||
           undefined
         }
       />
@@ -72,7 +81,8 @@ function Page() {
     isSuccess &&
     getPurchases.isSuccess &&
     getBanks.isSuccess &&
-    getRequestType.isSuccess
+    getRequestType.isSuccess &&
+    getPaymentType.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -127,6 +137,7 @@ function Page() {
           banks={getBanks.data.data}
           purchases={getPurchases.data.data}
           requestTypes={getRequestType.data.data}
+          getPaymentType={getPaymentType}
         />
       </div>
     );

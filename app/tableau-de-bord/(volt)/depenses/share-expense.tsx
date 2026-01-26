@@ -1,6 +1,7 @@
 "use client";
 
 import FilesUpload from "@/components/comp-547";
+import ViewDepense from "@/components/depense/viewDepense";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,13 +29,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
+import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { signatairQ } from "@/queries/signatair";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Bank, PaymentRequest, PayType, Signatair } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -55,25 +57,25 @@ const createFormSchema = (hasMethodId: boolean) =>
     ...(hasMethodId
       ? {}
       : {
-          methodId: z
-            .number()
-            .int()
-            .positive("Veuillez sélectionner un moyen de paiement"),
-        }),
+        methodId: z
+          .number()
+          .int()
+          .positive("Veuillez sélectionner un moyen de paiement"),
+      }),
     to: z.object({
       label: z.string().min(2, "Libellé trop court"),
       accountNumber: z.string().optional(),
       phoneNum: z.string().optional(),
-    }),
-    proof: z
-      .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
-      .min(0),
+    })
   });
 
 type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   const { user } = useStore();
+
+  const [openDoc, setOpenDoc] = useState(false)
+  const [paiement, setPaiement] = useState<PaymentRequest | null>(null)
 
   // Récupérer la liste des signataires
   const getSignataires = useQuery({
@@ -103,7 +105,6 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     defaultValues: {
       label: ticket.title,
       fromBankId: undefined,
-      proof: [],
       // Si le ticket n'a pas de methodId, laisser undefined
       ...(hasExistingMethodId ? {} : { methodId: undefined }),
       to: { label: "", accountNumber: "", phoneNum: "" },
@@ -231,12 +232,21 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     queryFn: transactionQ.getAll,
   });
 
+  const getPaiement = useQuery({
+    queryKey: ["paiement"],
+    queryFn: paymentQ.getAll,
+  });
+
   const share = useMutation({
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.create(payload),
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
+      if (data.data.payement) {
+        setPaiement(data.data.payement)
+        isCashPayment && setOpenDoc(true);
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -248,7 +258,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   );
 
   function onSubmit(values: FormValues) {
-    const { to, fromBankId, methodId, proof, ...rest } = values;
+    const { to, fromBankId, methodId, ...rest } = values;
 
     // Utiliser methodId du formulaire si présent, sinon celui du ticket
     const finalMethodId = Number(methodId) || ticket.methodId;
@@ -258,12 +268,11 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       return;
     }
 
-    const status = isCashPayment ? "paid" : "unsigned";
+    const status = isCashPayment ? "simple_signed" : "unsigned";
 
     // Créer l'objet payload
     const payload: TransactionProps = {
       ...rest,
-      ...(isCashPayment ? { proof } : {}),
       Type: trans?.Type!,
       date: new Date(),
       amount: ticket.price,
@@ -282,352 +291,334 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   const selectedBank = banks.find((bank) => bank.id === selectedBankId);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="uppercase">
-            {isCashPayment
-              ? `Payer - ${ticket.title}`
-              : `Soumettre - ${ticket.title}`}
-          </DialogTitle>
-          <DialogDescription>
-            {isCashPayment
-              ? `Paiement du ticket ${ticket.reference} en espèces`
-              : `Soumission du ticket ${ticket.reference}`}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex-1 overflow-y-auto px-6 pb-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="label"
-                render={({ field }) => (
-                  <FormItem className="@min-[640px]:col-span-2">
-                    <FormLabel isRequired>
-                      {"Libellé de la Transaction"}
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Intitulé de la transaction"
-                        disabled
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Information sur la méthode de paiement */}
-              <div className="@min-[640px]:col-span-2 p-3 rounded-sm border bg-blue-50/30">
-                <h3 className="font-medium text-sm mb-2">
-                  Information de paiement
-                </h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="font-medium text-muted-foreground">
-                      Montant :
-                    </span>
-                    <p className="font-semibold">
-                      {ticket.price.toLocaleString()} FCFA
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Champ moyen de paiement UNIQUEMENT si le ticket n'en a pas déjà */}
-              {!hasExistingMethodId && (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
+          <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
+            <DialogTitle className="uppercase">
+              {isCashPayment
+                ? `Payer - ${ticket.title}`
+                : `Soumettre - ${ticket.title}`}
+            </DialogTitle>
+            <DialogDescription>
+              {isCashPayment
+                ? `Paiement du ticket ${ticket.reference} en espèces`
+                : `Soumission du ticket ${ticket.reference}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto px-6 pb-4">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
                 <FormField
                   control={form.control}
-                  name="methodId"
+                  name="label"
                   render={({ field }) => (
                     <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
-                      <FormDescription className="text-amber-600">
-                        Ce paiement n'a pas encore de moyen de paiement défini.
-                        Veuillez en sélectionner un.
-                      </FormDescription>
-                      <FormControl>
-                        <Select
-                          value={field.value ? String(field.value) : undefined}
-                          onValueChange={(value) => {
-                            field.onChange(Number(value));
-                          }}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionner un moyen de paiement" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {payTypesQuery.data?.data?.map((payType) => (
-                              <SelectItem
-                                key={payType.id}
-                                value={String(payType.id)}
-                              >
-                                {payType.label ||
-                                  `Moyen de paiement ${payType.id}`}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {/* Afficher la méthode de paiement si elle existe déjà */}
-              {hasExistingMethodId && paymentMethod && (
-                <div className="@min-[640px]:col-span-2 p-3 rounded-sm border bg-green-50/30">
-                  <h3 className="font-medium text-sm mb-1">
-                    Moyen de paiement défini
-                  </h3>
-                  <p className="font-semibold text-green-700">
-                    {paymentMethod.label || `Type ${ticket.methodId}`}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Ce paiement a déjà un moyen de paiement configuré. Pour le
-                    modifier, veuillez éditer le paiement directement.
-                  </p>
-                </div>
-              )}
-
-              <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
-                <h3 className="@min-[640px]:col-span-2">{"Source"}</h3>
-                <FormField
-                  control={form.control}
-                  name="fromBankId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Compte source"}</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value ? String(field.value) : undefined}
-                          onValueChange={(value) => {
-                            field.onChange(Number(value));
-                          }}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionner un compte source" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {filteredBanks.map((bank) => (
-                              <SelectItem key={bank.id} value={String(bank.id)}>
-                                <div className="flex flex-col">
-                                  <span>{bank.label}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {bank.type === "BANK" &&
-                                      `Banque - Solde: ${bank.balance?.toLocaleString()} FCFA`}
-                                    {bank.type === "CASH" &&
-                                      `Caisse - Solde: ${bank.balance?.toLocaleString()} FCFA`}
-                                    {bank.type === "CASH_REGISTER" &&
-                                      `Caisse principale - Solde: ${bank.balance?.toLocaleString()} FCFA`}
-                                    {bank.type === "MOBILE_WALLET" &&
-                                      `Portefeuille mobile (${bank.label}) - ${
-                                        bank.phoneNum || "N/A"
-                                      }`}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-
-                      {/* Affichage de la configuration de signature correspondante */}
-                      {!!selectedBankId &&
-                        !!paymentMethod &&
-                        !!relevantSignataireConfig && (
-                          <div className="mt-3 space-y-2 p-3 bg-muted/30 rounded-md">
-                            <p className="text-sm font-medium">
-                              Configuration de signature :
-                            </p>
-                            <div className="text-sm">
-                              <div className="ml-2 mt-1">
-                                <p className="text-xs">
-                                  <span className="font-medium">Mode :</span>{" "}
-                                  <span
-                                    className={
-                                      relevantSignataireConfig.mode === "ONE"
-                                        ? "text-green-600"
-                                        : "text-amber-600"
-                                    }
-                                  >
-                                    {formatMode(relevantSignataireConfig.mode)}
-                                  </span>
-                                </p>
-                                <p className="text-xs mt-1">
-                                  <span className="font-medium">
-                                    Signataires :
-                                  </span>{" "}
-                                  {signatairesList}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                      {/* Message si aucune configuration trouvée */}
-                      {!isCashPayment &&
-                        !!selectedBankId &&
-                        !!paymentMethod &&
-                        !relevantSignataireConfig && (
-                          <div className="mt-3 p-3 bg-muted/20 rounded-md border border-muted">
-                            <p className="text-sm text-muted-foreground">
-                              ⚠️ Aucune configuration de signature trouvée pour
-                              la combinaison :
-                            </p>
-                            <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
-                              <li>
-                                Compte source :{" "}
-                                {banks.find((b) => b.id === selectedBankId)
-                                  ?.label || `#${selectedBankId}`}
-                              </li>
-                              <li>
-                                Méthode de paiement :{" "}
-                                {paymentMethod?.label ||
-                                  `Type ${paymentMethod?.id}`}
-                              </li>
-                            </ul>
-                          </div>
-                        )}
-
-                      <FormMessage />
-                      {selectedBank && selectedBank.balance < ticket.price && (
-                        <div className="mt-3 p-3 bg-red-500/20 rounded-md border border-red-500">
-                          <p className="text-sm text-red-500">
-                            ⚠️ Solde insuffisant. Disponible: {selectedBank.balance.toLocaleString()} FCFA, Montant requis: {ticket.price.toLocaleString()} FCFA
-                          </p>
-                        </div>
-                      )}
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
-                <h3 className="@min-[640px]:col-span-2">{"Destinataire"}</h3>
-                <FormField
-                  control={form.control}
-                  name="to.label"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Nom du destinataire"}</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex. Krest Holding" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {!isCashPayment && (
-                  <FormField
-                    control={form.control}
-                    name="to.accountNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Compte bancaire destinataire"}</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            {...field}
-                            placeholder="Ex. 2350 0054"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          {"Numéro de Compte Bancaire du client si applicable"}
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                <FormField
-                  control={form.control}
-                  name="to.phoneNum"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {"Numéro de téléphone destinataire"}
+                      <FormLabel isRequired>
+                        {"Libellé de la Transaction"}
                       </FormLabel>
                       <FormControl>
                         <Input
-                          type="number"
                           {...field}
-                          placeholder="Ex. 694 562 002"
+                          placeholder="Intitulé de la transaction"
+                          disabled
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                {/* Afficher le champ proof seulement si c'est un paiement en espèces */}
-                {isCashPayment && (
+
+                {/* Information sur la méthode de paiement */}
+                <div className="@min-[640px]:col-span-2 p-3 rounded-sm border bg-blue-50/30">
+                  <h3 className="font-medium text-sm mb-2">
+                    Information de paiement
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="font-medium text-muted-foreground">
+                        Montant :
+                      </span>
+                      <p className="font-semibold">
+                        {ticket.price.toLocaleString()} FCFA
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Champ moyen de paiement UNIQUEMENT si le ticket n'en a pas déjà */}
+                {!hasExistingMethodId && (
                   <FormField
                     control={form.control}
-                    name="proof"
+                    name="methodId"
                     render={({ field }) => (
                       <FormItem className="@min-[640px]:col-span-2">
-                        <FormLabel isRequired>{"Justificatif"}</FormLabel>
-                        <FormDescription>
-                          Justificatif obligatoire pour les paiements en espèces
+                        <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+                        <FormDescription className="text-amber-600">
+                          Ce paiement n'a pas encore de moyen de paiement défini.
+                          Veuillez en sélectionner un.
                         </FormDescription>
                         <FormControl>
-                          <FilesUpload
-                            value={field.value}
-                            onChange={field.onChange}
-                            name={field.name}
-                            acceptTypes="images"
-                            multiple={true}
-                            maxFiles={4}
-                          />
+                          <Select
+                            value={field.value ? String(field.value) : undefined}
+                            onValueChange={(value) => {
+                              field.onChange(Number(value));
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Sélectionner un moyen de paiement" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {payTypesQuery.data?.data?.map((payType) => (
+                                <SelectItem
+                                  key={payType.id}
+                                  value={String(payType.id)}
+                                >
+                                  {payType.label ||
+                                    `Moyen de paiement ${payType.id}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 )}
-              </div>
-            </form>
-          </Form>
-        </div>
-        <div className="shrink-0 flex gap-3 p-6 pt-0 ml-auto">
-          <Button
-            onClick={() => {
-              // Vérifier si le solde est suffisant
-              if (selectedBank && selectedBank.balance < ticket.price) {
-                toast.error(`Solde insuffisant. Disponible: ${selectedBank.balance.toLocaleString()} FCFA, Montant requis: ${ticket.price.toLocaleString()} FCFA`);
-                return;
+
+                {/* Afficher la méthode de paiement si elle existe déjà */}
+                {hasExistingMethodId && paymentMethod && (
+                  <div className="@min-[640px]:col-span-2 p-3 rounded-sm border bg-green-50/30">
+                    <h3 className="font-medium text-sm mb-1">
+                      Moyen de paiement défini
+                    </h3>
+                    <p className="font-semibold text-green-700">
+                      {paymentMethod.label || `Type ${ticket.methodId}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Ce paiement a déjà un moyen de paiement configuré. Pour le
+                      modifier, veuillez éditer le paiement directement.
+                    </p>
+                  </div>
+                )}
+
+                <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
+                  <h3 className="@min-[640px]:col-span-2">{"Source"}</h3>
+                  <FormField
+                    control={form.control}
+                    name="fromBankId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel isRequired>{"Compte source"}</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value ? String(field.value) : undefined}
+                            onValueChange={(value) => {
+                              field.onChange(Number(value));
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Sélectionner un compte source" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {filteredBanks.map((bank) => (
+                                <SelectItem key={bank.id} value={String(bank.id)}>
+                                  <div className="flex flex-col">
+                                    <span>{bank.label}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {bank.type === "BANK" &&
+                                        `Banque - Solde: ${bank.balance?.toLocaleString()} FCFA`}
+                                      {bank.type === "CASH" &&
+                                        `Caisse - Solde: ${bank.balance?.toLocaleString()} FCFA`}
+                                      {bank.type === "CASH_REGISTER" &&
+                                        `Caisse principale - Solde: ${bank.balance?.toLocaleString()} FCFA`}
+                                      {bank.type === "MOBILE_WALLET" &&
+                                        `Portefeuille mobile (${bank.label}) - ${bank.phoneNum || "N/A"
+                                        }`}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+
+                        {/* Affichage de la configuration de signature correspondante */}
+                        {!!selectedBankId &&
+                          !!paymentMethod &&
+                          !!relevantSignataireConfig && (
+                            <div className="mt-3 space-y-2 p-3 bg-muted/30 rounded-md">
+                              <p className="text-sm font-medium">
+                                Configuration de signature :
+                              </p>
+                              <div className="text-sm">
+                                <div className="ml-2 mt-1">
+                                  <p className="text-xs">
+                                    <span className="font-medium">Mode :</span>{" "}
+                                    <span
+                                      className={
+                                        relevantSignataireConfig.mode === "ONE"
+                                          ? "text-green-600"
+                                          : "text-amber-600"
+                                      }
+                                    >
+                                      {formatMode(relevantSignataireConfig.mode)}
+                                    </span>
+                                  </p>
+                                  <p className="text-xs mt-1">
+                                    <span className="font-medium">
+                                      Signataires :
+                                    </span>{" "}
+                                    {signatairesList}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                        {/* Message si aucune configuration trouvée */}
+                        {!isCashPayment &&
+                          !!selectedBankId &&
+                          !!paymentMethod &&
+                          !relevantSignataireConfig && (
+                            <div className="mt-3 p-3 bg-muted/20 rounded-md border border-muted">
+                              <p className="text-sm text-muted-foreground">
+                                ⚠️ Aucune configuration de signature trouvée pour
+                                la combinaison :
+                              </p>
+                              <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
+                                <li>
+                                  Compte source :{" "}
+                                  {banks.find((b) => b.id === selectedBankId)
+                                    ?.label || `#${selectedBankId}`}
+                                </li>
+                                <li>
+                                  Méthode de paiement :{" "}
+                                  {paymentMethod?.label ||
+                                    `Type ${paymentMethod?.id}`}
+                                </li>
+                              </ul>
+                            </div>
+                          )}
+
+                        <FormMessage />
+                        {selectedBank && selectedBank.balance < ticket.price && (
+                          <div className="mt-3 p-3 bg-red-500/20 rounded-md border border-red-500">
+                            <p className="text-sm text-red-500">
+                              ⚠️ Solde insuffisant. Disponible: {selectedBank.balance.toLocaleString()} FCFA, Montant requis: {ticket.price.toLocaleString()} FCFA
+                            </p>
+                          </div>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
+                  <h3 className="@min-[640px]:col-span-2">{"Destinataire"}</h3>
+                  <FormField
+                    control={form.control}
+                    name="to.label"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel isRequired>{"Nom du destinataire"}</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Ex. Krest Holding" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {!isCashPayment && (
+                    <FormField
+                      control={form.control}
+                      name="to.accountNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{"Compte bancaire destinataire"}</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              placeholder="Ex. 2350 0054"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            {"Numéro de Compte Bancaire du client si applicable"}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  <FormField
+                    control={form.control}
+                    name="to.phoneNum"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {"Numéro de téléphone destinataire"}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            placeholder="Ex. 694 562 002"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </form>
+            </Form>
+          </div>
+          <div className="shrink-0 flex gap-3 p-6 pt-0 ml-auto">
+            <Button
+              onClick={() => {
+                // Vérifier si le solde est suffisant
+                if (selectedBank && selectedBank.balance < ticket.price) {
+                  toast.error(`Solde insuffisant. Disponible: ${selectedBank.balance.toLocaleString()} FCFA, Montant requis: ${ticket.price.toLocaleString()} FCFA`);
+                  return;
+                }
+                // Appeler la fonction retournée par handleSubmit
+                form.handleSubmit(onSubmit)();
+              }}
+              variant={"primary"}
+              disabled={
+                share.isPending ||
+                filteredBanks.length === 0 ||
+                (!hasExistingMethodId && !selectedMethodId)
               }
-              // Appeler la fonction retournée par handleSubmit
-              form.handleSubmit(onSubmit)();
-            }}
-            variant={"primary"}
-            disabled={
-              share.isPending ||
-              filteredBanks.length === 0 ||
-              (!hasExistingMethodId && !selectedMethodId)
-            }
-            isLoading={share.isPending}
-          >
-            {isCashPayment ? "Payer" : "Soumettre au signataire"}
-          </Button>
-          <Button
-            variant={"outline"}
-            disabled={share.isPending}
-            onClick={(e) => {
-              e.preventDefault();
-              form.reset();
-              onOpenChange(false);
-            }}
-          >
-            {"Annuler"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+              isLoading={share.isPending}
+            >
+              {isCashPayment ? "Initier le paiement" : "Soumettre au signataire"}
+            </Button>
+            <Button
+              variant={"outline"}
+              disabled={share.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                form.reset();
+                onOpenChange(false);
+              }}
+            >
+              {"Annuler"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {paiement &&
+        <ViewDepense
+          open={openDoc}
+          openChange={setOpenDoc}
+          paymentRequest={paiement}
+        />
+      }
+    </>
   );
 }
 

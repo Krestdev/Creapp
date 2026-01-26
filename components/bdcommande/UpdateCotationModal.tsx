@@ -362,10 +362,9 @@ export function UpdateCotationModal({
                       Annuler
                     </Button>
                     <Button
+                      variant={"primary"}
                       type="submit"
-                      disabled={
-                        updateCommand.isPending || !form.formState.isDirty
-                      }
+                      disabled={updateCommand.isPending}
                     >
                       {updateCommand.isPending
                         ? "Mise à jour..."
