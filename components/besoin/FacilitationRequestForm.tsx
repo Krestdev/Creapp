@@ -253,7 +253,7 @@ export default function FacilitationRequestForm() {
                     <SelectValue placeholder="Sélectionner un recepteur pour compte" />
                   </SelectTrigger>
                   <SelectContent>
-                    {usersData.data?.data.map((user) => (
+                    {usersData.data?.data.filter((u) => u.verified).map((user) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
                         {user.lastName + " " + user.firstName}
                       </SelectItem>

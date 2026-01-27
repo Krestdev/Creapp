@@ -63,7 +63,7 @@ const Page = () => {
     },
     {
       id: 0,
-      title: "Demande de cotation",
+      title: "Historique",
     },
   ];
   const [selectedTab, setSelectedTab] = useState(0);

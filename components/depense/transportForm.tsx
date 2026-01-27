@@ -222,7 +222,7 @@ export function TransportForm() {
                 name="Beneficier"
                 control={form.control}
                 render={({ field, fieldState }) => {
-                  const options = usersData.data.data.map((user) => {
+                  const options = usersData.data.data.filter((x) => x.verified === true).map((user) => {
                     return { value: user.id, label: user.firstName };
                   });
                   return (

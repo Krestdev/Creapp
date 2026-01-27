@@ -4,6 +4,7 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -92,6 +93,11 @@ export const formSchema = z
     hasPenalties: z.boolean(),
     amountBase: z.coerce.number().optional(),
     penaltyMode: z.string().optional(),
+    rabaisAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    remiseAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    ristourneAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
+    keepTaxes: z.boolean(),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -154,6 +160,11 @@ function CreateForm() {
       penaltyMode: "",
       instalments: [{ percentage: 100, deadLine: undefined }],
       paymentMethod: defaultPaymentMethod,
+      rabaisAmount: 0,
+      remiseAmount: 0,
+      ristourneAmount: 0,
+      escompteRate: 0,
+      keepTaxes: false,
     },
   });
 
@@ -199,6 +210,11 @@ function CreateForm() {
         penaltyMode: "",
         instalments: [{ percentage: 100, deadLine: undefined }],
         paymentMethod: defaultPaymentMethod,
+        rabaisAmount: 0,
+        remiseAmount: 0,
+        ristourneAmount: 0,
+        escompteRate: 0,
+        keepTaxes: false,
       });
     },
     onError: (error: Error) => {
@@ -247,6 +263,11 @@ function CreateForm() {
             ? new Date(instalment.deadLine)
             : undefined,
         })),
+        rabaisAmount: values.rabaisAmount,
+        remiseAmount: values.remiseAmount,
+        ristourneAmount: values.ristourneAmount,
+        escompteRate: values.escompteRate,
+        keepTaxes: values.keepTaxes,
       },
       ids: ids,
     };
@@ -411,6 +432,111 @@ function CreateForm() {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="rabaisAmount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Rabais"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 3"
+                    className="pr-8"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                </div>
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="ristourneAmount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Ristourne"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 3"
+                    className="pr-8"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                </div>
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="remiseAmount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Remise"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 5"
+                    className="pr-8"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                </div>
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="keepTaxes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Retenir à la source"}</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  <span>{field.value ? "Oui" : "Non"}</span>
+                </div>
+              </FormControl>
+              <FormDescription>{"Cocher si vous souhaitez retenir les taxes à la source sur ce bon de commande"}</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="escompteRate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Escompte"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 2"
+                    className="pr-8"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                </div>
+              </FormControl>
+              <FormDescription>{"Laissez à 0 si aucun escompte"}</FormDescription>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
         <div className="w-full @min-[560px]:col-span-2 grid gap-3">
           <div className="flex items-center justify-between">
             <FormLabel isRequired>{"Échelonnement des paiements"}</FormLabel>
@@ -551,7 +677,7 @@ function CreateForm() {
             onClick={() => append({ percentage: 0, deadLine: undefined })}
           >
             <Plus />
-            {"Ajouter un paiement"}
+            {"Ajouter une échéance"}
           </Button>
 
           <div className="text-sm text-muted-foreground">
@@ -632,7 +758,7 @@ function CreateForm() {
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="penaltyMode"
           render={({ field }) => (
@@ -667,16 +793,21 @@ function CreateForm() {
             <FormItem>
               <FormLabel>{"Montant des pénalités"}</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  {...field}
-                  placeholder="Ex. 150 000"
-                  disabled={!penalty}
-                />
+                <div className="relative">
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="Ex. 150 000"
+                    disabled={!penalty}
+                    className="pr-12"
+                  />
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"FCFA"}</span>
+                </div>
               </FormControl>
+              <FormMessage/>
             </FormItem>
           )}
-        />
+        /> */}
         <div className="@min-[560px]:col-span-2">
           <Button
             type="submit"

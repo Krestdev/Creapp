@@ -121,7 +121,7 @@ export default function RHRequestForm() {
   });
 
   const USERS =
-    usersData.data?.data.map((u) => ({
+    usersData.data?.data.filter((u) => u.verified).map((u) => ({
       id: u.id!,
       name: u.firstName + " " + u.lastName,
     })) || [];

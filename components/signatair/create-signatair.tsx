@@ -235,7 +235,7 @@ export default function CreateSignatairForm() {
             </FormLabel>
             <MultiSelectUser
               display="user"
-              users={userData?.data?.data || []}
+              users={userData?.data?.data.filter((u) => u.verified) || []}
               selected={selectedUser}
               showMail
               placeholder="Aucun signataire selectionné"

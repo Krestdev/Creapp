@@ -65,6 +65,7 @@ export const PAY_STATUS = [
   { value: "paid", name: "Payé" },
   { value: "pending_depense", name: "en attente" },
   { value: "unsigned", name: "En attente de signature" },
+  { value: "simple_signed", name: "Paiement ouvert" },
   { value: "signed", name: "Signé" },
   { value: "simple_signed", name: "Ouvert" },
 ] as const;
@@ -454,6 +455,11 @@ export type BonsCommande = {
   motif?: string;
   createdAt: Date;
   updatedAt: Date;
+  rabaisAmount: number; // réduction exceptionnelle
+  remiseAmount: number; // réduction commerciale
+  ristourneAmount: number; // réduction a posteriori
+  escompteRate: number;
+  keepTaxes: boolean;
 };
 
 export interface NavLink {
@@ -624,6 +630,7 @@ export type TransactionBase = {
 export type DebitTransaction = TransactionBase & {
   Type: "DEBIT";
   from: Bank;
+  payement?: PaymentRequest | null;
   to: { label: string; accountNumber?: string; phoneNumber?: string };
 };
 
@@ -631,12 +638,14 @@ export type CreditTransaction = TransactionBase & {
   Type: "CREDIT";
   from: { label: string; accountNumber?: string; phoneNumber?: string };
   to: Bank;
+  payement?: PaymentRequest | null;
 };
 
 export type TransferTransaction = TransactionBase & {
   Type: "TRANSFER";
   from: Bank;
   to: Bank;
+  payement?: PaymentRequest | null;
 };
 
 export type Transaction =

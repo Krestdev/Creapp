@@ -139,11 +139,6 @@ export function CarburentForm() {
     },
   });
 
-  const usersData = useQuery({
-    queryKey: ["getUsers"],
-    queryFn: () => userQ.getAll(),
-  });
-
   const bankData = useQuery({
     queryKey: ["banks"],
     queryFn: bankQ.getAll,

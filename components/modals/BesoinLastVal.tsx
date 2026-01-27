@@ -111,12 +111,12 @@ export function BesoinLastVal({
     }: {
       id: number;
       validator:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     }) => requestQ.validate(id, validator?.id!, validator),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
@@ -191,7 +191,7 @@ export function BesoinLastVal({
   const headerDescription = isError
     ? "Une erreur est survenue. Vous pouvez réessayer."
     : isSuccess
-      ? "Demande approuvée avec succès."
+      ? "Besoin approuvée avec succès."
       : description;
 
   // Reset complet quand le modal se ferme
@@ -217,7 +217,7 @@ export function BesoinLastVal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
         {/* HEADER - Fixé en haut */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
+        <DialogHeader variant={isError ? "error" : isSuccess ? "success" : "default"} className={` text-white p-6 m-4 rounded-lg pb-8 shrink-0`}>
           <DialogTitle className="text-xl font-semibold text-white">
             {"Approbation"}
           </DialogTitle>

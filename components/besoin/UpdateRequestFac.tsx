@@ -120,7 +120,7 @@ export default function UpdateRequestFac({
     queryFn: async () => userQ.getAll(),
   });
 
-  const USERS = usersData.data?.data || [];
+  const USERS = usersData.data?.data.filter((u) => u.verified) || [];
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION

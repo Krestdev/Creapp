@@ -37,7 +37,6 @@ import { CommandRequestT, RequestModelT } from "@/types/types";
 import { useStore } from "@/providers/datastore";
 import { toast } from "sonner";
 import { SuccessModal } from "@/components/modals/success-modal";
-import MultiSelectUsers from "@/components/base/multiSelectUsers";
 import Besoins from "./besoins";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 
@@ -362,10 +361,9 @@ export function UpdateCotationModal({
                       Annuler
                     </Button>
                     <Button
+                      variant={"primary"}
                       type="submit"
-                      disabled={
-                        updateCommand.isPending || !form.formState.isDirty
-                      }
+                      disabled={updateCommand.isPending}
                     >
                       {updateCommand.isPending
                         ? "Mise à jour..."

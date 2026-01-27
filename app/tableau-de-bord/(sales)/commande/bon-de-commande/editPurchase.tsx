@@ -13,6 +13,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -61,11 +62,11 @@ interface Props {
 
 const PO_PRIORITIES = PRIORITIES.map((s) => s.value) as [
   (typeof PRIORITIES)[number]["value"],
-  ...(typeof PRIORITIES)[number]["value"][]
+  ...(typeof PRIORITIES)[number]["value"][],
 ];
 const PO_METHODS = PAYMENT_METHOD.map((s) => s.value) as [
   (typeof PAYMENT_METHOD)[number]["value"],
-  ...(typeof PAYMENT_METHOD)[number]["value"][]
+  ...(typeof PAYMENT_METHOD)[number]["value"][],
 ];
 
 const paymentSchema = z.object({
@@ -82,7 +83,7 @@ const paymentSchema = z.object({
         const now = new Date();
         return !isNaN(d.getTime()) && d >= now;
       },
-      { message: "Date invalide" }
+      { message: "Date invalide" },
     )
     .optional(),
 });
@@ -96,17 +97,17 @@ export const formSchema = z
         const now = new Date();
         return !isNaN(d.getTime()) || d <= now;
       },
-      { message: "Date invalide" }
+      { message: "Date invalide" },
     ),
     instalments: z.array(paymentSchema).refine(
       (data) => {
         const total = data.reduce(
           (sum, payment) => sum + payment.percentage,
-          0
+          0,
         );
         return total === 100;
       },
-      { message: "Le total des paiements doit être égal à 100%" }
+      { message: "Le total des paiements doit être égal à 100%" },
     ),
     paymentTerms: z.string().min(1, "Ce champ est requis"),
     paymentMethod: z.string(),
@@ -117,6 +118,11 @@ export const formSchema = z
     amountBase: z.coerce.number().optional(),
     penaltyMode: z.string().optional(),
     providerId: z.coerce.number({ message: "Veuillez définir un fournisseur" }),
+    rabaisAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    remiseAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    ristourneAmount: z.coerce.number().min(0, "Le montant doit être positif"),
+    escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
+    keepTaxes: z.boolean(),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -139,7 +145,7 @@ export const formSchema = z
 function EditPurchase({ open, openChange, purchaseOrder }: Props) {
   const [selectDate, setSelectDate] = React.useState(false); //Popover select Date
   const [duePopovers, setDuePopovers] = React.useState<Record<number, boolean>>(
-    {}
+    {},
   );
 
   const getQuotations = useQuery({
@@ -161,7 +167,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
       const purchaseOrderMethod = purchaseOrder?.paymentMethod || "";
       // Vérifier si la méthode de paiement actuelle existe dans la liste
       const exists = getPaymentType.data.data.some(
-        (p) => p.id.toString() === purchaseOrderMethod
+        (p) => p.id.toString() === purchaseOrderMethod,
       );
 
       if (exists) {
@@ -207,6 +213,11 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
       deviId: purchaseOrder?.deviId || -1,
       providerId: purchaseOrder?.providerId || -1,
       instalments: defaultInstalments,
+      remiseAmount: purchaseOrder.remiseAmount ?? 0,
+      rabaisAmount: purchaseOrder.rabaisAmount ?? 0,
+      ristourneAmount: purchaseOrder.ristourneAmount ?? 0,
+      escompteRate: purchaseOrder.escompteRate ?? 0,
+      keepTaxes: purchaseOrder.keepTaxes ?? false,
     },
   });
 
@@ -215,7 +226,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
     if (getPaymentType.data?.data && getPaymentType.data.data.length > 0) {
       const purchaseOrderMethod = purchaseOrder?.paymentMethod || "";
       const exists = getPaymentType.data.data.some(
-        (p) => p.id.toString() === purchaseOrderMethod
+        (p) => p.id.toString() === purchaseOrderMethod,
       );
 
       // Si la méthode de paiement actuelle n'existe pas dans la liste, la mettre à jour
@@ -247,7 +258,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
   const instalments = form.watch("instalments");
   const totalAmount = instalments.reduce(
     (sum, payment) => sum + (payment?.percentage || 0),
-    0
+    0,
   ); //total amount
   const paymentsError = form.formState.errors.instalments?.root?.message;
 
@@ -274,6 +285,11 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
       hasPenalties: values.hasPenalties,
       penaltyMode: values.penaltyMode,
       instalments: purchaseOrder.instalments,
+      ristourneAmount: values.ristourneAmount,
+      rabaisAmount: values.rabaisAmount,
+      remiseAmount: values.remiseAmount,
+      escompteRate: values.escompteRate,
+      keepTaxes: values.keepTaxes,
     };
 
     mutate(payload);
@@ -373,8 +389,8 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                                 >
                                   {`${formatToShortName(
                                     getProviders.data?.data.find(
-                                      (p) => p.id === quote.providerId
-                                    )?.name
+                                      (p) => p.id === quote.providerId,
+                                    )?.name,
                                   )}`}
                                 </SelectItem>
                               ))}
@@ -496,6 +512,125 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="rabaisAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Rabais"}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          {...field}
+                          placeholder="Ex. 3"
+                          className="pr-8"
+                        />
+                        <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                          {"%"}
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="ristourneAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Ristourne"}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          {...field}
+                          placeholder="Ex. 3"
+                          className="pr-8"
+                        />
+                        <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                          {"%"}
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="remiseAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Remise"}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          {...field}
+                          placeholder="Ex. 5"
+                          className="pr-8"
+                        />
+                        <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                          {"%"}
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="keepTaxes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Retenir à la source"}</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <span>{field.value ? "Oui" : "Non"}</span>
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      {
+                        "Cocher si vous souhaitez retenir les taxes à la source sur ce bon de commande"
+                      }
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="escompteRate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Escompte"}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          {...field}
+                          placeholder="Ex. 2"
+                          className="pr-8"
+                        />
+                        <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                          {"%"}
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      {"Laissez à 0 si aucun escompte"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="w-full @min-[560px]:col-span-2 grid gap-3">
                 <div className="flex items-center justify-between">
                   <FormLabel isRequired>
@@ -611,7 +746,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                                         if (!date) return;
                                         const value = format(
                                           date,
-                                          "yyyy-MM-dd"
+                                          "yyyy-MM-dd",
                                         );
                                         field.onChange(value);
                                         setSelectDate(false);
@@ -648,7 +783,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                   disabled
                 >
                   <Plus />
-                  {"Ajouter un paiement"}
+                  {"Ajouter une échéance"}
                 </Button>
 
                 <div className="text-sm text-muted-foreground">
@@ -716,7 +851,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="hasPenalties"
                 render={({ field }) => (
@@ -780,9 +915,10 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                         disabled={!penalty}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
             </form>
           </Form>
         </div>

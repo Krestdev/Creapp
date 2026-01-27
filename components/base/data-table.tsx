@@ -901,6 +901,7 @@ export function DataTable({ data }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <h3>{`Besoins (${filteredData.length})`}</h3>
 
       {/* Table */}
       {table.getRowModel().rows?.length > 0 ? (

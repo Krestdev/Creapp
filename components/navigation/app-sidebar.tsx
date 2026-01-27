@@ -113,6 +113,18 @@ function AppSidebar() {
     queryFn: paymentQ.getAll,
   });
 
+  const requestsData = useQuery({
+    queryKey: ["requests"],
+    queryFn: () => {
+      return requestQ.getAll();
+    },
+  });
+
+  const getCommandRequests = useQuery({
+    queryKey: ["commands"],
+    queryFn: commandRqstQ.getAll,
+  });
+
   const data: Array<RequestModelT> = useMemo(() => {
     if (!requestData.data) return [];
     return approbatorRequests(requestData.data.data, user?.id);
@@ -144,31 +156,29 @@ function AppSidebar() {
       getQuotationRequests.data &&
       getQuotations.data
       ? groupQuotationsByCommandRequest(
-          getQuotationRequests.data.data,
-          getQuotations.data.data,
-          providers.data.data,
-        ).filter((c) => c.status === "NOT_PROCESSED")
+        getQuotationRequests.data.data,
+        getQuotations.data.data,
+        providers.data.data,
+      ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
   }, [providers.data, getQuotationRequests.data, getQuotations.data]);
 
   // Récupérer tous les IDs des besoins présents dans les cotations
-  const commandRequests = useMemo(()=>{
-    if(!getQuotationRequests.data) return [];
+  const commandRequests = useMemo(() => {
+    if (!getQuotationRequests.data) return [];
     return getQuotationRequests.data.data
-  },[getQuotationRequests.data])
+  }, [getQuotationRequests.data])
 
-  const isRequestUsed = (requestId:number):boolean => commandRequests.some(c=> c.besoins.some(b=> b.id === requestId));
+  const isRequestUsed = (requestId: number): boolean => commandRequests.some(c => c.besoins.some(b => b.id === requestId));
 
   // Filtrer les besoins validés qui ne sont pas dans une cotation
   const requestToUse = useMemo(() => {
-    if (!requestData.data || !getQuotationRequests.data) return [];
-    return requestData.data.data.filter(
+    if (!requestsData.data || !getCommandRequests.data) return [];
+    return requestsData.data.data.filter(
       (x) =>
-        x.type === "achat" &&
-        x.state === "validated" &&
-        !isRequestUsed(x.id),
+        x.type === "achat" && x.state === "validated" && !isRequestUsed(x.id),
     );
-  }, [requestData.data, getQuotationRequests.data]);
+  }, [requestsData.data, getCommandRequests.data]);
 
   const pendingData = useMemo(() => {
     if (!data) return [];
@@ -234,7 +244,7 @@ function AppSidebar() {
         </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(12)].map((_, i) => (
-            <Skeleton key={i} className="w-full h-10"/>
+            <Skeleton key={i} className="w-full h-10" />
           ))}
         </SidebarContent>
       </Sidebar>
@@ -260,7 +270,7 @@ function AppSidebar() {
         </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-2">
           {[...Array(12)].map((_, i) => (
-            <Skeleton key={i} className="w-full h-10"/>
+            <Skeleton key={i} className="w-full h-10" />
           ))}
         </SidebarContent>
       </Sidebar>
@@ -325,7 +335,7 @@ function AppSidebar() {
         pageId: "PG-03",
         icon: ClipboardList,
         href: "/tableau-de-bord/commande",
-        authorized: ["ADMIN", "SALES"],
+        authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
         title: "Commande",
         items: [
           {
@@ -437,8 +447,8 @@ function AppSidebar() {
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
-              approvedDepense &&
-              approvedTicket?.length + approvedDepense?.length > 0
+                approvedDepense &&
+                approvedTicket?.length + approvedDepense?.length > 0
                 ? approvedTicket?.length + approvedDepense?.length
                 : undefined,
             authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],

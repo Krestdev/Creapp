@@ -131,10 +131,10 @@ export function ProjectCreateForm() {
           name="chiefid"
           render={({ field }) => {
             const options = userApi.data
-              ? userApi.data.data.map((user) => ({
-                  value: user.id,
-                  label: user.lastName + " " + user.firstName,
-                }))
+              ? userApi.data.data.filter((u) => u.verified).map((user) => ({
+                value: user.id,
+                label: user.lastName + " " + user.firstName,
+              }))
               : [];
             return (
               <FormItem>
