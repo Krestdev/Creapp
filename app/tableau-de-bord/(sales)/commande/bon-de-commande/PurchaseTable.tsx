@@ -310,7 +310,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
       },
     },
 
-    {
+    /* {
       id: "penalties",
       accessorFn: (row) => (row.hasPenalties ? "yes" : "no"),
       header: () => <span className="tablehead">{"Pénalités"}</span>,
@@ -322,7 +322,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
           </Badge>
         );
       },
-    },
+    }, */
 
     {
       accessorKey: "createdAt",
@@ -522,7 +522,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                   </Select>
                 </div>
 
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <Label>{"Pénalités"}</Label>
                   <Select
                     value={penaltyFilter}
@@ -539,7 +539,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                       <SelectItem value="no">{"Non"}</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
 
                 <Button
                   variant="outline"
