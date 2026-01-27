@@ -60,7 +60,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
   );
 
   const pay = useMutation({
-    mutationFn: async (payload: Omit<TransactionProps, "userId">) =>
+    mutationFn: async (payload: Omit<TransactionProps, "userId" | "updatedAt">) =>
       transactionQ.update(ticket.transactionId!, payload),
     onSuccess: () => {
       toast.success("Votre transaction a été enregistrée avec succès !");
@@ -73,7 +73,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
 
   function onSubmit(values: FormValues) {
     const { proof, ...rest } = values;
-    const payload: Omit<TransactionProps, "userId"> = {
+    const payload: Omit<TransactionProps, "userId" | "updatedAt"> = {
       ...rest,
       proof,
       Type: trans?.Type!,

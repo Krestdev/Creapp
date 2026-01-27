@@ -5,7 +5,7 @@ type source = { label: string; accountNumber?: string; phoneNumber?: string };
 
 export interface TransactionProps extends Omit<
   Transaction,
-  "id" | "proof" | "from" | "to" | "createdAt" | "status"
+  "id" | "proof" | "from" | "to" | "createdAt" | "status" | "updatedAt"
 > {
   proof?: File[];
   from?: source;
@@ -19,7 +19,7 @@ export interface TransactionProps extends Omit<
 
 export interface TransferProps extends Omit<
   Transaction,
-  "id" | "proof" | "from" | "to" | "createdAt" | "status" | "date"
+  "id" | "proof" | "from" | "to" | "createdAt" | "status" | "date" | "updatedAt"
 > {
   fromBankId: number;
   toBankId: number;
@@ -90,7 +90,7 @@ class TransactionQuery {
 
   update = async (
     id: number,
-    data: Omit<TransactionProps, "userId">,
+    data: Omit<TransactionProps, "userId" | "updatedAt">,
   ): Promise<{ data: Transaction }> => {
     const formData = new FormData();
     formData.append("label", data.label);
