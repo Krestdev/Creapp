@@ -178,7 +178,7 @@ function AppSidebar() {
       (x) =>
         x.type === "achat" && x.state === "validated" && !isRequestUsed(x.id),
     );
-  }, [requestsData.data, getCommandRequests.data]);
+  }, [requestsData.data, getCommandRequests.data, isRequestUsed]);
 
   const pendingData = useMemo(() => {
     if (!data) return [];

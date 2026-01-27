@@ -376,7 +376,7 @@ export function UpdateCotationModal({
 
             {/* Liste des besoins sélectionnés */}
             <div className="w-2/3">
-              <div className="flex flex-col gap-4 w-full border border-gray-200 rounded-md p-4 h-full">
+              <div className="flex flex-col gap-4 w-full border border-gray-200 rounded-md p-4 max-h-[calc(90vh-200px)] overflow-y-auto">
                 <div className="flex justify-between items-center">
                   <p className="text-[18px] font-semibold">
                     {`Besoins sélectionnés (${selected.length})`}
@@ -392,6 +392,7 @@ export function UpdateCotationModal({
                   selected={selected}
                   setSelected={setSelected}
                   dataSup={dataSup}
+
                 />
               </div>
             </div>

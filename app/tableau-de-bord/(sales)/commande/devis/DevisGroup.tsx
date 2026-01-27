@@ -1,4 +1,5 @@
 "use client";
+import { DownloadFile } from "@/components/base/downLoadFile";
 import ShowFile from "@/components/base/show-file";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,11 +66,11 @@ export function DevisGroup({
                 {/* Header */}
                 <DialogHeader>
                     <DialogTitle className="uppercase">
-                        {`Quotation - ${devis?.commandRequest.title || "Sans titre"}`}
+                        {`Devis - ${devis?.commandRequest.title || "Sans titre"}`}
                     </DialogTitle>
                     <DialogDescription>
                         {page === 1
-                            ? "Détail de la quotation"
+                            ? "Détail du devis"
                             : `Justificatif du devis ${devis}`}
                     </DialogDescription>
                 </DialogHeader>
@@ -137,7 +138,7 @@ export function DevisGroup({
                                             devis?.quotations.map(devi => {
                                                 return (
                                                     <Button
-                                                    key={devi.id}
+                                                        key={devi.id}
                                                         variant={"ghost"}
                                                         className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
                                                         disabled={!devi?.proof}
@@ -178,8 +179,10 @@ export function DevisGroup({
                         </div> :
                         <ShowFile file={file} title="" setPage={setPage} />
                 }
-                <DialogFooter>
-                    <Button variant={"outline"} className="ml-auto">{"Fermer"}</Button>
+                {/* Bouton pour télécharger le devis */}
+                <DialogFooter className="ml-auto">
+                    {page === 2 && <DownloadFile file={file} />}
+                    <Button onClick={() => onOpenChange(false)} variant={"outline"} className="ml-auto">{"Fermer"}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
