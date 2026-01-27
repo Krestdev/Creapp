@@ -21,6 +21,12 @@ export default function SocketProvider({
   useEffect(() => {
     const socket = getSocket();
 
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && !socket.connected) {
+        socket.connect();
+      }
+    });
+
     socket.on("connect", () => {
       console.log("🔌 Socket connected");
     });
@@ -72,10 +78,6 @@ export default function SocketProvider({
         });
       } else {
         queryClient.invalidateQueries({
-          queryKey: ["requests"],
-          refetchType: "active",
-        });
-        queryClient.invalidateQueries({
           queryKey: ["requests-user"],
           refetchType: "active",
         });
@@ -91,7 +93,6 @@ export default function SocketProvider({
     });
 
     socket.on("request:update", () => {
-      console.log("Request updated - invalidating relevant queries");
       queryClient.invalidateQueries({
         queryKey: ["requests"],
         refetchType: "active",
