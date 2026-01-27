@@ -26,97 +26,58 @@ type SubmitPayload = Array<{
 }>;
 
 /**
- * ✅ Preload:
- * besoinId -> providerId, basé sur element.status === "SELECTED"
+ * Pré-remplit la sélection basée sur le statut "SELECTED" déjà en base
  */
 const computePreselected = (quotationGroup: QuotationGroup) => {
   const pre: Record<number, number> = {};
-
   for (const besoin of quotationGroup.commandRequest.besoins) {
     const quoteSelected = quotationGroup.quotations.find((q) =>
       (q.element || []).some(
         (el) => el.requestModelId === besoin.id && el.status === "SELECTED",
       ),
     );
-
     if (quoteSelected) {
       pre[besoin.id] = quoteSelected.providerId;
     }
   }
-
   return pre;
 };
 
 function SelectQuotation({ id }: { id: string }) {
   const router = useRouter();
-
   const { user } = useStore();
 
-  const buildSubmitPayload = (
-    quotationGroup: QuotationGroup,
-    selected: Record<number, number>,
-  ): SubmitPayload => {
-    const byDevi = new Map<number, SubmitPayload[number]>();
+  // --- QUERIES ---
+  const quotations = useQuery({ queryKey: ["quotations"], queryFn: quotationQ.getAll });
+  const providers = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll });
+  const commands = useQuery({ queryKey: ["commands"], queryFn: commandRqstQ.getAll });
+  const purchaseOrders = useQuery({ queryKey: ["purchaseOrders"], queryFn: purchaseQ.getAll });
 
-    for (const besoin of quotationGroup.commandRequest.besoins) {
-      const providerId = selected[besoin.id];
-      if (!providerId) continue;
-
-      const quote = quotationGroup.quotations.find(
-        (q) => q.providerId === providerId,
-      );
-      if (!quote) continue;
-
-      const elementIds = (quote.element || [])
-        .filter((el) => el.requestModelId === besoin.id)
-        .map((el) => el.id);
-
-      if (elementIds.length === 0) continue;
-
-      const existing = byDevi.get(quote.id);
-      const groupItem = { name: besoin.label, elementIds };
-
-      if (existing) {
-        const already = existing.elements.some(
-          (e) => e.name === groupItem.name,
-        );
-        if (!already) existing.elements.push(groupItem);
-      } else {
-        byDevi.set(quote.id, {
-          deviId: quote.id,
-          userId: user?.id ?? 0,
-          commandRequestId: quote.commandRequestId,
-          elements: [groupItem],
-        });
-      }
-    }
-
-    return Array.from(byDevi.values());
-  };
-
-  const quotations = useQuery({
-    queryKey: ["quotations"],
-    queryFn: quotationQ.getAll,
-  });
-
-  const providers = useQuery({
-    queryKey: ["providers"],
-    queryFn: providerQ.getAll,
-  });
-
-  const commands = useQuery({
-    queryKey: ["commands"],
-    queryFn: commandRqstQ.getAll,
-  });
-
-  const purchaseOrder = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
-  });
-
-  // besoinId -> providerId
   const [selected, setSelected] = React.useState<Record<number, number>>({});
 
+  // --- LOGIQUE DE VERROUILLAGE ---
+  
+  // 1. IDs des cotations (Devis) déjà transformées en Bon de Commande
+  const usedQuotationIds = React.useMemo(() => {
+    return new Set(purchaseOrders.data?.data.map((po) => po.deviId) || []);
+  }, [purchaseOrders.data]);
+
+  // 2. IDs des besoins (RequestModel) déjà "couverts" par un Bon de Commande
+  const lockedBesoinIds = React.useMemo(() => {
+    const locked = new Set<number>();
+    if (!quotations.data) return locked;
+
+    quotations.data.data.forEach((q) => {
+      if (usedQuotationIds.has(q.id)) {
+        q.element?.forEach((el) => {
+          locked.add(el.requestModelId);
+        });
+      }
+    });
+    return locked;
+  }, [usedQuotationIds, quotations.data]);
+
+  // --- MEMOS DE DONNÉES ---
   const groups: Array<QuotationGroup> = React.useMemo(() => {
     if (!quotations.data || !providers.data || !commands.data) return [];
     return groupQuotationsByCommandRequest(
@@ -135,154 +96,162 @@ function SelectQuotation({ id }: { id: string }) {
     return new Map<number, Provider>(list.map((p) => [p.id, p]));
   }, [providers.data]);
 
-  /**
-   * ✅ IMPORTANT:
-   * on preload la sélection existante (validation déjà faite)
-   * et on évite de reset à {} (sinon tu perds le preload)
-   */
+  // Sync de la sélection initiale
   React.useEffect(() => {
     if (!quotationGroup) return;
     setSelected(computePreselected(quotationGroup));
-  }, [quotationGroup?.commandRequest?.id]); // basé sur la demande
+  }, [quotationGroup?.commandRequest?.id]);
 
-  const payload = React.useMemo(() => {
-    if (!quotationGroup) return [];
-    return buildSubmitPayload(quotationGroup, selected);
-  }, [quotationGroup, selected]);
-
-  /**
-   * ✅ Validation partielle:
-   * on autorise la soumission si au moins 1 besoin est sélectionné
-   */
-  const hasAtLeastOneSelection = React.useMemo(() => {
-    return Object.keys(selected).length > 0;
-  }, [selected]);
-
+  // --- ACTIONS ---
   const { mutate, isPending } = useMutation({
     mutationFn: async (value: SubmitPayload) => quotationQ.validate(value),
     onSuccess: () => {
-      toast.success("Décision enregistrée !");
+      toast.success("Décisions enregistrées avec succès !");
       router.push("/tableau-de-bord/commande/devis/approbation");
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast.error(error.message ?? "Une erreur est survenue");
     },
   });
 
-  const handleSubmit = () => {
-    if (!quotationGroup) return;
+  const buildSubmitPayload = (): SubmitPayload => {
+    if (!quotationGroup) return [];
+    const byDevi = new Map<number, SubmitPayload[number]>();
 
+    for (const besoin of quotationGroup.commandRequest.besoins) {
+      const providerId = selected[besoin.id];
+      if (!providerId) continue;
+
+      const quote = quotationGroup.quotations.find((q) => q.providerId === providerId);
+      if (!quote) continue;
+
+      const elementIds = (quote.element || [])
+        .filter((el) => el.requestModelId === besoin.id)
+        .map((el) => el.id);
+
+      if (elementIds.length === 0) continue;
+
+      const existing = byDevi.get(quote.id);
+      const groupItem = { name: besoin.label, elementIds };
+
+      if (existing) {
+        if (!existing.elements.some((e) => e.name === groupItem.name)) {
+          existing.elements.push(groupItem);
+        }
+      } else {
+        byDevi.set(quote.id, {
+          deviId: quote.id,
+          userId: user?.id ?? 0,
+          commandRequestId: quote.commandRequestId,
+          elements: [groupItem],
+        });
+      }
+    }
+    return Array.from(byDevi.values());
+  };
+
+  const handleSubmit = () => {
+    const payload = buildSubmitPayload();
     if (payload.length === 0) {
-      toast.error("Sélectionnez au moins un besoin à valider.");
+      toast.error("Veuillez sélectionner au moins un nouveau besoin.");
       return;
     }
-
     mutate(payload);
   };
 
-  const toggleSelection = (besoinId: number, providerId: number) => {
+  const toggleSelection = (besoinId: number, providerId: number, isDisabled: boolean) => {
+    if (isDisabled) return;
     setSelected((prev) => {
-      // si on clique sur le même provider déjà choisi => déselection
       if (prev[besoinId] === providerId) {
         const next = { ...prev };
         delete next[besoinId];
         return next;
       }
-      // sinon, on sélectionne / remplace
       return { ...prev, [besoinId]: providerId };
     });
   };
 
-  if (
-    quotations.isLoading ||
-    providers.isLoading ||
-    commands.isLoading ||
-    purchaseOrder.isLoading
-  )
+  // --- RENDERING ---
+  if (quotations.isLoading || providers.isLoading || commands.isLoading || purchaseOrders.isLoading)
     return <LoadingPage />;
-  if (
-    quotations.isError ||
-    providers.isError ||
-    commands.isError ||
-    purchaseOrder.isError
-  )
+  
+  if (quotations.isError || providers.isError || commands.isError || purchaseOrders.isError)
     return <ErrorPage />;
-  if (
-    purchaseOrder.data &&
-    quotationGroup &&
-    purchaseOrder.data.data.find((x) =>
-      quotationGroup.quotations.some((y) => y.id === x.deviId),
-    )
-  )
-    return (
-      <ErrorPage
-        message="Un bon de commande a déjà été crée avec un devis appartenant à ce groupe"
-      />
-    );
+
   if (!quotationGroup) return notFound();
 
   return (
-    <div className="space-y-6">
-      {quotationGroup.commandRequest.besoins.map((besoin) => {
-        return (
-          <div key={besoin.id} className="flex flex-col gap-4">
-            <h3 className="font-semibold">{besoin.label}</h3>
+    <div className="space-y-6 pb-20">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-bold">Approbation des devis</h1>
+        <p className="text-muted-foreground">Réf: {quotationGroup.commandRequest.title}</p>
+      </div>
 
-            <div className="grid gap-3 grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-3 @min-[1280px]:grid-cols-4 @min-[1600px]:grid-cols-5">
+      {quotationGroup.commandRequest.besoins.map((besoin, index) => {
+        const isBesoinLocked = lockedBesoinIds.has(besoin.id);
+
+        return (
+          <div key={besoin.id} className={cn("flex flex-col gap-4", isBesoinLocked && "bg-slate-50/50")}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg"><u>{`Besoin ${index + 1}:`}</u>{` ${besoin.label}`}</h3>
+              {isBesoinLocked && (
+                <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200">
+                  {"Verrouillé"}
+                </Badge>
+              )}
+            </div>
+
+            {!quotationGroup.quotations.some(q => q.element?.some(el => el.requestModelId === besoin.id)) && <p className="text-gray-600 italic">{"Aucun devis ne remplis ce besoin."}</p>}
+            
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {quotationGroup.quotations.map((quote) => {
-                const elements = (quote.element || []).filter(
-                  (el) => el.requestModelId === besoin.id,
-                );
+                const elements = (quote.element || []).filter((el) => el.requestModelId === besoin.id);
                 if (elements.length === 0) return null;
 
                 const provider = providerMap.get(quote.providerId);
-                const checked = selected[besoin.id] === quote.providerId;
-
-                // ✅ indique si ce fournisseur est déjà validé pour ce besoin
-                const alreadyValidated = elements.some(
-                  (e) => e.status === "SELECTED",
-                );
+                const isSelected = selected[besoin.id] === quote.providerId;
+                
+                // On bloque la carte si :
+                // 1. Le devis (quote) est déjà dans un BC.
+                // 2. OU si le besoin est déjà satisfait par une autre ligne dans un BC.
+                const isUsedInPO = usedQuotationIds.has(quote.id);
+                const isCardDisabled = isUsedInPO || isBesoinLocked;
 
                 return (
                   <div
                     key={`${besoin.id}-${quote.providerId}`}
                     className={cn(
-                      "rounded-lg shadow-sm p-4 flex flex-row gap-3 items-start border cursor-pointer",
-                      checked && "border-primary ring-2 ring-primary/30",
+                      "relative rounded-lg p-4 flex flex-col gap-3 border transition-all select-none",
+                      isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "bg-white",
+                      isCardDisabled ? "opacity-60 cursor-not-allowed grayscale-[0.5]" : "cursor-pointer hover:shadow-md hover:border-primary/40"
                     )}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => toggleSelection(besoin.id, quote.providerId)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        toggleSelection(besoin.id, quote.providerId);
-                      }
-                    }}
+                    onClick={() => toggleSelection(besoin.id, quote.providerId, isCardDisabled)}
                   >
-                    <Checkbox checked={checked} className="z-10" />
-
-                    <div className="grid gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold uppercase">
-                          {provider?.name ?? "Introuvable"}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <Checkbox 
+                          checked={isSelected} 
+                          disabled={isCardDisabled} 
+                          className={cn(isCardDisabled && "opacity-50")}
+                        />
+                        <span className="font-bold text-sm uppercase truncate max-w-[150px]">
+                          {provider?.name ?? "Fournisseur inconnu"}
                         </span>
-                        {alreadyValidated && (
-                          <Badge variant={"primary"}>{"Déjà validé"}</Badge>
-                        )}
                       </div>
-                      <div className="flex flex-col gap-2">
-                        {elements.map((element) => (
-                          <div
-                            key={element.id}
-                            className="flex flex-col gap-1.5 text-sm"
-                          >
-                            <span>{element.title}</span>
-                            <span className="text-primary-600 font-medium">
-                              {XAF.format(element.priceProposed || 0)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                      {isUsedInPO && (
+                        <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">BC Émis</Badge>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t">
+                      {elements.map((element) => (
+                        <div key={element.id} className="flex flex-col gap-0.5">
+                          <span className="text-xs text-muted-foreground line-clamp-1">{element.title}</span>
+                          <span className="text-sm font-semibold text-primary">
+                            {XAF.format(element.priceProposed || 0)}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 );
@@ -292,15 +261,30 @@ function SelectQuotation({ id }: { id: string }) {
         );
       })}
 
-      <Button
-        type="button"
-        variant={"primary"}
-        onClick={handleSubmit}
-        disabled={!hasAtLeastOneSelection || isPending}
-        isLoading={isPending}
-      >
-        {"Valider la sélection"}
-      </Button>
+      {/* Barre d'action flottante */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50">
+        <div className="bg-white/80 backdrop-blur-md border shadow-2xl rounded-2xl p-4 flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">
+              {Object.keys(selected).length} besoin(s) sélectionné(s)
+            </span>
+            <span className="text-[10px] text-muted-foreground italic">
+              Les éléments déjà en Bon de Commande ne peuvent plus être modifiés.
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            onClick={handleSubmit}
+            disabled={Object.keys(selected).length === 0 || isPending}
+            isLoading={isPending}
+            className="shadow-lg shadow-primary/20"
+          >
+            Enregistrer les décisions
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
