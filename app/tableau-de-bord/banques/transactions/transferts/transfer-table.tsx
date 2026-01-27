@@ -124,6 +124,8 @@ function TransferTable({ data, banks }: Props) {
         return { label, variant: "destructive" };
       case "PENDING":
         return { label, variant: "amber" };
+      case "ACCEPTED":
+        return { label, variant: "sky" };
       default:
         return { label, variant: "outline" };
     }
@@ -222,7 +224,7 @@ function TransferTable({ data, banks }: Props) {
         }
       }
       return matchStatus && matchDate && matchAmount && matchBank;
-    });
+    }).sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }, [
     data,
     dateFilter,

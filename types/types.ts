@@ -639,6 +639,7 @@ export type TransactionBase = {
   amount: number;
   date: Date;
   createdAt: Date;
+  updatedAt: Date;
   status: (typeof TRANSACTION_STATUS)[number]["value"];
   Type: (typeof TRANSACTION_TYPES)[number]["value"];
   proof?: string;
