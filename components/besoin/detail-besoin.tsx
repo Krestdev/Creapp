@@ -123,7 +123,6 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
   } => {
-    status = status.toLocaleLowerCase();
     switch (status) {
       case "pending":
         return { label: "En attente", variant: "amber" };
