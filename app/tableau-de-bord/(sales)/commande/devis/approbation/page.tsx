@@ -8,12 +8,11 @@ import { providerQ } from "@/queries/providers";
 import { quotationQ } from "@/queries/quotation";
 import { QuotationGroupTable } from "../quotation-group";
 import { useQuery } from "@tanstack/react-query";
+import { isRole } from "@/lib/utils";
 
 function Page() {
   const { user } = useStore();
-  const isAdmin = user?.role.some(
-    (r) => r.label === "SALES_MANAGER" || r.label === "ADMIN"
-  );
+  const isAuthorized = isRole({roleList: user?.role ?? [], role: "Donner d'ordre achat"});
 
   const quotations = useQuery({
     queryKey: ["quotations"],
@@ -31,7 +30,7 @@ function Page() {
     queryFn: commandRqstQ.getAll,
   });
 
-  if (!isAdmin) {
+  if (!isAuthorized) {
     return <ErrorPage statusCode={401} />;
   }
   if (quotations.isError || providers.isError || commands.isError) {

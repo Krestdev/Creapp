@@ -216,7 +216,6 @@ function SelectQuotation({ id }: { id: string }) {
   )
     return (
       <ErrorPage
-        statusCode={401}
         message="Un bon de commande a déjà été crée avec un devis appartenant à ce groupe"
       />
     );

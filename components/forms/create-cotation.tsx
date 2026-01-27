@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import Besoins from "../bdcommande/besoins";
 import { SuccessModal } from "../modals/success-modal";
+import { DetailOrder } from "../modals/detail-order";
 
 const formSchema = z.object({
   name: z.string().min(1, "Le nom est obligatoire"),
@@ -55,6 +56,7 @@ export default function CreateCotationForm() {
   const { user } = useStore();
   const [selected, setSelected] = useState<Request[]>([]);
   const [successOpen, setSuccessOpen] = useState(false);
+  const [created, setCreated] = useState<CommandRequestT | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -73,7 +75,9 @@ export default function CreateCotationForm() {
         "id" | "createdAt" | "updatedAt" | "reference" | "besoins"
       >,
     ) => commandRqstQ.create(data),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      console.log("Cotation created successfully", res.data);
+      setCreated(res.data);
       setSuccessOpen(true);
       // Invalider TOUTES les requêtes pertinentes
       form.reset();
@@ -253,9 +257,10 @@ export default function CreateCotationForm() {
           )}
         </Button>
       </div>
-      <SuccessModal
+      <DetailOrder
         open={successOpen}
         onOpenChange={setSuccessOpen}
+        data={created}
         message="Demande de cotation créée avec succès."
       />
     </div>
