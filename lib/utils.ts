@@ -1,4 +1,4 @@
-import { BonsCommande, Provider, Role, User } from "@/types/types";
+import { BonsCommande, Provider, QuotationElement, Role, User } from "@/types/types";
 import { clsx, type ClassValue } from "clsx";
 import { DateRange } from "react-day-picker";
 import { twMerge } from "tailwind-merge";
@@ -197,4 +197,13 @@ export const getUserName = (users: Array<User> ,userId?: number):string | undefi
       return "Utilisateur introuvable"
     }
     return user.firstName.concat(" ", user.lastName);
+  };
+
+export const getQuotationAmount = (elements: Array<QuotationElement>) => {
+    return (
+      elements.reduce(
+        (total, element) => total + (element.priceProposed),
+        0,
+      )
+    );
   };
