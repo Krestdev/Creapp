@@ -35,7 +35,7 @@ interface Props {
 const formSchema = z.object({
   proof: z
     .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
-    .min(0),
+    .min(1, { message: "Veuillez fournir un justificatif" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;

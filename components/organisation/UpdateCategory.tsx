@@ -229,14 +229,14 @@ export function UpdateCategory({
 
   // Fonction pour obtenir le nom d'un utilisateur par son ID
   const getUserName = (userId: number) => {
-    const users = usersData.data?.data || [];
+    const users = usersData.data?.data.filter((u) => u.verified) || [];
     const user = users.find((u) => u.id === userId);
     return user?.lastName + " " + user?.firstName || `Utilisateur #${userId}`;
   };
 
   // Fonction pour obtenir les utilisateurs disponibles (non sélectionnés)
   const getAvailableUsers = (currentIndex?: number) => {
-    const users = usersData.data?.data || [];
+    const users = usersData.data?.data.filter((u) => u.verified) || [];
     const existingUserIds = fields
       .map((field, index) => {
         // Si on est en train d'éditer un champ, exclure son propre userId
@@ -415,8 +415,8 @@ export function UpdateCategory({
                             onClick={() => removeValidator(index)}
                             disabled={fields.length <= 1 || isLoading} // MODIFICATION: désactivé si seul ascendant
                             className={`text-red-500 hover:text-red-700 ${fields.length <= 1
-                                ? "opacity-50 cursor-not-allowed"
-                                : ""
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
                               }`}
                             title={
                               fields.length <= 1
