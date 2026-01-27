@@ -183,7 +183,7 @@ export type ProjectT = {
 // Request / Besoin
 export const REQUEST_STATUS = [
   { value: "pending", name: "En attente" },
-  //{ value: "in-review", name: "En révision" },
+  { value: "in-review", name: "En révision" },
   { value: "validated", name: "Validé" },
   { value: "rejected", name: "Rejeté" },
   { value: "cancel", name: "Annulé" },
