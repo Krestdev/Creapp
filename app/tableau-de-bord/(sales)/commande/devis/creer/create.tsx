@@ -37,7 +37,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, FolderX, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -88,9 +88,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
   const [open, setOpen] = React.useState<boolean>(false);
   const [openP, setOpenP] = React.useState<boolean>(false);
   const [openS, setOpenS] = React.useState<boolean>(false);
-  const [selectedNeeds, setSelectedNeeds] =
-    React.useState<Array<RequestModelT>>();
+  const [selectedNeeds, setSelectedNeeds] = React.useState<Array<RequestModelT>>([]);
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
+  const [editingElement, setEditingElement] = React.useState<any>(null);
+  const [previousCommandId, setPreviousCommandId] = React.useState<number | undefined>(undefined);
   const { user } = useStore();
 
   /**Demandes de cotation */
@@ -98,14 +99,14 @@ function CreateQuotation({ quotation, openChange }: Props) {
     queryKey: ["commands"],
     queryFn: commandRqstQ.getAll,
   });
-  /**Devis */
 
+  /**Devis */
   const quotationsData = useQuery({
     queryKey: ["quotations"],
     queryFn: quotationQ.getAll,
   });
-  /**Fournisseurs */
 
+  /**Fournisseurs */
   const providersData = useQuery({
     queryKey: ["providers"],
     queryFn: providerQ.getAll,
@@ -113,26 +114,37 @@ function CreateQuotation({ quotation, openChange }: Props) {
 
   /**Data states */
   const [dueDate, setDueDate] = React.useState<boolean>(false);
-  const today = new Date(); //On part sur 3 jours de delai de base :)
-  today.setDate(today.getDate() + 3);
 
-  const defaultValues = {
-    commandRequestId: quotation?.commandRequestId ?? undefined,
-    providerId: quotation?.providerId ?? undefined,
-    elements:
-      quotation?.element.map((c) => ({
-        id: c.id,
-        needId: c.requestModelId,
-        designation: c.title,
-        price: c.priceProposed,
-        quantity: c.quantity,
-        unit: c.unit,
-      })) ?? [],
-    dueDate: quotation
-      ? format(new Date(quotation.dueDate), "yyyy-MM-dd")
-      : format(today, "yyyy-MM-dd"),
-    proof: quotation ? [quotation.proof] : undefined,
-  };
+  // Utiliser useMemo pour les valeurs par défaut stables
+  const defaultValues = useMemo(() => {
+    const today = new Date();
+    today.setDate(today.getDate() + 3);
+
+    if (quotation) {
+      return {
+        commandRequestId: quotation.commandRequestId,
+        providerId: quotation.providerId,
+        elements: quotation.element.map((c) => ({
+          id: c.id,
+          needId: c.requestModelId,
+          designation: c.title,
+          price: c.priceProposed,
+          quantity: c.quantity,
+          unit: c.unit,
+        })),
+        dueDate: format(new Date(quotation.dueDate), "yyyy-MM-dd"),
+        proof: quotation.proof ? [quotation.proof] : [],
+      };
+    }
+
+    return {
+      commandRequestId: undefined,
+      providerId: undefined,
+      elements: [],
+      dueDate: format(today, "yyyy-MM-dd"),
+      proof: [],
+    };
+  }, [quotation]); // Seulement quotation comme dépendance
 
   /**Quotation */
   const { mutate, isPending } = useMutation({
@@ -141,7 +153,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
         devis: {
           commandRequestId: values.commandRequestId,
           providerId: values.providerId,
-          proof: values.proof[0], // File ou string
+          proof: values.proof[0],
           dueDate: new Date(values.dueDate).toISOString(),
           userId: user && user.id ? user.id : 0,
         },
@@ -156,11 +168,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
       };
 
       if (!id) {
-        // CREATE
         return quotationQ.create(payload);
       }
-
-      // UPDATE
       return quotationQ.update(id, payload);
     },
     onSuccess: (_data, variables) => {
@@ -170,20 +179,17 @@ function CreateQuotation({ quotation, openChange }: Props) {
           ? "Votre devis a été modifié avec succès"
           : "Votre devis a été créé avec succès",
       );
-      if (!!openChange) {
+
+      if (openChange) {
         openChange(false);
       }
-      if (intent === "save" && !!openChange) {
+
+      if (intent === "save" && openChange) {
         openChange(false);
       } else {
+        // Réinitialisation complète pour un nouvel ajout
         form.reset(defaultValues);
-        form.resetField("commandRequestId");
-        form.resetField("providerId");
-        form.resetField("elements");
-        form.resetField("proof");
-        form.resetField("dueDate");
         intentRef.current = "save";
-        form.setValue("proof", []);
       }
     },
     onError: (error) => {
@@ -197,30 +203,53 @@ function CreateQuotation({ quotation, openChange }: Props) {
     defaultValues: defaultValues,
   });
 
-  React.useEffect(() => {
-    if (form.watch("commandRequestId"))
-      setSelectedNeeds(
-        cmdRqstData.data?.data.find(
-          (c) => c.id === form.watch("commandRequestId"),
-        )?.besoins,
-      );
-  }, [form.watch("commandRequestId")]);
+  // Réinitialiser le formulaire quand `quotation` change
+  useEffect(() => {
+    if (quotation) {
+      form.reset(defaultValues);
+      const commandId = form.getValues("commandRequestId");
+      if (commandId && cmdRqstData.data) {
+        const command = cmdRqstData.data.data.find(c => c.id === commandId);
+        setSelectedNeeds(command?.besoins || []);
+      }
+      setPreviousCommandId(commandId);
+    }
+  }, [quotation, defaultValues, cmdRqstData.data, form]);
 
-  // Après cet useEffect existant
-  React.useEffect(() => {
-    if (form.watch("commandRequestId"))
-      setSelectedNeeds(
-        cmdRqstData.data?.data.find(
-          (c) => c.id === form.watch("commandRequestId"),
-        )?.besoins,
-      );
-  }, [form.watch("commandRequestId")]);
+  // Mettre à jour les besoins sélectionnés quand la demande change
+  useEffect(() => {
+    const currentCommandId = form.getValues("commandRequestId");
 
-  React.useEffect(() => {
-    form.resetField("providerId");
-    form.resetField("elements");
-    setSearch("");
-  }, [form.watch("commandRequestId")]);
+    // Vérifier si la commande a réellement changé
+    if (currentCommandId !== previousCommandId) {
+      if (currentCommandId && cmdRqstData.data) {
+        const command = cmdRqstData.data.data.find(c => c.id === currentCommandId);
+        setSelectedNeeds(command?.besoins || []);
+      } else {
+        setSelectedNeeds([]);
+      }
+
+      // Réinitialiser seulement si c'est une nouvelle sélection
+      if (previousCommandId !== undefined && currentCommandId !== previousCommandId) {
+        // Réinitialiser le fournisseur
+        if (form.getValues("providerId") !== undefined) {
+          form.setValue("providerId", undefined as any);
+        }
+
+        // Réinitialiser les éléments seulement s'il y en a
+        const currentElements = form.getValues("elements");
+        if (currentElements.length > 0) {
+          form.setValue("elements", []);
+        }
+
+        setSearch("");
+        setEditingIndex(null);
+        setEditingElement(null);
+      }
+
+      setPreviousCommandId(currentCommandId);
+    }
+  }, [form.watch("commandRequestId")]); // Seulement dépendant de la valeur watchée
 
   const [search, setSearch] = React.useState("");
 
@@ -234,6 +263,40 @@ function CreateQuotation({ quotation, openChange }: Props) {
     providersData.data?.data.filter((provider) =>
       normalizeText(provider.name).includes(normalizeText(search)),
     ) ?? [];
+
+  // Fonction pour gérer l'édition d'un élément
+  const handleEditElement = useCallback((index: number) => {
+    const elements = form.getValues("elements");
+    if (index >= 0 && index < elements.length) {
+      setEditingElement(elements[index]);
+      setEditingIndex(index);
+      setOpen(true);
+    }
+  }, [form]);
+
+  // Fonction pour gérer la suppression d'un élément
+  const handleDeleteElement = useCallback((index: number) => {
+    const currentElements = form.getValues("elements");
+    const newElements = [...currentElements];
+    newElements.splice(index, 1);
+    form.setValue("elements", newElements);
+
+    // Si on supprime l'élément en cours d'édition
+    if (editingIndex === index) {
+      setEditingIndex(null);
+      setEditingElement(null);
+    } else if (editingIndex !== null && editingIndex > index) {
+      setEditingIndex(editingIndex - 1);
+    }
+  }, [form, editingIndex]);
+
+  // Fonction pour gérer la mise à jour des éléments depuis AddElement
+  const handleElementsChange = useCallback((newElements: any[]) => {
+    form.setValue("elements", newElements);
+    setEditingIndex(null);
+    setEditingElement(null);
+    setOpen(false);
+  }, [form]);
 
   if (
     cmdRqstData.isLoading ||
@@ -283,7 +346,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
                         })) ?? []
                     }
                     value={field.value?.toString() || ""}
-                    onChange={(value) => field.onChange(parseInt(value))}
+                    onChange={(value) => {
+                      field.onChange(parseInt(value));
+                    }}
                     placeholder="Sélectionner"
                   />
                 </FormControl>
@@ -307,7 +372,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                     open={openS}
                     onOpenChange={(open) => {
                       setOpenS(open);
-                      if (!open) setSearch(""); // reset recherche à la fermeture
+                      if (!open) setSearch("");
                     }}
                   >
                     <SelectTrigger className="min-w-60 w-full uppercase">
@@ -315,18 +380,18 @@ function CreateQuotation({ quotation, openChange }: Props) {
                     </SelectTrigger>
 
                     <SelectContent className="max-h-[500px] p-0">
-                      {/* 🔍 CHAMP DE RECHERCHE */}
+                      {/* Champ de recherche */}
                       <div className="p-2 border-b">
                         <Input
                           placeholder="Rechercher un fournisseur..."
                           value={search}
                           onChange={(e) => setSearch(e.target.value)}
-                          onKeyDown={(e) => e.stopPropagation()} // empêche fermeture du select
+                          onKeyDown={(e) => e.stopPropagation()}
                           className="h-9"
                         />
                       </div>
 
-                      {/* LISTE SCROLLABLE */}
+                      {/* Liste scrollable */}
                       <div className="max-h-[380px] overflow-y-auto">
                         {filteredProviders.length === 0 ? (
                           <div className="p-3 text-sm text-muted-foreground text-center">
@@ -352,7 +417,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                         )}
                       </div>
 
-                      {/* FOOTER */}
+                      {/* Footer */}
                       <div
                         className="sticky bottom-0 bg-background border-t p-2"
                         onMouseDown={(e) => e.preventDefault()}
@@ -492,23 +557,19 @@ function CreateQuotation({ quotation, openChange }: Props) {
                               <div className="flex flex-wrap gap-2">
                                 {elements.map((item, localIndex) => (
                                   <div
-                                    key={localIndex}
+                                    key={item.globalIndex}
                                     className="w-full bg-gray-50 rounded-sm border border-gray-200 px-2 h-9 inline-flex justify-between gap-2 items-center text-sm"
                                   >
                                     <button
                                       type="button"
                                       className="inline-flex items-center gap-1.5 w-full justify-between text-left truncate cursor-pointer"
-                                      onClick={() => {
-                                        setEditingIndex(item.globalIndex);
-                                        setOpen(true);
-                                      }}
+                                      onClick={() => handleEditElement(item.globalIndex)}
                                     >
                                       <span className="truncate">
-                                        {`${item.designation} - ${
-                                          item.quantity
-                                        } ${item.unit} - ${XAF.format(
-                                          item.price,
-                                        )}`}
+                                        {`${item.designation} - ${item.quantity
+                                          } ${item.unit} - ${XAF.format(
+                                            item.price,
+                                          )}`}
                                       </span>
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
                                         {"Modifier"}
@@ -517,16 +578,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                     <X
                                       size={20}
                                       className="text-destructive cursor-pointer"
-                                      onClick={() => {
-                                        const currentElements = [
-                                          ...field.value,
-                                        ];
-                                        currentElements.splice(
-                                          item.globalIndex,
-                                          1,
-                                        );
-                                        field.onChange(currentElements);
-                                      }}
+                                      onClick={() => handleDeleteElement(item.globalIndex)}
                                     />
                                   </div>
                                 ))}
@@ -541,30 +593,30 @@ function CreateQuotation({ quotation, openChange }: Props) {
                       className="add-button inline-flex items-center gap-2 text-sm text-primary"
                       onClick={(e) => {
                         e.preventDefault();
-                        setEditingIndex(null); // mode ajout
+                        setEditingElement(null);
+                        setEditingIndex(null);
                         setOpen(true);
                       }}
-                      disabled={!selectedNeeds}
+                      disabled={!selectedNeeds || selectedNeeds.length === 0}
                     >
                       {"Ajouter un élément"}
                       <Plus className="w-4 h-4" />
                     </button>
 
-                    {!!selectedNeeds && (
+                    {!!selectedNeeds && selectedNeeds.length > 0 && (
                       <AddElement
                         open={open}
                         openChange={(state) => {
-                          if (!state) setEditingIndex(null);
+                          if (!state) {
+                            setEditingIndex(null);
+                            setEditingElement(null);
+                          }
                           setOpen(state);
                         }}
                         needs={selectedNeeds}
                         value={field.value}
-                        onChange={field.onChange}
-                        element={
-                          editingIndex !== null
-                            ? field.value[editingIndex]
-                            : undefined
-                        }
+                        onChange={handleElementsChange}
+                        element={editingElement}
                         index={editingIndex}
                       />
                     )}
@@ -596,31 +648,18 @@ function CreateQuotation({ quotation, openChange }: Props) {
               </FormItem>
             )}
           />
-          <div className="flex justify-end col-span-3 w-full gap-2">
-            {quotation && (
-              <Button
-                type="submit"
-                disabled={isPending}
-                isLoading={isPending}
-                className="w-fit"
-                variant={"primary"}
-                onClick={() => (intentRef.current = "save")}
-              >
-                {!!quotation ? "Modifier le devis" : "Enregistrer"}
-              </Button>
-            )}
-            {!quotation && (
-              <Button
-                type="submit"
-                disabled={isPending}
-                isLoading={isPending}
-                className="w-fit"
-                onClick={() => (intentRef.current = "saveAndCreate")}
-                variant={"primary"}
-              >
-                {"Enregistrer"}
-              </Button>
-            )}
+
+          <div className="flex justify-end col-span-2 w-full gap-2">
+            <Button
+              type="submit"
+              disabled={isPending}
+              isLoading={isPending}
+              className="w-fit"
+              variant={"primary"}
+              onClick={() => (intentRef.current = "save")}
+            >
+              {quotation ? "Modifier le devis" : "Enregistrer"}
+            </Button>
           </div>
         </form>
         <ProviderDialog open={openP} onOpenChange={setOpenP} />
