@@ -180,6 +180,14 @@ export type ProjectT = {
 };
 
 // Request / Besoin
+export const REQUEST_STATUS = [
+  { value: "pending", name: "En attente" },
+  //{ value: "in-review", name: "En révision" },
+  { value: "validated", name: "Validé" },
+  { value: "rejected", name: "Rejeté" },
+  { value: "cancel", name: "Annulé" },
+  { value: "store", name: "Déstocké" },
+] as const;
 
 export type RequestModelT = {
   id: number;
@@ -198,7 +206,7 @@ export type RequestModelT = {
   beficiaryList?:
     | { id: number; firstName: string; lastName: string; email: string }[]
     | null;
-  state: string;
+  state: (typeof REQUEST_STATUS)[number]["value"];
   priority: "medium" | "high" | "low" | "urgent";
   projectId?: number | null;
   project?: ProjectT;
@@ -330,8 +338,20 @@ export type Provider = {
   banck_attestation?: string | File;
 };
 
-export type QuotationStatus = "SUBMITTED" | "APPROVED" | "REJECTED" | "PENDING";
-export type QuotationElementStatus = "SELECTED" | "REJECTED";
+export const QUOTATION_STATUS = [
+  { value: "SUBMITTED", name: "Soumis" },
+  { value: "APPROVED", name: "Approuvé" },
+  { value: "REJECTED", name: "Rejeté" },
+  { value: "PENDING", name: "En attente" },
+] as const;
+
+export const QUOTATION_ELEMENT_STATUS = [
+  { value: "SELECTED", name: "Sélectionné" },
+  { value: "REJECTED", name: "Rejeté" },
+] as const;
+
+export type QuotationStatus = (typeof QUOTATION_STATUS)[number]["value"];
+export type QuotationElementStatus = (typeof QUOTATION_ELEMENT_STATUS)[number]["value"];
 
 export type QuotationElement = {
   id: number;
