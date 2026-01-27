@@ -31,7 +31,7 @@ export interface PageTitleProps {
   title: string;
   subtitle: string;
   color?: "red" | "blue" | "green" | "none";
-  links?: Array<NavLink>
+  links?: Array<NavLink>;
 }
 
 export type UserRole = "admin" | "user";
@@ -66,6 +66,7 @@ export const PAY_STATUS = [
   { value: "pending_depense", name: "en attente" },
   { value: "unsigned", name: "En attente de signature" },
   { value: "signed", name: "Signé" },
+  { value: "simple_signed", name: "Ouvert" },
 ] as const;
 
 export type PaymentRequest = {
@@ -194,7 +195,9 @@ export type RequestModelT = {
   beneficiary: string;
   benef?: number[] | null;
   period?: DateRange | undefined;
-  beficiaryList?: { id: number; firstName: string; lastName: string; email: string }[] | null;
+  beficiaryList?:
+    | { id: number; firstName: string; lastName: string; email: string }[]
+    | null;
   state: string;
   priority: "medium" | "high" | "low" | "urgent";
   projectId?: number | null;
@@ -222,7 +225,7 @@ export type RequestModelT = {
     rank: number;
     userId: number;
     requestModelId: number;
-  }>
+  }>;
 };
 
 export type TableData = {

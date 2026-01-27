@@ -29,31 +29,30 @@ function Page() {
 
   const ticketsData: Array<PaymentRequest> = useMemo(() => {
     if (!data?.data) return [];
-    return data?.data.filter(
-      (ticket) => ticket.status !== "ghost" && ticket.status !== "unsigned",
-    );
+    return data?.data.filter((ticket) => ticket.status !== "ghost");
   }, [data?.data]);
 
   const pending = useMemo(() => {
     if (!data?.data) return [];
-    return data?.data.filter((ticket) => ticket.status === "accepted");
+    return ticketsData.filter((ticket) => ticket.status === "pending");
   }, [data?.data]);
 
   const approved = useMemo(() => {
     if (!data?.data) return [];
-    return data?.data.filter(
-      (ticket) => ticket.status !== "pending" && ticket.status !== "accepted",
+    return ticketsData.filter(
+      (ticket) => ticket.status !== "pending" && ticket.status !== "ghost",
       // ticket.status !== "unsigned",
     );
   }, [data?.data]);
   const unPaid = useMemo(() => {
     if (!data?.data) return [];
-    return data?.data.filter(
+    return ticketsData.filter(
       (ticket) =>
         ticket.status !== "validated" &&
         ticket.status !== "pending_depense" &&
         ticket.status !== "unsigned" &&
         ticket.status !== "rejected" &&
+        ticket.status !== "simple_signed" &&
         ticket.status !== "paid",
     );
   }, [data?.data]);
