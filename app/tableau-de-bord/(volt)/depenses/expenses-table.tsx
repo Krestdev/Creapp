@@ -321,7 +321,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       //Filter provider
       const matchProvider =
         providerFilter === "all" ? true :
-        providerFilter === "no-provider" ? purchases.find(c=> c.id === p.commandId)?.providerId === null || undefined :
+        providerFilter === "no-provider" ? p.commandId === null :
           purchases.find(c => c.id === p.commandId)?.providerId === Number(providerFilter);
       //Filter tab
       const matchTab =
