@@ -668,6 +668,10 @@ export type TransferTransaction = TransactionBase & {
   from: Bank;
   to: Bank;
   payement?: PaymentRequest | null;
+  isSigned: boolean;
+  signerId?: number | null;
+  signDoc?: string;
+  docNumber?: string;
 };
 
 export type Transaction =
