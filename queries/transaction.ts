@@ -138,6 +138,22 @@ class TransactionQuery {
       .then((response) => response.data);
   };
 
+  initiateSign = async ({
+    id,
+    methodId
+  }: {
+    id: number;
+    methodId: number
+  }): Promise<{ data: Transaction }> => {
+    const formData = new FormData();
+    formData.append("methodId", String(methodId));
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => response.data);
+  };
+
   createTransaction = async (
     data: TransferProps,
   ): Promise<{ data: Transaction }> => {

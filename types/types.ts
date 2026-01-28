@@ -647,6 +647,8 @@ export type TransactionBase = {
   reason?: string;
   validatorId?: number;
   docNumber?: string;
+  methodId?: number;
+  method?: PayType;
 };
 
 export type DebitTransaction = TransactionBase & {

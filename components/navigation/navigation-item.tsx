@@ -19,7 +19,7 @@ function NavigationItem(
   const pathname = usePathname();
   const isActive = pathname.includes(item.href);
 
-  return item.items && item.items?.length > 0 ? (
+  return item.items && item.items.length > 0 ? (
     <Accordion type="single" collapsible>
       <AccordionItem value={item.title} className="space-y-1">
         <AccordionTrigger
