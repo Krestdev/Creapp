@@ -33,7 +33,14 @@ import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { signatairQ } from "@/queries/signatair";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
-import { Bank, PaymentRequest, PayType, Signatair } from "@/types/types";
+import {
+  Bank,
+  PaymentRequest,
+  PayType,
+  RequestModelT,
+  Signatair,
+  User,
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -46,36 +53,43 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   banks: Array<Bank>;
+  request: RequestModelT[];
+  users: Array<User>;
 }
 
-// Schéma conditionnel : ajouter methodId seulement si le ticket n'en a pas
-const createFormSchema = (hasMethodId: boolean) =>
-  z.object({
-    label: z.string().min(2, "Libellé trop court"),
-    fromBankId: z.coerce.number().int().positive(),
-    // Ajouter methodId seulement si le ticket n'a pas déjà de methodId
-    ...(hasMethodId
-      ? {}
-      : {
-        methodId: z
-          .number()
-          .int()
-          .positive("Veuillez sélectionner un moyen de paiement"),
-      }),
-    to: z.object({
-      label: z.string().min(2, "Libellé trop court"),
-      accountNumber: z.string().optional(),
-      phoneNum: z.string().optional(),
-    })
-  });
+// Fonction pour vérifier si un moyen de paiement nécessite un numéro de pièce
+const requiresDocNumber = (paymentMethod: PayType | null): boolean => {
+  if (!paymentMethod) return false;
 
-type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
+  // Vérifier si le type est "chq" ou "ov" (insensible à la casse)
+  const type = paymentMethod.type?.toLowerCase();
+  return type === "chq" || type === "ov";
+};
 
-function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
+type FormValues = {
+  label: string;
+  fromBankId: number | undefined;
+  methodId?: number;
+  to: {
+    label: string;
+    accountNumber?: string;
+    phoneNum?: string;
+  };
+  docNumber?: string;
+};
+
+function ShareExpense({
+  ticket,
+  open,
+  onOpenChange,
+  banks,
+  request,
+  users,
+}: Props) {
   const { user } = useStore();
 
-  const [openDoc, setOpenDoc] = useState(false)
-  const [paiement, setPaiement] = useState<PaymentRequest | null>(null)
+  const [openDoc, setOpenDoc] = useState(false);
+  const [paiement, setPaiement] = useState<PaymentRequest | null>(null);
 
   // Récupérer la liste des signataires
   const getSignataires = useQuery({
@@ -94,11 +108,48 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
     return !!ticket.methodId;
   }, [ticket.methodId]);
 
-  // Créer le schéma conditionnel
-  const formSchema = useMemo(
-    () => createFormSchema(hasExistingMethodId),
-    [hasExistingMethodId],
-  );
+  // Créer le schéma de validation conditionnel
+  const formSchema = useMemo(() => {
+    const baseSchema = z.object({
+      label: z.string().min(2, "Libellé trop court"),
+      fromBankId: z.coerce
+        .number({
+          required_error: "Veuillez sélectionner un compte source",
+          invalid_type_error: "Veuillez sélectionner un compte source",
+        })
+        .int()
+        .positive("Veuillez sélectionner un compte source"),
+      ...(hasExistingMethodId
+        ? {}
+        : {
+          methodId: z
+            .number({
+              required_error: "Veuillez sélectionner un moyen de paiement",
+              invalid_type_error:
+                "Veuillez sélectionner un moyen de paiement",
+            })
+            .int()
+            .positive("Veuillez sélectionner un moyen de paiement"),
+        }),
+      to: z.object({
+        label: z.string().min(2, "Libellé trop court"),
+        accountNumber: z.string().optional(),
+        phoneNum: z.string().optional(),
+      }),
+      docNumber: z.string().optional(),
+    });
+
+    return baseSchema;
+  }, [hasExistingMethodId]);
+
+  type FormValues = z.infer<typeof formSchema>;
+
+  const isFacilitation = ticket.type?.toLowerCase() === "facilitation";
+  const besoinFac = request.find((x) => x.id === ticket.requestId)
+  const benef = users.find((x) => x.id === Number(besoinFac?.beneficiary));
+
+  console.log(besoinFac);
+
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -107,7 +158,12 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       fromBankId: undefined,
       // Si le ticket n'a pas de methodId, laisser undefined
       ...(hasExistingMethodId ? {} : { methodId: undefined }),
-      to: { label: "", accountNumber: "", phoneNum: "" },
+      to: {
+        label: isFacilitation ? benef?.firstName + " " + benef?.lastName : "",
+        accountNumber: "",
+        phoneNum: "",
+      },
+      docNumber: "",
     },
   });
 
@@ -120,7 +176,13 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   // Observer la valeur de methodId (si présent dans le formulaire)
   const selectedMethodId = useWatch({
     control: form.control,
-    name: "methodId" as any,
+    name: "methodId",
+  });
+
+  // Observer la valeur du numéro de document
+  const docNumberValue = useWatch({
+    control: form.control,
+    name: "docNumber",
   });
 
   // Obtenir le type de paiement du ticket ou du formulaire
@@ -141,6 +203,18 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   const isCashPayment = useMemo(() => {
     return paymentMethod?.type?.toLowerCase() === "cash";
   }, [paymentMethod]);
+
+  // Vérifier si le moyen de paiement nécessite un numéro de pièce
+  const requiresDocNumberField = useMemo(() => {
+    return requiresDocNumber(paymentMethod!);
+  }, [paymentMethod]);
+
+  // Effectuer la validation conditionnelle pour docNumber
+  const validateDocNumber = useMemo(() => {
+    if (!requiresDocNumberField) return true;
+
+    return docNumberValue && docNumberValue.trim().length > 0;
+  }, [requiresDocNumberField, docNumberValue]);
 
   // Filtrer les comptes en fonction du type de paiement
   const filteredBanks = useMemo(() => {
@@ -164,7 +238,8 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
           // Pour cash normal : CASH_REGISTER et MOBILE_WALLET
           return banks.filter(
             (bank) =>
-              (bank.type === "CASH_REGISTER" || bank.type === "MOBILE_WALLET") &&
+              (bank.type === "CASH_REGISTER" ||
+                bank.type === "MOBILE_WALLET") &&
               bank.Status === true,
           );
         }
@@ -244,7 +319,7 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
       if (data.data.payement) {
-        setPaiement(data.data.payement)
+        setPaiement(data.data.payement);
         isCashPayment && setOpenDoc(true);
       }
     },
@@ -258,7 +333,26 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
   );
 
   function onSubmit(values: FormValues) {
-    const { to, fromBankId, methodId, ...rest } = values;
+    // Vérifier que fromBankId est défini
+    if (!values.fromBankId) {
+      toast.error("Veuillez sélectionner un compte source");
+      return;
+    }
+
+    // Validation manuelle pour docNumber
+    if (
+      requiresDocNumberField &&
+      (!values.docNumber || values.docNumber.trim().length === 0)
+    ) {
+      form.setError("docNumber", {
+        type: "manual",
+        message: "Le numéro de pièce est requis pour ce moyen de paiement",
+      });
+      toast.error("Veuillez renseigner le numéro de pièce");
+      return;
+    }
+
+    const { to, fromBankId, methodId, docNumber, ...rest } = values;
 
     // Utiliser methodId du formulaire si présent, sinon celui du ticket
     const finalMethodId = Number(methodId) || ticket.methodId;
@@ -284,6 +378,8 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
       status: status,
       // Inclure methodId dans le payload
       methodId: finalMethodId,
+      // Inclure docNumber seulement s'il est fourni
+      ...(docNumber && { docNumber: docNumber }),
     };
     share.mutate(payload);
   }
@@ -308,7 +404,10 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-6 pb-4">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="grid gap-4"
+              >
                 <FormField
                   control={form.control}
                   name="label"
@@ -355,12 +454,14 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                       <FormItem className="@min-[640px]:col-span-2">
                         <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
                         <FormDescription className="text-amber-600">
-                          Ce paiement n'a pas encore de moyen de paiement défini.
-                          Veuillez en sélectionner un.
+                          Ce paiement n'a pas encore de moyen de paiement
+                          défini. Veuillez en sélectionner un.
                         </FormDescription>
                         <FormControl>
                           <Select
-                            value={field.value ? String(field.value) : undefined}
+                            value={
+                              field.value ? String(field.value) : undefined
+                            }
                             onValueChange={(value) => {
                               field.onChange(Number(value));
                             }}
@@ -403,6 +504,34 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                   </div>
                 )}
 
+                {/* Champ numéro de pièce - Affiché uniquement pour chèque ou OV */}
+                {requiresDocNumberField && (
+                  <FormField
+                    control={form.control}
+                    name="docNumber"
+                    render={({ field }) => (
+                      <FormItem className="@min-[640px]:col-span-2">
+                        <FormLabel isRequired>
+                          {paymentMethod?.type?.toUpperCase() === "CHQ"
+                            ? "Numéro de chèque"
+                            : "Numéro d'ordre de virement"}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder={
+                              paymentMethod?.type?.toUpperCase() === "CHQ"
+                                ? "Ex. CHQ-2024-001"
+                                : "Ex. OV-2024-001"
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
                 <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
                   <h3 className="@min-[640px]:col-span-2">{"Source"}</h3>
                   <FormField
@@ -413,7 +542,9 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                         <FormLabel isRequired>{"Compte source"}</FormLabel>
                         <FormControl>
                           <Select
-                            value={field.value ? String(field.value) : undefined}
+                            value={
+                              field.value ? String(field.value) : undefined
+                            }
                             onValueChange={(value) => {
                               field.onChange(Number(value));
                             }}
@@ -423,8 +554,11 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               {filteredBanks.map((bank) => (
-                                <SelectItem key={bank.id} value={String(bank.id)}>
-                                  <div className="flex flex-col">
+                                <SelectItem
+                                  key={bank.id}
+                                  value={String(bank.id)}
+                                >
+                                  <div className="flex flex-col items-start">
                                     <span>{bank.label}</span>
                                     <span className="text-xs text-muted-foreground">
                                       {bank.type === "BANK" &&
@@ -463,7 +597,9 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                                           : "text-amber-600"
                                       }
                                     >
-                                      {formatMode(relevantSignataireConfig.mode)}
+                                      {formatMode(
+                                        relevantSignataireConfig.mode,
+                                      )}
                                     </span>
                                   </p>
                                   <p className="text-xs mt-1">
@@ -484,8 +620,8 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                           !relevantSignataireConfig && (
                             <div className="mt-3 p-3 bg-muted/20 rounded-md border border-muted">
                               <p className="text-sm text-muted-foreground">
-                                ⚠️ Aucune configuration de signature trouvée pour
-                                la combinaison :
+                                ⚠️ Aucune configuration de signature trouvée
+                                pour la combinaison :
                               </p>
                               <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
                                 <li>
@@ -503,13 +639,17 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                           )}
 
                         <FormMessage />
-                        {selectedBank && selectedBank.balance < ticket.price && (
-                          <div className="mt-3 p-3 bg-red-500/20 rounded-md border border-red-500">
-                            <p className="text-sm text-red-500">
-                              ⚠️ Solde insuffisant. Disponible: {selectedBank.balance.toLocaleString()} FCFA, Montant requis: {ticket.price.toLocaleString()} FCFA
-                            </p>
-                          </div>
-                        )}
+                        {selectedBank &&
+                          selectedBank.balance < ticket.price && (
+                            <div className="mt-3 p-3 bg-red-500/20 rounded-md border border-red-500">
+                              <p className="text-sm text-red-500">
+                                ⚠️ Solde insuffisant. Disponible:{" "}
+                                {selectedBank.balance.toLocaleString()} FCFA,
+                                Montant requis: {ticket.price.toLocaleString()}{" "}
+                                FCFA
+                              </p>
+                            </div>
+                          )}
                       </FormItem>
                     )}
                   />
@@ -522,9 +662,11 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                     name="to.label"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel isRequired>{"Nom du destinataire"}</FormLabel>
+                        <FormLabel isRequired>
+                          {"Nom du destinataire"}
+                        </FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex. Krest Holding" />
+                          <Input disabled={isFacilitation} {...field} placeholder="Ex. Krest Holding" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -536,7 +678,9 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                       name="to.accountNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{"Compte bancaire destinataire"}</FormLabel>
+                          <FormLabel>
+                            {"Compte bancaire destinataire"}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -545,7 +689,9 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
                             />
                           </FormControl>
                           <FormDescription>
-                            {"Numéro de Compte Bancaire du client si applicable"}
+                            {
+                              "Numéro de Compte Bancaire du client si applicable"
+                            }
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -581,9 +727,26 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
               onClick={() => {
                 // Vérifier si le solde est suffisant
                 if (selectedBank && selectedBank.balance < ticket.price) {
-                  toast.error(`Solde insuffisant. Disponible: ${selectedBank.balance.toLocaleString()} FCFA, Montant requis: ${ticket.price.toLocaleString()} FCFA`);
+                  toast.error(
+                    `Solde insuffisant. Disponible: ${selectedBank.balance.toLocaleString()} FCFA, Montant requis: ${ticket.price.toLocaleString()} FCFA`,
+                  );
                   return;
                 }
+
+                // Validation pour docNumber si requis
+                if (
+                  requiresDocNumberField &&
+                  (!docNumberValue || docNumberValue.trim().length === 0)
+                ) {
+                  form.setError("docNumber", {
+                    type: "manual",
+                    message:
+                      "Le numéro de pièce est requis pour ce moyen de paiement",
+                  });
+                  toast.error("Veuillez renseigner le numéro de pièce");
+                  return;
+                }
+
                 // Appeler la fonction retournée par handleSubmit
                 form.handleSubmit(onSubmit)();
               }}
@@ -591,11 +754,14 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
               disabled={
                 share.isPending ||
                 filteredBanks.length === 0 ||
-                (!hasExistingMethodId && !selectedMethodId)
+                (!hasExistingMethodId && !selectedMethodId) ||
+                (requiresDocNumberField && !validateDocNumber)
               }
               isLoading={share.isPending}
             >
-              {isCashPayment ? "Initier le paiement" : "Soumettre au signataire"}
+              {isCashPayment
+                ? "Initier le paiement"
+                : "Soumettre au signataire"}
             </Button>
             <Button
               variant={"outline"}
@@ -611,13 +777,13 @@ function ShareExpense({ ticket, open, onOpenChange, banks }: Props) {
           </div>
         </DialogContent>
       </Dialog>
-      {paiement &&
+      {paiement && (
         <ViewDepense
           open={openDoc}
           openChange={setOpenDoc}
           paymentRequest={paiement}
         />
-      }
+      )}
     </>
   );
 }

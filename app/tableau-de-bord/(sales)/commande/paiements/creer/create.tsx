@@ -226,7 +226,7 @@ function CreatePaiement({ purchases }: Props) {
                         {"Aucune demande enregistrée"}
                       </SelectItem>
                     ) : (
-                      purchases.map((request) => {
+                      purchases.filter(p=> p.status === "APPROVED").map((request) => {
                         const pay = React.useMemo(() => {
                           return payments
                             ?.filter(

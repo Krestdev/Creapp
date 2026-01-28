@@ -46,7 +46,7 @@ const SingleFileSchema = z
       z.string(),
     ]),
   )
-  .max(1, "Pas plus d'un document")
+  .min(1, { message: "Le justificatif est requis" })
   .nullable()
   .default([]);
 

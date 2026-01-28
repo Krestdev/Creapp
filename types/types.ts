@@ -205,8 +205,8 @@ export type RequestModelT = {
   benef?: number[] | null;
   period?: DateRange | undefined;
   beficiaryList?:
-    | { id: number; firstName: string; lastName: string; email: string }[]
-    | null;
+  | { id: number; firstName: string; lastName: string; email: string }[]
+  | null;
   state: (typeof REQUEST_STATUS)[number]["value"];
   priority: "medium" | "high" | "low" | "urgent";
   projectId?: number | null;
@@ -639,12 +639,14 @@ export type TransactionBase = {
   amount: number;
   date: Date;
   createdAt: Date;
+  updatedAt: Date;
   status: (typeof TRANSACTION_STATUS)[number]["value"];
   Type: (typeof TRANSACTION_TYPES)[number]["value"];
   proof?: string;
   userId: number;
   reason?: string;
   validatorId?: number;
+  docNumber?: string;
 };
 
 export type DebitTransaction = TransactionBase & {
@@ -666,6 +668,9 @@ export type TransferTransaction = TransactionBase & {
   from: Bank;
   to: Bank;
   payement?: PaymentRequest | null;
+  isSigned: boolean;
+  signerId?: number | null;
+  signDoc?: string;
 };
 
 export type Transaction =

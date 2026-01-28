@@ -645,7 +645,13 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           }
                           setOpen(state);
                         }}
-                        needs={selectedNeeds}
+                        needs={selectedNeeds.filter(n=>{
+                          const validatedBesoinIds = quotationsData.data.data
+                            .flatMap((q) => q.element || []) // On aplatit tous les éléments des devis
+                            .filter((el) => el.status === "SELECTED") // Uniquement ceux qui sont validés
+                            .map((el) => el.requestModelId); // On récupère l'ID du besoin d'origine
+                            return !validatedBesoinIds.includes(n.id);
+                        })}
                         value={field.value}
                         onChange={handleElementsChange}
                         element={editingElement}

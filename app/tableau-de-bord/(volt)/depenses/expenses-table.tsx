@@ -67,7 +67,9 @@ import {
   PayType,
   PRIORITIES,
   Provider,
+  RequestModelT,
   RequestType,
+  User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
@@ -149,6 +151,8 @@ interface Props {
     data: PayType[];
   }, Error>;
   providers: Array<Provider>;
+  request: RequestModelT[];
+  users: Array<User>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -212,7 +216,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentType, providers }: Props) {
+function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentType, providers, request, users }: Props) {
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -273,7 +277,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
   const [priorityFilter, setPriorityFilter] = React.useState<
     "all" | PaymentRequest["priority"]
   >("all");
-  const [providerFilter, setProviderFilter] = React.useState<"all" | string>(
+  const [providerFilter, setProviderFilter] = React.useState<"all" | "no-provider" | string>(
     "all",
   );
   const [amountTypeFilter, setAmountTypeFilter] = React.useState<
@@ -321,6 +325,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       //Filter provider
       const matchProvider =
         providerFilter === "all" ? true :
+        providerFilter === "no-provider" ? p.commandId === null :
           purchases.find(c => c.id === p.commandId)?.providerId === Number(providerFilter);
       //Filter tab
       const matchTab =
@@ -733,6 +738,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{"Tous"}</SelectItem>
+                      <SelectItem value="no-provider">{"Sans fournisseur"}</SelectItem>
                       {providers.map((p) => (
                         <SelectItem key={p.id} value={String(p.id)}>
                           {p.name}
@@ -919,6 +925,8 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
             open={showShare}
             onOpenChange={setShowShare}
             banks={banks}
+            users={users}
+            request={request}
           />
           <PayExpense
             ticket={selected}

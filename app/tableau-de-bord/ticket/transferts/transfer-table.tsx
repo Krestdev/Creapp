@@ -69,7 +69,6 @@ import {
 import React from "react";
 import { toast } from "sonner";
 import RejectDialog from "./reject-dialog";
-import { cp } from "fs";
 import { TabBar } from "@/components/base/TabBar";
 
 interface Props {
@@ -97,12 +96,15 @@ function TransferTable({ data }: Props) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [searchFilter, setSearchFilter] = React.useState("");
   const [selected, setSelected] = React.useState<Transaction>();
   const [reject, setReject] = React.useState<boolean>(false);
 
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-  const [amountMinFilter, setAmountMinFilter] = React.useState<number>();
-  const [amountMaxFilter, setAmountMaxFilter] = React.useState<number>();
+  const [amountFilter, setAmountFilter] = React.useState<number>(0);
+  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
+    "greater" | "inferior" | "equal"
+  >("greater");
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
@@ -128,6 +130,15 @@ function TransferTable({ data }: Props) {
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
+      const search = searchFilter.toLocaleLowerCase();
+      // Search Filter
+      const matchSearch =
+      search.trim() === "" ? true :
+      transaction.id.toString().toLocaleLowerCase().includes(search) ||
+      transaction.label.toLocaleLowerCase().includes(search) ||
+      transaction.amount.toString().includes(search) ||
+      transaction.to.label.toLocaleLowerCase().includes(search) ||
+      transaction.from.label.toLocaleLowerCase().includes(search)
       //Filter Tab
       const matchTab =
         selectedTab === 0
@@ -136,15 +147,13 @@ function TransferTable({ data }: Props) {
               transaction.status === "APPROVED") ||
             transaction.status === "REJECTED";
 
-      // Filter amount minimum
-      const matchMinAmount = !amountMinFilter
-        ? true
-        : transaction.amount >= amountMinFilter;
-
-      // Filter amount maximum
-      const matchMaxAmount = !amountMaxFilter
-        ? true
-        : transaction.amount <= amountMaxFilter;
+      // Filter amount
+      const matchAmount =
+        amountTypeFilter === "greater"
+          ? transaction.amount > amountFilter
+          : amountTypeFilter === "equal"
+            ? transaction.amount === amountFilter
+            : transaction.amount < amountFilter;
 
       // Filtre par date
       let matchDate = true;
@@ -182,15 +191,16 @@ function TransferTable({ data }: Props) {
             transaction.createdAt <= endDate;
         }
       }
-      return matchDate && matchMaxAmount && matchMinAmount && matchTab;
+      return matchDate && matchAmount && matchTab && matchSearch;
     });
   }, [
     data,
     dateFilter,
     customDateRange,
-    amountMaxFilter,
-    amountMinFilter,
+    amountFilter,
+    amountTypeFilter,
     selectedTab,
+    searchFilter
   ]);
 
   // Réinitialiser tous les filtres
@@ -199,8 +209,8 @@ function TransferTable({ data }: Props) {
     if (setCustomDateRange) {
       setCustomDateRange(undefined);
     }
-    setAmountMaxFilter(undefined);
-    setAmountMinFilter(undefined);
+    setAmountFilter(0);
+    setAmountTypeFilter("greater");
     setGlobalFilter("");
   };
 
@@ -436,41 +446,40 @@ function TransferTable({ data }: Props) {
                     type="search"
                     id="searchCommand"
                     placeholder="Référence, libellé"
-                    value={globalFilter ?? ""}
-                    onChange={(event) => setGlobalFilter(event.target.value)}
+                    value={searchFilter}
+                    onChange={(event) => setSearchFilter(event.target.value)}
                     className="w-full"
                   />
                 </div>
 
-                {/* Filtre par montant */}
+                {/* Filter by amount */}
                 <div className="grid gap-1.5">
-                  <Label>{"Montant min"}</Label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      placeholder="Montant minimim"
-                      value={amountMinFilter}
-                      onChange={(e) =>
-                        setAmountMinFilter(Number(e.target.value))
-                      }
-                      className="w-full"
-                    />
-                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                      {"FCFA"}
-                    </span>
-                  </div>
+                  <Label>{"Montant"}</Label>
+                  <Select
+                    value={amountTypeFilter}
+                    onValueChange={(v) =>
+                      setAmountTypeFilter(v as "greater" | "inferior" | "equal")
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner une période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="greater">{"Supérieur"}</SelectItem>
+                      <SelectItem value="equal">{"Égal"}</SelectItem>
+                      <SelectItem value="inferior">{"Inférieur"}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-1.5">
-                  <Label>{"Montant maximum"}</Label>
+                  <Label>{"Montant"}</Label>
                   <div className="relative">
                     <Input
                       type="number"
-                      placeholder="Montant max"
-                      value={amountMaxFilter}
-                      onChange={(e) =>
-                        setAmountMaxFilter(Number(e.target.value))
-                      }
-                      className="w-full"
+                      placeholder="Ex. 250 000"
+                      value={amountFilter ?? 0}
+                      onChange={(e) => setAmountFilter(Number(e.target.value))}
+                      className="w-full pr-12"
                     />
                     <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
                       {"FCFA"}

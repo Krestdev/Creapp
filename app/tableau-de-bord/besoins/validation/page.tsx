@@ -60,29 +60,28 @@ const Page = () => {
   // Calcul des statistiques à partir des données filtrées
   const pending = useMemo(() => {
     return data.filter((b) => {
+      const myApproval = b.validators.find((v) => v.userId === user?.id);
       return (
-        b.state === "pending" &&
-        b.validators.find((v) => v.userId === user?.id)?.validated === false
+        b.state !== "rejected" &&
+        myApproval?.validated === false
       );
     }).length;
   }, [data, user?.id]);
 
   const approved = useMemo(() => {
-    return data
-      .filter(
-        (b) =>
-          b.validators.find((v) => v.userId === user?.id)?.validated === true,
-      )
-      .filter((r) => r.state !== "rejected").length;
+    return data.filter((b) => {
+    const myApproval = b.validators.find((v) => v.userId === user?.id);
+    return myApproval?.validated === true && b.state !== "rejected";
+  }).length;
   }, [data, user?.id]);
 
   const rejected = useMemo(() => {
-    return data
-      .filter(
-        (b) =>
-          b.validators.find((v) => v.userId === user?.id)?.validated === true,
-      )
-      .filter((r) => r.state === "rejected").length;
+    return data.filter((b) => {
+    const myApproval = b.validators.find((v) => v.userId === user?.id);
+    // On compte comme rejeté si l'état est "rejected", peu importe si l'user a cliqué ou non
+    // OU si l'user a validé mais que c'est devenu rejeté plus tard (selon ta logique métier)
+    return b.state === "rejected" || b.state.includes("rejected");
+  }).length;
   }, [data, user?.id]);
 
   const Statistics: Array<StatisticProps> = [

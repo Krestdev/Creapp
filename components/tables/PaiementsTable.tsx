@@ -469,7 +469,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {PAY_STATUS.map((s) => (
+                    {PAY_STATUS.filter(s=> payments.some(d=> d.status === s.value)).map((s) => (
                       <SelectItem key={s.value} value={s.value}>
                         {s.name}
                       </SelectItem>

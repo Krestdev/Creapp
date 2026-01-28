@@ -5,7 +5,7 @@ type source = { label: string; accountNumber?: string; phoneNumber?: string };
 
 export interface TransactionProps extends Omit<
   Transaction,
-  "id" | "proof" | "from" | "to" | "createdAt" | "status"
+  "id" | "proof" | "from" | "to" | "createdAt" | "status" | "updatedAt"
 > {
   proof?: File[];
   from?: source;
@@ -15,11 +15,12 @@ export interface TransactionProps extends Omit<
   status?: string;
   paymentId?: number;
   methodId?: number;
+  docNumber?: string;
 }
 
 export interface TransferProps extends Omit<
   Transaction,
-  "id" | "proof" | "from" | "to" | "createdAt" | "status" | "date"
+  "id" | "proof" | "from" | "to" | "createdAt" | "status" | "date" | "updatedAt"
 > {
   fromBankId: number;
   toBankId: number;
@@ -54,6 +55,7 @@ class TransactionQuery {
     formData.append("paymentId", String(payload.paymentId));
     formData.append("methodId", String(payload.methodId));
     formData.append("status", String(payload.status));
+    formData.append("docNumber", String(payload.docNumber));
     if (payload.from) formData.append("from", JSON.stringify(payload.from));
     if (payload.fromBankId)
       formData.append("fromBankId", String(payload.fromBankId));
@@ -90,7 +92,7 @@ class TransactionQuery {
 
   update = async (
     id: number,
-    data: Omit<TransactionProps, "userId">,
+    data: Omit<TransactionProps, "userId" | "updatedAt">,
   ): Promise<{ data: Transaction }> => {
     const formData = new FormData();
     formData.append("label", data.label);
