@@ -16,7 +16,7 @@ export const approbatorRequests = (
     if (myRank === 1) {
       return true;
     }
-    if (r.state === "validated" || r.state.includes("rejected") || r.state === "store") {
+    if (r.state === "validated" || r.state === "rejected" || r.state === "store") {
       return true;
     }
     return r.validators.find((v) => v.rank === myRank - 1)?.validated === true;
