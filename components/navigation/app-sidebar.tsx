@@ -572,14 +572,14 @@ function AppSidebar() {
         href: "/tableau-de-bord/signatures",
         authorized: [],
         icon: SignatureIcon,
-        badgeValue: filteredData?.unsignedPayments?.length > 0 ?
-          filteredData?.unsignedPayments?.length : undefined,
         items: [
           {
             pageId: "PG-0000551-01",
             title: "Tickets",
             href: "/tableau-de-bord/signatures/tickets",
             authorized: [],
+            badgeValue: filteredData?.unsignedPayments?.length > 0 ?
+              filteredData?.unsignedPayments?.length : undefined,
           },
           {
             pageId: "PG-0000551-02",
