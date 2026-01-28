@@ -15,13 +15,13 @@ interface ModalWarningProps {
   message?: string;
   actionText?: string;
   onAction?: () => void;
-  variant?: "warning" | "error" | "info";
+  variant?: "warning" | "error" | "info" | "success";
   name?: string
 }
 
-export function ModalWarning({ 
-  open, 
-  onOpenChange, 
+export function ModalWarning({
+  open,
+  onOpenChange,
   title = "Attention",
   description = "",
   message = "",
@@ -30,7 +30,7 @@ export function ModalWarning({
   variant = "warning",
   name = ""
 }: ModalWarningProps) {
-  
+
   const variantStyles = {
     warning: {
       header: "bg-gradient-to-r from-[#D97706] to-[#92400E]",
@@ -44,6 +44,11 @@ export function ModalWarning({
       header: "bg-gradient-to-r from-[#2563EB] to-[#1E40AF]",
       button: "bg-[#2563EB] hover:bg-[#1D4ED8]",
     },
+    // avec le vert et l'autre vert plus foncé
+    success: {
+      header: "bg-gradient-to-r from-[#16A34A] to-[#052c14]",
+      button: "bg-[#16A34A] hover:bg-[#16A34A]",
+    }
   };
 
   const handleAction = () => {

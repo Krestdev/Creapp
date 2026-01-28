@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@/components/ui/dialog";
-import { Reception, RECEPTION_STATUS, User } from "@/types/types";
+import { CommandRequestT, Quotation, Reception, RECEPTION_STATUS, User } from "@/types/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -32,9 +32,11 @@ interface Props {
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   reception: Reception;
+  devis: Quotation[];
+  cmdReqst: CommandRequestT[];
 }
 
-function ViewReception({ open, onOpenChange, reception }: Props) {
+function ViewReception({ open, onOpenChange, reception, devis, cmdReqst }: Props) {
   const getStatusBadge = (
     status: Reception["Status"],
   ): {
@@ -54,11 +56,15 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
         return { label: "Inconnu", variant: "outline" };
     }
   };
+
+  const devi = devis.find((d) => d.id === reception.Command?.deviId)
+  const cmdReqs = cmdReqst.find((c) => c.id === devi?.commandRequestId)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{`${reception.Command?.devi.commandRequest.title ?? "Non défini"}`}</DialogTitle>
+          <DialogTitle>{`${cmdReqs?.title ?? "Non défini"}`}</DialogTitle>
           <DialogDescription>
             {"Réception du bon de commande"}
           </DialogDescription>
@@ -175,9 +181,8 @@ function ViewReception({ open, onOpenChange, reception }: Props) {
                   reception.Proof.split(";").map((proof, index) => (
                     <Link
                       key={index}
-                      href={`${
-                        process.env.NEXT_PUBLIC_API
-                      }/${proof}`}
+                      href={`${process.env.NEXT_PUBLIC_API
+                        }/${proof}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >

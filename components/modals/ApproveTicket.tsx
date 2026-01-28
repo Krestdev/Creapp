@@ -71,7 +71,7 @@ export function ApproveTicket({
         </DialogHeader>
 
         {/* Content */}
-        <p className="text-[#2F2F2F] w-full px-4 italic">{description}</p>
+        <p className="text-[#2F2F2F] w-full px-4">{description}</p>
 
         {/* Footer buttons */}
         <div className="flex w-full justify-end gap-3 p-6 pt-0">

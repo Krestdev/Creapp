@@ -557,34 +557,34 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
             priorityFilter !== "all" ||
             penaltyFilter !== "all" ||
             globalFilter) && (
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <span>Filtres actifs:</span>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <span>Filtres actifs:</span>
 
-              {statusFilter !== "all" && (
-                <Badge variant="default" className="font-normal">
-                  {`Statut: ${getStatusLabel(statusFilter).label}`}
-                </Badge>
-              )}
+                {statusFilter !== "all" && (
+                  <Badge variant="default" className="font-normal">
+                    {`Statut: ${getStatusLabel(statusFilter).label}`}
+                  </Badge>
+                )}
 
-              {priorityFilter !== "all" && (
-                <Badge variant="outline" className="font-normal">
-                  {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
-                </Badge>
-              )}
+                {priorityFilter !== "all" && (
+                  <Badge variant="outline" className="font-normal">
+                    {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
+                  </Badge>
+                )}
 
-              {penaltyFilter !== "all" && (
-                <Badge variant="outline" className="font-normal">
-                  {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
-                </Badge>
-              )}
+                {penaltyFilter !== "all" && (
+                  <Badge variant="outline" className="font-normal">
+                    {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
+                  </Badge>
+                )}
 
-              {globalFilter && (
-                <Badge variant="outline" className="font-normal">
-                  {`Recherche: "${globalFilter}"`}
-                </Badge>
-              )}
-            </div>
-          )}
+                {globalFilter && (
+                  <Badge variant="outline" className="font-normal">
+                    {`Recherche: "${globalFilter}"`}
+                  </Badge>
+                )}
+              </div>
+            )}
         </div>
 
         {/* Menu colonnes */}
@@ -642,9 +642,9 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -686,14 +686,14 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                       priorityFilter !== "all" ||
                       penaltyFilter !== "all" ||
                       globalFilter) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={resetAllFilters}
-                      >
-                        {"Réinitialiser les filtres"}
-                      </Button>
-                    )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={resetAllFilters}
+                        >
+                          {"Réinitialiser les filtres"}
+                        </Button>
+                      )}
                   </div>
                 </TableCell>
               </TableRow>

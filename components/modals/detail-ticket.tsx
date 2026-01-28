@@ -67,7 +67,6 @@ export function DetailTicket({
     (req) => req.id === data?.requestId
   );
 
-
   // Fonction pour obtenir la couleur du badge selon la priorité
   const getPrioriteColor = (priorite: string | undefined) => {
     switch (priorite) {
@@ -192,7 +191,7 @@ export function DetailTicket({
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground mb-1">
-                    Référence
+                    {"Référence"}
                   </p>
                   <Badge
                     variant="secondary"
@@ -211,7 +210,7 @@ export function DetailTicket({
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground mb-1">
-                      Description
+                      {"Description"}
                     </p>
                     <p className="font-semibold text-lg">
                       {data?.description || "N/A"}
@@ -228,7 +227,7 @@ export function DetailTicket({
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-muted-foreground mb-1">
-                        Periode
+                        {"Période"}
                       </p>
                       <p className="font-semibold text-lg">
                         {request?.period ? (
@@ -240,7 +239,7 @@ export function DetailTicket({
                             locale: fr,
                           })}`}</p>
                         ) : (
-                          <p>Non renseigné</p>
+                          <p>{"Non renseigné"}</p>
                         )}
                       </p>
                     </div>
@@ -371,7 +370,7 @@ export function DetailTicket({
                   <FolderOpen className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">Montant</p>
+                  <p className="text-sm text-muted-foreground mb-1">{"Montant"}</p>
                   <p className="font-semibold text-lg">
                     {formatMontant(data?.price || 0)}
                   </p>
@@ -453,7 +452,7 @@ export function DetailTicket({
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground mb-1">
-                      Moyen de paiement
+                      {"Moyen de paiement"}
                     </p>
                     <p className="text-sm">
                       {translateMoyenPaiement(getPaymentType.data?.data.find((p) => p.id === Number(commands?.paymentMethod))?.label || "N/A")}
@@ -480,7 +479,7 @@ export function DetailTicket({
                   <AlertCircle className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">Statut</p>
+                  <p className="text-sm text-muted-foreground mb-1">{"Statut"}</p>
                   <Badge className={getStateColor(data?.status)}>
                     {translateState(data?.status)}
                   </Badge>
@@ -502,13 +501,28 @@ export function DetailTicket({
                 </div>
               </div>
 
+              {/* Date limite de paiement */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-1">{"Date limite de paiement"}</p>
+                  <p className="font-semibold">
+                    {data?.createdAt
+                      ? format(new Date(data.deadline), "PPP", { locale: fr })
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+
               {/* Date de création */}
               <div className="flex items-start gap-3">
                 <div className="mt-1">
                   <Calendar className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">Créé le</p>
+                  <p className="text-sm text-muted-foreground mb-1">{"Créé le"}</p>
                   <p className="font-semibold">
                     {data?.createdAt
                       ? format(new Date(data.createdAt), "PPP", { locale: fr })
@@ -524,7 +538,7 @@ export function DetailTicket({
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground mb-1">
-                    Modifié le
+                    {"Modifié le"}
                   </p>
                   <p className="font-semibold">
                     {data?.updatedAt

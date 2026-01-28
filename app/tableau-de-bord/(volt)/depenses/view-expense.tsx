@@ -11,13 +11,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { XAF } from "@/lib/utils";
+import { cn, XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
 import { payTypeQ } from "@/queries/payType";
+import { projectQ } from "@/queries/projectModule";
+import { requestQ } from "@/queries/requestModule";
+import { signatairQ } from "@/queries/signatair";
 import {
   BonsCommande,
   PAY_STATUS,
   PaymentRequest,
+  User,
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
@@ -27,15 +31,10 @@ import {
   Building,
   Calendar,
   CalendarFold,
-  DollarSign,
   FileIcon,
   Fuel,
   HelpCircle,
-  LucideHash,
   MapPin,
-  SquareUser,
-  User,
-  Wallet,
   Briefcase,
   Users,
   Gift,
@@ -48,9 +47,11 @@ import {
   FileText,
   AlertCircle,
   LucideFile,
+  SquareStackIcon,
+  User2,
 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useMemo } from "react";
 
 interface Props {
   open: boolean;
@@ -132,10 +133,16 @@ const hasValue = (value: any): boolean => {
 
 function ViewExpense({ open, openChange, payment, purchases }: Props) {
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
+  const getProjects = useQuery({ queryKey: ["projects"], queryFn: projectQ.getAll });
+  const requestData = useQuery({ queryKey: ["requests"], queryFn: requestQ.getAll, });
   const purchase = purchases.find((p) => p.id === payment.commandId);
   const getPaymentType = useQuery({
     queryKey: ["paymentType"],
     queryFn: payTypeQ.getAll,
+  });
+  const getSignataire = useQuery({
+    queryKey: ["signatairs"],
+    queryFn: signatairQ.getAll,
   });
 
   if (getUsers.isLoading || getPaymentType.isLoading) {
@@ -177,6 +184,25 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
       return <Badge variant={variant} className="w-fit">{label}</Badge>;
     };
 
+    if (!payment) return null;
+
+    const signataires = useMemo(() => {
+      if (!getSignataire.data?.data || !payment?.bankId || !payment?.methodId) {
+        return undefined;
+      }
+
+      return getSignataire.data.data.find(
+        x =>
+          x.bankId === payment.bankId &&
+          x.payTypeId === payment.methodId
+      );
+    }, [
+      getSignataire.data?.data,
+      payment?.bankId,
+      payment?.methodId,
+    ]);
+
+    const users = signataires?.user;
     return (
       <Dialog open={open} onOpenChange={openChange}>
         <DialogContent className="sm:max-w-[720px]! max-h-[80vh] p-0 gap-0 border-none flex flex-col">
@@ -260,7 +286,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                 hasValue(payment.benefId) && (
                   <div className="flex items-start gap-3">
                     <div className="mt-1">
-                      <User className="h-5 w-5 text-muted-foreground" />
+                      <User2 className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-muted-foreground mb-1">
@@ -284,7 +310,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground mb-1">Projet</p>
-                    <p className="font-semibold">Projet #{payment.projectId}</p>
+                    <p className="font-semibold">{getProjects.data?.data.find((p) => p.id === payment.projectId)?.label}</p>
                   </div>
                 </div>
               )}
@@ -299,7 +325,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                     <p className="text-sm text-muted-foreground mb-1">
                       Demande associée
                     </p>
-                    <p className="font-semibold">ID: {payment.requestId}</p>
+                    <p className="font-semibold">{requestData.data?.data.find((r) => r.id === payment.requestId)?.label}</p>
                   </div>
                 </div>
               )}
@@ -522,7 +548,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               {hasValue(payment.userId) && (
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
-                    <User className="h-5 w-5 text-muted-foreground" />
+                    <User2 className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground mb-1">
@@ -548,6 +574,71 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                       Motif du rejet
                     </p>
                     <p className="text-red-800 font-medium">{payment.reason}</p>
+                  </div>
+                </div>
+              )}
+
+              {signataires && signataires.user && (
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <AlertCircle className="h-5 w-5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Mode de signature
+                    </p>
+                    <p className="font-medium">
+                      {signataires?.mode === "ONE" ?
+                        "Un dans la liste" :
+                        signataires?.mode === "BOTH" && signataires.user?.length > 1 ?
+                          "Tous les signataires" :
+                          "Un seul signataire"}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Historique de signature */}
+              {users && users.length > 0 && (
+                <div className="view-group">
+                  <span className="view-icon">
+                    <SquareStackIcon />
+                  </span>
+                  <div className="flex flex-col">
+                    <p className="view-group-title">{"Historique de signature"}</p>
+                    <div className="grid gap-2">
+                      {/* On va mettre ceux qui sont dans paiement.signer en vert */}
+                      {users.map((s: User) => {
+                        const isSigned = payment.signer?.flatMap(x => x.id).includes(s.id);
+                        const signer = payment.signer?.find(x => x.id === s.id);
+                        return (
+                          <div key={s.id} className={cn("px-3 py-2 flex flex-col gap-1 border bg-gray-50 border-gray-200", isSigned ? "bg-green-50 border-green-200" : "")}>
+                            <p className="text-sm font-medium text-gray-600">
+                              {s.firstName + " " + s.lastName}
+                            </p>
+                            {/* {signer && <p className="text-sm text-muted-foreground">
+                              {format(new Date(signer.createdAt!), "dd MMMM yyyy à HH:mm", {
+                                locale: fr,
+                              })}
+                            </p>} */}
+                            {isSigned && signer ? (
+                              <p className="text-sm text-green-600">
+                                Signé
+                              </p>
+                            ) : (
+                              signataires.mode === "BOTH" ?
+                                <p className="text-sm text-gray-600">
+                                  En attente de signature
+                                </p>
+                                :
+                                <p className="text-sm text-gray-600">
+                                  Ne peux plus signer
+                                </p>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
