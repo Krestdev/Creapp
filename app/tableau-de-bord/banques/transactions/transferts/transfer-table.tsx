@@ -11,7 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, CheckCircleIcon, ChevronDown, Eye, Pencil, Settings2 } from "lucide-react";
+import { ArrowUpDown, CheckCircleIcon, ChevronDown, ClipboardPenIcon, Eye, Pencil, Settings2 } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
@@ -61,24 +61,27 @@ import { useStore } from "@/providers/datastore";
 import {
   Bank,
   DateFilter,
+  PayType,
   Transaction,
   TRANSACTION_STATUS,
   TransferTransaction
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
-import { fr, se } from "date-fns/locale";
+import { fr } from "date-fns/locale";
 import ViewTransaction from "../view-transaction";
 import CompleteTransfer from "./complete-transfer";
 import { EditTransferDialog } from "./updateDialog";
+import RequestSign from "./requestSign";
 
 interface Props {
   data: Array<Transaction>;
   banks: Array<Bank>;
+  paymentMethods: Array<PayType>;
 }
 
 
-function TransferTable({ data, banks }: Props) {
+function TransferTable({ data, banks, paymentMethods }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -94,6 +97,7 @@ function TransferTable({ data, banks }: Props) {
   const [selected, setSelected] = React.useState<Transaction>();
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
+  const [toSign, setToSign] = React.useState<boolean>(false);
   const [complete, setComplete] = React.useState<boolean>(false);
 
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -235,7 +239,7 @@ function TransferTable({ data, banks }: Props) {
         }
       }
       return matchStatus && matchDate && matchAmount && matchBank && matchSearch;
-    }).sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }, [
     data,
     dateFilter,
@@ -246,6 +250,20 @@ function TransferTable({ data, banks }: Props) {
     bankFilter,
     searchFilter
   ]);
+
+  const canComplete = (transaction: Transaction): boolean => {
+    if(transaction.Type !== "TRANSFER") return false;
+    if(transaction.status === "ACCEPTED"){
+      if(transaction.from.type === "BANK"){
+        if(transaction.to.type === "BANK"){
+          return !!transaction.isSigned;
+        }
+        return true;
+      }
+      return true;
+    }
+    return false;
+  }
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -449,8 +467,21 @@ function TransferTable({ data, banks }: Props) {
                 <Pencil />
                 {"Modifier"}
               </DropdownMenuItem>
+              {
+                item.Type === "TRANSFER" && item.from.type === "BANK" && item.to.type === "BANK" &&
+                <DropdownMenuItem
+                disabled={ item.status !== "APPROVED"}
+                onClick={() => {
+                  setSelected(item);
+                  setToSign(true);
+                }}
+              >
+                <ClipboardPenIcon />
+                {"Demander une signature"}
+              </DropdownMenuItem>
+              }
               <DropdownMenuItem
-                disabled={item.status !== "ACCEPTED"}
+                disabled={!canComplete(item)}
                 onClick={() => {
                   setSelected(item);
                   setComplete(true);
@@ -824,6 +855,7 @@ function TransferTable({ data, banks }: Props) {
       )}
       {/* {selected && <EditTransaction transaction={selected} open={edit} openChange={setEdit} />} */}
       {selected && <CompleteTransfer transaction={selected as TransferTransaction} open={complete} openChange={setComplete} />}
+      {selected && <RequestSign transaction={selected as TransferTransaction} open={toSign} openChange={setToSign} paymentMethods={paymentMethods} />}
     </div>
   );
 }

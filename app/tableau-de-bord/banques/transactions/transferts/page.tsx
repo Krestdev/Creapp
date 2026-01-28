@@ -7,6 +7,7 @@ import { transactionQ } from "@/queries/transaction";
 import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import TransferTable from "./transfer-table";
+import { payTypeQ } from "@/queries/payType";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -21,21 +22,24 @@ function Page() {
   });
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
 
-  if (getTransactions.isLoading || getBanks.isLoading) {
+  const getPaymentMethods = useQuery({queryKey: ["paymentType"], queryFn: payTypeQ.getAll});
+
+  if (getTransactions.isLoading || getBanks.isLoading || getPaymentMethods.isLoading) {
     return <LoadingPage />;
   }
-  if (getTransactions.isError || getBanks.isError) {
+  if (getTransactions.isError || getBanks.isError || getPaymentMethods.isError) {
     return (
-      <ErrorPage error={getTransactions.error || getBanks.error || undefined} />
+      <ErrorPage error={getTransactions.error || getBanks.error || getPaymentMethods.error || undefined} />
     );
   }
-  if (getTransactions.isSuccess && getBanks.isSuccess)
+  if (getTransactions.isSuccess && getBanks.isSuccess && getPaymentMethods.isSuccess)
     return (
       <div className="content">
         <PageTitle title="Transferts" subtitle="Historique des transferts" links={links} />
         <TransferTable
           data={getTransactions.data.data.filter((t) => t.Type === "TRANSFER")}
           banks={getBanks.data.data}
+          paymentMethods={getPaymentMethods.data.data}
         />
       </div>
     );

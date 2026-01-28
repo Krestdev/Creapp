@@ -45,7 +45,7 @@ const formSchema = z.object({
     (val) => {
       const d = new Date(val);
       const now = new Date();
-      return !isNaN(d.getTime()) && d >= now;
+      return !isNaN(d.getTime()) && d <= now;
     },
     { message: "Date invalide" },
   ),
@@ -156,6 +156,7 @@ function CompleteTransfer({ open, openChange, transaction }: Props) {
                               field.onChange(value);
                               setSelectDate(false);
                             }}
+                            disabled={(date)=> date > new Date()}
                           />
                         </PopoverContent>
                       </Popover>
