@@ -2,14 +2,13 @@
 import {
     type ColumnDef,
     type ColumnFiltersState,
-    type SortingState,
     type VisibilityState,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
-    useReactTable,
+    useReactTable
 } from "@tanstack/react-table";
 import {
     ArrowRightIcon,
@@ -22,6 +21,7 @@ import {
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
+import { TabBar } from "@/components/base/TabBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -69,11 +69,11 @@ import {
     Bank,
     DateFilter,
     PayType,
-    Transaction,
     TransferTransaction
 } from "@/types/types";
 import { format } from "date-fns";
 import ViewTransaction from "../../banques/transactions/view-transaction";
+import SignTransfer from "./signTransfer";
 
 interface Props {
   data: Array<TransferTransaction>;
@@ -91,9 +91,8 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [searchFilter, setSearchFilter] = React.useState("");
-  const [selected, setSelected] = React.useState<Transaction>();
+  const [selected, setSelected] = React.useState<TransferTransaction>();
   const [view, setView] = React.useState<boolean>(false);
-  const [edit, setEdit] = React.useState<boolean>(false);
   const [toSign, setToSign] = React.useState<boolean>(false);
 
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -109,6 +108,18 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | "true" | "false"
   >("all");
+  const [selectedTab, setSelectedTab] = React.useState<number>(0);
+    const tabs = [
+      {
+        id: 0,
+        title: "En attente",
+        badge: data.filter(t=> t.signers?.find(s=> s.userId === user?.id)?.signed === false ).length,
+      },
+      {
+        id: 1,
+        title: "Signés",
+      },
+    ];
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -306,7 +317,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = row.original.isSigned;
+        const value = !!row.original.signers?.some(x=> x.userId === user?.id && x.signed === true);
         return <Badge variant={value === true ? "success" : "destructive"}>{value === true ? "Signé" : "Non signé"}</Badge>;
       },
     },
@@ -627,7 +638,8 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Transactions (${data.length})`}</h3>
+      <TabBar tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+      <h3>{`Demandes (${data.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -688,7 +700,10 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
       <Pagination table={table} />
       {
         selected && 
+        <>
         <ViewTransaction open={view} openChange={setView} transaction={selected} />
+        <SignTransfer open={toSign} onOpenChange={setToSign} transfer={selected} />
+        </>
       }
     </div>
   );
