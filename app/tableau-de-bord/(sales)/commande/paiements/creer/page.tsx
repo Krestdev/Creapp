@@ -27,7 +27,7 @@ function Page() {
           subtitle={"Complétez le formulaire pour créer une paiement"}
           color={"blue"}
         />
-        <CreatePaiement purchases={getPurchases.data.data} />
+        <CreatePaiement purchases={getPurchases.data.data.filter(x => x.status === "APPROVED")} />
       </div>
     );
 }

@@ -60,9 +60,11 @@ import {
   BonsCommande,
   PAY_STATUS,
   PaymentRequest,
+  PayType,
   PRIORITIES,
   RequestType,
   Signatair,
+  Transaction,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "../(volt)/depenses/view-expense";
@@ -130,6 +132,8 @@ interface Props {
   banks: Array<Bank>;
   requestTypes: Array<RequestType>;
   signatair: Array<Signatair>;
+  payType: Array<PayType>;
+  transactions: Array<Transaction>
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -195,6 +199,8 @@ function ExpensesTableSign({
   banks,
   requestTypes,
   signatair,
+  payType,
+  transactions
 }: Props) {
   const { isHydrated, user } = useStore();
 
@@ -363,25 +369,46 @@ function ExpensesTableSign({
       },
     },
     {
-      accessorKey: "title",
+      accessorKey: "payType",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Titre"}
+            {"Type de document"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchasesMap.get(value.commandId || -1);
-        const title = value.title;
         return (
           <div>
-            {purchase?.devi.commandRequest.title ?? value.title ?? "--"}
+            {payType.find((t) => t.id === value.methodId)?.label ?? "--"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "docNumber",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Numéro de document"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const transaction = transactions.find((t) => t.id === value.transactionId);
+        return (
+          <div>
+            {transaction?.docNumber ?? "--"}
           </div>
         );
       },

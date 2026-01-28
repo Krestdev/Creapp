@@ -15,7 +15,9 @@ import { useQuery } from "@tanstack/react-query";
 import ExpensesTable from "../expenses-table";
 import { providerQ } from "@/queries/providers";
 import { payTypeQ } from "@/queries/payType";
-
+import { requestQ } from "@/queries/requestModule";
+import { userQ } from "@/queries/baseModule";
+;
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: ["payments"],
@@ -35,6 +37,16 @@ function Page() {
     queryFn: payTypeQ.getAll,
   });
 
+  const getRequest = useQuery({
+    queryKey: ["request"],
+    queryFn: requestQ.getAll,
+  });
+
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll,
+  });
+
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
   const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll });
   if (
@@ -43,6 +55,8 @@ function Page() {
     getRequestType.isLoading ||
     getBanks.isLoading ||
     getProviders.isLoading ||
+    getRequest.isLoading ||
+    getUsers.isLoading ||
     getPaymentType.isLoading
   ) {
     return <LoadingPage />;
@@ -53,6 +67,8 @@ function Page() {
     getRequestType.isError ||
     getBanks.isError ||
     getProviders.isError ||
+    getRequest.isError ||
+    getUsers.isError ||
     getPaymentType.isError
   ) {
     return (
@@ -64,6 +80,8 @@ function Page() {
           getBanks.error ||
           getProviders.error ||
           getPaymentType.error ||
+          getRequest.error ||
+          getUsers.error ||
           undefined
         }
       />
@@ -75,6 +93,8 @@ function Page() {
     getRequestType.isSuccess &&
     getBanks.isSuccess &&
     getProviders.isSuccess &&
+    getRequest.isSuccess &&
+    getUsers.isSuccess &&
     getPaymentType.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
@@ -132,6 +152,8 @@ function Page() {
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
           getPaymentType={getPaymentType}
+          request={getRequest.data.data}
+          users={getUsers.data.data}
         />
         <ExpensesTable
           payments={data.data.filter(
@@ -142,6 +164,8 @@ function Page() {
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
           getPaymentType={getPaymentType}
+          request={getRequest.data.data}
+          users={getUsers.data.data}
         />
       </div>
     );

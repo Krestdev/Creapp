@@ -229,6 +229,11 @@ export function PurchaseApprovalTable({ data }: Props) {
     if (!selectedValue) return;
     if (!canDecide(selectedValue.status as Status)) return;
 
+    if (decisionType !== "approve" && !rejectReason) {
+      toast.error("Veuillez entrer une raison de rejet");
+      return;
+    }
+
     if (decisionType === "approve") {
       approveMutation.mutate(selectedValue.id);
       return;
@@ -624,9 +629,9 @@ export function PurchaseApprovalTable({ data }: Props) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -667,14 +672,14 @@ export function PurchaseApprovalTable({ data }: Props) {
                     {(priorityFilter !== "all" ||
                       penaltyFilter !== "all" ||
                       globalFilter) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={resetAllFilters}
-                      >
-                        {"Réinitialiser les filtres"}
-                      </Button>
-                    )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={resetAllFilters}
+                        >
+                          {"Réinitialiser les filtres"}
+                        </Button>
+                      )}
                   </div>
                 </TableCell>
               </TableRow>

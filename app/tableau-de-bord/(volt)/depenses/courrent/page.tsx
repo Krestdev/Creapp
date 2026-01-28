@@ -16,6 +16,8 @@ import { useQuery } from "@tanstack/react-query";
 import ExpensesTable from "../expenses-table";
 import { providerQ } from "@/queries/providers";
 import { payTypeQ } from "@/queries/payType";
+import { requestQ } from "@/queries/requestModule";
+import { userQ } from "@/queries/baseModule";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -47,16 +49,33 @@ function Page() {
     queryFn: payTypeQ.getAll,
   });
 
+  const request = useQuery({
+    queryKey: ["requests"],
+    queryFn: () => {
+      return requestQ.getAll();
+    },
+  });
+
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: () => userQ.getAll(),
+  });
+
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
 
-  const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll });
+  const getProviders = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
   if (
     isLoading ||
     getPurchases.isLoading ||
     getBanks.isLoading ||
     getRequestType.isLoading ||
     getProviders.isLoading ||
-    getPaymentType.isLoading
+    getPaymentType.isLoading ||
+    getUsers.isLoading ||
+    request.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -66,7 +85,9 @@ function Page() {
     getBanks.isError ||
     getRequestType.isError ||
     getProviders.isError ||
-    getPaymentType.isError
+    getPaymentType.isError ||
+    getUsers.isError ||
+    request.isError
   ) {
     return (
       <ErrorPage
@@ -77,6 +98,8 @@ function Page() {
           getRequestType.error ||
           getProviders.error ||
           getPaymentType.error ||
+          request.error ||
+          getUsers.error ||
           undefined
         }
       />
@@ -88,13 +111,15 @@ function Page() {
     getBanks.isSuccess &&
     getRequestType.isSuccess &&
     getProviders.isSuccess &&
+    request.isSuccess &&
+    getUsers.isSuccess &&
     getPaymentType.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente",
         value: data.data.filter(
-          (p) => p.status === "pending_depense" && p.type === "CURRENT"
+          (p) => p.status === "pending_depense" && p.type === "CURRENT",
         ).length,
         variant: "primary",
         more: {
@@ -102,16 +127,16 @@ function Page() {
           value: XAF.format(
             data.data
               .filter(
-                (p) => p.status === "pending_depense" && p.type === "CURRENT"
+                (p) => p.status === "pending_depense" && p.type === "CURRENT",
               )
-              .reduce((total, el) => total + el.price, 0)
+              .reduce((total, el) => total + el.price, 0),
           ),
         },
       },
       {
         title: "Tickets payés",
         value: data.data.filter(
-          (p) => p.status === "paid" && p.type === "CURRENT"
+          (p) => p.status === "paid" && p.type === "CURRENT",
         ).length,
         variant: "secondary",
         more: {
@@ -119,7 +144,7 @@ function Page() {
           value: XAF.format(
             data.data
               .filter((p) => p.status === "paid" && p.type === "CURRENT")
-              .reduce((total, el) => total + el.price, 0)
+              .reduce((total, el) => total + el.price, 0),
           ),
         },
       },
@@ -140,23 +165,27 @@ function Page() {
         </div>
         <ExpensesTable
           payments={data.data.filter(
-            (p) => p.status === "pending_depense" && p.type === "CURRENT"
+            (p) => p.status === "pending_depense" && p.type === "CURRENT",
           )}
           banks={getBanks.data.data}
           purchases={getPurchases.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
           getPaymentType={getPaymentType}
+          request={request.data.data}
+          users={getUsers.data.data}
         />
         <ExpensesTable
           payments={data.data.filter(
-            (p) => p.status === "paid" && p.type === "CURRENT"
+            (p) => p.status === "paid" && p.type === "CURRENT",
           )}
           banks={getBanks.data.data}
           purchases={getPurchases.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
           getPaymentType={getPaymentType}
+          request={request.data.data}
+          users={getUsers.data.data}
         />
       </div>
     );

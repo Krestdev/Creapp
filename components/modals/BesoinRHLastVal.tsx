@@ -42,6 +42,7 @@ import MultiSelectUsers from "../base/multiSelectUsers";
 import { projectQ } from "@/queries/projectModule";
 import { paymentQ } from "@/queries/payment";
 import { categoryQ } from "@/queries/categoryModule";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -81,6 +82,7 @@ const formSchema = z.object({
     .min(new Date(), "La date limite doit être dans le futur"),
   beneficiaire: z.array(z.number()).min(1, "Le bénéficiaire est requis"),
   justificatif: SingleFileSchema,
+  priority: z.enum(["low", "medium", "high", "urgent"]),
 });
 
 interface BesoinRHLastValProps {
@@ -147,6 +149,7 @@ export default function BesoinRHLastVal({
       date_limite: undefined,
       beneficiaire: [],
       justificatif: [],
+      priority: "medium",
     },
   });
 
@@ -211,6 +214,7 @@ export default function BesoinRHLastVal({
               : new Date(),
             beneficiaire: beneficiaireIds,
             justificatif: proofValue,
+            priority: requestData.priority || "medium",
           });
 
           setIsFormInitialized(true);
@@ -312,7 +316,7 @@ export default function BesoinRHLastVal({
       type: "ressource_humaine",
       // Garder les valeurs originales pour les champs non modifiables
       state: requestData?.state || "pending",
-      priority: requestData?.priority || "medium",
+      priority: values?.priority || "medium",
       beneficiary:
         values.beneficiaire.length > 0 ? values.beneficiaire[0].toString() : "",
     };
@@ -511,6 +515,39 @@ export default function BesoinRHLastVal({
                       <FormControl>
                         <Input placeholder="Montant" {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* PRIORITE */}
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {"Priorité"}
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select
+                        {...field}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Choisir une priorité" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Faible</SelectItem>
+                          <SelectItem value="medium">Moyenne</SelectItem>
+                          <SelectItem value="high">Haute</SelectItem>
+                          <SelectItem value="urgent">Urgente</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
