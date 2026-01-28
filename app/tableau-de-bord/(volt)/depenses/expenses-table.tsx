@@ -67,7 +67,9 @@ import {
   PayType,
   PRIORITIES,
   Provider,
+  RequestModelT,
   RequestType,
+  User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import ViewExpense from "./view-expense";
@@ -149,6 +151,8 @@ interface Props {
     data: PayType[];
   }, Error>;
   providers: Array<Provider>;
+  request: RequestModelT[];
+  users: Array<User>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -212,7 +216,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentType, providers }: Props) {
+function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentType, providers, request, users }: Props) {
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -919,6 +923,8 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
             open={showShare}
             onOpenChange={setShowShare}
             banks={banks}
+            users={users}
+            request={request}
           />
           <PayExpense
             ticket={selected}

@@ -15,6 +15,7 @@ export interface TransactionProps extends Omit<
   status?: string;
   paymentId?: number;
   methodId?: number;
+  docNumber?: string;
 }
 
 export interface TransferProps extends Omit<
@@ -54,6 +55,7 @@ class TransactionQuery {
     formData.append("paymentId", String(payload.paymentId));
     formData.append("methodId", String(payload.methodId));
     formData.append("status", String(payload.status));
+    formData.append("docNumber", String(payload.docNumber));
     if (payload.from) formData.append("from", JSON.stringify(payload.from));
     if (payload.fromBankId)
       formData.append("fromBankId", String(payload.fromBankId));

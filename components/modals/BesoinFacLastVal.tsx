@@ -72,6 +72,7 @@ const formSchema = z.object({
   category: z.string().min(1, "La categorie est requise"),
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().min(1, "La description est requise"),
+  priority: z.enum(["low", "medium", "high", "urgent"]),
   justificatif: SingleFileSchema,
 });
 
@@ -136,6 +137,7 @@ export default function BesoinFacLastVal({
       justificatif: [],
       title: "",
       description: "",
+      priority: "medium",
     },
   });
 
@@ -183,6 +185,7 @@ export default function BesoinFacLastVal({
             justificatif: proofValue,
             title: requestData.label || "",
             description: requestData.description || "",
+            priority: requestData.priority || "medium",
           });
 
           setIsFormInitialized(true);
@@ -285,7 +288,7 @@ export default function BesoinFacLastVal({
       type: "facilitation",
       // Garder les valeurs originales pour les champs non modifiables
       state: requestData?.state || "pending",
-      priority: requestData?.priority || "medium",
+      priority: values.priority,
       benFac: {
         list: beneficiairesList.map((b) => ({
           id: b.id,
@@ -483,6 +486,40 @@ export default function BesoinFacLastVal({
                           </PopoverContent>
                         </Popover>
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Priorité */}
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {"Priorité"}
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select
+                        {...field}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                        }}
+
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Choisir une priorité" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Faible</SelectItem>
+                          <SelectItem value="medium">Moyenne</SelectItem>
+                          <SelectItem value="high">Haute</SelectItem>
+                          <SelectItem value="urgent">Urgente</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

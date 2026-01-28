@@ -16,6 +16,8 @@ import { useQuery } from "@tanstack/react-query";
 import { payTypeQ } from "@/queries/payType";
 import ExpensesTable from "./expenses-table";
 import { providerQ } from "@/queries/providers";
+import { requestQ } from "@/queries/requestModule";
+import { userQ } from "@/queries/baseModule";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -46,15 +48,35 @@ function Page() {
     queryKey: ["paymentType"],
     queryFn: payTypeQ.getAll,
   });
+
+  const request = useQuery({
+    queryKey: ["requests"],
+    queryFn: () => {
+      return requestQ.getAll();
+    },
+  });
+
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: () => userQ.getAll(),
+  });
+
+
+
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
-  const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll });
+  const getProviders = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
   if (
     isLoading ||
     getPurchases.isLoading ||
     getBanks.isLoading ||
     getRequestType.isLoading ||
     getPaymentType.isLoading ||
-    getProviders.isLoading
+    request.isLoading ||
+    getProviders.isLoading ||
+    getUsers.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -64,7 +86,9 @@ function Page() {
     getBanks.isError ||
     getRequestType.isError ||
     getPaymentType.isError ||
-    getProviders.isError
+    request.isError ||
+    getProviders.isError ||
+    getUsers.isError
   ) {
     return (
       <ErrorPage
@@ -75,6 +99,8 @@ function Page() {
           getRequestType.error ||
           getPaymentType.error ||
           getProviders.error ||
+          request.error ||
+          getUsers.error ||
           undefined
         }
       />
@@ -86,7 +112,9 @@ function Page() {
     getBanks.isSuccess &&
     getRequestType.isSuccess &&
     getPaymentType.isSuccess &&
-    getProviders.isSuccess
+    request.isSuccess &&
+    getProviders.isSuccess &&
+    getUsers.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -100,24 +128,23 @@ function Page() {
           value: XAF.format(
             data.data
               .filter(
-                (p) => p.status === "pending_depense" || p.status === "validated"
+                (p) =>
+                  p.status === "pending_depense" || p.status === "validated",
               )
-              .reduce((total, el) => total + el.price, 0)
+              .reduce((total, el) => total + el.price, 0),
           ),
         },
       },
       {
         title: "Tickets payés",
-        value: data.data.filter(
-          (p) => p.status === "paid"
-        ).length,
+        value: data.data.filter((p) => p.status === "paid").length,
         variant: "secondary",
         more: {
           title: "Montant total",
           value: XAF.format(
             data.data
               .filter((p) => p.status === "paid")
-              .reduce((total, el) => total + el.price, 0)
+              .reduce((total, el) => total + el.price, 0),
           ),
         },
       },
@@ -143,6 +170,8 @@ function Page() {
           requestTypes={getRequestType.data.data}
           getPaymentType={getPaymentType}
           providers={getProviders.data.data}
+          request={request.data.data}
+          users={getUsers.data.data}
         />
       </div>
     );
