@@ -671,7 +671,6 @@ export type TransferTransaction = TransactionBase & {
   isSigned: boolean;
   signerId?: number | null;
   signDoc?: string;
-  docNumber?: string;
 };
 
 export type Transaction =
