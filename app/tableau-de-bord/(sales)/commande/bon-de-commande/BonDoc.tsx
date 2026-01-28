@@ -133,7 +133,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
   const totalPages = Math.ceil(doc.devi.element.length / itemsPerPage);
 
   const real = isRealRegime(doc.provider.regem);
-  const applyTaxes = !!doc.keepTaxes;
+  const applyTaxes = !doc.keepTaxes;
 
   // Taux RRR (rabais/remise/ristourne)
   const rabaisRate = normalizeRate((doc as any).rabaisAmount);

@@ -183,7 +183,7 @@ export type ProjectT = {
 // Request / Besoin
 export const REQUEST_STATUS = [
   { value: "pending", name: "En attente" },
-  //{ value: "in-review", name: "En révision" },
+  { value: "in-review", name: "En révision" },
   { value: "validated", name: "Validé" },
   { value: "rejected", name: "Rejeté" },
   { value: "cancel", name: "Annulé" },
@@ -639,6 +639,7 @@ export type TransactionBase = {
   amount: number;
   date: Date;
   createdAt: Date;
+  updatedAt: Date;
   status: (typeof TRANSACTION_STATUS)[number]["value"];
   Type: (typeof TRANSACTION_TYPES)[number]["value"];
   proof?: string;

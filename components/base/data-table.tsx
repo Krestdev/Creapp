@@ -46,7 +46,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, subText } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import { Category, PaymentRequest, ProjectT, RequestModelT, RequestType } from "@/types/types";
@@ -251,9 +251,9 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
         const original = row.original;
         const modified = original.requestOlds?.some(x => x.userId !== user?.id);
         return (
-          <div className="flex items-center gap-1.5 max-w-[200px] truncate uppercase">
+          <div className="flex items-center gap-1.5 uppercase">
             {!!modified && <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs"><AsteriskIcon size={16} /></span>}
-            {row.getValue("label")}
+            {subText({text: row.getValue("label")})}
           </div>
         )
       },

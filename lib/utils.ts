@@ -207,3 +207,10 @@ export const getQuotationAmount = (elements: Array<QuotationElement>) => {
       )
     );
   };
+
+export function subText({text , length = 50}:{text: string; length?: number}) {  
+  if (text.length <= length) {
+    return text;
+  }
+  return text.substring(0, length) + '...';
+}

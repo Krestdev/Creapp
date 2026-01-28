@@ -67,7 +67,7 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, se } from "date-fns/locale";
 import ViewTransaction from "../view-transaction";
 import CompleteTransfer from "./complete-transfer";
 import { EditTransferDialog } from "./updateDialog";
@@ -90,6 +90,7 @@ function TransferTable({ data, banks }: Props) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [searchFilter, setSearchFilter] = React.useState("");
   const [selected, setSelected] = React.useState<Transaction>();
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
@@ -124,6 +125,8 @@ function TransferTable({ data, banks }: Props) {
         return { label, variant: "destructive" };
       case "PENDING":
         return { label, variant: "amber" };
+      case "ACCEPTED":
+        return { label, variant: "sky" };
       default:
         return { label, variant: "outline" };
     }
@@ -138,6 +141,7 @@ function TransferTable({ data, banks }: Props) {
     setAmountFilter(0);
     setAmountTypeFilter("greater");
     setGlobalFilter("");
+    setSearchFilter("");
     setStatusFilter("all");
     setBankFilter("all");
   };
@@ -147,11 +151,20 @@ function TransferTable({ data, banks }: Props) {
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
+      const search = searchFilter.toLowerCase();
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : transaction.status === statusFilter;
       // Bank Filter - selon le type de transaction
       let matchBank = bankFilter === "all" ? true : false;
+      // Search Filter
+      const matchSearch =
+      search.trim() === "" ? true :
+      transaction.id.toString().toLocaleLowerCase().includes(search) ||
+      transaction.label.toLocaleLowerCase().includes(search) ||
+      transaction.amount.toString().includes(search) ||
+      transaction.to.label.toLocaleLowerCase().includes(search) ||
+      transaction.from.label.toLocaleLowerCase().includes(search)
 
       if (bankFilter !== "all") {
         // Vérifier selon le type de transaction
@@ -221,8 +234,8 @@ function TransferTable({ data, banks }: Props) {
             transaction.createdAt <= endDate;
         }
       }
-      return matchStatus && matchDate && matchAmount && matchBank;
-    });
+      return matchStatus && matchDate && matchAmount && matchBank && matchSearch;
+    }).sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }, [
     data,
     dateFilter,
@@ -230,7 +243,8 @@ function TransferTable({ data, banks }: Props) {
     amountFilter,
     amountTypeFilter,
     statusFilter,
-    bankFilter
+    bankFilter,
+    searchFilter
   ]);
 
   const columns: ColumnDef<Transaction>[] = [
@@ -513,8 +527,8 @@ function TransferTable({ data, banks }: Props) {
                   type="search"
                   id="searchCommand"
                   placeholder="Référence, libellé"
-                  value={globalFilter ?? ""}
-                  onChange={(event) => setGlobalFilter(event.target.value)}
+                  value={searchFilter}
+                  onChange={(event) => setSearchFilter(event.target.value)}
                   className="max-w-sm"
                 />
               </div>
@@ -561,7 +575,7 @@ function TransferTable({ data, banks }: Props) {
               </div>
               {/* Filter by amount */}
               <div className="grid gap-1.5">
-                <Label>{"Comparer le montant"}</Label>
+                <Label>{"Montant"}</Label>
                 <Select
                   value={amountTypeFilter}
                   onValueChange={(v) =>

@@ -739,7 +739,7 @@ function CreateForm() {
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="hasPenalties"
           render={({ field }) => (
@@ -757,7 +757,7 @@ function CreateForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         {/* <FormField
           control={form.control}
           name="penaltyMode"

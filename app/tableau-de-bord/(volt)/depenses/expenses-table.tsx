@@ -277,7 +277,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
   const [priorityFilter, setPriorityFilter] = React.useState<
     "all" | PaymentRequest["priority"]
   >("all");
-  const [providerFilter, setProviderFilter] = React.useState<"all" | string>(
+  const [providerFilter, setProviderFilter] = React.useState<"all" | "no-provider" | string>(
     "all",
   );
   const [amountTypeFilter, setAmountTypeFilter] = React.useState<
@@ -325,6 +325,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       //Filter provider
       const matchProvider =
         providerFilter === "all" ? true :
+        providerFilter === "no-provider" ? p.commandId === null :
           purchases.find(c => c.id === p.commandId)?.providerId === Number(providerFilter);
       //Filter tab
       const matchTab =
@@ -737,6 +738,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{"Tous"}</SelectItem>
+                      <SelectItem value="no-provider">{"Sans fournisseur"}</SelectItem>
                       {providers.map((p) => (
                         <SelectItem key={p.id} value={String(p.id)}>
                           {p.name}

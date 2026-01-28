@@ -88,10 +88,14 @@ function CreateQuotation({ quotation, openChange }: Props) {
   const [open, setOpen] = React.useState<boolean>(false);
   const [openP, setOpenP] = React.useState<boolean>(false);
   const [openS, setOpenS] = React.useState<boolean>(false);
-  const [selectedNeeds, setSelectedNeeds] = React.useState<Array<RequestModelT>>([]);
+  const [selectedNeeds, setSelectedNeeds] = React.useState<
+    Array<RequestModelT>
+  >([]);
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const [editingElement, setEditingElement] = React.useState<any>(null);
-  const [previousCommandId, setPreviousCommandId] = React.useState<number | undefined>(undefined);
+  const [previousCommandId, setPreviousCommandId] = React.useState<
+    number | undefined
+  >(undefined);
   const { user } = useStore();
 
   /**Demandes de cotation */
@@ -209,7 +213,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
       form.reset(defaultValues);
       const commandId = form.getValues("commandRequestId");
       if (commandId && cmdRqstData.data) {
-        const command = cmdRqstData.data.data.find(c => c.id === commandId);
+        const command = cmdRqstData.data.data.find((c) => c.id === commandId);
         setSelectedNeeds(command?.besoins || []);
       }
       setPreviousCommandId(commandId);
@@ -223,14 +227,19 @@ function CreateQuotation({ quotation, openChange }: Props) {
     // Vérifier si la commande a réellement changé
     if (currentCommandId !== previousCommandId) {
       if (currentCommandId && cmdRqstData.data) {
-        const command = cmdRqstData.data.data.find(c => c.id === currentCommandId);
+        const command = cmdRqstData.data.data.find(
+          (c) => c.id === currentCommandId,
+        );
         setSelectedNeeds(command?.besoins || []);
       } else {
         setSelectedNeeds([]);
       }
 
       // Réinitialiser seulement si c'est une nouvelle sélection
-      if (previousCommandId !== undefined && currentCommandId !== previousCommandId) {
+      if (
+        previousCommandId !== undefined &&
+        currentCommandId !== previousCommandId
+      ) {
         // Réinitialiser le fournisseur
         if (form.getValues("providerId") !== undefined) {
           form.setValue("providerId", undefined as any);
@@ -265,38 +274,47 @@ function CreateQuotation({ quotation, openChange }: Props) {
     ) ?? [];
 
   // Fonction pour gérer l'édition d'un élément
-  const handleEditElement = useCallback((index: number) => {
-    const elements = form.getValues("elements");
-    if (index >= 0 && index < elements.length) {
-      setEditingElement(elements[index]);
-      setEditingIndex(index);
-      setOpen(true);
-    }
-  }, [form]);
+  const handleEditElement = useCallback(
+    (index: number) => {
+      const elements = form.getValues("elements");
+      if (index >= 0 && index < elements.length) {
+        setEditingElement(elements[index]);
+        setEditingIndex(index);
+        setOpen(true);
+      }
+    },
+    [form],
+  );
 
   // Fonction pour gérer la suppression d'un élément
-  const handleDeleteElement = useCallback((index: number) => {
-    const currentElements = form.getValues("elements");
-    const newElements = [...currentElements];
-    newElements.splice(index, 1);
-    form.setValue("elements", newElements);
+  const handleDeleteElement = useCallback(
+    (index: number) => {
+      const currentElements = form.getValues("elements");
+      const newElements = [...currentElements];
+      newElements.splice(index, 1);
+      form.setValue("elements", newElements);
 
-    // Si on supprime l'élément en cours d'édition
-    if (editingIndex === index) {
-      setEditingIndex(null);
-      setEditingElement(null);
-    } else if (editingIndex !== null && editingIndex > index) {
-      setEditingIndex(editingIndex - 1);
-    }
-  }, [form, editingIndex]);
+      // Si on supprime l'élément en cours d'édition
+      if (editingIndex === index) {
+        setEditingIndex(null);
+        setEditingElement(null);
+      } else if (editingIndex !== null && editingIndex > index) {
+        setEditingIndex(editingIndex - 1);
+      }
+    },
+    [form, editingIndex],
+  );
 
   // Fonction pour gérer la mise à jour des éléments depuis AddElement
-  const handleElementsChange = useCallback((newElements: any[]) => {
-    form.setValue("elements", newElements);
-    setEditingIndex(null);
-    setEditingElement(null);
-    setOpen(false);
-  }, [form]);
+  const handleElementsChange = useCallback(
+    (newElements: any[]) => {
+      form.setValue("elements", newElements);
+      setEditingIndex(null);
+      setEditingElement(null);
+      setOpen(false);
+    },
+    [form],
+  );
 
   if (
     cmdRqstData.isLoading ||
@@ -330,16 +348,25 @@ function CreateQuotation({ quotation, openChange }: Props) {
                     allLabel=""
                     options={
                       cmdRqstData.data.data
-                        .filter(
-                          (w) =>
-                            !quotationsData.data.data
-                              .filter(
-                                (c) =>
-                                  c.status === "APPROVED" ||
-                                  c.status === "REJECTED",
-                              )
-                              .some((d) => d.commandRequestId === w.id),
-                        )
+                        .filter((request) => {
+                          // 1. On récupère tous les IDs des besoins rattachés à cette demande de cotation
+                          const allBesoinIds = request.besoins.map((b) => b.id);
+
+                          // 2. On récupère les IDs des besoins qui ont déjà été validés (SELECTED) dans des devis existants
+                          const validatedBesoinIds = quotationsData.data.data
+                            .filter((q) => q.commandRequestId === request.id) // Uniquement les devis de cette demande
+                            .flatMap((q) => q.element || []) // On aplatit tous les éléments des devis
+                            .filter((el) => el.status === "SELECTED") // Uniquement ceux qui sont validés
+                            .map((el) => el.requestModelId); // On récupère l'ID du besoin d'origine
+
+                          // 3. On garde la demande SEULEMENT S'IL RESTE au moins un besoin
+                          // qui n'est pas encore présent dans la liste des besoins validés.
+                          const isFullyProcessed = allBesoinIds.every((id) =>
+                            validatedBesoinIds.includes(id),
+                          );
+
+                          return !isFullyProcessed;
+                        })
                         .map((request) => ({
                           label: `${request.title} - ${request.reference}`,
                           value: request.id.toString(),
@@ -563,13 +590,16 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                     <button
                                       type="button"
                                       className="inline-flex items-center gap-1.5 w-full justify-between text-left truncate cursor-pointer"
-                                      onClick={() => handleEditElement(item.globalIndex)}
+                                      onClick={() =>
+                                        handleEditElement(item.globalIndex)
+                                      }
                                     >
                                       <span className="truncate">
-                                        {`${item.designation} - ${item.quantity
-                                          } ${item.unit} - ${XAF.format(
-                                            item.price,
-                                          )}`}
+                                        {`${item.designation} - ${
+                                          item.quantity
+                                        } ${item.unit} - ${XAF.format(
+                                          item.price,
+                                        )}`}
                                       </span>
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
                                         {"Modifier"}
@@ -578,7 +608,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                     <X
                                       size={20}
                                       className="text-destructive cursor-pointer"
-                                      onClick={() => handleDeleteElement(item.globalIndex)}
+                                      onClick={() =>
+                                        handleDeleteElement(item.globalIndex)
+                                      }
                                     />
                                   </div>
                                 ))}
@@ -613,7 +645,13 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           }
                           setOpen(state);
                         }}
-                        needs={selectedNeeds}
+                        needs={selectedNeeds.filter(n=>{
+                          const validatedBesoinIds = quotationsData.data.data
+                            .flatMap((q) => q.element || []) // On aplatit tous les éléments des devis
+                            .filter((el) => el.status === "SELECTED") // Uniquement ceux qui sont validés
+                            .map((el) => el.requestModelId); // On récupère l'ID du besoin d'origine
+                            return !validatedBesoinIds.includes(n.id);
+                        })}
                         value={field.value}
                         onChange={handleElementsChange}
                         element={editingElement}

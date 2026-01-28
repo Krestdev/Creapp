@@ -216,7 +216,7 @@
 /* scroll bar edit */
 /* Add this to your global CSS */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
   height: 8px;
 }
 
@@ -227,7 +227,7 @@
 
 ::-webkit-scrollbar-thumb {
   background: #9e1348; /* Tailwind: bg-gray-400 */
-  border-radius: 0px; /* Fully rounded */
+  border-radius: 9999px; /* Fully rounded */
 }
 
 ::-webkit-scrollbar-thumb:hover {

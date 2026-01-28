@@ -225,13 +225,13 @@ export function DataVal({
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
+      const myApproval = b.validators.find((v) => v.userId === user?.id);
       //Selected Tab
       const matchTab =
         selectedTab === 0
-          ? b.state === "pending" &&
-            b.validators.find((v) => v.userId === user?.id)?.validated === false
+          ? myApproval?.validated === false && b.state !== "rejected"
           : selectedTab === 1 &&
-            b.validators.find((v) => v.userId === user?.id)?.validated === true;
+            myApproval?.validated === true;
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : b.state === statusFilter;
