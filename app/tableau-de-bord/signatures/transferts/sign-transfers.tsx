@@ -1,90 +1,90 @@
 "use client";
 import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+    type ColumnDef,
+    type ColumnFiltersState,
+    type SortingState,
+    type VisibilityState,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, CheckCircleIcon, ChevronDown, ClipboardPenIcon, Eye, Pencil, Settings2 } from "lucide-react";
+import {
+    ArrowRightIcon,
+    ArrowUpDown,
+    ChevronDown,
+    Eye,
+    Pencil,
+    Settings2
+} from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
 } from "@/components/ui/sheet";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
+import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
-  Bank,
-  DateFilter,
-  PayType,
-  Transaction,
-  TRANSACTION_STATUS,
-  TransferTransaction
+    Bank,
+    DateFilter,
+    PayType,
+    Transaction,
+    TransferTransaction
 } from "@/types/types";
-import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import ViewTransaction from "../view-transaction";
-import CompleteTransfer from "./complete-transfer";
-import { EditTransferDialog } from "./updateDialog";
-import RequestSign from "./requestSign";
+import ViewTransaction from "../../banques/transactions/view-transaction";
 
 interface Props {
-  data: Array<Transaction>;
+  data: Array<TransferTransaction>;
   banks: Array<Bank>;
   paymentMethods: Array<PayType>;
 }
 
-
-function TransferTable({ data, banks, paymentMethods }: Props) {
+function SignTransfers({ data, banks, paymentMethods }: Props) {
   const { user } = useStore();
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -95,7 +95,6 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
   const [toSign, setToSign] = React.useState<boolean>(false);
-  const [complete, setComplete] = React.useState<boolean>(false);
 
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [amountFilter, setAmountFilter] = React.useState<number>(0);
@@ -108,30 +107,8 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
   const [statusFilter, setStatusFilter] = React.useState<
-    "all" | Transaction["status"]
+    "all" | "true" | "false"
   >("all");
-
-  const getBadge = (
-    status: Transaction["status"]
-  ): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } => {
-    const label =
-      TRANSACTION_STATUS.find((t) => t.value === status)?.name ?? "Inconnu";
-    switch (status) {
-      case "APPROVED":
-        return { label, variant: "success" };
-      case "REJECTED":
-        return { label, variant: "destructive" };
-      case "PENDING":
-        return { label, variant: "amber" };
-      case "ACCEPTED":
-        return { label, variant: "sky" };
-      default:
-        return { label, variant: "outline" };
-    }
-  };
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -148,95 +125,83 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
   };
 
   const filteredData = React.useMemo(() => {
-    return data.filter((transaction) => {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      const search = searchFilter.toLowerCase();
-      //Status Filter
-      const matchStatus =
-        statusFilter === "all" ? true : transaction.status === statusFilter;
-      // Bank Filter - selon le type de transaction
-      let matchBank = bankFilter === "all" ? true : false;
-      // Search Filter
-      const matchSearch =
-      search.trim() === "" ? true :
-      transaction.id.toString().toLocaleLowerCase().includes(search) ||
-      transaction.label.toLocaleLowerCase().includes(search) ||
-      transaction.amount.toString().includes(search) ||
-      transaction.to.label.toLocaleLowerCase().includes(search) ||
-      transaction.from.label.toLocaleLowerCase().includes(search)
-
-      if (bankFilter !== "all") {
-        // Vérifier selon le type de transaction
-        switch (transaction.Type) {
-          case "DEBIT":
-            // Pour DEBIT, 'from' est une Bank
-            matchBank = transaction.from.id.toString() === bankFilter;
-            break;
-
-          case "CREDIT":
-            // Pour CREDIT, 'to' est une Bank
-            matchBank = transaction.to.id.toString() === bankFilter;
-            break;
-
-          case "TRANSFER":
-            // Pour TRANSFER, les deux sont des Banks
-            matchBank =
-              transaction.from.id.toString() === bankFilter ||
+    return data
+      .filter((transaction) => {
+        const now = new Date();
+        let startDate = new Date();
+        let endDate = now;
+        const search = searchFilter.toLowerCase();
+        //Status Filter
+        const matchStatus =
+          statusFilter === "all" ? true : String(transaction.isSigned) === statusFilter;
+        // Bank Filter - selon le type de transaction
+        let matchBank =
+          bankFilter === "all"
+            ? true
+            : transaction.from.id.toString() === bankFilter ||
               transaction.to.id.toString() === bankFilter;
-            break;
+        // Search Filter
+        const matchSearch =
+          search.trim() === ""
+            ? true
+            : transaction.id.toString().toLocaleLowerCase().includes(search) ||
+              transaction.label.toLocaleLowerCase().includes(search) ||
+              transaction.amount.toString().includes(search) ||
+              transaction.to.label.toLocaleLowerCase().includes(search) ||
+              transaction.from.label.toLocaleLowerCase().includes(search);
 
-          default:
-            matchBank = false;
-        }
-      }
-      // Filter amount
-      const matchAmount =
-        amountTypeFilter === "greater"
-          ? transaction.amount > amountFilter
-          : amountTypeFilter === "equal"
-            ? transaction.amount === amountFilter
-            : transaction.amount < amountFilter;
+        // Filter amount
+        const matchAmount =
+          amountTypeFilter === "greater"
+            ? transaction.amount > amountFilter
+            : amountTypeFilter === "equal"
+              ? transaction.amount === amountFilter
+              : transaction.amount < amountFilter;
 
-      // Filtre par date
-      let matchDate = true;
-      if (dateFilter) {
-        switch (dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (customDateRange?.from && customDateRange?.to) {
-              startDate = customDateRange.from;
-              endDate = customDateRange.to;
-            }
-            break;
-        }
+        // Filtre par date
+        let matchDate = true;
+        if (dateFilter) {
+          switch (dateFilter) {
+            case "today":
+              startDate.setHours(0, 0, 0, 0);
+              break;
+            case "week":
+              startDate.setDate(
+                now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+              );
+              startDate.setHours(0, 0, 0, 0);
+              break;
+            case "month":
+              startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+              break;
+            case "year":
+              startDate = new Date(now.getFullYear(), 0, 1);
+              break;
+            case "custom":
+              if (customDateRange?.from && customDateRange?.to) {
+                startDate = customDateRange.from;
+                endDate = customDateRange.to;
+              }
+              break;
+          }
 
-        if (
-          dateFilter !== "custom" ||
-          (customDateRange?.from && customDateRange?.to)
-        ) {
-          matchDate =
-            transaction.createdAt >= startDate &&
-            transaction.createdAt <= endDate;
+          if (
+            dateFilter !== "custom" ||
+            (customDateRange?.from && customDateRange?.to)
+          ) {
+            matchDate =
+              transaction.createdAt >= startDate &&
+              transaction.createdAt <= endDate;
+          }
         }
-      }
-      return matchStatus && matchDate && matchAmount && matchBank && matchSearch;
-    }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        return (
+          matchStatus && matchDate && matchAmount && matchBank && matchSearch
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      );
   }, [
     data,
     dateFilter,
@@ -245,42 +210,10 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
     amountTypeFilter,
     statusFilter,
     bankFilter,
-    searchFilter
+    searchFilter,
   ]);
 
-  const canComplete = (transaction: Transaction): boolean => {
-    if(transaction.Type !== "TRANSFER") return false;
-    if(transaction.status === "ACCEPTED"){
-      if(transaction.from.type === "BANK"){
-        if(transaction.to.type === "BANK"){
-          return !!transaction.isSigned;
-        }
-        return true;
-      }
-      return true;
-    }
-    return false;
-  }
-
-  const columns: ColumnDef<Transaction>[] = [
-    {
-      accessorKey: "id",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Référence"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original.id;
-        return <span>{`TR-${value}`}</span>;
-      },
-    },
+  const columns: ColumnDef<TransferTransaction>[] = [
     {
       accessorKey: "label",
       header: ({ column }) => {
@@ -314,15 +247,8 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.amount;
-        const type = row.original.Type;
         return (
           <span
-            className={cn(
-              "font-bold",
-              type === "CREDIT"
-                ? "text-green-600"
-                : type === "DEBIT" && "text-red-600"
-            )}
           >
             {XAF.format(value)}
           </span>
@@ -337,76 +263,33 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Source"}
+            {"Mouvement"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
         const source = row.original.from;
-        return <span>{source.label}</span>;
+        const destination = row.original.to
+        return <span className="flex items-center gap-1.5">{source.label}<ArrowRightIcon size={12} />{destination.label}</span>;
       },
     },
     {
-      id: "to",
+      id: "documentType",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Destination"}
+            {"Type de document"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
-        const target = row.original.to;
-        return <span>{target.label}</span>;
-      },
-    },
-    {
-      accessorKey: "createdAt",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Date demande"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original.createdAt;
-        return (
-          <span>
-            {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
-          </span>
-        );
-      },
-    },
-    {
-      accessorKey: "date",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Date transaction"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original.date;
-        return (
-          <span>
-            {row.original.status === "APPROVED" ? format(new Date(value), "dd MMMM yyyy, p", { locale: fr }) : "-"}
-          </span>
-        );
+        const method = row.original.method;
+        return <span>{method?.label ?? "Non défini"}</span>;
       },
     },
     {
@@ -423,9 +306,8 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = row.original.status;
-        const { variant, label } = getBadge(value);
-        return <Badge variant={variant}>{label}</Badge>;
+        const value = row.original.isSigned;
+        return <Badge variant={value === true ? "success" : "destructive"}>{value === true ? "Signé" : "Non signé"}</Badge>;
       },
     },
     {
@@ -455,37 +337,14 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={item.status !== "PENDING"}
-                onClick={() => {
-                  setSelected(item);
-                  setEdit(true);
-                }}
-              >
-                <Pencil />
-                {"Modifier"}
-              </DropdownMenuItem>
-              {
-                item.Type === "TRANSFER" && item.from.type === "BANK" && item.to.type === "BANK" &&
-                <DropdownMenuItem
-                disabled={ item.status !== "ACCEPTED" || !!item.methodId}
+                disabled={item.isSigned === true}
                 onClick={() => {
                   setSelected(item);
                   setToSign(true);
                 }}
               >
-                <ClipboardPenIcon />
-                {"Demander une signature"}
-              </DropdownMenuItem>
-              }
-              <DropdownMenuItem
-                disabled={!canComplete(item)}
-                onClick={() => {
-                  setSelected(item);
-                  setComplete(true);
-                }}
-              >
-                <CheckCircleIcon className="text-green-600" />
-                {"Exécuter le transfert"}
+                <Pencil />
+                {"Signer"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -563,7 +422,7 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                 <Select
                   value={statusFilter}
                   onValueChange={(v) =>
-                    setStatusFilter(v as "all" | Transaction["status"])
+                    setStatusFilter(v as "all" | "true" | "false")
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -571,31 +430,29 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                    {TRANSACTION_STATUS.map((t, id) => (
-                      <SelectItem key={id} value={t.value}>
-                        {t.name}
+                      <SelectItem  value={"true"}>
+                        {"Signé"}
                       </SelectItem>
-                    ))}
+                      <SelectItem  value={"false"}>
+                        {"Non signé"}
+                      </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               {/* Filter par Compte(Bank) */}
               <div className="grid gap-1.5">
                 <Label>{"Compte"}</Label>
-                <Select
-                  value={bankFilter}
-                  onValueChange={setBankFilter}
-                >
+                <Select value={bankFilter} onValueChange={setBankFilter}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Sélectionner un Compte" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {
-                      banks.map((bank) => (
-                        <SelectItem key={bank.id} value={String(bank.id)}>{bank.label}</SelectItem>
-                      ))
-                    }
+                    {banks.map((bank) => (
+                      <SelectItem key={bank.id} value={String(bank.id)}>
+                        {bank.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -674,9 +531,9 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                            customDateRange.from,
-                            "dd/MM/yyyy"
-                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy",
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -757,10 +614,6 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                         ? "Destination"
                         : column.id === "proof"
                           ? "Preuve"
-                          : column.id === "createdAt"
-                            ? "Date demande"
-                            : column.id === "date"
-                              ? "Date transaction"
                               : column.id === "amount"
                                 ? "Montant"
                                 : column.id === "label"
@@ -789,9 +642,9 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -812,7 +665,7 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -833,26 +686,12 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
       </div>
 
       <Pagination table={table} />
-      {selected && (
-        <>
-          <ViewTransaction
-            transaction={selected}
-            open={view}
-            openChange={setView}
-          />
-
-          <EditTransferDialog
-            open={edit}
-            onOpenChange={setEdit}
-            transfer={selected}
-          />
-        </>
-      )}
-      {/* {selected && <EditTransaction transaction={selected} open={edit} openChange={setEdit} />} */}
-      {selected && <CompleteTransfer transaction={selected as TransferTransaction} open={complete} openChange={setComplete} />}
-      {selected && <RequestSign transaction={selected as TransferTransaction} open={toSign} openChange={setToSign} paymentMethods={paymentMethods} />}
+      {
+        selected && 
+        <ViewTransaction open={view} openChange={setView} transaction={selected} />
+      }
     </div>
   );
 }
 
-export default TransferTable;
+export default SignTransfers;

@@ -15,12 +15,10 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { Select, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { paymentMethods } from "@/data/payment-methods";
+import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { transactionQ } from "@/queries/transaction";
 import { PayType, TransferTransaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SelectContent } from "@radix-ui/react-select";
 import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -40,7 +38,7 @@ const formSchema = z.object({
 
 type FormValue = z.infer<typeof formSchema>;
 
-function RequestSign({ open, openChange, transaction }: Props) {
+function RequestSign({ open, openChange, transaction, paymentMethods }: Props) {
 
   const form = useForm<FormValue>({
     resolver: zodResolver(formSchema),
@@ -66,6 +64,7 @@ function RequestSign({ open, openChange, transaction }: Props) {
     },
   });
   const onSubmit = (value: FormValue): void => {
+    console.log(value);
     initiateSign.mutate({
       id: transaction.id,
       methodId: Number(value.methodId)
@@ -74,13 +73,13 @@ function RequestSign({ open, openChange, transaction }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent>
         <DialogHeader variant={"default"}>
           <DialogTitle>{`Demande de signature - ${transaction.label}`}</DialogTitle>
           <DialogDescription>{`Sélectionnez une méthode de paiement pour demander la signature du transfert.`}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="methodId"
@@ -89,12 +88,12 @@ function RequestSign({ open, openChange, transaction }: Props) {
                   <FormLabel isRequired>{"Méthode de paiement"}</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                             <SelectValue placeholder="Sélectionner une méthode de paiement" />
                         </SelectTrigger>
                         <SelectContent>
-                            {paymentMethods.map(m=>(
-                                <SelectItem key={m.value} value={m.value}>{m.title}</SelectItem>
+                            {paymentMethods.filter(o=> !o.label?.toLocaleLowerCase().includes("esp")).map(m=>(
+                                <SelectItem key={m.id} value={m.id.toString()}>{m.label}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>

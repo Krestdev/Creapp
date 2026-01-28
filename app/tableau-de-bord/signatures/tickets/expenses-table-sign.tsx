@@ -67,7 +67,7 @@ import {
   Transaction,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
-import ViewExpense from "../(volt)/depenses/view-expense";
+import ViewExpense from "../../(volt)/depenses/view-expense";
 import { useMemo } from "react";
 import SignExpense from "./sign-expense";
 

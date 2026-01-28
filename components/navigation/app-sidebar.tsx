@@ -462,11 +462,25 @@ function AppSidebar() {
         ],
       },
       {
-        pageId: "PG-00001",
+        pageId: "PG-0000551",
         title: "Signatures",
         href: "/tableau-de-bord/signatures",
         authorized: [],
         icon: SignatureIcon,
+        items: [
+          {
+            pageId: "PG-0000551-01",
+            title: "Tickets",
+            href: "/tableau-de-bord/signatures/tickets",
+            authorized: [],
+          },
+          {
+            pageId: "PG-0000551-02",
+            title: "Transferts",
+            href: "/tableau-de-bord/signatures/transferts",
+            authorized: [],
+          },
+        ]
       },
       {
         pageId: "PG-56489713246",
@@ -506,11 +520,6 @@ function AppSidebar() {
 
     // Filtrer les liens de navigation selon les rôles de l'utilisateur
     const filteredNavLinks = navLinks.filter((navLink) => {
-      const signPage = navLink.pageId === "PG-00001";
-      const canSign = signatories.data?.data.find((s) =>
-        s.user?.some((o) => o.id === user?.id),
-      );
-      if (signPage) return !!canSign;
       if (navLink.authorized.length === 0) return true;
       return navLink.authorized.some((role) => userRoles.includes(role));
     });
@@ -527,8 +536,9 @@ function AppSidebar() {
             <NavigationItem
               key={id}
               {...props}
-              items={items?.filter((item) =>
-                item.authorized.some((role) => userRoles.includes(role)),
+              items={items?.filter((item) =>{
+                if(item.authorized.length === 0) return true;
+                return item.authorized.some((role) => userRoles.includes(role))},
               )}
             />
           ))}

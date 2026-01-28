@@ -24,6 +24,7 @@ import {
   ArrowUpToLineIcon,
   Calendar,
   CircleHelpIcon,
+  ClipboardPenIcon,
   DollarSign,
   FileIcon,
   LucideHash,
@@ -175,6 +176,24 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
               </p>
             </div>
           </div>
+
+          {/** Signed */}
+          {
+            transaction.Type === "TRANSFER" &&
+            <div className="view-group">
+            <span className="view-icon">
+              <ClipboardPenIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Signature"}</p>
+              <p className="font-semibold">
+                <Badge variant={transaction.isSigned === true ? "success" : "amber"}>
+                  {transaction.isSigned === true ? "Signé" : "En attente"}
+                </Badge>
+              </p>
+            </div>
+          </div>
+          }
 
           {/** Source */}
           <div className="view-group">
