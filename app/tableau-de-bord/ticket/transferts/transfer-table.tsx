@@ -146,8 +146,7 @@ function TransferTable({ data }: Props) {
         selectedTab === 0
           ? transaction.Type === "TRANSFER" && transaction.status === "PENDING"
           : (transaction.Type === "TRANSFER" &&
-              transaction.status === "APPROVED") ||
-            transaction.status === "REJECTED";
+              transaction.status !== "PENDING")
 
       // Filter amount
       const matchAmount =
