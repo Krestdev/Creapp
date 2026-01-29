@@ -191,8 +191,8 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Signature"}</p>
                 <p className="font-semibold">
-                  <Badge variant={transaction.signers?.some(x=> x.userId === user?.id && x.signed === true) ? "success" : "amber"}>
-                    {transaction.signers?.some(x=> x.userId === user?.id && x.signed === true) ? "Signé" : "En attente"}
+                  <Badge variant={transaction.isSigned === true ? "success" : "amber"}>
+                    {transaction.isSigned === true ? "Signé" : "En attente"}
                   </Badge>
                 </p>
               </div>
