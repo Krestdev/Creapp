@@ -60,6 +60,7 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
+  ArrowRightIcon,
   ArrowUpDown,
   CheckCircleIcon,
   ChevronDown,
@@ -70,6 +71,7 @@ import React from "react";
 import { toast } from "sonner";
 import RejectDialog from "./reject-dialog";
 import { TabBar } from "@/components/base/TabBar";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   data: Array<Transaction>;
@@ -289,32 +291,15 @@ function TransferTable({ data }: Props) {
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Source"}
+            {"Mouvement"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
         const source = row.original.from;
-        return <span>{source.label}</span>;
-      },
-    },
-    {
-      id: "to",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Destination"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const target = row.original.to;
-        return <span>{target.label}</span>;
+        const destination = row.original.to
+        return <span className="flex items-center gap-1.5">{source.label}<ArrowRightIcon size={12} />{destination.label}</span>;
       },
     },
     {
@@ -336,6 +321,28 @@ function TransferTable({ data }: Props) {
           <span>
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
           </span>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Statut"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.status;
+        return (
+          <Badge variant={value === "PENDING" ? "amber" : value === "REJECTED" ? "destructive" : "success"}>
+            {value === "PENDING" ? "En attente" : value === "REJECTED" ? "Rejeté" : "Approuvé"}
+          </Badge>
         );
       },
     },
@@ -607,7 +614,7 @@ function TransferTable({ data }: Props) {
                       }
                     >
                       {column.id === "from"
-                        ? "Source"
+                        ? "Mouvement"
                         : column.id === "to"
                           ? "Destination"
                           : column.id === "proof"

@@ -621,6 +621,15 @@ export type Bank = {
   updatedAt?: Date;
 };
 
+export type TransactionSigners = {
+    id: number;
+    userId: number;
+    user: User;
+    transactionId: number;
+    signed: boolean;
+    signedAt: Date;
+}
+
 export const TRANSACTION_TYPES = [
   { value: "CREDIT", name: "Crédit" },
   { value: "DEBIT", name: "Débit" },
@@ -672,7 +681,7 @@ export type TransferTransaction = TransactionBase & {
   to: Bank;
   payement?: PaymentRequest | null;
   isSigned: boolean;
-  signerId?: number | null;
+  signers?: Array<TransactionSigners>;
   signDoc?: string;
 };
 

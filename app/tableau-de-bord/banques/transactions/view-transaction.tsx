@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { XAF } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
 import {
   Transaction,
   TRANSACTION_STATUS,
@@ -29,6 +30,7 @@ import {
   FileIcon,
   LucideHash,
   Tag,
+  UsersIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -40,6 +42,7 @@ interface Props {
 }
 
 function ViewTransaction({ open, openChange, transaction }: Props) {
+  const { user } = useStore();
   const getSourceDetails = (source: Transaction["from"]) => {
     const details = [];
     if ("accountNumber" in source && source.accountNumber) {
@@ -180,19 +183,42 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
           {/** Signed */}
           {
             transaction.Type === "TRANSFER" &&
-            <div className="view-group">
-            <span className="view-icon">
-              <ClipboardPenIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Signature"}</p>
-              <p className="font-semibold">
-                <Badge variant={transaction.isSigned === true ? "success" : "amber"}>
-                  {transaction.isSigned === true ? "Signé" : "En attente"}
-                </Badge>
-              </p>
+            <>
+              <div className="view-group">
+              <span className="view-icon">
+                <ClipboardPenIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Signature"}</p>
+                <p className="font-semibold">
+                  <Badge variant={transaction.signers?.some(x=> x.userId === user?.id && x.signed === true) ? "success" : "amber"}>
+                    {transaction.signers?.some(x=> x.userId === user?.id && x.signed === true) ? "Signé" : "En attente"}
+                  </Badge>
+                </p>
+              </div>
             </div>
-          </div>
+              <div className="view-group">
+              <span className="view-icon">
+                <UsersIcon />
+              </span>
+              <div className="w-full flex flex-col">
+                <p className="view-group-title">{"Signataires"}</p>
+                <div className="w-full grid gap-2">
+                  {
+                    transaction.signers?.length === 0 || !transaction.signers ?
+                    <p className="text-sm">{"Aucune signature enregistrée"}</p>
+                    :
+                    transaction.signers.map(u=>
+                      <div key={u.id} className="w-full px-3 py-1.5 rounded-sm border border-green-200 bg-green-50 text-gray-400 flex flex-col">
+                        <p className="text-sm font-medium text-green-600">{u.user.firstName.concat(" ", u.user.lastName)}</p>
+                        <span className="text-xs">{`Signé le ${format(new Date(u.signedAt), "dd MMM yyyy, p", {locale: fr})}`}</span>
+                      </div>
+                    )
+                  }
+                </div>
+              </div>
+            </div>
+            </>
           }
 
           {/** Source */}

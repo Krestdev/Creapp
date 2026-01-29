@@ -1,5 +1,4 @@
 "use client";
-import { TabBar } from "@/components/base/TabBar";
 import {
     StatisticCard,
     StatisticProps,
@@ -7,15 +6,14 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
 import { payTypeQ } from "@/queries/payType";
 import { signatairQ } from "@/queries/signatair";
 import { transactionQ } from "@/queries/transaction";
-import { Transaction, TransferTransaction } from "@/types/types";
+import { TransferTransaction } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import SignTransfers from "./sign-transfers";
 
 function Page() {
@@ -56,8 +54,9 @@ function Page() {
     
   }, [data, signatair.data, user?.id]);
 
-  const unsigned = filteredData.filter(t=> !t.isSigned );
-  const signed = filteredData.filter(t=> t.isSigned);
+  const unsigned = filteredData.filter(t=> t.signers?.find(s=> s.userId === user?.id)?.signed === false );
+  const signed = filteredData.filter(t=> t.signers?.find(s=> s.userId === user?.id)?.signed === true);
+  const signedByOthers = filteredData.filter(t=> t.isSigned === true && t.signers?.find(s=> s.userId === user?.id)?.signed === false);
 
   const statistics: Array<StatisticProps> = [
       {
@@ -69,6 +68,10 @@ function Page() {
         title: "Signés",
         value: signed.length,
         variant: "success",
+        more: {
+          title: "Signé par un autre signataire",
+          value: signedByOthers.length
+        }
       },
     ];
 

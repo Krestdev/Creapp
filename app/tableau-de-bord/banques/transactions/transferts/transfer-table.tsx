@@ -592,7 +592,7 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
                     {
-                      banks.map((bank) => (
+                      banks.filter(b=> !!b.type).map((bank) => (
                         <SelectItem key={bank.id} value={String(bank.id)}>{bank.label}</SelectItem>
                       ))
                     }

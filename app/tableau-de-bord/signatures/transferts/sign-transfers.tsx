@@ -2,14 +2,13 @@
 import {
     type ColumnDef,
     type ColumnFiltersState,
-    type SortingState,
     type VisibilityState,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
-    useReactTable,
+    useReactTable
 } from "@tanstack/react-table";
 import {
     ArrowRightIcon,
@@ -22,6 +21,7 @@ import {
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
+import { TabBar } from "@/components/base/TabBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -69,11 +69,11 @@ import {
     Bank,
     DateFilter,
     PayType,
-    Transaction,
     TransferTransaction
 } from "@/types/types";
 import { format } from "date-fns";
 import ViewTransaction from "../../banques/transactions/view-transaction";
+import SignTransfer from "./signTransfer";
 
 interface Props {
   data: Array<TransferTransaction>;
@@ -91,9 +91,8 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [searchFilter, setSearchFilter] = React.useState("");
-  const [selected, setSelected] = React.useState<Transaction>();
+  const [selected, setSelected] = React.useState<TransferTransaction>();
   const [view, setView] = React.useState<boolean>(false);
-  const [edit, setEdit] = React.useState<boolean>(false);
   const [toSign, setToSign] = React.useState<boolean>(false);
 
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -106,9 +105,19 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
     { from: Date; to: Date } | undefined
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-  const [statusFilter, setStatusFilter] = React.useState<
-    "all" | "true" | "false"
-  >("all");
+
+  const [selectedTab, setSelectedTab] = React.useState<number>(0);
+    const tabs = [
+      {
+        id: 0,
+        title: "En attente",
+        badge: data.filter(t=> t.signers?.find(s=> s.userId === user?.id)?.signed === false ).length,
+      },
+      {
+        id: 1,
+        title: "Signés",
+      },
+    ];
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -120,7 +129,6 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
     setAmountTypeFilter("greater");
     setGlobalFilter("");
     setSearchFilter("");
-    setStatusFilter("all");
     setBankFilter("all");
   };
 
@@ -131,9 +139,10 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
         let startDate = new Date();
         let endDate = now;
         const search = searchFilter.toLowerCase();
-        //Status Filter
-        const matchStatus =
-          statusFilter === "all" ? true : String(transaction.isSigned) === statusFilter;
+        //Tab Filter
+        const matchTab =
+          selectedTab === 0 ? transaction.signers?.find(u=>u.userId === user?.id)?.signed === false && transaction.isSigned === false :
+          transaction.signers?.find(u=>u.userId === user?.id)?.signed === true
         // Bank Filter - selon le type de transaction
         let matchBank =
           bankFilter === "all"
@@ -195,7 +204,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
           }
         }
         return (
-          matchStatus && matchDate && matchAmount && matchBank && matchSearch
+          matchTab && matchDate && matchAmount && matchBank && matchSearch
         );
       })
       .sort(
@@ -208,9 +217,10 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
     customDateRange,
     amountFilter,
     amountTypeFilter,
-    statusFilter,
     bankFilter,
     searchFilter,
+    user?.id,
+    selectedTab
   ]);
 
   const columns: ColumnDef<TransferTransaction>[] = [
@@ -306,7 +316,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = row.original.isSigned;
+        const value = !!row.original.signers?.some(x=> x.userId === user?.id && x.signed === true);
         return <Badge variant={value === true ? "success" : "destructive"}>{value === true ? "Signé" : "Non signé"}</Badge>;
       },
     },
@@ -417,28 +427,6 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
                   className="max-w-sm"
                 />
               </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="statusFilter">{"Statut"}</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(v) =>
-                    setStatusFilter(v as "all" | "true" | "false")
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                      <SelectItem  value={"true"}>
-                        {"Signé"}
-                      </SelectItem>
-                      <SelectItem  value={"false"}>
-                        {"Non signé"}
-                      </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               {/* Filter par Compte(Bank) */}
               <div className="grid gap-1.5">
                 <Label>{"Compte"}</Label>
@@ -448,7 +436,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {banks.map((bank) => (
+                    {banks.filter(b=> !!b.type).map((bank) => (
                       <SelectItem key={bank.id} value={String(bank.id)}>
                         {bank.label}
                       </SelectItem>
@@ -627,7 +615,8 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Transactions (${data.length})`}</h3>
+      <TabBar tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+      <h3>{`Demandes (${filteredData.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -688,7 +677,10 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
       <Pagination table={table} />
       {
         selected && 
+        <>
         <ViewTransaction open={view} openChange={setView} transaction={selected} />
+        <SignTransfer open={toSign} onOpenChange={setToSign} transfer={selected} />
+        </>
       }
     </div>
   );

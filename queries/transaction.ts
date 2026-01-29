@@ -154,6 +154,23 @@ class TransactionQuery {
       .then((response) => response.data);
   };
 
+
+  sign = async ({
+    id,
+    signDoc
+  }: {
+    id: number;
+    signDoc: File
+  }): Promise<{ data: Transaction }> => {
+    const formData = new FormData();
+    formData.append("signDoc", signDoc);
+    return api
+      .put(`${this.route}/sign/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => response.data);
+  };
+
   createTransaction = async (
     data: TransferProps,
   ): Promise<{ data: Transaction }> => {
