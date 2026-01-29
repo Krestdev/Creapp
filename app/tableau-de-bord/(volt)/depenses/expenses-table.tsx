@@ -299,13 +299,13 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       id: 0,
       title: "Tickets en attente",
       badge: payments.filter(
-        (p) => p.status === "pending_depense" || p.status === "validated",
+        (p) => p.status === "validated",
       ).length,
     },
     {
       id: 1,
       title: "Tickets traités",
-      badge: payments.filter((p) => p.status === "signed" || p.status === "simple_signed").length,
+      badge: payments.filter((p) => p.status === "pending_depense" || p.status === "signed" || p.status === "simple_signed").length,
     },
     {
       id: 2,
@@ -325,16 +325,17 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       //Filter provider
       const matchProvider =
         providerFilter === "all" ? true :
-        providerFilter === "no-provider" ? p.commandId === null :
-          purchases.find(c => c.id === p.commandId)?.providerId === Number(providerFilter);
+          providerFilter === "no-provider" ? p.commandId === null :
+            purchases.find(c => c.id === p.commandId)?.providerId === Number(providerFilter);
       //Filter tab
       const matchTab =
         selectedTab === 0
-          ? p.status === "pending_depense" ||
-          p.status === "validated" ||
+          ? p.status === "validated" ||
           p.status === "unsigned"
           : selectedTab === 1
-            ? (p.status === "signed" || p.status === "simple_signed")
+            ? p.status === "pending_depense" ||
+            p.status === "signed" ||
+            p.status === "simple_signed"
             : p.status === "paid";
       //Filter type
       const matchType = typeFilter === "all" ? true : p.type === typeFilter;
@@ -565,7 +566,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
               {selectedTab === 1 && (
                 <>
                   <DropdownMenuItem
-                    disabled={item.status !== "signed" && item.status !== "simple_signed"}
+                    disabled={item.status !== "pending_depense" && item.status !== "signed" && item.status !== "simple_signed"}
                     onClick={() => {
                       setSelected(item);
                       setShowPay(true);
