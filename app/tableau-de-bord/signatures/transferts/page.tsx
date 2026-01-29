@@ -119,7 +119,7 @@ function Page() {
           color="blue"
         />
 
-        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5 mb-6">
+        <div className="h-fit grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           {statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
