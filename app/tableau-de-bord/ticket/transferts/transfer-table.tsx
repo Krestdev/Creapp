@@ -64,6 +64,7 @@ import {
   ArrowUpDown,
   CheckCircleIcon,
   ChevronDown,
+  EyeIcon,
   Settings2,
   TrashIcon,
 } from "lucide-react";
@@ -72,6 +73,7 @@ import { toast } from "sonner";
 import RejectDialog from "./reject-dialog";
 import { TabBar } from "@/components/base/TabBar";
 import { Badge } from "@/components/ui/badge";
+import ViewTransaction from "../../banques/transactions/view-transaction";
 
 interface Props {
   data: Array<Transaction>;
@@ -101,6 +103,7 @@ function TransferTable({ data }: Props) {
   const [searchFilter, setSearchFilter] = React.useState("");
   const [selected, setSelected] = React.useState<Transaction>();
   const [reject, setReject] = React.useState<boolean>(false);
+  const [view, setView] = React.useState<boolean>(false);
 
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [amountFilter, setAmountFilter] = React.useState<number>(0);
@@ -188,8 +191,8 @@ function TransferTable({ data }: Props) {
           (customDateRange?.from && customDateRange?.to)
         ) {
           matchDate =
-            transaction.createdAt >= startDate &&
-            transaction.createdAt <= endDate;
+            new Date(transaction.createdAt) >= startDate &&
+            new Date(transaction.createdAt) <= endDate;
         }
       }
       return matchDate && matchAmount && matchTab && matchSearch;
@@ -363,7 +366,13 @@ function TransferTable({ data }: Props) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
-                disabled={approve.isPending}
+                onClick={() =>{setSelected(item); setView(true)}}
+              >
+                <EyeIcon />
+                {"Voir"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={approve.isPending || item.status !== "PENDING"}
                 onClick={() => approve.mutate({ id: item.id })}
               >
                 <CheckCircleIcon />
@@ -371,6 +380,7 @@ function TransferTable({ data }: Props) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
+                disabled={approve.isPending || item.status !== "PENDING"}
                 onClick={() => {
                   setSelected(item);
                   setReject(true);
@@ -697,6 +707,9 @@ function TransferTable({ data }: Props) {
           userId={user?.id ?? 0}
         />
       )}
+      {
+        selected && <ViewTransaction open={view} openChange={setView} transaction={selected} />
+      }
     </div>
   );
 }

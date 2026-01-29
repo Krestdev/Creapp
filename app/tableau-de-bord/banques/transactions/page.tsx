@@ -44,7 +44,7 @@ function Page() {
           links={links}
         />
         <TransactionTable
-          data={getTransactions.data.data.filter((t) => t.Type !== "TRANSFER")}
+          data={getTransactions.data.data.sort((a, b)=> new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())}
           canEdit={true}
           banks={getBanks.data.data}
           filterByType

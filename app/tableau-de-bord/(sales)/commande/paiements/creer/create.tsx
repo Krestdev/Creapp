@@ -170,7 +170,7 @@ function CreatePaiement({ purchases, payments }: Props) {
     if (!(values.proof[0] instanceof File)) {
       return toast.error("La preuve doit être un fichier");
     }
-    if (!values.isPartial && values.price !== totalAmountPurchase(purchase)) {
+    if (!values.isPartial && values.price !== rest) {
       toast.error("Montant incorrect !");
       return form.setError("price", {
         message:
@@ -178,8 +178,8 @@ function CreatePaiement({ purchases, payments }: Props) {
       });
     }
     if (
-      (values.isPartial && values.price >= totalAmountPurchase(purchase)) ||
-      (!values.isPartial && values.price > totalAmountPurchase(purchase))
+      (values.isPartial && values.price >= rest) ||
+      (!values.isPartial && values.price > rest)
     ) {
       toast.error("Montant invalide !");
       return form.setError("price", {

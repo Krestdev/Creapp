@@ -21,7 +21,7 @@ const TitleValueCard = ({ title, value, className, valColor }: Props) => {
 export default TitleValueCard
 
 const statisticVariants = cva(
-  "w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px] box-border min-h-0", // Retirer h-full, ajouter box-border et min-h-0
+  "w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px] h-full min-h-fit", // Retirer h-full, ajouter box-border et min-h-0
   {
     variants: {
       variant: {

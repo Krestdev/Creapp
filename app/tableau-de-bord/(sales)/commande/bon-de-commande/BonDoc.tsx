@@ -391,6 +391,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                     </Text>
                     <Text>{"2- Avant livraison vérifier la date et la qualité."}</Text>
                     <Text>{"3- Le tribunal de siège (Douala) est compétent en cas de litige."}</Text>
+                    {doc.paymentTerms.length > 0 && <Text>{doc.paymentTerms}</Text>}
                   </View>
                 </View>
               </View>
