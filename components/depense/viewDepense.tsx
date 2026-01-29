@@ -78,13 +78,12 @@ const PaymentReceipt: React.FC<Props> = ({
 
   return (
     <div>
-      <h2>Reçu de Transport</h2>
       <Dialog open={open} onOpenChange={openChange}>
         <DialogContent className="max-h-[750px] max-w-4xl! gap-0 overflow-hidden border-none flex flex-col">
           {/* Header with burgundy background */}
           <DialogHeader className="bg-[#8B1538] text-white mb-2 rounded-lg relative">
             <DialogTitle className="text-xl font-semibold text-white uppercase">
-              {`Recu ${paymentRequest.title}`}
+              {`Reçu ${paymentRequest.title}`}
             </DialogTitle>
             <p className="text-sm text-white/80 mt-1">
               {"Informations relatives aux bons de commande"}

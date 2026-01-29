@@ -228,7 +228,7 @@ export function TransportForm() {
                   return (
                     <Field data-invalid={fieldState.invalid} className="gap-1">
                       <FieldLabel htmlFor="Beneficier">
-                        Beneficiaire <span className="text-destructive">*</span>
+                        Bénéficiaire <span className="text-destructive">*</span>
                       </FieldLabel>
 
                       <Select
