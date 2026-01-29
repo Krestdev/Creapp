@@ -69,7 +69,7 @@ const formSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["justification"],
-          message: "Veuillez ajouter une pièce justificative",
+          message: "Veuillez ajouter la pièce justificative",
         });
       }
       if (!data.bankCode || data.bankCode.trim().length < 2) {

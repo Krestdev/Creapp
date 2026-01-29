@@ -106,6 +106,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [searchFilter, setSearchFilter] = React.useState("");
   const [selected, setSelected] = React.useState<Transaction>();
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
@@ -128,23 +129,49 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
   >("all");
 
   const getBadge = (
-    status: Transaction["status"]
+    transaction: Transaction
   ): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
   } => {
+    const status = transaction.status;
     const label =
       TRANSACTION_STATUS.find((t) => t.value === status)?.name ?? "Inconnu";
-    switch (status) {
-      case "APPROVED":
-        return { label, variant: "success" };
-      case "REJECTED":
-        return { label, variant: "destructive" };
-      case "PENDING":
-        return { label, variant: "amber" };
-      default:
-        return { label, variant: "outline" };
-    }
+      if(transaction.Type !== "TRANSFER"){
+        switch (status) {
+          case "APPROVED":
+            return { label, variant: "success" };
+          case "REJECTED":
+            return { label, variant: "destructive" };
+          case "PENDING":
+            return { label, variant: "amber" };
+          default:
+            return { label, variant: "outline" };
+        }
+      }
+      const isSigned = transaction.isSigned;
+      if(isSigned === true){
+        switch (status) {
+          case "APPROVED":
+            return { label, variant: "success" };
+          case "ACCEPTED":
+            return { label: "Signé", variant: "teal" };
+          default:
+            return { label, variant: "outline" };
+        }
+      }
+      switch (status) {
+          case "REJECTED":
+            return { label, variant: "destructive" };
+          case "PENDING":
+            return { label, variant: "amber" };
+          case "ACCEPTED":
+            return { label: "À signer", variant: "primary" };
+          case "APPROVED":
+            return {label, variant: "success"};
+          default:
+            return { label, variant: "outline" };
+        }
   };
 
   // Réinitialiser tous les filtres
@@ -159,6 +186,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
     setStatusFilter("all");
     setTypeFilter("all");
     setBankFilter("all");
+    setSearchFilter("");
   };
 
   const filteredData = React.useMemo(() => {
@@ -166,6 +194,14 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
+      const search = searchFilter.toLocaleLowerCase();
+      //Search Filter
+      const matchSearch =
+      search.trim() === "" ? true : transaction.label.toLocaleLowerCase().includes(search) 
+      || transaction.amount.toString().includes(search)
+      || transaction.to.label.includes(search)
+      || transaction.from.label.includes(search)
+      || transaction.id.toString().includes(search)
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : transaction.status === statusFilter;
@@ -243,7 +279,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
             transaction.createdAt <= endDate;
         }
       }
-      return matchStatus && matchType && matchDate && matchAmount && matchBank;
+      return matchStatus && matchType && matchDate && matchAmount && matchBank && matchSearch;
     })
     ;
   }, [
@@ -254,7 +290,8 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
     amountTypeFilter,
     statusFilter,
     typeFilter,
-    bankFilter
+    bankFilter,
+    searchFilter
   ]);
 
   const columns: ColumnDef<Transaction>[] = [
@@ -415,7 +452,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
         );
       },
       cell: ({ row }) => {
-        const value = row.original.status;
+        const value = row.original;
         const { variant, label } = getBadge(value);
         return <Badge variant={variant}>{label}</Badge>;
       },
@@ -525,8 +562,8 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                   type="search"
                   id="searchCommand"
                   placeholder="Référence, libellé"
-                  value={globalFilter ?? ""}
-                  onChange={(event) => setGlobalFilter(event.target.value)}
+                  value={searchFilter}
+                  onChange={(event) => setSearchFilter(event.target.value)}
                   className="max-w-sm"
                 />
               </div>
@@ -591,7 +628,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
                     {
-                      banks.map((bank) => (
+                      banks.filter(b=> !!b.type && b.type !== "null").map((bank) => (
                         <SelectItem key={bank.id} value={String(bank.id)}>{bank.label}</SelectItem>
                       ))
                     }

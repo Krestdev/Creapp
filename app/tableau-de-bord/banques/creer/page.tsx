@@ -72,7 +72,7 @@ const formSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["justification"],
-          message: "Veuillez ajouter une pièce justificative",
+          message: "Veuillez ajouter la pièce justificative",
         });
       }
       if (!data.bankCode || data.bankCode.trim().length < 2) {
@@ -246,7 +246,7 @@ function Page() {
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>
-                        {banks.map((t) => (
+                        {banks.filter(b=> !!b.value && b.value !== "null").map((t) => (
                           <SelectItem key={t.value} value={t.value}>
                             {t.name}
                           </SelectItem>

@@ -49,7 +49,7 @@ const TX_TYPES = TRANSACTION_TYPES.filter((c) => c.value !== "TRANSFER").map(
 ];
 
 const sourceSchema = z.object({
-  label: z.string().min(2, "Libellé trop court"),
+  label: z.string().optional(),
   accountNumber: z.string().optional(),
   phoneNumber: z.string().optional(),
 });
@@ -83,48 +83,65 @@ export const formSchema = z
       .min(0),
   })
   .superRefine((data, ctx) => {
-    // ✅ règles selon type
-    if (data.Type === "DEBIT") {
-      if (isNaN(Number(data.fromBankId))) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["fromBankId"],
-          message:
-            "Source obligatoire pour un débit (compte source ou source externe)",
-        });
-      }
+  if (data.Type === "DEBIT") {
+    if (!data.fromBankId || isNaN(Number(data.fromBankId))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["fromBankId"],
+        message: "Source obligatoire pour un débit",
+      });
     }
 
-    if (data.Type === "CREDIT") {
-      if (isNaN(Number(data.toBankId))) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["toBankId"],
-          message:
-            "Destination obligatoire pour un crédit (compte destination ou destination externe)",
-        });
-      }
+    if (!data.to?.label || data.to.label.trim().length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["to", "label"],
+        message: "Nom du destinataire obligatoire pour un débit",
+      });
     }
-  });
+  }
+
+  if (data.Type === "CREDIT") {
+    if (!data.toBankId || isNaN(Number(data.toBankId))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["toBankId"],
+        message: "Destination obligatoire pour un crédit",
+      });
+    }
+
+    if (!data.from?.label || data.from.label.trim().length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["from", "label"],
+        message: "Nom de la source obligatoire pour un crédit",
+      });
+    }
+  }
+});
+
 
 type FormValues = z.infer<typeof formSchema>;
 
 function TransactionForm({ banks, userId }: Props) {
   const [openDate, setOpenDate] = React.useState<boolean>(false);
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      label: "",
-      amount: 5000,
-      date: format(new Date(), "yyyy-MM-dd"),
-      Type: "DEBIT",
-      from: undefined,
-      to: undefined,
-      fromBankId: undefined,
-      toBankId: undefined,
-      proof: [],
-    },
-  });
+  resolver: zodResolver(formSchema),
+  shouldUnregister: true, // ✅ très important ici
+  defaultValues: {
+    label: "",
+    amount: 5000,
+    date: format(new Date(), "yyyy-MM-dd"),
+    Type: "DEBIT",
+    from: undefined,
+    to: undefined,
+    fromBankId: undefined,
+    toBankId: undefined,
+    proof: [],
+  },
+});
+
+
 
   const router = useRouter();
 
@@ -142,6 +159,17 @@ function TransactionForm({ banks, userId }: Props) {
 
   const type = form.watch("Type");
 
+  React.useEffect(() => {
+  if (type === "CREDIT") {
+    form.setValue("to", undefined);
+    form.setValue("fromBankId", undefined);
+  } else {
+    form.setValue("from", undefined);
+    form.setValue("toBankId", undefined);
+  }
+}, [type, form]);
+
+
   function onSubmit(values: FormValues) {
     const { Type, from, to, fromBankId, toBankId, date, ...rest } = values;
     if (Type === "CREDIT") {
@@ -149,7 +177,7 @@ function TransactionForm({ banks, userId }: Props) {
         Type: values.Type,
         ...rest,
         date: new Date(date),
-        from: values.from,
+        from: {label: values.from?.label ?? "", accountNumber: values.from?.accountNumber, phoneNumber: values.from?.phoneNumber},
         toBankId: values.toBankId,
         userId,
       };
@@ -160,7 +188,7 @@ function TransactionForm({ banks, userId }: Props) {
         ...rest,
         date: new Date(date),
         fromBankId: values.fromBankId,
-        to: values.to,
+        to: {label: values.to?.label ?? "", accountNumber: values.to?.accountNumber, phoneNumber: values.to?.phoneNumber},
         userId,
       };
       return create.mutate(payload);
@@ -259,6 +287,7 @@ function TransactionForm({ banks, userId }: Props) {
                           field.onChange(value);
                           setOpenDate(false);
                         }}
+                        disabled={(date)=> date > new Date()}
                       />
                     </PopoverContent>
                   </Popover>
@@ -312,7 +341,7 @@ function TransactionForm({ banks, userId }: Props) {
                         <SelectValue placeholder="Sélectionner un compte" />
                       </SelectTrigger>
                       <SelectContent>
-                        {banks.map((bank) => (
+                        {banks.filter(b=> !!b.type && b.type !== "null").map((bank) => (
                           <SelectItem key={bank.id} value={String(bank.id)}>
                             {bank.label}
                           </SelectItem>
@@ -400,7 +429,7 @@ function TransactionForm({ banks, userId }: Props) {
                         <SelectValue placeholder="Sélectionner un compte" />
                       </SelectTrigger>
                       <SelectContent>
-                        {banks.map((bank) => (
+                        {banks.filter(b=> !!b.type && b.type !== "null" ).map((bank) => (
                           <SelectItem key={bank.id} value={String(bank.id)}>
                             {bank.label}
                           </SelectItem>
