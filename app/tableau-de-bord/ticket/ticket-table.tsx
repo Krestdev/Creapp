@@ -140,10 +140,10 @@ const getStatusVariant = (
   switch (status) {
     case "accepted":
       return { label: "En attente", variant: "amber" };
-    case "validated":
-      return { label: "Approuvé", variant: "success" };
-    default:
+    case "paid":
       return { label: "Payé", variant: "purple" };
+    default:
+      return { label: "Approuvé", variant: "success" };
   }
 };
 
@@ -170,7 +170,11 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
       const matchTab =
         selectedTab === 0
           ? c.status === "accepted"
-          : c.status === "paid" || c.status === "validated";
+          : c.status === "paid" ||
+          c.status === "validated" ||
+          c.status === "unsigned" ||
+          c.status === "signed" ||
+          c.status === "simple_signed";
       //searchFilter
       const matchSearch =
         searchFilter === ""
