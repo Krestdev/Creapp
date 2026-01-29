@@ -405,13 +405,13 @@ function CreatePaiement({ purchases }: Props) {
                     </p>
                   </div>
                 </FormControl>
-                {/* {!!commandId && 
+                {!!commandId && 
                 <div className="grid gap-1.5">
                   {!!purchase && purchase.instalments.map((e, id)=>(
-                    <div key={id} className="text-sm text-gray-400">{`${id+1}: ${e.percentage*total/100} ${!!e.deadLine && format(new Date(e.deadLine), "dd MMMM yyyy", {locale: fr})}`}</div>
+                    <div key={id} className="text-sm text-gray-400">{`Echéance ${id+1}: ${XAF.format(e.percentage*total/100)} ${!!e.deadLine && `avant le ${format(new Date(e.deadLine), "dd MMMM yyyy", {locale: fr})}`}`}</div>
                   ))}
                 </div>
-                  } */}
+                  }
                 <FormMessage />
               </FormItem>
             );
