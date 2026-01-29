@@ -37,6 +37,11 @@ function Page() {
 
   const { user } = useStore();
 
+  /* function canSign(bankId:number,payTypeId:number){
+  const signers = signatair.data?.data.find(x=>x.bankId === bankId && x.payTypeId === payTypeId )?.user?.some(u=> u.id === user?.id);
+  return !!signers ;
+  } */
+
   // Calculs mémoïsés pour éviter les recalculs inutiles
   const filteredData :Array<TransferTransaction> = useMemo(() => {
     if(!data || !signatair.data) return [];
@@ -45,18 +50,16 @@ function Page() {
     .filter(t => {
         if(!t.methodId) return false;
         if(t.from.type === "BANK" && t.to.type === "BANK"){
-            return signatair.data.data.find(s => s.bankId === t.from.id && s.payTypeId === t.methodId)?.user?.some(x=> x.id === user?.id) 
-            && t.status !== "PENDING" 
-            && t.status !== "REJECTED"
+            return signatair.data.data.find(x=>x.bankId === t.from.id && x.payTypeId === t.method?.id )?.user?.some(u=> u.id === user?.id)
         }
         return false;
     })
     
   }, [data, signatair.data, user?.id]);
 
-  const unsigned = filteredData.filter(t=> t.signers?.find(s=> s.userId === user?.id)?.signed === false );
-  const signed = filteredData.filter(t=> t.signers?.find(s=> s.userId === user?.id)?.signed === true);
-  const signedByOthers = filteredData.filter(t=> t.isSigned === true && t.signers?.find(s=> s.userId === user?.id)?.signed === false);
+  const unsigned = filteredData.filter(t=> !!t.signers?.find(s=> s.userId === user?.id) && t.isSigned === false );
+  const signed = filteredData.filter(t=> !!t.signers?.find(s=> s.userId === user?.id)?.signed === true);
+  const signedByOthers = filteredData.filter(t=> t.isSigned === true && !t.signers?.find(s=> s.userId === user?.id));
 
   const statistics: Array<StatisticProps> = [
       {
