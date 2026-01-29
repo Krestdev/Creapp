@@ -225,20 +225,16 @@ function Page() {
           color="blue"
         />
 
-        <div className="h-fit grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
+        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           {filteredData.statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
         </div>
-
-        <div className="mb-6">
           <TabBar
             tabs={tabs}
             setSelectedTab={setSelectedTab}
             selectedTab={selectedTab}
           />
-        </div>
-
         {selectedTab === 0 ? (
           <ExpensesTableSign
             key="pending-table"

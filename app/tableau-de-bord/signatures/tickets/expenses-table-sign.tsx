@@ -21,6 +21,7 @@ import {
   Coins,
   Eye,
   PenTool,
+  Settings2Icon,
   XCircle,
 } from "lucide-react";
 import * as React from "react";
@@ -58,7 +59,9 @@ import { useStore } from "@/providers/datastore";
 import {
   Bank,
   BonsCommande,
+  DateFilter,
   PAY_STATUS,
+  PAYMENT_TYPES,
   PaymentRequest,
   PayType,
   PRIORITIES,
@@ -70,6 +73,10 @@ import { VariantProps } from "class-variance-authority";
 import ViewExpense from "../../(volt)/depenses/view-expense";
 import { useMemo } from "react";
 import SignExpense from "./sign-expense";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -202,7 +209,33 @@ function ExpensesTableSign({
   payType,
   transactions
 }: Props) {
-  const { isHydrated, user } = useStore();
+  const { user } = useStore();
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+  const [searchFilter, setSearchFilter] = React.useState<string>("");
+    const [amountFilter, setAmountFilter] = React.useState<number>(0);
+    const [bankFilter, setBankFilter] = React.useState<string>("all");
+    const [typeFilter, setTypeFilter] = React.useState<"all" | PaymentRequest["type"]>("all");
+    const [amountTypeFilter, setAmountTypeFilter] = React.useState<
+      "greater" | "inferior" | "equal"
+    >("greater");
+    const [customDateRange, setCustomDateRange] = React.useState<
+      { from: Date; to: Date } | undefined
+    >();
+    const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
+
+    // Réinitialiser tous les filtres
+  const resetAllFilters = () => {
+    setDateFilter(undefined);
+    if (setCustomDateRange) {
+      setCustomDateRange(undefined);
+    }
+    setAmountFilter(0);
+    setAmountTypeFilter("greater");
+    setGlobalFilter("");
+    setSearchFilter("");
+    setTypeFilter("all");
+    setBankFilter("all");
+  };
 
   // OPTIMISATION: Pré-calculer les autorisations avec useMemo
   const authorizedPayments = useMemo(() => {
@@ -309,6 +342,76 @@ function ExpensesTableSign({
     };
   }, [signatair, user]);
 
+  const filteredData = React.useMemo(()=>{
+    return authorizedPayments.filter(p=>{
+      const now = new Date();
+        let startDate = new Date();
+        let endDate = now;
+        const search = searchFilter.toLowerCase();
+        //Search Filter
+        const matchSearch =
+          search.trim() === ""
+            ? true
+            : p.id.toString().toLocaleLowerCase().includes(search) ||
+              p.account?.toLocaleLowerCase().includes(search) ||
+              p.price.toString().includes(search) ||
+              p.reference.toLocaleLowerCase().includes(search) ||
+              p.title.toLocaleLowerCase().includes(search);
+        // Filter amount
+        const matchAmount =
+          amountTypeFilter === "greater"
+            ? p.price > amountFilter
+            : amountTypeFilter === "equal"
+              ? p.price === amountFilter
+              : p.price < amountFilter;
+        // Bank Filter - selon le type de transaction
+        const matchBank =
+          bankFilter === "all"
+            ? true
+            : p.bankId?.toString() === bankFilter;
+        // TypeFilter
+        const matchType =
+        typeFilter === "all" ? true : p.type === typeFilter;
+        // Filtre par date
+        let matchDate = true;
+        if (dateFilter) {
+          switch (dateFilter) {
+            case "today":
+              startDate.setHours(0, 0, 0, 0);
+              break;
+            case "week":
+              startDate.setDate(
+                now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+              );
+              startDate.setHours(0, 0, 0, 0);
+              break;
+            case "month":
+              startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+              break;
+            case "year":
+              startDate = new Date(now.getFullYear(), 0, 1);
+              break;
+            case "custom":
+              if (customDateRange?.from && customDateRange?.to) {
+                startDate = customDateRange.from;
+                endDate = customDateRange.to;
+              }
+              break;
+          }
+
+          if (
+            dateFilter !== "custom" ||
+            (customDateRange?.from && customDateRange?.to)
+          ) {
+            matchDate =
+              new Date(p.createdAt) >= startDate &&
+              new Date(p.createdAt) <= endDate;
+          }
+        }
+          return matchSearch && matchDate && matchBank && matchType && matchAmount;
+    })
+  },[authorizedPayments, searchFilter, customDateRange, dateFilter, bankFilter, typeFilter, amountFilter, amountTypeFilter])
+
   const columns: ColumnDef<PaymentRequest>[] = React.useMemo(() => [
     {
       accessorKey: "reference",
@@ -326,28 +429,6 @@ function ExpensesTableSign({
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("reference")}</div>
       ),
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Statut"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original;
-        const status = getStatusBadge(value.status);
-        return <Badge variant={status.variant}>{status.label}</Badge>;
-      },
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
-      },
     },
     {
       accessorKey: "type",
@@ -386,6 +467,29 @@ function ExpensesTableSign({
         return (
           <div>
             {payType.find((t) => t.id === value.methodId)?.label ?? "--"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "bank",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Banque"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const bank = banks.find(b=> b.id === value.bankId)?.label ?? "Non défini"
+        return (
+          <div>
+            {bank}
           </div>
         );
       },
@@ -509,6 +613,28 @@ function ExpensesTableSign({
       ),
     },
     {
+      accessorKey: "status",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Statut"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const status = getStatusBadge(value.status);
+        return <Badge variant={status.variant}>{status.label}</Badge>;
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
       id: "actions",
       header: () => <span className="tablehead">{"Actions"}</span>,
       enableHiding: false,
@@ -553,7 +679,7 @@ function ExpensesTableSign({
   ], [canSign, purchasesMap]);
 
   const table = useReactTable({
-    data: authorizedPayments, // Utiliser les paiements pré-filtrés
+    data: filteredData, // Utiliser les paiements pré-filtrés
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -586,15 +712,199 @@ function ExpensesTableSign({
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="grid gap-1.5">
-            <Label>{"Recherche"}</Label>
-            <Input
-              placeholder="Référence ou titre"
-              value={globalFilter ?? ""}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-              className="max-w-sm"
-            />
-          </div>
+          <Sheet>
+          <SheetTrigger asChild>
+            <Button variant={"outline"}>
+              <Settings2Icon />
+              {"Filtres"}
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les fitres pour affiner les données"}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="px-5 grid gap-5">
+              {/**Global Filter (Search) */}
+              <div className="grid gap-1.5">
+                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
+                <Input
+                  name="search"
+                  type="search"
+                  id="searchCommand"
+                  placeholder="Référence, libellé"
+                  value={searchFilter}
+                  onChange={(event) => setSearchFilter(event.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
+              {/* Filter by type */}
+              <div className="grid gap-1.5">
+                <Label>{"Type"}</Label>
+                <Select value={typeFilter} onValueChange={v=>setTypeFilter(v as typeof typeFilter)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {PAYMENT_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Filter par Compte(Bank) */}
+              <div className="grid gap-1.5">
+                <Label>{"Compte"}</Label>
+                <Select value={bankFilter} onValueChange={setBankFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un Compte" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {banks.filter(b=> !!b.type).map((bank) => (
+                      <SelectItem key={bank.id} value={String(bank.id)}>
+                        {bank.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Filter by amount */}
+              <div className="grid gap-1.5">
+                <Label>{"Montant"}</Label>
+                <Select
+                  value={amountTypeFilter}
+                  onValueChange={(v) =>
+                    setAmountTypeFilter(v as "greater" | "inferior" | "equal")
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner une période" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="greater">{"Supérieur"}</SelectItem>
+                    <SelectItem value="equal">{"Égal"}</SelectItem>
+                    <SelectItem value="inferior">{"Inférieur"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>{"Montant"}</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Ex. 250 000"
+                    value={amountFilter ?? 0}
+                    onChange={(e) => setAmountFilter(Number(e.target.value))}
+                    className="w-full pr-12"
+                  />
+                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                    {"FCFA"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Filter by Date */}
+              <div className="grid gap-1.5">
+                <Label>{"Période"}</Label>
+                <Select
+                  onValueChange={(v) => {
+                    if (v !== "custom") {
+                      setCustomDateRange(undefined);
+                      setCustomOpen(false);
+                    }
+                    if (v === "all") return setDateFilter(undefined);
+                    setDateFilter(v as Exclude<DateFilter, undefined>);
+                    setCustomOpen(v === "custom");
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner une période" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
+                    <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
+                    <SelectItem value="week">{"Cette semaine"}</SelectItem>
+                    <SelectItem value="month">{"Ce mois"}</SelectItem>
+                    <SelectItem value="year">{"Cette année"}</SelectItem>
+                    <SelectItem value="custom">{"Personnalisé"}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Collapsible
+                  open={customOpen}
+                  onOpenChange={setCustomOpen}
+                  disabled={dateFilter !== "custom"}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      {"Plage personnalisée"}
+                      <span className="text-muted-foreground text-xs">
+                        {customDateRange?.from && customDateRange.to
+                          ? `${format(
+                              customDateRange.from,
+                              "dd/MM/yyyy",
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                          : "Choisir"}
+                      </span>
+                    </Button>
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent className="space-y-4 pt-4">
+                    <Calendar
+                      mode="range"
+                      selected={customDateRange}
+                      onSelect={(range) =>
+                        setCustomDateRange(range as { from: Date; to: Date })
+                      }
+                      numberOfMonths={1}
+                      className="rounded-md border w-full"
+                    />
+                    <div className="space-y-1">
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          setCustomDateRange(undefined);
+                          setDateFilter(undefined);
+                          setCustomOpen(false);
+                        }}
+                      >
+                        {"Annuler"}
+                      </Button>
+                      <Button
+                        className="w-full"
+                        variant={"outline"}
+                        onClick={() => {
+                          setCustomOpen(false);
+                        }}
+                      >
+                        {"Réduire"}
+                      </Button>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+
+              {/* Bouton pour réinitialiser les filtres */}
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={resetAllFilters}
+                  className="w-full"
+                >
+                  {"Réinitialiser"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
           <div className="grid gap-1.5">
             <Label>{"Type de ticket"}</Label>
             <Select
@@ -674,6 +984,8 @@ function ExpensesTableSign({
                         ? "Date de modification"
                         : column.id === "reference"
                           ? "Référence"
+                        : column.id === "bank"
+                          ? "Banque"
                           : column.id === "title"
                             ? "Titre"
                             : column.id === "price"
