@@ -187,7 +187,7 @@ export default function CreateCotationForm() {
                           {field.value ? (
                             format(field.value, "PPP", { locale: fr })
                           ) : (
-                            <span>Choisir une date</span>
+                            <span>{"Choisir une date"}</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -198,6 +198,7 @@ export default function CreateCotationForm() {
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
+                        disabled={(date)=> date < new Date()}
                       />
                     </PopoverContent>
                   </Popover>
