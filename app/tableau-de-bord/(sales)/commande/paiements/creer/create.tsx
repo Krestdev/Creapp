@@ -99,7 +99,7 @@ function CreatePaiement({ purchases }: Props) {
       deadline: format(new Date(), "yyyy-MM-dd"),
       isPartial: false,
       price: 0,
-      method: "", // Laisser vide initialement
+      method: "",
       priority: "high",
       proof: [],
     },
@@ -167,18 +167,18 @@ function CreatePaiement({ purchases }: Props) {
       });
     }
     const payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId"> =
-      {
-        methodId: Number(values.method),
-        type: "achat",
-        deadline: new Date(values.deadline),
-        title: purchase.devi.commandRequest.title,
-        price: values.price,
-        priority: values.priority,
-        userId: user?.id ?? 0,
-        proof: values.proof[0],
-        commandId: values.commandId,
-        isPartial: values.isPartial,
-      };
+    {
+      methodId: Number(values.method),
+      type: "achat",
+      deadline: new Date(values.deadline),
+      title: purchase.devi.commandRequest.title,
+      price: values.price,
+      priority: values.priority,
+      userId: user?.id ?? 0,
+      proof: values.proof[0],
+      commandId: values.commandId,
+      isPartial: values.isPartial,
+    };
     createPayment.mutate(payload);
   }
 
@@ -226,13 +226,13 @@ function CreatePaiement({ purchases }: Props) {
                         {"Aucune demande enregistrée"}
                       </SelectItem>
                     ) : (
-                      purchases.filter(p=> p.status === "APPROVED").map((request) => {
+                      purchases.filter(p => p.status === "APPROVED").map((request) => {
                         const pay = React.useMemo(() => {
                           return payments
                             ?.filter(
                               (payment) => payment.commandId === request.id,
                             )
-                            .filter((c) => c.status === "paid");
+                            .filter((c) => c.status !== "rejected" && c.status !== "cancelled");
                         }, [payments, request]);
                         const paid =
                           pay
@@ -370,7 +370,7 @@ function CreatePaiement({ purchases }: Props) {
             const pay = React.useMemo(() => {
               return payments
                 ?.filter((payment) => payment.commandId === purchase?.id)
-                .filter((c) => c.status === "paid");
+                .filter((c) => c.status !== "rejected" && c.status !== "cancelled");
             }, [payments, purchase]);
             const paid =
               pay?.flatMap((x) => x.price).reduce((a, b) => a + b, 0) ?? 0;

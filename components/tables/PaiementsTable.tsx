@@ -71,6 +71,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
+import { toast } from "sonner";
+import { paymentQ } from "@/queries/payment";
+import { useMutation } from "@tanstack/react-query";
+import { ModalWarning } from "../modals/modal-warning";
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -138,6 +142,8 @@ function getStatusBadge(status: PaymentRequest["status"]): {
       return { label, variant: "sky" };
     case "rejected":
       return { label, variant: "destructive" };
+    case "cancelled":
+      return { label, variant: "default" };
     case "validated":
       return { label, variant: "sky" };
     case "signed":
@@ -167,6 +173,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
+  const [openRejectModal, setOpenRejectModal] = React.useState<boolean>(false);
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | PaymentRequest["status"]
   >("all");
@@ -174,22 +181,54 @@ export function PaiementsTable({ payments, purchases }: Props) {
     "all" | PaymentRequest["priority"]
   >("all");
 
+  const toReject = useMutation({
+    mutationFn: async (data: PaymentRequest) =>
+      paymentQ.update(Number(data.id), { status: "cancelled" }),
+    onSuccess: () => {
+      toast.success("Vous avez annulé une facture avec succès !");
+      setOpenRejectModal(false);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  // CORRECTION : Filtrer les données d'abord, puis les passer au tableau
   const filteredData = React.useMemo(() => {
-    return payments.filter((p) => {
-      //Filter Priority
-      const matchPriority =
-        priorityFilter === "all" ? true : p.priority === priorityFilter;
-      //Filter Status
-      const matchStatus =
-        statusFilter === "all" ? true : p.status === statusFilter;
-      return matchPriority && matchStatus;
-    });
-  }, [payments, statusFilter, priorityFilter]);
+    let filtered = [...payments];
+
+    // Appliquer le filtre de statut
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(p => p.status === statusFilter);
+    }
+
+    // Appliquer le filtre de priorité
+    if (priorityFilter !== "all") {
+      filtered = filtered.filter(p => p.priority === priorityFilter);
+    }
+
+    // Appliquer le filtre global (recherche)
+    if (globalFilter.trim() !== "") {
+      const searchLower = globalFilter.toLowerCase();
+      filtered = filtered.filter(p => {
+        const reference = p.reference?.toLowerCase() || "";
+        const title = p.title?.toLowerCase() || "";
+        const providerName = purchases.find(pur => pur.id === p.commandId)?.provider?.name?.toLowerCase() || "";
+
+        return reference.includes(searchLower) ||
+          title.includes(searchLower) ||
+          providerName.includes(searchLower);
+      });
+    }
+
+    return filtered;
+  }, [payments, statusFilter, priorityFilter, globalFilter, purchases]);
 
   const resetAllFilters = () => {
     setGlobalFilter("");
     setPriorityFilter("all");
     setStatusFilter("all");
+    setColumnFilters([]);
   };
 
   const columns: ColumnDef<PaymentRequest>[] = [
@@ -303,9 +342,6 @@ export function PaiementsTable({ payments, purchases }: Props) {
         const status = getStatusBadge(value.status);
         return <Badge variant={status.variant}>{status.label}</Badge>;
       },
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
-      },
     },
     {
       accessorKey: "createdAt",
@@ -363,7 +399,13 @@ export function PaiementsTable({ payments, purchases }: Props) {
                 <LucidePen />
                 {"Modifier"}
               </DropdownMenuItem>
-              <DropdownMenuItem disabled={item.status !== "pending"}>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setOpenRejectModal(true);
+                }}
+                disabled={item.status !== "pending"}
+              >
                 <Trash />
                 {"Annuler"}
               </DropdownMenuItem>
@@ -375,7 +417,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
   ];
 
   const table = useReactTable({
-    data: payments, // CORRECTION: 'data' au lieu de 'payments'
+    data: filteredData, // CORRECTION : Utiliser filteredData au lieu de payments
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -386,15 +428,6 @@ export function PaiementsTable({ payments, purchases }: Props) {
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "provider", "title"];
-      const searchValue = filterValue.toLowerCase();
-
-      return searchableColumns.some((column) => {
-        const value = row.getValue(column) as string;
-        return value?.toLowerCase().includes(searchValue);
-      });
-    },
     state: {
       sorting,
       columnFilters,
@@ -429,7 +462,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
                 <Input
                   id="searchPO"
                   type="search"
-                  placeholder="Référence"
+                  placeholder="Référence, fournisseur..."
                   value={globalFilter ?? ""}
                   onChange={(e) => setGlobalFilter(e.target.value)}
                 />
@@ -469,7 +502,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {PAY_STATUS.filter(s=> payments.some(d=> d.status === s.value)).map((s) => (
+                    {PAY_STATUS.filter(s => payments.some(d => d.status === s.value)).map((s) => (
                       <SelectItem key={s.value} value={s.value}>
                         {s.name}
                       </SelectItem>
@@ -478,16 +511,59 @@ export function PaiementsTable({ payments, purchases }: Props) {
                 </Select>
               </div>
 
-              <Button
-                variant="outline"
-                onClick={resetAllFilters}
-                className="w-full"
-              >
-                {"Réinitialiser les filtres"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={resetAllFilters}
+                  className="flex-1"
+                >
+                  {"Réinitialiser"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    // Fermer le sheet
+                    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+                  }}
+                >
+                  {"Appliquer"}
+                </Button>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
+
+        {/* Indicateur de filtres actifs */}
+        {(statusFilter !== "all" || priorityFilter !== "all" || globalFilter.trim() !== "") && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mr-auto">
+            <span className="font-medium">Filtres actifs:</span>
+            {statusFilter !== "all" && (
+              <Badge variant="outline" className="text-xs">
+                Statut: {PAY_STATUS.find(s => s.value === statusFilter)?.name || statusFilter}
+              </Badge>
+            )}
+            {priorityFilter !== "all" && (
+              <Badge variant="outline" className="text-xs">
+                Priorité: {PRIORITIES.find(p => p.value === priorityFilter)?.name || priorityFilter}
+              </Badge>
+            )}
+            {globalFilter.trim() !== "" && (
+              <Badge variant="outline" className="text-xs">
+                Recherche: {globalFilter}
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetAllFilters}
+              className="h-6 text-xs"
+            >
+              Tout effacer
+            </Button>
+          </div>
+        )}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
@@ -513,16 +589,16 @@ export function PaiementsTable({ payments, purchases }: Props) {
                       ? "Date de creation"
                       : column.id === "status"
                         ? "Statut"
-                        : column.id === "piority"
+                        : column.id === "priority"
                           ? "Priorité"
                           : column.id === "price"
                             ? "Montant"
                             : column.id === "commandId"
                               ? "Bon de commande"
                               : column.id === "provider"
-                                ? "Zournisseur"
+                                ? "Fournisseur"
                                 : column.id === "reference"
-                                  ? "Reference"
+                                  ? "Référence"
                                   : column.id}
                   </DropdownMenuCheckboxItem>
                 );
@@ -545,9 +621,9 @@ export function PaiementsTable({ payments, purchases }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}
@@ -591,22 +667,38 @@ export function PaiementsTable({ payments, purchases }: Props) {
         </Table>
       </div>
 
-      <Pagination table={table} />
+      {/* Afficher le nombre de résultats filtrés */}
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div>
+          {filteredData.length} résultat{filteredData.length > 1 ? 's' : ''} sur {payments.length}
+        </div>
+        <Pagination table={table} />
+      </div>
+
       {selected && (
-        <DetailPaiement
-          payment={selected}
-          open={showDetail}
-          openChange={setShowDetail}
-          purchases={purchases}
-        />
-      )}
-      {selected && (
-        <EditPayment
-          open={showUpdateModal}
-          openChange={setShowUpdateModal}
-          payment={selected}
-          purchases={purchases}
-        />
+        <>
+          <DetailPaiement
+            payment={selected}
+            open={showDetail}
+            openChange={setShowDetail}
+            purchases={purchases}
+          />
+          <EditPayment
+            open={showUpdateModal}
+            openChange={setShowUpdateModal}
+            payment={selected}
+            purchases={purchases}
+          />
+          <ModalWarning
+            open={openRejectModal}
+            onOpenChange={setOpenRejectModal}
+            title="Annuler la facture"
+            description="Êtes-vous sûr de vouloir annuler cette facture ?"
+            onAction={() => toReject.mutate(selected)}
+            actionText="Annuler"
+            variant="error"
+          />
+        </>
       )}
     </div>
   );
