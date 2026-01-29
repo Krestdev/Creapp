@@ -481,6 +481,7 @@ export type BonsCommande = {
   ristourneAmount: number; // réduction a posteriori
   escompteRate: number;
   keepTaxes: boolean;
+  netToPay: number;
 };
 
 export interface NavLink {

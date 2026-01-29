@@ -6,6 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -35,6 +36,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
@@ -324,6 +326,7 @@ function CreatePaiement({ purchases }: Props) {
                             field.onChange(value);
                             setDueDate(false);
                           }}
+                          disabled={(date)=> date < new Date()}
                         />
                       </PopoverContent>
                     </Popover>
@@ -374,7 +377,7 @@ function CreatePaiement({ purchases }: Props) {
             }, [payments, purchase]);
             const paid =
               pay?.flatMap((x) => x.price).reduce((a, b) => a + b, 0) ?? 0;
-            const total = purchase ? totalAmountPurchase(purchase) : 0;
+            const total = purchase?.netToPay ?? 0;
 
             const diff = total - paid;
             return (
@@ -382,7 +385,7 @@ function CreatePaiement({ purchases }: Props) {
                 <FormLabel isRequired>
                   {"Montant"}
                   <span className="text-xs text-red-500">
-                    (Reste à payer : {XAF.format(diff ? diff : 0)})
+                    {`(Reste à payer : ${XAF.format(diff ? diff : 0)})`}
                   </span>
                 </FormLabel>
                 <FormControl>
@@ -402,6 +405,13 @@ function CreatePaiement({ purchases }: Props) {
                     </p>
                   </div>
                 </FormControl>
+                {/* {!!commandId && 
+                <div className="grid gap-1.5">
+                  {!!purchase && purchase.instalments.map((e, id)=>(
+                    <div key={id} className="text-sm text-gray-400">{`${id+1}: ${e.percentage*total/100} ${!!e.deadLine && format(new Date(e.deadLine), "dd MMMM yyyy", {locale: fr})}`}</div>
+                  ))}
+                </div>
+                  } */}
                 <FormMessage />
               </FormItem>
             );

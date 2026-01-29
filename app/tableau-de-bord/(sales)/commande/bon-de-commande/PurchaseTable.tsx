@@ -241,7 +241,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
         const base = row.original;
         return (
           <div className="font-medium">
-            {XAF.format(totalAmountPurchase(base))}
+            {XAF.format(base.netToPay)}
           </div>
         );
       },
