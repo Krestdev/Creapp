@@ -145,6 +145,25 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
     queryFn: signatairQ.getAll,
   });
 
+
+  const signataires = useMemo(() => {
+    if (!getSignataire.data?.data || !payment?.bankId || !payment?.methodId) {
+      return undefined;
+    }
+
+    return getSignataire.data.data.find(
+      x =>
+        x.bankId === payment.bankId &&
+        x.payTypeId === payment.methodId
+    );
+  }, [
+    getSignataire.data?.data,
+    payment?.bankId,
+    payment?.methodId,
+  ]);
+
+  if (!payment) return null;
+
   if (getUsers.isLoading || getPaymentType.isLoading) {
     return <LoadingPage />;
   }
@@ -183,24 +202,6 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
 
       return <Badge variant={variant} className="w-fit">{label}</Badge>;
     };
-
-    if (!payment) return null;
-
-    const signataires = useMemo(() => {
-      if (!getSignataire.data?.data || !payment?.bankId || !payment?.methodId) {
-        return undefined;
-      }
-
-      return getSignataire.data.data.find(
-        x =>
-          x.bankId === payment.bankId &&
-          x.payTypeId === payment.methodId
-      );
-    }, [
-      getSignataire.data?.data,
-      payment?.bankId,
-      payment?.methodId,
-    ]);
 
     const users = signataires?.user;
     return (
