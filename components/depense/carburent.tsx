@@ -25,7 +25,7 @@ import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -63,11 +63,9 @@ const FileSchema = z
 
 export const formSchema = z.object({
   title: z.string({ message: "Ce champ est requis" }),
-
   model: z.string({ message: "Ce champ est requis" }),
   km: z.coerce.number({ message: "Ce champ est requis" }),
   liters: z.coerce.number({ message: "Ce champ est requis" }),
-
   Beneficier: z.string({ message: "This field is required" }),
   Montent: z.coerce.number({ message: "Please enter a valid number" }),
   Description: z.string({ message: "This field is required" }),
@@ -95,6 +93,10 @@ export function CarburentForm() {
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [view, setView] = useState<boolean>(false);
+
+  // Observer les changements des champs
+  const selectedCaisseId = form.watch("caisseId");
+  const montentValue = form.watch("Montent");
 
   const vehicleData = useQuery({
     queryKey: ["getvehicles"],
@@ -134,7 +136,6 @@ export function CarburentForm() {
       setView(true);
     },
     onError: (error: any) => {
-      // console.error("Erreur lors de la soumission de depense:", error);
       toast.error("Une erreur est survenue lors de la soumission.");
     },
   });
@@ -149,7 +150,36 @@ export function CarburentForm() {
     queryFn: payTypeQ.getAll,
   });
 
+  // Calcul du solde de la caisse sélectionnée
+  const selectedCaisseBalance = useMemo(() => {
+    if (!selectedCaisseId || !bankData.data?.data) return 0;
+    const caisse = bankData.data.data.find(
+      (x) => x.id === Number(selectedCaisseId)
+    );
+    return caisse?.balance || 0;
+  }, [selectedCaisseId, bankData.data?.data]);
+
+  // Vérification en temps réel du solde
+  const isBalanceSufficient = useMemo(() => {
+    return selectedCaisseBalance >= montentValue;
+  }, [selectedCaisseBalance, montentValue]);
+
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
+    // Vérifier le solde avant de soumettre
+    const selectedCaisse = bankData.data?.data.find(
+      (x) => x.id === Number(data.caisseId)
+    );
+
+    if (!selectedCaisse) {
+      toast.error("Caisse non trouvée");
+      return;
+    }
+
+    if (selectedCaisse.balance < data.Montent) {
+      toast.error(`Solde insuffisant. Solde disponible: ${selectedCaisse.balance} FCFA`);
+      return;
+    }
+
     const payment: Omit<
       PaymentRequest,
       | "id"
@@ -183,6 +213,7 @@ export function CarburentForm() {
       caisseId: Number(data.caisseId),
     });
   });
+
   return (
     !driverDate.isLoading &&
     !bankData.isLoading &&
@@ -245,18 +276,28 @@ export function CarburentForm() {
                           <SelectValue placeholder="Selectioner une Caisse" />
                         </SelectTrigger>
                         <SelectContent>
-                          {options.map((option) => (
-                            <SelectItem
-                              key={option.value}
-                              value={option.value.toString()}
-                            >
-                              {option.label}
-                            </SelectItem>
-                          ))}
+                          {options.map((option) => {
+                            const caisse = bankData.data.data.find(
+                              (x) => x.id === option.value
+                            );
+                            return (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value.toString()}
+                              >
+                                {option.label} (Solde: {caisse?.balance || 0} FCFA)
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
+                      )}
+                      {field.value && selectedCaisseBalance > 0 && (
+                        <p className="text-sm mt-1">
+                          Solde disponible: <strong>{selectedCaisseBalance} FCFA</strong>
+                        </p>
                       )}
                     </Field>
                   );
@@ -353,7 +394,6 @@ export function CarburentForm() {
                 )}
               />
 
-              {/* select from a list of existing vehicles */}
               <Controller
                 name="Beneficier"
                 control={form.control}
@@ -410,7 +450,18 @@ export function CarburentForm() {
                       }}
                       aria-invalid={fieldState.invalid}
                       placeholder="1000"
+                      className={!isBalanceSufficient && selectedCaisseId ? "border-red-500" : ""}
                     />
+
+                    {selectedCaisseId && (
+                      <div className="mt-2">
+                        {!isBalanceSufficient && (
+                          <p className="text-red-500 text-sm">
+                            ❌ Solde insuffisant. Dépassement de {montentValue - selectedCaisseBalance} FCFA
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -489,13 +540,12 @@ export function CarburentForm() {
                 )}
               />
             </FieldGroup>
+
+
             <div className="flex justify-end items-center w-full">
-              {/* <Button>
-              {paymentsData.isPending ? "Submitting..." : "Submit"}
-            </Button> */}
               <Button
                 variant={"primary"}
-                disabled={paymentsData.isPending}
+                disabled={paymentsData.isPending || !isBalanceSufficient || !selectedCaisseId}
                 type="submit"
                 className="min-w-[200px]"
               >
