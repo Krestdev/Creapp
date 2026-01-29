@@ -808,6 +808,7 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
           })
         }
       />
+
       <ModalWarning
         open={openValidationModal}
         variant="success"

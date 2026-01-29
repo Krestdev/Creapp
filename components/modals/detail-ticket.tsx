@@ -106,12 +106,8 @@ export function DetailTicket({
         return "Payé";
       case "approved":
         return "Approuvé";
-      case "pending":
-        return "En attente";
-      case "gost":
-        return "Brouillon";
       default:
-        return state || "Inconnu";
+        return "En attente";
     }
   };
 

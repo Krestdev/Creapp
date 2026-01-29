@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import { cn, company } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import {} from "@/queries/commandRqstModule";
+import { } from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import {
@@ -563,9 +563,9 @@ export function TicketsTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}

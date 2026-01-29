@@ -255,7 +255,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
 
         {/* is Partial */}
         {/* Paiement partiel */}
-        <FormField
+        {/* <FormField
           control={form.control}
           name="isPartial"
           render={({ field }) => (
@@ -277,7 +277,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         {/* Montant */}
         <FormField
@@ -290,7 +290,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
                 <div className="relative">
                   <Input
                     type="number"
-                    disabled={!isPartial}
+                    disabled={true}
                     value={field.value}
                     onChange={(e) => {
                       const value = e.target.value;
