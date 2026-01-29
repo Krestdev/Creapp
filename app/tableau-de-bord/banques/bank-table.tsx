@@ -93,19 +93,27 @@ function BankTable({ data, canEdit }: Props) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<"all" | "true" | "false">("all");
+  const [searchFilter, setSearchFilter] = React.useState<string>("");
   const [typeFilter, setTypeFilter] = React.useState<"all" | Bank["type"]>("all");
   const [selected, setSelected] = React.useState<Bank>();
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
 
   const resetAllFilters = ():void =>{
-    setGlobalFilter("");
+    setSearchFilter("");
     setStatusFilter("all");
     setTypeFilter("all");
   }
 
   const filteredData:Array<Bank> = React.useMemo(()=>{
     return data.filter(bank=>{
+      const search = searchFilter.toLocaleLowerCase();
+      //search Filter
+      const matchSearch =
+      search.trim() === "" ? true : bank.accountNumber?.toLocaleLowerCase().includes(search)
+      || bank.balance.toString().includes(search)
+      || bank.label.toLocaleLowerCase().includes(search)
+      || bank.phoneNum?.includes(search)
       //statusFilter
       const matchStatus =
       statusFilter === "all" ? true : statusFilter === String(bank.Status);
@@ -113,9 +121,9 @@ function BankTable({ data, canEdit }: Props) {
       const matchType =
       typeFilter === "all" ? true : typeFilter === bank.type;
 
-      return matchStatus && matchType
+      return matchStatus && matchType && matchSearch
     })
-  },[data, statusFilter, typeFilter]);
+  },[data, statusFilter, typeFilter, searchFilter]);
 
   const columns: ColumnDef<Bank>[] = [
     {
@@ -321,8 +329,8 @@ function BankTable({ data, canEdit }: Props) {
             <Label>{"Recherche"}</Label>
             <Input
               placeholder="Référence"
-              value={globalFilter ?? ""}
-              onChange={(event) => setGlobalFilter(event.target.value)}
+              value={searchFilter}
+              onChange={(v)=>setSearchFilter(v.target.value)}
               className="w-full"
             />
           </div>
@@ -337,7 +345,7 @@ function BankTable({ data, canEdit }: Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{"Tous"}</SelectItem>
-                {BANK_TYPES.map((p) => (
+                {BANK_TYPES.filter(b=> b.value !== "null").map((p) => (
                   <SelectItem key={p.name} value={p.value}>
                     {p.name}
                   </SelectItem>

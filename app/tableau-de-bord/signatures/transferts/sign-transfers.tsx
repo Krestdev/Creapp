@@ -199,8 +199,8 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
             (customDateRange?.from && customDateRange?.to)
           ) {
             matchDate =
-              transaction.createdAt >= startDate &&
-              transaction.createdAt <= endDate;
+              new Date(transaction.createdAt) >= startDate &&
+              new Date(transaction.createdAt) <= endDate;
           }
         }
         return (
