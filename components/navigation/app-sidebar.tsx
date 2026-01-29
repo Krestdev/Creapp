@@ -10,7 +10,7 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
-import { NavigationItemProps, RequestModelT } from "@/types/types";
+import { NavigationItemProps, RequestModelT, Transaction, TransferTransaction } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
@@ -48,6 +48,8 @@ import NavigationItem from "./navigation-item";
 import { StatisticProps } from "../base/TitleValueCard";
 import { XAF } from "@/lib/utils";
 import { transactionQ } from "@/queries/transaction";
+import { payTypeQ } from "@/queries/payType";
+import { bankQ } from "@/queries/bank";
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
@@ -138,21 +140,31 @@ function AppSidebar() {
     queryFn: signatairQ.getAll,
   });
 
-  const transfertData = useQuery({
+  const getTransactions = useQuery({
     queryKey: ["transactions"],
     queryFn: () => {
       return transactionQ.getAll();
     },
   });
 
+  const getPayType = useQuery({
+      queryKey: ["payType"],
+      queryFn: payTypeQ.getAll,
+    });
+
+  const getBanks = useQuery({
+      queryKey: ["banks"],
+      queryFn: bankQ.getAll,
+    });
+
   const filteredTickTransfert = React.useMemo(() => {
-    return transfertData.data?.data.filter((transaction) => {
+    return getTransactions.data?.data.filter((transaction) => {
       //Filter Tab
       const matchTab = transaction.Type === "TRANSFER" && transaction.status === "PENDING";
       return matchTab;
     });
   }, [
-    transfertData.data?.data,
+    getTransactions.data?.data,
   ]);
 
   const filteredData = useMemo(() => {
@@ -328,6 +340,32 @@ function AppSidebar() {
     return approvedTicket?.concat(signedTicket, pendingTicket, simpleTicket);
   }, [approvedTicket, signedTicket, pendingTicket, simpleTicket]);
 
+  //Signataires
+  const transfersToSign :Array<TransferTransaction> = useMemo(() => {
+      if(!getTransactions.data || !signatair.data) return [];
+      return getTransactions.data.data
+      .filter(t=> t.Type === "TRANSFER")
+      .filter(t => {
+          if(!t.methodId) return false;
+          if(t.from.type === "BANK" && t.to.type === "BANK"){
+              return signatair.data.data.find(x=>x.bankId === t.from.id && x.payTypeId === t.method?.id )?.user?.some(u=> u.id === user?.id)
+          }
+          return false;
+      })
+      .filter(t=> t.isSigned === false && !t.signers.find(s=> s.userId === user?.id))
+      
+    }, [getTransactions.data, signatair.data, user?.id]);
+
+    const transfersToCheck: Array<TransferTransaction> = useMemo(()=>{
+      if(!getTransactions.data) return [];
+      return getTransactions.data.data
+      .filter(t=>t.Type === "TRANSFER")
+      .filter(t=>{
+        if(t.status === "ACCEPTED") return true;
+        return false;
+      })
+    },[getTransactions.data])
+
   if (
     getQuotationRequests.isLoading ||
     getQuotations.isLoading ||
@@ -337,7 +375,9 @@ function AppSidebar() {
     requestData.isLoading ||
     categoriesData.isLoading ||
     providers.isLoading ||
-    getPurchases.isLoading
+    getPurchases.isLoading ||
+    getPayType.isLoading ||
+    getBanks.isLoading
   ) {
     return (
       <Sidebar>
@@ -363,7 +403,9 @@ function AppSidebar() {
     requestData.isError ||
     categoriesData.isError ||
     providers.isError ||
-    getPurchases.isError
+    getPurchases.isError ||
+    getPayType.isError ||
+    getBanks.isError
   ) {
     return (
       <Sidebar>
@@ -389,7 +431,9 @@ function AppSidebar() {
     requestData.isSuccess &&
     categoriesData.isSuccess &&
     providers.isSuccess &&
-    getPurchases.isSuccess
+    getPurchases.isSuccess &&
+    getPayType.isSuccess &&
+    getBanks.isSuccess
   ) {
     const navLinks: NavigationItemProps[] = [
       {
@@ -591,6 +635,7 @@ function AppSidebar() {
             title: "Transferts",
             href: "/tableau-de-bord/signatures/transferts",
             authorized: [],
+            badgeValue: transfersToSign.length > 0 ? transfersToSign.length : undefined
           },
         ]
       },
@@ -618,6 +663,7 @@ function AppSidebar() {
             title: "Transferts",
             href: "/tableau-de-bord/banques/transactions/transferts",
             authorized: ["ADMIN", "VOLT"],
+            badgeValue: transfersToCheck.length > 0 ? transfersToCheck.length : undefined
           },
         ],
       },

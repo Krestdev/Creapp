@@ -183,6 +183,9 @@ function TransactionForm({ banks, userId }: Props) {
       };
       return create.mutate(payload);
     } else {
+      const balance = banks.find(b=> b.id === fromBankId)?.balance;
+      const val = !balance ? false : balance - rest.amount > 0;
+      if(!val) return form.setError("amount", { message: "Montant invalide" })
       const payload: TransactionProps = {
         Type: values.Type,
         ...rest,
