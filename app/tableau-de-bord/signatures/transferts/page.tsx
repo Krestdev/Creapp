@@ -56,6 +56,7 @@ function Page() {
 
   const unsigned = filteredData.filter(t=> t.signers?.find(s=> s.userId === user?.id)?.signed === false );
   const signed = filteredData.filter(t=> t.signers?.find(s=> s.userId === user?.id)?.signed === true);
+  const signedByOthers = filteredData.filter(t=> t.isSigned === true && t.signers?.find(s=> s.userId === user?.id)?.signed === false);
 
   const statistics: Array<StatisticProps> = [
       {
@@ -67,6 +68,10 @@ function Page() {
         title: "Signés",
         value: signed.length,
         variant: "success",
+        more: {
+          title: "Signé par un autre signataire",
+          value: signedByOthers.length
+        }
       },
     ];
 

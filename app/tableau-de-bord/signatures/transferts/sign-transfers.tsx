@@ -105,9 +105,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
     { from: Date; to: Date } | undefined
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-  const [statusFilter, setStatusFilter] = React.useState<
-    "all" | "true" | "false"
-  >("all");
+
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
     const tabs = [
       {
@@ -131,7 +129,6 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
     setAmountTypeFilter("greater");
     setGlobalFilter("");
     setSearchFilter("");
-    setStatusFilter("all");
     setBankFilter("all");
   };
 
@@ -142,9 +139,10 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
         let startDate = new Date();
         let endDate = now;
         const search = searchFilter.toLowerCase();
-        //Status Filter
-        const matchStatus =
-          statusFilter === "all" ? true : String(transaction.isSigned) === statusFilter;
+        //Tab Filter
+        const matchTab =
+          selectedTab === 0 ? transaction.signers?.find(u=>u.userId === user?.id)?.signed === false && transaction.isSigned === false :
+          transaction.signers?.find(u=>u.userId === user?.id)?.signed === true
         // Bank Filter - selon le type de transaction
         let matchBank =
           bankFilter === "all"
@@ -206,7 +204,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
           }
         }
         return (
-          matchStatus && matchDate && matchAmount && matchBank && matchSearch
+          matchTab && matchDate && matchAmount && matchBank && matchSearch
         );
       })
       .sort(
@@ -219,9 +217,10 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
     customDateRange,
     amountFilter,
     amountTypeFilter,
-    statusFilter,
     bankFilter,
     searchFilter,
+    user?.id,
+    selectedTab
   ]);
 
   const columns: ColumnDef<TransferTransaction>[] = [
@@ -428,28 +427,6 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
                   className="max-w-sm"
                 />
               </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="statusFilter">{"Statut"}</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(v) =>
-                    setStatusFilter(v as "all" | "true" | "false")
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                      <SelectItem  value={"true"}>
-                        {"Signé"}
-                      </SelectItem>
-                      <SelectItem  value={"false"}>
-                        {"Non signé"}
-                      </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               {/* Filter par Compte(Bank) */}
               <div className="grid gap-1.5">
                 <Label>{"Compte"}</Label>
@@ -459,7 +436,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {banks.map((bank) => (
+                    {banks.filter(b=> !!b.type).map((bank) => (
                       <SelectItem key={bank.id} value={String(bank.id)}>
                         {bank.label}
                       </SelectItem>
@@ -639,7 +616,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
         </DropdownMenu>
       </div>
       <TabBar tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
-      <h3>{`Demandes (${data.length})`}</h3>
+      <h3>{`Demandes (${filteredData.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
