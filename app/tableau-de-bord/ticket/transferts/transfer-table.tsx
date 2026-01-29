@@ -363,7 +363,7 @@ function TransferTable({ data }: Props) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
-                disabled={approve.isPending}
+                disabled={approve.isPending || item.status !== "PENDING"}
                 onClick={() => approve.mutate({ id: item.id })}
               >
                 <CheckCircleIcon />
@@ -371,6 +371,7 @@ function TransferTable({ data }: Props) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
+                disabled={approve.isPending || item.status !== "PENDING"}
                 onClick={() => {
                   setSelected(item);
                   setReject(true);
