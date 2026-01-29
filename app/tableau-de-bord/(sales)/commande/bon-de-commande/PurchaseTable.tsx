@@ -233,7 +233,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
           className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          {"Montant"}
+          {"Montant TTC"}
           <ArrowUpDown />
         </span>
       ),
@@ -242,6 +242,26 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
         return (
           <div className="font-medium">
             {XAF.format(base.netToPay)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "amountHT",
+      header: ({ column }) => (
+        <span
+          className="tablehead"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          {"Montant HT"}
+          <ArrowUpDown />
+        </span>
+      ),
+      cell: ({ row }) => {
+        const base = row.original;
+        return (
+          <div className="font-medium">
+            {XAF.format(totalAmountPurchase(base))}
           </div>
         );
       },

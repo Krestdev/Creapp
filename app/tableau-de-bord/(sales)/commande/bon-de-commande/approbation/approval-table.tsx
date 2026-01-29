@@ -70,7 +70,7 @@ import {
 
 import { TabBar } from "@/components/base/TabBar";
 import { Textarea } from "@/components/ui/textarea";
-import { formatToShortName, XAF } from "@/lib/utils";
+import { formatToShortName, totalAmountPurchase, XAF } from "@/lib/utils";
 import { purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
@@ -296,23 +296,35 @@ export function PurchaseApprovalTable({ data }: Props) {
     },
 
     {
-      accessorKey: "amountBase",
+      accessorKey: "amount",
       header: ({ column }) => (
         <span
           className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          {"Montant"}
+          {"Montant TTC"}
           <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) => {
         const po = row.original;
-        const total = po.devi.element.reduce(
-          (t, el) => t + el.priceProposed * el.quantity,
-          0,
-        );
-        return <div className="font-medium">{XAF.format(total)}</div>;
+        return <div className="font-medium">{XAF.format(po.netToPay)}</div>;
+      },
+    },
+    {
+      accessorKey: "amountHT",
+      header: ({ column }) => (
+        <span
+          className="tablehead"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          {"Montant HT"}
+          <ArrowUpDown />
+        </span>
+      ),
+      cell: ({ row }) => {
+        const po = row.original;
+        return <div className="font-medium">{XAF.format(totalAmountPurchase(po))}</div>;
       },
     },
 
@@ -592,7 +604,8 @@ export function PurchaseApprovalTable({ data }: Props) {
                   if (column.id === "reference") columnName = "Référence";
                   else if (column.id === "devi") columnName = "Titre";
                   else if (column.id === "provider") columnName = "Fournisseur";
-                  else if (column.id === "amountBase") columnName = "Montant";
+                  else if (column.id === "amount") columnName = "Montant TTC";
+                  else if (column.id === "amountHT") columnName = "Montant HT";
                   else if (column.id === "priority") columnName = "Priorité";
                   else if (column.id === "status") columnName = "Statut";
                   else if (column.id === "createdAt") columnName = "Créé le";
