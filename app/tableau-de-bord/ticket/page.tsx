@@ -11,7 +11,6 @@ import { paymentQ } from "@/queries/payment";
 import { requestTypeQ } from "@/queries/requestType";
 import { PaymentRequest } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { da } from "date-fns/locale";
 import { useMemo } from "react";
 
 function Page() {
@@ -34,16 +33,18 @@ function Page() {
 
   const pending = useMemo(() => {
     if (!data?.data) return [];
-    return ticketsData.filter((ticket) => ticket.status === "pending");
+    return ticketsData.filter((ticket) => ticket.status === "accepted");
   }, [data?.data]);
 
   const approved = useMemo(() => {
     if (!data?.data) return [];
     return ticketsData.filter(
-      (ticket) => ticket.status !== "pending" && ticket.status !== "ghost",
-      // ticket.status !== "unsigned",
+      (ticket) =>
+        ticket.status === "validated" ||
+        ticket.status === "paid"
     );
   }, [data?.data]);
+
   const unPaid = useMemo(() => {
     if (!data?.data) return [];
     return ticketsData.filter(
@@ -60,9 +61,11 @@ function Page() {
   if (isLoading || getRequestType.isLoading) {
     return <LoadingPage />;
   }
+
   if (isError || getRequestType.isError) {
     return <ErrorPage error={error || getRequestType.error!} />;
   }
+
   if (isSuccess && getRequestType.isSuccess) {
     return (
       <div className="flex flex-col gap-6">

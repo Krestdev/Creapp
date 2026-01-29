@@ -304,6 +304,11 @@ function AppSidebar() {
     return ticketsData.filter((ticket) => ticket.status === "pending_depense");
   }, [ticketsData]);
 
+  const ticketPending = useMemo(() => {
+    if (!ticketsData) return [];
+    return ticketsData.filter((ticket) => ticket.status === "accepted");
+  }, [ticketsData]);
+
   const ticketsDataP = useMemo(() => {
     if (!getPayments.data) return [];
     return getPayments.data.data.filter(
@@ -513,8 +518,8 @@ function AppSidebar() {
             href: "/tableau-de-bord/ticket",
             authorized: ["ADMIN", "VOLT_MANAGER"],
             badgeValue:
-              ticketsDataP && ticketsDataP.length > 0
-                ? ticketsDataP?.length
+              ticketPending && ticketPending.length > 0
+                ? ticketPending?.length
                 : undefined,
           },
           {
