@@ -244,7 +244,8 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
         }
       }
       return matchStatus && matchType && matchDate && matchAmount && matchBank;
-    });
+    })
+    ;
   }, [
     data,
     dateFilter,

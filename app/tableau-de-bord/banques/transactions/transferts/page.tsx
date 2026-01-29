@@ -37,7 +37,7 @@ function Page() {
       <div className="content">
         <PageTitle title="Transferts" subtitle="Historique des transferts" links={links} />
         <TransferTable
-          data={getTransactions.data.data.filter((t) => t.Type === "TRANSFER")}
+          data={getTransactions.data.data.filter((t) => t.Type === "TRANSFER").sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())}
           banks={getBanks.data.data}
           paymentMethods={getPaymentMethods.data.data}
         />

@@ -236,7 +236,7 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
         }
       }
       return matchStatus && matchDate && matchAmount && matchBank && matchSearch;
-    }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    });
   }, [
     data,
     dateFilter,
