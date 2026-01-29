@@ -57,7 +57,9 @@ function Page() {
     
   }, [data, signatair.data, user?.id]);
 
-  const unsigned = filteredData.filter(t=> !!t.signers?.find(s=> s.userId === user?.id) && t.isSigned === false );
+  console.log(filteredData)
+  const unsigned = filteredData.filter(t=> t.isSigned === false && t.signers.length === 0 ? true : t.signers.some(s=> s.id === user?.id && s.signed === false)  );
+  console.log(unsigned)
   const signed = filteredData.filter(t=> !!t.signers?.find(s=> s.userId === user?.id)?.signed === true);
   const signedByOthers = filteredData.filter(t=> t.isSigned === true && !t.signers?.find(s=> s.userId === user?.id));
 
