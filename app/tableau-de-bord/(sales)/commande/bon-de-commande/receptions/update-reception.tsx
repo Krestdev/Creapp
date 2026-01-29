@@ -18,23 +18,27 @@ import { Switch } from "@/components/ui/switch";
 
 import FilesUpload from "@/components/comp-547";
 import { ReceptionCompletion, receptionQ } from "@/queries/reception";
-import type { Reception } from "@/types/types";
+import type { CommandRequestT, Quotation, Reception } from "@/types/types";
 
 interface Props {
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   reception: Reception;
+  devis: Quotation[];
+  cmdReqst: CommandRequestT[];
 }
 
 export default function UpdateReception({
   open,
   onOpenChange,
   reception,
+  devis,
+  cmdReqst,
 }: Props) {
   const defaultFiles: Array<string> = !!reception.Proof
     ? reception.Proof.split(";")
     : [];
-  // local state (tu évites de modifier l’objet reception direct)
+  // local state (tu évites de modifier l'objet reception direct)
   const [deliverables, setDeliverables] = React.useState<
     Reception["Deliverables"]
   >(reception?.Deliverables ?? []);
@@ -46,8 +50,6 @@ export default function UpdateReception({
     // reset quand on ouvre / change de réception
     if (open) setDeliverables(reception?.Deliverables ?? []);
   }, [open, reception]);
-
-  //const status = computeStatus(deliverables);
 
   const markReception = useMutation({
     mutationFn: ({ id, Deliverables, proof }: ReceptionCompletion) =>
@@ -73,8 +75,9 @@ export default function UpdateReception({
     deliverables.length > 0 && deliverables.every((d) => d.isDelivered);
   const noneChecked = deliverables.every((d) => !d.isDelivered);
 
+  // CORRECTION ICI : Utiliser isDelivered au lieu de state
   const setAll = (value: boolean) => {
-    setDeliverables((prev) => prev.map((d) => ({ ...d, state: value })));
+    setDeliverables((prev) => prev.map((d) => ({ ...d, isDelivered: value })));
   };
 
   const submit = () => {
@@ -85,17 +88,15 @@ export default function UpdateReception({
     });
   };
 
-  const title =
-    reception.Command?.devi?.commandRequest?.title ??
-    reception.Command?.devi?.commandRequest?.title ??
-    "Non défini";
+  const devi = devis.find((d) => d.id === reception.Command?.deviId)
+  const cmdReqs = cmdReqst.find((c) => c.id === devi?.commandRequestId)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between gap-2">
-            {title}
+            {cmdReqs?.title ?? "Non défini"}
           </DialogTitle>
           <DialogDescription>{"Compléter la réception"}</DialogDescription>
         </DialogHeader>

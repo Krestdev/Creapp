@@ -91,19 +91,6 @@ function Page() {
     );
 
     // Séparation des paiements par statut
-    // const pendingDepensePayments = authorizedPayments.filter(
-    //   (p) => p.status === "pending_depense"
-    // );
-
-    // const unsignedPayments = authorizedPayments.filter(
-    //   (p) => p.status === "unsigned"
-    // );
-
-    // const signedPayments = authorizedPayments.filter(
-    //   (p) => p.status === "signed" || p.status === "paid"
-    // );
-
-    // Séparation des paiements par statut
     const pendingDepensePayments = authorizedPayments.filter(
       (p) => p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "pending_depense"
     );
@@ -134,8 +121,6 @@ function Page() {
       (total, el) => total + (el.price || 0),
       0,
     );
-
-    const allPendingTotal = pendingDepenseTotal + unsignedTotal;
 
     const statistics: Array<StatisticProps> = [
       {

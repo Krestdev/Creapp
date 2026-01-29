@@ -7,6 +7,8 @@ import { receptionQ } from "@/queries/reception";
 import type { Reception } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { ReceptionTable } from "./reception-table";
+import { quotationQ } from "@/queries/quotation";
+import { commandRqstQ } from "@/queries/commandRqstModule";
 
 const ReceptionsPage = () => {
   const getReceptions = useQuery({
@@ -14,12 +16,23 @@ const ReceptionsPage = () => {
     queryFn: receptionQ.getAll,
   });
 
-  if (getReceptions.isLoading) return <LoadingPage />;
-  if (getReceptions.isError) return <ErrorPage />;
+  const getDevis = useQuery({
+    queryKey: ["quotations"],
+    queryFn: quotationQ.getAll,
+  });
+
+  const cmdReqs = useQuery({
+    queryKey: ["commands"],
+    queryFn: commandRqstQ.getAll,
+  });
+
+  if (getReceptions.isLoading || getDevis.isLoading || cmdReqs.isLoading) return <LoadingPage />;
+  if (getReceptions.isError || getDevis.isError || cmdReqs.isError) return <ErrorPage />;
 
   // ✅ Selon ta consigne : le type réel est getReceptions.data.data
   const receptions: Reception[] = getReceptions.data?.data ?? [];
-
+  const devis = getDevis.data?.data ?? [];
+  const cmdReqsData = cmdReqs.data?.data ?? [];
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
@@ -30,7 +43,7 @@ const ReceptionsPage = () => {
         color={"red"}
       />
 
-      <ReceptionTable data={receptions} />
+      <ReceptionTable data={receptions} devis={devis} cmdReqst={cmdReqsData} />
     </div>
   );
 };

@@ -22,70 +22,10 @@ interface Props {
   users: Array<User>;
 }
 
-// export const bonDeCommande: BonDeCommande = {
-//   numero: "BC0000224/11/2025/CREACONSULT/Ets Ideal DECOR",
-//   dateCreation: "2025-11-21T17:18:03",
-//   imprimePar: "CREACONSULT",
-//   imprimeLe: "2025-11-21 18:28:21",
-//   company: {
-//     name: "CREACONSULT",
-//     address:
-//       "BP 11735 Douala - Cameroun\nTel: 233 42 63 05\nEmail: creaconsult@yahoo.fr",
-//     phone: "233 42 63 05",
-//     email: "creaconsult@yahoo.fr",
-//   },
-//   fournisseur: {
-//     nom: "Ets Ideal DECOR",
-//     adresse: "Douala",
-//     ville: "DOUALA",
-//     pays: "CAMEROUN",
-//     niu: "P11761702977BU",
-//     email: "idealdecor237@gmail.com",
-//     telephone: "678819432/693",
-//   },
-//   client: {
-//     nom: "CREACONSULT",
-//     adresse: "BP 11735 Douala",
-//     ville: "DOUALA",
-//     pays: "CAMEROUN",
-//   },
-//   items: [
-//     {
-//       ref: "LOGO-EXT-80",
-//       designation: "Logo de 80 cm de Diamètre - Extérieur",
-//       qty: 1,
-//       puHt: 90000,
-//       tva: 0,
-//     },
-//     {
-//       ref: "LETT-3D-80",
-//       designation: "Lettrage 3D Lumineux de 80 cm Hauteur",
-//       qty: 4,
-//       puHt: 60000,
-//       tva: 0,
-//     },
-//     {
-//       ref: "POSE-GEN",
-//       designation: "Frais de pose Générale",
-//       qty: 1,
-//       puHt: 80000,
-//       tva: 0,
-//     },
-//   ],
-//   totals: {
-//     totalHt: 1304000,
-//     remise: 100000,
-//     tva: 0,
-//     isirda: 4063,
-//     net: 1199937,
-//   },
-//   amountInWords:
-//     "Un million cent quatre-vingt-dix-neuf mille neuf cent trente-sept XAF",
-//   conditions:
-//     "80% à la commande et le solde à la livraison avec bordereau de réception. Pénalité de 10 000 FCFA par jour de retard.",
-// };
-
 function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
+  // Vérifier si le bon de commande est rejeté
+  const isRejected = purchaseOrder.status === "REJECTED";
+
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="max-h-[750px] max-w-4xl! gap-0 overflow-hidden border-none flex flex-col">
@@ -105,19 +45,31 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
 
         {/* pdf here */}
         <DialogFooter className="shrink-0 sticky z-10 w-full bottom-0">
-          <PDFDownloadLink
-            document={<BonDocument doc={purchaseOrder} />}
-            fileName={`BonDeCommande_${purchaseOrder.reference}.pdf`}
-          >
-            {({ loading }) => (
-              <Button
-                variant={"primary"}
-                style={{ padding: "8px 12px", cursor: "pointer" }}
-              >
-                {loading ? "Préparation..." : "Télécharger le PDF"}
-              </Button>
-            )}
-          </PDFDownloadLink>
+          {isRejected ? (
+            // Si le statut est REJECTED, afficher simplement un bouton désactivé
+            <Button
+              variant={"primary"}
+              disabled
+              style={{ padding: "8px 12px" }}
+            >
+              Bon de commande rejeté
+            </Button>
+          ) : (
+            // Si le statut n'est pas REJECTED, afficher le lien de téléchargement
+            <PDFDownloadLink
+              document={<BonDocument doc={purchaseOrder} />}
+              fileName={`BonDeCommande_${purchaseOrder.reference}.pdf`}
+            >
+              {({ loading }) => (
+                <Button
+                  variant={"primary"}
+                  style={{ padding: "8px 12px", cursor: "pointer" }}
+                >
+                  {loading ? "Préparation..." : "Télécharger le PDF"}
+                </Button>
+              )}
+            </PDFDownloadLink>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

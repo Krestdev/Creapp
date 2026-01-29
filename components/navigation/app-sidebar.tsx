@@ -45,6 +45,9 @@ import {
 } from "../ui/sidebar";
 import { Skeleton } from "../ui/skeleton";
 import NavigationItem from "./navigation-item";
+import { StatisticProps } from "../base/TitleValueCard";
+import { XAF } from "@/lib/utils";
+import { transactionQ } from "@/queries/transaction";
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
@@ -125,6 +128,92 @@ function AppSidebar() {
     queryFn: commandRqstQ.getAll,
   });
 
+  const SignPay = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
+
+  const signatair = useQuery({
+    queryKey: ["signatairs"],
+    queryFn: signatairQ.getAll,
+  });
+
+  const transfertData = useQuery({
+    queryKey: ["transactions"],
+    queryFn: () => {
+      return transactionQ.getAll();
+    },
+  });
+
+  const filteredTickTransfert = React.useMemo(() => {
+    return transfertData.data?.data.filter((transaction) => {
+      //Filter Tab
+      const matchTab = transaction.Type === "TRANSFER" && transaction.status === "PENDING";
+      return matchTab;
+    });
+  }, [
+    transfertData.data?.data,
+  ]);
+
+  const filteredData = useMemo(() => {
+    if (!SignPay?.data?.data || !signatair.data?.data || !user) {
+      return {
+        unsignedPayments: [],
+        signedPayments: [],
+      };
+    }
+
+    const allPayments = SignPay.data.data;
+    const allSignatair = signatair.data.data;
+    const currentUserId = user.id;
+
+    // Pré-calculer les signataires autorisés par banque et type de paiement
+    const authorizedSigners = new Map<string, Set<number>>();
+
+    allSignatair.forEach((signer) => {
+      const key = `${signer.bankId}_${signer.payTypeId}`;
+      const userIds = new Set(signer.user?.map((u) => u.id) || []);
+      authorizedSigners.set(key, userIds);
+    });
+
+    // Fonction optimisée pour vérifier si l'utilisateur peut signer
+    const userCanSign = (bankId: number | null, methodId: number | null) => {
+      if (bankId == null || methodId == null) return false;
+      const key = `${bankId}_${methodId}`;
+      const userIds = authorizedSigners.get(key);
+      return userIds ? userIds.has(currentUserId) : false;
+    };
+
+    // Filtrer les paiements selon les permissions - version optimisée
+    const authorizedPayments = allPayments.filter((p) =>
+      userCanSign(p.bankId!, p.methodId!),
+    );
+
+    // Séparation des paiements par statut
+    const pendingDepensePayments = authorizedPayments.filter(
+      (p) => p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "pending_depense"
+    );
+
+    const unsignedPayments = authorizedPayments.filter(
+      (p) => !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "unsigned"
+    );
+
+    const signedPayments = authorizedPayments.filter(
+      (p) => (p.status === "signed" || p.status === "paid")
+    );
+
+    // Tous les paiements en attente (pour l'onglet)
+    const allPendingPayments = [...pendingDepensePayments, ...unsignedPayments];
+
+    return {
+      pendingDepensePayments,
+      unsignedPayments,
+      signedPayments,
+      allPendingPayments,
+      allPayments,
+    };
+  }, [SignPay?.data?.data, signatair.data?.data, user]);
+
   const data: Array<RequestModelT> = useMemo(() => {
     if (!requestData.data) return [];
     return approbatorRequests(requestData.data.data, user?.id);
@@ -200,7 +289,17 @@ function AppSidebar() {
     return ticketsData.filter((ticket) => ticket.status === "validated");
   }, [ticketsData]);
 
-  const approvedDepense = useMemo(() => {
+  const simpleTicket = useMemo(() => {
+    if (!ticketsData) return [];
+    return ticketsData.filter((ticket) => ticket.status === "simple_signed");
+  }, [ticketsData]);
+
+  const signedTicket = useMemo(() => {
+    if (!ticketsData) return [];
+    return ticketsData.filter((ticket) => ticket.status === "signed");
+  }, [ticketsData]);
+
+  const pendingTicket = useMemo(() => {
     if (!ticketsData) return [];
     return ticketsData.filter((ticket) => ticket.status === "pending_depense");
   }, [ticketsData]);
@@ -220,9 +319,9 @@ function AppSidebar() {
   }, [getPayments.data]);
 
   const overall = useMemo(() => {
-    if (!approvedTicket || !approvedDepense) return [];
-    return approvedTicket?.concat(approvedDepense);
-  }, [approvedTicket, approvedDepense]);
+    if (!approvedTicket || !signedTicket || !pendingTicket || !simpleTicket) return [];
+    return approvedTicket?.concat(signedTicket, pendingTicket, simpleTicket);
+  }, [approvedTicket, signedTicket, pendingTicket, simpleTicket]);
 
   if (
     getQuotationRequests.isLoading ||
@@ -423,6 +522,10 @@ function AppSidebar() {
             title: "Transferts",
             href: "/tableau-de-bord/ticket/transferts",
             authorized: ["ADMIN", "VOLT_MANAGER"],
+            badgeValue: filteredTickTransfert &&
+              filteredTickTransfert?.length > 0 ?
+              filteredTickTransfert?.length :
+              undefined,
           },
           {
             pageId: "PG-04-03",
@@ -447,9 +550,11 @@ function AppSidebar() {
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
-                approvedDepense &&
-                approvedTicket?.length + approvedDepense?.length > 0
-                ? approvedTicket?.length + approvedDepense?.length
+                signedTicket &&
+                pendingTicket &&
+                simpleTicket &&
+                approvedTicket?.length + signedTicket?.length + pendingTicket?.length + simpleTicket?.length > 0
+                ? approvedTicket?.length + signedTicket?.length + pendingTicket?.length + simpleTicket?.length
                 : undefined,
             authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
           },
@@ -473,6 +578,8 @@ function AppSidebar() {
             title: "Tickets",
             href: "/tableau-de-bord/signatures/tickets",
             authorized: [],
+            badgeValue: filteredData?.unsignedPayments?.length > 0 ?
+              filteredData?.unsignedPayments?.length : undefined,
           },
           {
             pageId: "PG-0000551-02",
@@ -536,9 +643,10 @@ function AppSidebar() {
             <NavigationItem
               key={id}
               {...props}
-              items={items?.filter((item) =>{
-                if(item.authorized.length === 0) return true;
-                return item.authorized.some((role) => userRoles.includes(role))},
+              items={items?.filter((item) => {
+                if (item.authorized.length === 0) return true;
+                return item.authorized.some((role) => userRoles.includes(role))
+              },
               )}
             />
           ))}

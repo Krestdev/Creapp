@@ -13,7 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
-import { ArrowUpDown, ChevronDown, Eye, Pencil, Settings2 } from "lucide-react";
+import { ArrowUpDown, ChevronDown, Eye, HandHelpingIcon, Settings2 } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
@@ -55,7 +55,9 @@ import {
 } from "@/components/ui/table";
 
 import {
+  CommandRequestT,
   PURCHASE_ORDER_STATUS,
+  Quotation,
   Reception,
   RECEPTION_STATUS,
 } from "@/types/types";
@@ -66,6 +68,8 @@ import ViewReception from "./view-reception";
 
 interface Props {
   data: Array<Reception>;
+  devis: Array<Quotation>;
+  cmdReqst: Array<CommandRequestT>;
 }
 
 const getStatusBadge = (
@@ -88,7 +92,7 @@ const getStatusBadge = (
   }
 };
 
-export function ReceptionTable({ data }: Props) {
+export function ReceptionTable({ data, devis, cmdReqst }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -96,7 +100,9 @@ export function ReceptionTable({ data }: Props) {
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      createdAt: false,
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
@@ -112,6 +118,7 @@ export function ReceptionTable({ data }: Props) {
   //Selected
   const [selectedValue, setSelectedValue] = React.useState<Reception>();
 
+  // Filtrer les données selon le statut
   const filteredData = React.useMemo(() => {
     let filtered = [...(data ?? [])];
 
@@ -201,6 +208,27 @@ export function ReceptionTable({ data }: Props) {
     },
 
     {
+      accessorKey: "createdAt",
+      header: ({ column }) => (
+        <span
+          className="tablehead"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          {"Date de création"}
+          <ArrowUpDown className="h-4 w-4" />
+        </span>
+      ),
+      cell: ({ row }) => {
+        const base = row.getValue("createdAt") as string;
+        return (
+          <div className="font-medium">
+            {format(new Date(base), "dd MMMM yyyy", { locale: fr })}
+          </div>
+        );
+      },
+    },
+
+    {
       accessorKey: "Deadline",
       header: ({ column }) => (
         <span
@@ -277,8 +305,8 @@ export function ReceptionTable({ data }: Props) {
                   setEdit(true);
                 }}
               >
-                <Pencil />
-                {"Modifier"}
+                <HandHelpingIcon />
+                {"Recevoir"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -287,8 +315,21 @@ export function ReceptionTable({ data }: Props) {
     },
   ];
 
+  // PROBLÈME : Le filtre global ne fonctionne pas bien avec filteredData
+  // SOLUTION : Utilisez une fonction de filtre personnalisée qui combine statut ET recherche
+  const tableData = React.useMemo(() => {
+    let result = [...(data ?? [])];
+
+    // 1. Appliquer le filtre de statut
+    if (statusFilter !== "all") {
+      result = result.filter((item) => item.Status === statusFilter);
+    }
+
+    return result;
+  }, [data, statusFilter]);
+
   const table = useReactTable({
-    data: filteredData,
+    data: tableData, // Ici, on utilise les données déjà filtrées par statut
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -299,23 +340,24 @@ export function ReceptionTable({ data }: Props) {
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, _columnId, filterValue) => {
-      const s = String(filterValue).toLowerCase();
+    globalFilterFn: (row, columnId, filterValue) => {
+      // Vérifier si la valeur de recherche est vide
+      if (!filterValue || String(filterValue).trim() === "") {
+        return true;
+      }
+
+      const searchTerm = String(filterValue).toLowerCase();
       const po = row.original;
 
-      const created = new Date(po.createdAt as any);
-      const createdText = isNaN(created.getTime())
-        ? ""
-        : format(created, "dd/MM/yyyy HH:mm").toLowerCase();
+      // Rechercher dans différents champs
+      const fieldsToSearch = [
+        po.Reference?.toLowerCase() || "",
+        po.Provider?.name?.toLowerCase() || "",
+        po.Command?.reference?.toLowerCase() || "",
+        po.Status?.toLowerCase() || "",
+      ];
 
-      const statusText = (po.Status ?? "").toLowerCase();
-
-      return (
-        String(po.id).includes(s) ||
-        String(po.providerId).includes(s) ||
-        statusText.includes(s) ||
-        createdText.includes(s)
-      );
+      return fieldsToSearch.some((field) => field.includes(searchTerm));
     },
     state: {
       sorting,
@@ -359,7 +401,7 @@ export function ReceptionTable({ data }: Props) {
                   <Input
                     id="searchPO"
                     type="search"
-                    placeholder="ID, devis, fournisseur, statut..."
+                    placeholder="Référence, fournisseur, bon de commande..."
                     value={globalFilter ?? ""}
                     onChange={(e) => setGlobalFilter(e.target.value)}
                   />
@@ -378,7 +420,7 @@ export function ReceptionTable({ data }: Props) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{"Tous"}</SelectItem>
-                      {PURCHASE_ORDER_STATUS.map((s) => (
+                      {RECEPTION_STATUS.map((s) => ( // CORRECTION ICI : utiliser RECEPTION_STATUS au lieu de PURCHASE_ORDER_STATUS
                         <SelectItem key={s.value} value={s.value}>
                           {s.name}
                         </SelectItem>
@@ -437,6 +479,12 @@ export function ReceptionTable({ data }: Props) {
                 else if (column.id === "providerId") columnName = "Fournisseur";
                 else if (column.id === "deliverables") columnName = "Éléments";
                 else if (column.id === "status") columnName = "Statut";
+                else if (column.id === "Provider") columnName = "Fournisseur";
+                else if (column.id === "Deadline") columnName = "Date limite";
+                else if (column.id === "Deliverables") columnName = "Éléments";
+                else if (column.id === "Reference") columnName = "Référence";
+                else if (column.id === "Command") columnName = "Bon de commande";
+                else if (column.id === "createdAt") columnName = "Date de création";
 
                 return (
                   <DropdownMenuCheckboxItem
@@ -468,9 +516,9 @@ export function ReceptionTable({ data }: Props) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -539,6 +587,8 @@ export function ReceptionTable({ data }: Props) {
           open={view}
           onOpenChange={setView}
           reception={selectedValue}
+          devis={devis}
+          cmdReqst={cmdReqst}
         />
       )}
       {selectedValue && (
@@ -546,6 +596,8 @@ export function ReceptionTable({ data }: Props) {
           open={edit}
           onOpenChange={setEdit}
           reception={selectedValue}
+          devis={devis}
+          cmdReqst={cmdReqst}
         />
       )}
     </div>
