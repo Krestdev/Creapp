@@ -129,7 +129,7 @@ function Page() {
             data.data
               .filter(
                 (p) =>
-                  p.status === "pending_depense" || p.status === "validated",
+                  p.status === "validated",
               )
               .reduce((total, el) => total + el.price, 0),
           ),
@@ -150,7 +150,7 @@ function Page() {
       },
       {
         title: "Tickets en attente de paiement",
-        value: data.data.filter((p) => p.status === "signed" || p.status === "simple_signed").length,
+        value: data.data.filter((p) => p.status === "pending_depense" || p.status === "signed" || p.status === "simple_signed").length,
         variant: "default",
         more: {
           title: "Montant total",

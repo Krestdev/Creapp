@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useStore } from "@/providers/datastore";
+import { paymentQ } from "@/queries/payment";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Bank, PaymentRequest, Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,6 +72,20 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
     },
   });
 
+  const paymentsData = useMutation({
+    mutationFn: async (
+      data: Omit<Partial<PaymentRequest>, "proof">
+    ) => paymentQ.update(ticket.id!, data),
+    onSuccess: () => {
+      toast.success("Votre dépense a été payée avec succès !");
+      form.reset();
+      onOpenChange(false);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
   function onSubmit(values: FormValues) {
     const { proof, ...rest } = values;
     const payload: Omit<TransactionProps, "userId" | "updatedAt"> = {
@@ -83,7 +98,12 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
       date: new Date(),
       status: "paid",
     };
-    pay.mutate(payload);
+
+    ticket.status === "pending_depense" ?
+      paymentsData.mutate({
+        status: "paid"
+      })
+      : pay.mutate(payload);
   }
 
   return (

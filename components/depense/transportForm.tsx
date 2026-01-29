@@ -25,7 +25,7 @@ import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -78,8 +78,11 @@ export function TransportForm() {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-
   const [view, setView] = useState<boolean>(false);
+
+  // Observer les changements de la caisse sélectionnée et du montant
+  const selectedCaisseId = form.watch("caisseId");
+  const montentValue = form.watch("Montent");
 
   const paymentsData = useMutation({
     mutationFn: async (
@@ -92,6 +95,9 @@ export function TransportForm() {
       setIsSuccessModalOpen(true);
       form.reset();
       setView(true);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Erreur lors de la soumission");
     },
   });
 
@@ -115,7 +121,36 @@ export function TransportForm() {
     queryFn: payTypeQ.getAll,
   });
 
+  // Calcul du solde de la caisse sélectionnée
+  const selectedCaisseBalance = useMemo(() => {
+    if (!selectedCaisseId || !bankData.data?.data) return 0;
+    const caisse = bankData.data.data.find(
+      (x) => x.id === Number(selectedCaisseId)
+    );
+    return caisse?.balance || 0;
+  }, [selectedCaisseId, bankData.data?.data]);
+
+  // Vérification en temps réel du solde
+  const isBalanceSufficient = useMemo(() => {
+    return selectedCaisseBalance >= montentValue;
+  }, [selectedCaisseBalance, montentValue]);
+
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
+    // Vérifier le solde avant de soumettre
+    const selectedCaisse = bankData.data?.data.find(
+      (x) => x.id === Number(data.caisseId)
+    );
+
+    if (!selectedCaisse) {
+      toast.error("Caisse non trouvée");
+      return;
+    }
+
+    if (selectedCaisse.balance < data.Montent) {
+      toast.error(`Solde insuffisant. Solde disponible: ${selectedCaisse.balance} FCFA`);
+      return;
+    }
+
     const payment: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> = {
       title: data.title,
       price: data.Montent,
@@ -133,6 +168,7 @@ export function TransportForm() {
       proof: "",
       reference: "",
     };
+
     paymentsData.mutate({ ...payment, caisseId: Number(data.caisseId) });
   });
 
@@ -186,6 +222,7 @@ export function TransportForm() {
                     .map((bank) => {
                       return { value: bank.id, label: bank.label };
                     });
+
                   return (
                     <Field data-invalid={fieldState.invalid} className="gap-1">
                       <FieldLabel htmlFor="caisseId">
@@ -200,18 +237,26 @@ export function TransportForm() {
                           <SelectValue placeholder="Selectioner une Caisse" />
                         </SelectTrigger>
                         <SelectContent>
-                          {options.map((option) => (
-                            <SelectItem
-                              key={option.value}
-                              value={option.value.toString()}
-                            >
-                              {option.label}
-                            </SelectItem>
-                          ))}
+                          {options.map((option) => {
+                            const caisse = bankData.data.data.find(x => x.id === option.value);
+                            return (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value.toString()}
+                              >
+                                {option.label} (Solde: {caisse?.balance || 0} FCFA)
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
+                      )}
+                      {field.value && selectedCaisseBalance > 0 && (
+                        <p className="text-sm mt-1">
+                          Solde disponible: <strong>{selectedCaisseBalance} FCFA</strong>
+                        </p>
                       )}
                     </Field>
                   );
@@ -274,7 +319,18 @@ export function TransportForm() {
                       }}
                       aria-invalid={fieldState.invalid}
                       placeholder="1000"
+                      className={!isBalanceSufficient && selectedCaisseId ? "border-red-500" : ""}
                     />
+
+                    {selectedCaisseId && (
+                      <div className="mt-2">
+                        {!isBalanceSufficient && (
+                          <p className="text-red-500 text-sm">
+                            ❌ Solde insuffisant. Dépassement de {montentValue - selectedCaisseBalance} FCFA
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -387,13 +443,11 @@ export function TransportForm() {
                 )}
               />
             </FieldGroup>
+
             <div className="flex justify-end items-center w-full">
-              {/* <Button type="button" onClick={() => setView(!view)}>
-                test
-              </Button> */}
               <Button
                 variant={"primary"}
-                disabled={paymentsData.isPending}
+                disabled={paymentsData.isPending || !isBalanceSufficient || !selectedCaisseId}
                 type="submit"
                 className="min-w-[200px]"
               >

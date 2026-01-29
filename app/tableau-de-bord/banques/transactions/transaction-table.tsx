@@ -281,7 +281,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
       }
       return matchStatus && matchType && matchDate && matchAmount && matchBank && matchSearch;
     })
-    ;
+      ;
   }, [
     data,
     dateFilter,
@@ -567,7 +567,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                   className="max-w-sm"
                 />
               </div>
-              <div className="grid gap-1.5">
+              {/* <div className="grid gap-1.5">
                 <Label htmlFor="statusFilter">{"Statut"}</Label>
                 <Select
                   value={statusFilter}
@@ -587,7 +587,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
               {/**Type Filter */}
               {!!filterByType && (
                 <div className="grid gap-1.5">
@@ -799,15 +799,15 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                               ? "Montant"
                               : column.id === "type"
                                 ? "Type"
-                                : column.id === "status"
-                                  ? "Statut"
-                                  : column.id === "bank"
-                                    ? "Banque"
-                                    : column.id === "ref"
-                                      ? "Référence"
-                                      : column.id === "label"
-                                        ? "Libellé"
-                                        : column.id}
+                                // : column.id === "status"
+                                //   ? "Statut"
+                                : column.id === "bank"
+                                  ? "Banque"
+                                  : column.id === "ref"
+                                    ? "Référence"
+                                    : column.id === "label"
+                                      ? "Libellé"
+                                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
