@@ -202,7 +202,7 @@ export const getUserName = (users: Array<User> ,userId?: number):string | undefi
 export const getQuotationAmount = (elements: Array<QuotationElement>) => {
     return (
       elements.reduce(
-        (total, element) => total + (element.priceProposed),
+        (total, element) => total + (element.priceProposed * element.quantity),
         0,
       )
     );

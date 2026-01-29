@@ -53,7 +53,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { formatToShortName, XAF } from "@/lib/utils";
+import { formatToShortName, totalAmountPurchase, XAF } from "@/lib/utils";
 import { BonsCommande, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
 import { format } from "date-fns";
 import ViewPurchase from "../viewPurchase";
@@ -201,26 +201,38 @@ export function ApprovedTable({ data }: Props) {
       },
     },
 
-    {
-      accessorKey: "amountBase",
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Montant"}
-          <ArrowUpDown />
-        </span>
-      ),
-      cell: ({ row }) => {
-        const po = row.original;
-        const total = po.devi.element.reduce(
-          (t, el) => t + el.priceProposed * el.quantity,
-          0,
-        );
-        return <div className="font-medium">{XAF.format(total)}</div>;
-      },
-    },
+   {
+         accessorKey: "amount",
+         header: ({ column }) => (
+           <span
+             className="tablehead"
+             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+           >
+             {"Montant TTC"}
+             <ArrowUpDown />
+           </span>
+         ),
+         cell: ({ row }) => {
+           const po = row.original;
+           return <div className="font-medium">{XAF.format(po.netToPay)}</div>;
+         },
+       },
+       {
+         accessorKey: "amountHT",
+         header: ({ column }) => (
+           <span
+             className="tablehead"
+             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+           >
+             {"Montant HT"}
+             <ArrowUpDown />
+           </span>
+         ),
+         cell: ({ row }) => {
+           const po = row.original;
+           return <div className="font-medium">{XAF.format(totalAmountPurchase(po))}</div>;
+         },
+       },
 
     {
       accessorKey: "priority",
@@ -446,7 +458,7 @@ export function ApprovedTable({ data }: Props) {
                   </Select>
                 </div>
 
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <Label>{"Pénalités"}</Label>
                   <Select
                     value={penaltyFilter}
@@ -463,7 +475,7 @@ export function ApprovedTable({ data }: Props) {
                       <SelectItem value="no">{"Non"}</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
 
                 <Button
                   variant="outline"
@@ -495,7 +507,8 @@ export function ApprovedTable({ data }: Props) {
                 if (column.id === "reference") columnName = "Référence";
                 else if (column.id === "devi") columnName = "Titre";
                 else if (column.id === "provider") columnName = "Fournisseur";
-                else if (column.id === "amountBase") columnName = "Montant";
+                else if (column.id === "amount") columnName = "Montant TTC";
+                else if (column.id === "amountHT") columnName = "Montant HT";
                 else if (column.id === "priority") columnName = "Priorité";
                 else if (column.id === "status") columnName = "Statut";
                 else if (column.id === "createdAt") columnName = "Créé le";

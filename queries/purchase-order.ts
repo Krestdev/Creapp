@@ -12,6 +12,7 @@ export type CreatePurchasePayload = {
     | "reference"
     | "provider"
     | "instalments"
+    | "netToPay"
   > & {
     instalments: Array<{
       percentage: number;
@@ -31,6 +32,7 @@ export type updatePoPayload = Omit<
   | "id"
   | "deviId"
   | "providerId"
+  | "netToPay"
 >;
 
 class PurchaseOrder {

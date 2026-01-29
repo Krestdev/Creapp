@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn, XAF } from "@/lib/utils";
+import { cn, getQuotationAmount, XAF } from "@/lib/utils";
 import { Quotation } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -52,9 +52,7 @@ export function DevisModal({
   data,
   quotation,
 }: DetailModalProps) {
-  const totalAmount =
-    data?.element?.reduce((acc, curr) => acc + curr.priceProposed, 0) || 0;
-
+  const totalAmount = data?.element ? getQuotationAmount(data.element) : 0;
   const [page, setPage] = React.useState(1);
   const [file, setFile] = React.useState<string | File | undefined>(undefined);
 

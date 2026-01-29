@@ -423,6 +423,7 @@ function CreateForm() {
                           field.onChange(value);
                           setSelectDate(false);
                         }}
+                        disabled={(date)=> date < new Date()}
                       />
                     </PopoverContent>
                   </Popover>
@@ -647,6 +648,7 @@ function CreateForm() {
                                   field.onChange(value);
                                   setSelectDate(false);
                                 }}
+                                disabled={(date)=> date < new Date()}
                               />
                             </PopoverContent>
                           </Popover>
