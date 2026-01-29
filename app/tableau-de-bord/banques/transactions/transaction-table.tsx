@@ -245,7 +245,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
       }
       return matchStatus && matchType && matchDate && matchAmount && matchBank;
     })
-    ;
+      ;
   }, [
     data,
     dateFilter,
@@ -401,25 +401,25 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
         );
       },
     },
-    {
-      accessorKey: "status",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Statut"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original.status;
-        const { variant, label } = getBadge(value);
-        return <Badge variant={variant}>{label}</Badge>;
-      },
-    },
+    // {
+    //   accessorKey: "status",
+    //   header: ({ column }) => {
+    //     return (
+    //       <span
+    //         className="tablehead"
+    //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    //       >
+    //         {"Statut"}
+    //         <ArrowUpDown />
+    //       </span>
+    //     );
+    //   },
+    //   cell: ({ row }) => {
+    //     const value = row.original.status;
+    //     const { variant, label } = getBadge(value);
+    //     return <Badge variant={variant}>{label}</Badge>;
+    //   },
+    // },
     {
       id: "actions",
       header: () => <span className="tablehead">{"Actions"}</span>,
@@ -530,7 +530,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                   className="max-w-sm"
                 />
               </div>
-              <div className="grid gap-1.5">
+              {/* <div className="grid gap-1.5">
                 <Label htmlFor="statusFilter">{"Statut"}</Label>
                 <Select
                   value={statusFilter}
@@ -550,7 +550,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
               {/**Type Filter */}
               {!!filterByType && (
                 <div className="grid gap-1.5">
@@ -762,15 +762,15 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                               ? "Montant"
                               : column.id === "type"
                                 ? "Type"
-                                : column.id === "status"
-                                  ? "Statut"
-                                  : column.id === "bank"
-                                    ? "Banque"
-                                    : column.id === "ref"
-                                      ? "Référence"
-                                      : column.id === "label"
-                                        ? "Libellé"
-                                        : column.id}
+                                // : column.id === "status"
+                                //   ? "Statut"
+                                : column.id === "bank"
+                                  ? "Banque"
+                                  : column.id === "ref"
+                                    ? "Référence"
+                                    : column.id === "label"
+                                      ? "Libellé"
+                                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
