@@ -6,11 +6,10 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
+  FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,8 +29,7 @@ import { totalAmountPurchase, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
-import { purchaseQ } from "@/queries/purchase-order";
-import { BonsCommande, PAYMENT_METHOD, PRIORITIES } from "@/types/types";
+import { BonsCommande, PaymentRequest, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -77,9 +75,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
   purchases: Array<BonsCommande>;
+  payments: Array<PaymentRequest>;
 }
 
-function CreatePaiement({ purchases }: Props) {
+function CreatePaiement({ purchases, payments }: Props) {
   /**Data states */
   const { user } = useStore();
 
@@ -136,6 +135,26 @@ function CreatePaiement({ purchases }: Props) {
     }
   }, [getPaymentType.data, methodValue, form]);
 
+   const purchase = React.useMemo(()=>{
+    return purchases.find(p=> p.id === commandId)
+  },[purchases, commandId]);
+
+  const toPay = purchase && purchase.netToPay - payments.filter(p=>p.commandId === purchase?.id && p.status !== "rejected" && p.status !== "cancelled").reduce((total, e)=> total + e.price, 0);
+
+  const rest = !!toPay && toPay >= 0 ? toPay : 0;
+
+  useEffect(() => {
+    if (!!commandId) {
+      if (!purchase) {
+        toast.error("Bon de commande invalide");
+        return form.setError("commandId", {
+          message: "Bon de commande invalide",
+        });
+      }
+      form.setValue("price", rest);
+    }
+  }, [commandId]);
+
   function onSubmit(values: FormValues) {
     // Validation supplémentaire pour le moyen de paiement
     if (!values.method || values.method.trim() === "") {
@@ -168,6 +187,10 @@ function CreatePaiement({ purchases }: Props) {
           "Votre montant est supérieur ou égal au montant total du bon de commande",
       });
     }
+    if(values.price > rest) {
+      toast.error("Montant invalide !");
+      return form.setError("price", { message: "Votre montant est supérieur au reste à payer"})
+    }
     const payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId"> =
     {
       methodId: Number(values.method),
@@ -183,26 +206,6 @@ function CreatePaiement({ purchases }: Props) {
     };
     createPayment.mutate(payload);
   }
-
-  useEffect(() => {
-    if (!!commandId) {
-      const purchase = purchases.find((p) => p.id === commandId);
-      if (!purchase) {
-        toast.error("Bon de commande invalide");
-        return form.setError("commandId", {
-          message: "Bon de commande invalide",
-        });
-      }
-      form.setValue("price", totalAmountPurchase(purchase));
-    }
-  }, [commandId]);
-
-  const getPayments = useQuery({
-    queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
-  });
-
-  const payments = getPayments.data?.data;
 
   return (
     <Form {...form}>
@@ -369,23 +372,12 @@ function CreatePaiement({ purchases }: Props) {
           control={form.control}
           name="price"
           render={({ field }) => {
-            const purchase = purchases.find((p) => p.id === commandId);
-            const pay = React.useMemo(() => {
-              return payments
-                ?.filter((payment) => payment.commandId === purchase?.id)
-                .filter((c) => c.status !== "rejected" && c.status !== "cancelled");
-            }, [payments, purchase]);
-            const paid =
-              pay?.flatMap((x) => x.price).reduce((a, b) => a + b, 0) ?? 0;
-            const total = purchase?.netToPay ?? 0;
-
-            const diff = total - paid;
             return (
               <FormItem>
                 <FormLabel isRequired>
                   {"Montant"}
                   <span className="text-xs text-red-500">
-                    {`(Reste à payer : ${XAF.format(diff ? diff : 0)})`}
+                    {`(Reste à payer : ${XAF.format(rest)})`}
                   </span>
                 </FormLabel>
                 <FormControl>
@@ -408,7 +400,7 @@ function CreatePaiement({ purchases }: Props) {
                 {!!commandId && 
                 <div className="grid gap-1.5">
                   {!!purchase && purchase.instalments.map((e, id)=>(
-                    <div key={id} className="text-sm text-gray-400">{`Echéance ${id+1}: ${XAF.format(e.percentage*total/100)} ${!!e.deadLine && `avant le ${format(new Date(e.deadLine), "dd MMMM yyyy", {locale: fr})}`}`}</div>
+                    <div key={id} className="text-sm text-gray-400">{`Echéance ${id+1}: ${XAF.format(e.percentage*purchase.netToPay/100)} ${!!e.deadLine && `avant le ${format(new Date(e.deadLine), "dd MMMM yyyy", {locale: fr})}`}`}</div>
                   ))}
                 </div>
                   }
