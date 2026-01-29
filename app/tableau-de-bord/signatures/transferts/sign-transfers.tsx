@@ -141,8 +141,8 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
         const search = searchFilter.toLowerCase();
         //Tab Filter
         const matchTab =
-          selectedTab === 0 ? transaction.signers?.find(u=>u.userId === user?.id)?.signed === false && transaction.isSigned === false :
-          transaction.signers?.find(u=>u.userId === user?.id)?.signed === true
+          selectedTab === 0 ? transaction.isSigned === false && !transaction.signers.find(s=> s.userId === user?.id) :
+          !!transaction.signers.find(u=>u.userId === user?.id)
         // Bank Filter - selon le type de transaction
         let matchBank =
           bankFilter === "all"

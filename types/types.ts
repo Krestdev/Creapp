@@ -682,7 +682,7 @@ export type TransferTransaction = TransactionBase & {
   to: Bank;
   payement?: PaymentRequest | null;
   isSigned: boolean;
-  signers?: Array<TransactionSigners>;
+  signers: Array<TransactionSigners>;
   signDoc?: string;
 };
 
