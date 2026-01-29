@@ -545,7 +545,7 @@ export function PurchaseApprovalTable({ data }: Props) {
                   </Select>
                 </div>
 
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <Label>{"Pénalités"}</Label>
                   <Select
                     value={penaltyFilter}
@@ -562,7 +562,7 @@ export function PurchaseApprovalTable({ data }: Props) {
                       <SelectItem value="false">{"Non"}</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
 
                 <Button
                   variant="outline"

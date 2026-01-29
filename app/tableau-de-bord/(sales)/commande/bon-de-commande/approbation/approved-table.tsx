@@ -446,7 +446,7 @@ export function ApprovedTable({ data }: Props) {
                   </Select>
                 </div>
 
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <Label>{"Pénalités"}</Label>
                   <Select
                     value={penaltyFilter}
@@ -463,7 +463,7 @@ export function ApprovedTable({ data }: Props) {
                       <SelectItem value="no">{"Non"}</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
 
                 <Button
                   variant="outline"
