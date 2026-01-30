@@ -556,7 +556,7 @@ export function DetailTicket({
         {/* Boutons du footer - FIXE */}
         <div className="flex gap-3 p-6 pt-0 shrink-0 w-full justify-end">
           {page === 2 && file && <DownloadFile file={file} />}
-          {user?.role.flatMap((x) => x.label).includes("VOLT") && (
+          {/* {user?.role.flatMap((x) => x.label).includes("VOLT") && (
             <Button
               onClick={action}
               className="bg-[#003D82] hover:bg-[#002D62] text-white"
@@ -564,7 +564,7 @@ export function DetailTicket({
             >
               {data?.status === "paid" ? "Déjà payé" : "Payer"}
             </Button>
-          )}
+          )} */}
           <Button
             variant="outline"
             className="bg-transparent"
