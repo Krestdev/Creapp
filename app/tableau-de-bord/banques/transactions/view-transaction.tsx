@@ -102,7 +102,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"default"}>
-          <DialogTitle>{transaction.label}</DialogTitle>
+          <DialogTitle className="uppercase">{`transfert - ${transaction.label}`}</DialogTitle>
           <DialogDescription>{"Détails de la transaction"}</DialogDescription>
         </DialogHeader>
 
@@ -185,39 +185,39 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             transaction.Type === "TRANSFER" &&
             <>
               <div className="view-group">
-              <span className="view-icon">
-                <ClipboardPenIcon />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Signature"}</p>
-                <p className="font-semibold">
-                  <Badge variant={transaction.isSigned === true ? "success" : "amber"}>
-                    {transaction.isSigned === true ? "Signé" : "En attente"}
-                  </Badge>
-                </p>
-              </div>
-            </div>
-              <div className="view-group">
-              <span className="view-icon">
-                <UsersIcon />
-              </span>
-              <div className="w-full flex flex-col">
-                <p className="view-group-title">{"Signataires"}</p>
-                <div className="w-full grid gap-2">
-                  {
-                    transaction.signers?.length === 0 || !transaction.signers ?
-                    <p className="text-sm">{"Aucune signature enregistrée"}</p>
-                    :
-                    transaction.signers.map(u=>
-                      <div key={u.id} className="w-full px-3 py-1.5 rounded-sm border border-green-200 bg-green-50 text-gray-400 flex flex-col">
-                        <p className="text-sm font-medium text-green-600">{u.user.firstName.concat(" ", u.user.lastName)}</p>
-                        <span className="text-xs">{`Signé le ${format(new Date(u.signedAt), "dd MMM yyyy, p", {locale: fr})}`}</span>
-                      </div>
-                    )
-                  }
+                <span className="view-icon">
+                  <ClipboardPenIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Signature"}</p>
+                  <p className="font-semibold">
+                    <Badge variant={transaction.isSigned === true ? "success" : "amber"}>
+                      {transaction.isSigned === true ? "Signé" : "En attente"}
+                    </Badge>
+                  </p>
                 </div>
               </div>
-            </div>
+              <div className="view-group">
+                <span className="view-icon">
+                  <UsersIcon />
+                </span>
+                <div className="w-full flex flex-col">
+                  <p className="view-group-title">{"Signataires"}</p>
+                  <div className="w-full grid gap-2">
+                    {
+                      transaction.signers?.length === 0 || !transaction.signers ?
+                        <p className="text-sm">{"Aucune signature enregistrée"}</p>
+                        :
+                        transaction.signers.map(u =>
+                          <div key={u.id} className="w-full px-3 py-1.5 rounded-sm border border-green-200 bg-green-50 text-gray-400 flex flex-col">
+                            <p className="text-sm font-medium text-green-600">{u.user.firstName.concat(" ", u.user.lastName)}</p>
+                            <span className="text-xs">{`Signé le ${format(new Date(u.signedAt), "dd MMM yyyy, p", { locale: fr })}`}</span>
+                          </div>
+                        )
+                    }
+                  </div>
+                </div>
+              </div>
             </>
           }
 
@@ -281,9 +281,8 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
                   transaction.proof.split(";").map((proof, index) => (
                     <Link
                       key={index}
-                      href={`${
-                        process.env.NEXT_PUBLIC_API
-                      }/${proof}`}
+                      href={`${process.env.NEXT_PUBLIC_API
+                        }/${proof}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
