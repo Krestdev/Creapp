@@ -2,14 +2,13 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type SortingState,
   type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
+  useReactTable
 } from "@tanstack/react-table";
 import { ArrowUpDown, CheckCircleIcon, ChevronDown, ClipboardPenIcon, Eye, Pencil, Settings2 } from "lucide-react";
 import * as React from "react";
@@ -56,7 +55,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
+import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   Bank,
@@ -71,18 +70,17 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewTransaction from "../view-transaction";
 import CompleteTransfer from "./complete-transfer";
-import { EditTransferDialog } from "./updateDialog";
 import RequestSign from "./requestSign";
+import { EditTransferDialog } from "./updateDialog";
 
 interface Props {
-  data: Array<Transaction>;
+  data: Array<TransferTransaction>;
   banks: Array<Bank>;
   paymentMethods: Array<PayType>;
 }
 
 
 function TransferTable({ data, banks, paymentMethods }: Props) {
-  const { user } = useStore();
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -108,29 +106,39 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
   const [statusFilter, setStatusFilter] = React.useState<
-    "all" | Transaction["status"]
+    "all" | TransferTransaction["status"]
   >("all");
 
   const getBadge = (
-    status: Transaction["status"]
+    status: TransferTransaction["status"], isSigned:TransferTransaction["isSigned"]
   ): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
   } => {
     const label =
       TRANSACTION_STATUS.find((t) => t.value === status)?.name ?? "Inconnu";
-    switch (status) {
-      case "APPROVED":
-        return { label, variant: "success" };
-      case "REJECTED":
-        return { label, variant: "destructive" };
-      case "PENDING":
-        return { label, variant: "amber" };
-      case "ACCEPTED":
-        return { label, variant: "sky" };
-      default:
-        return { label, variant: "outline" };
-    }
+      if(isSigned === true){
+        switch (status) {
+          case "APPROVED":
+            return { label, variant: "success" };
+          case "ACCEPTED":
+            return { label: "Signé", variant: "teal" };
+          default:
+            return { label, variant: "outline" };
+        }
+      }
+      switch (status) {
+          case "REJECTED":
+            return { label, variant: "destructive" };
+          case "PENDING":
+            return { label, variant: "amber" };
+          case "ACCEPTED":
+            return { label: "À signer", variant: "primary" };
+          case "APPROVED":
+            return {label, variant: "success"};
+          default:
+            return { label, variant: "outline" };
+        }
   };
 
   // Réinitialiser tous les filtres
@@ -170,16 +178,6 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
       if (bankFilter !== "all") {
         // Vérifier selon le type de transaction
         switch (transaction.Type) {
-          case "DEBIT":
-            // Pour DEBIT, 'from' est une Bank
-            matchBank = transaction.from.id.toString() === bankFilter;
-            break;
-
-          case "CREDIT":
-            // Pour CREDIT, 'to' est une Bank
-            matchBank = transaction.to.id.toString() === bankFilter;
-            break;
-
           case "TRANSFER":
             // Pour TRANSFER, les deux sont des Banks
             matchBank =
@@ -262,7 +260,7 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
     return false;
   }
 
-  const columns: ColumnDef<Transaction>[] = [
+  const columns: ColumnDef<TransferTransaction>[] = [
     {
       accessorKey: "id",
       header: ({ column }) => {
@@ -314,15 +312,8 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.amount;
-        const type = row.original.Type;
         return (
           <span
-            className={cn(
-              "font-bold",
-              type === "CREDIT"
-                ? "text-green-600"
-                : type === "DEBIT" && "text-red-600"
-            )}
           >
             {XAF.format(value)}
           </span>
@@ -423,8 +414,8 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = row.original.status;
-        const { variant, label } = getBadge(value);
+        const value = row.original;
+        const { variant, label } = getBadge(value.status, value.isSigned);
         return <Badge variant={variant}>{label}</Badge>;
       },
     },
