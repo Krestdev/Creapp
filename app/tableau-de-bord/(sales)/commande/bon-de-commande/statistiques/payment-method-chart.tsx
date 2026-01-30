@@ -18,11 +18,7 @@ const paymentMethodData: { data: ChartDataItem[]; config: ChartConfig } =
     for (const order of purchases ?? []) {
       const method = methods.find(m=> String(m.id) === order.paymentMethod)?.label ?? "Inconnu";
 
-      const orderAmount =
-        order.devi?.element?.reduce(
-          (sum, element) => sum + element.priceProposed * element.quantity,
-          0
-        ) ?? 0;
+      const orderAmount = order.netToPay;
 
       if (!methodCounts[method]) methodCounts[method] = { count: 0, amount: 0 };
 
