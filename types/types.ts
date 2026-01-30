@@ -623,12 +623,12 @@ export type Bank = {
 };
 
 export type TransactionSigners = {
-    id: number;
-    userId: number;
-    user: User;
-    transactionId: number;
-    signed: boolean;
-    signedAt: Date;
+  id: number;
+  userId: number;
+  user: User;
+  transactionId: number;
+  signed: boolean;
+  signedAt: Date;
 }
 
 export const TRANSACTION_TYPES = [
@@ -666,12 +666,12 @@ export type DebitTransaction = TransactionBase & {
   Type: "DEBIT";
   from: Bank;
   payement?: PaymentRequest | null;
-  to: { label: string; accountNumber?: string; phoneNumber?: string };
+  to: { id: number; label: string; accountNumber?: string; phoneNumber?: string };
 };
 
 export type CreditTransaction = TransactionBase & {
   Type: "CREDIT";
-  from: { label: string; accountNumber?: string; phoneNumber?: string };
+  from: { id: number; label: string; accountNumber?: string; phoneNumber?: string };
   to: Bank;
   payement?: PaymentRequest | null;
 };
