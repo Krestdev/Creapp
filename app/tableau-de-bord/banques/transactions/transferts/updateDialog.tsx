@@ -121,11 +121,11 @@ export function EditTransferDialog({
       <DialogContent className="max-w-2xl max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
         {/* Header avec background gradient */}
         <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {"Modifier le transfert"}
+          <DialogTitle className="text-xl font-semibold text-white uppercase">
+            {`Transfert - ${transfer.label}`}
           </DialogTitle>
           <p className="text-sm text-white/80 mt-1">
-            {`Transfert #${transfer.id} - ${transfer.label}`}
+            {"Modifier les informations du transfert"}
           </p>
         </DialogHeader>
 
@@ -256,15 +256,15 @@ export function EditTransferDialog({
                   type="button"
                   variant="outline"
                   onClick={() => onOpenChange(false)}
-                  //   disabled={updateMutation.isPending}
+                //   disabled={updateMutation.isPending}
                 >
                   {"Annuler"}
                 </Button>
                 <Button
                   type="submit"
                   variant={"primary"}
-                  //   disabled={updateMutation.isPending}
-                  //   isLoading={updateMutation.isPending}
+                //   disabled={updateMutation.isPending}
+                //   isLoading={updateMutation.isPending}
                 >
                   {"Enregistrer les modifications"}
                 </Button>

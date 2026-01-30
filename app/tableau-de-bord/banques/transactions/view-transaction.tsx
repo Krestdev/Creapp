@@ -102,7 +102,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"default"}>
-          <DialogTitle>{`Banque - ${transaction.label}`}</DialogTitle>
+          <DialogTitle className="uppercase">{`transfert - ${transaction.label}`}</DialogTitle>
           <DialogDescription>{"Détails de la transaction"}</DialogDescription>
         </DialogHeader>
 
