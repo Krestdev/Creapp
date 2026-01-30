@@ -119,8 +119,8 @@ function Page() {
     return (
       <div className="content">
         <PageTitle
-          title="Signer les Documents"
-          subtitle="Signer les transferts"
+          title="Signatures"
+          subtitle="Consultez les demandes de signatures liées aux transferts bancaires"
           color="blue"
         />
 
