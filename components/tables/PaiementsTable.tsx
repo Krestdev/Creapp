@@ -193,45 +193,35 @@ export function PaiementsTable({ payments, purchases }: Props) {
     },
   });
 
-  // CORRECTION : Filtrer les données d'abord, puis les passer au tableau
-  const filteredData = React.useMemo(() => {
-    let filtered = [...payments];
+  // Préparer les données avec les informations de fournisseur incluses
+  const enhancedPayments = React.useMemo(() => {
+    return payments.map(payment => {
+      const purchase = purchases.find(p => p.id === payment.commandId);
+      return {
+        ...payment,
+        // Ajouter les champs de recherche pour le filtrage global
+        providerName: purchase?.provider?.name || "",
+        bonCommandeTitle: purchase?.devi.commandRequest.title || "",
+      };
+    });
+  }, [payments, purchases]);
 
-    // Appliquer le filtre de statut
+  // Filtrer les données par statut et priorité
+  const filteredByStatusAndPriority = React.useMemo(() => {
+    let filtered = enhancedPayments;
+
     if (statusFilter !== "all") {
       filtered = filtered.filter(p => p.status === statusFilter);
     }
 
-    // Appliquer le filtre de priorité
     if (priorityFilter !== "all") {
       filtered = filtered.filter(p => p.priority === priorityFilter);
     }
 
-    // Appliquer le filtre global (recherche)
-    if (globalFilter.trim() !== "") {
-      const searchLower = globalFilter.toLowerCase();
-      filtered = filtered.filter(p => {
-        const reference = p.reference?.toLowerCase() || "";
-        const title = p.title?.toLowerCase() || "";
-        const providerName = purchases.find(pur => pur.id === p.commandId)?.provider?.name?.toLowerCase() || "";
-
-        return reference.includes(searchLower) ||
-          title.includes(searchLower) ||
-          providerName.includes(searchLower);
-      });
-    }
-
     return filtered;
-  }, [payments, statusFilter, priorityFilter, globalFilter, purchases]);
+  }, [enhancedPayments, statusFilter, priorityFilter]);
 
-  const resetAllFilters = () => {
-    setGlobalFilter("");
-    setPriorityFilter("all");
-    setStatusFilter("all");
-    setColumnFilters([]);
-  };
-
-  const columns: ColumnDef<PaymentRequest>[] = [
+  const columns: ColumnDef<PaymentRequest & { providerName: string; bonCommandeTitle: string }>[] = [
     {
       accessorKey: "reference",
       header: ({ column }) => {
@@ -250,7 +240,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
       ),
     },
     {
-      accessorKey: "commandId",
+      accessorKey: "bonCommandeTitle",
       header: ({ column }) => {
         return (
           <span
@@ -263,13 +253,11 @@ export function PaiementsTable({ payments, purchases }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = row.original;
-        const purchase = purchases.find((p) => p.id === value.commandId);
-        return <div>{purchase?.devi.commandRequest.title ?? "Non défini"}</div>;
+        return <div>{row.getValue("bonCommandeTitle")}</div>;
       },
     },
     {
-      id: "provider",
+      accessorKey: "providerName",
       header: ({ column }) => {
         return (
           <span
@@ -282,9 +270,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = row.original;
-        const purchase = purchases.find((p) => p.id === value.commandId);
-        return <div>{purchase?.provider?.name ?? "Inconnu"}</div>;
+        return <div>{row.getValue("providerName")}</div>;
       },
     },
     {
@@ -417,8 +403,8 @@ export function PaiementsTable({ payments, purchases }: Props) {
   ];
 
   const table = useReactTable({
-    data: filteredData, // CORRECTION : Utiliser filteredData au lieu de payments
-    columns,
+    data: filteredByStatusAndPriority,
+    columns: columns as any,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -435,7 +421,27 @@ export function PaiementsTable({ payments, purchases }: Props) {
       rowSelection,
       globalFilter,
     },
+    // Configuration du filtrage global
+    globalFilterFn: (row, columnId, filterValue) => {
+      const searchStr = filterValue.toLowerCase();
+
+      // Recherche dans tous les champs pertinents
+      const reference = (row.getValue("reference") || "").toString().toLowerCase();
+      const bonCommandeTitle = (row.getValue("bonCommandeTitle") || "").toString().toLowerCase();
+      const providerName = (row.getValue("providerName") || "").toString().toLowerCase();
+
+      return reference.includes(searchStr) ||
+        bonCommandeTitle.includes(searchStr) ||
+        providerName.includes(searchStr);
+    },
   });
+
+  const resetAllFilters = () => {
+    setGlobalFilter("");
+    setPriorityFilter("all");
+    setStatusFilter("all");
+    setColumnFilters([]);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -462,7 +468,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
                 <Input
                   id="searchPO"
                   type="search"
-                  placeholder="Référence, fournisseur..."
+                  placeholder="Référence, fournisseur, bon de commande..."
                   value={globalFilter ?? ""}
                   onChange={(e) => setGlobalFilter(e.target.value)}
                 />
@@ -593,9 +599,9 @@ export function PaiementsTable({ payments, purchases }: Props) {
                           ? "Priorité"
                           : column.id === "price"
                             ? "Montant"
-                            : column.id === "commandId"
+                            : column.id === "bonCommandeTitle"
                               ? "Bon de commande"
-                              : column.id === "provider"
+                              : column.id === "providerName"
                                 ? "Fournisseur"
                                 : column.id === "reference"
                                   ? "Référence"
@@ -670,7 +676,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
       {/* Afficher le nombre de résultats filtrés */}
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <div>
-          {filteredData.length} résultat{filteredData.length > 1 ? 's' : ''} sur {payments.length}
+          {table.getFilteredRowModel().rows.length} résultat{table.getFilteredRowModel().rows.length > 1 ? 's' : ''} sur {payments.length}
         </div>
         <Pagination table={table} />
       </div>
