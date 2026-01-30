@@ -41,7 +41,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn, XAF } from "@/lib/utils";
+import { cn, isRole, XAF } from "@/lib/utils";
 import { paymentQ } from "@/queries/payment";
 import { PaymentRequest, RequestModelT, TableFilters } from "@/types/types";
 import {
@@ -50,14 +50,55 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
+import { transactionQ } from "@/queries/transaction";
+import { bankQ } from "@/queries/bank";
+import TransactionChart from "@/components/base/transaction-chart";
 
 const DashboardPage = () => {
   const { user } = useStore();
+  const volt = isRole({ roleList: user?.role ?? [], role: "trésorier" });
+  const accountant = isRole({ roleList: user?.role ?? [], role: "comptable" });
+  const volt_manager = isRole({
+    roleList: user?.role ?? [],
+    role: "Donneur d'ordre décaissement",
+  });
+  const manager = isRole({ roleList: user?.role ?? [], role: "manager" });
 
   // Récupérer les paiements
   const { data: paymentsData } = useQuery({
     queryKey: ["payments"],
     queryFn: paymentQ.getAll,
+    enabled: volt_manager || accountant || volt,
+  });
+
+   // My requests (Mes besoins)
+  const myRequestsData = useQuery({
+    queryKey: ["requests-user", user?.id],
+    queryFn: () => {
+      if (!user?.id) {
+        throw new Error("ID utilisateur non disponible");
+      }
+      return requestQ.getMine(user.id);
+    },
+    enabled: !!user?.id,
+  });
+
+  // Requests to Approve (Approbation des besoins)
+ const allRequestsData = useQuery({
+    queryKey: ["requests-for-approval"],
+    queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
+    enabled: !!user,
+  });
+
+  const getTransactions = useQuery({
+    queryKey: ["transactions"],
+    queryFn: transactionQ.getAll,
+    enabled: volt_manager || accountant || volt,
+  });
+  const getBanks = useQuery({
+    queryKey: ["banks"],
+    queryFn: bankQ.getAll,
+    enabled: volt_manager || accountant || volt,
   });
 
   const [filters, setFilters] = useState<TableFilters>({
@@ -83,7 +124,7 @@ const DashboardPage = () => {
       return `${format(from, "dd/MM/yyyy", { locale: fr })} - ${format(
         to,
         "dd/MM/yyyy",
-        { locale: fr }
+        { locale: fr },
       )}`;
     }
 
@@ -141,29 +182,10 @@ const DashboardPage = () => {
     }));
   };
 
-  // Requête pour récupérer les données des besoins de l'utilisateur
-  const myRequestsData = useQuery({
-    queryKey: ["requests-user", user?.id],
-    queryFn: () => {
-      if (!user?.id) {
-        throw new Error("ID utilisateur non disponible");
-      }
-      return requestQ.getMine(user.id);
-    },
-    enabled: !!user?.id,
-  });
-
-  // Requête pour récupérer TOUS les besoins (pour "Besoins reçus")
-  const allRequestsData = useQuery({
-    queryKey: ["requests"],
-    queryFn: () => requestQ.getAll(),
-    enabled: !!user,
-  });
-
   // Hook personnalisé pour filtrer les besoins
   const useFilteredRequests = (
     requestData: UseQueryResult<{ data: RequestModelT[] }, Error>,
-    filters: TableFilters
+    filters: TableFilters,
   ) => {
     return React.useMemo(() => {
       if (!requestData.data?.data) {
@@ -171,7 +193,7 @@ const DashboardPage = () => {
       }
 
       let filtered: RequestModelT[] = requestData.data.data.filter(
-        (r) => r.state !== "cancel" && r.state !== "pending"
+        (r) => r.state !== "cancel" && r.state !== "pending",
       );
 
       // Filtrer par date
@@ -186,7 +208,7 @@ const DashboardPage = () => {
             break;
           case "week":
             startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
             );
             startDate.setHours(0, 0, 0, 0);
             break;
@@ -214,14 +236,14 @@ const DashboardPage = () => {
       // Filtrer par statut
       if (filters.statusFilter && filters.statusFilter !== "all") {
         filtered = filtered.filter(
-          (item) => item.state === filters.statusFilter
+          (item) => item.state === filters.statusFilter,
         );
       }
 
       // Filtrer par catégorie
       if (filters.categoryFilter && filters.categoryFilter !== "all") {
         filtered = filtered.filter(
-          (item) => String(item.categoryId) === String(filters.categoryFilter)
+          (item) => String(item.categoryId) === String(filters.categoryFilter),
         );
       }
 
@@ -239,14 +261,14 @@ const DashboardPage = () => {
       // Filtrer par projet
       if (filters.projectFilter && filters.projectFilter !== "all") {
         filtered = filtered.filter(
-          (item) => String(item.projectId) === String(filters.projectFilter)
+          (item) => String(item.projectId) === String(filters.projectFilter),
         );
       }
 
       // Filtrer par utilisateur (si nécessaire)
       if (filters.userFilter && filters.userFilter !== "all") {
         filtered = filtered.filter(
-          (item) => String(item.userId) === String(filters.userFilter)
+          (item) => String(item.userId) === String(filters.userFilter),
         );
       }
 
@@ -268,7 +290,7 @@ const DashboardPage = () => {
 
     // Filtrer uniquement les paiements payés
     let filtered: PaymentRequest[] = paymentsData.data.filter(
-      (p: PaymentRequest) => p.status === "paid"
+      (p: PaymentRequest) => p.status === "paid",
     );
 
     // Filtrer par date si un filtre est appliqué
@@ -283,7 +305,7 @@ const DashboardPage = () => {
           break;
         case "week":
           startDate.setDate(
-            now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+            now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
           );
           startDate.setHours(0, 0, 0, 0);
           break;
@@ -384,113 +406,114 @@ const DashboardPage = () => {
   // Calcul des statistiques des dépenses
   const totalDepenses = getFilteredPayments.reduce(
     (sum, payment) => sum + (payment.price || 0),
-    0
+    0,
   );
   const nombreDepenses = getFilteredPayments.length;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="content">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Tableau de bord</h1>
+        <div>
+          <h1 className="font-bold">{"Tableau de bord"}</h1>
+          <h4 className="font-extralight tracking-wide">{`Bonjour ${user?.firstName}`}</h4>
+        </div>
 
         {/* Filtre de période */}
-        <div className="grid gap-1.5 w-full md:w-auto">
-          <Label>Période</Label>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="h-10 inline-flex gap-2 flex-row items-center text-base border border-input px-5 rounded-md shadow-xs bg-background hover:bg-accent hover:text-accent-foreground">
-              {getDateFilterText()}
-              <ChevronDown
-                className="text-muted-foreground opacity-50"
-                size={16}
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={clearCustomDateRange}
-                className={cn(
-                  "flex items-center justify-between",
-                  !filters.dateFilter && "bg-accent"
-                )}
-              >
-                <span>Toutes les périodes</span>
-                {!filters.dateFilter && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  setFilters((prev) => ({ ...prev, dateFilter: "today" }))
-                }
-                className={cn(
-                  "flex items-center justify-between",
-                  filters.dateFilter === "today" && "bg-accent"
-                )}
-              >
-                <span>Aujourd'hui</span>
-                {filters.dateFilter === "today" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  setFilters((prev) => ({ ...prev, dateFilter: "week" }))
-                }
-                className={cn(
-                  "flex items-center justify-between",
-                  filters.dateFilter === "week" && "bg-accent"
-                )}
-              >
-                <span>Cette semaine</span>
-                {filters.dateFilter === "week" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  setFilters((prev) => ({ ...prev, dateFilter: "month" }))
-                }
-                className={cn(
-                  "flex items-center justify-between",
-                  filters.dateFilter === "month" && "bg-accent"
-                )}
-              >
-                <span>Ce mois</span>
-                {filters.dateFilter === "month" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  setFilters((prev) => ({ ...prev, dateFilter: "year" }))
-                }
-                className={cn(
-                  "flex items-center justify-between",
-                  filters.dateFilter === "year" && "bg-accent"
-                )}
-              >
-                <span>Cette année</span>
-                {filters.dateFilter === "year" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleCustomDateClick}
-                className={cn(
-                  "flex items-center justify-between",
-                  filters.dateFilter === "custom" && "bg-accent"
-                )}
-              >
-                <span className="flex items-center">
-                  <CalendarDays className="mr-2 h-4 w-4" />
-                  Personnaliser
-                </span>
-                {filters.dateFilter === "custom" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="h-10 inline-flex gap-2 flex-row items-center text-base border border-input px-5 rounded-md shadow-xs bg-background hover:bg-accent hover:text-accent-foreground">
+            <CalendarIcon />
+            {getDateFilterText()}
+            <ChevronDown
+              className="text-muted-foreground opacity-50"
+              size={16}
+            />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem
+              onClick={clearCustomDateRange}
+              className={cn(
+                "flex items-center justify-between",
+                !filters.dateFilter && "bg-accent",
+              )}
+            >
+              <span>Toutes les périodes</span>
+              {!filters.dateFilter && <ChevronRight className="h-4 w-4" />}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() =>
+                setFilters((prev) => ({ ...prev, dateFilter: "today" }))
+              }
+              className={cn(
+                "flex items-center justify-between",
+                filters.dateFilter === "today" && "bg-accent",
+              )}
+            >
+              <span>Aujourd'hui</span>
+              {filters.dateFilter === "today" && (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                setFilters((prev) => ({ ...prev, dateFilter: "week" }))
+              }
+              className={cn(
+                "flex items-center justify-between",
+                filters.dateFilter === "week" && "bg-accent",
+              )}
+            >
+              <span>Cette semaine</span>
+              {filters.dateFilter === "week" && (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                setFilters((prev) => ({ ...prev, dateFilter: "month" }))
+              }
+              className={cn(
+                "flex items-center justify-between",
+                filters.dateFilter === "month" && "bg-accent",
+              )}
+            >
+              <span>Ce mois</span>
+              {filters.dateFilter === "month" && (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                setFilters((prev) => ({ ...prev, dateFilter: "year" }))
+              }
+              className={cn(
+                "flex items-center justify-between",
+                filters.dateFilter === "year" && "bg-accent",
+              )}
+            >
+              <span>Cette année</span>
+              {filters.dateFilter === "year" && (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleCustomDateClick}
+              className={cn(
+                "flex items-center justify-between",
+                filters.dateFilter === "custom" && "bg-accent",
+              )}
+            >
+              <span className="flex items-center">
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Personnaliser
+              </span>
+              {filters.dateFilter === "custom" && (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Modal pour la sélection de dates personnalisées */}
@@ -500,9 +523,9 @@ const DashboardPage = () => {
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Sélectionner une plage de dates</DialogTitle>
+            <DialogTitle>{"Sélectionner une plage de dates"}</DialogTitle>
             <DialogDescription>
-              Choisissez la période que vous souhaitez filtrer
+              {"Choisissez la période que vous souhaitez filtrer"}
             </DialogDescription>
           </DialogHeader>
 
@@ -516,7 +539,7 @@ const DashboardPage = () => {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !tempCustomDateRange?.from && "text-muted-foreground"
+                        !tempCustomDateRange?.from && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
@@ -552,7 +575,7 @@ const DashboardPage = () => {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !tempCustomDateRange?.to && "text-muted-foreground"
+                        !tempCustomDateRange?.to && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
@@ -669,41 +692,51 @@ const DashboardPage = () => {
       </div> */}
 
       {/* Graphique 2: Besoins reçus */}
-      <ChartAreaInteractive
-        filteredData={getAllFilteredData}
-        dateFilter={filters.dateFilter}
-        customDateRange={filters.customDateRange}
-        title="Besoins reçus"
-        description={getReceivedSubtitle()}
-        type="all"
-      />
+      {manager && (
+        <ChartAreaInteractive
+          filteredData={getAllFilteredData}
+          dateFilter={filters.dateFilter}
+          customDateRange={filters.customDateRange}
+          title="Besoins reçus"
+          description={getReceivedSubtitle()}
+          type="all"
+        />
+      )}
 
-      <Card className="py-4">
-        <CardHeader className="flex flex-col items-stretch border-b sm:flex-row">
-          <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
-            <CardTitle>{"Dépenses"}</CardTitle>
-            <CardDescription>
-              {`Dépenses totales: ${XAF.format(totalDepenses)}`}
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Dépense par type */}
-          <ChartPieLabelList
-            data={getFilteredPayments}
-            chartType="type"
-            title="Répartition par type"
-            description="Répartition par type de paiement"
-          />
-          {/* Dépense par fournisseur */}
-          <ChartPieLabelList
-            data={getFilteredPayments}
-            chartType="fournisseur"
-            title="Répartition par fournisseur"
-            description="Répartition par fournisseur"
-          />
-        </CardContent>
-      </Card>
+      {paymentsData?.data && (
+        <Card className="py-4">
+          <CardHeader className="flex flex-col items-stretch border-b sm:flex-row">
+            <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
+              <CardTitle>{"Dépenses"}</CardTitle>
+              <CardDescription>
+                {`Dépenses totales: ${XAF.format(totalDepenses)}`}
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Dépense par type */}
+            <ChartPieLabelList
+              data={getFilteredPayments}
+              chartType="type"
+              title="Répartition par type"
+              description="Répartition par type de paiement"
+            />
+            {/* Dépense par fournisseur */}
+            <ChartPieLabelList
+              data={getFilteredPayments}
+              chartType="fournisseur"
+              title="Répartition par fournisseur"
+              description="Répartition par fournisseur"
+            />
+          </CardContent>
+        </Card>
+      )}
+      {/* {
+        !!getTransactions.data && !!getBanks.data &&
+        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 gap-4">
+          <TransactionChart transactions={getTransactions.data.data.filter(t=> t.Type !== "TRANSFER")} banks={getBanks.data.data} />
+        </div>
+      } */}
     </div>
   );
 };
