@@ -156,7 +156,7 @@ function CompleteTransfer({ open, openChange, transaction }: Props) {
                               field.onChange(value);
                               setSelectDate(false);
                             }}
-                            disabled={(date)=> date > new Date()}
+                            disabled={(date) => date > new Date()}
                           />
                         </PopoverContent>
                       </Popover>
@@ -177,7 +177,7 @@ function CompleteTransfer({ open, openChange, transaction }: Props) {
                       value={field.value}
                       onChange={field.onChange}
                       name={field.name}
-                      acceptTypes="images"
+                      acceptTypes="all"
                       multiple={true}
                       maxFiles={1}
                     />

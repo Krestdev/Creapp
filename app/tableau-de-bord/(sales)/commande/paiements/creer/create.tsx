@@ -135,11 +135,11 @@ function CreatePaiement({ purchases, payments }: Props) {
     }
   }, [getPaymentType.data, methodValue, form]);
 
-   const purchase = React.useMemo(()=>{
-    return purchases.find(p=> p.id === commandId)
-  },[purchases, commandId]);
+  const purchase = React.useMemo(() => {
+    return purchases.find(p => p.id === commandId)
+  }, [purchases, commandId]);
 
-  const toPay = purchase && purchase.netToPay - payments.filter(p=>p.commandId === purchase?.id && p.status !== "rejected" && p.status !== "cancelled").reduce((total, e)=> total + e.price, 0);
+  const toPay = purchase && purchase.netToPay - payments.filter(p => p.commandId === purchase?.id && p.status !== "rejected" && p.status !== "cancelled").reduce((total, e) => total + e.price, 0);
 
   const rest = !!toPay && toPay >= 0 ? toPay : 0;
 
@@ -187,9 +187,9 @@ function CreatePaiement({ purchases, payments }: Props) {
           "Votre montant est supérieur ou égal au montant total du bon de commande",
       });
     }
-    if(values.price > rest) {
+    if (values.price > rest) {
       toast.error("Montant invalide !");
-      return form.setError("price", { message: "Votre montant est supérieur au reste à payer"})
+      return form.setError("price", { message: "Votre montant est supérieur au reste à payer" })
     }
     const payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId"> =
     {
@@ -329,7 +329,7 @@ function CreatePaiement({ purchases, payments }: Props) {
                             field.onChange(value);
                             setDueDate(false);
                           }}
-                          disabled={(date)=> date < new Date()}
+                          disabled={(date) => date < new Date()}
                         />
                       </PopoverContent>
                     </Popover>
@@ -397,13 +397,13 @@ function CreatePaiement({ purchases, payments }: Props) {
                     </p>
                   </div>
                 </FormControl>
-                {!!commandId && 
-                <div className="grid gap-1.5">
-                  {!!purchase && purchase.instalments.map((e, id)=>(
-                    <div key={id} className="text-sm text-gray-400">{`Echéance ${id+1}: ${XAF.format(e.percentage*purchase.netToPay/100)} ${!!e.deadLine && `avant le ${format(new Date(e.deadLine), "dd MMMM yyyy", {locale: fr})}`}`}</div>
-                  ))}
-                </div>
-                  }
+                {!!commandId &&
+                  <div className="grid gap-1.5">
+                    {!!purchase && purchase.instalments.map((e, id) => (
+                      <div key={id} className="text-sm text-gray-400">{`Echéance ${id + 1}: ${XAF.format(e.percentage * purchase.netToPay / 100)} ${!!e.deadLine && `avant le ${format(new Date(e.deadLine), "dd MMMM yyyy", { locale: fr })}`}`}</div>
+                    ))}
+                  </div>
+                }
                 <FormMessage />
               </FormItem>
             );
@@ -491,7 +491,7 @@ function CreatePaiement({ purchases, payments }: Props) {
                   value={field.value}
                   onChange={field.onChange}
                   name={field.name}
-                  acceptTypes="images"
+                  acceptTypes="all"
                   multiple={false}
                   maxFiles={1}
                 />

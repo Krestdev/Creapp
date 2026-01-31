@@ -2,20 +2,20 @@
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { transactionQ } from "@/queries/transaction";
 import { TransferTransaction } from "@/types/types";
@@ -49,7 +49,7 @@ function SignTransfer({ transfer, open, onOpenChange }: Props) {
   });
 
   const sign = useMutation({
-    mutationFn: async (signDoc: File) => transactionQ.sign({id: transfer.id, signDoc}),
+    mutationFn: async (signDoc: File) => transactionQ.sign({ id: transfer.id, signDoc }),
     onSuccess: () => {
       toast.success("Votre signature a été enregistrée avec succès !");
       onOpenChange(false);
@@ -84,7 +84,7 @@ function SignTransfer({ transfer, open, onOpenChange }: Props) {
                         value={field.value}
                         onChange={field.onChange}
                         name={field.name}
-                        acceptTypes="images"
+                        acceptTypes="all"
                         multiple={true}
                         maxFiles={4}
                       />

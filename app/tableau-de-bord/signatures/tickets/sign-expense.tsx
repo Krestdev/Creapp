@@ -100,7 +100,7 @@ function SignExpense({ ticket, open, onOpenChange }: Props) {
                         value={field.value}
                         onChange={field.onChange}
                         name={field.name}
-                        acceptTypes="images"
+                        acceptTypes="all"
                         multiple={true}
                         maxFiles={4}
                       />

@@ -297,7 +297,7 @@ function CreateBank() {
                   value={field.value}
                   onChange={field.onChange}
                   name={field.name}
-                  acceptTypes="images"
+                  acceptTypes="all"
                   multiple={false}
                   maxFiles={1}
                 />

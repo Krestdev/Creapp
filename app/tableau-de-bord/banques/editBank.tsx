@@ -62,18 +62,14 @@ const formSchema = z
       .min(0),
     Status: z.boolean(),
 
-    // BANK
+    // Champs spécifiques à BANK
     accountNumber: z.string().optional(),
     bankCode: z.string().optional(),
     key: z.string().optional(),
     atmCode: z.string().optional(),
-
-    // MOBILE_WALLET
-    phoneNum: z.string().optional(),
-    merchantNum: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    // Validations conditionnelles selon type
+    // Validations conditionnelles pour BANK
     if (data.type === "BANK") {
       if (!data.accountNumber || data.accountNumber.trim().length < 3) {
         ctx.addIssue({
@@ -100,17 +96,7 @@ const formSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["atmCode"],
-          message: "Code banque requis",
-        });
-      }
-    }
-
-    if (data.type === "MOBILE_WALLET") {
-      if (!data.phoneNum || data.phoneNum.trim().length < 6) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["phoneNum"],
-          message: "Numéro de téléphone requis",
+          message: "Code guichet requis",
         });
       }
     }
@@ -134,11 +120,10 @@ function EditBank({ open, openChange, bank }: Props) {
         bankCode: !!bank.bankCode ? bank.bankCode : undefined,
         key: !!bank.key ? bank.key : undefined,
         atmCode: !!bank.atmCode ? bank.atmCode : undefined,
-        phoneNum: !!bank.phoneNum ? bank.phoneNum : undefined,
-        merchantNum: !!bank.merchantNum ? bank.merchantNum : undefined,
       });
     }
   }, [open]);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -154,8 +139,6 @@ function EditBank({ open, openChange, bank }: Props) {
       bankCode: !!bank.bankCode ? bank.bankCode : undefined,
       key: !!bank.key ? bank.key : undefined,
       atmCode: !!bank.atmCode ? bank.atmCode : undefined,
-      phoneNum: !!bank.phoneNum ? bank.phoneNum : undefined,
-      merchantNum: !!bank.merchantNum ? bank.merchantNum : undefined,
     },
   });
 
@@ -176,8 +159,6 @@ function EditBank({ open, openChange, bank }: Props) {
         bankCode: !!bank.bankCode ? bank.bankCode : undefined,
         key: !!bank.key ? bank.key : undefined,
         atmCode: !!bank.atmCode ? bank.atmCode : undefined,
-        phoneNum: !!bank.phoneNum ? bank.phoneNum : undefined,
-        merchantNum: !!bank.merchantNum ? bank.merchantNum : undefined,
       });
       openChange(false);
     },
@@ -185,17 +166,17 @@ function EditBank({ open, openChange, bank }: Props) {
       toast.error(error.message);
     },
   });
+
   const onSubmit = (values: FormValues) => {
     const {
       justification,
       atmCode,
       accountNumber,
       bankCode,
-      phoneNum,
-      merchantNum,
       key,
       ...rest
     } = values;
+
     if (type === "BANK") {
       const payload: BankPayload = {
         ...rest,
@@ -207,19 +188,11 @@ function EditBank({ open, openChange, bank }: Props) {
       };
       return update.mutate(payload);
     }
+
     if (type === "CASH" || type === "CASH_REGISTER") {
       const payload: BankPayload = {
         ...rest,
         justification: justification[0],
-      };
-      return update.mutate(payload);
-    }
-    if (type === "MOBILE_WALLET") {
-      const payload: BankPayload = {
-        ...rest,
-        justification: justification[0],
-        merchantNum,
-        phoneNum,
       };
       return update.mutate(payload);
     }
@@ -306,6 +279,7 @@ function EditBank({ open, openChange, bank }: Props) {
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="Status"
@@ -325,7 +299,8 @@ function EditBank({ open, openChange, bank }: Props) {
                 </FormItem>
               )}
             />
-            {/* Champs conditionnels */}
+
+            {/* Champs conditionnels pour BANK */}
             {type === "BANK" && (
               <>
                 <FormField
@@ -369,33 +344,18 @@ function EditBank({ open, openChange, bank }: Props) {
                     </FormItem>
                   )}
                 />
-              </>
-            )}
-
-            {type === "MOBILE_WALLET" && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="phoneNum"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Numéro téléphone"}</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: 699123456" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={form.control}
-                  name="merchantNum"
+                  name="atmCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{"Numéro marchand"}</FormLabel>
+                      <FormLabel>{"Code / Localisation caisse (optionnel)"}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: OM-8899" />
+                        <Input
+                          {...field}
+                          placeholder="Ex: Siège - 1er étage / CAISSE-SIEGE"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -404,26 +364,6 @@ function EditBank({ open, openChange, bank }: Props) {
               </>
             )}
 
-            {type === "BANK" && (
-              <FormField
-                control={form.control}
-                name="atmCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {"Code / Localisation caisse (optionnel)"}
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Ex: Siège - 1er étage / CAISSE-SIEGE"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
             {/* Justification */}
             <FormField
               control={form.control}
@@ -438,7 +378,7 @@ function EditBank({ open, openChange, bank }: Props) {
                       value={field.value}
                       onChange={field.onChange}
                       name={field.name}
-                      acceptTypes="images"
+                      acceptTypes="all"
                       multiple={false}
                       maxFiles={1}
                     />

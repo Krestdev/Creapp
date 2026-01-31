@@ -378,7 +378,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
                   value={field.value}
                   onChange={field.onChange}
                   name={field.name}
-                  acceptTypes="images"
+                  acceptTypes="all"
                   multiple={false}
                   maxFiles={1}
                 />

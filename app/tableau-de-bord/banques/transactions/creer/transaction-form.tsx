@@ -44,9 +44,9 @@ interface Props {
 const TX_TYPES = TRANSACTION_TYPES.filter((c) => c.value !== "TRANSFER").map(
   (t) => t.value,
 ) as [
-  (typeof TRANSACTION_TYPES)[number]["value"],
-  ...(typeof TRANSACTION_TYPES)[number]["value"][],
-];
+    (typeof TRANSACTION_TYPES)[number]["value"],
+    ...(typeof TRANSACTION_TYPES)[number]["value"][],
+  ];
 
 const sourceSchema = z.object({
   label: z.string().optional(),
@@ -83,42 +83,42 @@ export const formSchema = z
       .min(0),
   })
   .superRefine((data, ctx) => {
-  if (data.Type === "DEBIT") {
-    if (!data.fromBankId || isNaN(Number(data.fromBankId))) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["fromBankId"],
-        message: "Source obligatoire pour un débit",
-      });
+    if (data.Type === "DEBIT") {
+      if (!data.fromBankId || isNaN(Number(data.fromBankId))) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["fromBankId"],
+          message: "Source obligatoire pour un débit",
+        });
+      }
+
+      if (!data.to?.label || data.to.label.trim().length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["to", "label"],
+          message: "Nom du destinataire obligatoire pour un débit",
+        });
+      }
     }
 
-    if (!data.to?.label || data.to.label.trim().length < 2) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["to", "label"],
-        message: "Nom du destinataire obligatoire pour un débit",
-      });
-    }
-  }
+    if (data.Type === "CREDIT") {
+      if (!data.toBankId || isNaN(Number(data.toBankId))) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["toBankId"],
+          message: "Destination obligatoire pour un crédit",
+        });
+      }
 
-  if (data.Type === "CREDIT") {
-    if (!data.toBankId || isNaN(Number(data.toBankId))) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["toBankId"],
-        message: "Destination obligatoire pour un crédit",
-      });
+      if (!data.from?.label || data.from.label.trim().length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["from", "label"],
+          message: "Nom de la source obligatoire pour un crédit",
+        });
+      }
     }
-
-    if (!data.from?.label || data.from.label.trim().length < 2) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["from", "label"],
-        message: "Nom de la source obligatoire pour un crédit",
-      });
-    }
-  }
-});
+  });
 
 
 type FormValues = z.infer<typeof formSchema>;
@@ -126,20 +126,20 @@ type FormValues = z.infer<typeof formSchema>;
 function TransactionForm({ banks, userId }: Props) {
   const [openDate, setOpenDate] = React.useState<boolean>(false);
   const form = useForm<FormValues>({
-  resolver: zodResolver(formSchema),
-  shouldUnregister: true, // ✅ très important ici
-  defaultValues: {
-    label: "",
-    amount: 5000,
-    date: format(new Date(), "yyyy-MM-dd"),
-    Type: "DEBIT",
-    from: undefined,
-    to: undefined,
-    fromBankId: undefined,
-    toBankId: undefined,
-    proof: [],
-  },
-});
+    resolver: zodResolver(formSchema),
+    shouldUnregister: true, // ✅ très important ici
+    defaultValues: {
+      label: "",
+      amount: 5000,
+      date: format(new Date(), "yyyy-MM-dd"),
+      Type: "DEBIT",
+      from: undefined,
+      to: undefined,
+      fromBankId: undefined,
+      toBankId: undefined,
+      proof: [],
+    },
+  });
 
 
 
@@ -160,14 +160,14 @@ function TransactionForm({ banks, userId }: Props) {
   const type = form.watch("Type");
 
   React.useEffect(() => {
-  if (type === "CREDIT") {
-    form.setValue("to", undefined);
-    form.setValue("fromBankId", undefined);
-  } else {
-    form.setValue("from", undefined);
-    form.setValue("toBankId", undefined);
-  }
-}, [type, form]);
+    if (type === "CREDIT") {
+      form.setValue("to", undefined);
+      form.setValue("fromBankId", undefined);
+    } else {
+      form.setValue("from", undefined);
+      form.setValue("toBankId", undefined);
+    }
+  }, [type, form]);
 
 
   function onSubmit(values: FormValues) {
@@ -177,21 +177,21 @@ function TransactionForm({ banks, userId }: Props) {
         Type: values.Type,
         ...rest,
         date: new Date(date),
-        from: {label: values.from?.label ?? "", accountNumber: values.from?.accountNumber, phoneNumber: values.from?.phoneNumber},
+        from: { label: values.from?.label ?? "", accountNumber: values.from?.accountNumber, phoneNumber: values.from?.phoneNumber },
         toBankId: values.toBankId,
         userId,
       };
       return create.mutate(payload);
     } else {
-      const balance = banks.find(b=> b.id === fromBankId)?.balance;
+      const balance = banks.find(b => b.id === fromBankId)?.balance;
       const val = !balance ? false : balance - rest.amount > 0;
-      if(!val) return form.setError("amount", { message: "Montant invalide" })
+      if (!val) return form.setError("amount", { message: "Montant invalide" })
       const payload: TransactionProps = {
         Type: values.Type,
         ...rest,
         date: new Date(date),
         fromBankId: values.fromBankId,
-        to: {label: values.to?.label ?? "", accountNumber: values.to?.accountNumber, phoneNumber: values.to?.phoneNumber},
+        to: { label: values.to?.label ?? "", accountNumber: values.to?.accountNumber, phoneNumber: values.to?.phoneNumber },
         userId,
       };
       return create.mutate(payload);
@@ -290,7 +290,7 @@ function TransactionForm({ banks, userId }: Props) {
                           field.onChange(value);
                           setOpenDate(false);
                         }}
-                        disabled={(date)=> date > new Date()}
+                        disabled={(date) => date > new Date()}
                       />
                     </PopoverContent>
                   </Popover>
@@ -344,7 +344,7 @@ function TransactionForm({ banks, userId }: Props) {
                         <SelectValue placeholder="Sélectionner un compte" />
                       </SelectTrigger>
                       <SelectContent>
-                        {banks.filter(b=> !!b.type && b.type !== "null").map((bank) => (
+                        {banks.filter(b => !!b.type && b.type !== "null").map((bank) => (
                           <SelectItem key={bank.id} value={String(bank.id)}>
                             {bank.label}
                           </SelectItem>
@@ -432,7 +432,7 @@ function TransactionForm({ banks, userId }: Props) {
                         <SelectValue placeholder="Sélectionner un compte" />
                       </SelectTrigger>
                       <SelectContent>
-                        {banks.filter(b=> !!b.type && b.type !== "null" ).map((bank) => (
+                        {banks.filter(b => !!b.type && b.type !== "null").map((bank) => (
                           <SelectItem key={bank.id} value={String(bank.id)}>
                             {bank.label}
                           </SelectItem>
@@ -514,7 +514,7 @@ function TransactionForm({ banks, userId }: Props) {
                   value={field.value}
                   onChange={field.onChange}
                   name={field.name}
-                  acceptTypes="images"
+                  acceptTypes="all"
                   multiple={true}
                   maxFiles={4}
                 />

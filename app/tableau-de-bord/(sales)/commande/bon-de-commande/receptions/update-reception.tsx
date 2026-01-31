@@ -170,7 +170,7 @@ export default function UpdateReception({
             value={proof}
             onChange={setProof}
             name="proof"
-            acceptTypes="images"
+            acceptTypes="all"
             multiple={true}
             maxFiles={6}
           />
