@@ -155,24 +155,17 @@ function Page() {
     }
     if (
       fromType === "CASH_REGISTER" &&
-      toType !== "CASH" &&
-      toType !== "MOBILE_WALLET"
+      toType !== "CASH"
     ) {
       return form.setError("toBankId", {
         message:
-          "Vous ne pouvez transférer de la Caisse que vers une sous-caisse ou un portefeuille mobile !",
+          "Vous ne pouvez transférer de la Caisse que vers une sous-caisse !",
       });
     }
     if (fromType === "BANK" && toType === "CASH") {
       return form.setError("toBankId", {
         message:
           "Vous ne pouvez transférer vers une sous-caisse depuis une banque !",
-      });
-    }
-    if (fromType === "MOBILE_WALLET" && toType === "CASH") {
-      return form.setError("toBankId", {
-        message:
-          "Vous ne pouvez transférer d'un portefeuille mobile vers une sous-caisse !",
       });
     }
     setFormData(values);

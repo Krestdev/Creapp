@@ -231,15 +231,14 @@ function ShareExpense({
         if (payTypeLabel === "current") {
           return banks.filter(
             (bank) =>
-              (bank.type === "CASH" || bank.type === "MOBILE_WALLET") &&
+              (bank.type === "CASH") &&
               bank.Status === true,
           );
         } else {
-          // Pour cash normal : CASH_REGISTER et MOBILE_WALLET
+          // Pour cash normal : CASH_REGISTER 
           return banks.filter(
             (bank) =>
-              (bank.type === "CASH_REGISTER" ||
-                bank.type === "MOBILE_WALLET") &&
+              (bank.type === "CASH_REGISTER") &&
               bank.Status === true,
           );
         }
@@ -567,9 +566,6 @@ function ShareExpense({
                                         `Caisse - Solde: ${bank.balance?.toLocaleString()} FCFA`}
                                       {bank.type === "CASH_REGISTER" &&
                                         `Caisse principale - Solde: ${bank.balance?.toLocaleString()} FCFA`}
-                                      {bank.type === "MOBILE_WALLET" &&
-                                        `Portefeuille mobile (${bank.label}) - ${bank.phoneNum || "N/A"
-                                        }`}
                                     </span>
                                   </div>
                                 </SelectItem>

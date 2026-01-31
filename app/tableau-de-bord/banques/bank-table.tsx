@@ -70,11 +70,9 @@ function getTypeBadge(type: Bank["type"]): { label: string; variant: VariantProp
     case "BANK":
       return { label, variant: "blue" };
     case "CASH_REGISTER":
-      return { label, variant: "primary"}
+      return { label, variant: "primary" }
     case "CASH":
       return { label, variant: "lime" };
-    case "MOBILE_WALLET":
-      return { label, variant: "purple" };
     default:
       return { label: type, variant: "outline" };
   }
@@ -99,31 +97,31 @@ function BankTable({ data, canEdit }: Props) {
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
 
-  const resetAllFilters = ():void =>{
+  const resetAllFilters = (): void => {
     setSearchFilter("");
     setStatusFilter("all");
     setTypeFilter("all");
   }
 
-  const filteredData:Array<Bank> = React.useMemo(()=>{
-    return data.filter(bank=>{
+  const filteredData: Array<Bank> = React.useMemo(() => {
+    return data.filter(bank => {
       const search = searchFilter.toLocaleLowerCase();
       //search Filter
       const matchSearch =
-      search.trim() === "" ? true : bank.accountNumber?.toLocaleLowerCase().includes(search)
-      || bank.balance.toString().includes(search)
-      || bank.label.toLocaleLowerCase().includes(search)
-      || bank.phoneNum?.includes(search)
+        search.trim() === "" ? true : bank.accountNumber?.toLocaleLowerCase().includes(search)
+          || bank.balance.toString().includes(search)
+          || bank.label.toLocaleLowerCase().includes(search)
+          || bank.phoneNum?.includes(search)
       //statusFilter
       const matchStatus =
-      statusFilter === "all" ? true : statusFilter === String(bank.Status);
+        statusFilter === "all" ? true : statusFilter === String(bank.Status);
       //typeFilter
       const matchType =
-      typeFilter === "all" ? true : typeFilter === bank.type;
+        typeFilter === "all" ? true : typeFilter === bank.type;
 
       return matchStatus && matchType && matchSearch
     })
-  },[data, statusFilter, typeFilter, searchFilter]);
+  }, [data, statusFilter, typeFilter, searchFilter]);
 
   const columns: ColumnDef<Bank>[] = [
     {
@@ -326,53 +324,53 @@ function BankTable({ data, canEdit }: Props) {
             </SheetHeader>
             <div className="px-5 grid gap-5">
               <div className="grid gap-1.5">
-            <Label>{"Recherche"}</Label>
-            <Input
-              placeholder="Référence"
-              value={searchFilter}
-              onChange={(v)=>setSearchFilter(v.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{"Type de compte"}</Label>
-            <Select
-              value={typeFilter}
-              onValueChange={(value) =>setTypeFilter(value as "all" | Bank["type"])}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Filtrer par type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous"}</SelectItem>
-                {BANK_TYPES.filter(b=> b.value !== "null").map((p) => (
-                  <SelectItem key={p.name} value={p.value}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{"Statut"}</Label>
-            <Select
-              value={statusFilter}
-              onValueChange={(value) =>setStatusFilter(value as "all" | "true" | "false")}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Filtrer par statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes"}</SelectItem>
-                <SelectItem value={"true"}>
-                  {"Actif"}
-                </SelectItem>
-                <SelectItem value={"false"}>
-                  {"Désactivé"}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                <Label>{"Recherche"}</Label>
+                <Input
+                  placeholder="Référence"
+                  value={searchFilter}
+                  onChange={(v) => setSearchFilter(v.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label>{"Type de compte"}</Label>
+                <Select
+                  value={typeFilter}
+                  onValueChange={(value) => setTypeFilter(value as "all" | Bank["type"])}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filtrer par type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {BANK_TYPES.filter(b => b.value !== "null").map((p) => (
+                      <SelectItem key={p.name} value={p.value}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>{"Statut"}</Label>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => setStatusFilter(value as "all" | "true" | "false")}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filtrer par statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Toutes"}</SelectItem>
+                    <SelectItem value={"true"}>
+                      {"Actif"}
+                    </SelectItem>
+                    <SelectItem value={"false"}>
+                      {"Désactivé"}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               {/* Bouton pour réinitialiser les filtres */}
               <div className="flex items-end">
                 <Button

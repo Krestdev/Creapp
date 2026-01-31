@@ -174,12 +174,11 @@ export function EditTransferDialog({
     }
     if (
       fromType === "CASH_REGISTER" &&
-      toType !== "CASH" &&
-      toType !== "MOBILE_WALLET"
+      toType !== "CASH"
     ) {
       form.setError("toBankId", {
         message:
-          "Vous ne pouvez transférer de la Caisse que vers une sous-caisse ou un portefeuille mobile !",
+          "Vous ne pouvez transférer de la Caisse que vers une sous-caisse !",
       });
       return false;
     }
@@ -190,14 +189,6 @@ export function EditTransferDialog({
       });
       return false;
     }
-    if (fromType === "MOBILE_WALLET" && toType === "CASH") {
-      form.setError("toBankId", {
-        message:
-          "Vous ne pouvez transférer d'un portefeuille mobile vers une sous-caisse !",
-      });
-      return false;
-    }
-
     return true;
   }
 

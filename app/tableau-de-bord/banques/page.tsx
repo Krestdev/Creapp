@@ -70,20 +70,6 @@ function Page() {
           value: getBanks.data.data.filter((b) => b.type === "CASH").length,
         },
       },
-      {
-        title: "Portefeuilles Mobiles",
-        value: XAF.format(
-          getBanks.data.data
-            .filter((b) => b.type === "MOBILE_WALLET")
-            .reduce((sum, bank) => sum + bank.balance, 0)
-        ),
-        variant: "default",
-        more: {
-          title: "Nombre de comptes",
-          value: getBanks.data.data.filter((b) => b.type === "MOBILE_WALLET")
-            .length,
-        },
-      },
     ];
     return (
       <div className="content">
