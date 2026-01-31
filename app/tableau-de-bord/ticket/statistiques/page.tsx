@@ -262,7 +262,7 @@ function Page() {
       variant: "success",
       more: {
         title: "En attente de paiement",
-        value: XAF.format(metrics.validatedAmount - metrics.paidAmount),
+        value: XAF.format(metrics.validatedAmount),
       },
     },
   ];
