@@ -8,6 +8,7 @@ import PageTitle from "@/components/pageTitle";
 import Tickets from "@/components/ticket/tickets";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
+import { purchaseQ } from "@/queries/purchase-order";
 import { requestTypeQ } from "@/queries/requestType";
 import { PaymentRequest } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
@@ -24,6 +25,11 @@ function Page() {
   const getRequestType = useQuery({
     queryKey: ["requestType"],
     queryFn: requestTypeQ.getAll,
+  });
+
+  const getPurchase = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
   });
 
   const ticketsData: Array<PaymentRequest> = useMemo(() => {
@@ -55,15 +61,15 @@ function Page() {
     );
   }, [data?.data]);
 
-  if (isLoading || getRequestType.isLoading) {
+  if (isLoading || getRequestType.isLoading || getPurchase.isLoading) {
     return <LoadingPage />;
   }
 
-  if (isError || getRequestType.isError) {
-    return <ErrorPage error={error || getRequestType.error!} />;
+  if (isError || getRequestType.isError || getPurchase.isError) {
+    return <ErrorPage error={error || getRequestType.error! || getPurchase.error!} />;
   }
 
-  if (isSuccess && getRequestType.isSuccess) {
+  if (isSuccess && getRequestType.isSuccess && getPurchase.isSuccess) {
     return (
       <div className="flex flex-col gap-6">
         {user?.role.flatMap((r) => r.label).includes("VOLT") ? (
@@ -108,6 +114,7 @@ function Page() {
         )}
         {ticketsData.length > 0 ? (
           <Tickets
+            purchases={getPurchase.data?.data}
             ticketsData={ticketsData}
             requestTypeData={getRequestType.data?.data}
           />

@@ -601,7 +601,6 @@ export const BANK_TYPES = [
   { value: "BANK", name: "Banque" },
   { value: "CASH", name: "Sous-Caisse" },
   { value: "CASH_REGISTER", name: "Caisse Principale" },
-  { value: "MOBILE_WALLET", name: "Portefeuille Mobile" },
   { value: "null", name: "Aucun" },
 ] as const;
 

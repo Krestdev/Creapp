@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
-import { BANK_TYPES } from "@/types/types"; // ou "@/types/bank" selon ton projet
+import { BANK_TYPES } from "@/types/types";
 
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 const banks = BANK_TYPES.filter((t) => t.value !== "CASH_REGISTER");
-// ✅ Schema: champs communs + validations conditionnelles
+
 const formSchema = z
   .object({
     label: z.string().min(2, "Intitulé trop court").max(120, "Trop long"),
@@ -45,18 +45,14 @@ const formSchema = z
       .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
       .min(0),
 
-    // BANK
+    // Champs spécifiques à BANK
     accountNumber: z.string().optional(),
     bankCode: z.string().optional(),
     key: z.string().optional(),
     atmCode: z.string().optional(),
-
-    // MOBILE_WALLET
-    phoneNum: z.string().optional(),
-    merchantNum: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    // Validations conditionnelles selon type
+    // Validations conditionnelles pour BANK
     if (data.type === "BANK") {
       if (!data.accountNumber || data.accountNumber.trim().length < 3) {
         ctx.addIssue({
@@ -83,17 +79,7 @@ const formSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["atmCode"],
-          message: "Code banque requis",
-        });
-      }
-    }
-
-    if (data.type === "MOBILE_WALLET") {
-      if (!data.phoneNum || data.phoneNum.trim().length < 6) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["phoneNum"],
-          message: "Numéro de téléphone requis",
+          message: "Code guichet requis",
         });
       }
     }
@@ -113,8 +99,6 @@ function CreateBank() {
       bankCode: "",
       key: "",
       atmCode: "",
-      phoneNum: "",
-      merchantNum: "",
     },
   });
 
@@ -138,11 +122,10 @@ function CreateBank() {
       atmCode,
       accountNumber,
       bankCode,
-      phoneNum,
-      merchantNum,
       key,
       ...rest
     } = values;
+
     if (type === "BANK") {
       const payload: BankPayload = {
         ...rest,
@@ -155,21 +138,12 @@ function CreateBank() {
       };
       return createBankAccount.mutate(payload);
     }
+
     if (type === "CASH") {
       const payload: BankPayload = {
         ...rest,
         Status: true,
         justification: justification[0] as File,
-      };
-      return createBankAccount.mutate(payload);
-    }
-    if (type === "MOBILE_WALLET") {
-      const payload: BankPayload = {
-        ...rest,
-        Status: true,
-        justification: justification[0] as File,
-        merchantNum,
-        phoneNum,
       };
       return createBankAccount.mutate(payload);
     }
@@ -228,7 +202,7 @@ function CreateBank() {
           name="balance"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Solde initial"}</FormLabel>
+              <FormLabel isRequired>{"Solde initial rapproché"}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
@@ -247,7 +221,8 @@ function CreateBank() {
             </FormItem>
           )}
         />
-        {/* Champs conditionnels */}
+
+        {/* Champs conditionnels pour BANK */}
         {type === "BANK" && (
           <>
             <FormField
@@ -291,33 +266,15 @@ function CreateBank() {
                 </FormItem>
               )}
             />
-          </>
-        )}
-
-        {type === "MOBILE_WALLET" && (
-          <>
-            <FormField
-              control={form.control}
-              name="phoneNum"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Numéro téléphone"}</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Ex: 699123456" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}
-              name="merchantNum"
+              name="atmCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Numéro marchand"}</FormLabel>
+                  <FormLabel isRequired>{"Code Guichet"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Ex: OM-8899" />
+                    <Input {...field} placeholder="Ex: 06619" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -326,21 +283,6 @@ function CreateBank() {
           </>
         )}
 
-        {type === "BANK" && (
-          <FormField
-            control={form.control}
-            name="atmCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{"Code Guichet"}</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Ex: 06619" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
         {/* Justification */}
         <FormField
           control={form.control}

@@ -79,10 +79,12 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import RejectInvoice from "../(accounting)/factures/reject-invoice";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
   requestTypeData: RequestType[];
+  purchases: BonsCommande[];
 }
 
 const getPriorityBadge = (
@@ -147,7 +149,7 @@ const getStatusVariant = (
   }
 };
 
-export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
+export function TicketTable({ data, requestTypeData, purchases }: TicketsTableProps) {
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<"all" | PaymentRequest["type"]>(
     "all",
@@ -256,6 +258,7 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openValidationModal, setOpenValidationModal] = useState(false);
   const [openPaiementModal, setOpenPaiementModal] = useState(false);
+  const [openRejectModal, setOpenRejectModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<PaymentRequest>();
   const [commands, setCommands] = useState<BonsCommande>();
 
@@ -831,6 +834,15 @@ export function TicketTable({ data, requestTypeData }: TicketsTableProps) {
         }
         actionText={"Approuver"}
       />
+
+      {selectedTicket && (
+        <RejectInvoice
+          payment={selectedTicket}
+          open={openRejectModal}
+          openChange={setOpenRejectModal}
+          purchases={purchases}
+        />
+      )}
     </div>
   );
 }

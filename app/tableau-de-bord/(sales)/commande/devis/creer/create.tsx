@@ -595,11 +595,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                       }
                                     >
                                       <span className="truncate">
-                                        {`${item.designation} - ${
-                                          item.quantity
-                                        } ${item.unit} - ${XAF.format(
-                                          item.price,
-                                        )}`}
+                                        {`${item.designation} - ${item.quantity
+                                          } ${item.unit} - ${XAF.format(
+                                            item.price,
+                                          )}`}
                                       </span>
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
                                         {"Modifier"}
@@ -645,12 +644,12 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           }
                           setOpen(state);
                         }}
-                        needs={selectedNeeds.filter(n=>{
+                        needs={selectedNeeds.filter(n => {
                           const validatedBesoinIds = quotationsData.data.data
                             .flatMap((q) => q.element || []) // On aplatit tous les éléments des devis
                             .filter((el) => el.status === "SELECTED") // Uniquement ceux qui sont validés
                             .map((el) => el.requestModelId); // On récupère l'ID du besoin d'origine
-                            return !validatedBesoinIds.includes(n.id);
+                          return !validatedBesoinIds.includes(n.id);
                         })}
                         value={field.value}
                         onChange={handleElementsChange}
@@ -677,7 +676,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                     value={field.value}
                     onChange={field.onChange}
                     name={field.name}
-                    acceptTypes="images"
+                    acceptTypes="all"
                     multiple={false}
                     maxFiles={1}
                   />
