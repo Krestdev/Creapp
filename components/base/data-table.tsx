@@ -261,7 +261,7 @@ export function DataTable({
           ?.filter((r) => r.userId === user?.id)
           .reduce((acc, cur) => {
             if (!acc) return cur;
-            return cur.createdAt.getTime() > acc.createdAt.getTime()
+            return new Date(cur.createdAt).getTime() > new Date(acc.createdAt).getTime()
               ? cur
               : acc;
           }) : undefined;
