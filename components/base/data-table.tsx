@@ -268,11 +268,12 @@ export function DataTable({
         const modifier = original.requestOlds?.find((r) => r.id !== user?.id);
         const modified = !modifier
           ? false
-          : modifier.priority !== myRequest?.priority ||
+          : !myRequest ? false
+          : modifier.priority !== myRequest.priority ||
             modifier.amount !== myRequest?.amount ||
-            modifier.dueDate !== myRequest?.dueDate ||
-            modifier.quantity !== myRequest?.quantity ||
-            modifier.unit !== myRequest?.unit;
+            modifier.dueDate !== myRequest.dueDate ||
+            modifier.quantity !== myRequest.quantity ||
+            modifier.unit !== myRequest.unit;
         return (
           <div className="flex items-center gap-1.5 uppercase">
             {!!modified && (
