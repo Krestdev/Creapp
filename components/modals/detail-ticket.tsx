@@ -451,7 +451,7 @@ export function DetailTicket({
                       {"Moyen de paiement"}
                     </p>
                     <p className="text-sm">
-                      {translateMoyenPaiement(getPaymentType.data?.data.find((p) => p.id === Number(commands?.paymentMethod))?.label || "N/A")}
+                      {translateMoyenPaiement(getPaymentType.data?.data.find((p) => p.id === data.methodId)?.label || "N/A")}
                     </p>
                   </div>
                 </div>}
