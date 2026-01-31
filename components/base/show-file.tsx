@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Image } from "lucide-react";
 import React from "react";
 import { Button } from "../ui/button";
 
@@ -25,12 +25,15 @@ const ShowFile = ({ file, title, setPage }: Props) => {
         <ArrowLeft />
         {"Retour"}
       </Button>
-      <img
-        src={src}
-        alt={title}
-        className="h-full w-auto aspect-auto object-contain"
-        onError={() => console.error("Image non chargée :", src)}
-      />
+      {src ?
+        <img
+          src={src}
+          alt={title}
+          className="h-full w-auto aspect-auto object-contain"
+          onError={() => console.error("Image non chargée :", src)}
+        /> :
+        <Image className="h-full w-auto aspect-auto object-contain" />
+      }
     </div>
   );
 };

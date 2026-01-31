@@ -226,7 +226,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
               <FileImageIcon />
             </span>
             <div className="flex flex-col">
-              <p className="view-group-title">{"Régistre du Commerce"}</p>
+              <p className="view-group-title">{"Attestation bancaire"}</p>
               {!!data.banck_attestation ? (
                 <Link
                   href={`${process.env.NEXT_PUBLIC_API
@@ -239,7 +239,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                     alt="justificatif"
                     className="h-7 w-auto aspect-square"
                   />
-                  <p className="text-foreground font-medium">{"Attestation"}</p>
+                  <p className="text-foreground font-medium">{"Attestation bancaire"}</p>
                 </Link>
               ) : (
                 <p className="italic">{"Aucun justificatif"}</p>
