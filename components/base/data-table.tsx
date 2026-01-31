@@ -257,14 +257,14 @@ export function DataTable({
       },
       cell: ({ row }) => {
         const original = row.original;
-        const myRequest = original.requestOlds
+        const myRequest = original.requestOlds && original.requestOlds.length > 0 ? original.requestOlds
           ?.filter((r) => r.userId === user?.id)
           .reduce((acc, cur) => {
             if (!acc) return cur;
             return cur.createdAt.getTime() > acc.createdAt.getTime()
               ? cur
               : acc;
-          });
+          }) : undefined;
         const modifier = original.requestOlds?.find((r) => r.id !== user?.id);
         const modified = !modifier
           ? false
