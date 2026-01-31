@@ -198,7 +198,7 @@ export default function CreateCotationForm() {
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date)=> date < new Date()}
+                        disabled={(date) => date < new Date()}
                       />
                     </PopoverContent>
                   </Popover>
@@ -208,7 +208,7 @@ export default function CreateCotationForm() {
             />
 
             <div className="flex flex-col gap-4 border rounded-md bg-gray-50 p-4">
-              <h2>{"Contact pricipal"}</h2>
+              <h2>{"Contact principal"}</h2>
 
               <FormField
                 control={form.control}
