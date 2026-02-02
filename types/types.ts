@@ -748,3 +748,10 @@ export type Driver = {
   licence?: string | File;
   idCard?: string | File;
 };
+
+export type CommandCondition = {
+  id: number;
+  label: string;
+  createdAt: Date;
+  updatedAt: Date;
+};

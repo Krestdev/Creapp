@@ -172,9 +172,18 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest, getPayment
 
           {paymentRequest.liters && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Litrage:</Text>
+              <Text style={styles.infoLabel}>Prix unitaire du litre:</Text>
               <Text style={styles.infoValue}>
-                {paymentRequest.liters ? `${paymentRequest.liters} L` : "N/A"}
+                {paymentRequest.liters ? `${paymentRequest.liters} FCFA` : "N/A"}
+              </Text>
+            </View>
+          )}
+
+          {paymentRequest.liters && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Nombre de litres :</Text>
+              <Text style={styles.infoValue}>
+                {paymentRequest.price / paymentRequest.liters ? `${(paymentRequest.price / paymentRequest.liters).toFixed(2)} L` : "N/A"}
               </Text>
             </View>
           )}

@@ -30,51 +30,6 @@ const PaymentReceipt: React.FC<Props> = ({
     queryKey: ["paymentType"],
     queryFn: payTypeQ.getAll,
   });
-  // Example payment request data
-  // const [paymentRequest] = useState<PaymentRequest>({
-  //   id: 1,
-  //   reference: "TRANS-2023-001",
-  //   proof: "proof.pdf",
-  //   status: "pending",
-  //   type: "PURCHASE",
-  //   method: "bank-transfer",
-  //   deadline: new Date("2023-12-31"),
-  //   title: "Frais de transport mensuel",
-  //   description: "Déplacement client pour réunion projet X - Trajet Paris-Lyon",
-  //   beneficiary: {
-  //     id: 1,
-  //     email: "john.doe@example.com",
-  //     firstName: "John",
-  //     lastName: "Doe",
-  //     status: "active",
-  //     lastConnection: new Date().toISOString(),
-  //     role: [],
-  //     members: [],
-  //   },
-  //   model: "Peugeot 308",
-  //   km: 450,
-  //   liters: 35,
-  //   price: 189.5,
-  //   priority: "medium",
-  //   isPartial: false,
-  //   userId: 1,
-  //   createdAt: new Date().toISOString(),
-  //   updatedAt: new Date().toISOString(),
-  // });
-
-  // const handleDownloadClick = () => {
-  //   // Close the dialog after download is triggered
-  //   setTimeout(() => {
-  //     openChange(false);
-  //   }, 500);
-  // };
-
-  // (newOpen) => {
-  //         // Prevent closing via ESC key or clicking outside
-  //         if (!newOpen) {
-  //           return;
-  //         }
-  //       }
 
   return (
     <div>
