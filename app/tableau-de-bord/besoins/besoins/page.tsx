@@ -44,6 +44,7 @@ import { format } from "date-fns";
 import { Settings2 } from "lucide-react";
 import React from "react";
 import { RequestsTable } from "./table-besoins";
+import { getUserName } from "@/lib/utils";
 
 function Page() {
   const { user } = useStore();
@@ -161,7 +162,7 @@ function Page() {
     //User Filter
     const matchUser =
     userFilter === "all" ? true : 
-    item.requestOlds && item.requestOlds.length > 0 && Number(userFilter) === item.requestOlds[0].id;
+    item.userId.toString() === userFilter || !!item.requestOlds?.some(r=> r.userId.toString() === userFilter);
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : item.state === statusFilter;
@@ -367,20 +368,22 @@ function Page() {
               </div>
               {/* User filter */}
               <div className="grid gap-1.5">
-                <Label htmlFor="initiator">{"Emetteur"}</Label>
+                <Label htmlFor="initiator">{"Utilisateur"}</Label>
                 <Select
                   name="initiator"
                   value={userFilter}
                   onValueChange={(v) => setUserFilter(v)}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une Catégorie" />
+                    <SelectValue placeholder="Sélectionner une utilisateur" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{"Toutes"}</SelectItem>
-                    {uniqueCategories.map((category) => (
-                      <SelectItem key={category.id} value={String(category.id)}>
-                        {category.name}
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {usersData.data.data
+                    //.filter(u=> requests.data.some(r=> r.userId === u.id))
+                    .map((user) => (
+                      <SelectItem key={user.id} value={String(user.id)}>
+                        {getUserName(usersData.data.data, user.id)}
                       </SelectItem>
                     ))}
                   </SelectContent>

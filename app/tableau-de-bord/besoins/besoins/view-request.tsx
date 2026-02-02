@@ -93,11 +93,6 @@ function ViewRequest({
     return category?.label || categoryId;
   };
 
-  const getUserName = (userId: string) => {
-    const user = users.find((u) => u.id === Number(userId));
-    return user?.lastName + " " + user?.firstName || userId;
-  };
-
    const paiement = payments.find(
     (x) => x.requestId === request.id,
   );
@@ -340,7 +335,7 @@ function ViewRequest({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Initié par"}</p>
                 <p className="font-semibold capitalize">
-                  {getUserName(String(request.userId))}
+                  {getUserName(users, request.userId)}
                 </p>
               </div>
             </div>
@@ -414,7 +409,7 @@ function ViewRequest({
                     <div className="flex flex-col">
                       {request.beneficiary === "me" ? (
                         <p className="font-semibold capitalize">
-                          {request.requestOlds && request.requestOlds[0].id ? getUserName(request.requestOlds[0].id.toString()) : "Introuvable"}
+                          {request.requestOlds && request.requestOlds[0].id ? getUserName(users, request.requestOlds[0].id) : "Introuvable"}
                         </p>
                       ) : (
                         <div className="flex flex-col">
