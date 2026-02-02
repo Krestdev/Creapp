@@ -456,7 +456,7 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                 {"Modifier"}
               </DropdownMenuItem>
               {
-                item.Type === "TRANSFER" && item.from.type === "BANK" && item.to.type === "BANK" &&
+                item.Type === "TRANSFER" && item.from.type === "BANK" &&
                 <DropdownMenuItem
                 disabled={ item.status !== "ACCEPTED" || !!item.methodId}
                 onClick={() => {

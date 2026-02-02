@@ -24,7 +24,7 @@ import {
   LucideBan,
   LucidePen,
   Paperclip,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
@@ -49,7 +49,13 @@ import {
 import { cn, subText } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
-import { Category, PaymentRequest, ProjectT, RequestModelT, RequestType } from "@/types/types";
+import {
+  Category,
+  PaymentRequest,
+  ProjectT,
+  RequestModelT,
+  RequestType,
+} from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -107,11 +113,17 @@ interface Props {
   data: Array<RequestModelT>;
   categories: Array<Category>;
   projects: Array<ProjectT>;
-  payments : Array<PaymentRequest>;
+  payments: Array<PaymentRequest>;
   requestTypes: Array<RequestType>;
 }
 
-export function DataTable({ data, categories, projects, payments, requestTypes }: Props) {
+export function DataTable({
+  data,
+  categories,
+  projects,
+  payments,
+  requestTypes,
+}: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -133,7 +145,6 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
   const [isUpdateRHModalOpen, setIsUpdateRHModalOpen] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
-
 
   const requestMutation = useMutation({
     mutationFn: async (data: Partial<RequestModelT>) => {
@@ -183,11 +194,8 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
     return translations[label] || label;
   };
 
-
   const getProjectName = (projectId: string) => {
-    const project = projects.find(
-      (proj) => proj.id === Number(projectId),
-    );
+    const project = projects.find((proj) => proj.id === Number(projectId));
     return project?.label || projectId;
   };
 
@@ -249,13 +257,33 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
       },
       cell: ({ row }) => {
         const original = row.original;
-        const modified = original.requestOlds?.some(x => x.userId !== user?.id);
+        const myRequest = original.requestOlds && original.requestOlds.length > 0 ? original.requestOlds
+          ?.filter((r) => r.userId === user?.id)
+          .reduce((acc, cur) => {
+            if (!acc) return cur;
+            return new Date(cur.createdAt).getTime() > new Date(acc.createdAt).getTime()
+              ? cur
+              : acc;
+          }) : undefined;
+        const modifier = original.requestOlds?.find((r) => r.id !== user?.id);
+        const modified = !modifier
+          ? false
+          : !myRequest ? false
+          : modifier.priority !== myRequest.priority ||
+            modifier.amount !== myRequest?.amount ||
+            modifier.dueDate !== myRequest.dueDate ||
+            modifier.quantity !== myRequest.quantity ||
+            modifier.unit !== myRequest.unit;
         return (
           <div className="flex items-center gap-1.5 uppercase">
-            {!!modified && <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs"><AsteriskIcon size={16} /></span>}
-            {subText({text: row.getValue("label")})}
+            {!!modified && (
+              <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
+                <AsteriskIcon size={16} />
+              </span>
+            )}
+            {subText({ text: row.getValue("label") })}
           </div>
-        )
+        );
       },
     },
     {
@@ -292,9 +320,7 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
       },
       cell: ({ row }) => {
         const projectId = row.getValue("projectId") as string;
-        const project = projects.find(
-          (proj) => proj.id === Number(projectId),
-        );
+        const project = projects.find((proj) => proj.id === Number(projectId));
         return (
           <div className="first-letter:uppercase lowercase">
             {project?.label || projectId}
@@ -378,9 +404,7 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
       header: () => <span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
-        const paiement = payments.find(
-          (x) => x.requestId === item?.id,
-        );
+        const paiement = payments.find((x) => x.requestId === item?.id);
         const isAttach =
           (item.type === "facilitation" || item.type === "ressource_humaine") &&
           paiement?.proof !== null;
@@ -411,9 +435,9 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
                     setSelectedItem(item);
                     item.type === "facilitation"
                       ? setIsUpdateFacModalOpen(true)
-                      : item.type === "ressource_humaine" ?
-                        setIsUpdateRHModalOpen(true) :
-                        setIsUpdateModalOpen(true);
+                      : item.type === "ressource_humaine"
+                        ? setIsUpdateRHModalOpen(true)
+                        : setIsUpdateModalOpen(true);
                   }}
                   disabled={item.state !== "pending"}
                 >
@@ -427,7 +451,7 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
                   }}
                   disabled={
                     item.state !== "pending" ||
-                    item.validators.some(v => v.validated === true)
+                    item.validators.some((v) => v.validated === true)
                   }
                 >
                   <LucideBan className="mr-2 h-4 w-4 text-red-500" />
@@ -455,7 +479,7 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      if (!filterValue || filterValue === '') return true;
+      if (!filterValue || filterValue === "") return true;
 
       const searchValue = filterValue.toLowerCase().trim();
       const item = row.original;
@@ -471,13 +495,14 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
       if (projectName.includes(searchValue)) return true;
 
       // 4. Recherche dans la catégorie
-      const categoryName = categories.find(
-        cat => cat.id === Number(item.categoryId)
-      )?.label?.toLowerCase() || '';
+      const categoryName =
+        categories
+          .find((cat) => cat.id === Number(item.categoryId))
+          ?.label?.toLowerCase() || "";
       if (categoryName.includes(searchValue)) return true;
 
       // 5. Recherche dans le statut
-      const statusConfig = getStatusConfig(item.state || '');
+      const statusConfig = getStatusConfig(item.state || "");
       const statusLabel = getTranslatedLabel(statusConfig.label).toLowerCase();
       if (statusLabel.includes(searchValue)) return true;
 
@@ -486,7 +511,9 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
       if (typeBadge.label.toLowerCase().includes(searchValue)) return true;
 
       // 7. Recherche dans la date (formatée)
-      const formattedDate = format(new Date(item.createdAt), "PP", { locale: fr }).toLowerCase();
+      const formattedDate = format(new Date(item.createdAt), "PP", {
+        locale: fr,
+      }).toLowerCase();
       if (formattedDate.includes(searchValue)) return true;
 
       return false;
@@ -506,9 +533,7 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
         {/* Colonne de visibilité */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              {"Colonnes"}
-            </Button>
+            <Button variant="outline">{"Colonnes"}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {table
@@ -563,9 +588,9 @@ export function DataTable({ data, categories, projects, payments, requestTypes }
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                       </TableHead>
                     );
                   })}

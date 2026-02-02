@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import {
   Transaction,
   TRANSACTION_STATUS,
@@ -42,7 +41,6 @@ interface Props {
 }
 
 function ViewTransaction({ open, openChange, transaction }: Props) {
-  const { user } = useStore();
   const getSourceDetails = (source: Transaction["from"]) => {
     const details = [];
     if ("accountNumber" in source && source.accountNumber) {
