@@ -406,9 +406,23 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-muted-foreground mb-1">
-                          Litres de carburant
+                          {"Prix unitaire du litre"}
                         </p>
-                        <p className="font-semibold">{payment.liters} L</p>
+                        <p className="font-semibold">{XAF.format(payment.liters ?? 0)}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {hasValue(payment.liters) && (
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1">
+                        <Fuel className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {"Nombre de litres consommés"}
+                        </p>
+                        <p className="font-semibold">{payment.price && payment.liters ? `${parseFloat((payment.price / payment.liters).toFixed(2))} L` : ""} </p>
                       </div>
                     </div>
                   )}

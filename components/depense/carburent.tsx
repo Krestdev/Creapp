@@ -25,7 +25,7 @@ import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -93,10 +93,22 @@ export function CarburentForm() {
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [view, setView] = useState<boolean>(false);
+  const [calculatedLiters, setCalculatedLiters] = useState<number>(0);
 
   // Observer les changements des champs
   const selectedCaisseId = form.watch("caisseId");
   const montentValue = form.watch("Montent");
+  const prixUnitaire = form.watch("liters");
+
+  // Effet pour calculer le nombre de litres
+  useEffect(() => {
+    if (prixUnitaire > 0 && montentValue > 0) {
+      const calculated = montentValue / prixUnitaire;
+      setCalculatedLiters(parseFloat(calculated.toFixed(2)));
+    } else {
+      setCalculatedLiters(0);
+    }
+  }, [prixUnitaire, montentValue]);
 
   const vehicleData = useQuery({
     queryKey: ["getvehicles"],
@@ -373,7 +385,7 @@ export function CarburentForm() {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-1">
                     <FieldLabel htmlFor="liters">
-                      Nombre de litres{" "}
+                      Prix unitaire du litre (FCFA){" "}
                       <span className="text-destructive">*</span>
                     </FieldLabel>
                     <Input
@@ -384,8 +396,61 @@ export function CarburentForm() {
                         field.onChange(e.target.valueAsNumber);
                       }}
                       aria-invalid={fieldState.invalid}
-                      placeholder="1000"
+                      placeholder="850"
                     />
+                    <FieldDescription>
+                      Entrez le prix d'un litre de carburant en FCFA. Le nombre de litres sera calculé automatiquement.
+                    </FieldDescription>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="Montent"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid} className="gap-1">
+                    <FieldLabel htmlFor="Montent">
+                      Montant total dépensé <span className="text-destructive">*</span>
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="Montent"
+                      type="number"
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                      aria-invalid={fieldState.invalid}
+                      placeholder="1000"
+                      className={!isBalanceSufficient && selectedCaisseId ? "border-red-500" : ""}
+                    />
+
+                    {/* Afficher le calcul du nombre de litres */}
+                    {prixUnitaire > 0 && montentValue > 0 && (
+                      <div className="mt-2 p-2 bg-blue-50 rounded-md border border-blue-200">
+                        <p className="text-sm text-blue-700 font-medium">
+                          Nombre de litres consommés :
+                        </p>
+                        <p className="text-sm text-blue-600">
+                          <span className="font-bold ml-1">
+                            {calculatedLiters} Litres
+                          </span>
+                        </p>
+                      </div>
+                    )}
+
+                    {selectedCaisseId && (
+                      <div className="mt-2">
+                        {!isBalanceSufficient && (
+                          <p className="text-red-500 text-sm">
+                            ❌ Solde insuffisant. Dépassement de {montentValue - selectedCaisseBalance} FCFA
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -431,43 +496,6 @@ export function CarburentForm() {
                     </Field>
                   );
                 }}
-              />
-
-              <Controller
-                name="Montent"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-1">
-                    <FieldLabel htmlFor="Montent">
-                      Montant <span className="text-destructive">*</span>
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="Montent"
-                      type="number"
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                      aria-invalid={fieldState.invalid}
-                      placeholder="1000"
-                      className={!isBalanceSufficient && selectedCaisseId ? "border-red-500" : ""}
-                    />
-
-                    {selectedCaisseId && (
-                      <div className="mt-2">
-                        {!isBalanceSufficient && (
-                          <p className="text-red-500 text-sm">
-                            ❌ Solde insuffisant. Dépassement de {montentValue - selectedCaisseBalance} FCFA
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
               />
 
               <Controller
