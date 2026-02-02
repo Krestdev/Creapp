@@ -470,6 +470,12 @@ function AppSidebar() {
             authorized: ["ADMIN", "MANAGER", "USER"],
           },
           {
+            pageId: "PG-02-04",
+            title: "Tous les besoins",
+            href: "/tableau-de-bord/besoins/besoins",
+            authorized: ["ADMIN"],
+          },
+          {
             pageId: "PG-02-03",
             title: "Approbation",
             href: "/tableau-de-bord/besoins/validation",

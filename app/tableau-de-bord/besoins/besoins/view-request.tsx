@@ -1,115 +1,44 @@
 "use client";
-
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader } from "@/components/ui/dialog";
+import { cn, getUserName, XAF } from "@/lib/utils";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { cn, XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
-import { categoryQ } from "@/queries/categoryModule";
-import { paymentQ } from "@/queries/payment";
-import { projectQ } from "@/queries/projectModule";
-import { RequestModelT } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+  Category,
+  PaymentRequest,
+  ProjectT,
+  RequestModelT,
+  User,
+} from "@/types/types";
+import { DialogTitle } from "@radix-ui/react-dialog";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import {
-  ArrowBigUpIcon,
-  BriefcaseBusinessIcon,
-  Calendar,
-  CalendarClock,
-  Check,
-  Clock,
-  DollarSignIcon,
-  Edit,
-  FileIcon,
-  FolderIcon,
-  InfoIcon,
-  LucideHash,
-  LucidePieChart,
-  MessageSquareXIcon,
-  SquareStackIcon,
-  TextQuoteIcon,
-  UserIcon,
-  Users,
-  X
-} from "lucide-react";
+import { fr } from "date-fns/locale/fr";
+import { ArrowBigUpIcon, BriefcaseBusinessIcon, Calendar, CalendarClock, Check, Clock, DollarSignIcon, Edit, FileIcon, FolderIcon, InfoIcon, LucideHash, LucidePieChart, MessageSquareXIcon, SquareStackIcon, TextQuoteIcon, UserIcon, Users, X } from "lucide-react";
 import Link from "next/link";
-import { Skeleton } from "../ui/skeleton";
+import React from "react";
 
-interface DetailModalProps {
+interface ViewRequestProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  data: RequestModelT | null;
-  action: () => void;
-  actionButton: string;
+  openChange: React.Dispatch<React.SetStateAction<boolean>>;
+  request: RequestModelT;
+  payments: Array<PaymentRequest>;
+  users: Array<User>;
+  projects: Array<ProjectT>;
+  categories: Array<Category>;
 }
 
-export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
-  const { user } = useStore();
-  const userId = user?.id;
+function ViewRequest({
+  open,
+  openChange,
+  request,
+  payments,
+  users,
+  projects,
+  categories,
+}: ViewRequestProps) {
 
-  // Récupération des données
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: async () => paymentQ.getAll(),
-  });
-
-  const usersData = useQuery({
-    queryKey: ["userQ"],
-    queryFn: async () => userQ.getAll(),
-  });
-
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => projectQ.getAll(),
-  });
-
-  const categoriesData = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => categoryQ.getCategories(),
-  });
-
-  if (!data) return null;
-
-  //Get old values
-  const initialValues = data.requestOlds?.find(r => r.userId !== user?.id);
-
-  // Fonctions pour récupérer les noms
-  const getProjectName = (projectId: string) => {
-    const project = projectsData.data?.data?.find(
-      (proj) => proj.id === Number(projectId),
-    );
-    return project?.label || projectId;
-  };
-
-  const getCategoryName = (categoryId: string) => {
-    const category = categoriesData.data?.data?.find(
-      (cat) => cat.id === Number(categoryId),
-    );
-    return category?.label || categoryId;
-  };
-
-  const getUserName = (userId: string) => {
-    const user = usersData.data?.data?.find((u) => u.id === Number(userId));
-    return user?.lastName + " " + user?.firstName || userId;
-  };
-
-
-  const paiement = paymentsData.data?.data.find(
-    (x) => x.requestId === data?.id,
-  );
-
-  const getStatusBadge = (
+    const getStatusBadge = (
     status: RequestModelT["state"],
   ): {
     label: string;
@@ -133,99 +62,54 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
     }
   };
 
-  // Reste du code inchangé...
+  const getPriority = (priority :RequestModelT["priority"]):{
+    label: string;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+  } => {
+    switch(priority){
+        case "high" :
+            return {label: "Élevée", variant: "purple"};
+        case "low" :
+            return {label: "Faible", variant: "outline"};
+        case "medium":
+            return {label: "Normale", variant: "amber"};
+        case "urgent":
+            return {label: "Urgent", variant: "destructive"}
+    }
+  }
 
-  const statusConfig = {
-    pending: {
-      label: "En attente",
-      color:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-    },
-    validated: {
-      label: "Approuvé",
-      color:
-        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-    },
-    rejected: {
-      label: "Rejeté",
-      color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-    },
-    cancel: {
-      label: "Annulé",
-      color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
-    },
-    store: {
-      label: "Déstocké",
-      color: "bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    },
-    "in-review": {
-      label: "En révision",
-      color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    },
+  // Fonctions pour récupérer les noms
+  const getProjectName = (projectId: string) => {
+    const project = projects.find(
+      (proj) => proj.id === Number(projectId),
+    );
+    return project?.label || projectId;
   };
 
-  type StatusKey = keyof typeof statusConfig;
-  const currentStatus =
-    statusConfig[data.state as StatusKey] ?? statusConfig.pending;
-  const curentPriority =
-    data.priority === "urgent"
-      ? "Urgent"
-      : data.priority === "medium"
-        ? "Moyen"
-        : data.priority === "low"
-          ? "Faible"
-          : "Elevé";
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find(
+      (cat) => cat.id === Number(categoryId),
+    );
+    return category?.label || categoryId;
+  };
 
+  const getUserName = (userId: string) => {
+    const user = users.find((u) => u.id === Number(userId));
+    return user?.lastName + " " + user?.firstName || userId;
+  };
 
-  // Récupérer l'ancienne valeur pour l'affichage
-  const oldestRequest = initialValues;
-  const hasAmountChanged = !!data.amount && !!initialValues && initialValues.amount !== data.amount;
-  const hasPriorityChanged = !!initialValues && initialValues.priority !== data.priority;
-  const hasDueDateChanged = !!initialValues && initialValues.dueDate !== data.dueDate;
-  const hasQuantityChanged = data.type === "achat" && !!initialValues && initialValues.quantity !== data.quantity;
-  const modifier = usersData.data?.data.find(u => u.id === oldestRequest?.id);
+   const paiement = payments.find(
+    (x) => x.requestId === request.id,
+  );
 
-  if (paymentsData.isLoading || usersData.isLoading || projectsData.isLoading || categoriesData.isLoading) {
-    return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-3-xl">
-        <DialogHeader>
-          <DialogTitle>{`Besoin - ${data.label}`}</DialogTitle>
-          <DialogDescription>{"Détails du besoin"}</DialogDescription>
-          <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
-            {
-              Array.from({ length: 12 }).map((_, id) => (
-                <Skeleton key={id} className="w-full h-12" />
-              ))
-            }
-          </div>
-        </DialogHeader>
-      </DialogContent>
-    </Dialog>
-  }
-  if (paymentsData.isError || usersData.isError || projectsData.isError || categoriesData.isError) {
-    return <Dialog open={open} onOpenChange={onOpenChange}>
+  return (
+    <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"error"}>
-          <DialogTitle>{"Erreur de chargement"}</DialogTitle>
-          <DialogDescription>{"Une erreur est survenue lors du chargement des données"}</DialogDescription>
+        <DialogHeader variant={"default"}>
+            <DialogTitle>{`Besoin - ${request.label}`}</DialogTitle>
+            <DialogDescription>{"Description du besoin"}</DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant={"outline"}>{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  }
-  if (paymentsData.isSuccess && usersData.isSuccess && projectsData.isSuccess && categoriesData.isSuccess) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{`Besoin - ${data.label}`}</DialogTitle>
-            <DialogDescription>{"Détails du besoin"}</DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
             {/**Reference */}
             <div className="view-group">
               <span className="view-icon">
@@ -234,13 +118,13 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Référence"}</p>
                 <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
-                  <p className="text-primary-600 text-sm">{data.ref}</p>
+                  <p className="text-primary-600 text-sm">{request.ref}</p>
                 </div>
               </div>
             </div>
 
             {/**Amount */}
-            {!!data.amount && (
+            {!!request.amount && (
               <div className="view-group">
                 <span className="view-icon">
                   <DollarSignIcon />
@@ -248,25 +132,14 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <p className="view-group-title">{"Montant"}</p>
-                    {hasAmountChanged && (
-                      <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
-                        <Edit />
-                        {"Modifié"}
-                      </Badge>
-                    )}
                   </div>
-                  <p className="font-semibold">{XAF.format(data.amount)}</p>
-                  {hasAmountChanged && oldestRequest?.amount && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {`Ancienne valeur: ${XAF.format(oldestRequest.amount)}`}
-                    </p>
-                  )}
+                  <p className="font-semibold">{XAF.format(request.amount)}</p>
                 </div>
               </div>
             )}
 
             {/* Project */}
-            {!!data.projectId && (
+            {!!request.projectId && (
               <div className="view-group">
                 <span className="view-icon">
                   <BriefcaseBusinessIcon />
@@ -274,7 +147,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Projet associé"}</p>
                   <p className="font-semibold">
-                    {getProjectName(String(data.projectId))}
+                    {getProjectName(String(request.projectId))}
                   </p>
                 </div>
               </div>
@@ -287,8 +160,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </span>
               <div className="flex flex-col">
                 <p className="view-group-title">{"Description"}</p>
-                <p className={cn(!data.description && "italic text-gray-600")}>
-                  {data.description ?? "Non renseigné"}
+                <p className={cn(!request.description && "italic text-gray-600")}>
+                  {request.description ?? "Non renseigné"}
                 </p>
               </div>
             </div>
@@ -301,13 +174,13 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Catégorie"}</p>
                 <p className="font-semibold">
-                  {!getCategoryName(String(data.categoryId)).includes("facilita")
-                    ? getCategoryName(String(data.categoryId))
-                    : data.type === "facilitation"
+                  {!getCategoryName(String(request.categoryId)).includes("facilita")
+                    ? getCategoryName(String(request.categoryId))
+                    : request.type === "facilitation"
                       ? "Facilitation"
-                      : data.type === "ressource_humaine"
+                      : request.type === "ressource_humaine"
                         ? "Ressources Humaines"
-                        : data.type === "speciaux" && "Besoins Spéciaux"}
+                        : request.type === "speciaux" && "Besoins Spéciaux"}
                 </p>
               </div>
             </div>
@@ -320,40 +193,19 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <p className="view-group-title">{"Priorité"}</p>
-                  {hasPriorityChanged && (
-                    <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
-                      <Edit />
-                      {"Modifié"}
-                    </Badge>
-                  )}
                 </div>
                 <Badge
-                  variant={
-                    data.priority === "urgent"
-                      ? "destructive"
-                      : data.priority === "medium"
-                        ? "amber"
-                        : data.priority === "low"
-                          ? "outline"
-                          : "sky"
-                  }
+                  variant={getPriority(request.priority).variant}
                 >
-                  {data.priority === "urgent" ? (
+                  {request.priority === "urgent" ? (
                     <X />
-                  ) : data.priority === "medium" ? (
+                  ) : request.priority === "medium" ? (
                     <Clock />
                   ) : (
                     <Check />
                   )}
-                  {curentPriority}
+                  {getPriority(request.priority).label}
                 </Badge>
-                {hasPriorityChanged && oldestRequest?.priority && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Ancienne valeur: {oldestRequest.priority === "urgent" ? "Urgent" :
-                      oldestRequest.priority === "medium" ? "Moyen" :
-                        oldestRequest.priority === "low" ? "Faible" : "Élevé"}
-                  </p>
-                )}
               </div>
             </div>
 
@@ -364,14 +216,14 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               </span>
               <div className="flex flex-col">
                 <p className="view-group-title">{"Statut"}</p>
-                <Badge variant={getStatusBadge(data.state).variant}>
-                  {getStatusBadge(data.state).label}
+                <Badge variant={getStatusBadge(request.state).variant}>
+                  {getStatusBadge(request.state).label}
                 </Badge>
               </div>
             </div>
 
             {/* Motif de rejet */}
-            {data.state === "rejected" && (
+            {request.state === "rejected" && (
               <div className="view-group">
                 <span className="view-icon">
                   <MessageSquareXIcon />
@@ -379,7 +231,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Motif du rejet"}</p>
                   <p className="text-destructive">
-                    {data.validators
+                    {request.validators
                       ?.filter((r) => r.decision?.startsWith("rejected"))
                       .map((r) => r.decision?.replace(/^rejected - \s*/i, "").trim())
                       .join(", ") || "Aucun motif fourni"}
@@ -389,7 +241,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
             )}
 
             {/* Justificatif */}
-            {data.type !== "speciaux" && data.type !== "achat" && (
+            {request.type !== "speciaux" && request.type !== "achat" && (
               <div className="view-group">
                 <span className="view-icon">
                   <FileIcon />
@@ -419,7 +271,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
             )}
 
             {/* Quantité pour achat */}
-            {data.type === "achat" && (
+            {request.type === "achat" && (
               <div className="view-group">
                 <span className="view-icon">
                   <LucidePieChart />
@@ -427,39 +279,28 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <p className="view-group-title">{"Quantité"}</p>
-                    {hasQuantityChanged && (
-                      <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
-                        <Edit />
-                        {"Modifié"}
-                      </Badge>
-                    )}
                   </div>
                   <p className="font-semibold">
-                    {data.quantity + " " + data.unit}
+                    {request.quantity + " " + request.unit}
                   </p>
-                  {hasQuantityChanged && oldestRequest?.quantity && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {`Ancienne valeur: ${oldestRequest.quantity} ${oldestRequest.unit}`}
-                    </p>
-                  )}
                 </div>
               </div>
             )}
 
             {/* Période pour ressources humaines */}
-            {data.type === "ressource_humaine" && (
+            {request.type === "ressource_humaine" && (
               <div className="view-group">
                 <span className="view-icon">
                   <CalendarClock />
                 </span>
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Période"}</p>
-                  {data.period ? (
+                  {request.period ? (
                     <p className="font-semibold">{`Du ${format(
-                      data.period.from!,
+                      request.period.from!,
                       "PPP",
                       { locale: fr },
-                    )} au ${format(data.period.to!, "PPP", {
+                    )} au ${format(request.period.to!, "PPP", {
                       locale: fr,
                     })}`}</p>
                   ) : (
@@ -470,7 +311,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
             )}
 
             {/* Pour le compte de (facilitation) */}
-            {data.type === "facilitation" && (
+            {request.type === "facilitation" && (
               <div className="view-group">
                 <span className="view-icon">
                   <Users />
@@ -478,7 +319,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Pour le compte de"}</p>
                   <div className="flex flex-col">
-                    {data.benFac?.list?.map((ben) => {
+                    {request.benFac?.list?.map((ben) => {
                       return (
                         <p
                           key={ben.id}
@@ -499,14 +340,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Initié par"}</p>
                 <p className="font-semibold capitalize">
-                  {getUserName(String(data.userId))}
+                  {getUserName(String(request.userId))}
                 </p>
-                {!!oldestRequest && !!modifier && (
-                  <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                    <Edit className="h-3 w-3" />
-                    {`Modifié par: ${modifier.firstName.concat(" ", modifier.lastName)}`}
-                  </p>
-                )}
               </div>
             </div>
 
@@ -518,7 +353,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Créé le"}</p>
                 <p className="font-semibold">
-                  {format(data.createdAt, "PPP", { locale: fr })}
+                  {format(request.createdAt, "PPP", { locale: fr })}
                 </p>
               </div>
             </div>
@@ -533,7 +368,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   <p className="view-group-title">{"Modifié le"}</p>
                 </div>
                 <p className="font-semibold">
-                  {format(data.updatedAt, "PPP", { locale: fr })}
+                  {format(request.updatedAt, "PPP", { locale: fr })}
                 </p>
               </div>
             </div>
@@ -546,56 +381,45 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <p className="view-group-title">{"Date limite"}</p>
-                  {hasDueDateChanged && (
-                    <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
-                      <Edit />
-                      {"Modifié"}
-                    </Badge>
-                  )}
                 </div>
                 <p className="font-semibold">
-                  {format(data.dueDate!, "PPP", { locale: fr })}
+                  {format(request.dueDate!, "PPP", { locale: fr })}
                 </p>
-                {hasDueDateChanged && oldestRequest?.dueDate && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {` Ancienne date: ${format(oldestRequest.dueDate, "PPP", { locale: fr })}`}
-                  </p>
-                )}
               </div>
             </div>
 
             {/* Bénéficiaires */}
-            {data.type !== "speciaux" && (
+            {request.type !== "speciaux" && (
               <div className="view-group">
                 <span className="view-icon">
                   <Users />
                 </span>
                 <div className="flex flex-col">
                   <p className="view-group-title">
-                    {data.type === "facilitation"
+                    {request.type === "facilitation"
                       ? "Recepteur pour compte"
                       : "Bénéficiaires"}
                   </p>
-                  {data.type === "facilitation" ? (
+                  {request.type === "facilitation" ? (
                     <p className="font-semibold capitalize">
-                      {usersData.data?.data?.find(
-                        (u) => u.id === Number(data.beneficiary),
+                      {users.find(
+                        (u) => u.id === Number(request.beneficiary),
                       )?.firstName +
                         " " +
-                        usersData.data?.data?.find(
-                          (u) => u.id === Number(data.beneficiary),
+                        users.find(
+                          (u) => u.id === Number(request.beneficiary),
                         )?.lastName}
                     </p>
                   ) : (
                     <div className="flex flex-col">
-                      {data.beneficiary === "me" ? (
+                      {request.beneficiary === "me" ? (
                         <p className="font-semibold capitalize">
-                          {user?.lastName + " " + user?.firstName}
+                          {request.requestOlds && request.requestOlds[0].id ? getUserName(request.requestOlds[0].id.toString()) : "Introuvable"}
                         </p>
                       ) : (
                         <div className="flex flex-col">
-                          {data.beficiaryList?.map((ben) => {
-                            const beneficiary = usersData.data?.data?.find(
+                          {request.beficiaryList?.map((ben) => {
+                            const beneficiary = users.find(
                               (x) => x.id === ben.id,
                             );
                             return (
@@ -618,7 +442,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
 
             {/* Validation History */}
             {
-              data.type === "speciaux" ? null : (
+              request.type === "speciaux" ? null : (
                 <div className="view-group">
                   <span className="view-icon">
                     <SquareStackIcon />
@@ -626,11 +450,11 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   <div className="flex flex-col">
                     <p className="view-group-title">{"Historique de validation"}</p>
                     <div className="grid gap-2">
-                      {data.validators.sort((a, b) => a.rank - b.rank).map(v => {
+                      {request.validators.sort((a, b) => a.rank - b.rank).map(v => {
                         return (
                           <div key={v.id} className={cn("px-3 py-2 flex flex-col gap-1 border", !v.decision ? "bg-gray-50 border-gray-200" : v.decision.includes("reject") ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200")}>
                             <p className={cn("text-sm font-medium", !v.decision ? "text-gray-600" : v.decision.includes("reject") ? "text-red-600" : "text-green-600")}>{!v.decision ? "En attente" : v.decision.includes("reject") ? "Rejeté" : "Approuvé"}</p>
-                            <span>{usersData.data.data.find(u => u.id === v.userId)?.firstName + " " + usersData.data.data.find(u => u.id === v.userId)?.lastName}</span>
+                            <span>{users.find(u => u.id === v.userId)?.firstName + " " + users.find(u => u.id === v.userId)?.lastName}</span>
                           </div>
                         )
                       })}
@@ -645,8 +469,9 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
               <Button variant="outline">{"Fermer"}</Button>
             </DialogClose>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+      </DialogContent>
+    </Dialog>
+  );
 }
+
+export default ViewRequest;
