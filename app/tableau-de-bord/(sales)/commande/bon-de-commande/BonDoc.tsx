@@ -1,5 +1,5 @@
 import { company, formatXAF } from "@/lib/utils";
-import { BonsCommande } from "@/types/types";
+import { BonsCommande, CommandCondition } from "@/types/types";
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -16,8 +16,8 @@ const styles = StyleSheet.create({
   page: {
     width: A4_WIDTH,
     height: A4_HEIGHT,
-    paddingTop: 90,
-    paddingBottom: 65,
+    paddingTop: 50,
+    paddingBottom: 50,
     paddingHorizontal: 20,
     fontSize: 10,
     fontFamily: "Helvetica",
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   name: { display: "flex", flexDirection: "row", alignItems: "center" },
   info: {
@@ -40,6 +40,8 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    borderBottomWidth: 1,
+    borderColor: "#000",
   },
   leftHeader: { display: "flex", flexDirection: "column" },
   rightHeaderBox: {
@@ -50,10 +52,10 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "space-between",
   },
-  companyName: { fontSize: 12, marginBottom: 4 },
+  companyName: { fontSize: 10, marginBottom: 4 },
   title: {
     textAlign: "center",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
     marginVertical: 8,
     color: "#700032",
@@ -78,7 +80,7 @@ const styles = StyleSheet.create({
   colQty: { width: "6%", textAlign: "right" },
   colPu: { width: "14%", textAlign: "right" },
   colRrr: { width: "10%", textAlign: "right" },
-  colTaxes: { width: "12%", textAlign: "right" }, // TVA+IR+IS+PRECOMPTE (montant)
+  colTaxes: { width: "12%", textAlign: "right" },
   colTotalHt: { width: "13%", textAlign: "right" },
   colTotalTtc: { width: "13%", textAlign: "right" },
   summarySection: { marginTop: 1 },
@@ -102,6 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 24,
     marginBottom: 8,
+    gap: 6,
   },
   signBox: {
     width: "45%",
@@ -128,7 +131,10 @@ const isRealRegime = (regem?: string) => {
   return v === "reel" || v === "réel";
 };
 
-export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
+export const BonDocument: React.FC<{ doc: BonsCommande; conditions: Array<CommandCondition> }> = ({
+  doc,
+  conditions,
+}) => {
   const itemsPerPage = 15;
   const totalPages = Math.ceil(doc.devi.element.length / itemsPerPage);
 
@@ -235,7 +241,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                 </View>
               </View>
 
-              <View style={{ borderWidth: 1, borderColor: "#000", marginBottom: 8 }}>
+              <View style={{ borderWidth: 1, borderColor: "#000", marginBottom: 4 }}>
                 <View style={{ flexDirection: "row" }}>
                   <View style={{ flex: 1, borderRightWidth: 1, borderColor: "#000", padding: 4 }}>
                     <Text style={{ fontSize: 11, fontWeight: "bold" }}>Numéro du Bon</Text>
@@ -377,21 +383,32 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                     <Text>{"Visa Responsable des achats"}</Text>
                   </View>
                   <View style={styles.signBox}>
+                    <Text>{"Visa DG"}</Text>
+                  </View>
+                  <View style={styles.signBox}>
                     <Text>{"Signature Fournisseur"}</Text>
                   </View>
                 </View>
 
                 <View style={styles.conditions}>
-                  <Text style={{ fontWeight: "semibold", color: "black" }}>{"Conditions"}</Text>
+                  <Text style={{ fontWeight: "semibold", color: "black" }}>{"Conditions :"}</Text>
                   <View style={styles.conditionsList}>
-                    <Text>
+                    {conditions.map((condition, index) => (
+                      <Text key={index}>{`${index + 1}. ${condition.title}`}</Text>
+                    ))}
+                    {/* <Text>
                       {
                         "1- la responsabilité de Creaconsult ne saurait en aucun cas être engagée après l'annulation de la commande par expiration de la date de livraison ci-dessus indiquée."
                       }
                     </Text>
                     <Text>{"2- Avant livraison vérifier la date et la qualité."}</Text>
-                    <Text>{"3- Le tribunal de siège (Douala) est compétent en cas de litige."}</Text>
-                    {doc.paymentTerms.length > 0 && <Text>{doc.paymentTerms}</Text>}
+                    <Text>{"3- Le tribunal de siège (Douala) est compétent en cas de litige."}</Text> */}
+                    {doc.paymentTerms && doc.paymentTerms.length > 0 &&
+                      <>
+                        <Text style={{ fontWeight: "semibold", color: "black", marginTop: 6 }}>{"Autres conditions :"}</Text>
+                        <Text>{doc.paymentTerms}</Text>
+                      </>
+                    }
                   </View>
                 </View>
               </View>

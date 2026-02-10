@@ -17,9 +17,10 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { CommandConditionQ } from "@/queries/commandsConditions";
+import { CommandCondition } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import React from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -27,6 +28,8 @@ import z from "zod";
 interface Props {
     open: boolean;
     openChange: React.Dispatch<React.SetStateAction<boolean>>;
+    condition?: CommandCondition | null;
+    isEditing?: boolean;
 }
 
 const formSchema = z.object({
@@ -36,34 +39,71 @@ const formSchema = z.object({
 });
 type FormValue = z.infer<typeof formSchema>;
 
-function CreateCondition({ open, openChange }: Props) {
+function ConditionForm({ open, openChange, condition, isEditing = false }: Props) {
+    const queryClient = useQueryClient();
+
     const form = useForm<FormValue>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             label: "",
         },
     });
+
+    // Réinitialiser le formulaire quand la condition change
+    useEffect(() => {
+        if (condition && isEditing) {
+            form.reset({
+                label: condition.title || "",
+            });
+        } else {
+            form.reset({
+                label: "",
+            });
+        }
+    }, [condition, isEditing, form]);
+
     const createCond = useMutation({
-        mutationFn: async (reason: string) =>
-            CommandConditionQ.create({ label: reason }),
+        mutationFn: async (title: string) =>
+            CommandConditionQ.create({ title }),
         onSuccess: () => {
             toast.success("Vous avez ajouté une condition avec succès !");
             form.reset({ label: "" });
             openChange(false);
+            queryClient.invalidateQueries({ queryKey: ['conditions'] }); // Rafraîchir la liste
         },
         onError: (error: Error) => {
             toast.error(error.message);
         },
     });
+
+    const updateCond = useMutation({
+        mutationFn: async ({ id, title }: { id: number; title: string }) =>
+            CommandConditionQ.update(id, { title }),
+        onSuccess: () => {
+            toast.success("Condition modifiée avec succès !");
+            form.reset({ label: "" });
+            openChange(false);
+            queryClient.invalidateQueries({ queryKey: ['conditions'] }); // Rafraîchir la liste
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+
     const onSubmit = (value: FormValue): void => {
-        createCond.mutate(value.label);
+        if (isEditing && condition?.id) {
+            updateCond.mutate({ id: condition.id, title: value.label });
+        } else {
+            createCond.mutate(value.label);
+        }
     };
+
     return (
         <Dialog open={open} onOpenChange={openChange}>
             <DialogContent>
                 <DialogHeader variant={"error"}>
                     <DialogTitle>
-                        {"Ajouter une condition"}
+                        {isEditing ? "Modifier la condition" : "Ajouter une condition"}
                     </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
@@ -91,8 +131,9 @@ function CreateCondition({ open, openChange }: Props) {
                             <Button
                                 type="submit"
                                 variant={"destructive"}
+                                disabled={createCond.isPending || updateCond.isPending}
                             >
-                                {"Ajouter"}
+                                {isEditing ? "Modifier" : "Ajouter"}
                             </Button>
                             <Button
                                 variant={"outline"}
@@ -101,6 +142,7 @@ function CreateCondition({ open, openChange }: Props) {
                                     openChange(false);
                                     form.reset({ label: "" });
                                 }}
+                                disabled={createCond.isPending || updateCond.isPending}
                             >
                                 {"Annuler"}
                             </Button>
@@ -112,4 +154,4 @@ function CreateCondition({ open, openChange }: Props) {
     );
 }
 
-export default CreateCondition;
+export default ConditionForm;

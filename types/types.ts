@@ -471,7 +471,7 @@ export type BonsCommande = {
   }>;
   deliveryLocation?: string;
   paymentMethod: string;
-  paymentTerms: string;
+  paymentTerms?: string;
   deliveryDelay: Date;
   motif?: string;
   createdAt: Date;
@@ -751,7 +751,7 @@ export type Driver = {
 
 export type CommandCondition = {
   id: number;
-  label: string;
+  title: string;
   createdAt: Date;
   updatedAt: Date;
 };

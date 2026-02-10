@@ -1,4 +1,6 @@
 "use client";
+import MultiSelectConditions from "@/components/base/multiSelectConditions";
+import MultiSelectRole from "@/components/base/multiSelectRole";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -26,11 +28,12 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { formatToShortName, isProviderValid } from "@/lib/utils";
+import { CommandConditionQ } from "@/queries/commandsConditions";
 import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
 import { CreatePurchasePayload, purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
-import { PENALITY_MODE, PRIORITIES } from "@/types/types";
+import { CommandCondition, PENALITY_MODE, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -75,7 +78,7 @@ export const formSchema = z
       },
       { message: "Date invalide" },
     ),
-    paymentTerms: z.string().min(1, "Ce champ est requis"),
+    paymentTerms: z.string().optional(),
     instalments: z.array(paymentSchema).refine(
       (data) => {
         const total = data.reduce(
@@ -98,6 +101,7 @@ export const formSchema = z
     ristourneAmount: z.coerce.number().min(0, "Le montant doit être positif"),
     escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
     keepTaxes: z.boolean(),
+    conditions: z.array(z.number()).min(1, "Veuillez sélectionner au moins une condition"),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -119,6 +123,7 @@ export const formSchema = z
 
 function CreateForm() {
   const [selectDate, setSelectDate] = React.useState(false);
+  const [selectedConditions, setSelectedConditions] = React.useState<CommandCondition[]>([]);
   const [duePopovers, setDuePopovers] = React.useState<Record<number, boolean>>(
     {},
   );
@@ -138,6 +143,10 @@ function CreateForm() {
   const getPaymentType = useQuery({
     queryKey: ["paymentType"],
     queryFn: payTypeQ.getAll,
+  });
+  const conditions = useQuery({
+    queryKey: ["conditions"],
+    queryFn: () => CommandConditionQ.getAll(),
   });
 
   // Définir la valeur par défaut pour paymentMethod
@@ -269,6 +278,7 @@ function CreateForm() {
         escompteRate: values.escompteRate,
         keepTaxes: values.keepTaxes,
       },
+      conditions: values.conditions,
       ids: ids,
     };
 
@@ -310,13 +320,12 @@ function CreateForm() {
                             value={String(quote.id)}
                             className="line-clamp-1"
                           >
-                            {`${
-                              quote.commandRequest.title
-                            } - ${formatToShortName(
-                              getProviders.data?.data.find(
-                                (p) => p.id === quote.providerId,
-                              )?.name,
-                            )}`}
+                            {`${quote.commandRequest.title
+                              } - ${formatToShortName(
+                                getProviders.data?.data.find(
+                                  (p) => p.id === quote.providerId,
+                                )?.name,
+                              )}`}
                           </SelectItem>
                         ))}
                     {getQuotations.data &&
@@ -423,7 +432,7 @@ function CreateForm() {
                           field.onChange(value);
                           setSelectDate(false);
                         }}
-                        disabled={(date)=> date < new Date()}
+                        disabled={(date) => date < new Date()}
                       />
                     </PopoverContent>
                   </Popover>
@@ -450,7 +459,7 @@ function CreateForm() {
                   <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
                 </div>
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -471,7 +480,7 @@ function CreateForm() {
                   <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
                 </div>
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -492,7 +501,7 @@ function CreateForm() {
                   <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
                 </div>
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -534,7 +543,7 @@ function CreateForm() {
                 </div>
               </FormControl>
               <FormDescription>{"Laissez à 0 si aucun escompte"}</FormDescription>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -648,7 +657,7 @@ function CreateForm() {
                                   field.onChange(value);
                                   setSelectDate(false);
                                 }}
-                                disabled={(date)=> date < new Date()}
+                                disabled={(date) => date < new Date()}
                               />
                             </PopoverContent>
                           </Popover>
@@ -688,9 +697,8 @@ function CreateForm() {
               {"La somme de tous les paiements doit être égale à 100%."}
               {totalAmount !== 100 && (
                 <span className="text-destructive ml-2">
-                  {`Total actuel: ${totalAmount}% (il manque ${
-                    100 - totalAmount
-                  }%)`}
+                  {`Total actuel: ${totalAmount}% (il manque ${100 - totalAmount
+                    }%)`}
                 </span>
               )}
             </p>
@@ -701,12 +709,28 @@ function CreateForm() {
             )}
           </div>
         </div>
+        <div className="col-span-2 w-full space-y-2">
+          <FormLabel isRequired>{"Conditions du bon de commande"}</FormLabel>
+          <MultiSelectConditions
+            display="Conditions"
+            conditions={conditions.data?.data || []}
+            selected={selectedConditions}
+            onChange={(selected) => {
+              setSelectedConditions(selected);
+              form.setValue(
+                "conditions",
+                selected.map((r) => r.id),
+              );
+            }}
+          />
+          <FormMessage />
+        </div>
         <FormField
           control={form.control}
           name="paymentTerms"
           render={({ field }) => (
             <FormItem className="@min-[560px]:col-span-2">
-              <FormLabel isRequired>{"Conditions de paiement"}</FormLabel>
+              <FormLabel>{"Conditions Supplémentaires"}</FormLabel>
               <FormControl>
                 <Textarea
                   {...field}
@@ -810,12 +834,13 @@ function CreateForm() {
             </FormItem>
           )}
         /> */}
-        <div className="@min-[560px]:col-span-2">
+        <div className="col-span-2">
           <Button
             type="submit"
             variant={"primary"}
             disabled={isPending}
             isLoading={isPending}
+            className="ml-auto"
           >
             {"Créer le bon de commande"}
           </Button>

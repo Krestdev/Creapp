@@ -2,7 +2,7 @@ import api from "@/providers/axios";
 import { CommandCondition } from "@/types/types";
 
 class CommandConditionQueries {
-    route = "/request/commandConditions";
+    route = "/request/commandCondition";
 
     // ============================
     //       CommandCondition ROUTES

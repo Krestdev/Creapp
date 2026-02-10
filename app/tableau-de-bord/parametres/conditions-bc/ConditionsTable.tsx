@@ -52,15 +52,15 @@ import {
 import { toast } from "sonner";
 import { ModalWarning } from "@/components/modals/modal-warning";
 import { CommandConditionQ } from "@/queries/commandsConditions";
+import CreateCondition from "./CreateCondition";
+import ConditionForm from "./CreateCondition";
 
 interface ConditionsTableProps {
     data: CommandCondition[];
 }
 
 export function ConditionsTable({ data }: ConditionsTableProps) {
-    const [sorting, setSorting] = React.useState<SortingState>([
-        { id: "createdAt", desc: true },
-    ]);
+    const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         [],
     );
@@ -87,7 +87,7 @@ export function ConditionsTable({ data }: ConditionsTableProps) {
     const columns = React.useMemo<ColumnDef<CommandCondition>[]>(
         () => [
             {
-                accessorKey: "label",
+                accessorKey: "title",
                 header: ({ column }) => {
                     return (
                         <span
@@ -96,58 +96,14 @@ export function ConditionsTable({ data }: ConditionsTableProps) {
                                 column.toggleSorting(column.getIsSorted() === "asc")
                             }
                         >
-                            {"Nom de la catégorie"}
-                            <ArrowUpDown />
-                        </span>
-                    );
-                },
-                cell: ({ row }) => {
-                    const id = row.original.id;
-                    const isProtected = id === 0 ? true : id === 1 ? true : false;
-                    return (
-                        <div className="font-medium uppercase flex items-center gap-1.5">{isProtected && <span className="size-4.5 rounded-full flex items-center justify-center bg-linear-to-t from-red-700 to-red-500 text-white"><AsteriskIcon size={16} /></span>}{row.getValue("label")}</div>
-                    )
-                },
-            },
-            {
-                accessorKey: "createdAt",
-                header: ({ column }) => {
-                    return (
-                        <span
-                            className="tablehead"
-                            onClick={() =>
-                                column.toggleSorting(column.getIsSorted() === "asc")
-                            }
-                        >
-                            {"Date de création"}
+                            {"Nom de la condition"}
                             <ArrowUpDown />
                         </span>
                     );
                 },
                 cell: ({ row }) => {
                     return (
-                        <div className="font-medium uppercase flex items-center gap-1.5">{row.getValue("createdAt")}</div>
-                    )
-                },
-            },
-            {
-                accessorKey: "updatedAt",
-                header: ({ column }) => {
-                    return (
-                        <span
-                            className="tablehead"
-                            onClick={() =>
-                                column.toggleSorting(column.getIsSorted() === "asc")
-                            }
-                        >
-                            {"Date de modification"}
-                            <ArrowUpDown />
-                        </span>
-                    );
-                },
-                cell: ({ row }) => {
-                    return (
-                        <div className="font-medium uppercase flex items-center gap-1.5">{row.getValue("updatedAt")}</div>
+                        <div className="font-medium uppercase flex items-center gap-1.5">{row.getValue("title")}</div>
                     )
                 },
             },
@@ -155,53 +111,31 @@ export function ConditionsTable({ data }: ConditionsTableProps) {
                 id: "actions",
                 header: "Actions",
                 enableHiding: false,
+                size: 50,
                 cell: ({ row }) => {
                     const conditions = row.original;
 
                     return (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant={"outline"}>
-                                    {"Actions"}
-                                    <ChevronDown />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-                                {/* <DropdownMenuItem>View</DropdownMenuItem> */}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    onClick={() => {
-                                        setSelectedItem(conditions);
-                                        setShowDetail(true);
-                                    }}
-                                >
-                                    <LucideEye className="mr-2 h-4 w-4" />
-                                    {"Voir"}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => {
-                                        setSelectedItem(conditions);
-                                        setIsUpdateModalOpen(true);
-                                    }}
-                                >
-                                    <LucidePen className="mr-2 h-4 w-4" />
-                                    {"Modifier"}
-                                </DropdownMenuItem>
-                                {row.original.id !== 0 && row.original.id !== 1 && (
-                                    <DropdownMenuItem
-                                        className="text-red-600"
-                                        onClick={() => {
-                                            setSelectedItem(conditions);
-                                            setIsDeleteModalOpen(true);
-                                        }}
-                                    >
-                                        <LucideTrash2 className="mr-2 h-4 w-4 text-red-400" />
-                                        {"Supprimer"}
-                                    </DropdownMenuItem>
-                                )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex flex-row items-center gap-2 w-fit">
+                            <Button variant={"outline"} size={"icon"} onClick={() => {
+                                setSelectedItem(conditions);
+                                setShowDetail(true);
+                            }}>
+                                <LucideEye className="h-4 w-4" />
+                            </Button>
+                            <Button variant={"outline"} size={"icon"} onClick={() => {
+                                setSelectedItem(conditions);
+                                setIsUpdateModalOpen(true);
+                            }}>
+                                <LucidePen className="h-4 w-4" />
+                            </Button>
+                            <Button variant={"outline"} size={"icon"} onClick={() => {
+                                setSelectedItem(conditions);
+                                setIsDeleteModalOpen(true);
+                            }}>
+                                <LucideTrash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
                     );
                 },
             },
@@ -240,7 +174,7 @@ export function ConditionsTable({ data }: ConditionsTableProps) {
         <div className="w-full">
             <div className="flex items-center gap-4 py-4">
                 <Input
-                    placeholder="Rechercher par nom de la catégorie..."
+                    placeholder="Rechercher par nom de la condition..."
                     value={globalFilter ?? ""}
                     onChange={(event) => setGlobalFilter(event.target.value)}
                     className="max-w-sm"
@@ -259,7 +193,7 @@ export function ConditionsTable({ data }: ConditionsTableProps) {
                             .map((column) => {
                                 const text =
                                     column.id == "label"
-                                        ? "Nom catégorie"
+                                        ? "Nom de la condition"
                                         : column.id == "description"
                                             ? "Description"
                                             : "";
@@ -343,10 +277,6 @@ export function ConditionsTable({ data }: ConditionsTableProps) {
                 </Table>
             </div>
             <div className="flex items-center justify-between space-x-2 py-4">
-                {/* <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div> */}
                 <div>.</div>
                 <div className="flex items-center space-x-2">
                     <Button
@@ -387,25 +317,20 @@ export function ConditionsTable({ data }: ConditionsTableProps) {
             <ModalWarning
                 open={isDeleteModalOpen}
                 onOpenChange={setIsDeleteModalOpen}
-                title="Supprimer la catégorie"
-                description="Êtes-vous sûr de vouloir supprimer cette catégorie ?"
-                message="Suprimer cette catégorie suprimera tous les besoins associés. Cette action est irreversible"
+                title="Supprimer la condition"
+                description="Êtes-vous sûr de vouloir supprimer cette condition ?"
+                message="Suprimer cette condition suprimera tous les besoins associés. Cette action est irreversible"
                 onAction={() => conditionData.mutate(selectedItem?.id || 0)}
                 actionText="Supprimer"
                 variant="error"
             />
 
-            {/* <UpdateCategory
-        open={isUpdateModalOpen}
-        setOpen={setIsUpdateModalOpen}
-        categoryData={selectedItem}
-      />
-
-      <ShowCategory
-        open={showDetail}
-        onOpenChange={setShowDetail}
-        data={selectedItem}
-      /> */}
+            <ConditionForm
+                open={isUpdateModalOpen}
+                openChange={setIsUpdateModalOpen}
+                isEditing={true}
+                condition={selectedItem}
+            />
         </div>
     );
 }

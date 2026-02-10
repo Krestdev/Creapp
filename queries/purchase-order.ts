@@ -20,6 +20,7 @@ export type CreatePurchasePayload = {
     }>;
   };
   ids: Array<number>;
+  conditions: Array<number>;
 };
 export type updatePoPayload = Omit<
   BonsCommande,

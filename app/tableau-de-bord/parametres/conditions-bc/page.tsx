@@ -9,6 +9,7 @@ import { CommandConditionQ } from '@/queries/commandsConditions'
 import { ConditionsTable } from './ConditionsTable'
 import LoadingPage from '@/components/loading-page'
 import ErrorPage from '@/components/error-page'
+import ConditionForm from './CreateCondition'
 
 const page = () => {
     const [open, setOpen] = React.useState(false);
@@ -38,7 +39,7 @@ const page = () => {
                     data={conditions?.data.data || []}
                 />
 
-                <CreateCondition
+                <ConditionForm
                     open={open}
                     openChange={setOpen}
                 />
