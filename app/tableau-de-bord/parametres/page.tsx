@@ -2,7 +2,7 @@
 
 import PageTitle from "@/components/pageTitle";
 import SettingsCard from "@/components/settings/settings-card";
-import { Box, Building2, Car, LucideProps, Stamp, Users } from "lucide-react";
+import { Box, Building2, FileText, Car, LucideProps, Stamp, Users } from "lucide-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export default function SettingsPage() {
@@ -165,16 +165,16 @@ export default function SettingsPage() {
             ],
           },
           {
-            title: "Conditions BC",
-            description: "Enregistrement des conditions des BC",
-            icon: Car,
+            title: "Bon de commande",
+            description: "Configurer les bons de commande",
+            icon: FileText,
             href: "/tableau-de-bord/parametres/conditions-bc",
             color: "from-fuchsia-500 to-fuchsia-600",
             items: [
               {
                 pageId: "PG-08-02",
-                title: "Liste",
-                href: "/tableau-de-bord/parametres/conditions-bc",
+                title: "Conditions générales",
+                href: "/tableau-de-bord/parametres/bon-de-commande/conditions-generales",
                 authorized: ["ADMIN"],
               },
               // {

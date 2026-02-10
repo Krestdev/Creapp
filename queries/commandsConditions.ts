@@ -10,14 +10,14 @@ class CommandConditionQueries {
 
     // GET /request/CommandCondition
     getAll = async (): Promise<{ data: CommandCondition[] }> => {
-        return api.get(`${this.route}/`).then((res) => res.data);
+        return api.get(this.route).then((res) => res.data);
     };
 
     // POST /request/CommandCondition
     create = async (
-        data: Omit<CommandCondition, "id" | "createdAt" | "updatedAt">
+        data: Omit<CommandCondition, "id">
     ): Promise<{ message: string; data: CommandCondition }> => {
-        return api.post(`${this.route}/`, data).then((res) => res.data);
+        return api.post(this.route, data).then((res) => res.data);
     };
 
     // GET /request/CommandCondition/{id}
@@ -27,10 +27,10 @@ class CommandConditionQueries {
 
     // PUT /request/CommandCondition/{id}
     update = async (
-        id: number,
-        data: Partial<CommandCondition>
+        data: CommandCondition
     ): Promise<{ data: CommandCondition }> => {
-        return api.put(`${this.route}/${id}`, data).then((res) => res.data);
+        const {id, ...payload} = data;
+        return api.put(`${this.route}/${id}`, payload).then((res) => res.data);
     };
 
     // GET /request/CommandCondition/{id}

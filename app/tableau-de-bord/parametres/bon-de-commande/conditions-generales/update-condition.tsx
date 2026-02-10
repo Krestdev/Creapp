@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -15,6 +16,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CommandConditionQ } from "@/queries/commandsConditions";
 import { CommandCondition } from "@/types/types";
@@ -28,60 +30,43 @@ import z from "zod";
 interface Props {
     open: boolean;
     openChange: React.Dispatch<React.SetStateAction<boolean>>;
-    condition?: CommandCondition | null;
-    isEditing?: boolean;
+    data: CommandCondition;
 }
 
 const formSchema = z.object({
-    label: z
+    title: z
         .string()
-        .min(4, { message: "Nom trop court" })
+        .min(4, { message: "Nom trop court" }),
+    content: z.string().min(5, {message: "Votre contenu doit contenir au moins 5 caractères"})
 });
 type FormValue = z.infer<typeof formSchema>;
 
-function ConditionForm({ open, openChange, condition, isEditing = false }: Props) {
+function UpdateCondition({ open, openChange, data }: Props) {
     const queryClient = useQueryClient();
 
     const form = useForm<FormValue>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            label: "",
+            title: "",
+            content: ""
         },
     });
 
-    // Réinitialiser le formulaire quand la condition change
     useEffect(() => {
-        if (condition && isEditing) {
+        if (open) {
             form.reset({
-                label: condition.title || "",
-            });
-        } else {
-            form.reset({
-                label: "",
+                title: data.title,
+                content: data.content
             });
         }
-    }, [condition, isEditing, form]);
+    }, [data, form]);
 
-    const createCond = useMutation({
-        mutationFn: async (title: string) =>
-            CommandConditionQ.create({ title }),
-        onSuccess: () => {
-            toast.success("Vous avez ajouté une condition avec succès !");
-            form.reset({ label: "" });
-            openChange(false);
-            queryClient.invalidateQueries({ queryKey: ['conditions'] }); // Rafraîchir la liste
-        },
-        onError: (error: Error) => {
-            toast.error(error.message);
-        },
-    });
-
-    const updateCond = useMutation({
-        mutationFn: async ({ id, title }: { id: number; title: string }) =>
-            CommandConditionQ.update(id, { title }),
+    const update = useMutation({
+        mutationFn: async (data:CommandCondition) =>
+            CommandConditionQ.update(data),
         onSuccess: () => {
             toast.success("Condition modifiée avec succès !");
-            form.reset({ label: "" });
+            form.reset({ title: "", content: "" });
             openChange(false);
             queryClient.invalidateQueries({ queryKey: ['conditions'] }); // Rafraîchir la liste
         },
@@ -90,21 +75,19 @@ function ConditionForm({ open, openChange, condition, isEditing = false }: Props
         },
     });
 
-    const onSubmit = (value: FormValue): void => {
-        if (isEditing && condition?.id) {
-            updateCond.mutate({ id: condition.id, title: value.label });
-        } else {
-            createCond.mutate(value.label);
-        }
+    const onSubmit = ({title, content}: FormValue): void => {
+        update.mutate({ id: data.id, title, content });
+
     };
 
     return (
         <Dialog open={open} onOpenChange={openChange}>
             <DialogContent>
-                <DialogHeader variant={"error"}>
+                <DialogHeader variant={"secondary"}>
                     <DialogTitle>
-                        {isEditing ? "Modifier la condition" : "Ajouter une condition"}
+                        {`Modifier ${data.title}`}
                     </DialogTitle>
+                    <DialogDescription>{"Mettre à jour les informations relatives à cette condition"}</DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                     <form
@@ -113,14 +96,30 @@ function ConditionForm({ open, openChange, condition, isEditing = false }: Props
                     >
                         <FormField
                             control={form.control}
-                            name="label"
+                            name="title"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel isRequired>{"Nom de la condition"}</FormLabel>
+                                    <FormLabel isRequired>{"Titre"}</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            placeholder="Ex. Condition Achat Local"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="content"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel isRequired>{"Contenu"}</FormLabel>
                                     <FormControl>
                                         <Textarea
                                             {...field}
-                                            placeholder="Ex. Paiement à 30 jours"
+                                            placeholder="Redigez le contenu de la condition"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -130,19 +129,19 @@ function ConditionForm({ open, openChange, condition, isEditing = false }: Props
                         <DialogFooter>
                             <Button
                                 type="submit"
-                                variant={"destructive"}
-                                disabled={createCond.isPending || updateCond.isPending}
+                                variant={"accent"}
+                                disabled={update.isPending}
+                                isLoading={update.isPending}
                             >
-                                {isEditing ? "Modifier" : "Ajouter"}
+                                {"Enregistrer les modifications"}
                             </Button>
                             <Button
                                 variant={"outline"}
                                 onClick={(e) => {
                                     e.preventDefault();
                                     openChange(false);
-                                    form.reset({ label: "" });
                                 }}
-                                disabled={createCond.isPending || updateCond.isPending}
+                                disabled={update.isPending}
                             >
                                 {"Annuler"}
                             </Button>
@@ -154,4 +153,4 @@ function ConditionForm({ open, openChange, condition, isEditing = false }: Props
     );
 }
 
-export default ConditionForm;
+export default UpdateCondition;

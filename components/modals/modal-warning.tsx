@@ -2,7 +2,10 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -60,39 +63,36 @@ export function ModalWarning({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
+      <DialogContent>
         {/* Header with dynamic background based on variant */}
-        <DialogHeader className={`${variantStyles[variant].header} text-white p-6 m-4 rounded-lg pb-8 relative`}>
+        <DialogHeader className={variantStyles[variant].header}>
           <DialogTitle className="text-xl font-semibold text-white">
             {title + " " + name}
           </DialogTitle>
-          {description && (
-            <p className="text-sm text-white/80 mt-1">
+          {description ?
+            <DialogDescription>
               {description}
-            </p>
-          )}
+            </DialogDescription>
+          : <DialogDescription/>}
         </DialogHeader>
 
         {/* Message content */}
-        {message && <div className="px-6 py-4">
+        {message &&
           <p className="text-foreground">{message}</p>
-        </div>}
+        }
 
         {/* Footer buttons */}
-        <div className="flex justify-end gap-3 p-6 pt-0">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            {"Fermer"}
-          </Button>
+        <DialogFooter>
           <Button
             className={`text-white ${variantStyles[variant].button}`}
             onClick={handleAction}
           >
             {actionText}
           </Button>
-        </div>
+          <DialogClose asChild>
+            <Button variant={"outline"}>{"Annuler"}</Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

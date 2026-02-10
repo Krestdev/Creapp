@@ -752,6 +752,5 @@ export type Driver = {
 export type CommandCondition = {
   id: number;
   title: string;
-  createdAt: Date;
-  updatedAt: Date;
+  content: string;
 };
