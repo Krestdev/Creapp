@@ -61,7 +61,7 @@ import { VariantProps } from "class-variance-authority";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
 import { Label } from "../ui/label";
-import EditPayment from "@/app/tableau-de-bord/(sales)/commande/paiements/edit-payment";
+import EditPayment from "@/app/tableau-de-bord/(accounting)/factures/paiements/edit-payment";
 import { format } from "date-fns";
 import {
   Sheet,

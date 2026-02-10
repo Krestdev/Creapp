@@ -257,23 +257,14 @@ export function DataTable({
       },
       cell: ({ row }) => {
         const original = row.original;
-        const myRequest = original.requestOlds && original.requestOlds.length > 0 ? original.requestOlds
-          ?.filter((r) => r.userId === user?.id)
-          .reduce((acc, cur) => {
-            if (!acc) return cur;
-            return new Date(cur.createdAt).getTime() > new Date(acc.createdAt).getTime()
-              ? cur
-              : acc;
-          }) : undefined;
         const modifier = original.requestOlds?.find((r) => r.id !== user?.id);
         const modified = !modifier
           ? false
-          : !myRequest ? false
-          : modifier.priority !== myRequest.priority ||
-            modifier.amount !== myRequest?.amount ||
-            modifier.dueDate !== myRequest.dueDate ||
-            modifier.quantity !== myRequest.quantity ||
-            modifier.unit !== myRequest.unit;
+          : modifier.priority !==original.priority ||
+            modifier.amount !== original.amount ||
+            modifier.dueDate !==original.dueDate ||
+            modifier.quantity !==original.quantity ||
+            modifier.unit !==original.unit;
         return (
           <div className="flex items-center gap-1.5 uppercase">
             {!!modified && (

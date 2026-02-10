@@ -3,33 +3,12 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { PaiementsTable } from "@/components/tables/PaiementsTable";
-import { Button } from "@/components/ui/button";
-import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
 
 function Page() {
-  const { user } = useStore();
-  const isAuth: boolean =
-    user?.role.some(
-      (r) =>
-        r.label === "ADMIN" ||
-        r.label === "SALES" ||
-        r.label === "SALES_MANAGER"
-    ) ?? false;
-
-  if (!isAuth) {
-    return (
-      <ErrorPage
-        statusCode={401}
-        message="Vous n'avez pas accès à cette page"
-      />
-    );
-  }
-
   const links: Array<NavLink> = [
     {
       title: "Créer un paiement",
