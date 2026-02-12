@@ -482,6 +482,7 @@ export type BonsCommande = {
   escompteRate: number;
   keepTaxes: boolean;
   netToPay: number;
+  commandConditions: Array<CommandCondition>;
 };
 
 export interface NavLink {
@@ -550,44 +551,6 @@ export const notificationRoutes: Record<string, string> = {
   PAIEMENT_A_VALIDER: "/tableau-de-bord/ticket",
   PAIEMENT_VALIDE: "/tableau-de-bord/ticket",
   PAIEMENT_PAYE: "/tableau-de-bord/ticket",
-};
-
-export type BonDeCommande = {
-  numero: string;
-  dateCreation: string; // iso or readable
-  imprimePar: string;
-  imprimeLe: string;
-  company: {
-    name: string;
-    address: string;
-    phone?: string;
-    email?: string;
-  };
-  fournisseur: {
-    nom: string;
-    adresse?: string;
-    ville?: string;
-    pays?: string;
-    niu?: string;
-    email?: string;
-    telephone?: string;
-  };
-  client: {
-    nom: string;
-    adresse?: string;
-    ville?: string;
-    pays?: string;
-  };
-  items: Item[];
-  totals: {
-    totalHt: number;
-    remise: number;
-    tva: number;
-    isirda: number;
-    net: number;
-  };
-  amountInWords?: string;
-  conditions?: string;
 };
 
 export type NavigationLinkProps = {

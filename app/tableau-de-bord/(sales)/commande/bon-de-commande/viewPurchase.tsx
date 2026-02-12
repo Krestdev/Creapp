@@ -1,23 +1,18 @@
 "use client";
-import { badgeVariants } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BonDeCommande, BonsCommande, User } from "@/types/types";
-import { VariantProps } from "class-variance-authority";
+import { BonsCommande, User } from "@/types/types";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 import React from "react";
 import { BonDeCommandePDF } from "./BonDeCommandePDF";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { Button } from "@/components/ui/button";
 import { BonDocument } from "./BonDoc";
-import LoadingPage from "@/components/loading-page";
-import ErrorPage from "@/components/error-page";
-import { CommandConditionQ } from "@/queries/commandsConditions";
-import { useQuery } from "@tanstack/react-query";
 
 interface Props {
   open: boolean;
@@ -29,13 +24,6 @@ interface Props {
 function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
   // Vérifier si le bon de commande est rejeté
   const isRejected = purchaseOrder.status === "REJECTED";
-  const conditions = useQuery({
-    queryKey: ["conditions"],
-    queryFn: () => CommandConditionQ.getAll(),
-  });
-  if (conditions.isLoading) return <LoadingPage />;
-  if (conditions.error) return <ErrorPage />;
-  if (conditions.isSuccess)
 
     return (
       <Dialog open={open} onOpenChange={openChange}>
@@ -45,13 +33,13 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
             <DialogTitle className="text-xl font-semibold text-white uppercase">
               {`Bon de commande - ${purchaseOrder.provider.name}`}
             </DialogTitle>
-            <p className="text-sm text-white/80 mt-1">
+            <DialogDescription>
               {"Informations relatives aux bons de commande"}
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           <div className="flex-1 pb-[68px] bg-white">
-            <BonDeCommandePDF doc={purchaseOrder} conditions={conditions.data.data} />
+            <BonDeCommandePDF doc={purchaseOrder} />
           </div>
 
           {/* pdf here */}
@@ -68,7 +56,7 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
             ) : (
               // Si le statut n'est pas REJECTED, afficher le lien de téléchargement
               <PDFDownloadLink
-                document={<BonDocument doc={purchaseOrder} conditions={conditions.data.data} />}
+                document={<BonDocument doc={purchaseOrder} />}
                 fileName={`BonDeCommande_${purchaseOrder.reference}.pdf`}
               >
                 {({ loading }) => (

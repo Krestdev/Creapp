@@ -1,6 +1,6 @@
 import { company, formatXAF } from "@/lib/utils";
-import { BonsCommande, CommandCondition } from "@/types/types";
-import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { BonsCommande } from "@/types/types";
+import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -34,30 +34,31 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 6,
   },
-  name: { display: "flex", flexDirection: "row", alignItems: "center" },
+  name: { display: "flex", flexDirection: "row", alignItems: "center", paddingBottom: 4 },
+  tableName: {display: "flex", width: "50%", flexDirection: "row", alignItems: "center", borderRightWidth: 1, borderColor: "#000", paddingLeft: 6, paddingRight: 6,  paddingVertical: 2},
+  tableRow: { flexDirection: "row", borderBottomWidth: 1, borderLeftWidth:1, borderColor: "#000" },
   info: {
+    width: "35%",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    borderBottomWidth: 1,
-    borderColor: "#000",
   },
   leftHeader: { display: "flex", flexDirection: "column" },
   rightHeaderBox: {
     borderWidth: 1,
     borderColor: "#000",
-    padding: 6,
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
   },
-  companyName: { fontSize: 10, marginBottom: 4 },
+  companyName: { fontSize: 9 },
   title: {
     textAlign: "center",
     fontSize: 14,
     fontWeight: "bold",
-    marginVertical: 8,
+    marginTop: 8,
+    marginBottom: 4,
     color: "#700032",
   },
   table: { borderWidth: 1, borderColor: "#000", marginBottom: 8, minHeight: 30 },
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   tr: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#ddd", minHeight: 25 },
-  td: { padding: 4, borderRightWidth: 1, borderColor: "#ddd", fontSize: 9 },
+  td: { padding: 4, borderRightWidth: 1, borderColor: "#ddd", fontSize: 8, flexWrap: "wrap" },
   colDesignation: { width: "32%" },
   colQty: { width: "6%", textAlign: "right" },
   colPu: { width: "14%", textAlign: "right" },
@@ -131,9 +132,8 @@ const isRealRegime = (regem?: string) => {
   return v === "reel" || v === "réel";
 };
 
-export const BonDocument: React.FC<{ doc: BonsCommande; conditions: Array<CommandCondition> }> = ({
+export const BonDocument: React.FC<{ doc: BonsCommande }> = ({
   doc,
-  conditions,
 }) => {
   const itemsPerPage = 15;
   const totalPages = Math.ceil(doc.devi.element.length / itemsPerPage);
@@ -208,35 +208,45 @@ export const BonDocument: React.FC<{ doc: BonsCommande; conditions: Array<Comman
                   <Text style={styles.title}>{"Bon de Commande"}</Text>
                 </View>
 
-                <View style={styles.rightHeaderBox}>
-                  <View style={styles.name}>
-                    <Text style={styles.companyName}>{"Nom:  "}</Text>
-                    <Text style={styles.companyName}>{doc.provider.name}</Text>
+                <View style={{width: "60%", borderColor: "#000", borderTopWidth: 1 }}>
+                  <View style={styles.tableRow}>
+                    <View style={styles.tableName}>
+                      <Text style={styles.companyName}>{"Nom:  "}</Text>
+                      <Text style={styles.companyName}>{doc.provider.name}</Text>
+                    </View>
+                    <View style={styles.tableName}>
+                      <Text style={styles.companyName}>{"Addresse:  "}</Text>
+                      <Text style={styles.companyName}>{doc.provider.address}</Text>
+                    </View>
                   </View>
-                  <View style={styles.name}>
-                    <Text style={styles.companyName}>{"Addresse:  "}</Text>
-                    <Text style={styles.companyName}>{doc.provider.address}</Text>
+                  <View style={styles.tableRow}>
+                    <View style={styles.tableName}>
+                      <Text style={styles.companyName}>{"NIU:  "}</Text>
+                      <Text style={styles.companyName}>{doc.provider.NIU}</Text>
+                    </View>
+                    <View style={styles.tableName}>
+                      <Text style={styles.companyName}>{"Email:  "}</Text>
+                      <Text style={styles.companyName}>{doc.provider.email}</Text>
+                    </View>
                   </View>
-                  <View style={styles.name}>
-                    <Text style={styles.companyName}>{"NIU:  "}</Text>
-                    <Text style={styles.companyName}>{doc.provider.NIU}</Text>
+                  <View style={styles.tableRow}>
+                    <View style={styles.tableName}>
+                      <Text style={styles.companyName}>{"Téléphone:  "}</Text>
+                      <Text style={styles.companyName}>{doc.provider.phone}</Text>
+                    </View>
+                    <View style={styles.tableName} />
                   </View>
-                  <View style={styles.name}>
-                    <Text style={styles.companyName}>{"Email:  "}</Text>
-                    <Text style={styles.companyName}>{doc.provider.email}</Text>
-                  </View>
-                  <View style={styles.name}>
-                    <Text style={styles.companyName}>{"Téléphone:  "}</Text>
-                    <Text style={styles.companyName}>{doc.provider.phone}</Text>
-                  </View>
-
-                  <View style={{ marginTop: 6 }}>
-                    <Text style={{ fontSize: 9 }}>
+                  <View style={styles.tableRow}>
+                    <View style={styles.tableName}>
+                      <Text style={{ fontSize: 9 }}>
                       {"Régime: "}{real ? "Réel (taxes appliquées)" : "Simplifié (net commercial)"}
                     </Text>
-                    <Text style={{ fontSize: 9 }}>
+                    </View>
+                    <View style={styles.tableName}>
+                      <Text style={{ fontSize: 9 }}>
                       {"Taxes: "}{applyTaxes ? "Oui" : "Non"}
                     </Text>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -244,10 +254,10 @@ export const BonDocument: React.FC<{ doc: BonsCommande; conditions: Array<Comman
               <View style={{ borderWidth: 1, borderColor: "#000", marginBottom: 4 }}>
                 <View style={{ flexDirection: "row" }}>
                   <View style={{ flex: 1, borderRightWidth: 1, borderColor: "#000", padding: 4 }}>
-                    <Text style={{ fontSize: 11, fontWeight: "bold" }}>Numéro du Bon</Text>
+                    <Text style={{ fontSize: 11, fontWeight: "bold" }}>{"Numéro du Bon"}</Text>
                   </View>
                   <View style={{ flex: 1, borderColor: "#000", padding: 4 }}>
-                    <Text style={{ fontSize: 11, fontWeight: "bold" }}>Date de création</Text>
+                    <Text style={{ fontSize: 11, fontWeight: "bold" }}>{"Date de création"}</Text>
                   </View>
                 </View>
 
@@ -393,7 +403,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande; conditions: Array<Comman
                 <View style={styles.conditions}>
                   <Text style={{ fontWeight: "semibold", color: "black" }}>{"Conditions :"}</Text>
                   <View style={styles.conditionsList}>
-                    {conditions.map((condition, index) => (
+                    {doc.commandConditions.map((condition, index) => (
                       <Text key={index}>{`${index + 1}. ${condition.title}`}</Text>
                     ))}
                     {/* <Text>
@@ -405,7 +415,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande; conditions: Array<Comman
                     <Text>{"3- Le tribunal de siège (Douala) est compétent en cas de litige."}</Text> */}
                     {doc.paymentTerms && doc.paymentTerms.length > 0 &&
                       <>
-                        <Text style={{ fontWeight: "semibold", color: "black", marginTop: 6 }}>{"Autres conditions :"}</Text>
+                        <Text style={{ fontWeight: "semibold", color: "black", marginTop: 6 }}>{"Conditions additionnelles :"}</Text>
                         <Text>{doc.paymentTerms}</Text>
                       </>
                     }
