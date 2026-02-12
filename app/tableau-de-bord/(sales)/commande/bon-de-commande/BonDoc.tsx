@@ -135,9 +135,6 @@ const isRealRegime = (regem?: string) => {
 export const BonDocument: React.FC<{ doc: BonsCommande }> = ({
   doc,
 }) => {
-  const itemsPerPage = 15;
-  const totalPages = Math.ceil(doc.devi.element.length / itemsPerPage);
-
   const real = isRealRegime(doc.provider.regem);
   const applyTaxes = !doc.keepTaxes;
 
@@ -171,109 +168,106 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({
 
   return (
     <Document>
-      {Array.from({ length: totalPages }).map((_, pageIndex) => (
-        <Page key={pageIndex} size="A4" style={styles.page} wrap={false}>
-          {pageIndex === 0 && (
-            <>
-              <View style={styles.header}>
-                <View style={styles.info}>
-                  <View style={styles.leftHeader}>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"Site: "}</Text>
-                      <Text style={styles.companyName}>{company.name}</Text>
+        <Page size="A4" style={styles.page} wrap>
+          <View fixed>
+                <View style={styles.header}>
+                  <View style={styles.info}>
+                    <View style={styles.leftHeader}>
+                      <View style={styles.name}>
+                        <Text style={styles.companyName}>{"Site: "}</Text>
+                        <Text style={styles.companyName}>{company.name}</Text>
+                      </View>
+                      <View style={styles.name}>
+                        <Text style={styles.companyName}>{"Agent: "}</Text>
+                        <Text style={styles.companyName}>{doc.devi.commandRequest.name}</Text>
+                      </View>
+                      <View style={styles.name}>
+                        <Text style={styles.companyName}>{"Téléphone: "}</Text>
+                        <Text style={styles.companyName}>{doc.devi.commandRequest.phone}</Text>
+                      </View>
                     </View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"Agent: "}</Text>
-                      <Text style={styles.companyName}>{doc.devi.commandRequest.name}</Text>
+
+                    <View style={styles.leftHeader}>
+                      <View style={styles.name}>
+                        <Text style={styles.companyName}>{"Lieu de livraison: "}</Text>
+                        <Text style={styles.companyName}>{doc.deliveryLocation}</Text>
+                      </View>
+                      <View style={styles.name}>
+                        <Text style={styles.companyName}>{"Delai de livraison: "}</Text>
+                        <Text style={styles.companyName}>
+                          {format(doc.deliveryDelay, "dd/MM/yyyy")}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"Téléphone: "}</Text>
-                      <Text style={styles.companyName}>{doc.devi.commandRequest.phone}</Text>
+
+                    <Text style={styles.title}>{"Bon de Commande"}</Text>
+                  </View>
+
+                  <View style={{width: "60%", borderColor: "#000", borderTopWidth: 1 }}>
+                    <View style={styles.tableRow}>
+                      <View style={styles.tableName}>
+                        <Text style={styles.companyName}>{"Nom:  "}</Text>
+                        <Text style={styles.companyName}>{doc.provider.name}</Text>
+                      </View>
+                      <View style={styles.tableName}>
+                        <Text style={styles.companyName}>{"Addresse:  "}</Text>
+                        <Text style={styles.companyName}>{doc.provider.address}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                      <View style={styles.tableName}>
+                        <Text style={styles.companyName}>{"NIU:  "}</Text>
+                        <Text style={styles.companyName}>{doc.provider.NIU}</Text>
+                      </View>
+                      <View style={styles.tableName}>
+                        <Text style={styles.companyName}>{"Email:  "}</Text>
+                        <Text style={styles.companyName}>{doc.provider.email}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                      <View style={styles.tableName}>
+                        <Text style={styles.companyName}>{"Téléphone:  "}</Text>
+                        <Text style={styles.companyName}>{doc.provider.phone}</Text>
+                      </View>
+                      <View style={styles.tableName} />
+                    </View>
+                    <View style={styles.tableRow}>
+                      <View style={styles.tableName}>
+                        <Text style={{ fontSize: 9 }}>
+                        {"Régime: "}{real ? "Réel (taxes appliquées)" : "Simplifié (net commercial)"}
+                      </Text>
+                      </View>
+                      <View style={styles.tableName}>
+                        <Text style={{ fontSize: 9 }}>
+                        {"Taxes: "}{applyTaxes ? "Oui" : "Non"}
+                      </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={{ borderWidth: 1, borderColor: "#000", marginBottom: 4 }}>
+                  <View style={{ flexDirection: "row" }}>
+                    <View style={{ flex: 1, borderRightWidth: 1, borderColor: "#000", padding: 4 }}>
+                      <Text style={{ fontSize: 11, fontWeight: "bold" }}>{"Numéro du Bon"}</Text>
+                    </View>
+                    <View style={{ flex: 1, borderColor: "#000", padding: 4 }}>
+                      <Text style={{ fontSize: 11, fontWeight: "bold" }}>{"Date de création"}</Text>
                     </View>
                   </View>
 
-                  <View style={styles.leftHeader}>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"Lieu de livraison: "}</Text>
-                      <Text style={styles.companyName}>{doc.deliveryLocation}</Text>
-                    </View>
-                    <View style={styles.name}>
-                      <Text style={styles.companyName}>{"Delai de livraison: "}</Text>
-                      <Text style={styles.companyName}>
-                        {format(doc.deliveryDelay, "dd/MM/yyyy")}
+                  <View style={{ flexDirection: "row", borderTopWidth: 1, borderColor: "#000" }}>
+                    <View style={{ flex: 2, padding: 4, borderRightWidth: 1 }}>
+                      <Text>
+                        {doc.reference + "/" + format(doc.createdAt, "dd/MM/yyyy" + "/", { locale: fr })}
                       </Text>
                     </View>
-                  </View>
-
-                  <Text style={styles.title}>{"Bon de Commande"}</Text>
-                </View>
-
-                <View style={{width: "60%", borderColor: "#000", borderTopWidth: 1 }}>
-                  <View style={styles.tableRow}>
-                    <View style={styles.tableName}>
-                      <Text style={styles.companyName}>{"Nom:  "}</Text>
-                      <Text style={styles.companyName}>{doc.provider.name}</Text>
-                    </View>
-                    <View style={styles.tableName}>
-                      <Text style={styles.companyName}>{"Addresse:  "}</Text>
-                      <Text style={styles.companyName}>{doc.provider.address}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.tableRow}>
-                    <View style={styles.tableName}>
-                      <Text style={styles.companyName}>{"NIU:  "}</Text>
-                      <Text style={styles.companyName}>{doc.provider.NIU}</Text>
-                    </View>
-                    <View style={styles.tableName}>
-                      <Text style={styles.companyName}>{"Email:  "}</Text>
-                      <Text style={styles.companyName}>{doc.provider.email}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.tableRow}>
-                    <View style={styles.tableName}>
-                      <Text style={styles.companyName}>{"Téléphone:  "}</Text>
-                      <Text style={styles.companyName}>{doc.provider.phone}</Text>
-                    </View>
-                    <View style={styles.tableName} />
-                  </View>
-                  <View style={styles.tableRow}>
-                    <View style={styles.tableName}>
-                      <Text style={{ fontSize: 9 }}>
-                      {"Régime: "}{real ? "Réel (taxes appliquées)" : "Simplifié (net commercial)"}
-                    </Text>
-                    </View>
-                    <View style={styles.tableName}>
-                      <Text style={{ fontSize: 9 }}>
-                      {"Taxes: "}{applyTaxes ? "Oui" : "Non"}
-                    </Text>
+                    <View style={{ flex: 2, padding: 4 }}>
+                      <Text>{format(doc.createdAt, "dd/MM/yyyy", { locale: fr })}</Text>
                     </View>
                   </View>
                 </View>
-              </View>
-
-              <View style={{ borderWidth: 1, borderColor: "#000", marginBottom: 4 }}>
-                <View style={{ flexDirection: "row" }}>
-                  <View style={{ flex: 1, borderRightWidth: 1, borderColor: "#000", padding: 4 }}>
-                    <Text style={{ fontSize: 11, fontWeight: "bold" }}>{"Numéro du Bon"}</Text>
-                  </View>
-                  <View style={{ flex: 1, borderColor: "#000", padding: 4 }}>
-                    <Text style={{ fontSize: 11, fontWeight: "bold" }}>{"Date de création"}</Text>
-                  </View>
-                </View>
-
-                <View style={{ flexDirection: "row", borderTopWidth: 1, borderColor: "#000" }}>
-                  <View style={{ flex: 2, padding: 4, borderRightWidth: 1 }}>
-                    <Text>
-                      {doc.reference + "/" + format(doc.createdAt, "dd/MM/yyyy" + "/", { locale: fr })}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 2, padding: 4 }}>
-                    <Text>{format(doc.createdAt, "dd/MM/yyyy", { locale: fr })}</Text>
-                  </View>
-                </View>
-              </View>
-            </>
-          )}
+          </View>
 
           <View style={styles.mainContent}>
             <View style={styles.table}>
@@ -292,7 +286,6 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({
               </View>
 
               {doc.devi.element
-                .slice(pageIndex * itemsPerPage, (pageIndex + 1) * itemsPerPage)
                 .map((it: any, idx) => {
                   const lineHT = it.quantity * it.priceProposed;
 
@@ -333,9 +326,8 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({
                 })}
             </View>
 
-            {pageIndex === totalPages - 1 && (
               <View style={styles.summarySection}>
-                <View style={styles.rightSummary}>
+                <View style={styles.rightSummary} wrap={false}>
                   <View style={styles.summaryRow}>
                     <Text>{"Total HT (brut):"}</Text>
                     <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(totalHTBrut))}</Text>
@@ -422,12 +414,14 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({
                   </View>
                 </View>
               </View>
-            )}
           </View>
 
-          <Text style={styles.footer}>Page {pageIndex + 1} sur {totalPages}</Text>
+          <Text 
+          style={styles.footer} 
+          render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} 
+          fixed 
+        />
         </Page>
-      ))}
     </Document>
   );
 };

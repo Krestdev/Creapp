@@ -335,9 +335,11 @@ export type Provider = {
   name: string;
   carte_contribuable?: string | File;
   acf?: string | File;
+  acfExpirationDate?: Date;
   plan_localisation?: string | File;
   commerce_registre?: string | File;
   banck_attestation?: string | File;
+  bankAttestationExpirationDate?: Date;
 };
 
 export const QUOTATION_STATUS = [
