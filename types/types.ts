@@ -334,12 +334,15 @@ export type Provider = {
   id: number;
   name: string;
   carte_contribuable?: string | File;
+  expireAtcarte_contribuable?: Date;
   acf?: string | File;
-  acfExpirationDate?: Date;
+  expireAtacf?: Date;
   plan_localisation?: string | File;
+  expireAtplan_localisation?: Date;
   commerce_registre?: string | File;
+  expireAtcommerce_registre?: Date;
   banck_attestation?: string | File;
-  bankAttestationExpirationDate?: Date;
+  expireAtbanck_attestation?: Date;
 };
 
 export const QUOTATION_STATUS = [

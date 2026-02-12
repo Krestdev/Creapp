@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { providerQ } from "@/queries/providers";
 import { Provider } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import FilesUpload from "../comp-547";
 import {
@@ -32,6 +32,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar } from "../ui/calendar";
+import { CalendarIcon } from "lucide-react";
 
 // Définir un type pour les fichiers
 type FileValue = File | string;
@@ -53,9 +57,49 @@ const formSchema = z.object({
   // ✅ fichiers
   carte_contribuable: FileSchema,
   acf: FileSchema,
+  expireAtacf: z.string({ message: "Veuillez définir une date" }).refine(
+        (val) => {
+          const d = new Date(val);
+          const now = new Date();
+          return !isNaN(d.getTime()) && d > now;
+        },
+        { message: "Date invalide" },
+      ),
+  expireAtcarte_contribuable: z.string({ message: "Veuillez définir une date" }).refine(
+    (val) => {
+      const d = new Date(val);
+      const now = new Date();
+      return !isNaN(d.getTime()) && d > now;
+    },
+    { message: "Date invalide" },
+  ),
+  expireAtplan_localisation: z.string({ message: "Veuillez définir une date" }).refine(
+    (val) => {
+      const d = new Date(val);
+      const now = new Date();
+      return !isNaN(d.getTime()) && d > now;
+    },
+    { message: "Date invalide" },
+  ),
+  expireAtcommerce_registre: z.string({ message: "Veuillez définir une date" }).refine(
+    (val) => {
+      const d = new Date(val);
+      const now = new Date();
+      return !isNaN(d.getTime()) && d > now;
+    },
+    { message: "Date invalide" },
+  ),
   plan_localisation: FileSchema,
   commerce_registre: FileSchema,
   banck_attestation: FileSchema,
+  expireAtbanck_attestation: z.string({ message: "Veuillez définir une date" }).refine(
+      (val) => {
+        const d = new Date(val);
+        const now = new Date();
+        return !isNaN(d.getTime()) && d > now;
+      },
+      { message: "Date invalide" },
+    ),
 });
 
 // Type pour le formulaire
@@ -74,6 +118,11 @@ export default function UpdateProvider({
   providerData,
   onSuccess,
 }: UpdateRequestProps) {
+  const [selectBankDate, setSelectBankDate] = useState<boolean>(false);
+  const [selectACFDate, setSelectACFDate] = useState<boolean>(false);
+  const [selectCarteDate, setSelectCarteDate] = useState<boolean>(false);
+  const [selectPlanDate, setSelectPlanDate] = useState<boolean>(false);
+  const [selectCommerceDate, setSelectCommerceDate] = useState<boolean>(false);
   // Valeurs par défaut avec le bon type
   const defaultValues: FormValues = useMemo(
     () => ({
@@ -86,9 +135,14 @@ export default function UpdateProvider({
       regem: "",
       carte_contribuable: null,
       acf: null,
+      expireAtacf: format(new Date(), "yyyy-MM-dd"),
+      expireAtcarte_contribuable: format(new Date(), "yyyy-MM-dd"),
+      expireAtplan_localisation: format(new Date(), "yyyy-MM-dd"),
+      expireAtcommerce_registre: format(new Date(), "yyyy-MM-dd"),
       plan_localisation: null,
       commerce_registre: null,
       banck_attestation: null,
+      expireAtbanck_attestation: format(new Date(), "yyyy-MM-dd"),
     }),
     [],
   );
@@ -113,9 +167,14 @@ export default function UpdateProvider({
 
         carte_contribuable: providerData.carte_contribuable ?? null,
         acf: providerData.acf ?? null,
+          expireAtacf: providerData.expireAtacf ? format(new Date(providerData.expireAtacf), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+          expireAtcarte_contribuable: providerData.expireAtcarte_contribuable ? format(new Date(providerData.expireAtcarte_contribuable), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+          expireAtplan_localisation: providerData.expireAtplan_localisation ? format(new Date(providerData.expireAtplan_localisation), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+          expireAtcommerce_registre: providerData.expireAtcommerce_registre ? format(new Date(providerData.expireAtcommerce_registre), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
         plan_localisation: providerData.plan_localisation ?? null,
         commerce_registre: providerData.commerce_registre ?? null,
         banck_attestation: providerData.banck_attestation ?? null,
+        expireAtbanck_attestation: providerData.expireAtbanck_attestation ? format(new Date(providerData.expireAtbanck_attestation), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
       });
     } else if (!open) {
       form.reset(defaultValues);
@@ -156,6 +215,11 @@ export default function UpdateProvider({
       email: values.email,
       address: values.address,
       regem: values.regem,
+      expireAtbanck_attestation: new Date(values.expireAtbanck_attestation),
+      expireAtacf: new Date(values.expireAtacf),
+      expireAtcarte_contribuable: new Date(values.expireAtcarte_contribuable),
+      expireAtplan_localisation: new Date(values.expireAtplan_localisation),
+      expireAtcommerce_registre: new Date(values.expireAtcommerce_registre),
     };
 
     // Ajouter les champs optionnels s'ils ont une valeur
@@ -285,7 +349,7 @@ export default function UpdateProvider({
               control={form.control}
               name="RCCM"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="@min-[540px]/dialog:col-span-2">
                   <FormLabel>{"Régistre du Commerce(RCCM)"}</FormLabel>
                   <FormControl>
                     <Input placeholder="RC/234/456/..." {...field} />
@@ -338,7 +402,7 @@ export default function UpdateProvider({
               control={form.control}
               name="carte_contribuable"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="@min-[540px]/dialog:col-span-2">
                   <FormLabel>{"Carte de contribuable"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -355,12 +419,73 @@ export default function UpdateProvider({
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="expireAtcarte_contribuable"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Date d'Expiration Carte de contribuable"}</FormLabel>
+                  <FormControl>
+                    <div className="relative flex gap-2">
+                      <Input
+                        id={field.name}
+                        value={field.value}
+                        placeholder="Sélectionner une date"
+                        className="bg-background pr-10"
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            setSelectCarteDate(true);
+                          }
+                        }}
+                      />
+                      <Popover open={selectCarteDate} onOpenChange={setSelectCarteDate}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date-picker"
+                            variant="ghost"
+                            className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                          >
+                            <CalendarIcon className="size-3.5" />
+                            <span className="sr-only">{"Sélectionner une date"}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto overflow-hidden p-0"
+                          align="end"
+                          alignOffset={-8}
+                          sideOffset={10}
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            captionLayout="dropdown"
+                            onSelect={(date) => {
+                              if (!date) return;
+                              const value = format(date, "yyyy-MM-dd");
+                              field.onChange(value);
+                              setSelectCarteDate(false);
+                            }}
+                            disabled={(date) => date < new Date()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* ACF */}
             <FormField
               control={form.control}
               name="acf"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="@min-[540px]/dialog:col-span-2">
                   <FormLabel>{"Attestation de Conformité Fiscale"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -376,13 +501,77 @@ export default function UpdateProvider({
                 </FormItem>
               )}
             />
+            <FormField
+          control={form.control}
+          name="expireAtacf"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Date d'Expiration ACF"}</FormLabel>
+              <FormControl>
+                <div className="relative flex gap-2">
+                  <Input
+                    id={field.name}
+                    value={field.value}
+                    placeholder="Sélectionner une date"
+                    className="bg-background pr-10"
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setSelectACFDate(true);
+                      }
+                    }}
+                  />
+                  <Popover open={selectACFDate} onOpenChange={setSelectACFDate}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="date-picker"
+                        variant="ghost"
+                        className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                      >
+                        <CalendarIcon className="size-3.5" />
+                        <span className="sr-only">
+                          {"Sélectionner une date"}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto overflow-hidden p-0"
+                      align="end"
+                      alignOffset={-8}
+                      sideOffset={10}
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={
+                          field.value ? new Date(field.value) : undefined
+                        }
+                        captionLayout="dropdown"
+                        onSelect={(date) => {
+                          if (!date) return;
+                          const value = format(date, "yyyy-MM-dd");
+                          field.onChange(value);
+                          setSelectACFDate(false);
+                        }}
+                        disabled={(date) => date < new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
             {/* Plan de localisation */}
             <FormField
               control={form.control}
               name="plan_localisation"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="@min-[540px]/dialog:col-span-2">
                   <FormLabel>{"Plan de localisation"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -399,12 +588,73 @@ export default function UpdateProvider({
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="expireAtplan_localisation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Date d'Expiration Plan de localisation"}</FormLabel>
+                  <FormControl>
+                    <div className="relative flex gap-2">
+                      <Input
+                        id={field.name}
+                        value={field.value}
+                        placeholder="Sélectionner une date"
+                        className="bg-background pr-10"
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            setSelectPlanDate(true);
+                          }
+                        }}
+                      />
+                      <Popover open={selectPlanDate} onOpenChange={setSelectPlanDate}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date-picker"
+                            variant="ghost"
+                            className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                          >
+                            <CalendarIcon className="size-3.5" />
+                            <span className="sr-only">{"Sélectionner une date"}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto overflow-hidden p-0"
+                          align="end"
+                          alignOffset={-8}
+                          sideOffset={10}
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            captionLayout="dropdown"
+                            onSelect={(date) => {
+                              if (!date) return;
+                              const value = format(date, "yyyy-MM-dd");
+                              field.onChange(value);
+                              setSelectPlanDate(false);
+                            }}
+                            disabled={(date) => date < new Date()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Registre de commerce */}
             <FormField
               control={form.control}
               name="commerce_registre"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="@min-[540px]/dialog:col-span-2">
                   <FormLabel>{"Registre de commerce"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -421,12 +671,73 @@ export default function UpdateProvider({
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="expireAtcommerce_registre"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Date d'Expiration Registre de commerce"}</FormLabel>
+                  <FormControl>
+                    <div className="relative flex gap-2">
+                      <Input
+                        id={field.name}
+                        value={field.value}
+                        placeholder="Sélectionner une date"
+                        className="bg-background pr-10"
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            setSelectCommerceDate(true);
+                          }
+                        }}
+                      />
+                      <Popover open={selectCommerceDate} onOpenChange={setSelectCommerceDate}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date-picker"
+                            variant="ghost"
+                            className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                          >
+                            <CalendarIcon className="size-3.5" />
+                            <span className="sr-only">{"Sélectionner une date"}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto overflow-hidden p-0"
+                          align="end"
+                          alignOffset={-8}
+                          sideOffset={10}
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            captionLayout="dropdown"
+                            onSelect={(date) => {
+                              if (!date) return;
+                              const value = format(date, "yyyy-MM-dd");
+                              field.onChange(value);
+                              setSelectCommerceDate(false);
+                            }}
+                            disabled={(date) => date < new Date()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Attestation bancaire */}
             <FormField
               control={form.control}
               name="banck_attestation"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="@min-[540px]/dialog:col-span-2">
                   <FormLabel>{"Attestation bancaire"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -442,6 +753,70 @@ export default function UpdateProvider({
                 </FormItem>
               )}
             />
+            <FormField
+          control={form.control}
+          name="expireAtbanck_attestation"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Date d'Expiration de l'Attestation bancaire"}</FormLabel>
+              <FormControl>
+                <div className="relative flex gap-2">
+                  <Input
+                    id={field.name}
+                    value={field.value}
+                    placeholder="Sélectionner une date"
+                    className="bg-background pr-10"
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setSelectBankDate(true);
+                      }
+                    }}
+                  />
+                  <Popover open={selectBankDate} onOpenChange={setSelectBankDate}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="date-picker"
+                        variant="ghost"
+                        className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                      >
+                        <CalendarIcon className="size-3.5" />
+                        <span className="sr-only">
+                          {"Sélectionner une date"}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto overflow-hidden p-0"
+                      align="end"
+                      alignOffset={-8}
+                      sideOffset={10}
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={
+                          field.value ? new Date(field.value) : undefined
+                        }
+                        captionLayout="dropdown"
+                        onSelect={(date) => {
+                          if (!date) return;
+                          const value = format(date, "yyyy-MM-dd");
+                          field.onChange(value);
+                          setSelectBankDate(false);
+                        }}
+                        disabled={(date) => date < new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
           </form>
 
           <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">

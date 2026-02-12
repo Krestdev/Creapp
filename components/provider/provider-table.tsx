@@ -67,7 +67,6 @@ import {
 } from "../ui/sheet";
 import UpdateProvider from "./UpdateProvider";
 import { ShowProvider } from "./show-provider";
-import { AxiosError } from "axios";
 
 interface ProvidersTableProps {
   data: Provider[];
@@ -244,7 +243,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              {"Addresse"}
+              {"Adresse"}
               <ArrowUpDown />
             </span>
           );

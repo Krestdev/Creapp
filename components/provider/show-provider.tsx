@@ -18,12 +18,12 @@ import {
   CalendarIcon,
   FileIcon,
   FileImageIcon,
+  FileTextIcon,
   MapIcon,
   PhoneIcon,
   SquareUserRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { DownloadFile } from "../base/downLoadFile";
 
 interface DetailBCProps {
   open: boolean;
@@ -115,7 +115,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
           {/**Carte Contribuable */}
           <div className="view-group">
             <span className="view-icon">
-              <FileIcon />
+              <FileImageIcon />
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Carte Contribuable"}</p>
@@ -131,9 +131,12 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                     alt="justificatif"
                     className="h-7 w-auto aspect-square"
                   />
+                  <div>
                   <p className="text-foreground font-medium">
                     {"carte_contribuable"}
                   </p>
+                  {!!data.expireAtcarte_contribuable && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtcarte_contribuable), "MM/yy")}`}</p>}
+                  </div>
                 </Link>
               ) : (
                 <p className="italic">{"Aucun justificatif"}</p>
@@ -161,7 +164,10 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                     alt="justificatif"
                     className="h-7 w-auto aspect-square"
                   />
-                  <p className="text-foreground font-medium">{"ACF"}</p>
+                  <div>
+                    <p className="text-foreground font-medium">{"ACF"}</p>
+                    {!!data.expireAtacf && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtacf), "MM/yy")}`}</p>}
+                  </div>
                 </Link>
               ) : (
                 <p className="italic">{"Aucun justificatif"}</p>
@@ -187,7 +193,12 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                     alt="justificatif"
                     className="h-7 w-auto aspect-square"
                   />
-                  <p className="text-foreground font-medium">{"Fichier"}</p>
+                  <div>
+                    <div>
+                      <p className="text-foreground font-medium">{"Fichier"}</p>
+                      {!!data.expireAtplan_localisation && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtplan_localisation), "MM/yy")}`}</p>}
+                    </div>
+                  </div>
                 </Link>
               ) : (
                 <p className="italic">{"Aucun justificatif"}</p>
@@ -197,7 +208,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
           {/**RCM */}
           <div className="view-group">
             <span className="view-icon">
-              <FileIcon />
+              <FileTextIcon />
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Régistre du Commerce"}</p>
@@ -213,7 +224,10 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                     alt="justificatif"
                     className="h-7 w-auto aspect-square"
                   />
-                  <p className="text-foreground font-medium">{"Rccm"}</p>
+                  <div>
+                    <p className="text-foreground font-medium">{"Rccm"}</p>
+                    {!!data.expireAtcommerce_registre && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtcommerce_registre), "MM/yy")}`}</p>}
+                  </div>
                 </Link>
               ) : (
                 <p className="italic">{"Aucun justificatif"}</p>
@@ -239,7 +253,10 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                     alt="justificatif"
                     className="h-7 w-auto aspect-square"
                   />
-                  <p className="text-foreground font-medium">{"Attestation bancaire"}</p>
+                  <div>
+                    <p className="text-foreground font-medium">{"Attestation bancaire"}</p>
+                    {!!data.expireAtbanck_attestation && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtbanck_attestation), "MM/yy")}`}</p>}
+                  </div>
                 </Link>
               ) : (
                 <p className="italic">{"Aucun justificatif"}</p>
