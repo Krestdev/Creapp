@@ -38,6 +38,11 @@ export type updatePoPayload = Omit<
   | "commandConditions"
 >;
 
+export type AddFileProps = {
+  id: number;
+  proof: File;
+}
+
 class PurchaseOrder {
   route = "/request/command";
 
@@ -62,6 +67,14 @@ class PurchaseOrder {
       return response.data;
     });
   };
+  //Command File Upload
+  addFile = async({id, proof}:AddFileProps): Promise<{data: BonsCommande}> => {
+    const formData = new FormData();
+    formData.append('proof', proof);
+    return api.put(`${this.route}/addFile/${id}`, formData,{
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  }
   approve = async (id: number): Promise<{ data: BonsCommande }> => {
     return api
       .put(`${this.route}/${id}`, { status: "APPROVED" })

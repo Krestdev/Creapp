@@ -13,7 +13,15 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
-import { ArrowUpDown, ChevronDown, Eye, Pencil, Settings2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Eye,
+  FileSpreadsheetIcon,
+  FileTextIcon,
+  Pencil,
+  Settings2,
+} from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
@@ -63,8 +71,10 @@ import {
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import AddSignedFile from "./add-signed-file";
 import EditPurchase from "./editPurchase";
 import ViewPurchase from "./viewPurchase";
+import Link from "next/link";
 
 interface BonsCommandeTableProps {
   data: Array<BonsCommande>;
@@ -75,7 +85,7 @@ type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
 type Priority = (typeof PRIORITIES)[number]["value"];
 
 const getStatusLabel = (
-  status: Status
+  status: Status,
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
@@ -95,7 +105,7 @@ const getStatusLabel = (
 };
 
 const getPriorityLabel = (
-  priority: Priority
+  priority: Priority,
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
@@ -121,7 +131,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -131,7 +141,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
   // filtres spécifiques
   const [statusFilter, setStatusFilter] = React.useState<"all" | Status>("all");
   const [priorityFilter, setPriorityFilter] = React.useState<"all" | Priority>(
-    "all"
+    "all",
   );
   const [penaltyFilter, setPenaltyFilter] = React.useState<
     "all" | "yes" | "no"
@@ -141,6 +151,8 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
   const [view, setView] = React.useState<boolean>(false);
   //EditModal
   const [edit, setEdit] = React.useState<boolean>(false);
+  //Complete Modal
+  const [complete, setComplete] = React.useState<boolean>(false);
   //Selected
   const [selectedValue, setSelectedValue] = React.useState<BonsCommande>();
 
@@ -239,11 +251,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
       ),
       cell: ({ row }) => {
         const base = row.original;
-        return (
-          <div className="font-medium">
-            {XAF.format(base.netToPay)}
-          </div>
-        );
+        return <div className="font-medium">{XAF.format(base.netToPay)}</div>;
       },
     },
     {
@@ -404,6 +412,29 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                 <Pencil />
                 {"Modifier"}
               </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => {
+                  setSelectedValue(item);
+                  setComplete(true);
+                }}
+                disabled={item.status !== "APPROVED" || !!item.commandFile}
+              >
+                <FileTextIcon />
+                {"Compléter (Bon signé)"}
+              </DropdownMenuItem>
+              {
+                !!item.commandFile && item.commandFile.length > 0 &&
+                <Link href={`${process.env.NEXT_PUBLIC_API
+                  }/${item.commandFile}`} target="_blank">
+                  <DropdownMenuItem
+                  className="cursor-pointer"
+                >
+                  <FileSpreadsheetIcon />
+                  {"Voir le bon signé"}
+                </DropdownMenuItem>
+                  </Link>
+              }
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -577,34 +608,34 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
             priorityFilter !== "all" ||
             penaltyFilter !== "all" ||
             globalFilter) && (
-              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                <span>Filtres actifs:</span>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <span>Filtres actifs:</span>
 
-                {statusFilter !== "all" && (
-                  <Badge variant="default" className="font-normal">
-                    {`Statut: ${getStatusLabel(statusFilter).label}`}
-                  </Badge>
-                )}
+              {statusFilter !== "all" && (
+                <Badge variant="default" className="font-normal">
+                  {`Statut: ${getStatusLabel(statusFilter).label}`}
+                </Badge>
+              )}
 
-                {priorityFilter !== "all" && (
-                  <Badge variant="outline" className="font-normal">
-                    {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
-                  </Badge>
-                )}
+              {priorityFilter !== "all" && (
+                <Badge variant="outline" className="font-normal">
+                  {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
+                </Badge>
+              )}
 
-                {penaltyFilter !== "all" && (
-                  <Badge variant="outline" className="font-normal">
-                    {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
-                  </Badge>
-                )}
+              {penaltyFilter !== "all" && (
+                <Badge variant="outline" className="font-normal">
+                  {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
+                </Badge>
+              )}
 
-                {globalFilter && (
-                  <Badge variant="outline" className="font-normal">
-                    {`Recherche: "${globalFilter}"`}
-                  </Badge>
-                )}
-              </div>
-            )}
+              {globalFilter && (
+                <Badge variant="outline" className="font-normal">
+                  {`Recherche: "${globalFilter}"`}
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Menu colonnes */}
@@ -662,9 +693,9 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -686,7 +717,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -706,14 +737,14 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                       priorityFilter !== "all" ||
                       penaltyFilter !== "all" ||
                       globalFilter) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={resetAllFilters}
-                        >
-                          {"Réinitialiser les filtres"}
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetAllFilters}
+                      >
+                        {"Réinitialiser les filtres"}
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -743,6 +774,13 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
         <EditPurchase
           open={edit}
           openChange={setEdit}
+          purchaseOrder={selectedValue}
+        />
+      )}
+      {selectedValue && (
+        <AddSignedFile
+          open={complete}
+          openChange={setComplete}
           purchaseOrder={selectedValue}
         />
       )}

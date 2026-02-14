@@ -135,7 +135,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                   <p className="text-foreground font-medium">
                     {"carte_contribuable"}
                   </p>
-                  {!!data.expireAtcarte_contribuable && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtcarte_contribuable), "MM/yy")}`}</p>}
+                  {!!data.expireAtcarte_contribuable && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtcarte_contribuable), "dd MMM yyyy", {locale: fr})}`}</p>}
                   </div>
                 </Link>
               ) : (
@@ -166,7 +166,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                   />
                   <div>
                     <p className="text-foreground font-medium">{"ACF"}</p>
-                    {!!data.expireAtacf && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtacf), "MM/yy")}`}</p>}
+                    {!!data.expireAtacf && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtacf), "dd MMM yyyy", {locale: fr})}`}</p>}
                   </div>
                 </Link>
               ) : (
@@ -196,7 +196,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                   <div>
                     <div>
                       <p className="text-foreground font-medium">{"Fichier"}</p>
-                      {!!data.expireAtplan_localisation && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtplan_localisation), "MM/yy")}`}</p>}
+                      {!!data.expireAtplan_localisation && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtplan_localisation), "dd MMM yyyy", {locale: fr})}`}</p>}
                     </div>
                   </div>
                 </Link>
@@ -226,7 +226,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                   />
                   <div>
                     <p className="text-foreground font-medium">{"Rccm"}</p>
-                    {!!data.expireAtcommerce_registre && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtcommerce_registre), "MM/yy")}`}</p>}
+                    {!!data.expireAtcommerce_registre && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtcommerce_registre), "dd MMM yyyy", {locale: fr})}`}</p>}
                   </div>
                 </Link>
               ) : (
@@ -255,7 +255,7 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
                   />
                   <div>
                     <p className="text-foreground font-medium">{"Attestation bancaire"}</p>
-                    {!!data.expireAtbanck_attestation && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtbanck_attestation), "MM/yy")}`}</p>}
+                    {!!data.expireAtbanck_attestation && <p className="text-xs">{`Exp. ${format(new Date(data.expireAtbanck_attestation), "dd MMM yyyy", {locale: fr})}`}</p>}
                   </div>
                 </Link>
               ) : (

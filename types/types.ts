@@ -488,6 +488,7 @@ export type BonsCommande = {
   keepTaxes: boolean;
   netToPay: number;
   commandConditions: Array<CommandCondition>;
+  commandFile?: string;
 };
 
 export interface NavLink {
@@ -524,7 +525,7 @@ export type Reception = {
   updatedAt?: Date;
   Command: BonsCommande;
   Provider: Provider;
-  Deliverables: Array<QuotationElement & { isDelivered: boolean }>;
+  Deliverables: Array<QuotationElement & { isDelivered: boolean; delivered:number }>;
 };
 
 type Item = {
