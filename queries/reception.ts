@@ -5,6 +5,7 @@ export interface ReceptionCompletion {
   id: number;
   Deliverables: Reception["Deliverables"];
   proof?: Array<File>;
+  note: string;
 }
 
 class ReceptionQuery {
@@ -28,9 +29,11 @@ class ReceptionQuery {
     id,
     Deliverables,
     proof,
+    note
   }: ReceptionCompletion): Promise<{ data: Reception }> => {
     const formData = new FormData();
     formData.append("Deliverables", JSON.stringify(Deliverables));
+    formData.append("note", note)
     if (proof && proof.length > 0) {
       proof.forEach((file) => {
         formData.append("Proof", file);

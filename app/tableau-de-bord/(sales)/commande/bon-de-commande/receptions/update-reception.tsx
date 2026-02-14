@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import FilesUpload from "@/components/comp-547";
 import { ReceptionCompletion, receptionQ } from "@/queries/reception";
 import type { CommandRequestT, Quotation, Reception } from "@/types/types";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   open: boolean;
@@ -47,6 +49,7 @@ export default function UpdateReception({
   const [deliverables, setDeliverables] = React.useState<Reception["Deliverables"]>(
     reception?.Deliverables ?? [],
   );
+  const [note, setNote] = React.useState<string>(reception.note);
 
   const [proof, setProof] = React.useState<Array<File | string> | null>(defaultFiles);
 
@@ -55,8 +58,8 @@ export default function UpdateReception({
   }, [open, reception]);
 
   const markReception = useMutation({
-    mutationFn: ({ id, Deliverables, proof }: ReceptionCompletion) =>
-      receptionQ.completeReception({ id, Deliverables, proof }),
+    mutationFn: ({ id, Deliverables, proof, note }: ReceptionCompletion) =>
+      receptionQ.completeReception({ id, Deliverables, proof, note }),
     onSuccess: () => {
       toast.success("Réception mise à jour");
       onOpenChange(false);
@@ -122,6 +125,7 @@ export default function UpdateReception({
       id: reception.id,
       Deliverables: payloadDeliverables,
       proof: proof as Array<File>,
+      note: note
     });
   };
 
@@ -130,9 +134,9 @@ export default function UpdateReception({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between gap-2">
+          <DialogTitle>
             {cmdReqs?.title ?? "Non défini"}
           </DialogTitle>
           <DialogDescription>
@@ -199,7 +203,7 @@ export default function UpdateReception({
                   >
                     <div className="min-w-0">
                       <p className="font-medium leading-5 line-clamp-1">
-                        {`${d.title} — quota: ${quota} ${d.unit}`}
+                        {d.title}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {isCompleted ? "Complété" : "Non complété"}
@@ -235,6 +239,10 @@ export default function UpdateReception({
             multiple={true}
             maxFiles={6}
           />
+          <div className="grid gap-2">
+            <Label>{"Note"}</Label>
+            <Textarea value={note} onChange={(e)=>{setNote(e.target.value)}} placeholder="Commentaires sur la réception" />
+          </div>
 
           {/* footer actions */}
           <DialogFooter>

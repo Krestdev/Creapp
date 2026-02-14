@@ -21,6 +21,7 @@ import {
   FileTextIcon,
   HelpCircle,
   LucideHash,
+  MessageSquareQuoteIcon,
   ScrollText,
   SquareUser,
   XIcon,
@@ -147,26 +148,26 @@ function ViewReception({ open, onOpenChange, reception, devis, cmdReqst }: Props
                     key={id}
                   >
                     <Badge
-                      variant={item.isDelivered ? "success" : "destructive"}
-                      className="w-[22px] p-0"
+                      variant={item.delivered === 0 ? "destructive" : item.delivered === item.quantity ? "success" : "amber"}
                     >
-                      {item.isDelivered ? (
-                        <CheckIcon size={16} />
-                      ) : (
-                        <XIcon size={16} />
-                      )}
+                      {`${item.delivered}/${item.quantity}`}
                     </Badge>
                     {item.title}
-                    <span
-                      className={
-                        item.isDelivered ? "text-green-500" : "text-red-500"
-                      }
-                    >
-                      {item.isDelivered ? "(Livré)" : "(Non livré)"}
-                    </span>
                   </span>
                 ))}
               </div>
+            </div>
+          </div>
+          {/**Note */}
+          <div className="view-group">
+            <span className="view-icon">
+              <MessageSquareQuoteIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Commentaires"}</p>
+              <p className="font-semibold">
+                {!!reception.note && reception.note.length > 0 ? reception.note : "Aucune note enregistrée"}
+              </p>
             </div>
           </div>
           {/**Justificatif */}

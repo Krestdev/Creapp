@@ -526,6 +526,7 @@ export type Reception = {
   Command: BonsCommande;
   Provider: Provider;
   Deliverables: Array<QuotationElement & { isDelivered: boolean; delivered:number }>;
+  note: string;
 };
 
 type Item = {
