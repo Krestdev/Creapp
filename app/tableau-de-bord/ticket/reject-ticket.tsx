@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -35,12 +36,12 @@ interface Props {
 const formSchema = z.object({
   reason: z
     .string()
-    .min(4, { message: "Motif trop court" })
+    .min(3, { message: "Motif trop court" })
     .max(60, { message: "Trop long" }),
 });
 type FormValue = z.infer<typeof formSchema>;
 
-function RejectInvoice({ open, openChange, payment, purchases }: Props) {
+function RejectTicket({ open, openChange, payment, purchases }: Props) {
   const form = useForm<FormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,7 +52,7 @@ function RejectInvoice({ open, openChange, payment, purchases }: Props) {
     mutationFn: async (reason: string) =>
       paymentQ.rejectInvoice({ id: payment.id, reason }),
     onSuccess: () => {
-      toast.success("Vous avez rejeté une facture avec succès !");
+      toast.success("Vous avez rejeté un ticket avec succès !");
       form.reset({ reason: "" });
       openChange(false);
     },
@@ -68,8 +69,9 @@ function RejectInvoice({ open, openChange, payment, purchases }: Props) {
       <DialogContent>
         <DialogHeader variant={"error"}>
           <DialogTitle>
-            {purchase?.devi.commandRequest.title ?? `Paiement`}
+            {purchase?.devi.commandRequest.title ?? `Rejeter un paiement`}
           </DialogTitle>
+          <DialogDescription>{"Rejeter le paiement"}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -120,4 +122,4 @@ function RejectInvoice({ open, openChange, payment, purchases }: Props) {
   );
 }
 
-export default RejectInvoice;
+export default RejectTicket;

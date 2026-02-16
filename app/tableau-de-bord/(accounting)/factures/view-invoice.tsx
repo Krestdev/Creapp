@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
-import { payTypeQ } from "@/queries/payType";
-import { BonsCommande, PaymentRequest } from "@/types/types";
+import { BonsCommande, Invoice } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -25,32 +24,24 @@ import {
   HelpCircle,
   LucideHash,
   SquareUser,
-  User,
-  Wallet,
+  User
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { getInvoiceStatusBadge } from "./invoices-table";
 
 interface Props {
-  payment: PaymentRequest;
+  invoice: Invoice;
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   purchases: Array<BonsCommande>;
 }
 
-function ViewInvoice({ payment, open, openChange, purchases }: Props) {
+function ViewInvoice({ invoice, open, openChange, purchases }: Props) {
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
-  const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
-    queryFn: payTypeQ.getAll,
-  });
-  const purchase = purchases.find((p) => p.id === payment.commandId);
-  const files = typeof payment.proof === "string" ? payment.proof : "";
+  const purchase = purchases.find((p) => p.id === invoice.commandId);
+  const files = typeof invoice.proof === "string" ? invoice.proof : "";
 
-  const paymentType = getPaymentType.data?.data.find(
-    (p) => p.id === payment.methodId,
-  );
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
@@ -58,7 +49,7 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
           <DialogTitle>
             {purchase?.devi.commandRequest.title ?? `Paiement`}
           </DialogTitle>
-          <DialogDescription>{`Facture ${payment.reference}`}</DialogDescription>
+          <DialogDescription>{`Facture ${invoice.reference}`}</DialogDescription>
         </DialogHeader>
         <div className="w-full grid grid-cols-3 gap-3"></div>
         {/**Reference */}
@@ -70,7 +61,7 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
             <p className="view-group-title">{"Référence"}</p>
             <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
               <p className="text-primary-600 text-sm">
-                {payment.reference || "N/A"}
+                {invoice.reference || "N/A"}
               </p>
             </div>
           </div>
@@ -82,8 +73,8 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
           </span>
           <div className="flex flex-col">
             <p className="view-group-title">{"Statut"}</p>
-            <Badge variant={getInvoiceStatusBadge(payment.status).variant}>
-              {getInvoiceStatusBadge(payment.status).label}
+            <Badge variant={getInvoiceStatusBadge(invoice.status).variant}>
+              {getInvoiceStatusBadge(invoice.status).label}
             </Badge>
           </div>
         </div>
@@ -106,19 +97,7 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
           </span>
           <div className="flex flex-col">
             <p className="view-group-title">{"Montant"}</p>
-            <p className="font-semibold">{XAF.format(payment.price)}</p>
-          </div>
-        </div>
-        {/**Method */}
-        <div className="view-group">
-          <span className="view-icon">
-            <Wallet />
-          </span>
-          <div className="flex flex-col">
-            <p className="view-group-title">{"Méthode de paiement"}</p>
-            <p className="font-semibold">
-              {paymentType?.label ?? "Non défini"}
-            </p>
+            <p className="font-semibold">{XAF.format(invoice.amount)}</p>
           </div>
         </div>
         {/**Justificatif */}
@@ -166,7 +145,7 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Date limite"}</p>
             <p className="font-semibold">
-              {format(new Date(payment.deadline), "dd MMMM yyyy", {
+              {format(new Date(invoice.deadline), "dd MMMM yyyy", {
                 locale: fr,
               })}
             </p>
@@ -180,10 +159,10 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Initié par"}</p>
             <p className="font-semibold">
-              {getUsers.data?.data.find((u) => u.id === payment.userId)
+              {getUsers.data?.data.find((u) => u.id === invoice.userId)
                 ?.firstName +
                 " " +
-                getUsers.data?.data.find((u) => u.id === payment.userId)
+                getUsers.data?.data.find((u) => u.id === invoice.userId)
                   ?.lastName || "Non défini"}
             </p>
           </div>
@@ -196,7 +175,7 @@ function ViewInvoice({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Créé le"}</p>
             <p className="font-semibold">
-              {format(new Date(payment.createdAt), "dd MMMM yyyy", {
+              {format(new Date(invoice.createdAt), "dd MMMM yyyy", {
                 locale: fr,
               })}
             </p>

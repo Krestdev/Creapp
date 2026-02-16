@@ -14,6 +14,7 @@ export type CreatePurchasePayload = {
     | "instalments"
     | "netToPay"
     | "commandConditions"
+    | "invoice"
   > & {
     instalments: Array<{
       percentage: number;

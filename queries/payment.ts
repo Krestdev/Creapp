@@ -6,7 +6,7 @@ export interface NewPayment extends Omit<
   "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status" | "signer"
 > {
   proof: File;
-  commandId: number;
+  invoiceId: number;
 }
 
 export interface UpdatePayment extends Omit<Partial<PaymentRequest>, "proof"> {

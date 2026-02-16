@@ -97,7 +97,8 @@ export type PaymentRequest = {
   isPartial: boolean;
   reason?: string;
   userId: number;
-  commandId?: number | null;
+  //commandId?: number | null;
+  invoiceId?: number;
   requestId?: number | null;
   projectId?: number | null;
   createdAt: string;
@@ -489,7 +490,30 @@ export type BonsCommande = {
   netToPay: number;
   commandConditions: Array<CommandCondition>;
   commandFile?: string;
+  invoice: Array<Invoice>;
 };
+
+export const INVOICE_STATUS = [
+  { value: "UNPAID", name: "Non payée" },
+  { value: "PAID", name: "Payée" },
+  { value: "CANCELLED", name: "Annulée" },
+] as const;
+
+export type Invoice = {
+  id: number;
+  title: string;
+  reference: string;
+  amount: number;
+  proof?: string;
+  isPartial: boolean;
+  deadline: Date;
+  status: (typeof INVOICE_STATUS)[number]["value"];
+  createdAt: Date;
+  updatedAt: Date;
+  commandId: number;
+  userId: number;
+  payments: Array<PaymentRequest>
+}
 
 export interface NavLink {
   title: string;
@@ -550,7 +574,7 @@ export type Notification = {
 
 export const notificationRoutes: Record<string, string> = {
   BESOIN_A_VALIDER: "/tableau-de-bord/besoins/validation",
-  BESOIN_VALIDE: "/tableau-de-bord/besoins/mylist",
+  BESOIN_VALIDE: "/tableau-de-bord/besoins/mes-besoins",
 
   DEVIS_A_VALIDER: "/tableau-de-bord/commande/devis/approbation",
   BON_COMMANDE_CREE: "/tableau-de-bord/commande/bon-de-commande",
@@ -679,6 +703,8 @@ export type Vehicle = {
   picture?: string | File;
   createdAt: string;
   updatedAt: string;
+  serial: string;
+  purchaseDate: string;
 };
 
 export type RequestType = {

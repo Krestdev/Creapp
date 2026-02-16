@@ -2,7 +2,6 @@
 
 import { Pagination } from "@/components/base/pagination";
 import { TabBar } from "@/components/base/TabBar";
-import { ApproveTicket } from "@/components/modals/ApproveTicket";
 import { DetailTicket } from "@/components/modals/detail-ticket";
 import { ModalWarning } from "@/components/modals/modal-warning";
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -71,6 +70,7 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import {
   ArrowUpDown,
+  BanIcon,
   ChevronDown,
   Eye,
   Flag,
@@ -79,7 +79,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import RejectInvoice from "../(accounting)/factures/reject-invoice";
+import RejectTicket from "./reject-ticket";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
@@ -517,7 +517,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
                   setOpenDetailModal(true);
                 }}
               >
-                <Eye className="mr-2 h-4 w-4" />
+                <Eye />
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -529,8 +529,19 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
                 }}
                 disabled={item.status === "validated"}
               >
-                <LucideCheck className="text-[#16A34A] mr-2 h-4 w-4" />
+                <LucideCheck className="text-green-600" />
                 {"Approuver"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setMessage("Ticket approuvé avec succès");
+                  setSelectedTicket(item);
+                  setOpenRejectModal(true);
+                }}
+                /* disabled={item.status === "rejected" || item.status === "cancelled" || item.status === "paid" || item.status === "signed" || item.status === "unsigned" || item.status === "validated"} */
+              >
+                <BanIcon />
+                {"Rejeter"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -836,7 +847,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
       />
 
       {selectedTicket && (
-        <RejectInvoice
+        <RejectTicket
           payment={selectedTicket}
           open={openRejectModal}
           openChange={setOpenRejectModal}

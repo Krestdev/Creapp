@@ -16,9 +16,8 @@ import {
   ArrowUpDown,
   BanIcon,
   ChevronDown,
-  CircleCheckBigIcon,
   Eye,
-  Settings2,
+  Settings2
 } from "lucide-react";
 import * as React from "react";
 
@@ -66,41 +65,41 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { XAF } from "@/lib/utils";
-import { paymentQ } from "@/queries/payment";
 import {
   BonsCommande,
   DateFilter,
-  PAY_STATUS,
-  PaymentRequest,
+  INVOICE_STATUS,
+  Invoice
 } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import Link from "next/link";
-import { toast } from "sonner";
-import RejectInvoice from "./reject-invoice";
+import CancelInvoice from "./cancel-invoice";
 import ViewInvoice from "./view-invoice";
 
 interface Props {
-  payments: Array<PaymentRequest>;
+  invoices: Array<Invoice>;
   purchases: Array<BonsCommande>;
 }
 
-export function getInvoiceStatusBadge(status: PaymentRequest["status"]): {
+export function getInvoiceStatusBadge(status: Invoice["status"]): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
+  const label = INVOICE_STATUS.find(x=> x.value === status)?.name ?? status;
   switch (status) {
-    case "pending":
-      return { label: "En attente", variant: "amber" };
-    case "rejected":
-      return { label: "Rejeté", variant: "destructive" };
+    case "UNPAID":
+      return { label, variant: "destructive" };
+    case "PAID":
+      return { label, variant: "success" };
+    case "CANCELLED":
+      return { label, variant: "default"};
     default:
-      return { label: "Approuvé", variant: "success" };
+      return { label, variant: "outline" };
   }
 }
 
-export function InvoicesTable({ payments, purchases }: Props) {
+export function InvoicesTable({ invoices, purchases }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -113,30 +112,20 @@ export function InvoicesTable({ payments, purchases }: Props) {
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
+  const [selected, setSelected] = React.useState<Invoice | undefined>(
     undefined,
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
-  const [reject, setReject] = React.useState<boolean>(false);
+  const [cancel, setCancel] = React.useState<boolean>(false);
 
   const [statusFilter, setStatusFilter] = React.useState<
-    "all" | PaymentRequest["status"]
+    "all" | Invoice["status"]
   >("all");
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-
-  const toApprove = useMutation({
-    mutationFn: async (id: number) => paymentQ.approveInvoice(id),
-    onSuccess: () => {
-      toast.success("Facture approuvée avec succès !");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -148,14 +137,14 @@ export function InvoicesTable({ payments, purchases }: Props) {
     setStatusFilter("all");
   };
 
-  const data: Array<PaymentRequest> = React.useMemo(() => {
-    return payments.filter((payment) => {
+  const data: Array<Invoice> = React.useMemo(() => {
+    return invoices.filter((invoice) => {
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
       //Status Filter
       let matchStatus =
-        statusFilter === "all" ? true : payment.status === statusFilter;
+        statusFilter === "all" ? true : invoice.status === statusFilter;
 
       // Filtre par date
       let matchDate = true;
@@ -189,15 +178,15 @@ export function InvoicesTable({ payments, purchases }: Props) {
           (customDateRange?.from && customDateRange?.to)
         ) {
           matchDate =
-            new Date(payment.createdAt) >= startDate &&
-            new Date(payment.createdAt) <= endDate;
+            new Date(invoice.createdAt) >= startDate &&
+            new Date(invoice.createdAt) <= endDate;
         }
       }
       return matchDate && matchStatus;
     });
   }, [statusFilter, customDateRange, dateFilter]);
 
-  const columns: ColumnDef<PaymentRequest>[] = [
+  const columns: ColumnDef<Invoice>[] = [
     {
       accessorKey: "reference",
       header: ({ column }) => {
@@ -292,7 +281,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = row.getValue("price");
+        const value = row.original.amount;
         return <div className="font-medium">{XAF.format(Number(value))}</div>;
       },
     },
@@ -367,24 +356,15 @@ export function InvoicesTable({ payments, purchases }: Props) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => {
-                  toApprove.mutate(item.id);
-                }}
-                disabled={toApprove.isPending || item.status !== "pending"}
-              >
-                <CircleCheckBigIcon />
-                {"Approuver"}
-              </DropdownMenuItem>
-              <DropdownMenuItem
                 variant="destructive"
                 onClick={() => {
                   setSelected(item);
-                  setReject(true);
+                  setCancel(true);
                 }}
-                disabled={toApprove.isPending || item.status !== "pending"}
+                disabled={item.status !== "UNPAID"}
               >
                 <BanIcon />
-                {"Rejeter"}
+                {"Annuler"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -455,7 +435,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
                 <Select
                   value={statusFilter}
                   onValueChange={(value) =>
-                    setStatusFilter(value as "all" | PaymentRequest["status"])
+                    setStatusFilter(value as "all" | Invoice["status"])
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -463,12 +443,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {PAY_STATUS.filter(
-                      (x) =>
-                        x.value === "accepted" ||
-                        x.value === "pending" ||
-                        x.value === "rejected",
-                    ).map((status) => (
+                    {INVOICE_STATUS.map((status) => (
                       <SelectItem key={status.value} value={status.value}>
                         {status.name}
                       </SelectItem>
@@ -676,17 +651,17 @@ export function InvoicesTable({ payments, purchases }: Props) {
       <Pagination table={table} />
       {selected && (
         <ViewInvoice
-          payment={selected}
+          invoice={selected}
           open={showDetail}
           openChange={setShowDetail}
           purchases={purchases}
         />
       )}
       {selected && (
-        <RejectInvoice
-          payment={selected}
-          open={reject}
-          openChange={setReject}
+        <CancelInvoice
+          invoice={selected}
+          open={cancel}
+          openChange={setCancel}
           purchases={purchases}
         />
       )}

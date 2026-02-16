@@ -48,7 +48,7 @@ const PAY_PRIORITY = PRIORITIES.map((m) => m.value) as [
 ];
 
 const formSchema = z.object({
-  commandId: z.number({ message: "Requis" }),
+  invoiceId: z.number({ message: "Requis" }),
   deadline: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
@@ -96,7 +96,7 @@ function CreatePaiement({ purchases, payments }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      commandId: undefined,
+      invoiceId: undefined,
       deadline: format(new Date(), "yyyy-MM-dd"),
       isPartial: false,
       price: 0,
@@ -106,7 +106,7 @@ function CreatePaiement({ purchases, payments }: Props) {
     },
   });
 
-  const commandId = form.watch("commandId");
+  const commandId = form.watch("invoiceId");
   const isPartial = form.watch("isPartial");
   const methodValue = form.watch("method");
 
@@ -139,7 +139,7 @@ function CreatePaiement({ purchases, payments }: Props) {
     return purchases.find(p => p.id === commandId)
   }, [purchases, commandId]);
 
-  const toPay = purchase && purchase.netToPay - payments.filter(p => p.commandId === purchase?.id && p.status !== "rejected" && p.status !== "cancelled").reduce((total, e) => total + e.price, 0);
+  const toPay = purchase && purchase.netToPay - payments.filter(p => p.invoiceId === purchase?.id && p.status !== "rejected" && p.status !== "cancelled").reduce((total, e) => total + e.price, 0);
 
   const rest = !!toPay && toPay >= 0 ? toPay : 0;
 
@@ -147,7 +147,7 @@ function CreatePaiement({ purchases, payments }: Props) {
     if (!!commandId) {
       if (!purchase) {
         toast.error("Bon de commande invalide");
-        return form.setError("commandId", {
+        return form.setError("invoiceId", {
           message: "Bon de commande invalide",
         });
       }
@@ -162,9 +162,9 @@ function CreatePaiement({ purchases, payments }: Props) {
       return;
     }
 
-    const purchase = purchases.find((p) => p.id === values.commandId);
+    const purchase = purchases.find((p) => p.id === values.invoiceId);
     if (!purchase) {
-      form.setError("commandId", { message: "Bon de commande invalide" });
+      form.setError("invoiceId", { message: "Bon de commande invalide" });
       return toast.error("Bon de commande invalide");
     }
     if (!(values.proof[0] instanceof File)) {
@@ -201,7 +201,7 @@ function CreatePaiement({ purchases, payments }: Props) {
       priority: values.priority,
       userId: user?.id ?? 0,
       proof: values.proof[0],
-      commandId: values.commandId,
+      invoiceId: values.invoiceId,
       isPartial: values.isPartial,
     };
     createPayment.mutate(payload);
@@ -213,7 +213,7 @@ function CreatePaiement({ purchases, payments }: Props) {
         {/* Bon de commande */}
         <FormField
           control={form.control}
-          name="commandId"
+          name="invoiceId"
           render={({ field }) => (
             <FormItem>
               <FormLabel isRequired>{"Bon de commande"}</FormLabel>
@@ -235,7 +235,7 @@ function CreatePaiement({ purchases, payments }: Props) {
                         const pay = React.useMemo(() => {
                           return payments
                             ?.filter(
-                              (payment) => payment.commandId === request.id,
+                              (payment) => payment.invoiceId === request.id,
                             )
                             .filter((c) => c.status !== "rejected" && c.status !== "cancelled");
                         }, [payments, request]);

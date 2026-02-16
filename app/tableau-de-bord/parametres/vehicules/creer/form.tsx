@@ -1,18 +1,24 @@
 "use client";
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { vehicleQ } from "@/queries/vehicule";
 import { Vehicle } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import React from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -35,6 +41,15 @@ export const formSchema = z.object({
       z.string(),
     ])
   ),
+  serial: z.string(),
+  purchaseDate: z.string({ message: "Veuillez définir une date" }).refine(
+      (val) => {
+        const d = new Date(val);
+        const now = new Date();
+        return !isNaN(d.getTime()) && d <= now;
+      },
+      { message: "Date invalide" },
+    ),
 });
 
 type Schema = z.infer<typeof formSchema>;
@@ -47,8 +62,13 @@ export function VehicleForm() {
       mark: "",
       matricule: "",
       image: [],
+      serial: "",
+      purchaseDate: format(new Date(), "yyyy-MM-dd"),
     },
   });
+
+  const [dueDate, setDueDate] = useState<boolean>(false);
+  const today = new Date(); //On part sur 3 jours de delai de base :)
 
   const vehiculeData = useMutation({
     mutationFn: (data: Omit<Vehicle, "id" | "createdAt" | "updatedAt">) =>
@@ -70,124 +90,169 @@ export function VehicleForm() {
       mark: data.mark,
       matricule: data.matricule!,
       proof: data.image[0],
+      serial: data.serial,
+      purchaseDate: data.purchaseDate
     });
   });
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="p-2 sm:p-5 md:p-8 rounded-md max-w-3xl gap-2"
-    >
-      <FieldGroup className="grid md:grid-cols-6 gap-4 mb-6">
-        <Controller
-          name="label"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field
-              data-invalid={fieldState.invalid}
-              className="gap-1 col-span-full"
-            >
-              <FieldLabel htmlFor="label">
-                Modèle du véhicule <span className="text-destructive">*</span>
-              </FieldLabel>
-              <Input
-                {...field}
-                id="label"
-                type="text"
-                onChange={(e) => {
-                  field.onChange(e.target.value);
-                }}
-                aria-invalid={fieldState.invalid}
-                placeholder="model"
-              />
+    <Form {...form}>
+      <form
+        onSubmit={handleSubmit}
+        className="p-2 sm:p-5 md:p-8 rounded-md max-w-3xl gap-2"
+      >
+        <div className="grid md:grid-cols-6 gap-4 mb-6">
+          <FormField
+            control={form.control}
+            name="label"
+            render={({ field }) => (
+              <FormItem className="col-span-full">
+                <FormLabel isRequired>Modèle du véhicule</FormLabel>
+                <FormControl>
+                  <Input {...field} id="label" placeholder="model" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="mark"
+            render={({ field }) => (
+              <FormItem className="col-span-full">
+                <FormLabel isRequired>Marque</FormLabel>
+                <FormControl>
+                  <Input {...field} id="mark" placeholder="toyota" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Controller
-          name="mark"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field
-              data-invalid={fieldState.invalid}
-              className="gap-1 col-span-full"
-            >
-              <FieldLabel htmlFor="mark">
-                Marque <span className="text-destructive">*</span>
-              </FieldLabel>
-              <Input
-                {...field}
-                id="mark"
-                type="text"
-                onChange={(e) => {
-                  field.onChange(e.target.value);
-                }}
-                aria-invalid={fieldState.invalid}
-                placeholder="toyota"
-              />
+          <FormField
+            control={form.control}
+            name="matricule"
+            render={({ field }) => (
+              <FormItem className="col-span-full">
+                <FormLabel isRequired>Matricule</FormLabel>
+                <FormControl>
+                  <Input {...field} id="matricule" placeholder="Matricule" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="serial"
+            render={({ field }) => (
+              <FormItem className="col-span-full">
+                <FormLabel isRequired>Numéro de série</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    id="serial"
+                    placeholder="Numéro de série du véhicule"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Controller
-          name="matricule"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field
-              data-invalid={fieldState.invalid}
-              className="gap-1 col-span-full"
-            >
-              <FieldLabel htmlFor="color">Matricule </FieldLabel>
-              <Input
-                {...field}
-                id="color"
-                type="text"
-                onChange={(e) => {
-                  field.onChange(e.target.value);
-                }}
-                aria-invalid={fieldState.invalid}
-                placeholder="Matricule"
-              />
+          <FormField
+            control={form.control}
+            name="purchaseDate"
+            render={({ field }) => {
+              const selectedDate = field.value ? new Date(field.value) : undefined;
+              return (
+                <FormItem className="col-span-full">
+                  <FormLabel isRequired>Date d'Acquisition</FormLabel>
+                  <FormControl>
+                    <div className="relative flex gap-2">
+                      <Input
+                        id={field.name}
+                        value={field.value || ""}
+                        placeholder="Sélectionner une date"
+                        className="bg-background pr-10"
+                        onChange={(e) => field.onChange(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            setDueDate(true);
+                          }
+                        }}
+                      />
+                      <Popover open={dueDate} onOpenChange={setDueDate}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date-picker"
+                            type="button"
+                            variant="ghost"
+                            className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                          >
+                            <CalendarIcon className="size-3.5" />
+                            <span className="sr-only">Sélectionner une date</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto overflow-hidden p-0"
+                          align="end"
+                          alignOffset={-8}
+                          sideOffset={10}
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            defaultMonth={selectedDate || today}
+                            captionLayout="dropdown"
+                            onSelect={(date) => {
+                              if (!date) return;
+                              const value = format(date, "yyyy-MM-dd");
+                              field.onChange(value);
+                              setDueDate(false);
+                            }}
+                            disabled={(date) => date > new Date()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
 
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="image"
+            render={({ field }) => (
+              <FormItem className="col-span-full">
+                <FormLabel isRequired>Image</FormLabel>
+                <FormControl>
+                  <FilesUpload
+                    value={field.value}
+                    onChange={field.onChange}
+                    name={field.name}
+                    acceptTypes="all"
+                    multiple={false}
+                    maxFiles={1}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <Controller
-          name="image"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field
-              data-invalid={fieldState.invalid}
-              className="gap-1 col-span-full"
-            >
-              <FieldLabel htmlFor="color">
-                Image <span className="text-destructive">*</span>
-              </FieldLabel>
-              <FilesUpload
-                value={field.value}
-                onChange={field.onChange}
-                name={field.name}
-                acceptTypes="all"
-                multiple={false}
-                maxFiles={1}
-              />
-
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-      </FieldGroup>
-      <div className="flex justify-end items-center w-full">
-        <Button variant={"primary"}>
-          {vehiculeData.isPending ? "Ajout en cours..." : "Ajouter"}
-        </Button>
-      </div>
-    </form>
+        <div className="flex justify-end items-center w-full">
+          <Button variant={"primary"}>
+            {vehiculeData.isPending ? "Ajout en cours..." : "Ajouter"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

@@ -85,7 +85,7 @@ function Page() {
               subtitle="Validez les tickets de paiement des bons de commandes"
               color="green"
             />
-            <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
+            <div className="grid-stats-4">
               <StatsCard
                 title="Total Tickets"
                 titleColor="text-[#fff]"
