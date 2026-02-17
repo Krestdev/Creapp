@@ -11,6 +11,7 @@ import {
 } from "../ui/dialog";
 import {
   BonsCommande,
+  Invoice,
   PAY_STATUS,
   PAYMENT_METHOD,
   PaymentRequest,
@@ -42,7 +43,7 @@ interface Props {
   payment: PaymentRequest;
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
-  purchases: Array<BonsCommande>;
+  invoices: Array<Invoice>;
 }
 
 function getStatusBadge(status: PaymentRequest["status"]): {
@@ -64,9 +65,9 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function DetailPaiement({ payment, open, openChange, purchases }: Props) {
+function DetailPaiement({ payment, open, openChange, invoices }: Props) {
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
-  const purchase = purchases.find((p) => p.id === payment.commandId);
+  const invoice = invoices.find(i=> i.id === payment.invoiceId);
   const getPaymentType = useQuery({
     queryKey: ["paymentType"],
     queryFn: payTypeQ.getAll,
@@ -77,11 +78,9 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="uppercase">
-            {purchase?.devi.commandRequest.title +
-              " - " +
-              purchase?.provider.name}
+            {`${payment.title} [${XAF.format(payment.price)}]`}
           </DialogTitle>
-          <DialogDescription>{`Facture ${payment.reference}`}</DialogDescription>
+          <DialogDescription>{`Paiement de la facture ${payment.reference}`}</DialogDescription>
         </DialogHeader>
         <div className="w-full grid grid-cols-3 gap-3"></div>
         {/**Reference */}
@@ -106,7 +105,7 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Fournisseur"}</p>
             <p className="font-semibold">
-              {purchase?.provider.name ?? "Non défini"}
+              {invoice?.command.provider.name ?? "Non défini"}
             </p>
           </div>
         </div>
@@ -225,6 +224,20 @@ function DetailPaiement({ payment, open, openChange, purchases }: Props) {
             <p className="view-group-title">{"Créé le"}</p>
             <p className="font-semibold">
               {format(new Date(payment.createdAt), "dd MMMM yyyy", {
+                locale: fr,
+              })}
+            </p>
+          </div>
+        </div>
+        {/**Updated at */}
+        <div className="view-group">
+          <span className="view-icon">
+            <Calendar />
+          </span>
+          <div className="flex flex-col">
+            <p className="view-group-title">{"Modifié le"}</p>
+            <p className="font-semibold">
+              {format(new Date(payment.updatedAt), "dd MMMM yyyy", {
                 locale: fr,
               })}
             </p>

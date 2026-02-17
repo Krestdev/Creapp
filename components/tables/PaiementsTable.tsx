@@ -53,6 +53,7 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import {
   BonsCommande,
+  Invoice,
   PAY_STATUS,
   PaymentRequest,
   PRIORITIES,
@@ -79,6 +80,7 @@ import { ModalWarning } from "../modals/modal-warning";
 interface Props {
   payments: Array<PaymentRequest>;
   purchases: Array<BonsCommande>;
+  invoices: Array<Invoice>;
 }
 
 const getPriorityBadge = (
@@ -133,7 +135,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
   const statusData = PAY_STATUS.find((s) => s.value === status);
-  const label = statusData?.name ?? "Inconnu";
+  const label = statusData?.name ?? status;
 
   switch (status) {
     case "pending":
@@ -155,7 +157,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-export function PaiementsTable({ payments, purchases }: Props) {
+export function PaiementsTable({ payments, purchases, invoices }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -193,22 +195,9 @@ export function PaiementsTable({ payments, purchases }: Props) {
     },
   });
 
-  // Préparer les données avec les informations de fournisseur incluses
-  const enhancedPayments = React.useMemo(() => {
-    return payments.map(payment => {
-      const purchase = purchases.find(p => p.id === payment.commandId);
-      return {
-        ...payment,
-        // Ajouter les champs de recherche pour le filtrage global
-        providerName: purchase?.provider?.name || "",
-        bonCommandeTitle: purchase?.devi.commandRequest.title || "",
-      };
-    });
-  }, [payments, purchases]);
-
   // Filtrer les données par statut et priorité
-  const filteredByStatusAndPriority = React.useMemo(() => {
-    let filtered = enhancedPayments;
+  const filteredByStatusAndPriority:Array<PaymentRequest> = React.useMemo(() => {
+    let filtered = payments;
 
     if (statusFilter !== "all") {
       filtered = filtered.filter(p => p.status === statusFilter);
@@ -219,7 +208,7 @@ export function PaiementsTable({ payments, purchases }: Props) {
     }
 
     return filtered;
-  }, [enhancedPayments, statusFilter, priorityFilter]);
+  }, [payments, statusFilter, priorityFilter]);
 
   const columns: ColumnDef<PaymentRequest & { providerName: string; bonCommandeTitle: string }>[] = [
     {
@@ -253,7 +242,9 @@ export function PaiementsTable({ payments, purchases }: Props) {
         );
       },
       cell: ({ row }) => {
-        return <div>{row.getValue("bonCommandeTitle")}</div>;
+        const value = row.original.invoiceId;
+        const purchase = invoices.find(i=> i.id === value)?.command.devi.commandRequest.title ?? "Non défini"
+        return <div>{purchase}</div>;
       },
     },
     {
@@ -270,7 +261,9 @@ export function PaiementsTable({ payments, purchases }: Props) {
         );
       },
       cell: ({ row }) => {
-        return <div>{row.getValue("providerName")}</div>;
+        const value = row.original.invoiceId;
+        const providerName = invoices.find(i=> i.id === value)?.command.provider.name ?? "Créaconsult"
+        return <div>{providerName}</div>;
       },
     },
     {
@@ -687,13 +680,13 @@ export function PaiementsTable({ payments, purchases }: Props) {
             payment={selected}
             open={showDetail}
             openChange={setShowDetail}
-            purchases={purchases}
+            invoices={invoices}
           />
           <EditPayment
             open={showUpdateModal}
             openChange={setShowUpdateModal}
             payment={selected}
-            purchases={purchases}
+            invoices={invoices}
           />
           <ModalWarning
             open={openRejectModal}

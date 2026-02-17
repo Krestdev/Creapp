@@ -17,6 +17,7 @@ import {
   BanIcon,
   ChevronDown,
   Eye,
+  ListIcon,
   Settings2
 } from "lucide-react";
 import * as React from "react";
@@ -76,6 +77,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import CancelInvoice from "./cancel-invoice";
 import ViewInvoice from "./view-invoice";
+import ViewInvoicePayment from "./view-invoice-payment";
 
 interface Props {
   invoices: Array<Invoice>;
@@ -116,6 +118,7 @@ export function InvoicesTable({ invoices, purchases }: Props) {
     undefined,
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
+  const [showPayments, setShowPayments] = React.useState<boolean>(false);
   const [cancel, setCancel] = React.useState<boolean>(false);
 
   const [statusFilter, setStatusFilter] = React.useState<
@@ -202,6 +205,23 @@ export function InvoicesTable({ invoices, purchases }: Props) {
       },
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("reference")}</div>
+      ),
+    },
+    {
+      accessorKey: "title",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Titre"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("title")}</div>
       ),
     },
     {
@@ -353,6 +373,15 @@ export function InvoicesTable({ invoices, purchases }: Props) {
               >
                 <Eye />
                 {"Voir"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setShowPayments(true);
+                }}
+              >
+                <ListIcon />
+                {"Voir les paiements"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -583,7 +612,8 @@ export function InvoicesTable({ invoices, purchases }: Props) {
                                 ? "Date de création"
                                 : column.id === "updatedAt"
                                   ? "Date de modification"
-                                  : column.id}
+                                  : column.id === "title" ?
+                                    "Titre" : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -654,6 +684,14 @@ export function InvoicesTable({ invoices, purchases }: Props) {
           invoice={selected}
           open={showDetail}
           openChange={setShowDetail}
+          purchases={purchases}
+        />
+      )}
+      {selected && (
+        <ViewInvoicePayment
+          invoice={selected}
+          open={showPayments}
+          openChange={setShowPayments}
           purchases={purchases}
         />
       )}

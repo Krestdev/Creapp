@@ -25,16 +25,15 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { totalAmountPurchase, XAF } from "@/lib/utils";
+import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
-import { BonsCommande, PaymentRequest, PRIORITIES } from "@/types/types";
+import { Invoice, PaymentRequest, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
@@ -74,11 +73,11 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
-  purchases: Array<BonsCommande>;
+  invoices: Array<Invoice>;
   payments: Array<PaymentRequest>;
 }
 
-function CreatePaiement({ purchases, payments }: Props) {
+function CreatePaiement({ invoices, payments }: Props) {
   /**Data states */
   const { user } = useStore();
 
@@ -106,7 +105,7 @@ function CreatePaiement({ purchases, payments }: Props) {
     },
   });
 
-  const commandId = form.watch("invoiceId");
+  const invoiceId = form.watch("invoiceId");
   const isPartial = form.watch("isPartial");
   const methodValue = form.watch("method");
 
@@ -135,25 +134,25 @@ function CreatePaiement({ purchases, payments }: Props) {
     }
   }, [getPaymentType.data, methodValue, form]);
 
-  const purchase = React.useMemo(() => {
-    return purchases.find(p => p.id === commandId)
-  }, [purchases, commandId]);
+  const invoice = React.useMemo(() => {
+    return invoices.find(p => p.id === invoiceId)
+  }, [invoices, invoiceId]);
 
-  const toPay = purchase && purchase.netToPay - payments.filter(p => p.invoiceId === purchase?.id && p.status !== "rejected" && p.status !== "cancelled").reduce((total, e) => total + e.price, 0);
+  const toPay = invoice && invoice.amount - payments.filter(p => p.invoiceId === invoice?.id && p.status !== "rejected" && p.status !== "cancelled").reduce((total, e) => total + e.price, 0);
 
   const rest = !!toPay && toPay >= 0 ? toPay : 0;
 
   useEffect(() => {
-    if (!!commandId) {
-      if (!purchase) {
-        toast.error("Bon de commande invalide");
+    if (!!invoiceId) {
+      if (!invoice) {
+        toast.error("Facture invalide");
         return form.setError("invoiceId", {
-          message: "Bon de commande invalide",
+          message: "Facture invalide",
         });
       }
       form.setValue("price", rest);
     }
-  }, [commandId]);
+  }, [invoiceId]);
 
   function onSubmit(values: FormValues) {
     // Validation supplémentaire pour le moyen de paiement
@@ -162,10 +161,10 @@ function CreatePaiement({ purchases, payments }: Props) {
       return;
     }
 
-    const purchase = purchases.find((p) => p.id === values.invoiceId);
-    if (!purchase) {
-      form.setError("invoiceId", { message: "Bon de commande invalide" });
-      return toast.error("Bon de commande invalide");
+    const invoice = invoices.find((p) => p.id === values.invoiceId);
+    if (!invoice) {
+      form.setError("invoiceId", { message: "Facture invalide" });
+      return toast.error("Facture invalide");
     }
     if (!(values.proof[0] instanceof File)) {
       return toast.error("La preuve doit être un fichier");
@@ -196,7 +195,7 @@ function CreatePaiement({ purchases, payments }: Props) {
       methodId: Number(values.method),
       type: "achat",
       deadline: new Date(values.deadline),
-      title: purchase.devi.commandRequest.title,
+      title: invoice.title,
       price: values.price,
       priority: values.priority,
       userId: user?.id ?? 0,
@@ -216,7 +215,7 @@ function CreatePaiement({ purchases, payments }: Props) {
           name="invoiceId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Bon de commande"}</FormLabel>
+              <FormLabel isRequired>{"Facture"}</FormLabel>
               <FormControl>
                 <Select
                   defaultValue={field.value ? String(field.value) : undefined}
@@ -226,12 +225,12 @@ function CreatePaiement({ purchases, payments }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {purchases.length === 0 ? (
+                    {invoices.length === 0 ? (
                       <SelectItem value="no-option" disabled>
-                        {"Aucune demande enregistrée"}
+                        {"Aucune facture enregistrée"}
                       </SelectItem>
                     ) : (
-                      purchases.filter(p => p.status === "APPROVED").map((request) => {
+                      invoices.map((request) => {
                         const pay = React.useMemo(() => {
                           return payments
                             ?.filter(
@@ -243,7 +242,7 @@ function CreatePaiement({ purchases, payments }: Props) {
                           pay
                             ?.flatMap((x) => x.price)
                             .reduce((a, b) => a + b, 0) ?? 0;
-                        const total = totalAmountPurchase(request);
+                        const total = request.amount;
 
                         const diff = total - paid;
                         return (
@@ -252,9 +251,7 @@ function CreatePaiement({ purchases, payments }: Props) {
                               key={request.id}
                               value={String(request.id)}
                             >
-                              {request.devi.commandRequest.title +
-                                " - " +
-                                request.provider.name}
+                              {`${request.title} - ${request.command.provider.name}`}
                             </SelectItem>
                           )
                         );
@@ -397,13 +394,6 @@ function CreatePaiement({ purchases, payments }: Props) {
                     </p>
                   </div>
                 </FormControl>
-                {!!commandId &&
-                  <div className="grid gap-1.5">
-                    {!!purchase && purchase.instalments.map((e, id) => (
-                      <div key={id} className="text-sm text-gray-400">{`Echéance ${id + 1}: ${XAF.format(e.percentage * purchase.netToPay / 100)} ${!!e.deadLine && `avant le ${format(new Date(e.deadLine), "dd MMMM yyyy", { locale: fr })}`}`}</div>
-                    ))}
-                  </div>
-                }
                 <FormMessage />
               </FormItem>
             );
@@ -423,7 +413,7 @@ function CreatePaiement({ purchases, payments }: Props) {
                 <FormControl>
                   {paymentMethods.length === 0 ? (
                     <div className="text-sm text-muted-foreground p-2 border rounded-md bg-muted">
-                      Chargement des moyens de paiement...
+                      {"Chargement des moyens de paiement..."}
                     </div>
                   ) : (
                     <Select value={field.value} onValueChange={field.onChange}>

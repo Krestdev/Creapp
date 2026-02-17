@@ -47,11 +47,10 @@ function ViewInvoice({ invoice, open, openChange, purchases }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {purchase?.devi.commandRequest.title ?? `Paiement`}
+            {`facture - ${invoice.title}`}
           </DialogTitle>
-          <DialogDescription>{`Facture ${invoice.reference}`}</DialogDescription>
+          <DialogDescription>{`Informations sur la facture de ${purchase?.devi.commandRequest.title ?? invoice.commandId}`}</DialogDescription>
         </DialogHeader>
-        <div className="w-full grid grid-cols-3 gap-3"></div>
         {/**Reference */}
         <div className="view-group">
           <span className="view-icon">

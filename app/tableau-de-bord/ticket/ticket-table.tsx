@@ -335,9 +335,9 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
         );
       },
       cell: ({ row }) => {
-        const commandId = row.original.commandId;
+        const invoiceId = row.original.invoiceId;
         // Trouver le bon correspondant
-        const bon = bons?.data?.find((item) => item.id === Number(commandId));
+        const bon = bons?.data?.find((item) => item.invoice.some(i=> i.id ===Number(invoiceId)));
         return (
           <div className="uppercase">{bon?.provider.name || company.name}</div>
         );
@@ -497,9 +497,9 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
       cell: ({ row }) => {
         const item = row.original;
 
-        const commandId = row.original.commandId;
+        const invoiceId = row.original.invoiceId;
         // Trouver le bon correspondant
-        const bon = bons?.data?.find((item) => item.id === Number(commandId));
+        const bon = bons?.data?.find((item) => item.invoice.some(i=> i.id === Number(invoiceId)));
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
@@ -837,7 +837,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
           validateMutation.mutate({
             id: selectedTicket?.id!,
             data: {
-              commandId: selectedTicket?.commandId,
+              invoiceId: selectedTicket?.invoiceId,
               price: selectedTicket?.price,
               status: "validated",
             },

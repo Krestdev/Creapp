@@ -19,7 +19,7 @@ import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
@@ -80,6 +80,8 @@ export function VehicleForm() {
         mark: "",
         matricule: "",
         image: undefined,
+        serial: "",
+        purchaseDate: format(new Date(), "yyyy-MM-dd")
       });
     },
   });
@@ -98,17 +100,16 @@ export function VehicleForm() {
     <Form {...form}>
       <form
         onSubmit={handleSubmit}
-        className="p-2 sm:p-5 md:p-8 rounded-md max-w-3xl gap-2"
+        className="form-3xl"
       >
-        <div className="grid md:grid-cols-6 gap-4 mb-6">
           <FormField
             control={form.control}
             name="label"
             render={({ field }) => (
-              <FormItem className="col-span-full">
-                <FormLabel isRequired>Modèle du véhicule</FormLabel>
+              <FormItem>
+                <FormLabel isRequired>{"Modèle du véhicule"}</FormLabel>
                 <FormControl>
-                  <Input {...field} id="label" placeholder="model" />
+                  <Input {...field} id="label" placeholder="Ex. Corolla" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -119,10 +120,10 @@ export function VehicleForm() {
             control={form.control}
             name="mark"
             render={({ field }) => (
-              <FormItem className="col-span-full">
-                <FormLabel isRequired>Marque</FormLabel>
+              <FormItem>
+                <FormLabel isRequired>{"Marque du véhicule"}</FormLabel>
                 <FormControl>
-                  <Input {...field} id="mark" placeholder="toyota" />
+                  <Input {...field} id="mark" placeholder="Ex. Toyota" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -133,10 +134,10 @@ export function VehicleForm() {
             control={form.control}
             name="matricule"
             render={({ field }) => (
-              <FormItem className="col-span-full">
-                <FormLabel isRequired>Matricule</FormLabel>
+              <FormItem>
+                <FormLabel isRequired>{"Matricule"}</FormLabel>
                 <FormControl>
-                  <Input {...field} id="matricule" placeholder="Matricule" />
+                  <Input {...field} id="matricule" placeholder="Ex. LT 550 A6" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -147,13 +148,12 @@ export function VehicleForm() {
             control={form.control}
             name="serial"
             render={({ field }) => (
-              <FormItem className="col-span-full">
-                <FormLabel isRequired>Numéro de série</FormLabel>
+              <FormItem>
+                <FormLabel isRequired>{"Numéro de série"}</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     id="serial"
-                    placeholder="Numéro de série du véhicule"
                   />
                 </FormControl>
                 <FormMessage />
@@ -167,8 +167,8 @@ export function VehicleForm() {
             render={({ field }) => {
               const selectedDate = field.value ? new Date(field.value) : undefined;
               return (
-                <FormItem className="col-span-full">
-                  <FormLabel isRequired>Date d'Acquisition</FormLabel>
+                <FormItem>
+                  <FormLabel isRequired>{"Date d'Acquisition"}</FormLabel>
                   <FormControl>
                     <div className="relative flex gap-2">
                       <Input
@@ -193,7 +193,7 @@ export function VehicleForm() {
                             className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
                           >
                             <CalendarIcon className="size-3.5" />
-                            <span className="sr-only">Sélectionner une date</span>
+                            <span className="sr-only">{"Sélectionner une date"}</span>
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent
@@ -230,7 +230,7 @@ export function VehicleForm() {
             name="image"
             render={({ field }) => (
               <FormItem className="col-span-full">
-                <FormLabel isRequired>Image</FormLabel>
+                <FormLabel isRequired>{"Photo du véhicule"}</FormLabel>
                 <FormControl>
                   <FilesUpload
                     value={field.value}
@@ -245,11 +245,9 @@ export function VehicleForm() {
               </FormItem>
             )}
           />
-        </div>
-
-        <div className="flex justify-end items-center w-full">
-          <Button variant={"primary"}>
-            {vehiculeData.isPending ? "Ajout en cours..." : "Ajouter"}
+        <div className="w-full flex justify-end items-center @min-[640px]:col-span-full">
+          <Button type="submit" variant={"primary"} disabled={vehiculeData.isPending} isLoading={vehiculeData.isPending}>
+            {"Enregistrer"}
           </Button>
         </div>
       </form>

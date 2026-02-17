@@ -511,6 +511,7 @@ export type Invoice = {
   createdAt: Date;
   updatedAt: Date;
   commandId: number;
+  command: BonsCommande;
   userId: number;
   payments: Array<PaymentRequest>
 }

@@ -3,7 +3,7 @@ import { Invoice } from "@/types/types";
 
 export interface NewInvoice extends Omit<
   Invoice,
-  "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status" | "payments" | "userId"
+  "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status" | "payments" | "userId" | "command"
 > {
   proof: File;
   commandId: number;

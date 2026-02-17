@@ -301,7 +301,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
       cell: ({ row }) => {
         const pay = React.useMemo(() => {
           return payments
-            ?.filter((payment) => payment.commandId === row.original.id)
+            ?.filter((payment) => payment.invoiceId === row.original.id)
             .filter((c) => c.status === "paid");
         }, [payments, row.original]);
 
