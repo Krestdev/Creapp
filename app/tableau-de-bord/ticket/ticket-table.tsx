@@ -47,6 +47,7 @@ import { UpdatePayment, paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import {
   BonsCommande,
+  Invoice,
   PAYMENT_TYPES,
   PAY_STATUS,
   PRIORITIES,
@@ -84,7 +85,7 @@ import RejectTicket from "./reject-ticket";
 interface TicketsTableProps {
   data: PaymentRequest[];
   requestTypeData: RequestType[];
-  purchases: BonsCommande[];
+  invoices: Array<Invoice>;
 }
 
 const getPriorityBadge = (
@@ -144,12 +145,14 @@ const getStatusVariant = (
       return { label: "En attente", variant: "amber" };
     case "paid":
       return { label: "Payé", variant: "purple" };
+    case "pending":
+      return { label: "En attente", variant: "amber" };
     default:
       return { label: "Approuvé", variant: "success" };
   }
 };
 
-export function TicketTable({ data, requestTypeData, purchases }: TicketsTableProps) {
+export function TicketTable({ data, requestTypeData, invoices }: TicketsTableProps) {
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<"all" | PaymentRequest["type"]>(
     "all",
@@ -171,7 +174,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
       //selectTab
       const matchTab =
         selectedTab === 0
-          ? c.status === "accepted"
+          ? c.status === "accepted" || c.status === "pending"
           : c.status === "paid" ||
           c.status === "validated" ||
           c.status === "unsigned" ||
@@ -260,16 +263,11 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
   const [openPaiementModal, setOpenPaiementModal] = useState(false);
   const [openRejectModal, setOpenRejectModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<PaymentRequest>();
-  const [commands, setCommands] = useState<BonsCommande>();
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice>();
 
   const [message, setMessage] = useState<string>("");
 
   const { user } = useStore();
-
-  const { data: bons } = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
-  });
 
   const paymentMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
@@ -311,7 +309,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Type"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
@@ -330,16 +328,15 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Fournisseur"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
         const invoiceId = row.original.invoiceId;
-        // Trouver le bon correspondant
-        const bon = bons?.data?.find((item) => item.invoice.some(i=> i.id ===Number(invoiceId)));
+        const invoice = invoices.find((item) => item.id === Number(invoiceId));
         return (
-          <div className="uppercase">{bon?.provider.name || company.name}</div>
+          <div className="uppercase">{invoice?.command.provider.name ?? "--"}</div>
         );
       },
     },
@@ -352,7 +349,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Titre"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
@@ -370,7 +367,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Montant"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
@@ -393,7 +390,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Priorité"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
@@ -498,8 +495,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
         const item = row.original;
 
         const invoiceId = row.original.invoiceId;
-        // Trouver le bon correspondant
-        const bon = bons?.data?.find((item) => item.invoice.some(i=> i.id === Number(invoiceId)));
+        const invoice = invoices.find((item) => item.id === Number(invoiceId));
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
@@ -512,7 +508,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
-                  setCommands(bon);
+                  setSelectedInvoice(invoice);
                   setSelectedTicket(item);
                   setOpenDetailModal(true);
                 }}
@@ -814,18 +810,20 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
       </div>
       <Pagination table={table} />
 
-      <DetailTicket
+      {
+        !!selectedTicket &&
+        <DetailTicket
         open={openDetailModal}
         onOpenChange={setOpenDetailModal}
         data={selectedTicket}
-        commands={commands}
+        invoice={selectedInvoice}
         action={() =>
           paymentMutation.mutate({
             id: selectedTicket?.id!,
             data: { status: "paid" },
           })
         }
-      />
+      />}
 
       <ModalWarning
         open={openValidationModal}
@@ -851,7 +849,7 @@ export function TicketTable({ data, requestTypeData, purchases }: TicketsTablePr
           payment={selectedTicket}
           open={openRejectModal}
           openChange={setOpenRejectModal}
-          purchases={purchases}
+          invoices={invoices}
         />
       )}
     </div>

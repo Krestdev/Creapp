@@ -13,6 +13,8 @@ import { requestTypeQ } from "@/queries/requestType";
 import { PaymentRequest } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { TicketTable } from "./ticket-table";
+import { invoiceQ } from "@/queries/invoices";
 
 function Page() {
   const { user } = useStore();
@@ -32,9 +34,14 @@ function Page() {
     queryFn: purchaseQ.getAll,
   });
 
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
+  });
+
   const ticketsData: Array<PaymentRequest> = useMemo(() => {
     if (!data?.data) return [];
-    return data?.data.filter((ticket) => ticket.status !== "ghost" && ticket.status !== "rejected" && ticket.status !== "pending" && ticket.status !== "cancelled");
+    return data?.data.filter((ticket) => ticket.status !== "ghost" && ticket.status !== "rejected" && ticket.status !== "cancelled");
   }, [data?.data]);
 
   const pending = useMemo(() => {
@@ -61,15 +68,15 @@ function Page() {
     );
   }, [data?.data]);
 
-  if (isLoading || getRequestType.isLoading || getPurchase.isLoading) {
+  if (isLoading || getRequestType.isLoading || getPurchase.isLoading || getInvoices.isLoading) {
     return <LoadingPage />;
   }
 
-  if (isError || getRequestType.isError || getPurchase.isError) {
-    return <ErrorPage error={error || getRequestType.error! || getPurchase.error!} />;
+  if (isError || getRequestType.isError || getPurchase.isError || getInvoices.isError) {
+    return <ErrorPage error={error || getRequestType.error! || getPurchase.error! || getInvoices.error!} />;
   }
 
-  if (isSuccess && getRequestType.isSuccess && getPurchase.isSuccess) {
+  if (isSuccess && getRequestType.isSuccess && getPurchase.isSuccess && getInvoices.isSuccess) {
     return (
       <div className="flex flex-col gap-6">
         {user?.role.flatMap((r) => r.label).includes("VOLT") ? (
@@ -113,9 +120,9 @@ function Page() {
           </>
         )}
         {ticketsData.length > 0 ? (
-          <Tickets
-            purchases={getPurchase.data?.data}
-            ticketsData={ticketsData}
+          <TicketTable
+            invoices={getInvoices.data.data}
+            data={ticketsData}
             requestTypeData={getRequestType.data?.data}
           />
         ) : (

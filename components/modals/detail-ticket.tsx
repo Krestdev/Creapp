@@ -11,8 +11,10 @@ import {
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
+import { payTypeQ } from "@/queries/payType";
 import { requestQ } from "@/queries/requestModule";
-import { BonsCommande, PaymentRequest } from "@/types/types";
+import { Invoice, PaymentRequest } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -31,15 +33,13 @@ import {
 import { useState } from "react";
 import { DownloadFile } from "../base/downLoadFile";
 import ShowFile from "../base/show-file";
-import { useQuery } from "@tanstack/react-query";
-import { payTypeQ } from "@/queries/payType";
 
 interface DetailTicketProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: PaymentRequest | undefined;
+  data: PaymentRequest;
   action: () => void;
-  commands: BonsCommande | undefined;
+  invoice?: Invoice;
 }
 
 export function DetailTicket({
@@ -47,7 +47,7 @@ export function DetailTicket({
   onOpenChange,
   data,
   action,
-  commands,
+  invoice,
 }: DetailTicketProps) {
   // Fonction pour formater le montant
   const formatMontant = (montant: number | undefined) => {
@@ -422,7 +422,7 @@ export function DetailTicket({
                       {"Fournisseur"}
                     </p>
                     <p className="font-semibold">
-                      {commands?.provider.name || "N/A"}
+                      {invoice?.command.provider.name ?? "N/A"}
                     </p>
                   </div>
                 </div>}
@@ -436,7 +436,7 @@ export function DetailTicket({
                   <p className="text-sm text-muted-foreground mb-1">
                     {"Bon de commande"}
                   </p>
-                  <p className="text-sm">{commands?.reference || "N/A"}</p>
+                  <p className="text-sm">{invoice?.command.reference ?? "N/A"}</p>
                 </div>
               </div>}
 
