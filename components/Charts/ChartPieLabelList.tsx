@@ -17,8 +17,8 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { XAF } from "@/lib/utils";
+import { invoiceQ } from "@/queries/invoices";
 import { projectQ } from "@/queries/projectModule";
-import { purchaseQ } from "@/queries/purchase-order";
 import { PaymentRequest } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 
@@ -69,17 +69,17 @@ export function ChartPieLabelList({
     queryFn: projectQ.getAll,
   });
 
-  const { data: commandData } = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
+  const { data: invoiceData } = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
 
-  // les commandes (liste des IDs)
-  const commandIds = data.flatMap((x) => x.commandId);
+  // les Factures (liste des IDs)
+  const invoiceIds = data.flatMap((x) => x.invoiceId);
 
-  // Je vais chercher les fournisseurs des commandes qui appartiennent à commandIds
-  const providerData = commandData?.data.filter((command) =>
-    commandIds.includes(command.id),
+  // Je vais chercher les fournisseurs des factures qui appartiennent à invoiceIds
+  const providerData = invoiceData?.data.filter((invoice) =>
+    invoiceIds.includes(invoice.id),
   );
 
   // Préparer les données
@@ -106,7 +106,7 @@ export function ChartPieLabelList({
           break;
         case "fournisseur":
           const provider =
-            providerData?.find((p) => p.id === payment.commandId)?.provider
+            providerData?.find((p) => p.id === payment.invoiceId)?.command.provider
               .name || "Inconnu";
           key =
             provider.length > 12 ? `${provider.substring(0, 10)}...` : provider;

@@ -22,13 +22,13 @@ import {
 import { cn, company } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { } from "@/queries/commandRqstModule";
+import { invoiceQ } from "@/queries/invoices";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
-import { purchaseQ } from "@/queries/purchase-order";
 import {
-  BonsCommande,
+  Invoice,
   PRIORITIES,
   PaymentRequest,
-  RequestType,
+  RequestType
 } from "@/types/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -172,15 +172,15 @@ export function TicketsTable({
   const [openValidationModal, setOpenValidationModal] = React.useState(false);
   const [openPaiementModal, setOpenPaiementModal] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<PaymentRequest>();
-  const [commands, setCommands] = React.useState<BonsCommande>();
+  const [selectedInvoice, setSelectedInvoice] = React.useState<Invoice>();
 
   const [message, setMessage] = React.useState<string>("");
 
   const { user } = useStore();
 
-  const { data: bons } = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
+  const { data: invoices, isSuccess, isLoading, isError, error } = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
 
   const paymentMutation = useMutation({
@@ -247,11 +247,10 @@ export function TicketsTable({
         );
       },
       cell: ({ row }) => {
-        const commandId = row.original.commandId;
-        // Trouver le bon correspondant
-        const bon = bons?.data?.find((item) => item.id === Number(commandId));
+        const invoiceId = row.original.invoiceId;
+        const invoice = invoices?.data?.find((item) => item.id === Number(invoiceId));
         return (
-          <div className="uppercase">{bon?.provider.name || company.name}</div>
+          <div className="uppercase">{invoice?.command.provider.name || company.name}</div>
         );
       },
     },
@@ -409,9 +408,8 @@ export function TicketsTable({
       cell: ({ row }) => {
         const item = row.original;
 
-        const commandId = row.original.commandId;
-        // Trouver le bon correspondant
-        const bon = bons?.data?.find((item) => item.id === Number(commandId));
+        const invoiceId = row.original.invoiceId;
+        const invoice = invoices?.data?.find((item) => item.id === Number(invoiceId));
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
@@ -424,7 +422,7 @@ export function TicketsTable({
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
-                  setCommands(bon);
+                  setSelectedInvoice(invoice);
                   setSelectedTicket(item);
                   setOpenDetailModal(true);
                 }}
@@ -613,18 +611,20 @@ export function TicketsTable({
       </div>
       <Pagination table={table} />
 
-      <DetailTicket
+      {
+        selectedTicket && 
+        <DetailTicket
         open={openDetailModal}
         onOpenChange={setOpenDetailModal}
         data={selectedTicket}
-        commands={commands}
+        invoice={selectedInvoice}
         action={() =>
           paymentMutation.mutate({
             id: selectedTicket?.id!,
             data: { status: "paid" },
           })
         }
-      />
+      />}
 
       <ApproveTicket
         open={openValidationModal}
@@ -636,7 +636,7 @@ export function TicketsTable({
           validateMutation.mutate({
             id: selectedTicket?.id!,
             data: {
-              commandId: selectedTicket?.commandId,
+              invoiceId: selectedTicket?.invoiceId,
               price: selectedTicket?.price,
               status: "validated",
             },

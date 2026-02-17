@@ -18,6 +18,7 @@ import ExpensesTable from "./expenses-table";
 import { providerQ } from "@/queries/providers";
 import { requestQ } from "@/queries/requestModule";
 import { userQ } from "@/queries/baseModule";
+import { invoiceQ } from "@/queries/invoices";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -39,9 +40,9 @@ function Page() {
     queryFn: requestTypeQ.getAll,
   });
 
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
 
   const getPaymentType = useQuery({
@@ -70,7 +71,7 @@ function Page() {
   });
   if (
     isLoading ||
-    getPurchases.isLoading ||
+    getInvoices.isLoading ||
     getBanks.isLoading ||
     getRequestType.isLoading ||
     getPaymentType.isLoading ||
@@ -82,7 +83,7 @@ function Page() {
   }
   if (
     isError ||
-    getPurchases.isError ||
+    getInvoices.isError ||
     getBanks.isError ||
     getRequestType.isError ||
     getPaymentType.isError ||
@@ -94,7 +95,7 @@ function Page() {
       <ErrorPage
         error={
           error ||
-          getPurchases.error ||
+          getInvoices.error ||
           getBanks.error ||
           getRequestType.error ||
           getPaymentType.error ||
@@ -108,7 +109,7 @@ function Page() {
   }
   if (
     isSuccess &&
-    getPurchases.isSuccess &&
+    getInvoices.isSuccess &&
     getBanks.isSuccess &&
     getRequestType.isSuccess &&
     getPaymentType.isSuccess &&
@@ -179,7 +180,7 @@ function Page() {
         <ExpensesTable
           payments={data.data}
           banks={getBanks.data.data}
-          purchases={getPurchases.data.data}
+          invoices={getInvoices.data.data}
           requestTypes={getRequestType.data.data}
           getPaymentType={getPaymentType}
           providers={getProviders.data.data}

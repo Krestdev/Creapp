@@ -18,37 +18,37 @@ import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
 import {
-  BonsCommande,
+  Invoice,
   PAY_STATUS,
   PaymentRequest,
-  User,
+  User
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
+  Activity,
+  AlertCircle,
+  Briefcase,
   Building,
   Calendar,
   CalendarFold,
-  FileIcon,
-  Fuel,
-  HelpCircle,
-  MapPin,
-  Briefcase,
-  Users,
-  Gift,
-  ShoppingCart,
-  Activity,
-  FolderOpen,
-  Receipt,
   CreditCard,
-  Hash,
+  FileIcon,
   FileText,
-  AlertCircle,
+  FolderOpen,
+  Fuel,
+  Gift,
+  Hash,
+  HelpCircle,
   LucideFile,
+  MapPin,
+  Receipt,
+  ShoppingCart,
   SquareStackIcon,
   User2,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useMemo } from "react";
@@ -57,7 +57,7 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   payment: PaymentRequest;
-  purchases: Array<BonsCommande>;
+  invoices: Array<Invoice>;
 }
 
 function getStatusBadge(status: PaymentRequest["status"]): {
@@ -131,11 +131,11 @@ const hasValue = (value: any): boolean => {
   return true;
 };
 
-function ViewExpense({ open, openChange, payment, purchases }: Props) {
+function ViewExpense({ open, openChange, payment, invoices }: Props) {
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
   const getProjects = useQuery({ queryKey: ["projects"], queryFn: projectQ.getAll });
   const requestData = useQuery({ queryKey: ["requests"], queryFn: requestQ.getAll, });
-  const purchase = purchases.find((p) => p.id === payment.commandId);
+  const invoice = invoices.find((p) => p.id === payment.invoiceId);
   const getPaymentType = useQuery({
     queryKey: ["paymentType"],
     queryFn: payTypeQ.getAll,
@@ -332,32 +332,32 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
               )}
 
               {/* Pour les achats */}
-              {payment.type === "achat" && purchase && (
+              {payment.type === "achat" && invoice && (
                 <>
-                  {hasValue(purchase.provider?.name) && (
+                  {hasValue(invoice.command.provider.name) && (
                     <div className="flex items-start gap-3">
                       <div className="mt-1">
                         <Building className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-muted-foreground mb-1">
-                          Fournisseur
+                          {"Fournisseur"}
                         </p>
-                        <p className="font-semibold">{purchase.provider.name}</p>
+                        <p className="font-semibold">{invoice.command.provider.name}</p>
                       </div>
                     </div>
                   )}
 
-                  {hasValue(purchase.reference) && (
+                  {hasValue(invoice.command.reference) && (
                     <div className="flex items-start gap-3">
                       <div className="mt-1">
                         <Receipt className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-muted-foreground mb-1">
-                          Bon de commande
+                          {"Bon de commande"}
                         </p>
-                        <p className="font-semibold">{purchase.reference}</p>
+                        <p className="font-semibold">{invoice.command.reference}</p>
                       </div>
                     </div>
                   )}
@@ -369,7 +369,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-muted-foreground mb-1">
-                          Date limite
+                          {"Date limite"}
                         </p>
                         <p className="font-semibold">
                           {format(new Date(payment.deadline), "dd MMMM yyyy", {
@@ -392,9 +392,9 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-muted-foreground mb-1">
-                          Kilométrage
+                          {"Kilométrage"}
                         </p>
-                        <p className="font-semibold">{payment.km} km</p>
+                        <p className="font-semibold">{`${payment.km} KM`}</p>
                       </div>
                     </div>
                   )}
@@ -434,7 +434,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-muted-foreground mb-1">
-                          Justification
+                          {"Justification"}
                         </p>
                         <Link
                           href={`${process.env.NEXT_PUBLIC_API}/${payment.justification}`}
@@ -447,7 +447,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                             className="h-7 w-auto aspect-square"
                           />
                           <p className="text-foreground font-medium">
-                            Document de justification
+                            {"Document de justification"}
                           </p>
                         </Link>
                       </div>
@@ -464,7 +464,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground mb-1">
-                      Justificatif
+                      {"Justificatif"}
                     </p>
                     <Link
                       href={`${process.env.NEXT_PUBLIC_API}/${payment.proof}`}
@@ -492,7 +492,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground mb-1">
-                      Méthode de paiement
+                      {"Méthode de paiement"}
                     </p>
                     <p className="font-semibold">{methodName}</p>
                   </div>
@@ -548,7 +548,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground mb-1">
-                      Modifié le
+                      {"Modifié le"}
                     </p>
                     <p className="font-semibold">
                       {format(new Date(payment.updatedAt), "dd MMMM yyyy à HH:mm", {
@@ -586,7 +586,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-red-700 mb-1">
-                      Motif du rejet
+                      {"Motif du rejet"}
                     </p>
                     <p className="text-red-800 font-medium">{payment.reason}</p>
                   </div>
@@ -600,7 +600,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                   </div>
                   <div className="flex flex-col">
                     <p className="text-sm text-muted-foreground mb-1">
-                      Mode de signature
+                      {"Mode de signature"}
                     </p>
                     <p className="font-medium">
                       {signataires?.mode === "ONE" ?
@@ -638,16 +638,16 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
                             </p>} */}
                             {isSigned && signer ? (
                               <p className="text-sm text-green-600">
-                                Signé
+                                {"Signé"}
                               </p>
                             ) : (
                               signataires.mode === "BOTH" ?
                                 <p className="text-sm text-gray-600">
-                                  En attente de signature
+                                  {"En attente de signature"}
                                 </p>
                                 :
                                 <p className="text-sm text-gray-600">
-                                  Ne peux plus signer
+                                  {"Ne peux plus signer"}
                                 </p>
                             )}
                           </div>
@@ -664,7 +664,7 @@ function ViewExpense({ open, openChange, payment, purchases }: Props) {
           <DialogFooter className="flex gap-3 p-6 pt-0 shrink-0 w-full justify-end">
             <DialogClose asChild>
               <Button variant="outline" className="bg-transparent">
-                Fermer
+                {"Fermer"}
               </Button>
             </DialogClose>
           </DialogFooter>

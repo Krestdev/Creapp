@@ -29,9 +29,10 @@ import {
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
+import { TabBar } from "@/components/base/TabBar";
+import DepenseDocument from "@/components/depense/depenseDoc";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -50,6 +51,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
   Table,
   TableBody,
   TableCell,
@@ -60,33 +69,21 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import {
   Bank,
-  BonsCommande,
-  PAY_STATUS,
-  PAYMENT_TYPES,
+  Invoice,
   PaymentRequest,
   PayType,
   PRIORITIES,
   Provider,
   RequestModelT,
   RequestType,
-  User,
+  User
 } from "@/types/types";
-import { VariantProps } from "class-variance-authority";
-import ViewExpense from "./view-expense";
-import ShareExpense from "./share-expense";
-import { TabBar } from "@/components/base/TabBar";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import PayExpense from "./pay-expense";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import DepenseDocument from "@/components/depense/depenseDoc";
 import { UseQueryResult } from "@tanstack/react-query";
+import { VariantProps } from "class-variance-authority";
+import PayExpense from "./pay-expense";
+import ShareExpense from "./share-expense";
+import ViewExpense from "./view-expense";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -144,7 +141,7 @@ const statusConfig = {
 
 interface Props {
   payments: Array<PaymentRequest>;
-  purchases: Array<BonsCommande>;
+  invoices: Array<Invoice>;
   banks: Array<Bank>;
   requestTypes: Array<RequestType>;
   getPaymentType: UseQueryResult<{
@@ -216,7 +213,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentType, providers, request, users }: Props) {
+function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType, providers, request, users }: Props) {
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -325,8 +322,8 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       //Filter provider
       const matchProvider =
         providerFilter === "all" ? true :
-          providerFilter === "no-provider" ? p.commandId === null :
-            purchases.find(c => c.id === p.commandId)?.providerId === Number(providerFilter);
+          providerFilter === "no-provider" ? !p.invoiceId :
+            invoices.find(c => c.id === p.invoiceId)?.command.providerId === Number(providerFilter);
       //Filter tab
       const matchTab =
         selectedTab === 0
@@ -353,7 +350,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
     amountTypeFilter,
     amountFilter,
     providerFilter,
-    purchases
+    invoices
   ]);
 
   const columns: ColumnDef<PaymentRequest>[] = [
@@ -408,11 +405,11 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find((p) => p.id === value.commandId);
+        const invoice = invoices.find((iv) => iv.id === value.invoiceId);
         const title = value.title;
         return (
           <div>
-            {purchase?.devi.commandRequest.title ?? value.title ?? "--"}
+            { value.title ?? "--"}
           </div>
         );
       },
@@ -432,8 +429,8 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find((p) => p.id === value.commandId);
-        return <div>{purchase?.provider?.name ?? "-"}</div>;
+        const invoice = invoices.find((p) => p.id === value.invoiceId);
+        return <div>{invoice?.command.provider.name ?? "--"}</div>;
       },
     },
     {
@@ -916,7 +913,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
           open={showDetail}
           openChange={setShowDetail}
           payment={selected}
-          purchases={purchases}
+          invoices={invoices}
         />
       )}
       {selected && (

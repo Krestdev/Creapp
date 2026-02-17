@@ -18,6 +18,7 @@ import { providerQ } from "@/queries/providers";
 import { payTypeQ } from "@/queries/payType";
 import { requestQ } from "@/queries/requestModule";
 import { userQ } from "@/queries/baseModule";
+import { invoiceQ } from "@/queries/invoices";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -39,9 +40,9 @@ function Page() {
     queryFn: requestTypeQ.getAll,
   });
 
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
 
   const getPaymentType = useQuery({
@@ -69,7 +70,7 @@ function Page() {
   });
   if (
     isLoading ||
-    getPurchases.isLoading ||
+    getInvoices.isLoading ||
     getBanks.isLoading ||
     getRequestType.isLoading ||
     getProviders.isLoading ||
@@ -81,7 +82,7 @@ function Page() {
   }
   if (
     isError ||
-    getPurchases.isError ||
+    getInvoices.isError ||
     getBanks.isError ||
     getRequestType.isError ||
     getProviders.isError ||
@@ -93,7 +94,7 @@ function Page() {
       <ErrorPage
         error={
           error ||
-          getPurchases.error ||
+          getInvoices.error ||
           getBanks.error ||
           getRequestType.error ||
           getProviders.error ||
@@ -107,7 +108,7 @@ function Page() {
   }
   if (
     isSuccess &&
-    getPurchases.isSuccess &&
+    getInvoices.isSuccess &&
     getBanks.isSuccess &&
     getRequestType.isSuccess &&
     getProviders.isSuccess &&
@@ -168,7 +169,7 @@ function Page() {
             (p) => p.status === "pending_depense" && p.type === "CURRENT",
           )}
           banks={getBanks.data.data}
-          purchases={getPurchases.data.data}
+          invoices={getInvoices.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
           getPaymentType={getPaymentType}
@@ -180,7 +181,7 @@ function Page() {
             (p) => p.status === "paid" && p.type === "CURRENT",
           )}
           banks={getBanks.data.data}
-          purchases={getPurchases.data.data}
+          invoices={getInvoices.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
           getPaymentType={getPaymentType}

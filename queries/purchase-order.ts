@@ -37,6 +37,7 @@ export type updatePoPayload = Omit<
   | "providerId"
   | "netToPay"
   | "commandConditions"
+  | "invoice"
 >;
 
 export type AddFileProps = {

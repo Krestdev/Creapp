@@ -1,4 +1,5 @@
 "use client";
+import { TabBar } from "@/components/base/TabBar";
 import {
   StatisticCard,
   StatisticProps,
@@ -7,18 +8,17 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { XAF } from "@/lib/utils";
-import { bankQ } from "@/queries/bank";
-import { paymentQ } from "@/queries/payment";
-import { purchaseQ } from "@/queries/purchase-order";
-import { requestTypeQ } from "@/queries/requestType";
-import ExpensesTableSign from "./expenses-table-sign";
-import { signatairQ } from "@/queries/signatair";
 import { useStore } from "@/providers/datastore";
-import { TabBar } from "@/components/base/TabBar";
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { bankQ } from "@/queries/bank";
+import { invoiceQ } from "@/queries/invoices";
+import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
+import { requestTypeQ } from "@/queries/requestType";
+import { signatairQ } from "@/queries/signatair";
 import { transactionQ } from "@/queries/transaction";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import ExpensesTableSign from "./expenses-table-sign";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
@@ -34,9 +34,9 @@ function Page() {
     queryKey: ["requestType"],
     queryFn: requestTypeQ.getAll,
   });
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
   const getBanks = useQuery({
     queryKey: ["banks"],
@@ -170,7 +170,7 @@ function Page() {
 
   if (
     isLoading ||
-    getPurchases.isLoading ||
+    getInvoices.isLoading ||
     getBanks.isLoading ||
     getRequestType.isLoading ||
     getPayType.isLoading ||
@@ -182,7 +182,7 @@ function Page() {
 
   if (
     isError ||
-    getPurchases.isError ||
+    getInvoices.isError ||
     getBanks.isError ||
     getRequestType.isError ||
     getPayType.isError ||
@@ -193,7 +193,7 @@ function Page() {
       <ErrorPage
         error={
           error ||
-          getPurchases.error ||
+          getInvoices.error ||
           getBanks.error ||
           getRequestType.error ||
           getPayType.error ||
@@ -210,7 +210,7 @@ function Page() {
 
   if (
     isSuccess &&
-    getPurchases.isSuccess &&
+    getInvoices.isSuccess &&
     getBanks.isSuccess &&
     getRequestType.isSuccess &&
     getPayType.isSuccess &&
@@ -241,7 +241,7 @@ function Page() {
             payments={filteredData.unsignedPayments}
             banks={getBanks.data.data}
             type="pending"
-            purchases={getPurchases.data.data}
+            invoices={getInvoices.data.data}
             requestTypes={getRequestType.data.data}
             signatair={signatair.data.data}
             payType={getPayType.data.data}
@@ -253,7 +253,7 @@ function Page() {
             payments={filteredData.signedPayments}
             type="validated"
             banks={getBanks.data.data}
-            purchases={getPurchases.data.data}
+            invoices={getInvoices.data.data}
             requestTypes={getRequestType.data.data}
             signatair={signatair.data.data}
             payType={getPayType.data.data}

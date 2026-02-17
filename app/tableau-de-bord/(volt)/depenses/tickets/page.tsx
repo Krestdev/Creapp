@@ -17,15 +17,16 @@ import { providerQ } from "@/queries/providers";
 import { payTypeQ } from "@/queries/payType";
 import { requestQ } from "@/queries/requestModule";
 import { userQ } from "@/queries/baseModule";
+import { invoiceQ } from "@/queries/invoices";
 ;
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: ["payments"],
     queryFn: paymentQ.getAll,
   });
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
   const getRequestType = useQuery({
     queryKey: ["requestType"],
@@ -51,7 +52,7 @@ function Page() {
   const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll });
   if (
     isLoading ||
-    getPurchases.isLoading ||
+    getInvoices.isLoading ||
     getRequestType.isLoading ||
     getBanks.isLoading ||
     getProviders.isLoading ||
@@ -63,7 +64,7 @@ function Page() {
   }
   if (
     isError ||
-    getPurchases.isError ||
+    getInvoices.isError ||
     getRequestType.isError ||
     getBanks.isError ||
     getProviders.isError ||
@@ -75,7 +76,7 @@ function Page() {
       <ErrorPage
         error={
           error ||
-          getPurchases.error ||
+          getInvoices.error ||
           getRequestType.error ||
           getBanks.error ||
           getProviders.error ||
@@ -89,7 +90,7 @@ function Page() {
   }
   if (
     isSuccess &&
-    getPurchases.isSuccess &&
+    getInvoices.isSuccess &&
     getRequestType.isSuccess &&
     getBanks.isSuccess &&
     getProviders.isSuccess &&
@@ -147,7 +148,7 @@ function Page() {
           payments={data.data.filter(
             (p) => p.status === "validated" && p.type !== "CURRENT"
           )}
-          purchases={getPurchases.data.data}
+          invoices={getInvoices.data.data}
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
@@ -159,7 +160,7 @@ function Page() {
           payments={data.data.filter(
             (p) => p.status === "paid" && p.type !== "CURRENT"
           )}
-          purchases={getPurchases.data.data}
+          invoices={getInvoices.data.data}
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}

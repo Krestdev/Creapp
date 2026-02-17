@@ -41,11 +41,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { getRandomColor, XAF } from "@/lib/utils";
-import { commadQ } from "@/queries/command";
+import { invoiceQ } from "@/queries/invoices";
 import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
-import { DateFilter, PAY_STATUS, PaymentRequest, PayType } from "@/types/types";
+import { DateFilter, PaymentRequest, PayType } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Settings2 } from "lucide-react";
@@ -56,9 +56,9 @@ function Page() {
     queryKey: ["providers"],
     queryFn: providerQ.getAll,
   });
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: commadQ.getAll,
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
   const getPaymentType = useQuery({
     queryKey: ["paymentType"],
@@ -103,9 +103,9 @@ function Page() {
       const matchProvider =
         providerFilter === "all"
           ? true
-          : !!payment.commandId
-          ? getPurchases.data?.data.find((p) => p.id === payment.commandId)
-              ?.providerId === Number(providerFilter)
+          : !!payment.invoiceId
+          ? getInvoices.data?.data.find((p) => p.id === payment.invoiceId)
+              ?.command.providerId === Number(providerFilter)
           : false;
       //Filter by type
       const matchType =
@@ -164,7 +164,7 @@ function Page() {
     typeFilter,
     methodFilter,
     providerFilter,
-    getPurchases.data,
+    getInvoices.data,
     data,
   ]);
 
@@ -342,14 +342,14 @@ function Page() {
         let providerId: number | string = "creaconsult";
         let providerName = "Creaconsult";
 
-        // Trouver le fournisseur via le bon de commande
-        if (payment.commandId) {
-          const purchaseOrder = getPurchases.data?.data?.find(
-            (p) => p.id === payment.commandId
+        // Trouver le fournisseur via la facture
+        if (payment.invoiceId) {
+          const invoice = getInvoices.data?.data?.find(
+            (p) => p.id === payment.invoiceId
           );
-          if (purchaseOrder?.provider) {
-            providerId = purchaseOrder.provider.id;
-            providerName = purchaseOrder.provider.name;
+          if (invoice?.command.provider) {
+            providerId = invoice.command.provider.id;
+            providerName = invoice.command.provider.name;
             // Mettre à jour le cache des noms si nécessaire
             if (!providerLabels.has(providerId)) {
               providerLabels.set(providerId, providerName);
@@ -407,7 +407,7 @@ function Page() {
       };
 
       return { data: sortedData, config };
-    }, [getProviders.data, filteredData, getPurchases.data]);
+    }, [getProviders.data, filteredData, getInvoices.data]);
 
   // Données pour le graphique par méthode de paiement (basé sur les données API)
   const paymentMethodData: { data: ChartDataItem[]; config: ChartConfig } =
@@ -579,7 +579,7 @@ function Page() {
   if (
     isLoading ||
     getProviders.isLoading ||
-    getPurchases.isLoading ||
+    getInvoices.isLoading ||
     getPaymentType.isLoading
   ) {
     return <LoadingPage />;
@@ -587,7 +587,7 @@ function Page() {
   if (
     isError ||
     getProviders.isError ||
-    getPurchases.isError ||
+    getInvoices.isError ||
     getPaymentType.isError
   ) {
     return (
@@ -595,7 +595,7 @@ function Page() {
         error={
           error ||
           getProviders.error ||
-          getPurchases.error ||
+          getInvoices.error ||
           getPaymentType.error ||
           undefined
         }
@@ -605,7 +605,7 @@ function Page() {
   if (
     isSuccess &&
     getProviders.isSuccess &&
-    getPurchases.isSuccess &&
+    getInvoices.isSuccess &&
     getPaymentType.isSuccess
   ) {
     return (
