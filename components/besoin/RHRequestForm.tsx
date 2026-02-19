@@ -47,7 +47,6 @@ const SingleFileSchema = z
     ]),
   )
   .min(1, { message: "Le justificatif est requis" })
-  .nullable()
   .default([]);
 
 const formSchema = z.object({
@@ -161,7 +160,7 @@ export default function RHRequestForm() {
       beneficiary: "",
       benef: values.beneficiaire,
       proof: values.justificatif,
-      description: values.description || null,
+      description: values.description,
       amount: Number(values.montant),
       projectId: Number(values.projet),
       categoryId: 1,
@@ -180,7 +179,7 @@ export default function RHRequestForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl md:mx-12"
+        className="space-y-8 max-w-3xl"
       >
         <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
           {/* PROJET */}

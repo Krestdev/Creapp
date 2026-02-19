@@ -1,6 +1,10 @@
 import api from "@/providers/axios";
 import { RequestModelT } from "@/types/types";
 
+export type newRequestOthers = Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "proof" | "state" | "userId" | "beneficiary"> & {
+  amount: number;
+  benef: Array<number>;
+}
 class RequestQueries {
   route = "/request/object";
 
@@ -261,6 +265,13 @@ class RequestQueries {
   submit = async (id: number): Promise<{ data: RequestModelT }> => {
     return api.put(`${this.route}/submit/${id}`).then((res) => res.data);
   };
+  createOthersRequest = async (payload: newRequestOthers):Promise<RequestModelT> => {
+    return api
+      .post(this.route, {...payload, type: "others"})
+      .then((response) => {
+        return response.data;
+      });
+  }
 }
 
 export const requestQ = new RequestQueries();

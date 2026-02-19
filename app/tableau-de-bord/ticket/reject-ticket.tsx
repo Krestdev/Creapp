@@ -50,7 +50,7 @@ function RejectTicket({ open, openChange, payment, invoices }: Props) {
   });
   const toReject = useMutation({
     mutationFn: async (reason: string) =>
-      paymentQ.rejectInvoice({ id: payment.id, reason }),
+      paymentQ.rejectPayment({ id: payment.id, reason }),
     onSuccess: () => {
       toast.success("Vous avez rejeté un ticket avec succès !");
       form.reset({ reason: "" });

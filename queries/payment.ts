@@ -195,7 +195,7 @@ class PaymentQueries {
       .then((response) => response.data);
   };
 
-  rejectInvoice = async ({
+  rejectPayment = async ({
     id,
     reason,
   }: {

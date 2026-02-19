@@ -3,48 +3,39 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
+import { Textarea } from "@/components/ui/textarea";
 import { categoryQ } from "@/queries/categoryModule";
-import { Category, ResponseT } from "@/types/types";
+import { Category, RequestType, ResponseT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
-import { Textarea } from "../ui/textarea";
-
-export interface ActionResponse<T = any> {
-  success: boolean;
-  message: string;
-  errors?: {
-    [K in keyof T]?: string[];
-  };
-  inputs?: T;
-}
 
 export const formSchema = z.object({
   label: z.string({ message: "This field is required" }),
@@ -59,30 +50,34 @@ export const formSchema = z.object({
     .min(1, "Au moins un ascendant est requis") // MODIFICATION: minimum 1 validateur
     .max(3, "Maximum 3 ascendants autorisés"),
   description: z.string().optional(),
+  requestTypeId: z.coerce.number({message: "Veuillez sélectionner un type"}),
 });
 
 type Schema = z.infer<typeof formSchema>;
 
 interface UpdateCategoryProps {
   open: boolean;
-  setOpen: (open: boolean) => void;
-  categoryData: Category | null;
-  onSuccess?: () => void;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
+  category: Category;
+  users: Array<User>;
+  types: Array<RequestType>;
 }
 
 export function UpdateCategory({
   open,
-  setOpen,
-  categoryData,
-  onSuccess,
+  onOpenChange,
+  category,
+  users: usersList,
+  types
 }: UpdateCategoryProps) {
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
-      label: "",
-      description: "",
-      validators: [],
+      label: category.label,
+      description: category.description,
+      validators: category.validators,
+      requestTypeId: category.requestTypeId,
     },
   });
 
@@ -92,46 +87,38 @@ export function UpdateCategory({
     name: "validators",
   });
 
-  const { isHydrated } = useStore();
-
-  // Récupérer la liste des utilisateurs
-
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: () => userQ.getAll(),
-    enabled: isHydrated,
-  });
 
   // Réinitialiser le formulaire quand les données changent
   useEffect(() => {
-    if (categoryData) {
-      const validators = categoryData.validators || [];
+    if (category) {
+      const validators = category.validators || [];
 
       // S'assurer qu'il y a au moins un validateur
-      if (validators.length === 0 && categoryData.id !== 0) {
+      if (validators.length === 0 && category.id !== 0) {
         toast.warning(
           "Cette catégorie n'a pas d'ascendant. Veuillez en ajouter au moins un.",
         );
       }
 
       form.reset({
-        label: categoryData.label || "",
-        description: categoryData.description || "",
+        label: category.label || "",
+        description: category.description || "",
         validators: validators.map((validator) => ({
           id: validator.id,
           userId: validator.userId,
           rank: validator.rank,
         })),
+        requestTypeId: category.requestTypeId
       });
     }
-  }, [categoryData, form]);
+  }, [category, form]);
 
   const categoryApi = useMutation({
     mutationFn: async (data: Partial<Category>) => {
       setIsLoading(true);
       try {
         const response = await categoryQ.updateCategory(
-          categoryData?.id!,
+          category.id!,
           data,
         );
         return {
@@ -142,16 +129,12 @@ export function UpdateCategory({
         setIsLoading(false);
       }
     },
-    onSuccess: (data: ResponseT<Category>) => {
+    onSuccess: () => {
       toast.success("Catégorie mise à jour avec succès !");
-      setOpen(false);
-      onSuccess?.();
+      onOpenChange(false);
     },
-    onError: (error: any) => {
-      toast.error(
-        "Une erreur est survenue lors de la mise à jour de la catégorie.",
-      );
-      console.error("Update error:", error);
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 
@@ -162,7 +145,7 @@ export function UpdateCategory({
       return;
     }
 
-    const users = usersData.data?.data.filter((u) => u.verified) || [];
+    const users = usersList.filter((u) => u.verified) || [];
     if (users.length === 0) {
       toast.error("Aucun utilisateur disponible");
       return;
@@ -229,14 +212,14 @@ export function UpdateCategory({
 
   // Fonction pour obtenir le nom d'un utilisateur par son ID
   const getUserName = (userId: number) => {
-    const users = usersData.data?.data.filter((u) => u.verified) || [];
+    const users = usersList.filter((u) => u.verified) || [];
     const user = users.find((u) => u.id === userId);
     return user?.lastName + " " + user?.firstName || `Utilisateur #${userId}`;
   };
 
   // Fonction pour obtenir les utilisateurs disponibles (non sélectionnés)
   const getAvailableUsers = (currentIndex?: number) => {
-    const users = usersData.data?.data.filter((u) => u.verified) || [];
+    const users = usersList.filter((u) => u.verified) || [];
     const existingUserIds = fields
       .map((field, index) => {
         // Si on est en train d'éditer un champ, exclure son propre userId
@@ -256,7 +239,7 @@ export function UpdateCategory({
       toast.error("Au moins un ascendant est requis");
       return;
     }
-    if (categoryData?.id === undefined) {
+    if (category.id === undefined) {
       toast.error("ID de catégorie manquant");
       return;
     }
@@ -286,16 +269,15 @@ export function UpdateCategory({
   }, [fields.length, form]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
-        {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white uppercase">
-            {`Catégorie - ${categoryData?.label}`}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[760px]">
+        <DialogHeader variant={"secondary"}>
+          <DialogTitle>
+            {`Catégorie - ${category.label}`}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          <DialogDescription>
             {"Modifiez les informations de la catégorie"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -308,10 +290,10 @@ export function UpdateCategory({
               <FormField
                 control={form.control}
                 name="label"
-                disabled={categoryData?.id === 0}
+                disabled={category.id === 0}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Titre de la catégorie *"}</FormLabel>
+                    <FormLabel isRequired>{"Titre de la catégorie"}</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. Madiba AutoRoute" {...field} />
                     </FormControl>
@@ -322,7 +304,7 @@ export function UpdateCategory({
               <FormField
                 control={form.control}
                 name="description"
-                disabled={categoryData?.id === 0}
+                disabled={category.id === 0}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{"Description"}</FormLabel>
@@ -336,13 +318,31 @@ export function UpdateCategory({
                   </FormItem>
                 )}
               />
+              <FormField control={form.control} name="requestTypeId" render={({field})=>(
+                <FormItem>
+                  <FormLabel isRequired>{"Type de besoin"}</FormLabel>
+                  <FormControl>
+                    <Select value={field.value ? String(field.value) : undefined} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner un type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {types.filter(t=> t.type === "achat" || t.type ==="others" ).map((t, id)=>(
+                          <SelectItem key={id} value={t.id.toString()}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage/>
+                </FormItem>
+              )} />
             </div>
 
             {/* Section des ascendants */}
             <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <FormLabel className="text-lg font-semibold">
+                  <FormLabel className="text-base font-semibold">
                     {"Définissez les ascendants"}
                   </FormLabel>
                   <p className="text-sm text-muted-foreground">
@@ -351,12 +351,12 @@ export function UpdateCategory({
                 </div>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="primary"
                   onClick={addValidator}
                   disabled={fields.length >= 3 || isLoading}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un ascendant
+                  {"Ajouter un ascendant"}
+                  <Plus />
                 </Button>
               </div>
 
@@ -364,8 +364,7 @@ export function UpdateCategory({
               {fields.length === 1 && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                   <p className="text-sm text-blue-700">
-                    ⓘ Au moins un ascendant doit être présent. Vous ne pouvez
-                    pas supprimer le dernier ascendant.
+                    {`ⓘ Au moins un ascendant doit être présent. Vous ne pouvez pas supprimer le dernier ascendant.`}
                   </p>
                 </div>
               )}
@@ -380,10 +379,10 @@ export function UpdateCategory({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Badge className="bg-primary text-primary-foreground">
+                          <Badge variant={index === fields.length - 1 ? "primary" : "dark"}>
                             {`Position ${index + 1}`}
                             {index === fields.length - 1 && (
-                              <span className="ml-1">(Dernier)</span>
+                              <span className="ml-1">{"(Dernier)"}</span>
                             )}
                           </Badge>
                         </div>
@@ -396,7 +395,7 @@ export function UpdateCategory({
                             disabled={index === 0 || isLoading}
                             title="Déplacer vers le haut"
                           >
-                            <ChevronUp className="h-4 w-4" />
+                            <ChevronUp />
                           </Button>
                           <Button
                             type="button"
@@ -406,7 +405,7 @@ export function UpdateCategory({
                             disabled={index === fields.length - 1 || isLoading}
                             title="Déplacer vers le bas"
                           >
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown />
                           </Button>
                           <Button
                             type="button"
@@ -424,7 +423,7 @@ export function UpdateCategory({
                                 : "Supprimer"
                             }
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 />
                           </Button>
                         </div>
                       </div>
@@ -436,7 +435,7 @@ export function UpdateCategory({
                           const availableUsers = getAvailableUsers(index);
                           return (
                             <FormItem>
-                              <FormLabel>{"Nom de l'ascendant *"}</FormLabel>
+                              <FormLabel isRequired>{"Nom de l'ascendant"}</FormLabel>
                               <Select
                                 value={field.value?.toString() || ""}
                                 onValueChange={(value) =>
@@ -511,8 +510,8 @@ export function UpdateCategory({
                     disabled={isLoading}
                     className="mt-4"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter le premier ascendant
+                    <Plus />
+                    {"Ajouter le premier ascendant"}
                   </Button>
                 </div>
               )}
@@ -520,29 +519,31 @@ export function UpdateCategory({
           </form>
 
           {/* Footer avec boutons */}
-          <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
+          <DialogFooter>
             <Button
               type="submit"
+              variant={"secondary"}
               className="w-fit"
               onClick={form.handleSubmit(onsubmit)}
               disabled={
                 categoryApi.isPending || isLoading || fields.length === 0
               }
+              isLoading={
+                categoryApi.isPending || isLoading || fields.length === 0
+              }
             >
-              {categoryApi.isPending || isLoading
-                ? "Mise à jour..."
-                : "Enregistrer"}
+              {"Enregistrer"}
             </Button>
             <Button
               type="button"
               className="w-fit"
-              onClick={() => setOpen(false)}
+              onClick={() => onOpenChange(false)}
               variant={"outline"}
               disabled={isLoading}
             >
               {"Annuler"}
             </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

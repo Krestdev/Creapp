@@ -161,7 +161,7 @@ export default function MyForm() {
       "id" | "createdAt" | "updatedAt" | "ref" | "validators"
     > = {
       label: values.titre,
-      description: values.description || null,
+      description: values.description,
       categoryId: Number(values.categorie),
       quantity: Number(values.quantity),
       unit: values.unite,
@@ -169,8 +169,7 @@ export default function MyForm() {
       type: "achat",
       benef:
         values.beneficiaire === "autre" && values.beneficiaireId
-          ? [Number(values.beneficiaireId)]
-          : null,
+          ? [Number(values.beneficiaireId)] : undefined,
       userId: Number(user?.id),
       dueDate: values.datelimite,
       projectId: Number(values.projet),
@@ -188,7 +187,7 @@ export default function MyForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl md:mx-12"
+        className="space-y-8 max-w-3xl"
       >
         <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
           {/* PROJET */}

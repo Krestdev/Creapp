@@ -199,26 +199,32 @@ export type RequestModelT = {
   updatedAt: Date;
   label: string;
   userId: number;
-  description: string | null;
+  description: string;
   quantity: number;
   dueDate: Date;
   unit: string;
   beneficiary: string;
-  benef?: number[] | null;
+  benef?: number[];
   period?: DateRange | undefined;
   beficiaryList?:
   | { id: number; firstName: string; lastName: string; email: string }[]
   | null;
   state: (typeof REQUEST_STATUS)[number]["value"];
   priority: "medium" | "high" | "low" | "urgent";
-  projectId?: number | null;
+  projectId?: number
   project?: ProjectT;
-  categoryId?: number | null;
-  category?: number | null;
-  proof?: (string | File)[] | null | undefined;
-  type?: "speciaux" | "ressource_humaine" | "facilitation" | "achat";
+  categoryId?: number;
+  category?: number;
+  proof?: (string | File)[];
+  type?: "speciaux" | "ressource_humaine" | "facilitation" | "achat" | "others" | "transport" | "gas";
   amount?: number;
-  benFac?: { list: { id: number; name: string; amount: number }[] } | null;
+  benFac?: { list: { id: number; name: string; amount: number }[] };
+  //Gas & Transport
+  driverId?: number;
+  model?: Vehicle;
+  km?: number;
+  liters?: number;
+  //
   requestOlds?: Array<{
     id: number;
     dueDate: Date;
@@ -282,6 +288,8 @@ export type Category = {
   label: string;
   description?: string;
   validators: { id?: number; userId: number; rank: number }[];
+  requestTypeId: number;
+  type: RequestType;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -715,6 +723,7 @@ export type RequestType = {
   type: string;
   createdAt: Date;
   updatedAt?: Date;
+  categories: Array<Category>;
 };
 
 type SignMode = "ONE" | "BOTH";

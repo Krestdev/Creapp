@@ -42,7 +42,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { categoryQ } from "@/queries/categoryModule";
-import { Category } from "@/types/types";
+import { Category, RequestType, User } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import {
   ChevronLeft,
@@ -51,15 +51,19 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { ModalWarning } from "../modals/modal-warning";
-import { ShowCategory } from "./show-category";
-import { UpdateCategory } from "./UpdateCategory";
+import { DeleteCategory } from "./delete-category";
+import { ViewCategory } from "./view-category";
+import { UpdateCategory } from "./update-category";
+import { Badge } from "@/components/ui/badge";
+
 
 interface CategoriesTableProps {
   data: Category[];
+  users: Array<User>;
+  types: Array<RequestType>;
 }
 
-export function CategoriesTable({ data }: CategoriesTableProps) {
+export function TableCategories({ data, users, types }: CategoriesTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -121,7 +125,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
               }
             >
               {"Description"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown />
             </span>
           );
         },
@@ -139,8 +143,30 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
         },
       },
       {
+        accessorKey: "type",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Type de catégorie"}
+              <ArrowUpDown />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+            const value = row.original.type;
+          return (
+            <Badge variant={value.type === "achat" ? "blue" : value.type === "others" ? "purple" : "outline"}>{value.label}</Badge>
+          );
+        },
+      },
+      {
         id: "actions",
-        header: "Actions",
+        header: ()=><span className="tablehead">{"Actions"}</span>,
         enableHiding: false,
         cell: ({ row }) => {
           const categories = row.original;
@@ -155,7 +181,6 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-                {/* <DropdownMenuItem>View</DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
@@ -163,7 +188,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                     setShowDetail(true);
                   }}
                 >
-                  <LucideEye className="mr-2 h-4 w-4" />
+                  <LucideEye/>
                   {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -172,18 +197,18 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
                     setIsUpdateModalOpen(true);
                   }}
                 >
-                  <LucidePen className="mr-2 h-4 w-4" />
+                  <LucidePen />
                   {"Modifier"}
                 </DropdownMenuItem>
                 {row.original.id !== 0 && row.original.id !== 1 && (
                   <DropdownMenuItem
-                    className="text-red-600"
+                    variant="destructive"
                     onClick={() => {
                       setSelectedItem(categories);
                       setIsDeleteModalOpen(true);
                     }}
                   >
-                    <LucideTrash2 className="mr-2 h-4 w-4 text-red-400" />
+                    <LucideTrash2 />
                     {"Supprimer"}
                   </DropdownMenuItem>
                 )}
@@ -329,12 +354,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between space-x-2 py-4">
-        {/* <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div> */}
-        <div>.</div>
+      <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
@@ -342,7 +362,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
-            <ChevronsLeft className="h-4 w-4" />
+            <ChevronsLeft/>
           </Button>
           <Button
             variant="outline"
@@ -350,7 +370,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft />
           </Button>
           <Button
             variant="outline"
@@ -358,7 +378,7 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight/>
           </Button>
           <Button
             variant="outline"
@@ -366,33 +386,18 @@ export function CategoriesTable({ data }: CategoriesTableProps) {
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >
-            <ChevronsRight className="h-4 w-4" />
+            <ChevronsRight />
           </Button>
         </div>
       </div>
-
-      <ModalWarning
-        open={isDeleteModalOpen}
-        onOpenChange={setIsDeleteModalOpen}
-        title="Supprimer la catégorie"
-        description="Êtes-vous sûr de vouloir supprimer cette catégorie ?"
-        message="Suprimer cette catégorie suprimera tous les besoins associés. Cette action est irreversible"
-        onAction={() => categoryData.mutate(selectedItem?.id || 0)}
-        actionText="Supprimer"
-        variant="error"
-      />
-
-      <UpdateCategory
-        open={isUpdateModalOpen}
-        setOpen={setIsUpdateModalOpen}
-        categoryData={selectedItem}
-      />
-
-      <ShowCategory
-        open={showDetail}
-        onOpenChange={setShowDetail}
-        data={selectedItem}
-      />
+      {
+        selectedItem &&
+        <>
+        <DeleteCategory open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} category={selectedItem} />
+        <ViewCategory open={showDetail} onOpenChange={setShowDetail} category={selectedItem} users={users} />
+        <UpdateCategory open={isUpdateModalOpen} onOpenChange={setIsUpdateModalOpen} category={selectedItem} users={users} types={types} />
+        </>
+      }
     </div>
   );
 }

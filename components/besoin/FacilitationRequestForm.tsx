@@ -15,7 +15,7 @@ import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -39,6 +39,11 @@ import {
 import { Textarea } from "../ui/textarea";
 import BeneficiairesList from "./AddBenef";
 
+interface Props {
+  users: Array<User>;
+  projects: Array<ProjectT>;
+}
+
 // ----------------------------------------------------------------------
 // VALIDATION
 // ----------------------------------------------------------------------
@@ -50,7 +55,6 @@ const SingleFileSchema = z
     ]),
   )
   .max(1, "Pas plus d'un document")
-  .nullable()
   .default([]);
 
 const formSchema = z.object({
@@ -65,7 +69,7 @@ const formSchema = z.object({
   justificatif: SingleFileSchema,
 });
 
-export default function FacilitationRequestForm() {
+export default function FacilitationRequestForm({users, projects}:Props) {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -87,24 +91,6 @@ export default function FacilitationRequestForm() {
       title: "",
       description: "",
     },
-  });
-
-  // ----------------------------------------------------------------------
-  // QUERY PROJECTS
-  // ----------------------------------------------------------------------
-
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => projectQ.getAll(),
-  });
-
-  // ----------------------------------------------------------------------
-  // QUERY USERS
-  // ----------------------------------------------------------------------
-
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => userQ.getAll(),
   });
 
   // ----------------------------------------------------------------------
@@ -142,7 +128,7 @@ export default function FacilitationRequestForm() {
       "id" | "createdAt" | "updatedAt" | "ref" | "validators"
     > = {
       label: values.title,
-      description: values.description || null,
+      description: values.description ?? "",
       categoryId: 0,
       quantity: 1,
       unit: "unit",
@@ -171,7 +157,7 @@ export default function FacilitationRequestForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl md:mx-12"
+        className="space-y-8 max-w-3xl"
       >
         <div className="flex flex-col @min-[640px]:grid @min-[640px]:grid-cols-2 gap-4">
           {/* PROJET */}
@@ -184,7 +170,7 @@ export default function FacilitationRequestForm() {
                 <SearchableSelect
                   onChange={field.onChange}
                   options={
-                    projectsData.data?.data
+                    projects
                       ?.filter(
                         (p) =>
                           p.status !== "cancelled" &&
@@ -253,7 +239,7 @@ export default function FacilitationRequestForm() {
                     <SelectValue placeholder="Sélectionner un recepteur pour compte" />
                   </SelectTrigger>
                   <SelectContent>
-                    {usersData.data?.data.filter((u) => u.verified).map((user) => (
+                    {users.filter((u) => u.verified).map((user) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
                         {user.lastName + " " + user.firstName}
                       </SelectItem>

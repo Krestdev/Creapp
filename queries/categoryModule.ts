@@ -1,6 +1,7 @@
 import api from "@/providers/axios";
 import { Category } from "@/types/types";
 
+export type newCategory = Omit<Category, "id" | "createdAt" | "updatedAt" | "type">;
 class CategoryQueries {
   route = "/request";
 
@@ -15,7 +16,7 @@ class CategoryQueries {
 
   // POST /request/category
   createCategory = async (
-    data: Omit<Category, "id" | "createdAt" | "updatedAt">
+    data: newCategory
   ): Promise<{ message: string; data: Category }> => {
     return api.post(`${this.route}/category`, data).then((res) => res.data);
   };

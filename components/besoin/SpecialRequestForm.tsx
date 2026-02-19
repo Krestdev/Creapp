@@ -95,7 +95,7 @@ export default function SpecialRequestForm() {
       label: values.titre,
       amount: Number(values.montant),
       dueDate: values.delai,
-      description: values.raison || null,
+      description: values.raison ?? "",
       quantity: 1,
       unit: "unit",
       beneficiary: user?.id!.toString() ?? "",
@@ -113,7 +113,7 @@ export default function SpecialRequestForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl md:mx-12"
+        className="space-y-8 max-w-3xl"
       >
         <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
           {/* TITRE */}
