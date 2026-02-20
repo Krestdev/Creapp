@@ -29,7 +29,7 @@ class CategoryQueries {
   // PUT /request/category/{id}
   updateCategory = async (
     id: number,
-    data: Partial<Category>
+    data: Partial<Category>,
   ): Promise<{ data: Category }> => {
     return api
       .put(`${this.route}/category/${id}`, data)

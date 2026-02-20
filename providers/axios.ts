@@ -28,19 +28,19 @@ const formatErrorMessage = (error: any): string => {
     if (apiError.errors) {
       // Erreurs de validation
       const validationErrors = Object.entries(apiError.errors)
-        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
-        .join('\n');
+        .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
+        .join("\n");
       return validationErrors;
     }
 
     return apiError.message || apiError.error || "Une erreur est survenue";
   }
 
-  if (error.code === 'ECONNABORTED') {
+  if (error.code === "ECONNABORTED") {
     return "La requête a expiré. Veuillez réessayer.";
   }
 
-  if (error.code === 'NETWORK_ERROR' || !error.response) {
+  if (error.code === "NETWORK_ERROR" || !error.response) {
     return "Erreur réseau. Vérifiez votre connexion internet.";
   }
 
@@ -63,7 +63,7 @@ api.interceptors.request.use(
     const errorMessage = formatErrorMessage(error);
     toast.error(errorMessage);
     return Promise.reject(new Error(errorMessage));
-  }
+  },
 );
 
 // Response Interceptor pour gestion globale des erreurs
@@ -75,18 +75,26 @@ api.interceptors.response.use(
     switch (error.response?.status) {
       case 401:
         // Rediriger vers login si token expiré - On va plutôt rediriger vers le tableau de bord
-        if(errorMessage.toLocaleLowerCase().includes("token") && typeof window !== "undefined"){
+        if (
+          errorMessage.toLocaleLowerCase().includes("token") &&
+          typeof window !== "undefined"
+        ) {
           localStorage.removeItem("creapp-store");
           window.location.href = "/connexion";
         }
-        if (typeof window !== "undefined" && window.location.pathname !== "/tableau-de-bord") {
-           window.location.replace("/tableau-de-bord");
+        if (
+          typeof window !== "undefined" &&
+          window.location.pathname !== "/tableau-de-bord"
+        ) {
+          window.location.replace("/tableau-de-bord");
         }
         toast.error("Session expirée. Veuillez vous reconnecter.");
         break;
 
       case 403:
-        toast.error("Accès refusé. Vous n'avez pas les permissions nécessaires.");
+        toast.error(
+          "Accès refusé. Vous n'avez pas les permissions nécessaires.",
+        );
         break;
 
       case 404:
@@ -113,7 +121,7 @@ api.interceptors.response.use(
         toast.error(errorMessage);
     }
 
-   /*  // Vous pouvez aussi logger les erreurs
+    /*  // Vous pouvez aussi logger les erreurs
     if (process.env.NODE_ENV === "development") {
       console.error("API Error:", {
         url: error.config?.url,
@@ -124,7 +132,7 @@ api.interceptors.response.use(
     } */
 
     return Promise.reject(new Error(errorMessage));
-  }
+  },
 );
 
 export default api;
