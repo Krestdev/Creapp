@@ -48,6 +48,9 @@ export const PAYMENT_TYPES = [
   { value: "speciaux", name: "Spécial" },
   { value: "achat", name: "Achat" },
   { value: "CURRENT", name: "Dépenses Courantes" },
+  { value: "others", name: "Autres" },
+  { value: "transport", name: "Transport" },
+  { value: "gas", name: "Carburant" },
 ] as const;
 
 export const PAYMENT_METHOD = [
@@ -99,6 +102,7 @@ export type PaymentRequest = {
   userId: number;
   //commandId?: number | null;
   invoiceId?: number;
+  invoice?: Invoice;
   requestId?: number | null;
   projectId?: number | null;
   createdAt: string;
@@ -108,6 +112,8 @@ export type PaymentRequest = {
   bankId?: number | null;
   transactionId?: number | null;
   methodId?: number | null;
+  method?: PayType;
+  bank?: Bank;
   signer?: User[] | null;
 };
 
@@ -170,7 +176,7 @@ export type Member = {
 // projects
 
 export type ProjectT = {
-  id?: number;
+  id: number;
   reference: string;
   userId: number;
   createdAt?: Date;
@@ -216,7 +222,7 @@ export type RequestModelT = {
   categoryId?: number;
   category?: number;
   proof?: (string | File)[];
-  type?: "speciaux" | "ressource_humaine" | "facilitation" | "achat" | "others" | "transport" | "gas";
+  type: (typeof PAYMENT_TYPES)[number]["value"];
   amount?: number;
   benFac?: { list: { id: number; name: string; amount: number }[] };
   //Gas & Transport
@@ -720,7 +726,7 @@ export type RequestType = {
   id: number;
   label: string;
   description: string;
-  type: string;
+  type: (typeof PAYMENT_TYPES)[number]["value"];
   createdAt: Date;
   updatedAt?: Date;
   categories: Array<Category>;

@@ -84,6 +84,7 @@ import { VariantProps } from "class-variance-authority";
 import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
+import { NoticeFile } from "./notice";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -214,34 +215,30 @@ function getStatusBadge(status: PaymentRequest["status"]): {
 }
 
 function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType, providers, request, users }: Props) {
-  function getTypeBadge(type: PaymentRequest["type"]): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } {
-    // Cas spécial
-    if (type === "CURRENT") {
-      return {
-        label: "Dépenses courantes",
-        variant: "yellow",
-      };
+  function getTypeBadge(
+      type: RequestModelT["type"],
+    ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+      const typeData = requestTypes.find((t) => t.type === type);
+      const label = typeData?.label ?? type;
+      switch (type) {
+        case "facilitation":
+          return { label, variant: "lime" };
+        case "achat":
+          return { label, variant: "sky" };
+        case "speciaux":
+          return { label, variant: "purple" };
+        case "ressource_humaine":
+          return { label, variant: "blue" };
+        case "gas":
+          return {label, variant: "teal"};
+        case "transport":
+          return {label, variant: "primary"};
+        case "others" :
+          return {label, variant: "dark"};
+        default:
+          return { label, variant: "outline" };
+      }
     }
-
-    const typeData = requestTypes.find((t) => t.type === type);
-    const label = typeData?.label ?? "Inconnu";
-
-    switch (type) {
-      case "facilitation":
-        return { label, variant: "lime" };
-      case "achat":
-        return { label, variant: "sky" };
-      case "speciaux":
-        return { label, variant: "purple" };
-      case "ressource_humaine":
-        return { label, variant: "blue" };
-      default:
-        return { label, variant: "outline" };
-    }
-  }
 
   const types = requestTypes
     .map((x) => {
@@ -600,6 +597,22 @@ function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType
                   {"Traiter"}
                 </DropdownMenuItem>
               )}
+              {
+                !!item.invoiceId &&
+                <DropdownMenuItem disabled={item.status !== "paid"}>
+                 <PDFDownloadLink
+                      document={<NoticeFile payment={item} />}
+                      fileName={`avis-de-reglement-${item.reference}.pdf`}
+                    >
+                      {({ loading }) => (
+                        <Button disabled={loading} variant={"ghost"} className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5">
+                          {loading ? "Chargement..." : "Télécharger"}
+                          <Download />
+                        </Button>
+                      )}
+                    </PDFDownloadLink>
+              </DropdownMenuItem>
+              }
             </DropdownMenuContent>
           </DropdownMenu>
         );

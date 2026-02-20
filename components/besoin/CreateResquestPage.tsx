@@ -1,5 +1,8 @@
 "use client";
 
+import CreateTypeGas from "@/app/tableau-de-bord/besoins/creer/create-type-gas";
+import CreateTypeOthers from "@/app/tableau-de-bord/besoins/creer/create-type-others";
+import CreateTypeTransport from "@/app/tableau-de-bord/besoins/creer/create-type-transport";
 import {
   Select,
   SelectContent,
@@ -7,26 +10,26 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { isRole } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { ProjectT, RequestType, Role, User } from "@/types/types";
+import { Category, ProjectT, RequestModelT, RequestType, Role, User, Vehicle } from "@/types/types";
 import React from "react";
 import { Label } from "../ui/label";
 import CreateRequest from "./CreateForm";
 import FacilitationRequestForm from "./FacilitationRequestForm";
 import RHRequestForm from "./RHRequestForm";
 import SpecialRequestForm from "./SpecialRequestForm";
-import CreateTypeOthers from "@/app/tableau-de-bord/besoins/creer/create-type-others";
 
 interface Props {
   types: Array<RequestType>;
   users: Array<User>;
   projects: Array<ProjectT>;
+  categories: Array<Category>;
+  vehicles: Array<Vehicle>;
 }
 
-const CreateResquestPage = ({types, users, projects}:Props) => {
+const CreateResquestPage = ({types, users, projects, categories, vehicles}:Props) => {
   const { user } = useStore();
-  const [requestType, setRequestType] = React.useState<string>("");
+  const [requestType, setRequestType] = React.useState<RequestModelT["type"]>();
 
     const renderForm = () => {
       switch (requestType) {
@@ -39,7 +42,11 @@ const CreateResquestPage = ({types, users, projects}:Props) => {
         case "ressource_humaine":
           return <RHRequestForm />;
         case "others":
-          return <CreateTypeOthers users={users}/>;
+          return <CreateTypeOthers users={users} categories={categories}/>;
+        case "gas":
+          return <CreateTypeGas users={users} categories={categories} vehicles={vehicles} />;
+        case "transport":
+          return <CreateTypeTransport users={users} categories={categories} projects={projects} />
         default:
           return null;
       }
@@ -57,7 +64,7 @@ const CreateResquestPage = ({types, users, projects}:Props) => {
       <div className="space-y-6">
         <div className="grid gap-2">
           <Label>{"Type de besoin"}</Label>
-          <Select onValueChange={setRequestType}>
+          <Select onValueChange={(v)=>setRequestType(v as RequestModelT["type"])}>
             <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
               <SelectValue placeholder="Sélectionner le type de besoin" />
             </SelectTrigger>

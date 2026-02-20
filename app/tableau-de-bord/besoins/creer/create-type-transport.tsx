@@ -1,45 +1,28 @@
-"use client";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { units } from "@/data/unit";
-import { useStore } from "@/providers/datastore";
-import { newRequestOthers, requestQ } from "@/queries/requestModule";
-import { Category, PRIORITIES, User } from "@/types/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import z from "zod";
+'use client'
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useStore } from '@/providers/datastore';
+import { newRequestTransport, requestQ } from '@/queries/requestModule';
+import { Category, PRIORITIES, ProjectT, User } from '@/types/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React from 'react'
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import z from 'zod';
 
 interface Props {
   users: Array<User>;
   categories: Array<Category>;
+  projects: Array<ProjectT>;
 }
 
 const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
@@ -57,7 +40,7 @@ const formSchema = z.object({
   description: z.string({ message: "Veuillez renseigner une description" }),
   categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}), 
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
-  quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
+  projectId: z.coerce.number({ message: "Veuillez définir une quantité" }),
   benef: z.coerce.number(),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
@@ -66,33 +49,31 @@ const formSchema = z.object({
     },
     { message: "Date invalide" },
   ),
-  unit: z.string(),
   priority: z.enum(REQUEST_PRIORITIES),
 });
 
-function CreateTypeOthers({ users, categories }: Props) {
-  const { user } = useStore();
+function CreateTypeTransport({users, categories, projects}:Props) {
+    const { user } = useStore();
   const router = useRouter();
 
-  const [dueDate, setDueDate] = useState<boolean>(false);
+  const [dueDate, setDueDate] = React.useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      label: "",
+      label: "Transport",
       description: "",
       amount: 100,
-      quantity: 1,
+      projectId: undefined,
       benef: undefined,
       priority: "low",
-      unit: "",
       categoryId: undefined
     },
   });
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (payload: newRequestOthers) =>
-      requestQ.createOthersRequest(payload),
+    mutationFn: async (payload: newRequestTransport) =>
+      requestQ.createTransportRequest(payload),
     onSuccess: () => {
       toast.success("Votre besoin a été soumis avec succès !");
       router.push("./mes-besoins");
@@ -107,12 +88,13 @@ function CreateTypeOthers({ users, categories }: Props) {
         label: values.label,
         description: values.description,
         amount: values.amount,
-        quantity: values.quantity,
-        unit: values.unit,
+        projectId: values.projectId,
         benef: [values.benef],
         dueDate: new Date(values.dueDate),
         priority: values.priority,
-        categoryId: values.categoryId
+        categoryId: values.categoryId,
+        quantity: 1,
+        unit: "FCFA"
     });
   };
   return (
@@ -125,7 +107,7 @@ function CreateTypeOthers({ users, categories }: Props) {
             <FormItem>
               <FormLabel isRequired>{"Titre"}</FormLabel>
               <FormControl>
-                <Input placeholder="Ex. Thé" {...field} />
+                <Input placeholder="Ex. Visite Terrain" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -148,10 +130,10 @@ function CreateTypeOthers({ users, categories }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     {
-                      categories.filter(c=> c.type.type === "others").length === 0 ?
+                      categories.filter(c=> c.type.type === "transport").length === 0 ?
                       <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
                       :
-                    categories.filter(c=> c.type.type === "others").map((category) => (
+                    categories.filter(c=> c.type.type === "transport").map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.label}
                       </SelectItem>
@@ -271,40 +253,22 @@ function CreateTypeOthers({ users, categories }: Props) {
             </FormItem>
           )}
         />
+        {/* Project */}
         <FormField
           control={form.control}
-          name="quantity"
+          name="projectId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Quantité"}</FormLabel>
+              <FormLabel isRequired>{"Projet"}</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Ex. 3"
-                  {...field}
-                  className="pr-12"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {/* Unité */}
-        <FormField
-          control={form.control}
-          name="unit"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Unité"}</FormLabel>
-              <FormControl>
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select value={field.value ? field.value.toString() : undefined} onValueChange={field.onChange}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {units.map((unit) => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {unit.name}
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        {project.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -378,7 +342,7 @@ function CreateTypeOthers({ users, categories }: Props) {
         </div>
       </form>
     </Form>
-  );
+  )
 }
 
-export default CreateTypeOthers;
+export default CreateTypeTransport

@@ -1,9 +1,23 @@
 import api from "@/providers/axios";
 import { RequestModelT } from "@/types/types";
 
-export type newRequestOthers = Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "proof" | "state" | "userId" | "beneficiary"> & {
+export type newRequestOthers = Omit<RequestModelT, "id" | "type" | "createdAt" | "updatedAt" | "ref" | "validators" | "proof" | "state" | "userId" | "beneficiary"> & {
   amount: number;
   benef: Array<number>;
+}
+
+export type newRequestTransport = Omit<RequestModelT, "id" | "type" | "createdAt" | "updatedAt" | "ref"| "validators" | "proof" | "state" | "userId" | "beneficiary"> & {
+  amount: number;
+  benef: Array<number>;
+  projectId: number;
+}
+
+export type newRequestGas = Omit<RequestModelT, "id" | "type" | "createdAt" | "updatedAt" | "ref"| "validators" | "proof" | "state" | "userId" | "beneficiary" | "liters" | "km"> & {
+  amount: number;
+  benef: Array<number>;
+  km: string;
+  liters: string;
+  vehiclesId: number;
 }
 class RequestQueries {
   route = "/request/object";
@@ -16,7 +30,7 @@ class RequestQueries {
   create = async (
     data: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref" | "project" | "validators"
+      "id" | "createdAt" | "updatedAt" | "ref" | "project" | "validators" | "type"
     >
   ): Promise<{ data: RequestModelT }> => {
     return api.post(this.route, data).then((res) => res.data);
@@ -267,10 +281,24 @@ class RequestQueries {
   };
   createOthersRequest = async (payload: newRequestOthers):Promise<RequestModelT> => {
     return api
-      .post(this.route, {...payload, type: "others"})
+      .post(this.route, {...payload, type: "others", beneficiary: ""})
       .then((response) => {
         return response.data;
       });
+  }
+  createTransportRequest = async (payload: newRequestTransport):Promise<RequestModelT> => {
+    return api
+    .post(this.route, {...payload, type: "transport", beneficiary: ""})
+    .then((response)=>{
+      return response.data;
+    })
+  }
+  createGasRequest = async (payload: newRequestGas):Promise<RequestModelT> => {
+    return api
+    .post(this.route, {...payload, type: "carburent", beneficiary: ""})
+    .then((response)=>{
+      return response.data;
+    })
   }
 }
 

@@ -446,7 +446,7 @@ function AppSidebar() {
       {
         pageId: "PG-00",
         icon: BriefcaseBusiness,
-        href: "/tableau-de-bord/projets/liste",
+        href: "/tableau-de-bord/projets",
         authorized: ["ADMIN"],
         title: "Projets",
       },

@@ -1,25 +1,20 @@
 "use client";
 
 import {
-    type ColumnDef,
-    type ColumnFiltersState,
-    type SortingState,
-    type VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
 import {
-    AlertCircle,
-    ArrowUpDown,
-    Ban,
-    CheckCircle,
-    Clock,
-    Eye,
-    XCircle
+  ArrowUpDown,
+  Eye
 } from "lucide-react";
 import * as React from "react";
 
@@ -28,28 +23,28 @@ import { Pagination } from "@/components/base/pagination";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { cn, subText } from "@/lib/utils";
 import {
-    Category,
-    PaymentRequest,
-    ProjectT,
-    REQUEST_STATUS,
-    RequestModelT,
-    RequestType,
-    User,
+  Category,
+  PaymentRequest,
+  ProjectT,
+  REQUEST_STATUS,
+  RequestModelT,
+  RequestType,
+  User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -112,15 +107,10 @@ export function RequestsTable({
 
 
   function getTypeBadge(
-    type:
-      | "achat"
-      | "ressource_humaine"
-      | "facilitation"
-      | "speciaux"
-      | undefined,
+    type: RequestModelT["type"],
   ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
     const typeData = requestTypes.find((t) => t.type === type);
-    const label = typeData?.label ?? "Inconnu";
+    const label = typeData?.label ?? type;
     switch (type) {
       case "facilitation":
         return { label, variant: "lime" };
@@ -130,8 +120,14 @@ export function RequestsTable({
         return { label, variant: "purple" };
       case "ressource_humaine":
         return { label, variant: "blue" };
+      case "gas":
+        return {label, variant: "teal"};
+      case "transport":
+        return {label, variant: "primary"};
+      case "others" :
+        return {label, variant: "dark"};
       default:
-        return { label: type || "Inconnu", variant: "outline" };
+        return { label, variant: "outline" };
     }
   }
 

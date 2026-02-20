@@ -200,28 +200,29 @@ export function DataTable({
   };
 
   function getTypeBadge(
-    type:
-      | "achat"
-      | "ressource_humaine"
-      | "facilitation"
-      | "speciaux"
-      | undefined,
-  ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-    const typeData = requestTypes.find((t) => t.type === type);
-    const label = typeData?.label ?? "Inconnu";
-    switch (type) {
-      case "facilitation":
-        return { label, variant: "lime" };
-      case "achat":
-        return { label, variant: "sky" };
-      case "speciaux":
-        return { label, variant: "purple" };
-      case "ressource_humaine":
-        return { label, variant: "blue" };
-      default:
-        return { label: type || "Inconnu", variant: "outline" };
+      type: RequestModelT["type"],
+    ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+      const typeData = requestTypes.find((t) => t.type === type);
+      const label = typeData?.label ?? type;
+      switch (type) {
+        case "facilitation":
+          return { label, variant: "lime" };
+        case "achat":
+          return { label, variant: "sky" };
+        case "speciaux":
+          return { label, variant: "purple" };
+        case "ressource_humaine":
+          return { label, variant: "blue" };
+        case "gas":
+          return {label, variant: "teal"};
+        case "transport":
+          return {label, variant: "primary"};
+        case "others" :
+          return {label, variant: "dark"};
+        default:
+          return { label, variant: "outline" };
+      }
     }
-  }
 
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [

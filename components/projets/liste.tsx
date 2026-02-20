@@ -8,7 +8,7 @@ import LoadingPage from "../loading-page";
 
 const ProjectListPage = () => {
   const projectData = useQuery({
-    queryKey: ["projectsList"],
+    queryKey: ["projects"],
     queryFn: projectQ.getAll,
   });
 

@@ -1,38 +1,20 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
-import { newRequestOthers, requestQ } from "@/queries/requestModule";
-import { Category, PRIORITIES, User } from "@/types/types";
+import { newRequestGas, requestQ } from "@/queries/requestModule";
+import { Category, PRIORITIES, User, Vehicle } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -40,6 +22,7 @@ import z from "zod";
 interface Props {
   users: Array<User>;
   categories: Array<Category>;
+  vehicles: Array<Vehicle>;
 }
 
 const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
@@ -55,9 +38,13 @@ const formSchema = z.object({
     .min(5, { message: "Trop court" })
     .max(50, { message: "Trop long" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
-  categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}), 
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
-  quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
+  vehiclesId: z.coerce.number(),
+  km: z.coerce.number(),
+  liters: z.coerce.number(),
   benef: z.coerce.number(),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
@@ -70,53 +57,57 @@ const formSchema = z.object({
   priority: z.enum(REQUEST_PRIORITIES),
 });
 
-function CreateTypeOthers({ users, categories }: Props) {
-  const { user } = useStore();
-  const router = useRouter();
-
-  const [dueDate, setDueDate] = useState<boolean>(false);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      label: "",
-      description: "",
-      amount: 100,
-      quantity: 1,
-      benef: undefined,
-      priority: "low",
-      unit: "",
-      categoryId: undefined
-    },
-  });
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (payload: newRequestOthers) =>
-      requestQ.createOthersRequest(payload),
-    onSuccess: () => {
-      toast.success("Votre besoin a été soumis avec succès !");
-      router.push("./mes-besoins");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    mutate({
-        label: values.label,
-        description: values.description,
-        amount: values.amount,
-        quantity: values.quantity,
-        unit: values.unit,
-        benef: [values.benef],
-        dueDate: new Date(values.dueDate),
-        priority: values.priority,
-        categoryId: values.categoryId
-    });
-  };
-  return (
-    <Form {...form}>
+function CreateTypeGas({ users, categories, vehicles }: Props) {
+    const { user } = useStore();
+      const router = useRouter();
+    
+      const [dueDate, setDueDate] = React.useState<boolean>(false);
+    
+      const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+          label: "Recharge de carburant",
+          description: "",
+          amount: 100,
+          liters: 1,
+          benef: undefined,
+          priority: "low",
+          vehiclesId: undefined,
+          km: 1,
+          unit: "km",
+          categoryId: undefined
+        },
+      });
+    
+      const { mutate, isPending } = useMutation({
+        mutationFn: async (payload: newRequestGas) =>
+          requestQ.createGasRequest(payload),
+        onSuccess: () => {
+          toast.success("Votre besoin a été soumis avec succès !");
+          router.push("./mes-besoins");
+        },
+        onError: (error: Error) => {
+          toast.error(error.message);
+        },
+      });
+    
+      const onSubmit = (values: z.infer<typeof formSchema>) => {
+        mutate({
+            label: values.label,
+            description: values.description,
+            amount: values.amount,
+            liters: values.liters.toString(),
+            unit: values.unit,
+            benef: [values.benef],
+            dueDate: new Date(values.dueDate),
+            km: values.km.toString(),
+            vehiclesId: values.vehiclesId,
+            priority: values.priority,
+            categoryId: values.categoryId,
+            quantity: 1,
+        });
+      };
+  return <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
         <FormField
           control={form.control}
@@ -125,7 +116,7 @@ function CreateTypeOthers({ users, categories }: Props) {
             <FormItem>
               <FormLabel isRequired>{"Titre"}</FormLabel>
               <FormControl>
-                <Input placeholder="Ex. Thé" {...field} />
+                <Input placeholder="Ex. Carburant" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -148,10 +139,10 @@ function CreateTypeOthers({ users, categories }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     {
-                      categories.filter(c=> c.type.type === "others").length === 0 ?
+                      categories.filter(c=> c.type.type === "gas").length === 0 ?
                       <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
                       :
-                    categories.filter(c=> c.type.type === "others").map((category) => (
+                    categories.filter(c=> c.type.type === "gas").map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.label}
                       </SelectItem>
@@ -273,43 +264,75 @@ function CreateTypeOthers({ users, categories }: Props) {
         />
         <FormField
           control={form.control}
-          name="quantity"
+          name="liters"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Quantité"}</FormLabel>
+              <FormLabel isRequired>{"Litres (Quantité)"}</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Ex. 3"
-                  {...field}
-                  className="pr-12"
-                />
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Ex. 15"
+                    {...field}
+                    className="pr-8"
+                  />
+                  <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                    {"L"}
+                  </p>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        {/* Unité */}
+        {/* Vehicle */}
         <FormField
           control={form.control}
-          name="unit"
+          name="vehiclesId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Unité"}</FormLabel>
+              <FormLabel isRequired>{"Véhicule"}</FormLabel>
               <FormControl>
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select
+                  defaultValue={field.value ? String(field.value) : undefined}
+                  onValueChange={field.onChange}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {units.map((unit) => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {unit.name}
+                    {vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                        {vehicle.mark.concat(" - ", vehicle.label, " - ", vehicle.matricule)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="km"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Kilométrage"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Ex. 16254"
+                    {...field}
+                    className="pr-10"
+                  />
+                  <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                    {"KM"}
+                  </p>
+                </div>
+              </FormControl>
+              <FormDescription>{"Valeur actuelle du véhicule"}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -377,8 +400,7 @@ function CreateTypeOthers({ users, categories }: Props) {
           </Button>
         </div>
       </form>
-    </Form>
-  );
+    </Form>;
 }
 
-export default CreateTypeOthers;
+export default CreateTypeGas;
