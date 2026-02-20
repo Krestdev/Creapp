@@ -13,6 +13,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ARG NEXT_PUBLIC_API
 ENV NEXT_PUBLIC_API=${NEXT_PUBLIC_API}
 
 RUN npm run build
