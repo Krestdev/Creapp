@@ -13,13 +13,16 @@ class RequestQueries {
     data: Omit<
       RequestModelT,
       "id" | "createdAt" | "updatedAt" | "ref" | "project" | "validators"
-    >
+    >,
   ): Promise<{ data: RequestModelT }> => {
     return api.post(this.route, data).then((res) => res.data);
   };
 
   special = async (
-    data: Omit<RequestModelT, "id" | "createdAt" | "updatedAt" | "ref" | "validators">
+    data: Omit<
+      RequestModelT,
+      "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+    >,
   ): Promise<{ data: RequestModelT }> => {
     const formData = new FormData();
 
@@ -64,7 +67,7 @@ class RequestQueries {
 
   specialUpdate = async (
     data: Partial<RequestModelT>,
-    id: number
+    id: number,
   ): Promise<{ data: RequestModelT; id: number }> => {
     const formData = new FormData();
 
@@ -120,7 +123,7 @@ class RequestQueries {
   // Modifier une demande
   update = async (
     id: number,
-    data: Partial<RequestModelT>
+    data: Partial<RequestModelT>,
   ): Promise<{ data: RequestModelT }> => {
     return api.put(`${this.route}/${id}`, data).then((res) => res.data);
   };
@@ -136,8 +139,10 @@ class RequestQueries {
   };
 
   // Request to approve/reject
-  getValidatorRequests = async (userId: number):Promise<{data: Array<RequestModelT>}> => {
-    return api.get(`${this.route}/validator/${userId}`).then((res)=>res.data);
+  getValidatorRequests = async (
+    userId: number,
+  ): Promise<{ data: Array<RequestModelT> }> => {
+    return api.get(`${this.route}/validator/${userId}`).then((res) => res.data);
   };
 
   // ============================
@@ -154,7 +159,7 @@ class RequestQueries {
           userId: number;
           rank: number;
         }
-      | undefined
+      | undefined,
   ): Promise<{ data: RequestModelT }> => {
     return api
       .put(`${this.route}/validate/${id}`, { validatorId, validator })
@@ -175,7 +180,7 @@ class RequestQueries {
             rank: number;
           }
         | undefined;
-    }
+    },
   ): Promise<{ data: RequestModelT }> => {
     return api
       .put(`${this.route}/review/${id}`, {
@@ -250,7 +255,7 @@ class RequestQueries {
   // Modifier la priorité
   updatePriority = async (
     id: number,
-    priority: string
+    priority: string,
   ): Promise<{ data: RequestModelT }> => {
     return api
       .put(`${this.route}/priority/${id}`, { priority })

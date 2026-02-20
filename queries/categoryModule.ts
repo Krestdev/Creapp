@@ -15,7 +15,7 @@ class CategoryQueries {
 
   // POST /request/category
   createCategory = async (
-    data: Omit<Category, "id" | "createdAt" | "updatedAt">
+    data: Omit<Category, "id" | "createdAt" | "updatedAt">,
   ): Promise<{ message: string; data: Category }> => {
     return api.post(`${this.route}/category`, data).then((res) => res.data);
   };
@@ -28,7 +28,7 @@ class CategoryQueries {
   // PUT /request/category/{id}
   updateCategory = async (
     id: number,
-    data: Partial<Category>
+    data: Partial<Category>,
   ): Promise<{ data: Category }> => {
     return api
       .put(`${this.route}/category/${id}`, data)
