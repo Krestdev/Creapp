@@ -3,7 +3,10 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -55,7 +58,6 @@ const SingleFileSchema = z
     ]),
   )
   .max(1, "Pas plus d'un document")
-  .nullable();
 
 const formSchema = z.object({
   projet: z.string().min(1, "Le projet est requis"),
@@ -301,7 +303,7 @@ export default function BesoinRHLastVal({
     // Préparation des données pour la mise à jour
     const requestDataUpdate: Partial<RequestModelT> = {
       label: values.titre,
-      description: values.description || null,
+      description: values.description,
       amount: Number(values.montant),
       projectId: Number(values.projet),
       dueDate: values.date_limite,
@@ -329,33 +331,30 @@ export default function BesoinRHLastVal({
   // ----------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-[760px]">
         {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
+        <DialogHeader variant={"secondary"}>
+          <DialogTitle>
             {"Approbation"}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          <DialogDescription>
             {"Validez les informations du besoin en ressources humaines"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex-1 overflow-y-auto px-6"
+            className="form-3xl"
           >
-            <div className="space-y-8 max-w-3xl mx-auto pb-8">
-              <div className="flex flex-col @min-[640px]:grid @min-[640px]:grid-cols-2 gap-4">
                 {/* PROJET */}
                 <FormField
                   control={form.control}
                   name="projet"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        {"Projet concerné"}
-                        <span className="text-red-500">*</span>
+                      <FormLabel isRequired>
+                        {"Projet"}
                       </FormLabel>
                       <SearchableSelect
                         disabled
@@ -389,14 +388,13 @@ export default function BesoinRHLastVal({
                   name="titre"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        {"Titre du besoin"}
-                        <span className="text-red-500">*</span>
+                      <FormLabel isRequired>
+                        {"Titre"}
                       </FormLabel>
                       <FormControl>
                         <Input
                           disabled
-                          placeholder="Titre du besoin"
+                          placeholder="Ex. Salaires Octobre"
                           {...field}
                         />
                       </FormControl>
@@ -411,9 +409,8 @@ export default function BesoinRHLastVal({
                   name="periode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Période"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Popover>
@@ -466,9 +463,8 @@ export default function BesoinRHLastVal({
                   name="date_limite"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Date limite"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild className="h-10 w-full">
@@ -508,12 +504,11 @@ export default function BesoinRHLastVal({
                   name="montant"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Montant"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Montant" {...field} />
+                        <Input type="number" placeholder="Ex. 500 000" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -526,9 +521,8 @@ export default function BesoinRHLastVal({
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Priorité"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <Select
                         {...field}
@@ -542,10 +536,10 @@ export default function BesoinRHLastVal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="low">Faible</SelectItem>
-                          <SelectItem value="medium">Moyenne</SelectItem>
-                          <SelectItem value="high">Haute</SelectItem>
-                          <SelectItem value="urgent">Urgente</SelectItem>
+                          <SelectItem value="low">{"Faible"}</SelectItem>
+                          <SelectItem value="medium">{"Moyenne"}</SelectItem>
+                          <SelectItem value="high">{"Haute"}</SelectItem>
+                          <SelectItem value="urgent">{"Urgente"}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -559,9 +553,8 @@ export default function BesoinRHLastVal({
                   name="beneficiaire"
                   render={({ field }) => (
                     <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Bénéficiaire(s)"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <MultiSelectUsers
@@ -610,9 +603,8 @@ export default function BesoinRHLastVal({
                   name="description"
                   render={({ field }) => (
                     <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Description détaillée du besoin"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Textarea
@@ -626,31 +618,28 @@ export default function BesoinRHLastVal({
                     </FormItem>
                   )}
                 />
-              </div>
-            </div>
+
           </form>
           {/* Boutons - FIXE */}
-          <div className="flex gap-3 p-4 pt-0 shrink-0 w-full justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={updateMutation.isPending}
-            >
-              Annuler
-            </Button>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={updateMutation.isPending}
+              >
+                {"Annuler"}
+              </Button>
+            </DialogClose>
             <Button
               type="submit"
               disabled={updateMutation.isPending || !isFormInitialized}
-              className="bg-green-500 hover:bg-green-600"
+              variant={"success"}
               onClick={() => form.handleSubmit(onSubmit)()}
             >
-              Valider le besoin RH
-              {updateMutation.isPending && (
-                <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />
-              )}
+              {"Valider"}
             </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

@@ -55,6 +55,7 @@ import {
   ProjectT,
   RequestModelT,
   RequestType,
+  User,
 } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
@@ -115,6 +116,7 @@ interface Props {
   projects: Array<ProjectT>;
   payments: Array<PaymentRequest>;
   requestTypes: Array<RequestType>;
+  users: Array<User>;
 }
 
 export function DataTable({
@@ -123,6 +125,7 @@ export function DataTable({
   projects,
   payments,
   requestTypes,
+  users
 }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -650,13 +653,17 @@ export function DataTable({
           />
           <UpdateRequestFac
             open={isUpdateFacModalOpen}
-            setOpen={setIsUpdateFacModalOpen}
+            onOpenChange={setIsUpdateFacModalOpen}
             requestData={selectedItem}
+            users={users.filter(u=> !!u.verified && u.verified === true)}
+            projects={projects}
           />
           <UpdateRHRequest
             open={isUpdateRHModalOpen}
-            setOpen={setIsUpdateRHModalOpen}
+            onOpenChange={setIsUpdateRHModalOpen}
             requestData={selectedItem}
+            users={users}
+            projects={projects}
           />
         </>
       )}

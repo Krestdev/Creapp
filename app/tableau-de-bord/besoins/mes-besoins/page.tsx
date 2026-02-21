@@ -33,6 +33,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { paymentQ } from "@/queries/payment";
 import { projectQ } from "@/queries/projectModule";
@@ -91,6 +92,11 @@ const Page = () => {
   const requestTypes = useQuery({
     queryKey: ["requestType"],
     queryFn: requestTypeQ.getAll,
+  });
+
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll,
   });
 
   const uniqueCategories = React.useMemo(() => {
@@ -212,17 +218,17 @@ const Page = () => {
     customDateRange,
   ]);
 
-  if (isLoading || categoryData.isLoading || projectsData.isLoading || requestTypes.isLoading || paymentsData.isLoading) {
+  if (isLoading || categoryData.isLoading || projectsData.isLoading || requestTypes.isLoading || paymentsData.isLoading || getUsers.isLoading) {
     return <LoadingPage />;
   }
-  if (isError || categoryData.isError || projectsData.isError || requestTypes.isError || paymentsData.isError) {
+  if (isError || categoryData.isError || projectsData.isError || requestTypes.isError || paymentsData.isError || getUsers.isError) {
     return (
       <ErrorPage
-        error={error || categoryData.error || projectsData.error || paymentsData.error || requestTypes.error || undefined}
+        error={error || categoryData.error || projectsData.error || paymentsData.error || requestTypes.error || getUsers.error || undefined}
       />
     );
   }
-  if (isSuccess && categoryData.isSuccess && projectsData.isSuccess && paymentsData.isSuccess && requestTypes.isSuccess) {
+  if (isSuccess && categoryData.isSuccess && projectsData.isSuccess && paymentsData.isSuccess && requestTypes.isSuccess && getUsers.isSuccess) {
     // Calcul des statistiques
     const sent = data.data.length /* - cancel */ || 0;
     const awaiting =
@@ -470,6 +476,7 @@ const Page = () => {
           projects={projectsData.data.data}
           payments={paymentsData.data.data}
           requestTypes={requestTypes.data.data}
+          users={getUsers.data.data}
         />
       </div>
     );

@@ -61,7 +61,6 @@ const SingleFileSchema = z
     ]),
   )
   .max(1, "Pas plus d'un document")
-  .nullable();
 
 const formSchema = z.object({
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
@@ -274,7 +273,7 @@ export default function BesoinFacLastVal({
     // Préparation des données pour la mise à jour
     const requestDataUpdate: Partial<RequestModelT> = {
       label: values.title,
-      description: values.description || null,
+      description: values.description,
       categoryId: 0,
       quantity: 1,
       unit: "unit",

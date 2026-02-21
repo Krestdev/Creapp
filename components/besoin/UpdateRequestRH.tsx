@@ -3,7 +3,10 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -23,9 +26,9 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
+import { paymentQ } from "@/queries/payment";
 import { requestQ } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -35,12 +38,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import FilesUpload from "../comp-547";
-import { SearchableSelect } from "../base/searchableSelect";
-import { Calendar } from "../ui/calendar";
 import MultiSelectUsers from "../base/multiSelectUsers";
-import { projectQ } from "@/queries/projectModule";
-import { paymentQ } from "@/queries/payment";
+import { SearchableSelect } from "../base/searchableSelect";
+import FilesUpload from "../comp-547";
+import { Calendar } from "../ui/calendar";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -52,8 +53,7 @@ const SingleFileSchema = z
       z.string(),
     ]),
   )
-  .max(1, "Pas plus d'un document")
-  .nullable();
+  .max(1, "Pas plus d'un document");
 
 const formSchema = z.object({
   projet: z.string().min(1, "Le projet est requis"),
@@ -84,28 +84,22 @@ const formSchema = z.object({
 
 interface UpdateRHRequestProps {
   open: boolean;
-  setOpen: (open: boolean) => void;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   requestData: RequestModelT;
-  onSuccess?: () => void;
+  projects: Array<ProjectT>;
+  users: Array<User>;
 }
 
 export default function UpdateRHRequest({
   open,
-  setOpen,
+  onOpenChange,
   requestData,
-  onSuccess,
+  projects,
+  users,
 }: UpdateRHRequestProps) {
   const { user } = useStore();
 
   const [isFormInitialized, setIsFormInitialized] = useState(false);
-
-  // ----------------------------------------------------------------------
-  // QUERY PROJECTS
-  // ----------------------------------------------------------------------
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => projectQ.getAll(),
-  });
 
   // ----------------------------------------------------------------------
   // QUERY PAYMENTS
@@ -115,19 +109,11 @@ export default function UpdateRHRequest({
     queryFn: async () => paymentQ.getAll(),
   });
 
-  // ----------------------------------------------------------------------
-  // QUERY USERS
-  // ----------------------------------------------------------------------
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => userQ.getAll(),
-  });
-
   const USERS =
-    usersData.data?.data.filter((u) => u.verified).map((u) => ({
+    users.filter((u) => u.verified).map((u) => ({
       id: u.id!,
       name: u.firstName + " " + u.lastName,
-    })) || [];
+    }));
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -158,7 +144,7 @@ export default function UpdateRHRequest({
   );
 
   useEffect(() => {
-    if (requestData && open && USERS.length > 0) {
+    if ( open && USERS.length > 0) {
       const initializeForm = async () => {
         try {
           // Formater la période si elle existe
@@ -239,8 +225,7 @@ export default function UpdateRHRequest({
 
     onSuccess: () => {
       toast.success("Besoin RH modifié avec succès !");
-      setOpen(false);
-      onSuccess?.();
+      onOpenChange(false);
     },
 
     onError: (error: any) => {
@@ -258,7 +243,7 @@ export default function UpdateRHRequest({
     // Préparation des données pour la mise à jour
     const requestDataUpdate: Partial<RequestModelT> = {
       label: values.titre,
-      description: values.description || null,
+      description: values.description,
       amount: Number(values.montant),
       projectId: Number(values.projet),
       dueDate: values.date_limite,
@@ -285,40 +270,37 @@ export default function UpdateRHRequest({
   // RENDER
   // ----------------------------------------------------------------------
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-3xl">
         {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {"MODIFICATION BESOIN RH - " + (requestData?.label || "")}
+        <DialogHeader variant={"secondary"}>
+          <DialogTitle>
+            {`Modifier - ${requestData.label}`}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          <DialogDescription>
             {"Modifiez les informations du besoin en ressources humaines"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex-1 overflow-y-auto px-6"
+            className="form-3xl"
           >
-            <div className="space-y-8 max-w-3xl mx-auto pb-8">
-              <div className="flex flex-col @min-[640px]:grid @min-[640px]:grid-cols-2 gap-4">
                 {/* PROJET */}
                 <FormField
                   control={form.control}
                   name="projet"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        {"Projet concerné"}
-                        <span className="text-red-500">*</span>
+                      <FormLabel isRequired>
+                        {"Projet"}
                       </FormLabel>
                       <SearchableSelect
                         onChange={field.onChange}
                         options={
-                          projectsData.data?.data
-                            ?.filter(
+                          projects
+                            .filter(
                               (p) =>
                                 p.status !== "cancelled" &&
                                 p.status !== "Completed" &&
@@ -345,12 +327,11 @@ export default function UpdateRHRequest({
                   name="titre"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        {"Titre du besoin"}
-                        <span className="text-red-500">*</span>
+                      <FormLabel isRequired>
+                        {"Titre"}
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Titre du besoin" {...field} />
+                        <Input placeholder="Ex. Salaires Octobre" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -363,9 +344,8 @@ export default function UpdateRHRequest({
                   name="periode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Période"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Popover>
@@ -417,9 +397,8 @@ export default function UpdateRHRequest({
                   name="date_limite"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Date limite"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild className="h-10 w-full">
@@ -432,7 +411,7 @@ export default function UpdateRHRequest({
                               {field.value ? (
                                 format(field.value, "PPP", { locale: fr })
                               ) : (
-                                <span>Choisir une date</span>
+                                <span>{"Choisir une date"}</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -459,12 +438,11 @@ export default function UpdateRHRequest({
                   name="montant"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Montant"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Montant" {...field} />
+                        <Input type="number" placeholder="ex. 500 000" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -477,9 +455,8 @@ export default function UpdateRHRequest({
                   name="beneficiaire"
                   render={({ field }) => (
                     <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Bénéficiaire(s)"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <MultiSelectUsers
@@ -526,14 +503,12 @@ export default function UpdateRHRequest({
                   name="description"
                   render={({ field }) => (
                     <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Description détaillée du besoin"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Description détaillée du besoin RH"
-                          className="resize-none min-h-[120px]"
                           {...field}
                         />
                       </FormControl>
@@ -541,31 +516,27 @@ export default function UpdateRHRequest({
                     </FormItem>
                   )}
                 />
-              </div>
-            </div>
           </form>
           {/* Boutons - FIXE */}
-          <div className="flex gap-3 p-4 pt-0 shrink-0 w-full justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={updateMutation.isPending}
-            >
-              Annuler
-            </Button>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={updateMutation.isPending}
+              >
+                {"Annuler"}
+              </Button>
+            </DialogClose>
             <Button
               type="submit"
               disabled={updateMutation.isPending || !isFormInitialized}
-              className="bg-[#8B1538] hover:bg-[#7A1230]"
-              onClick={() => form.handleSubmit(onSubmit)()}
+              isLoading={updateMutation.isPending}
+              variant={"secondary"}
             >
-              Modifier le besoin RH
-              {updateMutation.isPending && (
-                <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />
-              )}
+              {"Enregistrer les modifications"}
             </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>
