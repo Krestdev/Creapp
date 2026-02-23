@@ -417,7 +417,7 @@ function Page() {
                     name="proof"
                     render={({ field }) => (
                     <FormItem className="@min-[640px]:col-span-2">
-                        <FormLabel isRequired>{"Justificatif"}</FormLabel>
+                        <FormLabel isRequired>{"Justificatif (Facture)"}</FormLabel>
                         <FormControl>
                         <FilesUpload
                             value={field.value}
