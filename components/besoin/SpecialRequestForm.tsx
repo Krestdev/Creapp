@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { Category, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { CalendarIcon, LoaderIcon } from "lucide-react";
@@ -26,6 +26,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+
+interface Props {
+  categories: Array<Category>;
+}
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -42,9 +47,10 @@ const formSchema = z.object({
   delai: z
     .date()
     .min(new Date(), "Le delai d'exécution doit être dans le futur"),
+  categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}),
 });
 
-export default function SpecialRequestForm() {
+export default function SpecialRequestForm({categories}:Props) {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -59,6 +65,7 @@ export default function SpecialRequestForm() {
       montant: "",
       raison: undefined,
       delai: undefined,
+      categoryId: undefined,
     },
   });
 
@@ -103,7 +110,7 @@ export default function SpecialRequestForm() {
       type: "speciaux",
       state: "pending",
       priority: "medium",
-      categoryId: 0,
+      categoryId: values.categoryId,
       proof: undefined,
     };
     requestMutation.mutate(requestData);
@@ -133,6 +140,38 @@ export default function SpecialRequestForm() {
               </FormItem>
             )}
           />
+          {/* Category */}
+        <FormField
+          control={form.control}
+          name="categoryId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Categorie"}</FormLabel>
+              <FormControl>
+                <Select
+                  defaultValue={field.value ? String(field.value) : undefined}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="min-w-60 w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {
+                      categories.filter(c=> c.type.type === "speciaux").length === 0 ?
+                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
+                      :
+                    categories.filter(c=> c.type.type === "speciaux").map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
           {/* MONTANT */}
           <FormField

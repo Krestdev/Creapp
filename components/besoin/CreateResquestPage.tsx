@@ -34,13 +34,13 @@ const CreateResquestPage = ({types, users, projects, categories, vehicles}:Props
     const renderForm = () => {
       switch (requestType) {
         case "achat":
-          return <CreateRequest />;
+          return <CreateRequest categories={categories} projects={projects} users={users} />;
         case "speciaux":
-          return <SpecialRequestForm />;
+          return <SpecialRequestForm categories={categories} />;
         case"facilitation":
-          return <FacilitationRequestForm users={users} projects={projects} />;
+          return <FacilitationRequestForm users={users} projects={projects} categories={categories} />;
         case "ressource_humaine":
-          return <RHRequestForm />;
+          return <RHRequestForm categories={categories} users={users} projects={projects} />;
         case "others":
           return <CreateTypeOthers users={users} categories={categories}/>;
         case "gas":

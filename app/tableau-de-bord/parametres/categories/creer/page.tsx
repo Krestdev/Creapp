@@ -248,9 +248,9 @@ const Page = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {types.data
-                        .filter(
+                        /* .filter(
                           (t) => t.type === "achat" || t.type === "others",
-                        )
+                        ) */
                         .map((t, id) => (
                           <SelectItem key={id} value={t.id.toString()}>
                             {t.label}

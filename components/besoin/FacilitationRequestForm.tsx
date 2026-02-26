@@ -12,12 +12,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
-import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
-import { ProjectT, RequestModelT, User } from "@/types/types";
+import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -42,6 +40,7 @@ import BeneficiairesList from "./AddBenef";
 interface Props {
   users: Array<User>;
   projects: Array<ProjectT>;
+  categories: Array<Category>;
 }
 
 // ----------------------------------------------------------------------
@@ -63,13 +62,13 @@ const formSchema = z.object({
   delai: z
     .date()
     .min(new Date(), "Le delai d'exécution doit être dans le futur"),
-  category: z.string().min(1, "La categorie est requise"),
+  categoryId: z.coerce.number({ message: "Veuillez sélectionner une catégorie" }),
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().min(1, "La description est requise"),
   justificatif: SingleFileSchema,
 });
 
-export default function FacilitationRequestForm({users, projects}:Props) {
+export default function FacilitationRequestForm({users, projects, categories}:Props) {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -85,7 +84,7 @@ export default function FacilitationRequestForm({users, projects}:Props) {
     defaultValues: {
       beneficiaire: "",
       projet: "",
-      category: "facilitation",
+      categoryId: undefined,
       delai: undefined,
       justificatif: [],
       title: "",
@@ -129,7 +128,7 @@ export default function FacilitationRequestForm({users, projects}:Props) {
     > = {
       label: values.title,
       description: values.description ?? "",
-      categoryId: 0,
+      categoryId: values.categoryId,
       quantity: 1,
       unit: "unit",
       beneficiary: values.beneficiaire,
@@ -192,27 +191,38 @@ export default function FacilitationRequestForm({users, projects}:Props) {
             )}
           />
 
-          {/* CATEGORIE */}
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel isRequired>{"Categorie"}</FormLabel>
-                <Select value={field.value}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une categorie" />
+          {/* Category */}
+        <FormField
+          control={form.control}
+          name="categoryId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Categorie"}</FormLabel>
+              <FormControl>
+                <Select
+                  defaultValue={field.value ? String(field.value) : undefined}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="min-w-60 w-full">
+                    <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="facilitation">
-                      {"Facilitation"}
-                    </SelectItem>
+                    {
+                      categories.filter(c=> c.type.type === "facilitation").length === 0 ?
+                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
+                      :
+                    categories.filter(c=> c.type.type === "facilitation").map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
           {/* TITLE */}
           <FormField

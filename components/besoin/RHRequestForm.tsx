@@ -22,7 +22,7 @@ import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -35,6 +35,14 @@ import { z } from "zod";
 import MultiSelectUsers from "../base/multiSelectUsers";
 import { SearchableSelect } from "../base/searchableSelect";
 import FilesUpload from "../comp-547";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+
+
+interface Props {
+  categories: Array<Category>;
+  projects: Array<ProjectT>;
+  users: Array<User>;
+}
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -74,9 +82,10 @@ const formSchema = z.object({
     .min(new Date(), "La date limite doit être dans le futur"),
   beneficiaire: z.array(z.number()).min(1, "Le bénéficiaire est requis"),
   justificatif: SingleFileSchema,
+  categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}),
 });
 
-export default function RHRequestForm() {
+export default function RHRequestForm({categories, projects, users}:Props) {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -98,29 +107,12 @@ export default function RHRequestForm() {
       date_limite: undefined,
       beneficiaire: [],
       justificatif: [],
+      categoryId: undefined,
     },
   });
 
-  // ----------------------------------------------------------------------
-  // QUERY PROJECTS
-  // ----------------------------------------------------------------------
-
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => projectQ.getAll(),
-  });
-
-  // ----------------------------------------------------------------------
-  // QUERY USERS
-  // ----------------------------------------------------------------------
-
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => userQ.getAll(),
-  });
-
   const USERS =
-    usersData.data?.data.filter((u) => u.verified).map((u) => ({
+    users.filter((u) => u.verified).map((u) => ({
       id: u.id!,
       name: u.firstName + " " + u.lastName,
     })) || [];
@@ -163,7 +155,7 @@ export default function RHRequestForm() {
       description: values.description,
       amount: Number(values.montant),
       projectId: Number(values.projet),
-      categoryId: 1,
+      categoryId: values.categoryId,
       quantity: 1,
       unit: "unit",
       userId: Number(user?.id),
@@ -188,15 +180,14 @@ export default function RHRequestForm() {
             name="projet"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel isRequired>
                   {"Projet concerné"}
-                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <SearchableSelect
                   onChange={field.onChange}
                   options={
-                    projectsData.data?.data
-                      ?.filter(
+                    projects
+                      .filter(
                         (p) =>
                           p.status !== "cancelled" &&
                           p.status !== "Completed" &&
@@ -231,6 +222,39 @@ export default function RHRequestForm() {
               </FormItem>
             )}
           />
+
+          {/* Category */}
+        <FormField
+          control={form.control}
+          name="categoryId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Categorie"}</FormLabel>
+              <FormControl>
+                <Select
+                  defaultValue={field.value ? String(field.value) : undefined}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="min-w-60 w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {
+                      categories.filter(c=> c.type.type === "ressource_humaine").length === 0 ?
+                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
+                      :
+                    categories.filter(c=> c.type.type === "ressource_humaine").map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
           {/* PERIODE - RANGE */}
           <FormField

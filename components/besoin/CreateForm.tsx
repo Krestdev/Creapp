@@ -34,7 +34,7 @@ import { categoryQ } from "@/queries/categoryModule";
 import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 
-import { RequestModelT } from "@/types/types";
+import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -46,12 +46,18 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { SearchableSelect } from "../base/searchableSelect";
 
+interface Props {
+  categories: Array<Category>;
+  projects: Array<ProjectT>;
+  users: Array<User>;
+}
+
 // ----------------------------------------------------------------------
 // VALIDATION
 // ----------------------------------------------------------------------
 const formSchema = z.object({
   projet: z.string().min(1, "Le projet est requis"),
-  categorie: z.string().min(1, "La catégorie est requise"),
+  categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}),
   titre: z.string().min(1, "Le titre est requis"),
   description: z.string(),
   quantity: z
@@ -68,7 +74,7 @@ const formSchema = z.object({
   beneficiaireId: z.string().optional(), // Nouveau champ pour sélectionner un seul utilisateur
 });
 
-export default function MyForm() {
+export default function MyForm({categories, users, projects}:Props) {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -80,7 +86,7 @@ export default function MyForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       projet: "",
-      categorie: "",
+      categoryId: undefined,
       titre: "",
       description: "",
       quantity: "",
@@ -100,35 +106,12 @@ export default function MyForm() {
     }
   }, [beneficiaire, form]);
 
-  // ----------------------------------------------------------------------
-  // QUERY PROJECTS
-  // ----------------------------------------------------------------------
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => projectQ.getAll(),
-  });
-
-  // ----------------------------------------------------------------------
-  // QUERY USERS
-  // ----------------------------------------------------------------------
-  const usersData = useQuery({
-    queryKey: ["userQ"],
-    queryFn: async () => userQ.getAll(),
-  });
 
   const USERS =
-    usersData.data?.data.filter((u) => u.verified).map((u) => ({
+    users.filter((u) => u.verified).map((u) => ({
       id: u.id!,
       name: u.firstName + " " + u.lastName,
     })) || [];
-
-  // ----------------------------------------------------------------------
-  // QUERY CATEGORIES
-  // ----------------------------------------------------------------------
-  const categoriesData = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => categoryQ.getCategories(),
-  });
 
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
@@ -162,7 +145,7 @@ export default function MyForm() {
     > = {
       label: values.titre,
       description: values.description,
-      categoryId: Number(values.categorie),
+      categoryId: values.categoryId,
       quantity: Number(values.quantity),
       unit: values.unite,
       beneficiary: values.beneficiaire,
@@ -200,8 +183,8 @@ export default function MyForm() {
                 <SearchableSelect
                   onChange={field.onChange}
                   options={
-                    projectsData.data?.data
-                      ?.filter(
+                    projects
+                      .filter(
                         (p) =>
                           p.status !== "cancelled" &&
                           p.status !== "Completed" &&
@@ -221,32 +204,38 @@ export default function MyForm() {
             )}
           />
 
-          {/* CATEGORIE */}
-          <FormField
-            control={form.control}
-            name="categorie"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel isRequired>{"Catégorie"}</FormLabel>
-                <SearchableSelect
-                  width="w-full"
-                  allLabel=""
-                  options={
-                    categoriesData.data?.data
-                      ?.filter((c) => c.id !== 0 && c.id !== 1)
-                      .map((c) => ({
-                        value: c.id!.toString(),
-                        label: c.label,
-                      })) ?? []
-                  }
-                  value={field.value?.toString() || ""}
-                  onChange={(value) => field.onChange(value)}
-                  placeholder="Sélectionner"
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Category */}
+        <FormField
+          control={form.control}
+          name="categoryId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Categorie"}</FormLabel>
+              <FormControl>
+                <Select
+                  defaultValue={field.value ? String(field.value) : undefined}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="min-w-60 w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {
+                      categories.filter(c=> c.type.type === "others").length === 0 ?
+                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
+                      :
+                    categories.filter(c=> c.type.type === "others").map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
           {/* TITRE */}
           <FormField
