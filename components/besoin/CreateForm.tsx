@@ -221,10 +221,10 @@ export default function MyForm({categories, users, projects}:Props) {
                   </SelectTrigger>
                   <SelectContent>
                     {
-                      categories.filter(c=> c.type.type === "others").length === 0 ?
+                      categories.filter(c=> c.type.type === "achat").length === 0 ?
                       <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
                       :
-                    categories.filter(c=> c.type.type === "others").map((category) => (
+                    categories.filter(c=> c.type.type === "achat").map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.label}
                       </SelectItem>
