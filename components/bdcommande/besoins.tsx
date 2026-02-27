@@ -79,7 +79,7 @@ const Besoins = ({
       {filteredData.length > 0 ? (
         <div className="flex flex-col">
           <BesoinsTraiter
-            data={filteredData.filter((x) => x.categoryId !== 0)}
+            data={filteredData.filter((x) => x.type === "achat")}
             selected={selected}
             setSelected={setSelected}
             categories={categoriesData.data?.data ?? []}
