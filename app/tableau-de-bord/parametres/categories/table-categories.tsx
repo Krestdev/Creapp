@@ -108,10 +108,8 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
           );
         },
         cell: ({ row }) => {
-          const id = row.original.id;
-          const isProtected = id === 0 ? true : id === 1 ? true : false;
           return(
-          <div className="font-medium uppercase flex items-center gap-1.5">{isProtected && <span className="size-4.5 rounded-full flex items-center justify-center bg-linear-to-t from-red-700 to-red-500 text-white"><AsteriskIcon size={16} /></span>}{row.getValue("label")}</div>
+          <div className="font-medium uppercase flex items-center gap-1.5">{row.getValue("label")}</div>
         )},
       },
       {
@@ -200,7 +198,6 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
                   <LucidePen />
                   {"Modifier"}
                 </DropdownMenuItem>
-                {row.original.id !== 0 && row.original.id !== 1 && (
                   <DropdownMenuItem
                     variant="destructive"
                     onClick={() => {
@@ -211,7 +208,6 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
                     <LucideTrash2 />
                     {"Supprimer"}
                   </DropdownMenuItem>
-                )}
               </DropdownMenuContent>
             </DropdownMenu>
           );
