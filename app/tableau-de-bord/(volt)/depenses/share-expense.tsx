@@ -330,11 +330,6 @@ function ShareExpense({
   );
 
   function onSubmit(values: FormValues) {
-    // Vérifier que fromBankId est défini
-    if (!values.fromBankId) {
-      toast.error("Veuillez sélectionner un compte source");
-      return;
-    }
 
     // Validation manuelle pour docNumber
     if (
