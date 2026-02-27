@@ -483,7 +483,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
-              {canEdit && (
+              {/* {canEdit && (
                 <DropdownMenuItem
                   onClick={() => {
                     setSelected(item);
@@ -493,7 +493,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                   <Pencil />
                   {"Modifier"}
                 </DropdownMenuItem>
-              )}
+              )} */}
             </DropdownMenuContent>
           </DropdownMenu>
         );
