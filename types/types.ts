@@ -718,7 +718,7 @@ export type Vehicle = {
   picture?: string | File;
   createdAt: string;
   updatedAt: string;
-  serial: string;
+  serial: string; //Numero de chassis
   purchaseDate: string;
 };
 

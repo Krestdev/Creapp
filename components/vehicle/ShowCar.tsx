@@ -2,26 +2,24 @@
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Vehicle } from "@/types/types";
-import {
-  CalendarDays,
-  CalendarIcon,
-  Car,
-  CarIcon,
-  FileImage,
-  Hash,
-  Info,
-  ScanBarcodeIcon,
-} from "lucide-react";
-import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
+import { Vehicle } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  CalendarIcon,
+  CarIcon,
+  FileImage,
+  ScanBarcodeIcon
+} from "lucide-react";
+import { Button } from "../ui/button";
 
 interface ShowCarProps {
   open: boolean;
@@ -152,15 +150,16 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
           </div>
 
           {/* CLOSE BUTTON */}
-          <div className="flex justify-end pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setOpen(false)}
-              className="min-w-[100px]"
-            >
-              Fermer
-            </Button>
-          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                {"Fermer"}
+              </Button>
+            </DialogClose>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>

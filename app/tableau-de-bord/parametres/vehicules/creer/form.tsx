@@ -149,7 +149,7 @@ export function VehicleForm() {
             name="serial"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>{"Numéro de série"}</FormLabel>
+                <FormLabel isRequired>{"Numéro de chassis"}</FormLabel>
                 <FormControl>
                   <Input
                     {...field}

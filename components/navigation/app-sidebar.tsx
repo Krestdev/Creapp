@@ -552,20 +552,20 @@ function AppSidebar() {
         pageId: "PG-03-07",
         title: "Factures",
         href: "/tableau-de-bord/factures",
-        authorized: ["ADMIN", "ACCOUNTING"],
+        authorized: ["ADMIN", "ACCOUNTANT"],
         icon: ReceiptIcon,
         items: [
           {
             pageId: "PG-03-07-01",
             title : "Factures",
             href: "/tableau-de-bord/factures",
-            authorized: ["ACCOUNTING", "ADMIN"],
+            authorized: ["ACCOUNTANT", "ADMIN"],
           },
           {
             pageId: "PG-03-07-02",
             title : "Paiements",
             href: "/tableau-de-bord/factures/paiements",
-            authorized: ["ACCOUNTING", "ADMIN"],
+            authorized: ["ACCOUNTANT", "ADMIN"],
           },
         ]
       },
