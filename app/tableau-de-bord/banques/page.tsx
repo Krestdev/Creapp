@@ -58,7 +58,7 @@ function Page() {
         },
       },
       {
-        title: "Total des espèces en caisse",
+        title: "Total caisses",
         value: XAF.format(
           getBanks.data.data
             .filter((b) => b.type === "CASH" || b.type === "CASH_REGISTER")
