@@ -61,7 +61,7 @@ class UserQueries {
 
   // Vérification OTP
   getVerificationOtp = async (
-    otp: number,
+    otp: string,
     email: string,
   ): Promise<{ message: string }> => {
     return api
