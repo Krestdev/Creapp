@@ -116,9 +116,7 @@ function ShareExpense({
         .number({
           required_error: "Veuillez sélectionner un compte source",
           invalid_type_error: "Veuillez sélectionner un compte source",
-        })
-        .int()
-        .positive("Veuillez sélectionner un compte source"),
+        }),
       ...(hasExistingMethodId
         ? {}
         : {
