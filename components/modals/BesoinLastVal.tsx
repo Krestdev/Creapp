@@ -2,7 +2,9 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -25,14 +27,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
-import { categoryQ } from "@/queries/categoryModule";
 import { requestQ } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { Category, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ChevronDownIcon, Loader2 } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -50,6 +51,10 @@ const formSchema = z.object({
   quantite: z.string().min(1, "La quantité est obligatoire"),
   description: z.string().optional(),
   unite: z.string().min(1, "L'unité est obligatoire"),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
+  amount: z.coerce.number().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -57,9 +62,10 @@ type FormValues = z.infer<typeof formSchema>;
 interface ValidationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: RequestModelT | null;
+  data: RequestModelT;
   titre: string | undefined;
   description: string | undefined;
+  categories: Array<Category>;
 }
 
 export function BesoinLastVal({
@@ -68,6 +74,7 @@ export function BesoinLastVal({
   data,
   titre,
   description,
+  categories,
 }: ValidationModalProps) {
   const [openD, setOpenD] = useState(false);
   const { isHydrated, user } = useStore();
@@ -75,12 +82,14 @@ export function BesoinLastVal({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: data?.label || "",
-      limiteDate: new Date(data?.dueDate ?? ""),
-      priorite: data?.priority as "medium" | "high" | "low" | "urgent",
-      quantite: String(data?.quantity) || "",
+      title: data.label,
+      limiteDate: new Date(data.dueDate),
+      priorite: data.priority as "medium" | "high" | "low" | "urgent",
+      quantite: String(data.quantity),
       description: data?.description || "",
-      unite: data?.unit || "",
+      unite: data.unit,
+      categoryId: data.categoryId,
+      amount: data.amount,
     },
   });
 
@@ -92,16 +101,8 @@ export function BesoinLastVal({
     enabled: isHydrated,
   });
 
-  const categoriesData = useQuery({
-    queryKey: ["categoryList"],
-    queryFn: () => {
-      return categoryQ.getCategories();
-    },
-    enabled: isHydrated,
-  });
-
-  const validator = categoriesData.data?.data
-    ?.find((cat) => cat.id === data?.categoryId)
+  const validator = categories
+    .find((cat) => cat.id === data?.categoryId)
     ?.validators?.find((v) => v.userId === user?.id);
 
   const validateRequest = useMutation({
@@ -111,12 +112,12 @@ export function BesoinLastVal({
     }: {
       id: number;
       validator:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => requestQ.validate(id, validator?.id!, validator),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
@@ -155,12 +156,14 @@ export function BesoinLastVal({
   useEffect(() => {
     if (open) {
       form.reset({
-        title: data?.label || "",
-        limiteDate: new Date(data?.dueDate ?? ""), // Handle undefined or null dates
-        priorite: data?.priority,
-        quantite: String(data?.quantity) || "",
-        description: data?.description || "",
-        unite: data?.unit || "",
+        title: data.label,
+        limiteDate: new Date(data.dueDate), // Handle undefined or null dates
+        priorite: data.priority,
+        quantite: String(data.quantity),
+        description: data.description || "",
+        unite: data.unit,
+        categoryId: data.categoryId,
+        amount: data.amount,
       });
     }
   }, [open, data, form]);
@@ -176,6 +179,7 @@ export function BesoinLastVal({
         dueDate: values.limiteDate,
         unit: values.unite,
         userId: data?.userId,
+        amount: data.amount,
       });
     } catch {
       toast.error("Une erreur est survenue");
@@ -217,7 +221,10 @@ export function BesoinLastVal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
         {/* HEADER - Fixé en haut */}
-        <DialogHeader variant={isError ? "error" : isSuccess ? "success" : "default"} className={` text-white p-6 m-4 rounded-lg pb-8 shrink-0`}>
+        <DialogHeader
+          variant={isError ? "error" : isSuccess ? "success" : "default"}
+          className={` text-white p-6 m-4 rounded-lg pb-8 shrink-0`}
+        >
           <DialogTitle className="text-xl font-semibold text-white">
             {"Approbation"}
           </DialogTitle>
@@ -238,9 +245,7 @@ export function BesoinLastVal({
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Titre <span className="text-destructive">*</span>
-                      </FormLabel>
+                      <FormLabel isRequired>{"Titre"}</FormLabel>
                       <FormControl>
                         <Input placeholder="Titre..." {...field} disabled />
                       </FormControl>
@@ -248,6 +253,75 @@ export function BesoinLastVal({
                     </FormItem>
                   )}
                 />
+                {/* Category */}
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel isRequired>{"Categorie"}</FormLabel>
+                      <FormControl>
+                        <Select
+                          defaultValue={
+                            field.value ? String(field.value) : undefined
+                          }
+                          onValueChange={field.onChange}
+                          disabled
+                        >
+                          <SelectTrigger className="min-w-60 w-full">
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.filter(
+                              (c) => c.type.type === "facilitation",
+                            ).length === 0 ? (
+                              <SelectItem value="#" disabled>
+                                {"Aucune catégorie enregistrée"}
+                              </SelectItem>
+                            ) : (
+                              categories
+                                .filter((c) => c.type.type === "facilitation")
+                                .map((category) => (
+                                  <SelectItem
+                                    key={category.id}
+                                    value={category.id.toString()}
+                                  >
+                                    {category.label}
+                                  </SelectItem>
+                                ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {
+                  !!data.amount &&
+                  <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{"Montant"}</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            placeholder="Ex. 15 000 FCFA"
+                            {...field}
+                            className="pr-12"
+                          />
+                          <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                            {"FCFA"}
+                          </p>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />}
 
                 {/* Date */}
                 <FormField
@@ -255,7 +329,7 @@ export function BesoinLastVal({
                   name="limiteDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date limite</FormLabel>
+                      <FormLabel isRequired>{"Date limite"}</FormLabel>
                       <Popover open={openD} onOpenChange={setOpenD}>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -293,9 +367,7 @@ export function BesoinLastVal({
                   name="priorite"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Priorité <span className="text-destructive">*</span>
-                      </FormLabel>
+                      <FormLabel isRequired>{"Priorité"}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -307,10 +379,10 @@ export function BesoinLastVal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="low">Normale</SelectItem>
-                          <SelectItem value="medium">Moyenne</SelectItem>
-                          <SelectItem value="high">Haute</SelectItem>
-                          <SelectItem value="urgent">Urgente</SelectItem>
+                          <SelectItem value="low">{"Normale"}</SelectItem>
+                          <SelectItem value="medium">{"Moyenne"}</SelectItem>
+                          <SelectItem value="high">{"Haute"}</SelectItem>
+                          <SelectItem value="urgent">{"Urgente"}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -324,9 +396,7 @@ export function BesoinLastVal({
                   name="quantite"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Quantité <span className="text-destructive">*</span>
-                      </FormLabel>
+                      <FormLabel isRequired>{"Quantité"}</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Quantité..."
@@ -345,10 +415,7 @@ export function BesoinLastVal({
                   name="unite"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        {"Unité"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
+                      <FormLabel>{"Unité"}</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
@@ -359,7 +426,7 @@ export function BesoinLastVal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {units.map((unit, id) => (
+                          {units.map((unit) => (
                             <SelectItem key={unit.value} value={unit.value}>
                               {unit.name}
                             </SelectItem>
@@ -377,9 +444,7 @@ export function BesoinLastVal({
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Description <span className="text-destructive">*</span>
-                      </FormLabel>
+                      <FormLabel isRequired>{"Description"}</FormLabel>
                       <FormControl>
                         <Textarea
                           rows={4}
@@ -395,31 +460,25 @@ export function BesoinLastVal({
                 />
 
                 {/* Boutons */}
-                <div className="flex justify-end gap-3 pt-4 sticky bottom-0 bg-white pb-4">
+                <DialogFooter>
                   <Button
                     type="submit"
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    variant={"success"}
                     disabled={isPending}
+                    isLoading={isPending}
                   >
-                    {isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Enregistrement...
-                      </>
-                    ) : (
-                      "Approuver"
-                    )}
+                    {"Approuver"}
                   </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => onOpenChange(false)}
-                    disabled={isPending}
-                  >
-                    Fermer
-                  </Button>
-                </div>
+                  <DialogClose asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isPending}
+                    >
+                      {"Fermer"}
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
               </form>
             </Form>
           </div>
@@ -435,13 +494,13 @@ export function BesoinLastVal({
               </Button>
             )}
             <Button
-              className="bg-gray-600 hover:bg-gray-700 text-white"
+              variant={"outline"}
               onClick={() => {
                 form.reset();
                 onOpenChange(false);
               }}
             >
-              Fermer
+              {"Fermer"}
             </Button>
           </div>
         )}

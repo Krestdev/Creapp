@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -30,25 +31,21 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
 import { requestQ } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { Category, PaymentRequest, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, ChevronDownIcon, LoaderIcon } from "lucide-react";
+import { CalendarIcon, LoaderIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import FilesUpload from "../comp-547";
 import { SearchableSelect } from "../base/searchableSelect";
-import { Calendar } from "../ui/calendar";
-import { paymentQ } from "@/queries/payment";
-import { projectQ } from "@/queries/projectModule";
 import BeneficiairesList from "../besoin/AddBenef";
-import { categoryQ } from "@/queries/categoryModule";
+import FilesUpload from "../comp-547";
+import { Calendar } from "../ui/calendar";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -68,18 +65,22 @@ const formSchema = z.object({
   delai: z
     .date()
     .min(new Date(), "Le delai d'exécution doit être dans le futur"),
-  category: z.string().min(1, "La categorie est requise"),
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().min(1, "La description est requise"),
   priority: z.enum(["low", "medium", "high", "urgent"]),
   justificatif: SingleFileSchema,
+  categoryId: z.coerce.number({ message: "Veuillez sélectionner une catégorie" }),
 });
 
 interface UpdateFacilitationRequestProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  requestData: RequestModelT | null;
+  requestData: RequestModelT;
   onSuccess?: () => void;
+  projects: ProjectT[];
+  users: User[];
+  payments: PaymentRequest[];
+  categories: Category[];
 }
 
 export default function BesoinFacLastVal({
@@ -87,6 +88,10 @@ export default function BesoinFacLastVal({
   setOpen,
   requestData,
   onSuccess,
+  projects,
+  users,
+  payments,
+  categories,
 }: UpdateFacilitationRequestProps) {
   const { user } = useStore();
 
@@ -96,32 +101,8 @@ export default function BesoinFacLastVal({
   >([]);
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
-  // ----------------------------------------------------------------------
-  // QUERY PROJECTS
-  // ----------------------------------------------------------------------
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => projectQ.getAll(),
-  });
 
-  // ----------------------------------------------------------------------
-  // QUERY PAYMENTS
-  // ----------------------------------------------------------------------
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: async () => paymentQ.getAll(),
-  });
-
-  // ----------------------------------------------------------------------
-  // QUERY USERS
-  // ----------------------------------------------------------------------
-
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => userQ.getAll(),
-  });
-
-  const USERS = usersData.data?.data.filter((u) => u.verified) || [];
+  const USERS = users.filter((u) => u.verified) || [];
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -130,13 +111,13 @@ export default function BesoinFacLastVal({
     resolver: zodResolver(formSchema),
     defaultValues: {
       beneficiaire: "",
-      projet: "",
-      category: "facilitation",
+      projet: requestData.projectId?.toString() || "",
       delai: new Date(),
       justificatif: [],
-      title: "",
-      description: "",
-      priority: "medium",
+      title: requestData.label || "",
+      description: requestData.description || "",
+      priority: requestData.priority,
+      categoryId: requestData.categoryId
     },
   });
 
@@ -144,7 +125,7 @@ export default function BesoinFacLastVal({
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
 
-  const paiement = paymentsData.data?.data.find(
+  const paiement = payments.find(
     (x) => x.requestId === requestData?.id,
   );
 
@@ -177,7 +158,7 @@ export default function BesoinFacLastVal({
           form.reset({
             beneficiaire: requestData.beneficiary?.toString() || "",
             projet: requestData.projectId?.toString() || "",
-            category: requestData.type === "facilitation" ? "facilitation" : "",
+            categoryId: requestData.categoryId,
             delai: requestData.dueDate
               ? new Date(requestData.dueDate)
               : new Date(),
@@ -207,15 +188,9 @@ export default function BesoinFacLastVal({
   // UPDATE MUTATION
   // ----------------------------------------------------------------------
 
-  const categoriesData = useQuery({
-    queryKey: ["categoryList"],
-    queryFn: () => {
-      return categoryQ.getCategories();
-    },
-  });
 
-  const validator = categoriesData.data?.data
-    ?.find((cat) => cat.id === requestData?.categoryId)
+  const validator = categories
+    .find((cat) => cat.id === requestData?.categoryId)
     ?.validators?.find((v) => v.userId === user?.id);
 
   const validateRequest = useMutation({
@@ -274,7 +249,7 @@ export default function BesoinFacLastVal({
     const requestDataUpdate: Partial<RequestModelT> = {
       label: values.title,
       description: values.description,
-      categoryId: 0,
+      categoryId: values.categoryId,
       quantity: 1,
       unit: "unit",
       beneficiary: values.beneficiaire,
@@ -307,13 +282,13 @@ export default function BesoinFacLastVal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
         {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
+        <DialogHeader>
+          <DialogTitle>
             {"Approbation"}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          <DialogDescription>
             {"Approuver la demande de facilitation existante"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -329,16 +304,15 @@ export default function BesoinFacLastVal({
                   name="projet"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Projet concerné"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <SearchableSelect
                         disabled={true}
                         onChange={field.onChange}
                         options={
-                          projectsData.data?.data
-                            ?.filter(
+                          projects
+                            .filter(
                               (p) =>
                                 p.status !== "cancelled" &&
                                 p.status !== "Completed" &&
@@ -359,34 +333,38 @@ export default function BesoinFacLastVal({
                   )}
                 />
 
-                {/* CATEGORIE */}
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {"Categorie"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={true}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionner une categorie" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="facilitation">
-                            {"Facilitation"}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Category */}
+        <FormField
+          control={form.control}
+          name="categoryId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Categorie"}</FormLabel>
+              <FormControl>
+                <Select
+                  defaultValue={field.value ? String(field.value) : undefined}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="min-w-60 w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {
+                      categories.filter(c=> c.type.type === "facilitation").length === 0 ?
+                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
+                      :
+                    categories.filter(c=> c.type.type === "facilitation").map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
                 {/* TITLE */}
                 <FormField

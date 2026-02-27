@@ -26,25 +26,21 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
 import { requestQ } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { Category, PaymentRequest, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, LoaderIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import FilesUpload from "../comp-547";
-import { SearchableSelect } from "../base/searchableSelect";
-import { Calendar } from "../ui/calendar";
 import MultiSelectUsers from "../base/multiSelectUsers";
-import { projectQ } from "@/queries/projectModule";
-import { paymentQ } from "@/queries/payment";
-import { categoryQ } from "@/queries/categoryModule";
+import { SearchableSelect } from "../base/searchableSelect";
+import FilesUpload from "../comp-547";
+import { Calendar } from "../ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 // ----------------------------------------------------------------------
@@ -90,8 +86,12 @@ const formSchema = z.object({
 interface BesoinRHLastValProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  requestData: RequestModelT | null;
+  requestData: RequestModelT;
   onSuccess?: () => void;
+  projects: ProjectT[];
+  users: User[];
+  payments: PaymentRequest[];
+  categories: Category[];
 }
 
 export default function BesoinRHLastVal({
@@ -99,37 +99,17 @@ export default function BesoinRHLastVal({
   setOpen,
   requestData,
   onSuccess,
+  projects,
+  users,
+  payments,
+  categories,
 }: BesoinRHLastValProps) {
   const { user } = useStore();
 
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
-  // ----------------------------------------------------------------------
-  // QUERY PROJECTS
-  // ----------------------------------------------------------------------
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => projectQ.getAll(),
-  });
-
-  // ----------------------------------------------------------------------
-  // QUERY PAYMENTS
-  // ----------------------------------------------------------------------
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: async () => paymentQ.getAll(),
-  });
-
-  // ----------------------------------------------------------------------
-  // QUERY USERS
-  // ----------------------------------------------------------------------
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => userQ.getAll(),
-  });
-
   const USERS =
-    usersData.data?.data.filter((u) => u.verified).map((u) => ({
+    users.filter((u) => u.verified).map((u) => ({
       id: u.id!,
       name: u.firstName + " " + u.lastName,
     })) || [];
@@ -159,7 +139,7 @@ export default function BesoinRHLastVal({
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
 
-  const paiement = paymentsData.data?.data.find(
+  const paiement = payments.find(
     (x) => x.requestId === requestData?.id,
   );
 
@@ -239,15 +219,9 @@ export default function BesoinRHLastVal({
   // UPDATE MUTATION
   // ----------------------------------------------------------------------
 
-  const categoriesData = useQuery({
-    queryKey: ["categoryList"],
-    queryFn: () => {
-      return categoryQ.getCategories();
-    },
-  });
 
-  const validator = categoriesData.data?.data
-    ?.find((cat) => cat.id === requestData?.categoryId)
+  const validator = categories
+    .find((cat) => cat.id === requestData?.categoryId)
     ?.validators?.find((v) => v.userId === user?.id);
 
   const validateRequest = useMutation({
@@ -311,7 +285,7 @@ export default function BesoinRHLastVal({
       benef: values.beneficiaire,
       proof: values.justificatif,
       // Champs fixes
-      categoryId: 0,
+      categoryId: requestData.categoryId,
       quantity: 1,
       unit: "unit",
       userId: requestData.userId,
@@ -360,8 +334,8 @@ export default function BesoinRHLastVal({
                         disabled
                         onChange={field.onChange}
                         options={
-                          projectsData.data?.data
-                            ?.filter(
+                          projects
+                            .filter(
                               (p) =>
                                 p.status !== "cancelled" &&
                                 p.status !== "Completed" &&

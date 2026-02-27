@@ -1548,23 +1548,38 @@ export function DataVal({
         onSubmit={(motif) => handleValidation(motif)}
       />
 
-      <BesoinLastVal
+      {
+        selectedItem &&
+        <BesoinLastVal
         open={isLastValModalOpen}
         onOpenChange={setIsLastValModalOpen}
         data={selectedItem}
         titre={"Approuver le besoin"}
         description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
-      />
-      <BesoinFacLastVal
+        categories={categoriesData}
+      />}
+      {
+        selectedItem &&
+        <BesoinFacLastVal
         open={isUpdateFacModalOpen}
         setOpen={setIsUpdateFacModalOpen}
         requestData={selectedItem}
-      />
-      <BesoinRHLastVal
+        categories={categoriesData}
+        users={usersData}
+        projects={projectsData}
+        payments={paymentsData}
+      />}
+      {
+        selectedItem &&
+        <BesoinRHLastVal
         open={isUpdateRHModalOpen}
         setOpen={setIsUpdateRHModalOpen}
         requestData={selectedItem}
-      />
+        payments={paymentsData}
+        users={usersData}
+        categories={categoriesData}
+        projects={projectsData}
+      />}
     </div>
   );
 }
