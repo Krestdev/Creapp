@@ -192,6 +192,25 @@ export function RequestsTable({
       },
     },
     {
+      accessorKey: "userId",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Initié par"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.userId;
+        const user = users.find(u => u.id === value);
+        return <div>{!!user ? user.firstName.concat(" ", user.lastName) : "Utilisateur introuvable"}</div>;
+      },
+    },
+    {
       accessorKey: "projectId",
       header: ({ column }) => {
         return (
@@ -354,6 +373,8 @@ export function RequestsTable({
                               ? "Projets"
                               : column.id === "categoryId"
                                 ? "Catégories"
+                                : column.id === "userId"
+                                ? "Initié par"
                                 : column.id === "createdAt"
                                   ? "Date d'émission"
                                   : column.id}
