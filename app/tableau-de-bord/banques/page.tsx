@@ -67,7 +67,7 @@ function Page() {
         variant: "dark",
         more: {
           title: "Nombre de comptes",
-          value: getBanks.data.data.filter((b) => b.type === "CASH").length,
+          value: getBanks.data.data.filter((b) => b.type === "CASH").length + 1,
         },
       },
     ];
