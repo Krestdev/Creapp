@@ -81,7 +81,7 @@ export function ViewCategory({ open, onOpenChange, category, users }: ShowCatego
                       <AvatarText user={user}  />
                       <div className="flex flex-col">
                         <p className="uppercase font-semibold">{user.firstName.concat(" ", user.lastName)}</p>
-                        <p className="text-gray-600">{"Rang: "}{id === category.validators.length - 1 ? "Dernier validateur" : rank}</p>
+                        <p className="text-gray-600">{"Rang: "}{id === category.validators.length - 1 ? "Dernier validateur" : id + 1}</p>
                       </div>
                     </div>
                   </div>
