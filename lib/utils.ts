@@ -120,7 +120,7 @@ export function paymentPercentage(payload: BonsCommande): number {
 
 interface RoleCheck {
   roleList: Role[];
-  role: "admin" | "achat" | "Donner d'ordre achat" | "trésorier" | "Donneur d'ordre décaissement" | "rh" | "comptable" |  "manager";
+  role: "admin" | "achat" | "Donner d'ordre achat" | "trésorier" | "Donneur d'ordre décaissement" | "rh" | "comptable" |  "manager" | "conducteur";
 }
 export function isRole({ roleList, role }: RoleCheck): boolean {
   if (roleList.some(r => r.label === "ADMIN")) {
@@ -145,6 +145,9 @@ export function isRole({ roleList, role }: RoleCheck): boolean {
     return true;
   }
   if (role === "comptable" && roleList.some(r => r.label === "ACCOUNTANT")) {
+    return true;
+  }
+  if (role === "conducteur" && roleList.some(r => r.label === "DRIVER")) {
     return true;
   }
   return false;

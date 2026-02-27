@@ -55,8 +55,10 @@ const CreateResquestPage = ({types, users, projects, categories, vehicles}:Props
     const typesList = (roles: Array<Role>): Array<RequestType> => {
       if(roles.some(r => r.label === "ADMIN")) return types;
       if(roles.some(r => r.label === "RH") && roles.some(r => r.label === "VOLT_MANAGER")) return types;
+      if(roles.some(r => r.label === "RH") && roles.some(r => r.label === "VOLT_MANAGER")) return types;
       if(roles.some(r => r.label === "RH")) return types.filter(t=> t.type !== "speciaux");
       if(roles.some(r => r.label === "VOLT_MANAGER")) return types.filter(t=> t.type !== "ressource_humaine");
+      if(roles.some(r => r.label === "DRIVER")) return types.filter(t=> t.type !== "ressource_humaine" && t.type !== "speciaux");
       return types.filter(t=> t.type !== "ressource_humaine" && t.type !== "speciaux");
     }  
 
