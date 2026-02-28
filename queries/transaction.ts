@@ -57,7 +57,40 @@ class TransactionQuery {
     formData.append("status", String(payload.status));
     formData.append("docNumber", String(payload.docNumber));
     if (payload.from) formData.append("from", JSON.stringify(payload.from));
-    if (payload.fromBankId)
+    if (typeof payload.fromBankId === "number")
+      formData.append("fromBankId", String(payload.fromBankId));
+    if (payload.to) formData.append("to", JSON.stringify(payload.to));
+    if (payload.toBankId) formData.append("toBankId", String(payload.toBankId));
+    if (payload.proof && payload.proof.length > 0) {
+      payload.proof.forEach((file) => {
+        formData.append("proof", file);
+      });
+    }
+    return api
+      .post(this.route, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
+  };
+
+  createDebitTransaction = async (
+    payload: TransactionProps,
+  ): Promise<{ data: Transaction }> => {
+    console.log(payload);
+    const formData = new FormData();
+    formData.append("label", payload.label);
+    formData.append("amount", String(payload.amount));
+    formData.append("Type", payload.Type);
+    formData.append("date", String(payload.date));
+    formData.append("userId", String(payload.userId));
+    formData.append("paymentId", String(payload.paymentId));
+    formData.append("methodId", String(payload.methodId));
+    formData.append("status", String(payload.status));
+    formData.append("docNumber", String(payload.docNumber));
+    if (!!payload.from) formData.append("from", JSON.stringify(payload.from));
+    if (typeof payload.fromBankId === "number")
       formData.append("fromBankId", String(payload.fromBankId));
     if (payload.to) formData.append("to", JSON.stringify(payload.to));
     if (payload.toBankId) formData.append("toBankId", String(payload.toBankId));
