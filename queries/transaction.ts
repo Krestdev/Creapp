@@ -57,7 +57,7 @@ class TransactionQuery {
     formData.append("status", String(payload.status));
     formData.append("docNumber", String(payload.docNumber));
     if (payload.from) formData.append("from", JSON.stringify(payload.from));
-    if (payload.fromBankId)
+    if (typeof payload.fromBankId === "number")
       formData.append("fromBankId", String(payload.fromBankId));
     if (payload.to) formData.append("to", JSON.stringify(payload.to));
     if (payload.toBankId) formData.append("toBankId", String(payload.toBankId));
