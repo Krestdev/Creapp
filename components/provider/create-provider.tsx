@@ -176,7 +176,7 @@ export default function CreateProviderForm() {
         commerce_registre: values.commerce_registre?.[0],
         expireAtcommerce_registre: new Date(values.expireAtcommerce_registre),
         banck_attestation: values.banck_attestation?.[0] ?? undefined,
-        bankAttestionExpirationDate: values.expireAtbanck_attestation ? new Date(values.expireAtbanck_attestation) : undefined,
+        expireAtbanck_attestation: values.expireAtbanck_attestation ? new Date(values.expireAtbanck_attestation) : undefined,
       };
       registerAPI.mutate(data);
   }
