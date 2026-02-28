@@ -693,6 +693,9 @@ function AppSidebar() {
     // Filtrer les liens de navigation selon les rôles de l'utilisateur
     const filteredNavLinks = navLinks.filter((navLink) => {
       if (navLink.authorized.length === 0) return true;
+      if(navLink.href.startsWith("/tableau-de-bord/signatures")){
+        return !!user?.signatairs && user.signatairs.length > 0
+      }
       return navLink.authorized.some((role) => userRoles.includes(role));
     });
 
