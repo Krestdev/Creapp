@@ -692,10 +692,10 @@ function AppSidebar() {
 
     // Filtrer les liens de navigation selon les rôles de l'utilisateur
     const filteredNavLinks = navLinks.filter((navLink) => {
-      if (navLink.authorized.length === 0) return true;
-      if(navLink.href.startsWith("/tableau-de-bord/signatures")){
+      if(navLink.pageId === "PG-0000551"){
         return !!user?.signatairs && user.signatairs.length > 0
       }
+      if (navLink.authorized.length === 0) return true;
       return navLink.authorized.some((role) => userRoles.includes(role));
     });
 
