@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   CalendarIcon,
+  CarFrontIcon,
   CarIcon,
   FileImage,
   ScanBarcodeIcon
@@ -114,6 +115,31 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
                   )}
                 >
                   {vehicleData.matricule ?? "Non renseigné"}
+                </p>
+              </div>
+            </div>
+            {/* CHÂSSIS */}
+            <div className="view-group">
+              <span className="view-icon">
+                <CarFrontIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Numéro de châssis"}</p>
+                <p className="font-semibold">
+                  {vehicleData.serial ?? "Non renseigné"}
+                </p>
+              </div>
+            </div>
+
+            {/* ACQUISITION */}
+            <div className="view-group">
+              <span className="view-icon">
+                <CarFrontIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Date d'acquisition"}</p>
+                <p className="font-semibold">
+                  {vehicleData.purchaseDate ? format(new Date(vehicleData.purchaseDate), "dd MMMM yyyy", {locale: fr}) : "Non renseigné"}
                 </p>
               </div>
             </div>
