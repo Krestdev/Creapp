@@ -146,7 +146,7 @@ function ShareExpense({
   const besoinFac = request.find((x) => x.id === ticket.requestId)
   const benef = users.find((x) => x.id === Number(besoinFac?.beneficiary));
 
-  console.log(besoinFac);
+  //console.log(besoinFac);
 
 
   const form = useForm<FormValues>({
@@ -311,7 +311,7 @@ function ShareExpense({
 
   const share = useMutation({
     mutationFn: async (payload: TransactionProps) =>
-      transactionQ.create(payload),
+      transactionQ.createDebitTransaction(payload),
     onSuccess: (data) => {
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
@@ -373,6 +373,7 @@ function ShareExpense({
       // Inclure docNumber seulement s'il est fourni
       ...(docNumber && { docNumber: docNumber }),
     };
+    //console.log("Payload à envoyer pour la transaction :", payload);
     share.mutate(payload);
   }
 

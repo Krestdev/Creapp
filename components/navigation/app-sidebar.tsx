@@ -535,12 +535,6 @@ function AppSidebar() {
               purchase && purchase.length > 0 ? purchase?.length : undefined,
           },
           {
-            pageId: "PG-03-06",
-            title: "Paiements",
-            href: "/tableau-de-bord/commande/paiements",
-            authorized: ["ADMIN", "SALES"],
-          },
-          {
             pageId: "PG-03-065897",
             title: "Statistiques",
             href: "/tableau-de-bord/commande/bon-de-commande/statistiques",
