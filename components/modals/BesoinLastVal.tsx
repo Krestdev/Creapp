@@ -44,13 +44,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 // Validation Zod
 const formSchema = z.object({
   title: z.string().min(1, "Le titre est obligatoire"),
-  limiteDate: z.date().optional(),
-  priorite: z.enum(["medium", "high", "low", "urgent"], {
+  dueDate: z.date().optional(),
+  priority: z.enum(["medium", "high", "low", "urgent"], {
     required_error: "La priorité est obligatoire",
   }),
-  quantite: z.string().min(1, "La quantité est obligatoire"),
+  quantity: z.string().min(1, "La quantité est obligatoire"),
   description: z.string().optional(),
-  unite: z.string().min(1, "L'unité est obligatoire"),
+  unit: z.string().min(1, "L'unité est obligatoire"),
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),
@@ -83,11 +83,11 @@ export function BesoinLastVal({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: data.label,
-      limiteDate: new Date(data.dueDate),
-      priorite: data.priority as "medium" | "high" | "low" | "urgent",
-      quantite: String(data.quantity),
+      dueDate: new Date(data.dueDate),
+      priority: data.priority as "medium" | "high" | "low" | "urgent",
+      quantity: String(data.quantity),
       description: data?.description || "",
-      unite: data.unit,
+      unit: data.unit,
       categoryId: data.categoryId,
       amount: data.amount,
     },
@@ -157,11 +157,11 @@ export function BesoinLastVal({
     if (open) {
       form.reset({
         title: data.label,
-        limiteDate: new Date(data.dueDate), // Handle undefined or null dates
-        priorite: data.priority,
-        quantite: String(data.quantity),
+        dueDate: new Date(data.dueDate), // Handle undefined or null dates
+        priority: data.priority,
+        quantity: String(data.quantity),
         description: data.description || "",
-        unite: data.unit,
+        unit: data.unit,
         categoryId: data.categoryId,
         amount: data.amount,
       });
@@ -169,18 +169,12 @@ export function BesoinLastVal({
   }, [open, data, form]);
 
   const submitForm = async (values: FormValues) => {
+    const {unit, quantity, ...rest} = values;
+    const payload: Partial<RequestModelT> = (data.type === "gas" || data.type === "transport") 
+    ? {id: data.id, label: rest.title, description: rest.description, priority: rest.priority, dueDate: rest.dueDate, userId: data.userId, amount: rest.amount, unit: unit, quantity: Number(quantity)} 
+    : {id: data.id, label: rest.title, description: rest.description, priority: rest.priority, dueDate: rest.dueDate, userId: data.userId, amount: rest.amount};
     try {
-      requestMutation.mutate({
-        id: Number(data?.id),
-        label: values.title,
-        description: values.description,
-        priority: values.priorite,
-        quantity: Number(values.quantite),
-        dueDate: values.limiteDate,
-        unit: values.unite,
-        userId: data?.userId,
-        amount: data.amount,
-      });
+      requestMutation.mutate(payload);
     } catch {
       toast.error("Une erreur est survenue");
     }
@@ -190,7 +184,6 @@ export function BesoinLastVal({
     requestMutation.reset();
   };
 
-  const headerTitle = isError ? "Erreur ❌" : isSuccess ? "Succès ✅" : titre;
 
   const headerDescription = isError
     ? "Une erreur est survenue. Vous pouvez réessayer."
@@ -204,11 +197,11 @@ export function BesoinLastVal({
       // Reset du formulaire
       form.reset({
         title: data?.label || "",
-        limiteDate: data?.dueDate ? new Date(data.dueDate) : undefined,
-        priorite: data?.priority as "medium" | "high" | "low" | "urgent",
-        quantite: String(data?.quantity || ""),
+        dueDate: data?.dueDate ? new Date(data.dueDate) : undefined,
+        priority: data?.priority as "medium" | "high" | "low" | "urgent",
+        quantity: String(data?.quantity || ""),
         description: data?.description || "",
-        unite: data?.unit || "",
+        unit: data?.unit || "",
       });
 
       // Reset des mutations
@@ -247,7 +240,7 @@ export function BesoinLastVal({
                     <FormItem>
                       <FormLabel isRequired>{"Titre"}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Titre..." {...field} disabled />
+                        <Input placeholder="ex. Chantier Duval" {...field} disabled />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -326,7 +319,7 @@ export function BesoinLastVal({
                 {/* Date */}
                 <FormField
                   control={form.control}
-                  name="limiteDate"
+                  name="dueDate"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel isRequired>{"Date limite"}</FormLabel>
@@ -364,7 +357,7 @@ export function BesoinLastVal({
                 {/* Priorité */}
                 <FormField
                   control={form.control}
-                  name="priorite"
+                  name="priority"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel isRequired>{"Priorité"}</FormLabel>
@@ -391,9 +384,11 @@ export function BesoinLastVal({
                 />
 
                 {/* Quantité */}
-                <FormField
+                {
+                  data.type !== "transport" && data.type !== "gas" &&
+                  <FormField
                   control={form.control}
-                  name="quantite"
+                  name="quantity"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel isRequired>{"Quantité"}</FormLabel>
@@ -407,12 +402,14 @@ export function BesoinLastVal({
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                />}
 
-                {/* UNITE */}
-                <FormField
+                {/* UNIT */}
+                {
+                  data.type !== "transport" && data.type !== "gas" &&
+                  <FormField
                   control={form.control}
-                  name="unite"
+                  name="unit"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{"Unité"}</FormLabel>
@@ -436,7 +433,7 @@ export function BesoinLastVal({
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                />}
 
                 {/* Description */}
                 <FormField
