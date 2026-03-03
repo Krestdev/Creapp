@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -28,7 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
-import { Category, RequestModelT } from "@/types/types";
+import { Category, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -40,6 +41,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Label } from "../ui/label";
 
 // Validation Zod
 const formSchema = z.object({
@@ -51,9 +53,6 @@ const formSchema = z.object({
   quantity: z.string().min(1, "La quantité est obligatoire"),
   description: z.string().optional(),
   unit: z.string().min(1, "L'unité est obligatoire"),
-  categoryId: z.coerce.number({
-    message: "Veuillez sélectionner une catégorie",
-  }),
   amount: z.coerce.number().optional(),
 });
 
@@ -66,6 +65,7 @@ interface ValidationModalProps {
   titre: string | undefined;
   description: string | undefined;
   categories: Array<Category>;
+  users: Array<User>;
 }
 
 export function BesoinLastVal({
@@ -75,6 +75,7 @@ export function BesoinLastVal({
   titre,
   description,
   categories,
+  users
 }: ValidationModalProps) {
   const [openD, setOpenD] = useState(false);
   const { isHydrated, user } = useStore();
@@ -88,7 +89,6 @@ export function BesoinLastVal({
       quantity: String(data.quantity),
       description: data?.description || "",
       unit: data.unit,
-      categoryId: data.categoryId,
       amount: data.amount,
     },
   });
@@ -162,7 +162,6 @@ export function BesoinLastVal({
         quantity: String(data.quantity),
         description: data.description || "",
         unit: data.unit,
-        categoryId: data.categoryId,
         amount: data.amount,
       });
     }
@@ -210,18 +209,19 @@ export function BesoinLastVal({
     }
   }, [open, data]);
 
+  const requestBy = users.find(u => u.id === data.userId);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
+      <DialogContent>
         {/* HEADER - Fixé en haut */}
         <DialogHeader
           variant={isError ? "error" : isSuccess ? "success" : "default"}
-          className={` text-white p-6 m-4 rounded-lg pb-8 shrink-0`}
         >
-          <DialogTitle className="text-xl font-semibold text-white">
+          <DialogTitle>
             {"Approbation"}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">{headerDescription}</p>
+          <DialogDescription>{headerDescription}</DialogDescription>
         </DialogHeader>
 
         {/* FORM - Zone scrollable */}
@@ -246,50 +246,13 @@ export function BesoinLastVal({
                     </FormItem>
                   )}
                 />
-                {/* Category */}
-                <FormField
-                  control={form.control}
-                  name="categoryId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Categorie"}</FormLabel>
-                      <FormControl>
-                        <Select
-                          defaultValue={
-                            field.value ? String(field.value) : undefined
-                          }
-                          onValueChange={field.onChange}
-                          disabled
-                        >
-                          <SelectTrigger className="min-w-60 w-full">
-                            <SelectValue placeholder="Sélectionner" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.filter(
-                              (c) => c.type.type === "facilitation",
-                            ).length === 0 ? (
-                              <SelectItem value="#" disabled>
-                                {"Aucune catégorie enregistrée"}
-                              </SelectItem>
-                            ) : (
-                              categories
-                                .filter((c) => c.type.type === "facilitation")
-                                .map((category) => (
-                                  <SelectItem
-                                    key={category.id}
-                                    value={category.id.toString()}
-                                  >
-                                    {category.label}
-                                  </SelectItem>
-                                ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {
+                  !!requestBy &&
+                  <div className="grid gap-2">
+                  <Label>{"Emetteur"}</Label>
+                  <Input value={requestBy.firstName.concat(" ", requestBy.lastName)} disabled />
+                </div>
+                }
                 {
                   !!data.amount &&
                   <FormField

@@ -1557,6 +1557,7 @@ export function DataVal({
         titre={"Approuver le besoin"}
         description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
         categories={categoriesData}
+        users={usersData}
       />}
       {
         selectedItem &&
