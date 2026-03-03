@@ -496,7 +496,7 @@ function AppSidebar() {
             pageId: "PG-03-01",
             title: "Demande de cotation",
             href: "/tableau-de-bord/commande/cotation",
-            authorized: ["ADMIN", "SALES"],
+            authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
             badgeValue:
               requestToUse.length > 0 ? requestToUse.length : undefined,
           },
