@@ -52,6 +52,7 @@ import {
   PAY_STATUS,
   PRIORITIES,
   PaymentRequest,
+  RequestModelT,
   RequestType,
 } from "@/types/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -153,6 +154,7 @@ const getStatusVariant = (
 };
 
 export function TicketTable({ data, requestTypeData, invoices }: TicketsTableProps) {
+  
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<"all" | PaymentRequest["type"]>(
     "all",
@@ -227,27 +229,30 @@ export function TicketTable({ data, requestTypeData, invoices }: TicketsTablePro
     setTypeFilter("all");
   };
 
-  function getTypeBadge(type: PaymentRequest["type"]): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } {
-    const typeData = requestTypeData.find((t) => t.type === type);
-    const label = typeData?.label ?? "Inconnu";
-    switch (type) {
-      case "facilitation":
-        return { label, variant: "lime" };
-      case "achat":
-        return { label, variant: "sky" };
-      case "speciaux":
-        return { label, variant: "purple" };
-      case "ressource_humaine":
-        return { label, variant: "blue" };
-      case "CURRENT":
-        return { label, variant: "secondary" };
-      default:
-        return { label: type, variant: "outline" };
+   function getTypeBadge(
+      type: RequestModelT["type"],
+    ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+      const typeData = requestTypeData.find((t) => t.type === type);
+      const label = typeData?.label ?? type;
+      switch (type) {
+        case "facilitation":
+          return { label, variant: "lime" };
+        case "achat":
+          return { label, variant: "sky" };
+        case "speciaux":
+          return { label, variant: "purple" };
+        case "ressource_humaine":
+          return { label, variant: "blue" };
+        case "gas":
+          return {label, variant: "teal"};
+        case "transport":
+          return {label, variant: "primary"};
+        case "others" :
+          return {label, variant: "dark"};
+        default:
+          return { label, variant: "outline" };
+      }
     }
-  }
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },

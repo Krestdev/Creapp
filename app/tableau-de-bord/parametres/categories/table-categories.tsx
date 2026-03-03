@@ -42,7 +42,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { categoryQ } from "@/queries/categoryModule";
-import { Category, RequestType, User } from "@/types/types";
+import { Category, RequestModelT, RequestType, User } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import {
   ChevronLeft,
@@ -54,7 +54,8 @@ import { toast } from "sonner";
 import { DeleteCategory } from "./delete-category";
 import { ViewCategory } from "./view-category";
 import { UpdateCategory } from "./update-category";
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
+import { VariantProps } from "class-variance-authority";
 
 
 interface CategoriesTableProps {
@@ -89,6 +90,31 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
       console.error(error);
     },
   });
+
+   function getTypeBadge(
+      type: RequestModelT["type"],
+    ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
+      const typeData = types.find((t) => t.type === type);
+      const label = typeData?.label ?? type;
+      switch (type) {
+        case "facilitation":
+          return { label, variant: "lime" };
+        case "achat":
+          return { label, variant: "sky" };
+        case "speciaux":
+          return { label, variant: "purple" };
+        case "ressource_humaine":
+          return { label, variant: "blue" };
+        case "gas":
+          return {label, variant: "teal"};
+        case "transport":
+          return {label, variant: "primary"};
+        case "others" :
+          return {label, variant: "dark"};
+        default:
+          return { label, variant: "outline" };
+      }
+    }
 
   const columns = React.useMemo<ColumnDef<Category>[]>(
     () => [
@@ -158,7 +184,7 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
         cell: ({ row }) => {
             const value = row.original.type;
           return (
-            <Badge variant={value.type === "achat" ? "blue" : value.type === "others" ? "purple" : "outline"}>{value.label}</Badge>
+            <Badge variant={getTypeBadge(value.type).variant}>{getTypeBadge(value.type).label}</Badge>
           );
         },
       },

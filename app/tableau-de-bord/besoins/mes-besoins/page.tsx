@@ -1,6 +1,5 @@
 "use client";
 
-import { DataTable } from "@/components/base/data-table";
 import {
   StatisticCard,
   StatisticProps,
@@ -44,6 +43,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Settings2 } from "lucide-react";
 import React from "react";
+import { TableMyRequests } from "./table-my-requests";
 
 const Page = () => {
   const { user } = useStore();
@@ -470,7 +470,7 @@ const Page = () => {
             <StatisticCard key={id} {...statistic} />
           ))}
         </div>
-        <DataTable
+        <TableMyRequests
           data={filteredData}
           categories={categoryData.data.data}
           projects={projectsData.data.data}
