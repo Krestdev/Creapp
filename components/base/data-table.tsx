@@ -645,6 +645,10 @@ export function DataTable({
                   : setIsUpdateModalOpen(true);
               }
             }}
+            users={users}
+            payments={payments}
+            categories={categories}
+            projects={projects}
           />
           <UpdateRequest
             open={isUpdateModalOpen}
