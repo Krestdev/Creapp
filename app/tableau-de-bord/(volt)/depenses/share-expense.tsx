@@ -161,7 +161,7 @@ function ShareExpense({
       // Si le ticket n'a pas de methodId, laisser undefined
       ...(hasExistingMethodId ? {} : { methodId: undefined }),
       to: {
-        label: isFacilitation ? benef?.firstName + " " + benef?.lastName : !!ticket.requestId ? requestUser?.firstName.concat(" ", requestUser?.lastName) : ticket.invoice?.command.provider.name ?? "",
+        label: isFacilitation ? benef?.firstName + " " + benef?.lastName : ticket.invoice?.command.provider.name ?? !!ticket.requestId ? requestUser?.firstName.concat(" ", requestUser?.lastName) :  "",
         accountNumber: "",
         phoneNum: "",
       },

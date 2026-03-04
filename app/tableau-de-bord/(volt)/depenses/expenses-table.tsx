@@ -73,6 +73,7 @@ import {
   PaymentRequest,
   PayType,
   PRIORITIES,
+  ProjectT,
   Provider,
   RequestModelT,
   RequestType,
@@ -151,6 +152,7 @@ interface Props {
   providers: Array<Provider>;
   request: RequestModelT[];
   users: Array<User>;
+  projects: Array<ProjectT>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -214,7 +216,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType, providers, request, users }: Props) {
+function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType, providers, request, users, projects }: Props) {
   function getTypeBadge(
       type: RequestModelT["type"],
     ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
@@ -927,7 +929,10 @@ function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType
           openChange={setShowDetail}
           payment={selected}
           invoices={invoices}
-        />
+          projects={projects}
+          users={users}
+          requestTypes={requestTypes} 
+          requests={request}        />
       )}
       {selected && (
         <>

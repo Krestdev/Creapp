@@ -1,5 +1,3 @@
-import ErrorPage from "@/components/error-page";
-import LoadingPage from "@/components/loading-page";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,43 +10,42 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn, XAF } from "@/lib/utils";
-import { userQ } from "@/queries/baseModule";
-import { payTypeQ } from "@/queries/payType";
-import { projectQ } from "@/queries/projectModule";
-import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
 import {
   Invoice,
   PAY_STATUS,
   PaymentRequest,
-  User
+  PayType,
+  ProjectT,
+  RequestModelT,
+  User,
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  Activity,
   AlertCircle,
-  Briefcase,
-  Building,
+  BriefcaseBusinessIcon,
   Calendar,
-  CalendarFold,
+  CalendarFoldIcon,
+  ChevronsUp,
+  CircleUserRoundIcon,
   CreditCard,
+  DollarSignIcon,
+  DropletIcon,
   FileIcon,
-  FileText,
-  FolderOpen,
-  Fuel,
-  Gift,
-  Hash,
-  HelpCircle,
+  FuelIcon,
   LucideFile,
-  MapPin,
-  Receipt,
-  ShoppingCart,
+  LucideHash,
+  RouteIcon,
+  ScrollIcon,
   SquareStackIcon,
+  SquareUserRoundIcon,
+  TableCellsSplitIcon,
+  TextQuoteIcon,
   User2,
-  Users,
+  WalletCardsIcon
 } from "lucide-react";
 import Link from "next/link";
 import React, { useMemo } from "react";
@@ -58,6 +55,10 @@ interface Props {
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   payment: PaymentRequest;
   invoices: Array<Invoice>;
+  requestTypes: PayType[];
+  projects: ProjectT[];
+  users: User[];
+  requests: RequestModelT[];
 }
 
 function getStatusBadge(status: PaymentRequest["status"]): {
@@ -83,42 +84,6 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-// Fonction pour obtenir l'icône en fonction du type
-function getTypeIcon(type: PaymentRequest["type"]) {
-  switch (type) {
-    case "facilitation":
-      return <Building className="h-4 w-4" />;
-    case "ressource_humaine":
-      return <Users className="h-4 w-4" />;
-    case "speciaux":
-      return <Gift className="h-4 w-4" />;
-    case "achat":
-      return <ShoppingCart className="h-4 w-4" />;
-    case "CURRENT":
-      return <Activity className="h-4 w-4" />;
-    default:
-      return <Briefcase className="h-4 w-4" />;
-  }
-}
-
-// Fonction pour obtenir le libellé du type
-function getTypeLabel(type: PaymentRequest["type"]) {
-  switch (type) {
-    case "facilitation":
-      return "Facilitation";
-    case "ressource_humaine":
-      return "Ressource Humaine";
-    case "speciaux":
-      return "Dépenses Spéciales";
-    case "achat":
-      return "Achat";
-    case "CURRENT":
-      return "Dépenses Courantes";
-    default:
-      return "Autre";
-  }
-}
-
 // Helper pour vérifier si une valeur est significative
 const hasValue = (value: any): boolean => {
   if (value === null || value === undefined) return false;
@@ -131,20 +96,21 @@ const hasValue = (value: any): boolean => {
   return true;
 };
 
-function ViewExpense({ open, openChange, payment, invoices }: Props) {
-  const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
-  const getProjects = useQuery({ queryKey: ["projects"], queryFn: projectQ.getAll });
-  const requestData = useQuery({ queryKey: ["requests"], queryFn: requestQ.getAll, });
+function ViewExpense({
+  open,
+  openChange,
+  payment,
+  invoices,
+  requestTypes,
+  projects,
+  users,
+  requests,
+}: Props) {
   const invoice = invoices.find((p) => p.id === payment.invoiceId);
-  const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
-    queryFn: payTypeQ.getAll,
-  });
   const getSignataire = useQuery({
     queryKey: ["signatairs"],
     queryFn: signatairQ.getAll,
   });
-
 
   const signataires = useMemo(() => {
     if (!getSignataire.data?.data || !payment?.bankId || !payment?.methodId) {
@@ -152,47 +118,67 @@ function ViewExpense({ open, openChange, payment, invoices }: Props) {
     }
 
     return getSignataire.data.data.find(
-      x =>
-        x.bankId === payment.bankId &&
-        x.payTypeId === payment.methodId
+      (x) => x.bankId === payment.bankId && x.payTypeId === payment.methodId,
     );
-  }, [
-    getSignataire.data?.data,
-    payment?.bankId,
-    payment?.methodId,
-  ]);
+  }, [getSignataire.data?.data, payment?.bankId, payment?.methodId]);
 
-  if (!payment) return null;
+  const user = users.find((u) => u.id === payment.userId);
+  const methodName =
+    requestTypes.find((p) => p.id === payment.methodId)?.label || "Non défini";
 
-  if (getUsers.isLoading || getPaymentType.isLoading) {
-    return <LoadingPage />;
+  // Rendu conditionnel simple
+  const getStatusBadgeContent = () => {
+    const { label, variant } = getStatusBadge(payment.status);
+    return (
+      <Badge variant={variant} className="w-fit">
+        {label}
+      </Badge>
+    );
+  };
+
+  // Fonction pour obtenir le libellé du type
+  function getTypeBadge(type: RequestModelT["type"]): {
+    label: string;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+  } {
+    const typeData = requestTypes.find((t) => t.type === type);
+    const label = typeData?.label ?? type;
+    switch (type) {
+      case "facilitation":
+        return { label, variant: "lime" };
+      case "achat":
+        return { label, variant: "sky" };
+      case "speciaux":
+        return { label, variant: "purple" };
+      case "ressource_humaine":
+        return { label, variant: "blue" };
+      case "gas":
+        return { label, variant: "teal" };
+      case "transport":
+        return { label, variant: "primary" };
+      case "others":
+        return { label, variant: "dark" };
+      default:
+        return { label, variant: "outline" };
+    }
   }
-  if (getUsers.isError || getPaymentType.isError) {
-    return <ErrorPage error={getUsers.error || getPaymentType.error!} />;
-  }
 
-  if (getUsers.isSuccess && getPaymentType.isSuccess) {
-    const user = getUsers.data.data.find((u) => u.id === payment.userId);
-    const methodName = getPaymentType.data?.data.find((p) => p.id === payment.methodId)?.label || "Non défini";
+  const getPriorityBadge = () => {
+    if (!hasValue(payment.priority)) return null;
 
-    // Rendu conditionnel simple
-    const getStatusBadgeContent = () => {
-      const { label, variant } = getStatusBadge(payment.status);
-      return <Badge variant={variant} className="w-fit">{label}</Badge>;
-    };
-
-    const getPriorityBadge = () => {
-      if (!hasValue(payment.priority)) return null;
-
-      const variant = payment.priority === "urgent"
-        ? "destructive"
+    const variant: VariantProps<typeof badgeVariants>["variant"] =
+      payment.priority === "urgent"
+        ? "primary"
         : payment.priority === "high"
-          ? "default"
+          ? "destructive"
           : payment.priority === "medium"
-            ? "outline"
-            : "secondary";
+            ? "sky"
+            : payment.priority === "low" ?
+            "outline"
+            : "default";
 
-      const label = payment.priority === "urgent"
+    const label:string =
+      payment.priority === "urgent"
         ? "Urgent"
         : payment.priority === "high"
           ? "Haute"
@@ -200,478 +186,469 @@ function ViewExpense({ open, openChange, payment, invoices }: Props) {
             ? "Moyenne"
             : "Basse";
 
-      return <Badge variant={variant} className="w-fit">{label}</Badge>;
-    };
-
-    const users = signataires?.user;
     return (
-      <Dialog open={open} onOpenChange={openChange}>
-        <DialogContent className="sm:max-w-[720px]! max-h-[80vh] p-0 gap-0 border-none flex flex-col">
-          {/* Header avec fond */}
-          <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
-            <DialogTitle className="text-xl font-semibold text-white">
-              {`Ticket - ${payment.title || "Sans titre"}`}
-            </DialogTitle>
-            <DialogDescription className="text-white/80">
-              Détail du ticket
-            </DialogDescription>
-          </DialogHeader>
+      <Badge variant={variant} className="w-fit">
+        {label}
+      </Badge>
+    );
+  };
 
-          {/* Contenu scrollable */}
-          <div className="flex-1 overflow-y-auto px-6">
-            <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 gap-4">
-              {/* Référence */}
-              {hasValue(payment.reference) && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <Hash className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Référence
-                    </p>
-                    <Badge className="bg-pink-100 text-pink-900 hover:bg-pink-100">
-                      {payment.reference}
-                    </Badge>
-                  </div>
-                </div>
-              )}
+  const signers = signataires?.user;
+  return (
+    <Dialog open={open} onOpenChange={openChange}>
+      <DialogContent className="sm:max-w-[760px]">
+        {/* Header avec fond */}
+        <DialogHeader>
+          <DialogTitle>
+            {`Ticket - ${payment.title || "Sans titre"}`}
+          </DialogTitle>
+          <DialogDescription>
+            {"Informations relatives au ticket"}
+          </DialogDescription>
+        </DialogHeader>
 
-              {/* Description */}
-              {hasValue(payment.description) && payment.description !== "none" && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Description
-                    </p>
-                    <p className="font-semibold text-lg">
-                      {payment.description}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Type */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  {getTypeIcon(payment.type)}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Type de dépense
-                  </p>
-                  <Badge variant="outline" className="w-fit">
-                    {getTypeLabel(payment.type)}
-                  </Badge>
-                </div>
+        {/* Contenu scrollable */}
+        <div className="grid grid-cols-1 @min-[640px]/dialog:grid-cols-2 gap-4">
+          {/**Reference */}
+          <div className="view-group">
+            <span className="view-icon">
+              <LucideHash />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Référence"}</p>
+              <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
+                <p className="text-primary-600 text-sm">
+                  {payment.reference || "N/A"}
+                </p>
               </div>
+            </div>
+          </div>
 
-              {/* Montant */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <FolderOpen className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">Montant</p>
-                  <p className="font-semibold text-lg">
-                    {XAF.format(payment.price)}
-                  </p>
-                </div>
+          {/* Description */}
+          <div className="view-group">
+            <span className="view-icon">
+              <TextQuoteIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Description"}</p>
+              <p>{payment.description ?? "N/A"}</p>
+            </div>
+          </div>
+
+          {/* Type */}
+          <div className="view-group">
+            <span className="view-icon">
+              <WalletCardsIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Type"}</p>
+              <Badge variant={getTypeBadge(payment.type).variant}>
+                {getTypeBadge(payment.type).label}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Montant */}
+          <div className="view-group">
+            <span className="view-icon">
+              <DollarSignIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Montant"}</p>
+              <p className="font-semibold">{XAF.format(payment.price)}</p>
+            </div>
+          </div>
+
+          {/* Bénéficiaire */}
+          {hasValue(payment.benefId) && (
+            <div className="view-group">
+              <span className="view-icon">
+                <CircleUserRoundIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Bénéficiaire"}</p>
+                <p>
+                  {users.find((u) => u.id === payment.benefId)?.firstName +
+                    " " +
+                    users.find((u) => u.id === payment.benefId)?.lastName}
+                </p>
               </div>
+            </div>
+          )}
 
-              {/* Bénéficiaire */}
-              {
-                hasValue(payment.benefId) && (
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1">
-                      <User2 className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground mb-1">
-                        Bénéficiaire
-                      </p>
-                      <p className="font-semibold">
-                        {getUsers.data?.data.find((u) => u.id === payment.benefId)?.firstName +
-                          " " +
-                          getUsers.data?.data.find((u) => u.id === payment.benefId)?.lastName}
-                      </p>
-                    </div>
-                  </div>
-                )
-              }
-
-              {/* Projet */}
-              {hasValue(payment.projectId) && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <Briefcase className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">Projet</p>
-                    <p className="font-semibold">{getProjects.data?.data.find((p) => p.id === payment.projectId)?.label}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Demande associée */}
-              {hasValue(payment.requestId) && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <HelpCircle className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Demande associée
-                    </p>
-                    <p className="font-semibold">{requestData.data?.data.find((r) => r.id === payment.requestId)?.label}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Pour les achats */}
-              {payment.type === "achat" && invoice && (
-                <>
-                  {hasValue(invoice.command.provider.name) && (
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        <Building className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {"Fournisseur"}
-                        </p>
-                        <p className="font-semibold">{invoice.command.provider.name}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {hasValue(invoice.command.reference) && (
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        <Receipt className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {"Bon de commande"}
-                        </p>
-                        <p className="font-semibold">{invoice.command.reference}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {hasValue(payment.deadline) && (
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        <CalendarFold className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {"Date limite"}
-                        </p>
-                        <p className="font-semibold">
-                          {format(new Date(payment.deadline), "dd MMMM yyyy", {
-                            locale: fr,
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Pour les dépenses courantes */}
-              {payment.type === "CURRENT" && (
-                <>
-                  {hasValue(payment.km) && (
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        <MapPin className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {"Kilométrage"}
-                        </p>
-                        <p className="font-semibold">{`${payment.km} KM`}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {hasValue(payment.liters) && (
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        <Fuel className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {"Prix unitaire du litre"}
-                        </p>
-                        <p className="font-semibold">{XAF.format(payment.liters ?? 0)}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {hasValue(payment.liters) && (
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        <Fuel className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {"Nombre de litres consommés"}
-                        </p>
-                        <p className="font-semibold">{payment.price && payment.liters ? `${parseFloat((payment.price / payment.liters).toFixed(2))} L` : ""} </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {hasValue(payment.justification) && (
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        <FileIcon className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {"Justification"}
-                        </p>
-                        <Link
-                          href={`${process.env.NEXT_PUBLIC_API}/${payment.justification}`}
-                          target="_blank"
-                          className="flex gap-0.5 items-center"
-                        >
-                          <img
-                            src="/images/pdf.png"
-                            alt="justification"
-                            className="h-7 w-auto aspect-square"
-                          />
-                          <p className="text-foreground font-medium">
-                            {"Document de justification"}
-                          </p>
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Justificatif */}
-              {hasValue(payment.proof) && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <LucideFile className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {"Justificatif"}
-                    </p>
-                    <Link
-                      href={`${process.env.NEXT_PUBLIC_API}/${payment.proof}`}
-                      target="_blank"
-                      className="flex gap-0.5 items-center"
-                    >
-                      <img
-                        src="/images/pdf.png"
-                        alt="justificatif"
-                        className="h-7 w-auto aspect-square"
-                      />
-                      <p className="text-foreground font-medium">
-                        Document justificatif
-                      </p>
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* Méthode de paiement */}
-              {hasValue(payment.methodId) && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <CreditCard className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {"Méthode de paiement"}
-                    </p>
-                    <p className="font-semibold">{methodName}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Statut */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">Statut</p>
-                  {getStatusBadgeContent()}
-                </div>
+          {/* Projet */}
+          {hasValue(payment.projectId) && (
+            <div className="view-group">
+              <span className="view-icon">
+                <BriefcaseBusinessIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Projet"}</p>
+                <p className="font-semibold">
+                  {projects.find((p) => p.id === payment.projectId)?.label ??
+                    "N/A"}
+                </p>
               </div>
+            </div>
+          )}
 
-              {/* Priorité */}
-              {hasValue(payment.priority) && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Priorité
-                    </p>
-                    {getPriorityBadge()}
-                  </div>
-                </div>
-              )}
-
-              {/* Date de création */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">Créé le</p>
-                  <p className="font-semibold">
-                    {format(new Date(payment.createdAt), "dd MMMM yyyy à HH:mm", {
-                      locale: fr,
-                    })}
-                  </p>
-                </div>
+          {/* Demande associée */}
+          {hasValue(payment.requestId) && (
+            <div className="view-group">
+              <span className="view-icon">
+                <ScrollIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Besoin"}</p>
+                <p className="font-semibold">
+                  {requests.find((r) => r.id === payment.requestId)?.label}
+                </p>
               </div>
+            </div>
+          )}
 
-              {/* Date de modification */}
-              {hasValue(payment.updatedAt) && payment.updatedAt !== payment.createdAt && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <Calendar className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {"Modifié le"}
-                    </p>
+          {/* Pour les achats */}
+          {payment.type === "achat" && invoice && (
+            <>
+              {hasValue(invoice.command.provider.name) && (
+                <div className="view-group">
+                  <span className="view-icon">
+                    <SquareUserRoundIcon />
+                  </span>
+                  <div className="flex flex-col">
+                    <p className="view-group-title">{"Fournisseur"}</p>
                     <p className="font-semibold">
-                      {format(new Date(payment.updatedAt), "dd MMMM yyyy à HH:mm", {
+                      {invoice.command.provider.name}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {hasValue(invoice.command.reference) && (
+                <div className="view-group">
+                  <span className="view-icon">
+                    <TableCellsSplitIcon />
+                  </span>
+                  <div className="flex flex-col">
+                    <p className="view-group-title">{"Bon de commande"}</p>
+                    <p className="font-semibold">
+                      {invoice.command.devi.commandRequest.title}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {hasValue(payment.deadline) && (
+                <div className="view-group">
+                  <span className="view-icon">
+                    <CalendarFoldIcon />
+                  </span>
+                  <div className="flex flex-col">
+                    <p className="view-group-title">{"Date limite"}</p>
+                    <p>
+                      {format(new Date(payment.deadline), "dd MMMM yyyy", {
                         locale: fr,
                       })}
                     </p>
                   </div>
                 </div>
               )}
+            </>
+          )}
 
-              {/* Initié par */}
-              {hasValue(payment.userId) && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <User2 className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Initié par
-                    </p>
-                    <p className="font-semibold">
-                      {getUsers.data?.data.find((u) => u.id === payment.userId)?.firstName +
-                        " " +
-                        getUsers.data?.data.find((u) => u.id === payment.userId)?.lastName}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Motif de rejet */}
-              {payment.status === "rejected" && hasValue(payment.reason) && (
-                <div className="flex items-start gap-3 bg-red-50 p-3 rounded-md border border-red-200">
-                  <div className="mt-1">
-                    <AlertCircle className="h-5 w-5 text-red-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-red-700 mb-1">
-                      {"Motif du rejet"}
-                    </p>
-                    <p className="text-red-800 font-medium">{payment.reason}</p>
-                  </div>
-                </div>
-              )}
-
-              {signataires && signataires.user && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    <AlertCircle className="h-5 w-5" />
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {"Mode de signature"}
-                    </p>
-                    <p className="font-medium">
-                      {signataires?.mode === "ONE" ?
-                        "Un dans la liste" :
-                        signataires?.mode === "BOTH" && signataires.user?.length > 1 ?
-                          "Tous les signataires" :
-                          "Un seul signataire"}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Historique de signature */}
-              {users && users.length > 0 && (
+          {/* Pour les dépenses courantes */}
+          {payment.type === "CURRENT" && (
+            <>
+              {hasValue(payment.km) && (
                 <div className="view-group">
                   <span className="view-icon">
-                    <SquareStackIcon />
+                    <RouteIcon />
                   </span>
                   <div className="flex flex-col">
-                    <p className="view-group-title">{"Historique de signature"}</p>
-                    <div className="grid gap-2">
-                      {/* On va mettre ceux qui sont dans paiement.signer en vert */}
-                      {users.map((s: User) => {
-                        const isSigned = payment.signer?.flatMap(x => x.id).includes(s.id);
-                        const signer = payment.signer?.find(x => x.id === s.id);
-                        return (
-                          <div key={s.id} className={cn("px-3 py-2 flex flex-col gap-1 border bg-gray-50 border-gray-200", isSigned ? "bg-green-50 border-green-200" : "")}>
-                            <p className="text-sm font-medium text-gray-600">
-                              {s.firstName + " " + s.lastName}
-                            </p>
-                            {/* {signer && <p className="text-sm text-muted-foreground">
+                    <p className="view-group-title">{"Kilométrage"}</p>
+                    <p className="font-semibold">{`${payment.km} KM`}</p>
+                  </div>
+                </div>
+              )}
+
+              {hasValue(payment.liters) && (
+                <div className="view-group">
+                  <span className="view-icon">
+                    <FuelIcon />
+                  </span>
+                  <div className="flex flex-col">
+                    <p className="view-group-title">
+                      {"Prix unitaire du Litre"}
+                    </p>
+                    <p className="font-semibold">
+                      {XAF.format(payment.liters ?? 0)}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {hasValue(payment.liters) && (
+                <div className="view-group">
+                  <span className="view-icon">
+                    <DropletIcon />
+                  </span>
+                  <div className="flex flex-col">
+                    <p className="view-group-title">{"Nombre de litres"}</p>
+                    <p className="font-semibold">
+                      {payment.price && payment.liters
+                        ? `${parseFloat((payment.price / payment.liters).toFixed(2))} L`
+                        : ""}{" "}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {hasValue(payment.justification) && (
+                <div className="view-group">
+                  <span className="view-icon">
+                    <FileIcon />
+                  </span>
+                  <div className="flex flex-col">
+                    <p className="view-group-title">
+                      {"Justification"}
+                    </p>
+                    <Link
+                      href={`${process.env.NEXT_PUBLIC_API}/${payment.justification}`}
+                      target="_blank"
+                      className="flex gap-0.5 items-center"
+                    >
+                      <img
+                        src="/images/pdf.png"
+                        alt="justification"
+                        className="h-7 w-auto aspect-square"
+                      />
+                      <p className="text-foreground font-medium">
+                        {"Document de justification"}
+                      </p>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Justificatif */}
+          {hasValue(payment.proof) && (
+            <div className="view-group">
+              <span className="view-icon">
+                <LucideFile />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">
+                  {"Justificatif"}
+                </p>
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_API}/${payment.proof}`}
+                  target="_blank"
+                  className="flex gap-0.5 items-center"
+                >
+                  <img
+                    src="/images/pdf.png"
+                    alt="justificatif"
+                    className="h-7 w-auto aspect-square"
+                  />
+                  <p className="text-foreground font-medium">
+                    {"Document justificatif"}
+                  </p>
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Méthode de paiement */}
+          {hasValue(payment.methodId) && (
+            <div className="view-group">
+              <span className="view-icon">
+                <CreditCard />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">
+                  {"Méthode de paiement"}
+                </p>
+                <p className="font-semibold">{methodName}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Statut */}
+          <div className="view-group">
+            <span className="view-icon">
+              <AlertCircle />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Statut"}</p>
+              {getStatusBadgeContent()}
+            </div>
+          </div>
+
+          {/* Priorité */}
+          {hasValue(payment.priority) && (
+            <div className="view-group">
+              <div className="view-icon">
+                <ChevronsUp />
+              </div>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Priorité"}</p>
+                {getPriorityBadge()}
+              </div>
+            </div>
+          )}
+
+          {/* Date de création */}
+          <div className="view-group">
+            <span className="view-icon">
+              <Calendar />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Créé le"}</p>
+              <p className="font-semibold">
+                {format(new Date(payment.createdAt), "dd MMMM yyyy à HH:mm", {
+                  locale: fr,
+                })}
+              </p>
+            </div>
+          </div>
+
+          {/* Date de modification */}
+          {hasValue(payment.updatedAt) &&
+            payment.updatedAt !== payment.createdAt && (
+              <div className="view-group">
+                <span className="view-icon">
+                  <Calendar />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">
+                    {"Modifié le"}
+                  </p>
+                  <p className="font-semibold">
+                    {format(
+                      new Date(payment.updatedAt),
+                      "dd MMMM yyyy à HH:mm",
+                      {
+                        locale: fr,
+                      },
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
+
+          {/* Initié par */}
+          {hasValue(payment.userId) && (
+            <div className="view-group">
+              <span className="view-icon">
+                <User2 />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Initié par"}</p>
+                <p className="font-semibold">
+                  {users.find((u) => u.id === payment.userId)?.firstName +
+                    " " +
+                    users.find((u) => u.id === payment.userId)?.lastName}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Motif de rejet */}
+          {payment.status === "rejected" && hasValue(payment.reason) && (
+            <div className="view-group">
+              <span className="view-icon">
+                <AlertCircle />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Motif du rejet"}</p>
+                <p className="text-red-700 font-semibold">{payment.reason}</p>
+              </div>
+            </div>
+          )}
+
+          {signataires && signataires.user && (
+            <div className="view-group">
+              <span className="view-icon">
+                <AlertCircle className="h-5 w-5" />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">
+                  {"Mode de signature"}
+                </p>
+                <p className="font-medium">
+                  {signataires?.mode === "ONE"
+                    ? "Un dans la liste"
+                    : signataires?.mode === "BOTH" &&
+                        signataires.user?.length > 1
+                      ? "Tous les signataires"
+                      : "Un seul signataire"}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Historique de signature */}
+          {signers && signers.length > 0 && (
+            <div className="view-group">
+              <span className="view-icon">
+                <SquareStackIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Historique de signature"}</p>
+                <div className="grid gap-2">
+                  {/* On va mettre ceux qui sont dans paiement.signer en vert */}
+                  {signers.map((s: User) => {
+                    const isSigned = payment.signer
+                      ?.flatMap((x) => x.id)
+                      .includes(s.id);
+                    const signer = payment.signer?.find((x) => x.id === s.id);
+                    return (
+                      <div
+                        key={s.id}
+                        className={cn(
+                          "px-3 py-2 flex flex-col gap-1 border bg-gray-50 border-gray-200",
+                          isSigned ? "bg-green-50 border-green-200" : "",
+                        )}
+                      >
+                        <p className="text-sm font-medium text-gray-600">
+                          {s.firstName + " " + s.lastName}
+                        </p>
+                        {/* {signer && <p className="text-sm text-muted-foreground">
                               {format(new Date(signer.createdAt!), "dd MMMM yyyy à HH:mm", {
                                 locale: fr,
                               })}
                             </p>} */}
-                            {isSigned && signer ? (
-                              <p className="text-sm text-green-600">
-                                {"Signé"}
-                              </p>
-                            ) : (
-                              signataires.mode === "BOTH" ?
-                                <p className="text-sm text-gray-600">
-                                  {"En attente de signature"}
-                                </p>
-                                :
-                                <p className="text-sm text-gray-600">
-                                  {"Ne peux plus signer"}
-                                </p>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
+                        {isSigned && signer ? (
+                          <p className="text-sm text-green-600">{"Signé"}</p>
+                        ) : signataires.mode === "BOTH" ? (
+                          <p className="text-sm text-gray-600">
+                            {"En attente de signature"}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-gray-600">
+                            {"Ne peux plus signer"}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Footer */}
-          <DialogFooter className="flex gap-3 p-6 pt-0 shrink-0 w-full justify-end">
-            <DialogClose asChild>
-              <Button variant="outline" className="bg-transparent">
-                {"Fermer"}
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+        {/* Footer */}
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">{"Fermer"}</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default ViewExpense;

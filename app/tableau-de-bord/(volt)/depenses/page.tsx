@@ -19,6 +19,7 @@ import { providerQ } from "@/queries/providers";
 import { requestQ } from "@/queries/requestModule";
 import { userQ } from "@/queries/baseModule";
 import { invoiceQ } from "@/queries/invoices";
+import { projectQ } from "@/queries/projectModule";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -57,6 +58,13 @@ function Page() {
     },
   });
 
+  const getProjects = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => {
+      return projectQ.getAll();
+    },
+  });
+
   const getUsers = useQuery({
     queryKey: ["users"],
     queryFn: () => userQ.getAll(),
@@ -77,6 +85,7 @@ function Page() {
     getPaymentType.isLoading ||
     request.isLoading ||
     getProviders.isLoading ||
+    getProjects.isLoading ||
     getUsers.isLoading
   ) {
     return <LoadingPage />;
@@ -89,6 +98,7 @@ function Page() {
     getPaymentType.isError ||
     request.isError ||
     getProviders.isError ||
+    getProjects.isError ||
     getUsers.isError
   ) {
     return (
@@ -101,6 +111,7 @@ function Page() {
           getPaymentType.error ||
           getProviders.error ||
           request.error ||
+          getProjects.error ||
           getUsers.error ||
           undefined
         }
@@ -115,6 +126,7 @@ function Page() {
     getPaymentType.isSuccess &&
     request.isSuccess &&
     getProviders.isSuccess &&
+    getProjects.isSuccess &&
     getUsers.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
@@ -186,6 +198,7 @@ function Page() {
           providers={getProviders.data.data}
           request={request.data.data}
           users={getUsers.data.data}
+          projects={getProjects.data.data}
         />
       </div>
     );
