@@ -69,9 +69,11 @@ import {
   PaymentRequest,
   PayType,
   PRIORITIES,
+  ProjectT,
   RequestType,
   Signatair,
   Transaction,
+  User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -141,7 +143,9 @@ interface Props {
   requestTypes: Array<RequestType>;
   signatair: Array<Signatair>;
   payType: Array<PayType>;
-  transactions: Array<Transaction>
+  transactions: Array<Transaction>;
+  users: Array<User>;
+  projects: Array<ProjectT>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -208,7 +212,9 @@ function ExpensesTableSign({
   requestTypes,
   signatair,
   payType,
-  transactions
+  transactions,
+  users,
+  projects
 }: Props) {
   const { user } = useStore();
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -1077,8 +1083,11 @@ function ExpensesTableSign({
           open={showDetail}
           openChange={setShowDetail}
           payment={selected}
-          invoices={invoices}
-        />
+          invoices={invoices} 
+          requestTypes={payType} 
+          projects={projects} 
+          users={users} 
+          requests={[]}        />
       )}
       {selected && (
         <SignExpense

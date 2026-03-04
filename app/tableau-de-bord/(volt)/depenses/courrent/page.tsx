@@ -19,6 +19,7 @@ import { payTypeQ } from "@/queries/payType";
 import { requestQ } from "@/queries/requestModule";
 import { userQ } from "@/queries/baseModule";
 import { invoiceQ } from "@/queries/invoices";
+import { projectQ } from "@/queries/projectModule";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -57,6 +58,11 @@ function Page() {
     },
   });
 
+  const getProjects = useQuery({
+    queryKey: ["projects"],
+    queryFn: projectQ.getAll,
+  });
+
   const getUsers = useQuery({
     queryKey: ["users"],
     queryFn: () => userQ.getAll(),
@@ -76,7 +82,8 @@ function Page() {
     getProviders.isLoading ||
     getPaymentType.isLoading ||
     getUsers.isLoading ||
-    request.isLoading
+    request.isLoading ||
+    getProjects.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -88,7 +95,8 @@ function Page() {
     getProviders.isError ||
     getPaymentType.isError ||
     getUsers.isError ||
-    request.isError
+    request.isError ||
+    getProjects.isError
   ) {
     return (
       <ErrorPage
@@ -101,6 +109,7 @@ function Page() {
           getPaymentType.error ||
           request.error ||
           getUsers.error ||
+          getProjects.error ||
           undefined
         }
       />
@@ -114,7 +123,8 @@ function Page() {
     getProviders.isSuccess &&
     request.isSuccess &&
     getUsers.isSuccess &&
-    getPaymentType.isSuccess
+    getPaymentType.isSuccess &&
+    getProjects.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -166,7 +176,7 @@ function Page() {
         </div>
         <ExpensesTable
           payments={data.data.filter(
-            (p) => p.status === "pending_depense" && p.type === "CURRENT",
+            (p) => p.status === "pending_depense" && p.type === "CURRENT"
           )}
           banks={getBanks.data.data}
           invoices={getInvoices.data.data}
@@ -174,8 +184,8 @@ function Page() {
           providers={getProviders.data.data}
           getPaymentType={getPaymentType}
           request={request.data.data}
-          users={getUsers.data.data}
-        />
+          users={getUsers.data.data} 
+          projects={getProjects.data.data}        />
         <ExpensesTable
           payments={data.data.filter(
             (p) => p.status === "paid" && p.type === "CURRENT",
@@ -187,6 +197,7 @@ function Page() {
           getPaymentType={getPaymentType}
           request={request.data.data}
           users={getUsers.data.data}
+          projects={getProjects.data.data}
         />
       </div>
     );

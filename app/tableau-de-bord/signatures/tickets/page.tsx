@@ -19,6 +19,8 @@ import { transactionQ } from "@/queries/transaction";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import ExpensesTableSign from "./expenses-table-sign";
+import { userQ } from "@/queries/baseModule";
+import { projectQ } from "@/queries/projectModule";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
@@ -50,6 +52,16 @@ function Page() {
     queryKey: ["transactions"],
     queryFn: transactionQ.getAll,
   });
+  const getUsers = useQuery({
+      queryKey: ["users"],
+      queryFn: userQ.getAll,
+    });
+  const getProjects = useQuery({
+      queryKey: ["projects"],
+      queryFn: async () => {
+        return projectQ.getAll();
+      },
+    });
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { user } = useStore();
@@ -175,7 +187,9 @@ function Page() {
     getRequestType.isLoading ||
     getPayType.isLoading ||
     getTransaction.isLoading ||
-    signatair.isLoading
+    signatair.isLoading ||
+    getProjects.isLoading ||
+    getUsers.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -187,7 +201,9 @@ function Page() {
     getRequestType.isError ||
     getPayType.isError ||
     getTransaction.isError ||
-    signatair.isError
+    signatair.isError ||
+    getProjects.isError ||
+    getUsers.isError
   ) {
     return (
       <ErrorPage
@@ -199,6 +215,8 @@ function Page() {
           getPayType.error ||
           getTransaction.error ||
           signatair.error ||
+          getProjects.error ||
+          getUsers.error ||
           undefined
         }
       />
@@ -215,7 +233,9 @@ function Page() {
     getRequestType.isSuccess &&
     getPayType.isSuccess &&
     getTransaction.isSuccess &&
-    signatair.isSuccess
+    signatair.isSuccess &&
+    getProjects.isSuccess &&
+    getUsers.isSuccess
   ) {
     return (
       <div className="content">
@@ -246,6 +266,8 @@ function Page() {
             signatair={signatair.data.data}
             payType={getPayType.data.data}
             transactions={getTransaction.data.data}
+            projects={getProjects.data.data}
+            users={getUsers.data.data}
           />
         ) : (
           <ExpensesTableSign
@@ -258,6 +280,8 @@ function Page() {
             signatair={signatair.data.data}
             payType={getPayType.data.data}
             transactions={getTransaction.data.data}
+            projects={getProjects.data.data}
+            users={getUsers.data.data}
           />
         )}
       </div>
