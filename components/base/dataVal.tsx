@@ -1487,10 +1487,16 @@ export function DataVal({
       )}
 
       {/* Modals */}
-      <DetailBesoin
+      {
+        selectedItem &&
+        <DetailBesoin
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         data={selectedItem}
+        projects={projectsData}
+        categories={categoriesData}
+        users={usersData}
+        payments={paymentsData}
         actionButton="Approuver"
         action={() => {
           if (!selectedItem) return;
@@ -1504,7 +1510,7 @@ export function DataVal({
             openValidationModal("approve", selectedItem);
           }
         }}
-      />
+      />}
 
       <ValidationModal
         isMotifRequired={true}

@@ -937,7 +937,8 @@ function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType
             onOpenChange={setShowShare}
             banks={banks}
             users={users}
-            request={request}
+            requests={request}
+            invoices={invoices}
           />
           <PayExpense
             ticket={selected}

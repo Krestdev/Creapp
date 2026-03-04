@@ -17,7 +17,7 @@ import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { paymentQ } from "@/queries/payment";
 import { projectQ } from "@/queries/projectModule";
-import { RequestModelT } from "@/types/types";
+import { Category, PaymentRequest, ProjectT, RequestModelT, User } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -49,63 +49,44 @@ import { Skeleton } from "../ui/skeleton";
 interface DetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: RequestModelT | null;
+  data: RequestModelT;
   action: () => void;
   actionButton: string;
+  payments: PaymentRequest[];
+  users: User[];
+  projects: ProjectT[];
+  categories: Category[];
 }
 
-export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
+export function DetailBesoin({ open, onOpenChange, data, users, payments, projects, categories }: DetailModalProps) {
   const { user } = useStore();
   const userId = user?.id;
-
-  // Récupération des données
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: async () => paymentQ.getAll(),
-  });
-
-  const usersData = useQuery({
-    queryKey: ["userQ"],
-    queryFn: async () => userQ.getAll(),
-  });
-
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => projectQ.getAll(),
-  });
-
-  const categoriesData = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => categoryQ.getCategories(),
-  });
-
-  if (!data) return null;
 
   //Get old values
   const initialValues = data.requestOlds?.find(r => r.userId !== user?.id);
 
   // Fonctions pour récupérer les noms
   const getProjectName = (projectId: string) => {
-    const project = projectsData.data?.data?.find(
+    const project = projects.find(
       (proj) => proj.id === Number(projectId),
     );
     return project?.label || projectId;
   };
 
   const getCategoryName = (categoryId: string) => {
-    const category = categoriesData.data?.data?.find(
+    const category = categories.find(
       (cat) => cat.id === Number(categoryId),
     );
     return category?.label || categoryId;
   };
 
   const getUserName = (userId: string) => {
-    const user = usersData.data?.data?.find((u) => u.id === Number(userId));
+    const user = users.find((u) => u.id === Number(userId));
     return user?.lastName + " " + user?.firstName || userId;
   };
 
 
-  const paiement = paymentsData.data?.data.find(
+  const paiement = payments.find(
     (x) => x.requestId === data?.id,
   );
 
@@ -183,41 +164,8 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
   const hasPriorityChanged = !!initialValues && initialValues.priority !== data.priority;
   const hasDueDateChanged = !!initialValues && initialValues.dueDate !== data.dueDate;
   const hasQuantityChanged = data.type === "achat" && !!initialValues && initialValues.quantity !== data.quantity;
-  const modifier = usersData.data?.data.find(u => u.id === oldestRequest?.id);
+  const modifier = users.find(u => u.id === oldestRequest?.id);
 
-  if (paymentsData.isLoading || usersData.isLoading || projectsData.isLoading || categoriesData.isLoading) {
-    return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-3-xl">
-        <DialogHeader>
-          <DialogTitle>{`Besoin - ${data.label}`}</DialogTitle>
-          <DialogDescription>{"Détails du besoin"}</DialogDescription>
-          <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
-            {
-              Array.from({ length: 12 }).map((_, id) => (
-                <Skeleton key={id} className="w-full h-12" />
-              ))
-            }
-          </div>
-        </DialogHeader>
-      </DialogContent>
-    </Dialog>
-  }
-  if (paymentsData.isError || usersData.isError || projectsData.isError || categoriesData.isError) {
-    return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"error"}>
-          <DialogTitle>{"Erreur de chargement"}</DialogTitle>
-          <DialogDescription>{"Une erreur est survenue lors du chargement des données"}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant={"outline"}>{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  }
-  if (paymentsData.isSuccess && usersData.isSuccess && projectsData.isSuccess && categoriesData.isSuccess) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-3xl">
@@ -578,11 +526,11 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                   </p>
                   {data.type === "facilitation" ? (
                     <p className="font-semibold capitalize">
-                      {usersData.data?.data?.find(
+                      {users.find(
                         (u) => u.id === Number(data.beneficiary),
                       )?.firstName +
                         " " +
-                        usersData.data?.data?.find(
+                        users.find(
                           (u) => u.id === Number(data.beneficiary),
                         )?.lastName}
                     </p>
@@ -595,7 +543,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                       ) : (
                         <div className="flex flex-col">
                           {data.beficiaryList?.map((ben) => {
-                            const beneficiary = usersData.data?.data?.find(
+                            const beneficiary = users.find(
                               (x) => x.id === ben.id,
                             );
                             return (
@@ -630,7 +578,7 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
                         return (
                           <div key={v.id} className={cn("px-3 py-2 flex flex-col gap-1 border", !v.decision ? "bg-gray-50 border-gray-200" : v.decision.includes("reject") ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200")}>
                             <p className={cn("text-sm font-medium", !v.decision ? "text-gray-600" : v.decision.includes("reject") ? "text-red-600" : "text-green-600")}>{!v.decision ? "En attente" : v.decision.includes("reject") ? "Rejeté" : "Approuvé"}</p>
-                            <span>{usersData.data.data.find(u => u.id === v.userId)?.firstName + " " + usersData.data.data.find(u => u.id === v.userId)?.lastName}</span>
+                            <span>{users.find(u => u.id === v.userId)?.firstName + " " + users.find(u => u.id === v.userId)?.lastName}</span>
                           </div>
                         )
                       })}
@@ -649,4 +597,3 @@ export function DetailBesoin({ open, onOpenChange, data }: DetailModalProps) {
       </Dialog>
     );
   }
-}

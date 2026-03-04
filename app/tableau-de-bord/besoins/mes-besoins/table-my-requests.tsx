@@ -636,6 +636,10 @@ export function TableMyRequests({
             open={isModalOpen}
             onOpenChange={setIsModalOpen}
             data={selectedItem}
+            categories={categories}
+            users={users}
+            projects={projects}
+            payments={payments}
             actionButton="Modifier"
             action={() => {
               setIsModalOpen(false);
