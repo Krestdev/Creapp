@@ -28,7 +28,9 @@ import {
   Invoice,
   PRIORITIES,
   PaymentRequest,
-  RequestType
+  RequestModelT,
+  RequestType,
+  User
 } from "@/types/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -64,6 +66,8 @@ interface TicketsTableProps {
   isAdmin: boolean;
   isManaged?: boolean;
   requestTypeData: RequestType[];
+  users: Array<User>;
+  requests: Array<RequestModelT>;
 }
 
 const getPriorityBadge = (
@@ -133,6 +137,8 @@ export function TicketsTable({
   isAdmin,
   isManaged,
   requestTypeData,
+  users,
+  requests,
 }: TicketsTableProps) {
   function getTypeBadge(type: PaymentRequest["type"]): {
     label: string;
@@ -624,6 +630,9 @@ export function TicketsTable({
             data: { status: "paid" },
           })
         }
+        users={users}
+        types={requestTypeData}
+        requests={requests}
       />}
 
       <ApproveTicket

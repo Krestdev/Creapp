@@ -5,16 +5,17 @@ import StatsCard from "@/components/base/StatsCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import Tickets from "@/components/ticket/tickets";
 import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
+import { invoiceQ } from "@/queries/invoices";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
+import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { PaymentRequest } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { TicketTable } from "./ticket-table";
-import { invoiceQ } from "@/queries/invoices";
 
 function Page() {
   const { user } = useStore();
@@ -28,6 +29,16 @@ function Page() {
     queryKey: ["requestType"],
     queryFn: requestTypeQ.getAll,
   });
+
+  const getRequests = useQuery({
+    queryKey: ["requests"],
+    queryFn: requestQ.getAll,
+  });
+
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll
+  })
 
   const getPurchase = useQuery({
     queryKey: ["purchaseOrders"],
@@ -68,15 +79,15 @@ function Page() {
     );
   }, [data?.data]);
 
-  if (isLoading || getRequestType.isLoading || getPurchase.isLoading || getInvoices.isLoading) {
+  if (isLoading || getRequestType.isLoading || getPurchase.isLoading || getInvoices.isLoading || getRequests.isLoading || getUsers.isLoading) {
     return <LoadingPage />;
   }
 
-  if (isError || getRequestType.isError || getPurchase.isError || getInvoices.isError) {
-    return <ErrorPage error={error || getRequestType.error! || getPurchase.error! || getInvoices.error!} />;
+  if (isError || getRequestType.isError || getPurchase.isError || getInvoices.isError || getRequests.isError || getUsers.isError) {
+    return <ErrorPage error={error || getRequestType.error! || getPurchase.error! || getInvoices.error! || getUsers.error || getRequests.error} />;
   }
 
-  if (isSuccess && getRequestType.isSuccess && getPurchase.isSuccess && getInvoices.isSuccess) {
+  if (isSuccess && getRequestType.isSuccess && getPurchase.isSuccess && getInvoices.isSuccess && getRequests.isSuccess && getUsers.isSuccess) {
     return (
       <div className="flex flex-col gap-6">
         {user?.role.flatMap((r) => r.label).includes("VOLT") ? (
@@ -124,6 +135,8 @@ function Page() {
             invoices={getInvoices.data.data}
             data={ticketsData}
             requestTypeData={getRequestType.data?.data}
+            users={getUsers.data.data}
+            requests={getRequests.data.data}
           />
         ) : (
           <Empty message={"Aucun ticket disponible"} />

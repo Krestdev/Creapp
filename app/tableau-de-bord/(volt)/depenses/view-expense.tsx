@@ -136,6 +136,9 @@ function ViewExpense({
     );
   };
 
+  const request = requests.find((r) => r.id === payment.requestId);
+  const initiator = users.find((u) => u.id === request?.userId);
+
   // Fonction pour obtenir le libellé du type
   function getTypeBadge(type: RequestModelT["type"]): {
     label: string;
@@ -294,6 +297,7 @@ function ViewExpense({
 
           {/* Demande associée */}
           {hasValue(payment.requestId) && (
+            <>
             <div className="view-group">
               <span className="view-icon">
                 <ScrollIcon />
@@ -305,6 +309,18 @@ function ViewExpense({
                 </p>
               </div>
             </div>
+            <div className="view-group">
+              <span className="view-icon">
+                <CircleUserRoundIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Emetteur du besoin"}</p>
+                <p className="font-semibold">
+                  {initiator?.firstName.concat(" ", initiator.lastName)}
+                </p>
+              </div>
+            </div>
+            </>
           )}
 
           {/* Pour les achats */}

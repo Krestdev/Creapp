@@ -54,6 +54,7 @@ import {
   PaymentRequest,
   RequestModelT,
   RequestType,
+  User,
 } from "@/types/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -87,6 +88,8 @@ interface TicketsTableProps {
   data: PaymentRequest[];
   requestTypeData: RequestType[];
   invoices: Array<Invoice>;
+  users: Array<User>;
+  requests: Array<RequestModelT>;
 }
 
 const getPriorityBadge = (
@@ -153,7 +156,7 @@ const getStatusVariant = (
   }
 };
 
-export function TicketTable({ data, requestTypeData, invoices }: TicketsTableProps) {
+export function TicketTable({ data, requestTypeData, invoices, users, requests }: TicketsTableProps) {
   
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<"all" | PaymentRequest["type"]>(
@@ -828,6 +831,9 @@ export function TicketTable({ data, requestTypeData, invoices }: TicketsTablePro
             data: { status: "paid" },
           })
         }
+        users={users}
+        types={requestTypeData}
+        requests={requests}
       />}
 
       <ModalWarning
