@@ -41,6 +41,8 @@ import {
   FormMessage,
 } from "../ui/form";
 import ViewDepense from "./viewDepense";
+import { requestQ } from "@/queries/requestModule";
+import { userQ } from "@/queries/baseModule";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -160,6 +162,14 @@ export function CarburentForm() {
     queryKey: ["paymentType"],
     queryFn: payTypeQ.getAll,
   });
+  const getRequests = useQuery({
+    queryKey: ["requests"],
+    queryFn: requestQ.getAll,
+  });
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll,
+  });
 
   // Calcul du solde de la caisse sélectionnée
   const selectedCaisseBalance = useMemo(() => {
@@ -229,7 +239,9 @@ export function CarburentForm() {
     !driverDate.isLoading &&
     !bankData.isLoading &&
     bankData.data &&
-    driverDate.data && (
+    driverDate.data &&
+    getRequests.data &&
+    getUsers.data && (
       <>
         <Form {...form}>
           <form
@@ -594,6 +606,8 @@ export function CarburentForm() {
             openChange={setView}
             paymentRequest={paymentsData.data.data}
             payTypes={getPaymentType.data.data}
+            users={getUsers.data.data}
+            requests={getRequests.data.data}
           />
         )}
         <SuccessModal

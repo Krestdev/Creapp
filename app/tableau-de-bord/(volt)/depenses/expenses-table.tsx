@@ -547,7 +547,7 @@ function ExpensesTable({ payments, invoices, banks, requestTypes, paymentTypes, 
                   <DropdownMenuItem>
 
                     <PDFDownloadLink
-                      document={<DepenseDocument getPaymentType={paymentTypes} paymentRequest={item} />}
+                      document={<DepenseDocument getPaymentType={paymentTypes} paymentRequest={item} users={users} requests={request} />}
                       fileName={`recu-transport-${item.reference}.pdf`}
                     >
                       {({ loading }) => (

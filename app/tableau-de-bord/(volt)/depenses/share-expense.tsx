@@ -775,6 +775,8 @@ function ShareExpense({
           openChange={setOpenDoc}
           paymentRequest={paiement}
           payTypes={payTypesQuery.data.data}
+          users={users}
+          requests={requests}
         />
       )}
     </>

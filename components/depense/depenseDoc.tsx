@@ -1,4 +1,4 @@
-import { PAY_STATUS, PaymentRequest, PayType } from "@/types/types";
+import { PAY_STATUS, PaymentRequest, PayType, RequestModelT, User } from "@/types/types";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import React from "react";
 
@@ -107,9 +107,11 @@ const styles = StyleSheet.create({
 interface ReceiptPDFProps {
   paymentRequest: PaymentRequest;
   getPaymentType:PayType[];
+  users: Array<User>;
+  requests: Array<RequestModelT>;
 }
 
-const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest, getPaymentType }) => {
+const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest, getPaymentType, users, requests }) => {
   const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("fr-FR");
@@ -121,6 +123,8 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest, getPayment
     }
     return "N/A";
   };
+  const request = requests.find(r=> r.id === paymentRequest.requestId);
+  const emitter = !!request?.beficiaryList ? request.beficiaryList[0].firstName.concat(" ", request.beficiaryList[0].lastName) : users.find((user) => user.id === request?.userId)?.firstName.concat(" ", users.find((user) => user.id === request?.userId)?.lastName || "") || "N/A";
 
   return (
     <Document>
@@ -137,7 +141,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest, getPayment
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Bénéficiaire:</Text>
-            <Text style={styles.infoValue}>{getBeneficiaryName()}</Text>
+            <Text style={styles.infoValue}>{emitter}</Text>
           </View>
 
           <View style={styles.infoRow}>

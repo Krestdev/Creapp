@@ -1,10 +1,11 @@
-import { PaymentRequest, PayType } from "@/types/types";
+import { PaymentRequest, PayType, RequestModelT, User } from "@/types/types";
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import React, { Dispatch, SetStateAction } from "react";
 import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -16,41 +17,45 @@ interface Props {
   openChange: Dispatch<SetStateAction<boolean>>;
   paymentRequest: PaymentRequest;
   payTypes: Array<PayType>;
+  users: Array<User>;
+  requests: Array<RequestModelT>;
 }
 
 const PaymentReceipt: React.FC<Props> = ({
   open,
   openChange,
   paymentRequest,
-  payTypes
+  payTypes,
+  users,
+  requests
 }) => {
 
 
   return (
     <div>
       <Dialog open={open} onOpenChange={openChange}>
-        <DialogContent className="max-h-[750px] max-w-4xl! gap-0 overflow-hidden border-none flex flex-col">
+        <DialogContent>
           {/* Header with burgundy background */}
-          <DialogHeader className="bg-[#8B1538] text-white mb-2 rounded-lg relative">
-            <DialogTitle className="text-xl font-semibold text-white uppercase">
+          <DialogHeader>
+            <DialogTitle>
               {`Reçu ${paymentRequest.title}`}
             </DialogTitle>
-            <p className="text-sm text-white/80 mt-1">
+            <DialogDescription className="text-sm text-white/80 mt-1">
               {"Informations relatives aux bons de commande"}
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           {/* Option 1: PDF Viewer (for preview) */}
           <div style={{ height: "500px", marginBottom: "20px" }}>
             <PDFViewer width="100%" height="100%">
-              <DepenseDocument getPaymentType={payTypes} paymentRequest={paymentRequest} />
+              <DepenseDocument getPaymentType={payTypes} paymentRequest={paymentRequest} users={users} requests={requests} />
             </PDFViewer>
           </div>
 
           {/* Option 2: PDF Download Link */}
           <DialogFooter className="shrink-0 sticky z-10 w-full bottom-0">
             <PDFDownloadLink
-              document={<DepenseDocument getPaymentType={payTypes} paymentRequest={paymentRequest} />}
+              document={<DepenseDocument getPaymentType={payTypes} paymentRequest={paymentRequest} users={users} requests={requests} />}
               fileName={`recu-transport-${paymentRequest.reference}.pdf`}
             >
               {({ loading }) => (
