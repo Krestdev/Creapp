@@ -162,7 +162,7 @@ function Page() {
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
-          getPaymentType={getPaymentType}
+          paymentTypes={getPaymentType.data.data}
           request={getRequest.data.data}
           users={getUsers.data.data}
           projects={getProjects.data.data}
@@ -175,7 +175,7 @@ function Page() {
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
-          getPaymentType={getPaymentType}
+          paymentTypes={getPaymentType.data.data}
           request={getRequest.data.data}
           users={getUsers.data.data}
           projects={getProjects.data.data}

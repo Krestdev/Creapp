@@ -18,8 +18,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
-import { userQ } from "@/queries/baseModule";
+import { driverQ } from "@/queries/driver";
 import { paymentQ } from "@/queries/payment";
+import { payTypeQ } from "@/queries/payType";
 import { vehicleQ } from "@/queries/vehicule";
 import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,8 +41,6 @@ import {
   FormMessage,
 } from "../ui/form";
 import ViewDepense from "./viewDepense";
-import { payTypeQ } from "@/queries/payType";
-import { driverQ } from "@/queries/driver";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -589,11 +588,12 @@ export function CarburentForm() {
             </div>
           </form>
         </Form>
-        {paymentsData.isSuccess && (
+        {paymentsData.isSuccess && getPaymentType.isSuccess && (
           <ViewDepense
             open={view}
             openChange={setView}
             paymentRequest={paymentsData.data.data}
+            payTypes={getPaymentType.data.data}
           />
         )}
         <SuccessModal

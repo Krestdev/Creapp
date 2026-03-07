@@ -463,11 +463,12 @@ export function TransportForm() {
             </div>
           </form>
         </Form>
-        {paymentsData.isSuccess && (
+        {paymentsData.isSuccess && getPaymentType.isSuccess && (
           <ViewDepense
             open={view}
             openChange={setView}
             paymentRequest={paymentsData.data.data}
+            payTypes={getPaymentType.data.data}
           />
         )}
         <SuccessModal

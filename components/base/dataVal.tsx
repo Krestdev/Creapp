@@ -53,7 +53,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getUserName } from "@/lib/utils";
+import { cn, getRequestTypeBadge, getUserName } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
@@ -634,31 +634,6 @@ export function DataVal({
     validatableRows.forEach((row) => row.toggleSelected(true));
   };
 
-  function getTypeBadge(
-        type: RequestModelT["type"],
-      ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-        const typeData = requestTypeData.find((t) => t.type === type);
-        const label = typeData?.label ?? type;
-        switch (type) {
-          case "facilitation":
-            return { label, variant: "lime" };
-          case "achat":
-            return { label, variant: "sky" };
-          case "speciaux":
-            return { label, variant: "purple" };
-          case "ressource_humaine":
-            return { label, variant: "blue" };
-          case "gas":
-            return {label, variant: "teal"};
-          case "transport":
-            return {label, variant: "primary"};
-          case "others" :
-            return {label, variant: "dark"};
-          default:
-            return { label, variant: "outline" };
-        }
-      }
-
   // Define columns avec colonne conditionnelle
   const columns: ColumnDef<RequestModelT>[] = React.useMemo(() => {
     const baseColumns: ColumnDef<RequestModelT>[] = [];
@@ -738,7 +713,7 @@ export function DataVal({
         },
         cell: ({ row }) => {
           const value = row.original;
-          const type = getTypeBadge(value.type);
+          const type = getRequestTypeBadge({type: value.type, requestTypes: requestTypeData});
           return <Badge variant={type.variant}>{type.label}</Badge>;
         },
       },

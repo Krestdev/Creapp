@@ -21,7 +21,7 @@ import {
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -48,35 +49,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
+import { cn, getBankTypeBadge, XAF } from "@/lib/utils";
 import { Bank, BANK_TYPES } from "@/types/types";
-import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import ViewBank from "./viewBank";
 import EditBank from "./editBank";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import ViewBank from "./viewBank";
 
 interface Props {
   data: Array<Bank>;
   canEdit: boolean;
 }
 
-
-function getTypeBadge(type: Bank["type"]): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-  const typeData = BANK_TYPES.find(t => t.value === type);
-  const label = typeData?.name ?? "Inconnu"
-  switch (type) {
-    case "BANK":
-      return { label, variant: "blue" };
-    case "CASH_REGISTER":
-      return { label, variant: "primary" }
-    case "CASH":
-      return { label, variant: "lime" };
-    default:
-      return { label: type, variant: "outline" };
-  }
-};
 
 function BankTable({ data, canEdit }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -193,7 +177,7 @@ function BankTable({ data, canEdit }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.type;
-        const { variant, label } = getTypeBadge(value);
+        const { variant, label } = getBankTypeBadge({type:value});
         return <Badge variant={variant}>{label}</Badge>;
       },
     },

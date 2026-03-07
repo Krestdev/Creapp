@@ -182,7 +182,7 @@ function Page() {
           invoices={getInvoices.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
-          getPaymentType={getPaymentType}
+          paymentTypes={getPaymentType.data.data}
           request={request.data.data}
           users={getUsers.data.data} 
           projects={getProjects.data.data}        />
@@ -194,7 +194,7 @@ function Page() {
           invoices={getInvoices.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
-          getPaymentType={getPaymentType}
+          paymentTypes={getPaymentType.data.data}
           request={request.data.data}
           users={getUsers.data.data}
           projects={getProjects.data.data}

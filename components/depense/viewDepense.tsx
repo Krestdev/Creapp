@@ -1,4 +1,4 @@
-import { PaymentRequest } from "@/types/types";
+import { PaymentRequest, PayType } from "@/types/types";
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import React, { Dispatch, SetStateAction } from "react";
 import { Button } from "../ui/button";
@@ -10,26 +10,21 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import DepenseDocument from "./depenseDoc";
-import { useQuery } from "@tanstack/react-query";
-import { payTypeQ } from "@/queries/payType";
 
 interface Props {
   open: boolean;
   openChange: Dispatch<SetStateAction<boolean>>;
   paymentRequest: PaymentRequest;
+  payTypes: Array<PayType>;
 }
 
 const PaymentReceipt: React.FC<Props> = ({
   open,
   openChange,
   paymentRequest,
+  payTypes
 }) => {
 
-
-  const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
-    queryFn: payTypeQ.getAll,
-  });
 
   return (
     <div>
@@ -48,14 +43,14 @@ const PaymentReceipt: React.FC<Props> = ({
           {/* Option 1: PDF Viewer (for preview) */}
           <div style={{ height: "500px", marginBottom: "20px" }}>
             <PDFViewer width="100%" height="100%">
-              <DepenseDocument getPaymentType={getPaymentType} paymentRequest={paymentRequest} />
+              <DepenseDocument getPaymentType={payTypes} paymentRequest={paymentRequest} />
             </PDFViewer>
           </div>
 
           {/* Option 2: PDF Download Link */}
           <DialogFooter className="shrink-0 sticky z-10 w-full bottom-0">
             <PDFDownloadLink
-              document={<DepenseDocument getPaymentType={getPaymentType} paymentRequest={paymentRequest} />}
+              document={<DepenseDocument getPaymentType={payTypes} paymentRequest={paymentRequest} />}
               fileName={`recu-transport-${paymentRequest.reference}.pdf`}
             >
               {({ loading }) => (

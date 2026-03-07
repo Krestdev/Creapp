@@ -194,7 +194,7 @@ function Page() {
           banks={getBanks.data.data}
           invoices={getInvoices.data.data}
           requestTypes={getRequestType.data.data}
-          getPaymentType={getPaymentType}
+          paymentTypes={getPaymentType.data.data}
           providers={getProviders.data.data}
           request={request.data.data}
           users={getUsers.data.data}

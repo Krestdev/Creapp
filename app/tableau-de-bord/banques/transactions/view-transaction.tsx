@@ -9,11 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { XAF } from "@/lib/utils";
+import { getTransactionTypeBadge, XAF } from "@/lib/utils";
 import {
   Transaction,
-  TRANSACTION_STATUS,
-  TRANSACTION_TYPES,
+  TRANSACTION_STATUS
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -61,19 +60,6 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
       details.push(`Numéro de téléphone: ${target.phoneNumber}`);
     }
     return details;
-  };
-
-  const getTypeBadgeVariant = (type: Transaction["Type"]) => {
-    switch (type) {
-      case "CREDIT":
-        return "success";
-      case "DEBIT":
-        return "destructive";
-      case "TRANSFER":
-        return "blue";
-      default:
-        return "outline";
-    }
   };
 
   const getStatusBadge = (
@@ -142,9 +128,8 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Type de transaction"}</p>
-              <Badge variant={getTypeBadgeVariant(transaction.Type)}>
-                {TRANSACTION_TYPES.find((p) => p.value === transaction.Type)
-                  ?.name ?? "Inconnu"}
+              <Badge variant={getTransactionTypeBadge(transaction.Type).variant}>
+                {getTransactionTypeBadge(transaction.Type).label}
               </Badge>
             </div>
           </div>

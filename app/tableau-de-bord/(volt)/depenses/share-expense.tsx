@@ -1,8 +1,6 @@
 "use client";
 
-import FilesUpload from "@/components/comp-547";
 import ViewDepense from "@/components/depense/viewDepense";
-import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -771,11 +769,12 @@ function ShareExpense({
           </div>
         </DialogContent>
       </Dialog>
-      {paiement && (
+      {paiement && payTypesQuery.isSuccess && (
         <ViewDepense
           open={openDoc}
           openChange={setOpenDoc}
           paymentRequest={paiement}
+          payTypes={payTypesQuery.data.data}
         />
       )}
     </>

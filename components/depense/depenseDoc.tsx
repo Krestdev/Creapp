@@ -1,5 +1,3 @@
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { payTypeQ } from "@/queries/payType";
 import { PAY_STATUS, PaymentRequest, PayType } from "@/types/types";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import React from "react";
@@ -108,9 +106,7 @@ const styles = StyleSheet.create({
 
 interface ReceiptPDFProps {
   paymentRequest: PaymentRequest;
-  getPaymentType: UseQueryResult<{
-    data: PayType[];
-  }, Error>;
+  getPaymentType:PayType[];
 }
 
 const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest, getPaymentType }) => {
@@ -219,7 +215,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({ paymentRequest, getPayment
             <Text style={styles.infoLabel}>Méthode de paiement:</Text>
             <Text style={styles.infoValue}>
               {
-                getPaymentType.data?.data.find(
+                getPaymentType.find(
                   (item) => item.id === paymentRequest.methodId
                 )?.label
               }

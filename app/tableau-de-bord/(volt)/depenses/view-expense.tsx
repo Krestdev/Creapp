@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn, XAF } from "@/lib/utils";
+import { cn, getPaymentTypeBadge, XAF } from "@/lib/utils";
 import { signatairQ } from "@/queries/signatair";
 import {
   Invoice,
@@ -55,7 +55,7 @@ interface Props {
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   payment: PaymentRequest;
   invoices: Array<Invoice>;
-  requestTypes: PayType[];
+  payTypes: PayType[];
   projects: ProjectT[];
   users: User[];
   requests: RequestModelT[];
@@ -101,7 +101,7 @@ function ViewExpense({
   openChange,
   payment,
   invoices,
-  requestTypes,
+  payTypes,
   projects,
   users,
   requests,
@@ -124,7 +124,7 @@ function ViewExpense({
 
   const user = users.find((u) => u.id === payment.userId);
   const methodName =
-    requestTypes.find((p) => p.id === payment.methodId)?.label || "Non défini";
+    payTypes.find((p) => p.id === payment.methodId)?.label || "Non défini";
 
   // Rendu conditionnel simple
   const getStatusBadgeContent = () => {
@@ -138,33 +138,6 @@ function ViewExpense({
 
   const request = requests.find((r) => r.id === payment.requestId);
   const initiator = users.find((u) => u.id === request?.userId);
-
-  // Fonction pour obtenir le libellé du type
-  function getTypeBadge(type: RequestModelT["type"]): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } {
-    const typeData = requestTypes.find((t) => t.type === type);
-    const label = typeData?.label ?? type;
-    switch (type) {
-      case "facilitation":
-        return { label, variant: "lime" };
-      case "achat":
-        return { label, variant: "sky" };
-      case "speciaux":
-        return { label, variant: "purple" };
-      case "ressource_humaine":
-        return { label, variant: "blue" };
-      case "gas":
-        return { label, variant: "teal" };
-      case "transport":
-        return { label, variant: "primary" };
-      case "others":
-        return { label, variant: "dark" };
-      default:
-        return { label, variant: "outline" };
-    }
-  }
 
   const getPriorityBadge = () => {
     if (!hasValue(payment.priority)) return null;
@@ -245,8 +218,8 @@ function ViewExpense({
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Type"}</p>
-              <Badge variant={getTypeBadge(payment.type).variant}>
-                {getTypeBadge(payment.type).label}
+              <Badge variant={getPaymentTypeBadge({type:payment.type, payTypes: payTypes}).variant}>
+                {getPaymentTypeBadge({type:payment.type, payTypes: payTypes}).label}
               </Badge>
             </div>
           </div>

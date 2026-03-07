@@ -40,13 +40,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, company } from "@/lib/utils";
+import { cn, getRequestTypeBadge } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { } from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
-import { purchaseQ } from "@/queries/purchase-order";
 import {
-  BonsCommande,
   Invoice,
   PAYMENT_TYPES,
   PAY_STATUS,
@@ -54,9 +52,9 @@ import {
   PaymentRequest,
   RequestModelT,
   RequestType,
-  User,
+  User
 } from "@/types/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -232,30 +230,6 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
     setTypeFilter("all");
   };
 
-   function getTypeBadge(
-      type: RequestModelT["type"],
-    ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-      const typeData = requestTypeData.find((t) => t.type === type);
-      const label = typeData?.label ?? type;
-      switch (type) {
-        case "facilitation":
-          return { label, variant: "lime" };
-        case "achat":
-          return { label, variant: "sky" };
-        case "speciaux":
-          return { label, variant: "purple" };
-        case "ressource_humaine":
-          return { label, variant: "blue" };
-        case "gas":
-          return {label, variant: "teal"};
-        case "transport":
-          return {label, variant: "primary"};
-        case "others" :
-          return {label, variant: "dark"};
-        default:
-          return { label, variant: "outline" };
-      }
-    }
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -323,7 +297,7 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getTypeBadge(value.type);
+        const type = getRequestTypeBadge({type:value.type, requestTypes: requestTypeData});
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },

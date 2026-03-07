@@ -56,7 +56,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
+import { cn, getTransactionTypeBadge, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   Bank,
@@ -77,24 +77,6 @@ interface Props {
   banks: Array<Bank>;
 }
 
-function getTypeBadge(type: Transaction["Type"]): {
-  label: string;
-  variant: VariantProps<typeof badgeVariants>["variant"];
-} {
-  const typeData = TRANSACTION_TYPES.find((t) => t.value === type);
-  const label = typeData?.name ?? "Inconnu";
-
-  switch (type) {
-    case "CREDIT":
-      return { label, variant: "success" };
-    case "DEBIT":
-      return { label, variant: "destructive" };
-    case "TRANSFER":
-      return { label, variant: "blue" };
-    default:
-      return { label: type, variant: "outline" };
-  }
-}
 
 function TransactionTable({ data, canEdit, banks, filterByType = false }: Props) {
   const { user } = useStore();
@@ -376,7 +358,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
       },
       cell: ({ row }) => {
         const value = row.original.Type;
-        const { variant, label } = getTypeBadge(value);
+        const { variant, label } = getTransactionTypeBadge(value);
         return <Badge variant={variant}>{label}</Badge>;
       },
     },

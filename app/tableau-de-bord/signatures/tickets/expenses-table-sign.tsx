@@ -57,11 +57,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
+import { cn, getPaymentTypeBadge, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   Bank,
-  BonsCommande,
   DateFilter,
   Invoice,
   PAY_STATUS,
@@ -70,10 +69,11 @@ import {
   PayType,
   PRIORITIES,
   ProjectT,
+  RequestModelT,
   RequestType,
   Signatair,
   Transaction,
-  User,
+  User
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -146,6 +146,7 @@ interface Props {
   transactions: Array<Transaction>;
   users: Array<User>;
   projects: Array<ProjectT>;
+  requests: Array<RequestModelT>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -214,7 +215,8 @@ function ExpensesTableSign({
   payType,
   transactions,
   users,
-  projects
+  projects,
+  requests
 }: Props) {
   const { user } = useStore();
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -277,34 +279,6 @@ function ExpensesTableSign({
     return map;
   }, [invoices]);
 
-  function getTypeBadge(type: PaymentRequest["type"]): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } {
-    // Cas spécial
-    if (type === "CURRENT") {
-      return {
-        label: "Dépenses courantes",
-        variant: "yellow",
-      };
-    }
-
-    const typeData = requestTypes.find((t) => t.type === type);
-    const label = typeData?.label ?? "Inconnu";
-
-    switch (type) {
-      case "facilitation":
-        return { label, variant: "lime" };
-      case "achat":
-        return { label, variant: "sky" };
-      case "speciaux":
-        return { label, variant: "purple" };
-      case "ressource_humaine":
-        return { label, variant: "blue" };
-      default:
-        return { label, variant: "outline" };
-    }
-  }
 
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -452,7 +426,7 @@ function ExpensesTableSign({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getTypeBadge(value.type);
+        const type = getPaymentTypeBadge({type:value.type, payTypes: payType});
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },
@@ -1083,11 +1057,11 @@ function ExpensesTableSign({
           open={showDetail}
           openChange={setShowDetail}
           payment={selected}
-          invoices={invoices} 
-          requestTypes={payType} 
-          projects={projects} 
-          users={users} 
-          requests={[]}        />
+          invoices={invoices}
+          projects={projects}
+          users={users}
+          requests={requests} 
+          payTypes={payType}        />
       )}
       {selected && (
         <SignExpense

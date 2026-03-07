@@ -66,7 +66,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
+import { cn, getRequestTypeBadge, XAF } from "@/lib/utils";
 import {
   Bank,
   Invoice,
@@ -82,10 +82,10 @@ import {
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { UseQueryResult } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
+import { NoticeFile } from "./notice";
 import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
-import { NoticeFile } from "./notice";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -146,9 +146,7 @@ interface Props {
   invoices: Array<Invoice>;
   banks: Array<Bank>;
   requestTypes: Array<RequestType>;
-  getPaymentType: UseQueryResult<{
-    data: PayType[];
-  }, Error>;
+  paymentTypes: PayType[];
   providers: Array<Provider>;
   request: RequestModelT[];
   users: Array<User>;
@@ -216,32 +214,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType, providers, request, users, projects }: Props) {
-  function getTypeBadge(
-      type: RequestModelT["type"],
-    ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-      const typeData = requestTypes.find((t) => t.type === type);
-      const label = typeData?.label ?? type;
-      switch (type) {
-        case "facilitation":
-          return { label, variant: "lime" };
-        case "achat":
-          return { label, variant: "sky" };
-        case "speciaux":
-          return { label, variant: "purple" };
-        case "ressource_humaine":
-          return { label, variant: "blue" };
-        case "gas":
-          return {label, variant: "teal"};
-        case "transport":
-          return {label, variant: "primary"};
-        case "others" :
-          return {label, variant: "dark"};
-        default:
-          return { label, variant: "outline" };
-      }
-    }
-
+function ExpensesTable({ payments, invoices, banks, requestTypes, paymentTypes, providers, request, users, projects }: Props) {
   const types = requestTypes
     .map((x) => {
       return { value: x.type, label: x.label };
@@ -385,7 +358,7 @@ function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getTypeBadge(value.type);
+        const type = getRequestTypeBadge({ type: value.type, requestTypes });
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },
@@ -574,7 +547,7 @@ function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType
                   <DropdownMenuItem>
 
                     <PDFDownloadLink
-                      document={<DepenseDocument getPaymentType={getPaymentType} paymentRequest={item} />}
+                      document={<DepenseDocument getPaymentType={paymentTypes} paymentRequest={item} />}
                       fileName={`recu-transport-${item.reference}.pdf`}
                     >
                       {({ loading }) => (
@@ -931,7 +904,7 @@ function ExpensesTable({ payments, invoices, banks, requestTypes, getPaymentType
           invoices={invoices}
           projects={projects}
           users={users}
-          requestTypes={requestTypes} 
+          payTypes={paymentTypes} 
           requests={request}        />
       )}
       {selected && (

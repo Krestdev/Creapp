@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, company } from "@/lib/utils";
+import { cn, company, getPaymentTypeBadge } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { } from "@/queries/commandRqstModule";
 import { invoiceQ } from "@/queries/invoices";
@@ -27,6 +27,7 @@ import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
   Invoice,
   PRIORITIES,
+  PayType,
   PaymentRequest,
   RequestModelT,
   RequestType,
@@ -68,6 +69,7 @@ interface TicketsTableProps {
   requestTypeData: RequestType[];
   users: Array<User>;
   requests: Array<RequestModelT>;
+  payTypes: Array<PayType>;
 }
 
 const getPriorityBadge = (
@@ -139,28 +141,8 @@ export function TicketsTable({
   requestTypeData,
   users,
   requests,
+  payTypes,
 }: TicketsTableProps) {
-  function getTypeBadge(type: PaymentRequest["type"]): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } {
-    const typeData = requestTypeData.find((t) => t.type === type);
-    const label = typeData?.label ?? "Inconnu";
-    switch (type) {
-      case "facilitation":
-        return { label, variant: "lime" };
-      case "achat":
-        return { label, variant: "sky" };
-      case "speciaux":
-        return { label, variant: "purple" };
-      case "ressource_humaine":
-        return { label, variant: "blue" };
-      case "CURRENT":
-        return { label, variant: "secondary" };
-      default:
-        return { label: type, variant: "outline" };
-    }
-  }
 
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -235,7 +217,7 @@ export function TicketsTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getTypeBadge(value.type);
+        const type = getPaymentTypeBadge({type:value.type, payTypes});
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },
