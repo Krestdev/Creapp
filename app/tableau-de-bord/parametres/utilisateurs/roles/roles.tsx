@@ -80,6 +80,11 @@ function Roles({ data }: Props) {
           description: "Accès aux banques(Transactions, comptes) et factures.",
           className: "border-blue-200 bg-blue-50 text-blue-600",
         };
+      case "DRIVER":
+        return {
+          description: "Accès à l'émission des besoins de transport et carburant.",
+          className: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-600",
+        };
       default:
         return { description: "" };
     }

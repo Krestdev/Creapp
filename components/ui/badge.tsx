@@ -24,7 +24,12 @@ const badgeVariants = cva(
         lime: "border-lime-200 bg-lime-100 text-lime-600",
         amber: "border-amber-200 bg-amber-100 text-amber-600",
         purple: "border-purple-200 bg-purple-100 text-purple-600",
-        outline:
+        cyan: "border-cyan-200 bg-cyan-100 text-cyan-600",
+        olive: "border-olive-200 bg-olive-500 text-olive-50",
+        fuchsia: "border-fuchsia-200 bg-fuchsia-500 text-fuchsia-50",
+        pink: "border-pink-200 bg-pink-100 text-pink-600",
+        orange: "border-orange-200 bg-orange-500 text-orange-50",
+        outline: 
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
       },
     },

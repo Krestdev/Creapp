@@ -125,6 +125,8 @@ export const TranslateRole = (role: string) => {
       return "Ressources Humaines";
     case "ACCOUNTANT":
       return "Comptable";
+    case "DRIVER":
+      return "Conducteur";
     default:
       return role;
   }

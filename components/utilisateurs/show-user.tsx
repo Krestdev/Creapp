@@ -4,23 +4,27 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TranslateRole } from "@/lib/utils";
 import { User } from "@/types/types";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   Calendar,
+  CalendarFold,
   CheckCircle,
-  Clock,
   Edit,
   LucideShieldAlert,
   Mail,
   Phone,
   Shield,
-  User as UserIcon,
-  XCircle,
+  XCircle
 } from "lucide-react";
 
 interface ShowUserProps {
@@ -32,34 +36,18 @@ interface ShowUserProps {
 export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
   if (!user) return null;
 
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString("fr-FR", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[640px]! max-h-[650px] overflow-y-auto p-0 gap-0 overflow-x-hidden border-none flex flex-col">
+      <DialogContent className="sm:max-w-3xl">
         {/* Header */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8">
-          <DialogTitle className="text-xl font-semibold text-white flex items-center gap-2 uppercase">
+        <DialogHeader>
+          <DialogTitle>
             {"Utilisateur - " + user.lastName + " " + user.firstName}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          <DialogDescription>
             {"Détails du compte utilisateur"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
-
-        <div className="w-full p-6">
           {/* TABLEAU DES INFORMATIONS */}
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             {/* ROW 1: Email & Status */}
@@ -142,11 +130,11 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
             {/* ROW 5: Last Connection */}
             <div className="flex border-b border-gray-200">
               <div className="w-1/3 bg-gray-50 p-3 font-semibold text-[14px] text-gray-600 border-r">
-                <Clock className="h-4 w-4 inline mr-2" />
+                <CalendarFold className="h-4 w-4 inline mr-2" />
                 {"Dernière connexion"}
               </div>
               <div className="w-2/3 p-3 text-[14px]">
-                {formatDate(user.lastConnection)}
+                {!!user.lastConnection ? format(new Date(user.lastConnection), "EEEE dd/MM/yyyy, hh:mm", {locale: fr}) : "Jamais connecté"}
               </div>
             </div>
 
@@ -157,27 +145,21 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
                 {"Date de création"}
               </div>
               <div className="w-2/3 p-3 text-[14px]">
-                {user.createdAt ? formatDate(user.createdAt) : "N/A"}
+                {user.createdAt ? format(new Date(user.createdAt), "dd MMMM yyyy, hh:mm", {locale: fr}) : "N/A"}
               </div>
             </div>
           </div>
-        </div>
 
         {/* Footer buttons */}
-        <div className="flex w-full justify-between gap-3 p-6 pt-0">
-          <div className="text-xs text-gray-500">
-            {`Utilisateur ${user.verified ? "vérifié" : "non vérifié"}`}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-            >
-              {"Fermer"}
-            </Button>
-          </div>
-        </div>
+        <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                variant="outline"
+              >
+                {"Fermer"}
+              </Button>
+            </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -42,6 +42,8 @@ export function ShowRole({
         return "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800";
       case "USER":
         return "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-800";
+      case "DRIVER":
+        return "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200 dark:bg-fuchsia-900/30 dark:text-fuchsia-300 dark:border-fuchsia-800";
       default:
         return "bg-gray-50 text-gray-700 border-gray-200";
     }
@@ -57,17 +59,32 @@ export function ShowRole({
       case "SALES_MANAGER":
         return {
           level: "Important",
-          color: "bg-orange-100 text-orange-800 border-orange-300",
+          color: "bg-teal-100 text-teal-800 border-teal-300",
         };
       case "SALES":
         return {
           level: "Moyen",
-          color: "bg-blue-100 text-blue-800 border-blue-300",
+          color: "bg-sky-100 text-sky-800 border-sky-300",
         };
       case "MANAGER":
         return {
           level: "Basique",
           color: "bg-green-100 text-green-800 border-green-300",
+        };
+      case "ACCOUNTANT":
+        return {
+          level: "Basique",
+          color: "bg-blue-100 text-blue-800 border-blue-300",
+        };
+      case "RH":
+        return {
+          level: "Basique",
+          color: "bg-orange-100 text-orange-800 border-orange-300",
+        };
+      case "DRIVER":
+        return {
+          level: "Basique",
+          color: "bg-fuchsia-100 text-fuchsia-800 border-fuchsia-300",
         };
       case "USER":
         return {
@@ -103,6 +120,18 @@ export function ShowRole({
         "Completion des besoins",
         "Validation des besoins",
         "Gestion de l'équipe",
+      ],
+      DRIVER: [
+        "Soumission des besoins de transport",
+        "Soumission des besoins de carburant",
+      ],
+      ACCOUNTANT: [
+        "Gestion des transactions bancaires",
+        "Gestion des comptes bancaires",
+        "Gestion des factures",
+      ],
+      RH: [
+        "Soumission des besoins RH",
       ],
       USER: ["Soumission de besoins", "Suivi de ses demandes"],
     };
