@@ -101,9 +101,9 @@ const Page = () => {
       });
       setSelectedUser([]);
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast.error(
-        "Une erreur est survenue lors de la creation des Signataires.",
+        error.message ?? "Une erreur est survenue lors de la création du signataire.",
       );
     },
   });
