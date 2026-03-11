@@ -247,7 +247,7 @@ export default function CreateUserForm() {
           <MultiSelectRole
             display="Role"
             roles={ROLES.filter(
-              (r) => r.label !== "MANAGER" && r.label !== "USER",
+              (r) => r.label !== "MANAGER" && r.label !== "USER" && r.label !== "SUPERADMIN",
             )}
             selected={selectedRole}
             onChange={(selected) => {

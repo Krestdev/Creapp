@@ -237,7 +237,7 @@ export default function UpdateUser({
               <FormLabel>{"Rôles"}</FormLabel>
               <MultiSelectRole
                 display="Role"
-                roles={ROLES.filter((r) => r.label !== "MANAGER" && r.id !== 1)}
+                roles={ROLES.filter((r) => r.label !== "MANAGER" && r.id !== 1 && r.label !== "SUPERADMIN")}
                 selected={selectedRole}
                 onChange={(selected) => {
                   setSelectedRole(selected);

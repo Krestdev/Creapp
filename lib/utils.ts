@@ -115,6 +115,8 @@ export const TranslateRole = (role: string) => {
       return "Responsable d'achat";
     case "SALES_MANAGER":
       return "Donneur d'ordre d'achat";
+    case "SUPERADMIN":
+      return "Super Administrateur";
     case "ADMIN":
       return "Administrateur";
     case "VOLT":
@@ -154,6 +156,7 @@ export function paymentPercentage(payload: BonsCommande): number {
 interface RoleCheck {
   roleList: Role[];
   role:
+    "SUPERADMIN"
     | "admin"
     | "achat"
     | "Donner d'ordre achat"
@@ -165,7 +168,10 @@ interface RoleCheck {
     | "conducteur";
 }
 export function isRole({ roleList, role }: RoleCheck): boolean {
-  if (roleList.some((r) => r.label === "ADMIN")) {
+  if (roleList.some((r) => r.label === "SUPERADMIN")) {
+    return true;
+  }
+  if(roleList.some((r) => r.label === "ADMIN") && role === "admin"){
     return true;
   }
   if (role === "manager" && roleList.some((r) => r.label === "MANAGER")) {

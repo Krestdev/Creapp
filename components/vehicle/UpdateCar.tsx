@@ -90,7 +90,7 @@ export default function UpdateVehicle({
       vehicleQ.update(data.id, data.vehicle),
 
     onSuccess: () => {
-      toast.success("Utilisateur modifié avec succès !");
+      toast.success("Véhicule modifié avec succès !");
       setOpen(false);
       onSuccess?.();
     },

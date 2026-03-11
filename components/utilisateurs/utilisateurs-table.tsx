@@ -133,8 +133,10 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         return { label: "Responsable d'achat", variant: "sky" };
       case "SALES_MANAGER":
         return { label: "Donneur d'ordre d'achat", variant: "teal" };
+      case "SUPERADMIN":
+        return { label: "Super Administrateur", variant: "purple" };
       case "ADMIN":
-        return { label: "Administrateur", variant: "purple" };
+        return { label: "Administrateur", variant: "indigo" };
       case "VOLT":
         return { label: "Trésorier", variant: "lime" };
       case "VOLT_MANAGER":

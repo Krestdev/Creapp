@@ -447,39 +447,39 @@ function AppSidebar() {
         pageId: "PG-00",
         icon: BriefcaseBusiness,
         href: "/tableau-de-bord/projets",
-        authorized: ["ADMIN"],
+        authorized: ["SUPERADMIN", "ADMIN"],
         title: "Projets",
       },
       {
         icon: ScrollText,
         pageId: "PG-02",
         href: "/tableau-de-bord/besoins",
-        authorized: ["ADMIN", "MANAGER", "USER"],
+        authorized: ["SUPERADMIN", "MANAGER", "USER"],
         title: "Besoins",
         items: [
           {
             pageId: "PG-02-01",
             title: "Créer un besoin",
             href: "/tableau-de-bord/besoins/creer",
-            authorized: ["ADMIN", "MANAGER", "USER"],
+            authorized: ["SUPERADMIN", "MANAGER", "USER"],
           },
           {
             pageId: "PG-02-02",
             title: "Mes besoins",
             href: "/tableau-de-bord/besoins/mes-besoins",
-            authorized: ["ADMIN", "MANAGER", "USER"],
+            authorized: ["SUPERADMIN", "MANAGER", "USER"],
           },
           {
             pageId: "PG-02-04",
             title: "Tous les besoins",
             href: "/tableau-de-bord/besoins/besoins",
-            authorized: ["ADMIN"],
+            authorized: ["SUPERADMIN"],
           },
           {
             pageId: "PG-02-03",
             title: "Approbation",
             href: "/tableau-de-bord/besoins/validation",
-            authorized: ["ADMIN", "MANAGER"],
+            authorized: ["SUPERADMIN", "MANAGER"],
             badgeValue:
               pendingData.length > 0 ? pendingData.length : undefined,
           },
@@ -489,14 +489,14 @@ function AppSidebar() {
         pageId: "PG-03",
         icon: ClipboardList,
         href: "/tableau-de-bord/commande",
-        authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
+        authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
         title: "Commande",
         items: [
           {
             pageId: "PG-03-01",
             title: "Demande de cotation",
             href: "/tableau-de-bord/commande/cotation",
-            authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
             badgeValue:
               requestToUse.length > 0 ? requestToUse.length : undefined,
           },
@@ -504,13 +504,13 @@ function AppSidebar() {
             pageId: "PG-03-02",
             title: "Devis",
             href: "/tableau-de-bord/commande/devis",
-            authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
           },
           {
             pageId: "PG-03-45",
             title: "Approbation Devis",
             href: "/tableau-de-bord/commande/devis/approbation",
-            authorized: ["ADMIN", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES_MANAGER"],
             badgeValue:
               approbationDevis && approbationDevis.length > 0
                 ? approbationDevis?.length
@@ -520,7 +520,7 @@ function AppSidebar() {
             pageId: "PG-03-5",
             title: "Bons de commande",
             href: "/tableau-de-bord/commande/bon-de-commande",
-            authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
             badgeValue:
               devisTraite && devisTraite.length > 0
                 ? devisTraite?.length
@@ -530,7 +530,7 @@ function AppSidebar() {
             pageId: "PG-03-44",
             title: "Approbation BC",
             href: "/tableau-de-bord/commande/bon-de-commande/approbation",
-            authorized: ["ADMIN", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES_MANAGER"],
             badgeValue:
               purchase && purchase.length > 0 ? purchase?.length : undefined,
           },
@@ -538,7 +538,7 @@ function AppSidebar() {
             pageId: "PG-03-065897",
             title: "Statistiques",
             href: "/tableau-de-bord/commande/bon-de-commande/statistiques",
-            authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
           },
         ],
       },
@@ -546,20 +546,20 @@ function AppSidebar() {
         pageId: "PG-03-07",
         title: "Factures",
         href: "/tableau-de-bord/factures",
-        authorized: ["ADMIN", "ACCOUNTANT"],
+        authorized: ["SUPERADMIN", "ACCOUNTANT"],
         icon: ReceiptIcon,
         items: [
           {
             pageId: "PG-03-07-01",
             title : "Factures",
             href: "/tableau-de-bord/factures",
-            authorized: ["ACCOUNTANT", "ADMIN"],
+            authorized: ["ACCOUNTANT", "SUPERADMIN"],
           },
           {
             pageId: "PG-03-07-02",
             title : "Paiements",
             href: "/tableau-de-bord/factures/paiements",
-            authorized: ["ACCOUNTANT", "ADMIN"],
+            authorized: ["ACCOUNTANT", "SUPERADMIN"],
           },
         ]
       },
@@ -567,14 +567,14 @@ function AppSidebar() {
         pageId: "PG-04",
         icon: Ticket,
         href: "/tableau-de-bord/ticket",
-        authorized: ["ADMIN", "VOLT_MANAGER"],
+        authorized: ["SUPERADMIN", "VOLT_MANAGER"],
         title: "Tickets",
         items: [
           {
             pageId: "PG-04-01",
             title: "Tickets",
             href: "/tableau-de-bord/ticket",
-            authorized: ["ADMIN", "VOLT_MANAGER"],
+            authorized: ["SUPERADMIN", "VOLT_MANAGER"],
             badgeValue:
               ticketPending && ticketPending.length > 0
                 ? ticketPending?.length
@@ -584,7 +584,7 @@ function AppSidebar() {
             pageId: "PG-04-02",
             title: "Transferts",
             href: "/tableau-de-bord/ticket/transferts",
-            authorized: ["ADMIN", "VOLT_MANAGER"],
+            authorized: ["SUPERADMIN", "VOLT_MANAGER"],
             badgeValue: filteredTickTransfert &&
               filteredTickTransfert?.length > 0 ?
               filteredTickTransfert?.length :
@@ -594,7 +594,7 @@ function AppSidebar() {
             pageId: "PG-04-03",
             title: "Statistiques",
             href: "/tableau-de-bord/ticket/statistiques",
-            authorized: ["ADMIN", "VOLT_MANAGER"],
+            authorized: ["SUPERADMIN", "VOLT_MANAGER"],
           },
         ],
       },
@@ -602,7 +602,7 @@ function AppSidebar() {
         pageId: "PG-91",
         icon: DollarSign,
         href: "/tableau-de-bord/depenses",
-        authorized: ["VOLT", "ADMIN"],
+        authorized: ["VOLT", "SUPERADMIN"],
         title: "Dépenses",
         badgeValue:
           overall && overall?.length > 0 ? overall?.length : undefined,
@@ -619,13 +619,13 @@ function AppSidebar() {
                 approvedTicket?.length + signedTicket?.length + pendingTicket?.length + simpleTicket?.length > 0
                 ? approvedTicket?.length + signedTicket?.length + pendingTicket?.length + simpleTicket?.length
                 : undefined,
-            authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+            authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
           {
             pageId: "PG-23354987-01",
             title: "Créer une dépense",
             href: "/tableau-de-bord/depenses/creer",
-            authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+            authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
         ],
       },
@@ -657,26 +657,26 @@ function AppSidebar() {
         pageId: "PG-56489713246",
         icon: LandmarkIcon,
         href: "/tableau-de-bord/banques",
-        authorized: ["ACCOUNTANT", "VOLT", "ADMIN"],
+        authorized: ["ACCOUNTANT", "VOLT", "SUPERADMIN"],
         title: "Banques",
         items: [
           {
             pageId: "PG-23354987-00",
             title: "Liste des comptes",
             href: "/tableau-de-bord/banques",
-            authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+            authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
           {
             pageId: "PG-23354987-01",
             title: "Transactions",
             href: "/tableau-de-bord/banques/transactions",
-            authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+            authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
           {
             pageId: "PG-23354987-02",
             title: "Transferts",
             href: "/tableau-de-bord/banques/transactions/transferts",
-            authorized: ["ADMIN", "VOLT"],
+            authorized: ["SUPERADMIN", "VOLT"],
             badgeValue: transfersToCheck.length > 0 ? transfersToCheck.length : undefined
           },
         ],
@@ -685,7 +685,7 @@ function AppSidebar() {
         pageId: "PG-08",
         icon: SettingsIcon,
         href: "/tableau-de-bord/parametres",
-        authorized: ["ADMIN"],
+        authorized: ["SUPERADMIN", "ADMIN"],
         title: "Paramètres",
       },
     ];

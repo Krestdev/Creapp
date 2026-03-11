@@ -32,12 +32,14 @@ export function ShowRole({
 
   const getRoleColor = (roleLabel: string) => {
     switch (roleLabel) {
-      case "ADMIN":
+      case "SUPERADMIN":
         return "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800";
+      case "ADMIN":
+        return "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800";
       case "SALES_MANAGER":
-        return "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800";
+        return "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-800";
       case "SALES":
-        return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
+        return "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-800";
       case "MANAGER":
         return "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800";
       case "USER":
@@ -51,10 +53,15 @@ export function ShowRole({
 
   const getAccessLevel = (roleLabel: string) => {
     switch (roleLabel) {
-      case "ADMIN":
+      case "SUPERADMIN":
         return {
           level: "Élevé",
           color: "bg-red-100 text-red-800 border-red-300",
+        };
+      case "ADMIN":
+        return {
+          level: "Important",
+          color: "bg-indigo-100 text-indigo-800 border-indigo-300",
         };
       case "SALES_MANAGER":
         return {
@@ -101,11 +108,15 @@ export function ShowRole({
 
   const getPermissions = (roleLabel: string) => {
     const permissions: Record<string, string[]> = {
-      ADMIN: [
+      "SUPERADMIN": [
         "Gestion complète du système",
         "Configuration des rôles et permissions",
         "Supervision de toutes les activités",
         "Accès à tous les rapports",
+      ],
+      ADMIN: [
+        "Configuration des paramètres globaux",
+        "Gestion des projets"
       ],
       SALES_MANAGER: [
         "Validation des devis",
@@ -140,7 +151,8 @@ export function ShowRole({
 
   const getAccesPages = (roleLabel: string) => {
     const pages: Record<string, string[]> = {
-      ADMIN: ["Toutes les pages"],
+      "SUPERADMIN": ["Toutes les pages"],
+      ADMIN: ["Paramètres", "Projets"],
       SALES_MANAGER: ["Besoins", "Commande"],
       SALES: ["Besoins", "Commande"],
       MANAGER: ["Besoins", "Besoins - Approbation"],
