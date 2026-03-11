@@ -438,15 +438,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedItem(utilisateur);
                     setIsDetailModalOpen(true);
                   }}
                 >
-                  <Eye className="mr-2 h-4 w-4" />
-                  Voir
+                  <Eye />
+                  {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -455,8 +455,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                     setIsUpdateModalOpen(true);
                   }}
                 >
-                  <LucidePen className="mr-2 h-4 w-4" />
-                  Modifier
+                  <LucidePen />
+                  {"Modifier"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
@@ -464,8 +464,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                     setIsUpdatePasswordModalOpen(true);
                   }}
                 >
-                  <LucidePen className="mr-2 h-4 w-4" />
-                  Modifier le mot de passe
+                  <LucidePen/>
+                  {"Modifier le mot de passe"}
                 </DropdownMenuItem>
                 {utilisateur.status === "inactive" ? (
                   <DropdownMenuItem
@@ -477,8 +477,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                     }
                     disabled={utilisateur.status !== "inactive"}
                   >
-                    <UserCheck className="mr-2 h-4 w-4" />
-                    Activer
+                    <UserCheck />
+                    {"Activer"}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
@@ -499,8 +499,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                       utilisateur.id === user?.id
                     }
                   >
-                    <UserX className="mr-2 h-4 w-4" />
-                    Suspendre
+                    <UserX />
+                    {"Suspendre"}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
@@ -517,8 +517,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   }}
                   disabled={utilisateur.id === user?.id}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Supprimer
+                  <Trash2 />
+                  {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
