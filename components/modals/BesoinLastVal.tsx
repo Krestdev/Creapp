@@ -143,8 +143,8 @@ export function BesoinLastVal({
         validator: validator,
       });
     },
-    onError: (error) => {
-      toast.error("Une erreur est survenue.");
+    onError: (error:Error) => {
+      toast.error(error.message ?? "Une erreur est survenue.");
     },
   });
 
@@ -348,7 +348,7 @@ export function BesoinLastVal({
 
                 {/* Quantité */}
                 {
-                  data.type !== "transport" && data.type !== "gas" &&
+                  data.type !== "transport" &&
                   <FormField
                   control={form.control}
                   name="quantity"
@@ -369,7 +369,7 @@ export function BesoinLastVal({
 
                 {/* UNIT */}
                 {
-                  data.type !== "transport" && data.type !== "gas" &&
+                  data.type !== "transport" &&
                   <FormField
                   control={form.control}
                   name="unit"

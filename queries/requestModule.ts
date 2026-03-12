@@ -13,10 +13,7 @@ export type newRequestTransport = Omit<RequestModelT, "id" | "type" | "createdAt
 }
 
 export type newRequestGas = Omit<RequestModelT, "id" | "type" | "createdAt" | "updatedAt" | "ref"| "validators" | "proof" | "state" | "userId" | "beneficiary" | "liters" | "km"> & {
-  amount: number;
   benef: Array<number>;
-  km: string;
-  liters: string;
   vehiclesId: number;
 }
 class RequestQueries {

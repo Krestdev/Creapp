@@ -7,6 +7,8 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
@@ -21,8 +23,6 @@ import CreateTypeGas from "./create-type-gas";
 import CreateTypeOthers from "./create-type-others";
 import CreateTypeTransport from "./create-type-transport";
 import { ArrowLeft } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 
 const Page = () => {
   const { user } = useStore();
@@ -119,6 +119,8 @@ const Page = () => {
         />
         {
           !requestType ?
+          <>
+          <h3>{types.find(t=> t.type === requestType)?.label}</h3>
           <div className="grid @min-[760px]:grid-cols-2 @min-[1080px]:grid-cols-3 @min-[1600px]:grid-cols-4 gap-3">
           {
             user?.role && typesList(user.role).map(({type, label, description})=>(
@@ -132,21 +134,9 @@ const Page = () => {
             ))
           }
         </div>
+          </>
         :
-        <div className="grid gap-2">
-          <Label>{"Type de besoin"}</Label>
-          <Select onValueChange={(v)=>setRequestType(v as RequestModelT["type"])}>
-            <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
-              <SelectValue placeholder="Sélectionner le type de besoin" />
-            </SelectTrigger>
-
-            <SelectContent>
-              { user?.role && typesList(user.role).map(({type, label})=>(
-                <SelectItem key={type} value={type}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Button onClick={()=>{setRequestType(undefined)}} className="w-fit"><ArrowLeft/>{"Précédent"}</Button>
         }
 
         <RenderForm/>

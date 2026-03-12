@@ -38,6 +38,7 @@ const formSchema = z.object({
     .min(5, { message: "Trop court" })
     .max(50, { message: "Trop long" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
+  more: z.string().optional(),
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),
@@ -62,6 +63,10 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
       const router = useRouter();
     
       const [dueDate, setDueDate] = React.useState<boolean>(false);
+
+      const today = new Date();
+      const defaultDate = new Date();
+      defaultDate.setDate(today.getDate()+7);
     
       const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -71,11 +76,13 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
           amount: 100,
           liters: 1,
           benef: undefined,
+          dueDate: format(defaultDate, "yyyy-MM-dd"),
           priority: "low",
           vehiclesId: undefined,
           km: 1,
           unit: "km",
-          categoryId: undefined
+          categoryId: undefined,
+          more: "",
         },
       });
     
@@ -92,17 +99,15 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
       });
     
       const onSubmit = (values: z.infer<typeof formSchema>) => {
+        const description = values.description === "Mission" ? values.description.concat(" - ", values.more ?? "") : values.description;
         mutate({
             label: values.label,
-            description: values.description,
-            amount: values.amount,
-            liters: values.liters.toString(),
-            unit: values.unit,
-            benef: [values.benef],
+            description,
+            unit: "FCFA",
+            benef: [user?.id ?? 0],
             dueDate: new Date(values.dueDate),
-            km: values.km.toString(),
             vehiclesId: values.vehiclesId,
-            priority: values.priority,
+            priority: "medium",
             categoryId: values.categoryId,
             quantity: 1,
         });
@@ -159,14 +164,37 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
           name="description"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-full">
-              <FormLabel isRequired>{"Description"}</FormLabel>
+              <FormLabel isRequired>{"Motif"}</FormLabel>
               <FormControl>
-                <Textarea placeholder="Décrivez votre besoin" {...field} />
+                <Select value={field.value || ""} onValueChange={field.onChange}>
+                  <SelectTrigger className="min-w-60 w-full">
+                    <SelectValue placeholder="Sélectionner le motif" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Panne">{"Panne"}</SelectItem>
+                    <SelectItem value="Mission">{"Mission"}</SelectItem>
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+        {
+          form.watch("description") === "Mission" &&
+          <FormField
+          control={form.control}
+          name="more"
+          render={({ field }) => (
+            <FormItem className="@min-[640px]:col-span-full">
+              <FormLabel isRequired>{"Description de la mission"}</FormLabel>
+              <FormControl>
+                <Textarea {...field} placeholder="Renseigner une description" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />}
         {/* Date limite de soumission */}
         <FormField
           control={form.control}
@@ -239,52 +267,6 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
             );
           }}
         />
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Montant"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Ex. 15 000 FCFA"
-                    {...field}
-                    className="pr-12"
-                  />
-                  <p className="absolute right-2 top-1/2 -translate-y-1/2">
-                    {"FCFA"}
-                  </p>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="liters"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Litres (Quantité)"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Ex. 15"
-                    {...field}
-                    className="pr-8"
-                  />
-                  <p className="absolute right-2 top-1/2 -translate-y-1/2">
-                    {"L"}
-                  </p>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         {/* Vehicle */}
         <FormField
           control={form.control}
@@ -304,87 +286,6 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
                     {vehicles.map((vehicle) => (
                       <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
                         {vehicle.mark.concat(" - ", vehicle.label, " - ", vehicle.matricule)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="km"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Kilométrage"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Ex. 16254"
-                    {...field}
-                    className="pr-10"
-                  />
-                  <p className="absolute right-2 top-1/2 -translate-y-1/2">
-                    {"KM"}
-                  </p>
-                </div>
-              </FormControl>
-              <FormDescription>{"Valeur actuelle du véhicule"}</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {/* Priorité */}
-        <FormField
-          control={form.control}
-          name="priority"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Priorité"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRIORITIES.map((priority) => (
-                      <SelectItem key={priority.value} value={priority.value}>
-                        {priority.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="benef"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map(({ id, firstName, lastName }) => (
-                      <SelectItem key={id} value={String(id)}>
-                        {user?.id === id
-                          ? `${firstName.concat(" ", lastName)} (Moi-même)`
-                          : firstName.concat(" ", lastName)}
                       </SelectItem>
                     ))}
                   </SelectContent>
