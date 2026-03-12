@@ -193,10 +193,10 @@ export function PurchaseApprovalTable({ data }: Props) {
   }, [data, priorityFilter, penaltyFilter, selectedTab]);
 
   const approveMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (bon: BonsCommande) => {
       // ✅ adapte selon ton query class
       // ex: return purchaseOrderQuery.approve(id);
-      return purchaseOrderQuery.approve(id);
+      return purchaseOrderQuery.approve(bon);
     },
     onSuccess: () => {
       toast.success("Bon de commande approuvé ✅");
@@ -206,10 +206,10 @@ export function PurchaseApprovalTable({ data }: Props) {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+    mutationFn: async ({ bon, reason }: { bon: BonsCommande; reason: string }) => {
       // ✅ adapte selon ton query class
       // ex: return purchaseOrderQuery.reject(id, reason);
-      return purchaseOrderQuery.reject(id, reason);
+      return purchaseOrderQuery.reject(bon, reason);
     },
     onSuccess: () => {
       toast.success("Bon de commande rejeté ❌");
@@ -235,11 +235,11 @@ export function PurchaseApprovalTable({ data }: Props) {
     }
 
     if (decisionType === "approve") {
-      approveMutation.mutate(selectedValue.id);
+      approveMutation.mutate(selectedValue);
       return;
     }
 
-    rejectMutation.mutate({ id: selectedValue.id, reason: rejectReason });
+    rejectMutation.mutate({ bon: selectedValue, reason: rejectReason });
   };
 
   const columns: ColumnDef<BonsCommande>[] = [
