@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-table";
 import {
   AlertCircle,
+  ArrowRightToLine,
   ArrowUpDown,
   Ban,
   CheckCircle,
@@ -212,6 +213,10 @@ function getStatusBadge(status: PaymentRequest["status"]): {
     default:
       return { label, variant: "yellow" };
   }
+}
+
+function isGasComplete (item: PaymentRequest) {
+  return item.type === "gas" && !!item.driverId && !!item.km && !!item.liters && !!item.price && !!item.deadline;
 }
 
 function ExpensesTable({ payments, invoices, banks, requestTypes, paymentTypes, providers, request, users, projects }: Props) {
@@ -532,6 +537,12 @@ function ExpensesTable({ payments, invoices, banks, requestTypes, paymentTypes, 
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
+              {
+                item.type === "gas" &&
+                <DropdownMenuItem disabled={isGasComplete(item)}>
+                  <ArrowRightToLine/>{"Compléter le paiement"}
+                </DropdownMenuItem>
+              }
               {selectedTab === 1 && (
                 <>
                   <DropdownMenuItem
@@ -562,7 +573,7 @@ function ExpensesTable({ payments, invoices, banks, requestTypes, paymentTypes, 
               )}
               {selectedTab === 0 && (
                 <DropdownMenuItem
-                  disabled={item.status === "unsigned"}
+                  disabled={item.status === "unsigned" || (item.type === "gas" && !isGasComplete(item))}
                   onClick={() => {
                     setSelected(item);
                     setShowShare(true);

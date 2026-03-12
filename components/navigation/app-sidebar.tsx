@@ -23,6 +23,7 @@ import {
   LogOutIcon,
   ReceiptIcon,
   ScrollText,
+  Settings2Icon,
   SettingsIcon,
   SignatureIcon,
   Ticket,
@@ -680,6 +681,13 @@ function AppSidebar() {
             badgeValue: transfersToCheck.length > 0 ? transfersToCheck.length : undefined
           },
         ],
+      },
+      {
+        pageId: "PG-10235-01",
+        title: "Règlages Commandes",
+        href: "/tableau-de-bord/parametres-commandes",
+        authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+        icon: Settings2Icon,
       },
       {
         pageId: "PG-08",

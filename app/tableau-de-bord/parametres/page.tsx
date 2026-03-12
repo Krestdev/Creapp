@@ -2,7 +2,7 @@
 
 import PageTitle from "@/components/pageTitle";
 import SettingsCard from "@/components/settings/settings-card";
-import { Box, Building2, FileText, Car, LucideProps, Stamp, Users } from "lucide-react";
+import { Box, Car, LucideProps, Stamp, Users } from "lucide-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export default function SettingsPage() {
@@ -76,27 +76,6 @@ export default function SettingsPage() {
             ],
           },
           {
-            title: "Fournisseurs",
-            description: "Gérer les fournisseurs",
-            icon: Building2,
-            href: "/tableau-de-bord/parametres/fournisseurs",
-            color: "from-amber-500 to-amber-600",
-            items: [
-              {
-                pageId: "PG-08-02",
-                title: "Liste",
-                href: "/tableau-de-bord/parametres/fournisseurs",
-                authorized: ["ADMIN", "SUPERADMIN"],
-              },
-              {
-                pageId: "PG-08-01",
-                title: "Ajouter",
-                href: "/tableau-de-bord/parametres/fournisseurs/creer",
-                authorized: ["ADMIN", "SUPERADMIN"],
-              },
-            ],
-          },
-          {
             title: "Besoins",
             description: "Gérer les besoins",
             icon: Box,
@@ -164,43 +143,12 @@ export default function SettingsPage() {
               },
             ],
           },
-          {
-            title: "Bon de commande",
-            description: "Configurer les bons de commande",
-            icon: FileText,
-            href: "/tableau-de-bord/parametres/conditions-bc",
-            color: "from-fuchsia-500 to-fuchsia-600",
-            items: [
-              {
-                pageId: "PG-08-02",
-                title: "Conditions générales",
-                href: "/tableau-de-bord/parametres/bon-de-commande/conditions-generales",
-                authorized: ["ADMIN", "SUPERADMIN"],
-              },
-              // {
-              //   pageId: "PG-08-01",
-              //   title: "Ajouter",
-              //   href: "/tableau-de-bord/parametres/conditions-bc/creer",
-              //   authorized: ["ADMIN", "SUPERADMIN"],
-              // },
-            ],
-          },
         ],
       },
     ];
 
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto space-y-4">
-        {/* Header */}
-        {/* <div className="mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-2">
-            Paramètres
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Gérez votre compte et les paramètres de votre organisation
-          </p>
-        </div> */}
+      <div className="content">
         <PageTitle
           title="Paramètres"
           subtitle="Gérez votre compte et les paramètres de votre organisation"
@@ -208,7 +156,6 @@ export default function SettingsPage() {
         />
 
         {/* Settings Groups */}
-        <div className="space-y-12">
           {settingsGroups.map((group) => (
             <div key={group.category}>
               <h2 className="text-2xl font-semibold text-foreground mb-6">
@@ -229,8 +176,6 @@ export default function SettingsPage() {
               </div>
             </div>
           ))}
-        </div>
       </div>
-    </main>
   );
 }

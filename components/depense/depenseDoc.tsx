@@ -310,6 +310,8 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
 
   const documentTitle = "Décharge de paiement en espèces";
 
+  const driver = users.find(u=>u.id === paymentRequest?.driverId);
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -432,6 +434,14 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
                 <Text style={styles.infoLabel}>Nombre estimé de litres</Text>
                 <Text style={styles.infoValue}>
                   {litersCount ? `${litersCount} L` : "N/A"}
+                </Text>
+              </View>
+            )}
+            {!!driver && (
+              <View style={[styles.infoRow, styles.infoRowLast]}>
+                <Text style={styles.infoLabel}>Temoin de la carburation</Text>
+                <Text style={styles.infoValue}>
+                  {driver.firstName.concat(" ", driver.lastName)}
                 </Text>
               </View>
             )}
