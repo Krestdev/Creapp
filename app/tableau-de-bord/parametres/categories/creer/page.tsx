@@ -268,7 +268,7 @@ const Page = () => {
             name="description"
             render={({ field }) => (
               <FormItem className="@min-[640px]:col-span-full">
-                <FormLabel>{"Description"}</FormLabel>
+                <FormLabel isRequired>{"Description"}</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Description de la catégorie"
