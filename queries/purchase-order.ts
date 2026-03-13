@@ -43,7 +43,7 @@ export type updatePoPayload = Omit<
 export type AddFileProps = {
   id: number;
   proof: File;
-}
+};
 
 class PurchaseOrder {
   route = "/request/command";
@@ -55,7 +55,7 @@ class PurchaseOrder {
   };
 
   create = async (
-    payload: CreatePurchasePayload
+    payload: CreatePurchasePayload,
   ): Promise<{ data: BonsCommande }> => {
     return api.post(this.route, payload).then((response) => {
       return response.data;
@@ -63,22 +63,25 @@ class PurchaseOrder {
   };
   update = async (
     payload: updatePoPayload,
-    id: number
+    id: number,
   ): Promise<{ data: BonsCommande }> => {
     return api.put(`${this.route}/${id}`, payload).then((response) => {
       return response.data;
     });
   };
   //Command File Upload
-  addFile = async({id, proof}:AddFileProps): Promise<{data: BonsCommande}> => {
+  addFile = async ({
+    id,
+    proof,
+  }: AddFileProps): Promise<{ data: BonsCommande }> => {
     const formData = new FormData();
-    formData.append('proof', proof);
-    return api.put(`${this.route}/addFile/${id}`, formData,{
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-  }
+    formData.append("proof", proof);
+    return api.put(`${this.route}/addFile/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  };
   approve = async (item: BonsCommande): Promise<{ data: BonsCommande }> => {
-    const conditions = item.commandConditions.map(condition => condition.id);
+    const conditions = item.commandConditions.map((condition) => condition.id);
     return api
       .put(`${this.route}/${item.id}`, { status: "APPROVED", conditions })
       .then((response) => {
@@ -87,10 +90,15 @@ class PurchaseOrder {
   };
   reject = async (
     bon: BonsCommande,
-    reason: string
+    reason: string,
   ): Promise<{ data: BonsCommande }> => {
+    const conditions = bon.commandConditions.map((c) => c.id);
     return api
-      .put(`${this.route}/${bon.id}`, { status: "REJECTED", motif: reason, commandConditions: bon.commandConditions })
+      .put(`${this.route}/${bon.id}`, {
+        status: "REJECTED",
+        motif: reason,
+        conditions,
+      })
       .then((response) => {
         return response.data;
       });
