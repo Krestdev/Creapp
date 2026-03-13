@@ -1,10 +1,35 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
 import { newRequestGas, requestQ } from "@/queries/requestModule";
@@ -59,60 +84,65 @@ const formSchema = z.object({
 });
 
 function CreateTypeGas({ users, categories, vehicles }: Props) {
-    const { user } = useStore();
-      const router = useRouter();
-    
-      const [dueDate, setDueDate] = React.useState<boolean>(false);
+  const { user } = useStore();
+  const router = useRouter();
 
-      const today = new Date();
-      const defaultDate = new Date();
-      defaultDate.setDate(today.getDate()+7);
-    
-      const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-          label: "Recharge de carburant",
-          description: "",
-          amount: 100,
-          liters: 1,
-          benef: undefined,
-          dueDate: format(defaultDate, "yyyy-MM-dd"),
-          priority: "low",
-          vehiclesId: undefined,
-          km: 1,
-          unit: "km",
-          categoryId: undefined,
-          more: "",
-        },
-      });
-    
-      const { mutate, isPending } = useMutation({
-        mutationFn: async (payload: newRequestGas) =>
-          requestQ.createGasRequest(payload),
-        onSuccess: () => {
-          toast.success("Votre besoin a été soumis avec succès !");
-          router.push("./mes-besoins");
-        },
-        onError: (error: Error) => {
-          toast.error(error.message);
-        },
-      });
-    
-      const onSubmit = (values: z.infer<typeof formSchema>) => {
-        const description = values.description === "Mission" ? values.description.concat(" - ", values.more ?? "") : values.description;
-        mutate({
-            label: values.label,
-            description,
-            unit: "FCFA",
-            benef: [user?.id ?? 0],
-            dueDate: new Date(values.dueDate),
-            vehiclesId: values.vehiclesId,
-            priority: "medium",
-            categoryId: values.categoryId,
-            quantity: 1,
-        });
-      };
-  return <Form {...form}>
+  const [dueDate, setDueDate] = React.useState<boolean>(false);
+
+  const today = new Date();
+  const defaultDate = new Date();
+  defaultDate.setDate(today.getDate() + 7);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      label: "Recharge de carburant",
+      description: "",
+      amount: 100,
+      liters: 1,
+      benef: user?.id,
+      dueDate: format(defaultDate, "yyyy-MM-dd"),
+      priority: "low",
+      vehiclesId: undefined,
+      km: 1,
+      unit: "km",
+      categoryId: undefined,
+      more: "",
+    },
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (payload: newRequestGas) =>
+      requestQ.createGasRequest(payload),
+    onSuccess: () => {
+      toast.success("Votre besoin a été soumis avec succès !");
+      router.push("./mes-besoins");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const description =
+      values.description === "Mission"
+        ? values.description.concat(" - ", values.more ?? "")
+        : values.description;
+    mutate({
+      label: values.label,
+      description,
+      unit: "FCFA",
+      benef: [user?.id ?? 0],
+      dueDate: new Date(values.dueDate),
+      vehiclesId: values.vehiclesId,
+      priority: "medium",
+      categoryId: values.categoryId,
+      quantity: 1,
+    });
+  };
+  console.log(form.formState.errors);
+  return (
+    <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
         <FormField
           control={form.control}
@@ -143,15 +173,23 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {
-                      categories.filter(c=> c.type.type === "gas").length === 0 ?
-                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
-                      :
-                    categories.filter(c=> c.type.type === "gas").map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.label}
+                    {categories.filter((c) => c.type.type === "gas").length ===
+                    0 ? (
+                      <SelectItem value="#" disabled>
+                        {"Aucune catégorie enregistrée"}
                       </SelectItem>
-                    ))}
+                    ) : (
+                      categories
+                        .filter((c) => c.type.type === "gas")
+                        .map((category) => (
+                          <SelectItem
+                            key={category.id}
+                            value={category.id.toString()}
+                          >
+                            {category.label}
+                          </SelectItem>
+                        ))
+                    )}
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -166,7 +204,10 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
             <FormItem className="@min-[640px]:col-span-full">
               <FormLabel isRequired>{"Motif"}</FormLabel>
               <FormControl>
-                <Select value={field.value || ""} onValueChange={field.onChange}>
+                <Select
+                  value={field.value || ""}
+                  onValueChange={field.onChange}
+                >
                   <SelectTrigger className="min-w-60 w-full">
                     <SelectValue placeholder="Sélectionner le motif" />
                   </SelectTrigger>
@@ -180,21 +221,24 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
             </FormItem>
           )}
         />
-        {
-          form.watch("description") === "Mission" &&
+        {form.watch("description") === "Mission" && (
           <FormField
-          control={form.control}
-          name="more"
-          render={({ field }) => (
-            <FormItem className="@min-[640px]:col-span-full">
-              <FormLabel isRequired>{"Description de la mission"}</FormLabel>
-              <FormControl>
-                <Textarea {...field} placeholder="Renseigner une description" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />}
+            control={form.control}
+            name="more"
+            render={({ field }) => (
+              <FormItem className="@min-[640px]:col-span-full">
+                <FormLabel isRequired>{"Description de la mission"}</FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    placeholder="Renseigner une description"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         {/* Date limite de soumission */}
         <FormField
           control={form.control}
@@ -275,7 +319,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
             <FormItem>
               <FormLabel isRequired>{"Véhicule"}</FormLabel>
               <FormControl>
-                <Select
+                {/* <Select
                   defaultValue={field.value ? String(field.value) : undefined}
                   onValueChange={field.onChange}
                 >
@@ -289,19 +333,53 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </Select>
+                </Select> */}
+                <Combobox
+                  items={vehicles}
+                  value={
+                    vehicles.find((vehicle) => vehicle.id === field.value) ??
+                    null
+                  }
+                  onValueChange={(v) => field.onChange(v?.id ?? "")}
+                  itemToStringLabel={(v) =>
+                    v.mark.concat(" - ", v.label, " - ", v.matricule)
+                  }
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>{"Aucun véhicule enregistré"}</ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: Vehicle) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.mark.concat(
+                            " - ",
+                            item.label,
+                            " - ",
+                            item.matricule,
+                          )}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <div className="@min-[640px]:col-span-full w-full flex justify-end">
-          <Button variant={"primary"} type="submit" disabled={isPending} isLoading={isPending}>
+          <Button
+            variant={"primary"}
+            type="submit"
+            disabled={isPending}
+            isLoading={isPending}
+          >
             {"Soumettre"}
           </Button>
         </div>
       </form>
-    </Form>;
+    </Form>
+  );
 }
 
 export default CreateTypeGas;

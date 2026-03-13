@@ -16,13 +16,12 @@ const buttonVariants = cva(
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "border border-gray-200 bg-white hover:bg-gray-50 text-gray-900 dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-white hover:bg-secondary/80",
+        secondary: "bg-secondary text-white hover:bg-secondary/80",
         accent: "bg-accent text-accent-foreground hover:bg-accent-700",
         ghost: "text-gray-900 bg-white hover:bg-gray-50",
         link: "text-primary underline-offset-4 hover:underline",
         delete: "text-destructive bg-destructive/5 hover:bg-destructive/15",
-        success: "bg-green-600 text-primary-foreground hover:bg-green-800"
+        success: "bg-green-600 text-primary-foreground hover:bg-green-800",
       },
       size: {
         default: "h-9 px-5 py-1",
@@ -30,13 +29,15 @@ const buttonVariants = cva(
         lg: "h-11 rounded-md px-5",
         icon: "size-8",
         iconlg: "size-10",
+        "icon-xs":
+          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
       },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 function Button({
@@ -54,12 +55,27 @@ function Button({
   }) {
   const Comp = asChild ? Slot : "button";
 
+  if (asChild) {
+    return (
+      <Comp
+        data-slot="button"
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      >
+        {children}
+      </Comp>
+    );
+  }
+
   return (
-    <Comp
+    <button
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
-    >{children}{isLoading && <LoaderCircle className="animate-spin"/> }</Comp>
+    >
+      {children}
+      {isLoading && <LoaderCircle className="animate-spin" />}
+    </button>
   );
 }
 

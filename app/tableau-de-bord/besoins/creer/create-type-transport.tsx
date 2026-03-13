@@ -1,23 +1,48 @@
-'use client'
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useStore } from '@/providers/datastore';
-import { newRequestTransport, requestQ } from '@/queries/requestModule';
-import { Category, PRIORITIES, ProjectT, User } from '@/types/types';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import React from 'react'
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import z from 'zod';
+"use client";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useStore } from "@/providers/datastore";
+import { newRequestTransport, requestQ } from "@/queries/requestModule";
+import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import z from "zod";
 
 interface Props {
   users: Array<User>;
@@ -38,7 +63,9 @@ const formSchema = z.object({
     .min(5, { message: "Trop court" })
     .max(50, { message: "Trop long" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
-  categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}), 
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   projectId: z.coerce.number({ message: "Veuillez définir une quantité" }),
   benef: z.coerce.number(),
@@ -52,8 +79,8 @@ const formSchema = z.object({
   priority: z.enum(REQUEST_PRIORITIES),
 });
 
-function CreateTypeTransport({users, categories, projects}:Props) {
-    const { user } = useStore();
+function CreateTypeTransport({ users, categories, projects }: Props) {
+  const { user } = useStore();
   const router = useRouter();
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
@@ -67,7 +94,7 @@ function CreateTypeTransport({users, categories, projects}:Props) {
       projectId: undefined,
       benef: undefined,
       priority: "low",
-      categoryId: undefined
+      categoryId: undefined,
     },
   });
 
@@ -85,16 +112,16 @@ function CreateTypeTransport({users, categories, projects}:Props) {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     mutate({
-        label: values.label,
-        description: values.description,
-        amount: values.amount,
-        projectId: values.projectId,
-        benef: [values.benef],
-        dueDate: new Date(values.dueDate),
-        priority: values.priority,
-        categoryId: values.categoryId,
-        quantity: 1,
-        unit: "FCFA"
+      label: values.label,
+      description: values.description,
+      amount: values.amount,
+      projectId: values.projectId,
+      benef: [values.benef],
+      dueDate: new Date(values.dueDate),
+      priority: values.priority,
+      categoryId: values.categoryId,
+      quantity: 1,
+      unit: "FCFA",
     });
   };
   return (
@@ -129,15 +156,23 @@ function CreateTypeTransport({users, categories, projects}:Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {
-                      categories.filter(c=> c.type.type === "transport").length === 0 ?
-                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
-                      :
-                    categories.filter(c=> c.type.type === "transport").map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.label}
+                    {categories.filter((c) => c.type.type === "transport")
+                      .length === 0 ? (
+                      <SelectItem value="#" disabled>
+                        {"Aucune catégorie enregistrée"}
                       </SelectItem>
-                    ))}
+                    ) : (
+                      categories
+                        .filter((c) => c.type.type === "transport")
+                        .map((category) => (
+                          <SelectItem
+                            key={category.id}
+                            value={category.id.toString()}
+                          >
+                            {category.label}
+                          </SelectItem>
+                        ))
+                    )}
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -261,13 +296,19 @@ function CreateTypeTransport({users, categories, projects}:Props) {
             <FormItem>
               <FormLabel isRequired>{"Projet"}</FormLabel>
               <FormControl>
-                <Select value={field.value ? field.value.toString() : undefined} onValueChange={field.onChange}>
+                <Select
+                  value={field.value ? field.value.toString() : undefined}
+                  onValueChange={field.onChange}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
                     {projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id.toString()}>
+                      <SelectItem
+                        key={project.id}
+                        value={project.id.toString()}
+                      >
                         {project.label}
                       </SelectItem>
                     ))}
@@ -313,7 +354,7 @@ function CreateTypeTransport({users, categories, projects}:Props) {
             <FormItem>
               <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
               <FormControl>
-                <Select
+                {/* <Select
                   value={field.value ? String(field.value) : undefined}
                   onValueChange={field.onChange}
                 >
@@ -329,20 +370,45 @@ function CreateTypeTransport({users, categories, projects}:Props) {
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </Select>
+                </Select> */}
+                <Combobox
+                  items={users}
+                  value={users.find((user) => user.id === field.value) ?? null}
+                  onValueChange={(v) => field.onChange(v?.id ?? "")}
+                  itemToStringLabel={(v) => v.firstName.concat(" ", v.lastName)}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun utilisateur enregistré"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: User) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.firstName.concat(" ", item.lastName)}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <div className="@min-[640px]:col-span-full w-full flex justify-end">
-          <Button variant={"primary"} type="submit" disabled={isPending} isLoading={isPending}>
+          <Button
+            variant={"primary"}
+            type="submit"
+            disabled={isPending}
+            isLoading={isPending}
+          >
             {"Soumettre"}
           </Button>
         </div>
       </form>
     </Form>
-  )
+  );
 }
 
-export default CreateTypeTransport
+export default CreateTypeTransport;

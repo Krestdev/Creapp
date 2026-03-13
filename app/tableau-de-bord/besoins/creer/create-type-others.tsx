@@ -2,6 +2,14 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import {
   Form,
   FormControl,
   FormField,
@@ -55,7 +63,9 @@ const formSchema = z.object({
     .min(5, { message: "Trop court" })
     .max(50, { message: "Trop long" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
-  categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}), 
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
   benef: z.coerce.number(),
@@ -86,7 +96,7 @@ function CreateTypeOthers({ users, categories }: Props) {
       benef: undefined,
       priority: "low",
       unit: "",
-      categoryId: undefined
+      categoryId: undefined,
     },
   });
 
@@ -104,15 +114,15 @@ function CreateTypeOthers({ users, categories }: Props) {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     mutate({
-        label: values.label,
-        description: values.description,
-        amount: values.amount,
-        quantity: values.quantity,
-        unit: values.unit,
-        benef: [values.benef],
-        dueDate: new Date(values.dueDate),
-        priority: values.priority,
-        categoryId: values.categoryId
+      label: values.label,
+      description: values.description,
+      amount: values.amount,
+      quantity: values.quantity,
+      unit: values.unit,
+      benef: [values.benef],
+      dueDate: new Date(values.dueDate),
+      priority: values.priority,
+      categoryId: values.categoryId,
     });
   };
   return (
@@ -147,15 +157,23 @@ function CreateTypeOthers({ users, categories }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {
-                      categories.filter(c=> c.type.type === "others").length === 0 ?
-                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
-                      :
-                    categories.filter(c=> c.type.type === "others").map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.label}
+                    {categories.filter((c) => c.type.type === "others")
+                      .length === 0 ? (
+                      <SelectItem value="#" disabled>
+                        {"Aucune catégorie enregistrée"}
                       </SelectItem>
-                    ))}
+                    ) : (
+                      categories
+                        .filter((c) => c.type.type === "others")
+                        .map((category) => (
+                          <SelectItem
+                            key={category.id}
+                            value={category.id.toString()}
+                          >
+                            {category.label}
+                          </SelectItem>
+                        ))
+                    )}
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -349,30 +367,38 @@ function CreateTypeOthers({ users, categories }: Props) {
             <FormItem>
               <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
               <FormControl>
-                <Select
-                  value={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
+                <Combobox
+                  items={users}
+                  value={users.find((user) => user.id === field.value) ?? null}
+                  onValueChange={(v) => field.onChange(v?.id ?? "")}
+                  itemToStringLabel={(v) => v.firstName.concat(" ", v.lastName)}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map(({ id, firstName, lastName }) => (
-                      <SelectItem key={id} value={String(id)}>
-                        {user?.id === id
-                          ? `${firstName.concat(" ", lastName)} (Moi-même)`
-                          : firstName.concat(" ", lastName)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun utilisateur enregistré"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: User) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.firstName.concat(" ", item.lastName)}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <div className="@min-[640px]:col-span-full w-full flex justify-end">
-          <Button variant={"primary"} type="submit" disabled={isPending} isLoading={isPending}>
+          <Button
+            variant={"primary"}
+            type="submit"
+            disabled={isPending}
+            isLoading={isPending}
+          >
             {"Soumettre"}
           </Button>
         </div>
