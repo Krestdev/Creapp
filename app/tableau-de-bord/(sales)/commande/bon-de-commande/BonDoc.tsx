@@ -407,7 +407,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({
                     <Text style={{ fontWeight: "semibold", color: "black" }}>{"Conditions :"}</Text>
                     <View style={styles.conditionsList}>
                       {doc.commandConditions.map((condition, index) => (
-                        <Text key={index}>{`${index + 1}. ${condition.title}`}</Text>
+                        <Text key={index}>{`${index + 1}. ${condition.content}`}</Text>
                       ))}
                       {/* <Text>
                         {
