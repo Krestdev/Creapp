@@ -214,11 +214,11 @@ export type RequestModelT = {
   benef?: number[];
   period?: DateRange | undefined;
   beficiaryList?:
-  | { id: number; firstName: string; lastName: string; email: string }[]
-  | null;
+    | { id: number; firstName: string; lastName: string; email: string }[]
+    | null;
   state: (typeof REQUEST_STATUS)[number]["value"];
   priority: "medium" | "high" | "low" | "urgent";
-  projectId?: number
+  projectId?: number;
   project?: ProjectT;
   categoryId?: number;
   category?: number;
@@ -374,7 +374,8 @@ export const QUOTATION_ELEMENT_STATUS = [
 ] as const;
 
 export type QuotationStatus = (typeof QUOTATION_STATUS)[number]["value"];
-export type QuotationElementStatus = (typeof QUOTATION_ELEMENT_STATUS)[number]["value"];
+export type QuotationElementStatus =
+  (typeof QUOTATION_ELEMENT_STATUS)[number]["value"];
 
 export type QuotationElement = {
   id: number;
@@ -385,6 +386,7 @@ export type QuotationElement = {
   priceProposed: number;
   deviId: number;
   status: QuotationElementStatus;
+  hasIs: boolean;
 };
 
 export type Quotation = {
@@ -502,6 +504,7 @@ export type BonsCommande = {
   ristourneAmount: number; // réduction a posteriori
   escompteRate: number;
   keepTaxes: boolean;
+  hasPrecompt: boolean;
   netToPay: number;
   commandConditions: Array<CommandCondition>;
   commandFile?: string;
@@ -528,8 +531,8 @@ export type Invoice = {
   commandId: number;
   command: BonsCommande;
   userId: number;
-  payments: Array<PaymentRequest>
-}
+  payments: Array<PaymentRequest>;
+};
 
 export interface NavLink {
   title: string;
@@ -565,7 +568,9 @@ export type Reception = {
   updatedAt?: Date;
   Command: BonsCommande;
   Provider: Provider;
-  Deliverables: Array<QuotationElement & { isDelivered: boolean; delivered:number }>;
+  Deliverables: Array<
+    QuotationElement & { isDelivered: boolean; delivered: number }
+  >;
   note: string;
 };
 
@@ -638,7 +643,7 @@ export type TransactionSigners = {
   transactionId: number;
   signed: boolean;
   signedAt: Date;
-}
+};
 
 export const TRANSACTION_TYPES = [
   { value: "CREDIT", name: "Crédit" },
@@ -675,12 +680,22 @@ export type DebitTransaction = TransactionBase & {
   Type: "DEBIT";
   from: Bank;
   payement?: PaymentRequest | null;
-  to: { id: number; label: string; accountNumber?: string; phoneNumber?: string };
+  to: {
+    id: number;
+    label: string;
+    accountNumber?: string;
+    phoneNumber?: string;
+  };
 };
 
 export type CreditTransaction = TransactionBase & {
   Type: "CREDIT";
-  from: { id: number; label: string; accountNumber?: string; phoneNumber?: string };
+  from: {
+    id: number;
+    label: string;
+    accountNumber?: string;
+    phoneNumber?: string;
+  };
   to: Bank;
   payement?: PaymentRequest | null;
 };

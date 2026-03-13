@@ -35,14 +35,18 @@ import z from "zod";
 import { Plus, Check, X, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 const formSchema = z.object({
   id: z.number().optional(),
   needId: z.number().min(1, { message: "Veuillez sélectionner un besoin" }),
-  designation: z.string().min(1, { message: "Veuillez renseigner une désignation" }),
+  designation: z
+    .string()
+    .min(1, { message: "Veuillez renseigner une désignation" }),
   quantity: z.number(),
   unit: z.string(),
   price: z.number().min(1, { message: "Veuillez renseigner un prix" }),
+  hasIs: z.boolean(),
 });
 
 type ElementT = z.infer<typeof formSchema>;
@@ -78,6 +82,7 @@ function AddElement({
       quantity: 1,
       unit: "piece",
       price: 1000,
+      hasIs: false,
     },
   });
 
@@ -93,14 +98,7 @@ function AddElement({
         setEditingIndex(index);
       } else {
         // Mode ajout ou réinitialisation
-        form.reset({
-          id: undefined,
-          needId: undefined,
-          designation: "",
-          quantity: 1,
-          unit: "piece",
-          price: 1000,
-        });
+        form.reset();
         setEditingIndex(null);
       }
     }
@@ -140,14 +138,7 @@ function AddElement({
     setTempElements(updatedElements);
 
     // Réinitialiser le formulaire pour le prochain ajout
-    form.reset({
-      id: undefined,
-      needId: undefined,
-      designation: "",
-      quantity: 1,
-      unit: "piece",
-      price: 1000,
-    });
+    form.reset();
 
     setEditingIndex(null);
   };
@@ -167,14 +158,7 @@ function AddElement({
     // Si on supprime l'élément en cours d'édition
     if (editingIndex === index) {
       setEditingIndex(null);
-      form.reset({
-        id: undefined,
-        needId: undefined,
-        designation: "",
-        quantity: 1,
-        unit: "piece",
-        price: 1000,
-      });
+      form.reset();
     } else if (editingIndex !== null && editingIndex > index) {
       // Ajuster l'index d'édition si on supprime un élément avant
       setEditingIndex(editingIndex - 1);
@@ -191,14 +175,7 @@ function AddElement({
   const handleCancel = () => {
     setTempElements(value);
     setEditingIndex(null);
-    form.reset({
-      id: undefined,
-      needId: undefined,
-      designation: "",
-      quantity: 1,
-      unit: "piece",
-      price: 1000,
-    });
+    form.reset();
     openChange(false);
   };
 
@@ -214,12 +191,14 @@ function AddElement({
       <DialogContent className="max-w-5xl! max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="h-fit">
-            {editingIndex !== null || (element && index !== null && index !== undefined)
+            {editingIndex !== null ||
+            (element && index !== null && index !== undefined)
               ? "Modifier un élément du devis"
               : "Ajouter des éléments au devis"}
           </DialogTitle>
           <DialogDescription>
-            {editingIndex !== null || (element && index !== null && index !== undefined)
+            {editingIndex !== null ||
+            (element && index !== null && index !== undefined)
               ? "Mettez à jour les informations de cet élément du devis."
               : "Ajoutez autant d'éléments que nécessaire. Tous seront enregistrés ensemble."}
           </DialogDescription>
@@ -281,6 +260,26 @@ function AddElement({
                     </FormItem>
                   )}
                 />
+                {/* IS/IR */}
+                <FormField
+                  control={form.control}
+                  name="hasIs"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel isRequired>{"IS/IR"}</FormLabel>
+                      <FormControl>
+                        <div className="flex gap-2 items-center">
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          {field.value ? "Oui" : "Non"}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="grid grid-cols-2 gap-3">
                   {/* Quantité */}
@@ -298,7 +297,7 @@ function AddElement({
                               field.onChange(
                                 e.target.value === ""
                                   ? 1
-                                  : Number(e.target.value)
+                                  : Number(e.target.value),
                               )
                             }
                             placeholder="ex. 10"
@@ -356,7 +355,7 @@ function AddElement({
                               field.onChange(
                                 e.target.value === ""
                                   ? 1000
-                                  : Number(e.target.value)
+                                  : Number(e.target.value),
                               )
                             }
                             className="pr-12"
@@ -382,12 +381,12 @@ function AddElement({
                   >
                     {editingIndex !== null ? (
                       <>
-                        <Pencil className="w-4 h-4 mr-2" />
+                        <Pencil />
                         {"Modifier l'élément"}
                       </>
                     ) : (
                       <>
-                        <Plus className="w-4 h-4 mr-2" />
+                        <Plus />
                         {"Ajouter à la liste"}
                       </>
                     )}
@@ -399,18 +398,11 @@ function AddElement({
                       variant="outline"
                       onClick={() => {
                         setEditingIndex(null);
-                        form.reset({
-                          id: undefined,
-                          needId: undefined,
-                          designation: "",
-                          quantity: 1,
-                          unit: "piece",
-                          price: 1000,
-                        });
+                        form.reset();
                       }}
                     >
-                      <X className="w-4 h-4 mr-2" />
-                      Annuler modification
+                      <X />
+                      {"Annuler modification"}
                     </Button>
                   )}
                 </div>
@@ -450,7 +442,7 @@ function AddElement({
                         acc[need].push({ ...item, index });
                         return acc;
                       },
-                      {} as Record<number, Array<ElementT & { index: number }>>
+                      {} as Record<number, Array<ElementT & { index: number }>>,
                     );
 
                     return Object.entries(groupedElements).map(
@@ -470,10 +462,11 @@ function AddElement({
                               {elements.map((item) => (
                                 <div
                                   key={item.index}
-                                  className={`w-full bg-white rounded-sm border px-3 py-2 inline-flex justify-between gap-2 items-center text-sm ${editingIndex === item.index
-                                    ? 'border-blue-300 bg-blue-50'
-                                    : 'border-gray-200'
-                                    }`}
+                                  className={`w-full bg-white rounded-sm border px-3 py-2 inline-flex justify-between gap-2 items-center text-sm ${
+                                    editingIndex === item.index
+                                      ? "border-blue-300 bg-blue-50"
+                                      : "border-gray-200"
+                                  }`}
                                 >
                                   <div className="flex items-center gap-3 flex-1">
                                     <div className="min-w-6 w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-xs text-gray-600">
@@ -484,7 +477,8 @@ function AddElement({
                                         {item.designation}
                                       </div>
                                       <div className="text-xs text-gray-600 truncate">
-                                        {item.quantity} {item.unit} • {item.price.toLocaleString()} FCFA
+                                        {item.quantity} {item.unit} •{" "}
+                                        {item.price.toLocaleString()} FCFA
                                       </div>
                                     </div>
                                   </div>
@@ -493,14 +487,18 @@ function AddElement({
                                     <button
                                       type="button"
                                       className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-blue-100 border-blue-600 text-blue-600 cursor-pointer"
-                                      onClick={() => handleEditElement(item.index)}
+                                      onClick={() =>
+                                        handleEditElement(item.index)
+                                      }
                                     >
                                       <Pencil className="w-3 h-3" />
                                     </button>
                                     <button
                                       type="button"
                                       className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-red-100 border-red-600 text-red-600 cursor-pointer"
-                                      onClick={() => handleDeleteElement(item.index)}
+                                      onClick={() =>
+                                        handleDeleteElement(item.index)
+                                      }
                                     >
                                       <Trash2 className="w-3 h-3" />
                                     </button>
@@ -510,7 +508,7 @@ function AddElement({
                             </div>
                           </div>
                         );
-                      }
+                      },
                     );
                   })()}
                 </div>
@@ -522,12 +520,8 @@ function AddElement({
         <DialogFooter className="mt-4 pt-4 border-t flex justify-end w-full">
           <div className="flex justify-between w-full">
             <div className="flex gap-2 ml-auto">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-              >
-                Annuler
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                {"Annuler"}
               </Button>
 
               <Button
@@ -536,8 +530,9 @@ function AddElement({
                 onClick={handleSaveAll}
                 disabled={tempElements.length === 0}
               >
-                <Check className="w-4 h-4 mr-2" />
-                Enregistrer {tempElements.length > 0 ? `(${tempElements.length})` : ''}
+                <Check />
+                Enregistrer{" "}
+                {tempElements.length > 0 ? `(${tempElements.length})` : ""}
               </Button>
             </div>
           </div>

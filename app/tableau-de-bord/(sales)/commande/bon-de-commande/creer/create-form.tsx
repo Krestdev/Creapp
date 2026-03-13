@@ -101,7 +101,10 @@ export const formSchema = z
     ristourneAmount: z.coerce.number().min(0, "Le montant doit être positif"),
     escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
     keepTaxes: z.boolean(),
-    conditions: z.array(z.number()).min(1, "Veuillez sélectionner au moins une condition"),
+    hasPrecompt: z.boolean(),
+    conditions: z
+      .array(z.number())
+      .min(1, "Veuillez sélectionner au moins une condition"),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -123,7 +126,9 @@ export const formSchema = z
 
 function CreateForm() {
   const [selectDate, setSelectDate] = React.useState(false);
-  const [selectedConditions, setSelectedConditions] = React.useState<CommandCondition[]>([]);
+  const [selectedConditions, setSelectedConditions] = React.useState<
+    CommandCondition[]
+  >([]);
   const [duePopovers, setDuePopovers] = React.useState<Record<number, boolean>>(
     {},
   );
@@ -174,6 +179,7 @@ function CreateForm() {
       ristourneAmount: 0,
       escompteRate: 0,
       keepTaxes: false,
+      hasPrecompt: false,
     },
   });
 
@@ -277,6 +283,7 @@ function CreateForm() {
         ristourneAmount: values.ristourneAmount,
         escompteRate: values.escompteRate,
         keepTaxes: values.keepTaxes,
+        hasPrecompt: values.hasPrecompt,
       },
       conditions: values.conditions,
       ids: ids,
@@ -320,12 +327,13 @@ function CreateForm() {
                             value={String(quote.id)}
                             className="line-clamp-1"
                           >
-                            {`${quote.commandRequest.title
-                              } - ${formatToShortName(
-                                getProviders.data?.data.find(
-                                  (p) => p.id === quote.providerId,
-                                )?.name,
-                              )}`}
+                            {`${
+                              quote.commandRequest.title
+                            } - ${formatToShortName(
+                              getProviders.data?.data.find(
+                                (p) => p.id === quote.providerId,
+                              )?.name,
+                            )}`}
                           </SelectItem>
                         ))}
                     {getQuotations.data &&
@@ -456,7 +464,9 @@ function CreateForm() {
                     placeholder="Ex. 3"
                     className="pr-8"
                   />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                    {"%"}
+                  </span>
                 </div>
               </FormControl>
               <FormMessage />
@@ -477,7 +487,9 @@ function CreateForm() {
                     placeholder="Ex. 3"
                     className="pr-8"
                   />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                    {"%"}
+                  </span>
                 </div>
               </FormControl>
               <FormMessage />
@@ -498,7 +510,9 @@ function CreateForm() {
                     placeholder="Ex. 5"
                     className="pr-8"
                   />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                    {"%"}
+                  </span>
                 </div>
               </FormControl>
               <FormMessage />
@@ -520,7 +534,35 @@ function CreateForm() {
                   <span>{field.value ? "Oui" : "Non"}</span>
                 </div>
               </FormControl>
-              <FormDescription>{"Cocher si vous souhaitez retenir les taxes à la source sur ce bon de commande"}</FormDescription>
+              <FormDescription>
+                {
+                  "Cocher si vous souhaitez retenir les taxes à la source sur ce bon de commande"
+                }
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="hasPrecompt"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Précompte"}</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  <span>{field.value ? "Oui" : "Non"}</span>
+                </div>
+              </FormControl>
+              <FormDescription>
+                {
+                  "Cocher si vous souhaitez ajouter le précompte sur ce bon de commande"
+                }
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -539,10 +581,14 @@ function CreateForm() {
                     placeholder="Ex. 2"
                     className="pr-8"
                   />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">{"%"}</span>
+                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
+                    {"%"}
+                  </span>
                 </div>
               </FormControl>
-              <FormDescription>{"Laissez à 0 si aucun escompte"}</FormDescription>
+              <FormDescription>
+                {"Laissez à 0 si aucun escompte"}
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -697,8 +743,9 @@ function CreateForm() {
               {"La somme de tous les paiements doit être égale à 100%."}
               {totalAmount !== 100 && (
                 <span className="text-destructive ml-2">
-                  {`Total actuel: ${totalAmount}% (il manque ${100 - totalAmount
-                    }%)`}
+                  {`Total actuel: ${totalAmount}% (il manque ${
+                    100 - totalAmount
+                  }%)`}
                 </span>
               )}
             </p>
