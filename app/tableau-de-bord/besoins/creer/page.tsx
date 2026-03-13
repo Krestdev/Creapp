@@ -156,22 +156,22 @@ const Page = () => {
         roles.some((r) => r.label === "RH") &&
         roles.some((r) => r.label === "VOLT_MANAGER")
       )
-        return types;
-      if (
-        roles.some((r) => r.label === "RH") &&
-        roles.some((r) => r.label === "VOLT_MANAGER")
-      )
-        return types;
+        return types.filter((t) => t.type !== "gas");
       if (roles.some((r) => r.label === "RH"))
-        return types.filter((t) => t.type !== "speciaux");
+        return types.filter((t) => t.type !== "speciaux" && t.type !== "gas");
       if (roles.some((r) => r.label === "VOLT_MANAGER"))
-        return types.filter((t) => t.type !== "ressource_humaine");
+        return types.filter(
+          (t) => t.type !== "ressource_humaine" && t.type !== "gas",
+        );
       if (roles.some((r) => r.label === "DRIVER"))
         return types.filter(
           (t) => t.type !== "ressource_humaine" && t.type !== "speciaux",
         );
       return types.filter(
-        (t) => t.type !== "ressource_humaine" && t.type !== "speciaux",
+        (t) =>
+          t.type !== "ressource_humaine" &&
+          t.type !== "speciaux" &&
+          t.type !== "gas",
       );
     };
     const getTypeClassName = (
