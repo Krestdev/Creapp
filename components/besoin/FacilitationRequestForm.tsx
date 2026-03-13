@@ -36,6 +36,14 @@ import {
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import BeneficiairesList from "./AddBenef";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "../ui/combobox";
 
 interface Props {
   users: Array<User>;
@@ -62,13 +70,19 @@ const formSchema = z.object({
   delai: z
     .date()
     .min(new Date(), "Le delai d'exécution doit être dans le futur"),
-  categoryId: z.coerce.number({ message: "Veuillez sélectionner une catégorie" }),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().min(1, "La description est requise"),
   justificatif: SingleFileSchema,
 });
 
-export default function FacilitationRequestForm({users, projects, categories}:Props) {
+export default function FacilitationRequestForm({
+  users,
+  projects,
+  categories,
+}: Props) {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -192,37 +206,45 @@ export default function FacilitationRequestForm({users, projects, categories}:Pr
           />
 
           {/* Category */}
-        <FormField
-          control={form.control}
-          name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Categorie"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {
-                      categories.filter(c=> c.type.type === "facilitation").length === 0 ?
-                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
-                      :
-                    categories.filter(c=> c.type.type === "facilitation").map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>{"Categorie"}</FormLabel>
+                <FormControl>
+                  <Select
+                    defaultValue={field.value ? String(field.value) : undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="min-w-60 w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.filter((c) => c.type.type === "facilitation")
+                        .length === 0 ? (
+                        <SelectItem value="#" disabled>
+                          {"Aucune catégorie enregistrée"}
+                        </SelectItem>
+                      ) : (
+                        categories
+                          .filter((c) => c.type.type === "facilitation")
+                          .map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.label}
+                            </SelectItem>
+                          ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* TITLE */}
           <FormField
@@ -244,18 +266,29 @@ export default function FacilitationRequestForm({users, projects, categories}:Pr
             render={({ field }) => (
               <FormItem>
                 <FormLabel isRequired>{"Recepteur pour compte"}</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un recepteur pour compte" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.filter((u) => u.verified).map((user) => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
-                        {user.lastName + " " + user.firstName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  items={users.filter((u) => u.verified)}
+                  value={
+                    users.find((user) => user.id.toString() === field.value) ??
+                    null
+                  }
+                  onValueChange={(v) => field.onChange(v?.id.toString() ?? "")}
+                  itemToStringLabel={(v) => v.firstName.concat(" ", v.lastName)}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun utilisateur enregistré"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: User) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.firstName.concat(" ", item.lastName)}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
                 <FormMessage />
               </FormItem>
             )}

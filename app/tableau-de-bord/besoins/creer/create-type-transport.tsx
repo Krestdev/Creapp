@@ -296,24 +296,23 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
             <FormItem>
               <FormLabel isRequired>{"Projet"}</FormLabel>
               <FormControl>
-                <Select
-                  value={field.value ? field.value.toString() : undefined}
-                  onValueChange={field.onChange}
+                <Combobox
+                  items={projects}
+                  value={projects.find((p) => p.id === field.value) ?? null}
+                  onValueChange={(v) => field.onChange(v?.id ?? "")}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map((project) => (
-                      <SelectItem
-                        key={project.id}
-                        value={project.id.toString()}
-                      >
-                        {project.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>{"Aucun projet enregistré"}</ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: ProjectT) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.label}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
               </FormControl>
               <FormMessage />
             </FormItem>
