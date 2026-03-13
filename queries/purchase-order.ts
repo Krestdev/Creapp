@@ -77,19 +77,19 @@ class PurchaseOrder {
         headers: { "Content-Type": "multipart/form-data" },
       });
   }
-  approve = async (id: number): Promise<{ data: BonsCommande }> => {
+  approve = async (item: BonsCommande): Promise<{ data: BonsCommande }> => {
     return api
-      .put(`${this.route}/${id}`, { status: "APPROVED" })
+      .put(`${this.route}/${item.id}`, { status: "APPROVED", commandConditions:item.commandConditions })
       .then((response) => {
         return response.data;
       });
   };
   reject = async (
-    id: number,
+    bon: BonsCommande,
     reason: string
   ): Promise<{ data: BonsCommande }> => {
     return api
-      .put(`${this.route}/${id}`, { status: "REJECTED", motif: reason })
+      .put(`${this.route}/${bon.id}`, { status: "REJECTED", motif: reason, commandConditions: bon.commandConditions })
       .then((response) => {
         return response.data;
       });
