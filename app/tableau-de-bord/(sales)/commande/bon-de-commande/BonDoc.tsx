@@ -1,11 +1,8 @@
 import { company, formatXAF } from "@/lib/utils";
 import { BonsCommande } from "@/types/types";
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Page, StyleSheet, Text, View, Image } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-
-const A4_WIDTH = 595;
-const A4_HEIGHT = 842;
 
 const TVA = 0.1925;
 const IR = 0.05;
@@ -14,20 +11,23 @@ const PRECOMPTE = 0.02;
 
 const styles = StyleSheet.create({
   page: {
-    width: A4_WIDTH,
-    height: A4_HEIGHT,
-    paddingTop: 50,
-    paddingBottom: 50,
-    paddingHorizontal: 20,
-    fontSize: 10,
-    fontFamily: "Helvetica",
+    size: "A4",
     position: "relative",
     overflow: "hidden",
+    fontSize: 10,
+    fontFamily: "Helvetica",
+  },
+  content: {
+    paddingTop: 100,
+    paddingBottom: 120,
+    paddingHorizontal: 20,
     display: "flex",
     flexDirection: "column",
     gap: 19,
+    width: "100%",
+    height: "100%",
   },
-  mainContent: { width: "100%", flexDirection: "column", marginBottom: 200 },
+  mainContent: { width: "100%", flexDirection: "column", gap:8, marginBottom: 200 },
   header: {
     width: "100%",
     flexDirection: "row",
@@ -74,8 +74,9 @@ const styles = StyleSheet.create({
     borderColor: "#000",
     fontSize: 9,
     fontWeight: "bold",
+    minHeight: 16,
   },
-  tr: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#ddd", minHeight: 25 },
+  tr: { display: "flex", flexDirection: "row", borderBottomWidth: 1, borderColor: "#ddd", paddingVertical:4 },
   td: { padding: 4, borderRightWidth: 1, borderColor: "#ddd", fontSize: 8, flexWrap: "wrap" },
   colDesignation: { width: "32%" },
   colQty: { width: "6%", textAlign: "right" },
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
   colTaxes: { width: "12%", textAlign: "right" },
   colTotalHt: { width: "13%", textAlign: "right" },
   colTotalTtc: { width: "13%", textAlign: "right" },
-  summarySection: { marginTop: 1 },
+  summarySection: {display: "flex", flexDirection:"column", gap: 6},
   rightSummary: {
     marginLeft: "auto",
     width: "45%",
@@ -116,6 +117,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   footer: { position: "absolute", bottom: 30, right: 30, fontSize: 9, color: "#666" },
+  watermark: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    opacity: 1,
+  },
 });
 
 const roundFCFA = (n: number) => Math.round(n);
@@ -169,251 +178,254 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({
   return (
     <Document>
         <Page size="A4" style={styles.page} wrap>
-          <View fixed>
-                <View style={styles.header}>
-                  <View style={styles.info}>
-                    <View style={styles.leftHeader}>
-                      <View style={styles.name}>
-                        <Text style={styles.companyName}>{"Site: "}</Text>
-                        <Text style={styles.companyName}>{company.name}</Text>
+          <Image fixed style={styles.watermark} src={"/images/crea.jpg"} />
+          <View style={styles.content}>
+            <View fixed>
+                  <View style={styles.header}>
+                    <View style={styles.info}>
+                      <View style={styles.leftHeader}>
+                        <View style={styles.name}>
+                          <Text style={styles.companyName}>{"Site: "}</Text>
+                          <Text style={styles.companyName}>{company.name}</Text>
+                        </View>
+                        <View style={styles.name}>
+                          <Text style={styles.companyName}>{"Agent: "}</Text>
+                          <Text style={styles.companyName}>{doc.devi.commandRequest.name}</Text>
+                        </View>
+                        <View style={styles.name}>
+                          <Text style={styles.companyName}>{"Téléphone: "}</Text>
+                          <Text style={styles.companyName}>{doc.devi.commandRequest.phone}</Text>
+                        </View>
                       </View>
-                      <View style={styles.name}>
-                        <Text style={styles.companyName}>{"Agent: "}</Text>
-                        <Text style={styles.companyName}>{doc.devi.commandRequest.name}</Text>
+
+                      <View style={styles.leftHeader}>
+                        <View style={styles.name}>
+                          <Text style={styles.companyName}>{"Lieu de livraison: "}</Text>
+                          <Text style={styles.companyName}>{doc.deliveryLocation}</Text>
+                        </View>
+                        <View style={styles.name}>
+                          <Text style={styles.companyName}>{"Delai de livraison: "}</Text>
+                          <Text style={styles.companyName}>
+                            {format(doc.deliveryDelay, "dd/MM/yyyy")}
+                          </Text>
+                        </View>
                       </View>
-                      <View style={styles.name}>
-                        <Text style={styles.companyName}>{"Téléphone: "}</Text>
-                        <Text style={styles.companyName}>{doc.devi.commandRequest.phone}</Text>
+
+                      <Text style={styles.title}>{"Bon de Commande"}</Text>
+                    </View>
+
+                    <View style={{width: "60%", borderColor: "#000", borderTopWidth: 1 }}>
+                      <View style={styles.tableRow}>
+                        <View style={styles.tableName}>
+                          <Text style={styles.companyName}>{"Nom:  "}</Text>
+                          <Text style={styles.companyName}>{doc.provider.name}</Text>
+                        </View>
+                        <View style={styles.tableName}>
+                          <Text style={styles.companyName}>{"Addresse:  "}</Text>
+                          <Text style={styles.companyName}>{doc.provider.address}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.tableRow}>
+                        <View style={styles.tableName}>
+                          <Text style={styles.companyName}>{"NIU:  "}</Text>
+                          <Text style={styles.companyName}>{doc.provider.NIU}</Text>
+                        </View>
+                        <View style={styles.tableName}>
+                          <Text style={styles.companyName}>{"Email:  "}</Text>
+                          <Text style={styles.companyName}>{doc.provider.email}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.tableRow}>
+                        <View style={styles.tableName}>
+                          <Text style={styles.companyName}>{"Téléphone:  "}</Text>
+                          <Text style={styles.companyName}>{doc.provider.phone}</Text>
+                        </View>
+                        <View style={styles.tableName} />
+                      </View>
+                      <View style={styles.tableRow}>
+                        <View style={styles.tableName}>
+                          <Text style={{ fontSize: 9 }}>
+                          {"Régime: "}{real ? "Réel (taxes appliquées)" : "Simplifié (net commercial)"}
+                        </Text>
+                        </View>
+                        <View style={styles.tableName}>
+                          <Text style={{ fontSize: 9 }}>
+                          {"Taxes: "}{applyTaxes ? "Oui" : "Non"}
+                        </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={{ borderWidth: 1, borderColor: "#000", marginBottom: 4 }}>
+                    <View style={{ flexDirection: "row" }}>
+                      <View style={{ flex: 1, borderRightWidth: 1, borderColor: "#000", padding: 4 }}>
+                        <Text style={{ fontSize: 11, fontWeight: "bold" }}>{"Numéro du Bon"}</Text>
+                      </View>
+                      <View style={{ flex: 1, borderColor: "#000", padding: 4 }}>
+                        <Text style={{ fontSize: 11, fontWeight: "bold" }}>{"Date de création"}</Text>
                       </View>
                     </View>
 
-                    <View style={styles.leftHeader}>
-                      <View style={styles.name}>
-                        <Text style={styles.companyName}>{"Lieu de livraison: "}</Text>
-                        <Text style={styles.companyName}>{doc.deliveryLocation}</Text>
-                      </View>
-                      <View style={styles.name}>
-                        <Text style={styles.companyName}>{"Delai de livraison: "}</Text>
-                        <Text style={styles.companyName}>
-                          {format(doc.deliveryDelay, "dd/MM/yyyy")}
+                    <View style={{ flexDirection: "row", borderTopWidth: 1, borderColor: "#000" }}>
+                      <View style={{ flex: 2, padding: 4, borderRightWidth: 1 }}>
+                        <Text>
+                          {doc.reference + "/" + format(doc.createdAt, "dd/MM/yyyy" + "/", { locale: fr })}
                         </Text>
                       </View>
-                    </View>
-
-                    <Text style={styles.title}>{"Bon de Commande"}</Text>
-                  </View>
-
-                  <View style={{width: "60%", borderColor: "#000", borderTopWidth: 1 }}>
-                    <View style={styles.tableRow}>
-                      <View style={styles.tableName}>
-                        <Text style={styles.companyName}>{"Nom:  "}</Text>
-                        <Text style={styles.companyName}>{doc.provider.name}</Text>
-                      </View>
-                      <View style={styles.tableName}>
-                        <Text style={styles.companyName}>{"Addresse:  "}</Text>
-                        <Text style={styles.companyName}>{doc.provider.address}</Text>
-                      </View>
-                    </View>
-                    <View style={styles.tableRow}>
-                      <View style={styles.tableName}>
-                        <Text style={styles.companyName}>{"NIU:  "}</Text>
-                        <Text style={styles.companyName}>{doc.provider.NIU}</Text>
-                      </View>
-                      <View style={styles.tableName}>
-                        <Text style={styles.companyName}>{"Email:  "}</Text>
-                        <Text style={styles.companyName}>{doc.provider.email}</Text>
-                      </View>
-                    </View>
-                    <View style={styles.tableRow}>
-                      <View style={styles.tableName}>
-                        <Text style={styles.companyName}>{"Téléphone:  "}</Text>
-                        <Text style={styles.companyName}>{doc.provider.phone}</Text>
-                      </View>
-                      <View style={styles.tableName} />
-                    </View>
-                    <View style={styles.tableRow}>
-                      <View style={styles.tableName}>
-                        <Text style={{ fontSize: 9 }}>
-                        {"Régime: "}{real ? "Réel (taxes appliquées)" : "Simplifié (net commercial)"}
-                      </Text>
-                      </View>
-                      <View style={styles.tableName}>
-                        <Text style={{ fontSize: 9 }}>
-                        {"Taxes: "}{applyTaxes ? "Oui" : "Non"}
-                      </Text>
+                      <View style={{ flex: 2, padding: 4 }}>
+                        <Text>{format(doc.createdAt, "dd/MM/yyyy", { locale: fr })}</Text>
                       </View>
                     </View>
                   </View>
-                </View>
-
-                <View style={{ borderWidth: 1, borderColor: "#000", marginBottom: 4 }}>
-                  <View style={{ flexDirection: "row" }}>
-                    <View style={{ flex: 1, borderRightWidth: 1, borderColor: "#000", padding: 4 }}>
-                      <Text style={{ fontSize: 11, fontWeight: "bold" }}>{"Numéro du Bon"}</Text>
-                    </View>
-                    <View style={{ flex: 1, borderColor: "#000", padding: 4 }}>
-                      <Text style={{ fontSize: 11, fontWeight: "bold" }}>{"Date de création"}</Text>
-                    </View>
-                  </View>
-
-                  <View style={{ flexDirection: "row", borderTopWidth: 1, borderColor: "#000" }}>
-                    <View style={{ flex: 2, padding: 4, borderRightWidth: 1 }}>
-                      <Text>
-                        {doc.reference + "/" + format(doc.createdAt, "dd/MM/yyyy" + "/", { locale: fr })}
-                      </Text>
-                    </View>
-                    <View style={{ flex: 2, padding: 4 }}>
-                      <Text>{format(doc.createdAt, "dd/MM/yyyy", { locale: fr })}</Text>
-                    </View>
-                  </View>
-                </View>
-          </View>
-
-          <View style={styles.mainContent}>
-            <View style={styles.table}>
-              <View style={styles.tableHeader}>
-                <Text style={[styles.th, styles.colDesignation]}>{"Désignation"}</Text>
-                <Text style={[styles.th, styles.colQty]}>{"Qté"}</Text>
-                <Text style={[styles.th, styles.colPu]}>{"PU HT"}</Text>
-                <Text style={[styles.th, styles.colRrr]}>{"RRR"}</Text>
-                <Text style={[styles.th, styles.colTaxes]}>
-                  {real && applyTaxes ? "Taxes" : "Taxes"}
-                </Text>
-                <Text style={[styles.th, styles.colTotalHt]}>{"Total HT"}</Text>
-                <Text style={[styles.th, styles.colTotalTtc]}>
-                  {real && applyTaxes ? "Net à payer" : "Net à payer"}
-                </Text>
-              </View>
-
-              {doc.devi.element
-                .map((it: any, idx) => {
-                  const lineHT = it.quantity * it.priceProposed;
-
-                  const lineRRR = lineHT * rrrRate;
-                  const lineNetCommercial = Math.max(0, lineHT - lineRRR);
-
-                  const lineTaxes = applyTaxes && real ? lineNetCommercial * (taxFactor - 1) : 0;
-                  const lineNetToPay = applyTaxes && real
-                    ? lineNetCommercial * taxFactor
-                    : lineNetCommercial;
-
-                  return (
-                    <View style={styles.tr} key={idx}>
-                      <Text style={[styles.td, styles.colDesignation]}>{it.title}</Text>
-                      <Text style={[styles.td, styles.colQty]}>{it.quantity}</Text>
-
-                      <Text style={[styles.td, styles.colPu]}>
-                        {formatXAF(roundFCFA(it.priceProposed))}
-                      </Text>
-
-                      <Text style={[styles.td, styles.colRrr]}>
-                        {formatXAF(roundFCFA(lineRRR))}
-                      </Text>
-
-                      <Text style={[styles.td, styles.colTaxes]}>
-                        {formatXAF(roundFCFA(lineTaxes))}
-                      </Text>
-
-                      <Text style={[styles.td, styles.colTotalHt]}>
-                        {formatXAF(roundFCFA(lineHT))}
-                      </Text>
-
-                      <Text style={[styles.td, styles.colTotalTtc]}>
-                        {formatXAF(roundFCFA(lineNetToPay))}
-                      </Text>
-                    </View>
-                  );
-                })}
             </View>
 
-              <View style={styles.summarySection}>
-                <View style={styles.rightSummary} wrap={false}>
-                  <View style={styles.summaryRow}>
-                    <Text>{"Total HT (brut):"}</Text>
-                    <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(totalHTBrut))}</Text>
+            <View style={styles.mainContent}>
+              <View style={styles.table}>
+                <View style={styles.tableHeader}>
+                  <View style={[styles.th, styles.colDesignation]}><Text>{"Désignation"}</Text></View>
+                  <View style={[styles.th, styles.colQty]}><Text>{"Qté"}</Text></View>
+                  <View style={[styles.th, styles.colPu]}><Text>{"PU HT"}</Text></View>
+                  <View style={[styles.th, styles.colRrr]}><Text>{"RRR"}</Text></View>
+                  <View style={[styles.th, styles.colTaxes]}>
+                    <Text>{real && applyTaxes ? "Taxes" : "Taxes"}</Text>
                   </View>
-
-                  <View style={styles.summaryRow}>
-                    <Text>
-                      {"RRR ("}{Math.round(rrrRate * 100)}{"%):"}
-                    </Text>
-                    <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(totalRRR))}</Text>
-                  </View>
-
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.bold}>{"Net commercial:"}</Text>
-                    <Text style={[styles.bold, { textAlign: "right" }]}>
-                      {formatXAF(roundFCFA(netCommercial))}
-                    </Text>
-                  </View>
-
-                  {applyTaxes && real && (
-                    <>
-                      <View style={styles.summaryRow}>
-                        <Text>{"TVA (19,25%):"}</Text>
-                        <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(tvaAmount))}</Text>
-                      </View>
-                      <View style={styles.summaryRow}>
-                        <Text>{"IR (5%):"}</Text>
-                        <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(irAmount))}</Text>
-                      </View>
-                      <View style={styles.summaryRow}>
-                        <Text>{"Acompte IS (2,2%):"}</Text>
-                        <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(acompteISAmount))}</Text>
-                      </View>
-                      <View style={styles.summaryRow}>
-                        <Text>{"Précompte (2%):"}</Text>
-                        <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(precompteAmount))}</Text>
-                      </View>
-                      <View style={styles.summaryRow}>
-                        <Text>{"Total taxes:"}</Text>
-                        <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(totalTaxes))}</Text>
-                      </View>
-                    </>
-                  )}
-
-                  <View style={[styles.summaryRow, { marginTop: 6 }]}>
-                    <Text style={styles.bold}>{"Total Net à payer:"}</Text>
-                    <Text style={[styles.bold, { textAlign: "right" }]}>
-                      {formatXAF(roundFCFA(totalNetAPayer))}
-                    </Text>
+                  <View style={[styles.th, styles.colTotalHt]}><Text>{"Total HT"}</Text></View>
+                  <View style={[styles.th, styles.colTotalTtc]}>
+                    <Text>{real && applyTaxes ? "Net à payer" : "Net à payer"}</Text>
                   </View>
                 </View>
 
-                <View style={styles.signRow}>
-                  <View style={styles.signBox}>
-                    <Text>{"Visa Responsable des achats"}</Text>
-                  </View>
-                  <View style={styles.signBox}>
-                    <Text>{"Visa DG"}</Text>
-                  </View>
-                  <View style={styles.signBox}>
-                    <Text>{"Signature Fournisseur"}</Text>
-                  </View>
-                </View>
+                {doc.devi.element
+                  .map((it: any, idx) => {
+                    const lineHT = it.quantity * it.priceProposed;
 
-                <View style={styles.conditions}>
-                  <Text style={{ fontWeight: "semibold", color: "black" }}>{"Conditions :"}</Text>
-                  <View style={styles.conditionsList}>
-                    {doc.commandConditions.map((condition, index) => (
-                      <Text key={index}>{`${index + 1}. ${condition.title}`}</Text>
-                    ))}
-                    {/* <Text>
-                      {
-                        "1- la responsabilité de Creaconsult ne saurait en aucun cas être engagée après l'annulation de la commande par expiration de la date de livraison ci-dessus indiquée."
-                      }
-                    </Text>
-                    <Text>{"2- Avant livraison vérifier la date et la qualité."}</Text>
-                    <Text>{"3- Le tribunal de siège (Douala) est compétent en cas de litige."}</Text> */}
-                    {doc.paymentTerms && doc.paymentTerms.length > 0 &&
-                      <>
-                        <Text style={{ fontWeight: "semibold", color: "black", marginTop: 6 }}>{"Conditions additionnelles :"}</Text>
-                        <Text>{doc.paymentTerms}</Text>
-                      </>
-                    }
-                  </View>
-                </View>
+                    const lineRRR = lineHT * rrrRate;
+                    const lineNetCommercial = Math.max(0, lineHT - lineRRR);
+
+                    const lineTaxes = applyTaxes && real ? lineNetCommercial * (taxFactor - 1) : 0;
+                    const lineNetToPay = applyTaxes && real
+                      ? lineNetCommercial * taxFactor
+                      : lineNetCommercial;
+
+                    return (
+                      <View style={styles.tr} key={idx}>
+                        <Text style={[styles.td, styles.colDesignation]}>{it.title}</Text>
+                        <Text style={[styles.td, styles.colQty]}>{it.quantity}</Text>
+
+                        <Text style={[styles.td, styles.colPu]}>
+                          {formatXAF(roundFCFA(it.priceProposed))}
+                        </Text>
+
+                        <Text style={[styles.td, styles.colRrr]}>
+                          {formatXAF(roundFCFA(lineRRR))}
+                        </Text>
+
+                        <Text style={[styles.td, styles.colTaxes]}>
+                          {formatXAF(roundFCFA(lineTaxes))}
+                        </Text>
+
+                        <Text style={[styles.td, styles.colTotalHt]}>
+                          {formatXAF(roundFCFA(lineHT))}
+                        </Text>
+
+                        <Text style={[styles.td, styles.colTotalTtc]}>
+                          {formatXAF(roundFCFA(lineNetToPay))}
+                        </Text>
+                      </View>
+                    );
+                  })}
               </View>
+
+                <View style={styles.summarySection}>
+                  <View style={styles.rightSummary} wrap={false}>
+                    <View style={styles.summaryRow}>
+                      <Text>{"Total HT (brut):"}</Text>
+                      <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(totalHTBrut))}</Text>
+                    </View>
+
+                    <View style={styles.summaryRow}>
+                      <Text>
+                        {"RRR ("}{Math.round(rrrRate * 100)}{"%):"}
+                      </Text>
+                      <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(totalRRR))}</Text>
+                    </View>
+
+                    <View style={styles.summaryRow}>
+                      <Text style={styles.bold}>{"Net commercial:"}</Text>
+                      <Text style={[styles.bold, { textAlign: "right" }]}>
+                        {formatXAF(roundFCFA(netCommercial))}
+                      </Text>
+                    </View>
+
+                    {applyTaxes && real && (
+                      <>
+                        <View style={styles.summaryRow}>
+                          <Text>{"TVA (19,25%):"}</Text>
+                          <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(tvaAmount))}</Text>
+                        </View>
+                        <View style={styles.summaryRow}>
+                          <Text>{"IR (5%):"}</Text>
+                          <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(irAmount))}</Text>
+                        </View>
+                        <View style={styles.summaryRow}>
+                          <Text>{"Acompte IS (2,2%):"}</Text>
+                          <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(acompteISAmount))}</Text>
+                        </View>
+                        <View style={styles.summaryRow}>
+                          <Text>{"Précompte (2%):"}</Text>
+                          <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(precompteAmount))}</Text>
+                        </View>
+                        <View style={styles.summaryRow}>
+                          <Text>{"Total taxes:"}</Text>
+                          <Text style={{ textAlign: "right" }}>{formatXAF(roundFCFA(totalTaxes))}</Text>
+                        </View>
+                      </>
+                    )}
+
+                    <View style={[styles.summaryRow, { marginTop: 6 }]}>
+                      <Text style={styles.bold}>{"Total Net à payer:"}</Text>
+                      <Text style={[styles.bold, { textAlign: "right" }]}>
+                        {formatXAF(roundFCFA(totalNetAPayer))}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.signRow}>
+                    <View style={styles.signBox}>
+                      <Text>{"Visa Responsable des achats"}</Text>
+                    </View>
+                    <View style={styles.signBox}>
+                      <Text>{"Visa DG"}</Text>
+                    </View>
+                    <View style={styles.signBox}>
+                      <Text>{"Signature Fournisseur"}</Text>
+                    </View>
+                  </View>
+
+                  <View style={[styles.conditions, {marginTop: 12}]}>
+                    <Text style={{ fontWeight: "semibold", color: "black" }}>{"Conditions :"}</Text>
+                    <View style={styles.conditionsList}>
+                      {doc.commandConditions.map((condition, index) => (
+                        <Text key={index}>{`${index + 1}. ${condition.title}`}</Text>
+                      ))}
+                      {/* <Text>
+                        {
+                          "1- la responsabilité de Creaconsult ne saurait en aucun cas être engagée après l'annulation de la commande par expiration de la date de livraison ci-dessus indiquée."
+                        }
+                      </Text>
+                      <Text>{"2- Avant livraison vérifier la date et la qualité."}</Text>
+                      <Text>{"3- Le tribunal de siège (Douala) est compétent en cas de litige."}</Text> */}
+                      {doc.paymentTerms && doc.paymentTerms.length > 0 &&
+                        <>
+                          <Text style={{ fontWeight: "semibold", color: "black", marginTop: 6 }}>{"Conditions additionnelles :"}</Text>
+                          <Text>{doc.paymentTerms}</Text>
+                        </>
+                      }
+                    </View>
+                  </View>
+                </View>
+            </View>
           </View>
 
           <Text 

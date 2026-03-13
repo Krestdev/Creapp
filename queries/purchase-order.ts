@@ -78,8 +78,9 @@ class PurchaseOrder {
       });
   }
   approve = async (item: BonsCommande): Promise<{ data: BonsCommande }> => {
+    const conditions = item.commandConditions.map(condition => condition.id);
     return api
-      .put(`${this.route}/${item.id}`, { status: "APPROVED", commandConditions:item.commandConditions })
+      .put(`${this.route}/${item.id}`, { status: "APPROVED", conditions })
       .then((response) => {
         return response.data;
       });
