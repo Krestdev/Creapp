@@ -123,6 +123,7 @@ export const formSchema = z
     ristourneAmount: z.coerce.number().min(0, "Le montant doit être positif"),
     escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
     keepTaxes: z.boolean(),
+    hasPrecompt: z.boolean(),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -218,6 +219,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
       ristourneAmount: purchaseOrder.ristourneAmount ?? 0,
       escompteRate: purchaseOrder.escompteRate ?? 0,
       keepTaxes: purchaseOrder.keepTaxes ?? false,
+      hasPrecompt: purchaseOrder.hasPrecompt ?? false,
     },
   });
 
@@ -290,6 +292,7 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
       remiseAmount: values.remiseAmount,
       escompteRate: values.escompteRate,
       keepTaxes: values.keepTaxes,
+      hasPrecompt: values.hasPrecompt,
     };
 
     mutate(payload);
@@ -599,6 +602,30 @@ function EditPurchase({ open, openChange, purchaseOrder }: Props) {
                     <FormDescription>
                       {
                         "Cocher si vous souhaitez retenir les taxes à la source sur ce bon de commande"
+                      }
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="hasPrecompt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Précompte"}</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <span>{field.value ? "Oui" : "Non"}</span>
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      {
+                        "Cocher si vous souhaitez ajouter le précompte sur ce bon de commande"
                       }
                     </FormDescription>
                     <FormMessage />

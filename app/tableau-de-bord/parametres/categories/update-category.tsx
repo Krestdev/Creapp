@@ -3,28 +3,36 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { categoryQ } from "@/queries/categoryModule";
@@ -50,7 +58,7 @@ export const formSchema = z.object({
     .min(1, "Au moins un ascendant est requis") // MODIFICATION: minimum 1 validateur
     .max(3, "Maximum 3 ascendants autorisés"),
   description: z.string().optional(),
-  requestTypeId: z.coerce.number({message: "Veuillez sélectionner un type"}),
+  requestTypeId: z.coerce.number({ message: "Veuillez sélectionner un type" }),
 });
 
 type Schema = z.infer<typeof formSchema>;
@@ -68,7 +76,7 @@ export function UpdateCategory({
   onOpenChange,
   category,
   users: usersList,
-  types
+  types,
 }: UpdateCategoryProps) {
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<Schema>({
@@ -86,7 +94,6 @@ export function UpdateCategory({
     control: form.control,
     name: "validators",
   });
-
 
   // Réinitialiser le formulaire quand les données changent
   useEffect(() => {
@@ -108,7 +115,7 @@ export function UpdateCategory({
           userId: validator.userId,
           rank: validator.rank,
         })),
-        requestTypeId: category.requestTypeId
+        requestTypeId: category.requestTypeId,
       });
     }
   }, [category, form]);
@@ -117,10 +124,7 @@ export function UpdateCategory({
     mutationFn: async (data: Partial<Category>) => {
       setIsLoading(true);
       try {
-        const response = await categoryQ.updateCategory(
-          category.id!,
-          data,
-        );
+        const response = await categoryQ.updateCategory(category.id!, data);
         return {
           message: "Category updated successfully",
           data: response.data,
@@ -272,9 +276,7 @@ export function UpdateCategory({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[760px]">
         <DialogHeader variant={"secondary"}>
-          <DialogTitle>
-            {`Catégorie - ${category.label}`}
-          </DialogTitle>
+          <DialogTitle>{`Catégorie - ${category.label}`}</DialogTitle>
           <DialogDescription>
             {"Modifiez les informations de la catégorie"}
           </DialogDescription>
@@ -318,24 +320,37 @@ export function UpdateCategory({
                   </FormItem>
                 )}
               />
-              <FormField control={form.control} name="requestTypeId" render={({field})=>(
-                <FormItem>
-                  <FormLabel isRequired>{"Type de besoin"}</FormLabel>
-                  <FormControl>
-                    <Select value={field.value ? String(field.value) : undefined} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner un type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {types.filter(t=> t.type === "achat" || t.type ==="others" ).map((t, id)=>(
-                          <SelectItem key={id} value={t.id.toString()}>{t.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )} />
+              <FormField
+                control={form.control}
+                name="requestTypeId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Type de besoin"}</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value ? String(field.value) : undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner un type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {types
+                            .filter(
+                              (t) => t.type === "achat" || t.type === "others",
+                            )
+                            .map((t, id) => (
+                              <SelectItem key={id} value={t.id.toString()}>
+                                {t.label}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Section des ascendants */}
@@ -379,7 +394,11 @@ export function UpdateCategory({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Badge variant={index === fields.length - 1 ? "primary" : "dark"}>
+                          <Badge
+                            variant={
+                              index === fields.length - 1 ? "primary" : "dark"
+                            }
+                          >
                             {`Position ${index + 1}`}
                             {index === fields.length - 1 && (
                               <span className="ml-1">{"(Dernier)"}</span>
@@ -413,10 +432,11 @@ export function UpdateCategory({
                             size="icon"
                             onClick={() => removeValidator(index)}
                             disabled={fields.length <= 1 || isLoading} // MODIFICATION: désactivé si seul ascendant
-                            className={`text-red-500 hover:text-red-700 ${fields.length <= 1
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                              }`}
+                            className={`text-red-500 hover:text-red-700 ${
+                              fields.length <= 1
+                                ? "opacity-50 cursor-not-allowed"
+                                : ""
+                            }`}
                             title={
                               fields.length <= 1
                                 ? "Au moins un ascendant est requis"
@@ -435,8 +455,10 @@ export function UpdateCategory({
                           const availableUsers = getAvailableUsers(index);
                           return (
                             <FormItem>
-                              <FormLabel isRequired>{"Nom de l'ascendant"}</FormLabel>
-                              <Select
+                              <FormLabel isRequired>
+                                {"Nom de l'ascendant"}
+                              </FormLabel>
+                              {/* <Select
                                 value={field.value?.toString() || ""}
                                 onValueChange={(value) =>
                                   field.onChange(parseInt(value))
@@ -468,7 +490,38 @@ export function UpdateCategory({
                                     </SelectItem>
                                   )}
                                 </SelectContent>
-                              </Select>
+                              </Select> */}
+                              <Combobox
+                                items={availableUsers}
+                                value={
+                                  availableUsers.find(
+                                    (u) => u.id === field.value,
+                                  ) ?? null
+                                }
+                                onValueChange={(v) =>
+                                  field.onChange(v?.id ?? "")
+                                }
+                                itemToStringLabel={(u) =>
+                                  u.firstName.concat(" ", u.lastName)
+                                }
+                              >
+                                <ComboboxInput placeholder="Sélectionner" />
+                                <ComboboxContent>
+                                  <ComboboxEmpty>
+                                    {"Aucun utilisateur enregistré"}
+                                  </ComboboxEmpty>
+                                  <ComboboxList>
+                                    {(item: User) => (
+                                      <ComboboxItem key={item.id} value={item}>
+                                        {item.firstName.concat(
+                                          " ",
+                                          item.lastName,
+                                        )}
+                                      </ComboboxItem>
+                                    )}
+                                  </ComboboxList>
+                                </ComboboxContent>
+                              </Combobox>
                               <FormMessage />
                             </FormItem>
                           );
