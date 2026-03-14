@@ -32,8 +32,6 @@ const isRealRegime = (regem?: string) => {
 const styles = StyleSheet.create({
   page: {
     size: "A4",
-    position: "relative",
-    overflow: "hidden",
     fontFamily: "Helvetica",
     fontSize: 9,
     color: "#111827",
@@ -44,11 +42,13 @@ const styles = StyleSheet.create({
 
   watermark: {
     position: "absolute",
-    top: -12,
-    left: -12,
-    width: "105%",
-    height: "105%",
-    opacity: 1,
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: "100%",
+    height: "100%",
+    minHeight: "100%",
+    zIndex: -1,
   },
 
   content: {
@@ -625,9 +625,8 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
             <View style={styles.tableFooterNote}>
               <Text style={styles.textMuted}>
                 Les montants sont exprimés en FCFA. La TVA est nulle pour les
-                fournisseurs au régime simplifié. Les retenues IS / IR ne
-                s’appliquent que selon les paramètres du bon et des lignes
-                concernées.
+                fournisseurs au régime IGS. Les retenues IS / IR ne s’appliquent
+                que selon les paramètres du bon et des lignes concernées.
               </Text>
             </View>
           </View>

@@ -6,9 +6,6 @@ import CreateCotation from "@/components/bdcommande/createCommande";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { Button } from "@/components/ui/button";
-import { isRole } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { requestQ } from "@/queries/requestModule";
 import { NavLink } from "@/types/types";
@@ -16,7 +13,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
 const Page = () => {
-  const { user } = useStore();
   const links: Array<NavLink> = [
     /* {
       title: "Créer une Demande",
@@ -67,13 +63,17 @@ const Page = () => {
     },
   ];
   const [selectedTab, setSelectedTab] = useState(0);
-  if(getCommandRequests.isLoading || requestData.isLoading){
-    return <LoadingPage/>
+  if (getCommandRequests.isLoading || requestData.isLoading) {
+    return <LoadingPage />;
   }
-  if(getCommandRequests.isError || requestData.isError){
-    return <ErrorPage error={getCommandRequests.error || requestData.error || undefined} />
+  if (getCommandRequests.isError || requestData.isError) {
+    return (
+      <ErrorPage
+        error={getCommandRequests.error || requestData.error || undefined}
+      />
+    );
   }
-  if(getCommandRequests.isSuccess && requestData.isSuccess){
+  if (getCommandRequests.isSuccess && requestData.isSuccess) {
     return (
       <div className="content">
         <PageTitle
