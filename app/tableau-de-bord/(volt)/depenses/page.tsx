@@ -70,8 +70,6 @@ function Page() {
     queryFn: () => userQ.getAll(),
   });
 
-
-
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
   const getProviders = useQuery({
     queryKey: ["providers"],
@@ -131,7 +129,7 @@ function Page() {
   ) {
     const Statistics: Array<StatisticProps> = [
       {
-        title: "Tickets en attente",
+        title: "Tickets en attente de traitement",
         value: data.data.filter(
           (p) => p.status === "pending_depense" || p.status === "validated",
         ).length,
@@ -140,10 +138,7 @@ function Page() {
           title: "Montant total",
           value: XAF.format(
             data.data
-              .filter(
-                (p) =>
-                  p.status === "validated",
-              )
+              .filter((p) => p.status === "validated")
               .reduce((total, el) => total + el.price, 0),
           ),
         },
@@ -162,14 +157,21 @@ function Page() {
         },
       },
       {
-        title: "Tickets en attente de paiement",
-        value: data.data.filter((p) => p.status === "pending_depense" || p.status === "signed" || p.status === "simple_signed").length,
+        title: "Tickets signés en attente de paiement",
+        value: data.data.filter(
+          (p) =>
+            p.status === "pending_depense" ||
+            p.status === "signed" ||
+            p.status === "simple_signed",
+        ).length,
         variant: "default",
         more: {
           title: "Montant total",
           value: XAF.format(
             data.data
-              .filter((p) => p.status === "signed" || p.status === "simple_signed")
+              .filter(
+                (p) => p.status === "signed" || p.status === "simple_signed",
+              )
               .reduce((total, el) => total + el.price, 0),
           ),
         },

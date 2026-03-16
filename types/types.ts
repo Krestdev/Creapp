@@ -387,6 +387,10 @@ export type QuotationElement = {
   deviId: number;
   status: QuotationElementStatus;
   hasIs: boolean;
+  //tva: number;
+  //rabaisAmount: number;
+  //remiseAmount: number;
+  //ristourneAmount: number;
 };
 
 export type Quotation = {
