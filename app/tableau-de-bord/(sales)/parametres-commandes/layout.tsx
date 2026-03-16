@@ -8,13 +8,16 @@ import { isRole } from "@/lib/utils";
 
 export default function PrivateLayout({ children }: { children: ReactNode }) {
   const { isHydrated, user } = useStore();
+  const isAuthorized =
+    isRole({ roleList: user?.role ?? [], role: "achat" }) ||
+    isRole({ roleList: user?.role ?? [], role: "admin" });
 
   if (!isHydrated) {
-    return <LoadingPage/>
+    return <LoadingPage />;
   }
 
-  if (!user || !isRole({roleList: user?.role ?? [], role: "achat"})) {
-    return <ErrorPage statusCode={401}/>;
+  if (!user || !isAuthorized) {
+    return <ErrorPage statusCode={401} />;
   }
-  return children
+  return children;
 }

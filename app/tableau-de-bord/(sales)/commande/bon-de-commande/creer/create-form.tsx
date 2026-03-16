@@ -180,6 +180,7 @@ function CreateForm() {
       escompteRate: 0,
       keepTaxes: false,
       hasPrecompt: false,
+      conditions: [],
     },
   });
 
@@ -230,6 +231,7 @@ function CreateForm() {
         ristourneAmount: 0,
         escompteRate: 0,
         keepTaxes: false,
+        conditions: [],
       });
     },
     onError: (error: Error) => {

@@ -65,6 +65,7 @@ import { totalAmountPurchase, XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
 import {
   BonsCommande,
+  CommandCondition,
   PaymentRequest,
   PRIORITIES,
   PURCHASE_ORDER_STATUS,
@@ -78,7 +79,8 @@ import Link from "next/link";
 
 interface BonsCommandeTableProps {
   data: Array<BonsCommande>;
-  payments: Array<PaymentRequest> | undefined;
+  payments: Array<PaymentRequest>;
+  conditions: Array<CommandCondition>;
 }
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
@@ -124,7 +126,11 @@ const getPriorityLabel = (
   }
 };
 
-export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
+export function PurchaseTable({
+  data,
+  payments,
+  conditions,
+}: BonsCommandeTableProps) {
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
 
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -423,18 +429,17 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                 <FileTextIcon />
                 {"Compléter (Bon signé)"}
               </DropdownMenuItem>
-              {
-                !!item.commandFile && item.commandFile.length > 0 &&
-                <Link href={`${process.env.NEXT_PUBLIC_API
-                  }/${item.commandFile}`} target="_blank">
-                  <DropdownMenuItem
-                  className="cursor-pointer"
+              {!!item.commandFile && item.commandFile.length > 0 && (
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_API}/${item.commandFile}`}
+                  target="_blank"
                 >
-                  <FileSpreadsheetIcon />
-                  {"Voir le bon signé"}
-                </DropdownMenuItem>
-                  </Link>
-              }
+                  <DropdownMenuItem className="cursor-pointer">
+                    <FileSpreadsheetIcon />
+                    {"Voir le bon signé"}
+                  </DropdownMenuItem>
+                </Link>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -775,6 +780,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
           open={edit}
           openChange={setEdit}
           purchaseOrder={selectedValue}
+          conditions={conditions}
         />
       )}
       {selectedValue && (

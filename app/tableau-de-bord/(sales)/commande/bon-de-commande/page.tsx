@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
+import { CommandConditionQ } from "@/queries/commandsConditions";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -34,6 +35,11 @@ const Page = () => {
   const getPayments = useQuery({
     queryKey: ["payments"],
     queryFn: paymentQ.getAll,
+  });
+
+  const getConditions = useQuery({
+    queryKey: ["conditions"],
+    queryFn: () => CommandConditionQ.getAll(),
   });
 
   const { user } = useStore();
@@ -136,13 +142,17 @@ const Page = () => {
     },
   ];
 
-  if (isLoading) {
+  if (isLoading || getPayments.isLoading || getConditions.isLoading) {
     return <LoadingPage />;
   }
-  if (isError) {
-    return <ErrorPage error={error ?? isError ?? undefined} />;
+  if (isError || getPayments.isError || getConditions.isError) {
+    return (
+      <ErrorPage
+        error={error || getPayments.error || getConditions.error || undefined}
+      />
+    );
   }
-  if (isSuccess)
+  if (isSuccess && getPayments.isSuccess && getConditions.isSuccess)
     return (
       <div className="content">
         <PageTitle
@@ -169,7 +179,11 @@ const Page = () => {
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
         </div>
-        <PurchaseTable data={filteredData} payments={getPayments.data?.data} />
+        <PurchaseTable
+          data={filteredData}
+          payments={getPayments.data.data}
+          conditions={getConditions.data.data}
+        />
       </div>
     );
 };

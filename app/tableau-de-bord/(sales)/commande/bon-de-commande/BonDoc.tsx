@@ -18,10 +18,9 @@ const PRECOMPTE = 0.02;
 
 const roundFCFA = (n: number) => Math.round(n);
 
-const normalizeRate = (v?: number) => {
-  const n = Number(v ?? 0);
-  if (!isFinite(n) || n <= 0) return 0;
-  return n > 1 ? n / 100 : n;
+const normalizeRate = (v?: number): number => {
+  if (typeof v === "number") return v;
+  return 0;
 };
 
 const isRealRegime = (regem?: string) => {
@@ -395,9 +394,9 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
   const applyIsIr = !doc.keepTaxes;
   const applyPrecompte = !!doc.hasPrecompt;
 
-  const rabaisRate = normalizeRate((doc as any).rabaisAmount);
-  const remiseRate = normalizeRate((doc as any).remiseAmount);
-  const ristourneRate = normalizeRate((doc as any).ristourneAmount);
+  const rabaisRate = normalizeRate(doc.rabaisAmount);
+  const remiseRate = normalizeRate(doc.remiseAmount);
+  const ristourneRate = normalizeRate(doc.ristourneAmount);
   const rrrRate = rabaisRate + remiseRate + ristourneRate;
 
   const lines = doc.devi.element.map((el: any) => {
