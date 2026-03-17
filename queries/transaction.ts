@@ -173,13 +173,16 @@ class TransactionQuery {
 
   initiateSign = async ({
     id,
-    methodId
+    methodId,
+    docNumber,
   }: {
     id: number;
-    methodId: number
+    methodId: number;
+    docNumber: string;
   }): Promise<{ data: Transaction }> => {
     const formData = new FormData();
     formData.append("methodId", String(methodId));
+    formData.append("docNumber", docNumber);
     return api
       .put(`${this.route}/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -187,13 +190,12 @@ class TransactionQuery {
       .then((response) => response.data);
   };
 
-
   sign = async ({
     id,
-    signDoc
+    signDoc,
   }: {
     id: number;
-    signDoc: File
+    signDoc: File;
   }): Promise<{ data: Transaction }> => {
     const formData = new FormData();
     formData.append("signDoc", signDoc);
