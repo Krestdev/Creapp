@@ -34,7 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
 import { newRequestOthers, requestQ } from "@/queries/requestModule";
-import { Category, PRIORITIES, User } from "@/types/types";
+import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -48,6 +48,7 @@ import z from "zod";
 interface Props {
   users: Array<User>;
   categories: Array<Category>;
+  projects: Array<ProjectT>;
 }
 
 const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
@@ -62,6 +63,7 @@ const formSchema = z.object({
     .string({ message: "Veuillez renseigner un titre" })
     .min(5, { message: "Trop court" })
     .max(50, { message: "Trop long" }),
+  projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
@@ -80,7 +82,7 @@ const formSchema = z.object({
   priority: z.enum(REQUEST_PRIORITIES),
 });
 
-function CreateTypeOthers({ users, categories }: Props) {
+function CreateTypeOthers({ users, categories, projects }: Props) {
   const { user } = useStore();
   const router = useRouter();
 
@@ -97,6 +99,7 @@ function CreateTypeOthers({ users, categories }: Props) {
       priority: "low",
       unit: "",
       categoryId: undefined,
+      projectId: undefined,
     },
   });
 
@@ -123,6 +126,7 @@ function CreateTypeOthers({ users, categories }: Props) {
       dueDate: new Date(values.dueDate),
       priority: values.priority,
       categoryId: values.categoryId,
+      projectId: values.projectId,
     });
   };
   return (
@@ -189,6 +193,36 @@ function CreateTypeOthers({ users, categories }: Props) {
               <FormLabel isRequired>{"Description"}</FormLabel>
               <FormControl>
                 <Textarea placeholder="Décrivez votre besoin" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Project */}
+        <FormField
+          control={form.control}
+          name="projectId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Projet"}</FormLabel>
+              <FormControl>
+                <Combobox
+                  items={projects}
+                  value={projects.find((p) => p.id === field.value) ?? null}
+                  onValueChange={(v) => field.onChange(v?.id ?? "")}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>{"Aucun projet enregistré"}</ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: ProjectT) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.label}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
               </FormControl>
               <FormMessage />
             </FormItem>

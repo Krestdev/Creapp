@@ -1,21 +1,60 @@
 import api from "@/providers/axios";
 import { RequestModelT } from "@/types/types";
 
-export type newRequestOthers = Omit<RequestModelT, "id" | "type" | "createdAt" | "updatedAt" | "ref" | "validators" | "proof" | "state" | "userId" | "beneficiary"> & {
-  amount: number;
-  benef: Array<number>;
-}
-
-export type newRequestTransport = Omit<RequestModelT, "id" | "type" | "createdAt" | "updatedAt" | "ref"| "validators" | "proof" | "state" | "userId" | "beneficiary"> & {
+export type newRequestOthers = Omit<
+  RequestModelT,
+  | "id"
+  | "type"
+  | "createdAt"
+  | "updatedAt"
+  | "ref"
+  | "validators"
+  | "proof"
+  | "state"
+  | "userId"
+  | "beneficiary"
+> & {
   amount: number;
   benef: Array<number>;
   projectId: number;
-}
+};
 
-export type newRequestGas = Omit<RequestModelT, "id" | "type" | "createdAt" | "updatedAt" | "ref"| "validators" | "proof" | "state" | "userId" | "beneficiary" | "liters" | "km"> & {
+export type newRequestTransport = Omit<
+  RequestModelT,
+  | "id"
+  | "type"
+  | "createdAt"
+  | "updatedAt"
+  | "ref"
+  | "validators"
+  | "proof"
+  | "state"
+  | "userId"
+  | "beneficiary"
+> & {
+  amount: number;
+  benef: Array<number>;
+  projectId: number;
+};
+
+export type newRequestGas = Omit<
+  RequestModelT,
+  | "id"
+  | "type"
+  | "createdAt"
+  | "updatedAt"
+  | "ref"
+  | "validators"
+  | "proof"
+  | "state"
+  | "userId"
+  | "beneficiary"
+  | "liters"
+  | "km"
+> & {
   benef: Array<number>;
   vehiclesId: number;
-}
+};
 class RequestQueries {
   route = "/request/object";
 
@@ -27,8 +66,14 @@ class RequestQueries {
   create = async (
     data: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref" | "project" | "validators" | "type"
-    >
+      | "id"
+      | "createdAt"
+      | "updatedAt"
+      | "ref"
+      | "project"
+      | "validators"
+      | "type"
+    >,
   ): Promise<{ data: RequestModelT }> => {
     return api.post(this.route, data).then((res) => res.data);
   };
@@ -281,27 +326,31 @@ class RequestQueries {
   submit = async (id: number): Promise<{ data: RequestModelT }> => {
     return api.put(`${this.route}/submit/${id}`).then((res) => res.data);
   };
-  createOthersRequest = async (payload: newRequestOthers):Promise<RequestModelT> => {
+  createOthersRequest = async (
+    payload: newRequestOthers,
+  ): Promise<RequestModelT> => {
     return api
-      .post(this.route, {...payload, type: "others", beneficiary: ""})
+      .post(this.route, { ...payload, type: "others", beneficiary: "" })
       .then((response) => {
         return response.data;
       });
-  }
-  createTransportRequest = async (payload: newRequestTransport):Promise<RequestModelT> => {
+  };
+  createTransportRequest = async (
+    payload: newRequestTransport,
+  ): Promise<RequestModelT> => {
     return api
-    .post(this.route, {...payload, type: "transport", beneficiary: ""})
-    .then((response)=>{
-      return response.data;
-    })
-  }
-  createGasRequest = async (payload: newRequestGas):Promise<RequestModelT> => {
+      .post(this.route, { ...payload, type: "transport", beneficiary: "" })
+      .then((response) => {
+        return response.data;
+      });
+  };
+  createGasRequest = async (payload: newRequestGas): Promise<RequestModelT> => {
     return api
-    .post(this.route, {...payload, type: "carburent", beneficiary: ""})
-    .then((response)=>{
-      return response.data;
-    })
-  }
+      .post(this.route, { ...payload, type: "carburent", beneficiary: "" })
+      .then((response) => {
+        return response.data;
+      });
+  };
 }
 
 export const requestQ = new RequestQueries();

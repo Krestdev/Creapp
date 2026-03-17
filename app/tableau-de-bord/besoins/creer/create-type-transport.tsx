@@ -67,7 +67,7 @@ const formSchema = z.object({
     message: "Veuillez sélectionner une catégorie",
   }),
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
-  projectId: z.coerce.number({ message: "Veuillez définir une quantité" }),
+  projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
   benef: z.coerce.number(),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
