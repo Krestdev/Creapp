@@ -803,7 +803,7 @@ function ExpensesTable({
                     </SelectContent>
                   </Select>
                 </div>
-                {/** */}
+                {/**Filter by payment method */}
                 <div className="grid gap-1.5">
                   <Label>{"Moyen de paiement"}</Label>
                   <Select

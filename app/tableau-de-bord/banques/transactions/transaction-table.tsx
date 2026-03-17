@@ -77,12 +77,16 @@ interface Props {
   banks: Array<Bank>;
 }
 
-
-function TransactionTable({ data, canEdit, banks, filterByType = false }: Props) {
+function TransactionTable({
+  data,
+  canEdit,
+  banks,
+  filterByType = false,
+}: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -111,7 +115,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
   >("all");
 
   const getBadge = (
-    transaction: Transaction
+    transaction: Transaction,
   ): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -119,41 +123,41 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
     const status = transaction.status;
     const label =
       TRANSACTION_STATUS.find((t) => t.value === status)?.name ?? "Inconnu";
-      if(transaction.Type !== "TRANSFER"){
-        switch (status) {
-          case "APPROVED":
-            return { label, variant: "success" };
-          case "REJECTED":
-            return { label, variant: "destructive" };
-          case "PENDING":
-            return { label, variant: "amber" };
-          default:
-            return { label, variant: "outline" };
-        }
-      }
-      const isSigned = transaction.isSigned;
-      if(isSigned === true){
-        switch (status) {
-          case "APPROVED":
-            return { label, variant: "success" };
-          case "ACCEPTED":
-            return { label: "Signé", variant: "teal" };
-          default:
-            return { label, variant: "outline" };
-        }
-      }
+    if (transaction.Type !== "TRANSFER") {
       switch (status) {
-          case "REJECTED":
-            return { label, variant: "destructive" };
-          case "PENDING":
-            return { label, variant: "amber" };
-          case "ACCEPTED":
-            return { label: "À signer", variant: "primary" };
-          case "APPROVED":
-            return {label, variant: "success"};
-          default:
-            return { label, variant: "outline" };
-        }
+        case "APPROVED":
+          return { label, variant: "success" };
+        case "REJECTED":
+          return { label, variant: "destructive" };
+        case "PENDING":
+          return { label, variant: "amber" };
+        default:
+          return { label, variant: "outline" };
+      }
+    }
+    const isSigned = transaction.isSigned;
+    if (isSigned === true) {
+      switch (status) {
+        case "APPROVED":
+          return { label, variant: "success" };
+        case "ACCEPTED":
+          return { label: "Signé", variant: "teal" };
+        default:
+          return { label, variant: "outline" };
+      }
+    }
+    switch (status) {
+      case "REJECTED":
+        return { label, variant: "destructive" };
+      case "PENDING":
+        return { label, variant: "amber" };
+      case "ACCEPTED":
+        return { label: "À signer", variant: "primary" };
+      case "APPROVED":
+        return { label, variant: "success" };
+      default:
+        return { label, variant: "outline" };
+    }
   };
 
   // Réinitialiser tous les filtres
@@ -179,11 +183,13 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
       const search = searchFilter.toLocaleLowerCase();
       //Search Filter
       const matchSearch =
-      search.trim() === "" ? true : transaction.label.toLocaleLowerCase().includes(search) 
-      || transaction.amount.toString().includes(search)
-      || transaction.to.label.includes(search)
-      || transaction.from.label.includes(search)
-      || transaction.id.toString().includes(search)
+        search.trim() === ""
+          ? true
+          : transaction.label.toLocaleLowerCase().includes(search) ||
+            transaction.amount.toString().includes(search) ||
+            transaction.to.label.includes(search) ||
+            transaction.from.label.includes(search) ||
+            transaction.id.toString().includes(search);
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : transaction.status === statusFilter;
@@ -234,7 +240,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
             break;
           case "week":
             startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
             );
             startDate.setHours(0, 0, 0, 0);
             break;
@@ -257,13 +263,19 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
           (customDateRange?.from && customDateRange?.to)
         ) {
           matchDate =
-            transaction.createdAt >= startDate &&
-            transaction.createdAt <= endDate;
+            new Date(transaction.createdAt) >= startDate &&
+            new Date(transaction.createdAt) <= endDate;
         }
       }
-      return matchStatus && matchType && matchDate && matchAmount && matchBank && matchSearch;
-    })
-      ;
+      return (
+        matchStatus &&
+        matchType &&
+        matchDate &&
+        matchAmount &&
+        matchBank &&
+        matchSearch
+      );
+    });
   }, [
     data,
     dateFilter,
@@ -273,7 +285,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
     statusFilter,
     typeFilter,
     bankFilter,
-    searchFilter
+    searchFilter,
   ]);
 
   const columns: ColumnDef<Transaction>[] = [
@@ -335,7 +347,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
               "font-bold",
               type === "CREDIT"
                 ? "text-green-600"
-                : type === "DEBIT" && "text-red-600"
+                : type === "DEBIT" && "text-red-600",
             )}
           >
             {XAF.format(value)}
@@ -586,7 +598,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                     <SelectContent>
                       <SelectItem value={"all"}>{"Tous"}</SelectItem>
                       {TRANSACTION_TYPES.filter(
-                        (t) => t.value !== "TRANSFER"
+                        (t) => t.value !== "TRANSFER",
                       ).map((t, id) => (
                         <SelectItem key={id} value={t.value}>
                           {t.name}
@@ -600,20 +612,19 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
               {/* Filter par Compte(Bank) */}
               <div className="grid gap-1.5">
                 <Label>{"Compte"}</Label>
-                <Select
-                  value={bankFilter}
-                  onValueChange={setBankFilter}
-                >
+                <Select value={bankFilter} onValueChange={setBankFilter}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Sélectionner un Compte" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {
-                      banks.filter(b=> !!b.type && b.type !== "null").map((bank) => (
-                        <SelectItem key={bank.id} value={String(bank.id)}>{bank.label}</SelectItem>
-                      ))
-                    }
+                    {banks
+                      .filter((b) => !!b.type && b.type !== "null")
+                      .map((bank) => (
+                        <SelectItem key={bank.id} value={String(bank.id)}>
+                          {bank.label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -692,9 +703,9 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                            customDateRange.from,
-                            "dd/MM/yyyy"
-                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy",
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -781,9 +792,9 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                               ? "Montant"
                               : column.id === "type"
                                 ? "Type"
-                                // : column.id === "status"
-                                //   ? "Statut"
-                                : column.id === "bank"
+                                : // : column.id === "status"
+                                  //   ? "Statut"
+                                  column.id === "bank"
                                   ? "Banque"
                                   : column.id === "ref"
                                     ? "Référence"
@@ -811,9 +822,9 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -834,7 +845,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
