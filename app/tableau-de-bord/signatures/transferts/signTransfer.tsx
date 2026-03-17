@@ -96,6 +96,7 @@ function SignTransfer({ transfer, open, onOpenChange }: Props) {
                         acceptTypes="all"
                         multiple={true}
                         maxFiles={4}
+                        maxSizeMB={15}
                       />
                     </FormControl>
                     <FormMessage />
