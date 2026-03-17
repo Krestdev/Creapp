@@ -8,10 +8,18 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
-import { Category, ProjectT, RequestModelT, RequestType, Role, User, Vehicle } from "@/types/types";
+import {
+  Category,
+  ProjectT,
+  RequestModelT,
+  RequestType,
+  Role,
+  User,
+  Vehicle,
+} from "@/types/types";
 import React from "react";
 import { Label } from "../ui/label";
 import CreateRequest from "./CreateForm";
@@ -27,60 +35,122 @@ interface Props {
   vehicles: Array<Vehicle>;
 }
 
-const CreateResquestPage = ({types, users, projects, categories, vehicles}:Props) => {
+const CreateResquestPage = ({
+  types,
+  users,
+  projects,
+  categories,
+  vehicles,
+}: Props) => {
   const { user } = useStore();
   const [requestType, setRequestType] = React.useState<RequestModelT["type"]>();
 
-    const renderForm = () => {
-      switch (requestType) {
-        case "achat":
-          return <CreateRequest categories={categories} projects={projects} users={users} />;
-        case "speciaux":
-          return <SpecialRequestForm categories={categories} />;
-        case"facilitation":
-          return <FacilitationRequestForm users={users} projects={projects} categories={categories} />;
-        case "ressource_humaine":
-          return <RHRequestForm categories={categories} users={users} projects={projects} />;
-        case "others":
-          return <CreateTypeOthers users={users} categories={categories}/>;
-        case "gas":
-          return <CreateTypeGas users={users} categories={categories} vehicles={vehicles} />;
-        case "transport":
-          return <CreateTypeTransport users={users} categories={categories} projects={projects} />
-        default:
-          return null;
-      }
-    };
+  const renderForm = () => {
+    switch (requestType) {
+      case "achat":
+        return (
+          <CreateRequest
+            categories={categories}
+            projects={projects}
+            users={users}
+          />
+        );
+      case "speciaux":
+        return <SpecialRequestForm categories={categories} />;
+      case "facilitation":
+        return (
+          <FacilitationRequestForm
+            users={users}
+            projects={projects}
+            categories={categories}
+          />
+        );
+      case "ressource_humaine":
+        return (
+          <RHRequestForm
+            categories={categories}
+            users={users}
+            projects={projects}
+          />
+        );
+      case "others":
+        return (
+          <CreateTypeOthers
+            users={users}
+            categories={categories}
+            projects={projects}
+          />
+        );
+      case "gas":
+        return (
+          <CreateTypeGas
+            users={users}
+            categories={categories}
+            vehicles={vehicles}
+          />
+        );
+      case "transport":
+        return (
+          <CreateTypeTransport
+            users={users}
+            categories={categories}
+            projects={projects}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
-    const typesList = (roles: Array<Role>): Array<RequestType> => {
-      if(roles.some(r => r.label === "SUPERADMIN")) return types;
-      if(roles.some(r => r.label === "RH") && roles.some(r => r.label === "VOLT_MANAGER")) return types;
-      if(roles.some(r => r.label === "RH") && roles.some(r => r.label === "VOLT_MANAGER")) return types;
-      if(roles.some(r => r.label === "RH")) return types.filter(t=> t.type !== "speciaux");
-      if(roles.some(r => r.label === "VOLT_MANAGER")) return types.filter(t=> t.type !== "ressource_humaine");
-      if(roles.some(r => r.label === "DRIVER")) return types.filter(t=> t.type !== "ressource_humaine" && t.type !== "speciaux");
-      return types.filter(t=> t.type !== "ressource_humaine" && t.type !== "speciaux");
-    }  
-
-    return (
-      <div className="space-y-6">
-        <div className="grid gap-2">
-          <Label>{"Type de besoin"}</Label>
-          <Select onValueChange={(v)=>setRequestType(v as RequestModelT["type"])}>
-            <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
-              <SelectValue placeholder="Sélectionner le type de besoin" />
-            </SelectTrigger>
-
-            <SelectContent>
-              { user?.role && typesList(user.role).map(({type, label})=>(
-                <SelectItem key={type} value={type}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {renderForm()}
-      </div>
+  const typesList = (roles: Array<Role>): Array<RequestType> => {
+    if (roles.some((r) => r.label === "SUPERADMIN")) return types;
+    if (
+      roles.some((r) => r.label === "RH") &&
+      roles.some((r) => r.label === "VOLT_MANAGER")
+    )
+      return types;
+    if (
+      roles.some((r) => r.label === "RH") &&
+      roles.some((r) => r.label === "VOLT_MANAGER")
+    )
+      return types;
+    if (roles.some((r) => r.label === "RH"))
+      return types.filter((t) => t.type !== "speciaux");
+    if (roles.some((r) => r.label === "VOLT_MANAGER"))
+      return types.filter((t) => t.type !== "ressource_humaine");
+    if (roles.some((r) => r.label === "DRIVER"))
+      return types.filter(
+        (t) => t.type !== "ressource_humaine" && t.type !== "speciaux",
+      );
+    return types.filter(
+      (t) => t.type !== "ressource_humaine" && t.type !== "speciaux",
     );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-2">
+        <Label>{"Type de besoin"}</Label>
+        <Select
+          onValueChange={(v) => setRequestType(v as RequestModelT["type"])}
+        >
+          <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
+            <SelectValue placeholder="Sélectionner le type de besoin" />
+          </SelectTrigger>
+
+          <SelectContent>
+            {user?.role &&
+              typesList(user.role).map(({ type, label }) => (
+                <SelectItem key={type} value={type}>
+                  {label}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {renderForm()}
+    </div>
+  );
 };
 export default CreateResquestPage;

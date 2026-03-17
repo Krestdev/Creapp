@@ -125,6 +125,7 @@ const Page = () => {
             <CreateTypeOthers
               users={getUsers.data.data}
               categories={getCategories.data.data}
+              projects={getProjects.data.data}
             />
           );
         case "gas":
