@@ -1,7 +1,7 @@
 "use client";
 import {
-    StatisticCard,
-    StatisticProps,
+  StatisticCard,
+  StatisticProps,
 } from "@/components/base/TitleValueCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
@@ -43,43 +43,51 @@ function Page() {
   } */
 
   // Calculs mémoïsés pour éviter les recalculs inutiles
-  const filteredData :Array<TransferTransaction> = useMemo(() => {
-    if(!data || !signatair.data) return [];
+  const filteredData: Array<TransferTransaction> = useMemo(() => {
+    if (!data || !signatair.data) return [];
     return data.data
-    .filter(t=> t.Type === "TRANSFER")
-    .filter(t => {
-        if(!t.methodId) return false;
-        if(t.from.type === "BANK" && t.to.type === "BANK"){
-            return signatair.data.data.find(x=>x.bankId === t.from.id && x.payTypeId === t.method?.id )?.user?.some(u=> u.id === user?.id)
+      .filter((t) => t.Type === "TRANSFER")
+      .filter((t) => {
+        if (!t.methodId) return false;
+        if (t.from.type === "BANK") {
+          return signatair.data.data
+            .find((x) => x.bankId === t.from.id && x.payTypeId === t.method?.id)
+            ?.user?.some((u) => u.id === user?.id);
         }
         return false;
-    })
-    
+      });
   }, [data, signatair.data, user?.id]);
 
-  console.log(filteredData)
-  const unsigned = filteredData.filter(t=> t.isSigned === false && !t.signers.find(s=> s.userId === user?.id)  );
-  console.log(unsigned)
-  const signed = filteredData.filter(t=> !!t.signers?.find(s=> s.userId === user?.id));
-  const signedByOthers = filteredData.filter(t=> t.isSigned === true && !t.signers?.find(s=> s.userId === user?.id));
+  console.log(filteredData);
+  const unsigned = filteredData.filter(
+    (t) =>
+      t.isSigned === false && !t.signers.find((s) => s.userId === user?.id),
+  );
+  console.log(unsigned);
+  const signed = filteredData.filter(
+    (t) => !!t.signers?.find((s) => s.userId === user?.id),
+  );
+  const signedByOthers = filteredData.filter(
+    (t) =>
+      t.isSigned === true && !t.signers?.find((s) => s.userId === user?.id),
+  );
 
   const statistics: Array<StatisticProps> = [
-      {
-        title: "En attente signature",
-        value: unsigned.length,
-        variant: "primary",
+    {
+      title: "En attente signature",
+      value: unsigned.length,
+      variant: "primary",
+    },
+    {
+      title: "Signés",
+      value: signed.length,
+      variant: "success",
+      more: {
+        title: "Signé par un autre signataire",
+        value: signedByOthers.length,
       },
-      {
-        title: "Signés",
-        value: signed.length,
-        variant: "success",
-        more: {
-          title: "Signé par un autre signataire",
-          value: signedByOthers.length
-        }
-      },
-    ];
-
+    },
+  ];
 
   if (
     isLoading ||
@@ -90,12 +98,7 @@ function Page() {
     return <LoadingPage />;
   }
 
-  if (
-    isError ||
-    getBanks.isError ||
-    getPayType.isError ||
-    signatair.isError
-  ) {
+  if (isError || getBanks.isError || getPayType.isError || signatair.isError) {
     return (
       <ErrorPage
         error={
@@ -108,7 +111,6 @@ function Page() {
       />
     );
   }
-
 
   if (
     isSuccess &&
@@ -129,7 +131,11 @@ function Page() {
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
         </div>
-        <SignTransfers data={filteredData} banks={getBanks.data.data} paymentMethods={getPayType.data.data}  />
+        <SignTransfers
+          data={filteredData}
+          banks={getBanks.data.data}
+          paymentMethods={getPayType.data.data}
+        />
       </div>
     );
   }
