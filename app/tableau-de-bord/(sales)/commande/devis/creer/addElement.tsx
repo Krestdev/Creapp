@@ -47,6 +47,12 @@ const formSchema = z.object({
   unit: z.string(),
   price: z.number().min(1, { message: "Veuillez renseigner un prix" }),
   hasIs: z.boolean(),
+  reduction: z.coerce
+    .number()
+    .nonnegative({ message: "Doit être supérieur ou égale à 0" }),
+  tva: z.coerce
+    .number({ message: "Doit être un nombre" })
+    .nonnegative({ message: "Doit être positif" }),
 });
 
 type ElementT = z.infer<typeof formSchema>;
@@ -83,6 +89,8 @@ function AddElement({
       unit: "piece",
       price: 1000,
       hasIs: false,
+      tva: 19.25,
+      reduction: 0,
     },
   });
 
@@ -282,6 +290,56 @@ function AddElement({
                 />
 
                 <div className="grid grid-cols-2 gap-3">
+                  {/* TVA */}
+                  <FormField
+                    control={form.control}
+                    name="tva"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel isRequired>{"TVA"}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            value={field.value ?? 1}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? 0
+                                  : Number(e.target.value),
+                              )
+                            }
+                            placeholder="ex. 10"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* Reduction */}
+                  <FormField
+                    control={form.control}
+                    name="reduction"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel isRequired>{"Réduction"}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            value={field.value ?? 1}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? 0
+                                  : Number(e.target.value),
+                              )
+                            }
+                            placeholder="ex. 10"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   {/* Quantité */}
                   <FormField
                     control={form.control}

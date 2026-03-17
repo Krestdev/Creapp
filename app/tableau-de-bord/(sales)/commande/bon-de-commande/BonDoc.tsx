@@ -11,7 +11,6 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-const TVA = 0.1925;
 const ACOMPTE_IS_REEL = 0.022;
 const IR_SIMPLIFIE = 0.055;
 const PRECOMPTE = 0.02;
@@ -390,21 +389,16 @@ const styles = StyleSheet.create({
 });
 
 export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
-  const real = isRealRegime((doc.provider as any).regem);
+  const real = isRealRegime(doc.provider.regem);
   const applyIsIr = !doc.keepTaxes;
-  const applyPrecompte = !!doc.hasPrecompt;
+  const applyPrecompte = doc.hasPrecompt === true;
 
-  const rabaisRate = normalizeRate(doc.rabaisAmount);
-  const remiseRate = normalizeRate(doc.remiseAmount);
-  const ristourneRate = normalizeRate(doc.ristourneAmount);
-  const rrrRate = rabaisRate + remiseRate + ristourneRate;
-
-  const lines = doc.devi.element.map((el: any) => {
+  const lines = doc.devi.element.map((el) => {
     const lineHTBrut = (el.quantity ?? 0) * (el.priceProposed ?? 0);
-    const lineRRR = lineHTBrut * rrrRate;
+    const lineRRR = lineHTBrut * (1 - el.reduction / 100);
     const lineBase = Math.max(0, lineHTBrut - lineRRR);
 
-    const lineTVA = real ? lineBase * TVA : 0;
+    const lineTVA = real ? lineBase * (el.tva / 100) : 0;
 
     const isIrRate = !applyIsIr
       ? 0
@@ -417,9 +411,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
     const lineIsIr = lineBase * isIrRate;
     const linePrecompte = applyPrecompte ? lineBase * PRECOMPTE : 0;
 
-    const lineNetToPay = real
-      ? lineBase + lineTVA - lineIsIr - linePrecompte
-      : lineBase - lineIsIr - linePrecompte;
+    const lineNetToPay = lineBase + lineTVA - lineIsIr + linePrecompte;
 
     return {
       ...el,
@@ -666,9 +658,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
               </View>
 
               <View style={styles.summaryRow}>
-                <Text
-                  style={styles.summaryLabel}
-                >{`RRR (${Math.round(rrrRate * 100)}%)`}</Text>
+                <Text style={styles.summaryLabel}>{`Réduction)`}</Text>
                 <Text style={styles.summaryValue}>
                   {formatXAF(roundFCFA(totalRRR))}
                 </Text>
@@ -684,18 +674,14 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
               <View style={styles.summaryDivider} />
 
               <View style={styles.summaryRow}>
-                <Text
-                  style={styles.summaryLabel}
-                >{`TVA (${real ? "19,25%" : "0%"})`}</Text>
+                <Text style={styles.summaryLabel}>{`TVA`}</Text>
                 <Text style={styles.summaryValue}>
                   {formatXAF(roundFCFA(totalTVA))}
                 </Text>
               </View>
 
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>
-                  {`IS / IR (${real ? "2,2%" : "5,5%"} sur lignes concernées)`}
-                </Text>
+                <Text style={styles.summaryLabel}>{`IS / IR`}</Text>
                 <Text style={styles.summaryValue}>
                   {formatXAF(roundFCFA(totalIsIr))}
                 </Text>

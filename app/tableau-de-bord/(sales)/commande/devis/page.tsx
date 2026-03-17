@@ -1,22 +1,49 @@
 "use client";
 
-import { StatisticCard, StatisticProps } from "@/components/base/TitleValueCard";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { DevisTable } from "@/components/tables/DevisTable";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { getQuotationAmount } from "@/lib/utils";
+import { userQ } from "@/queries/baseModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { providerQ } from "@/queries/providers";
 import { quotationQ } from "@/queries/quotation";
-import { DateFilter, NavLink, QUOTATION_STATUS, QuotationStatus } from "@/types/types";
+import { requestQ } from "@/queries/requestModule";
+import {
+  DateFilter,
+  NavLink,
+  QUOTATION_STATUS,
+  QuotationStatus,
+} from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Settings2 } from "lucide-react";
@@ -25,24 +52,24 @@ import React from "react";
 const Page = () => {
   const [searchFilter, setSearchFilter] = React.useState<string>("");
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
-    const [quotationFilter, setQuotationFilter] = React.useState<"all" | string>(
-      "all",
-    );
-    const [statusFilter, setStatusFilter] = React.useState<
-      "all" | QuotationStatus
-    >("all");
-    const [amountFilter, setAmountFilter] = React.useState<number>(0);
-    const [amountTypeFilter, setAmountTypeFilter] = React.useState<
-      "greater" | "inferior" | "equal"
-    >("greater");
-  
-    // modal specific states
-    const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-    const [customDateRange, setCustomDateRange] = React.useState<
-      { from: Date; to: Date } | undefined
-    >();
-    const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-    // Reset Filters
+  const [quotationFilter, setQuotationFilter] = React.useState<"all" | string>(
+    "all",
+  );
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | QuotationStatus
+  >("all");
+  const [amountFilter, setAmountFilter] = React.useState<number>(0);
+  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
+    "greater" | "inferior" | "equal"
+  >("greater");
+
+  // modal specific states
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+  const [customDateRange, setCustomDateRange] = React.useState<
+    { from: Date; to: Date } | undefined
+  >();
+  const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
+  // Reset Filters
   const resetAllFilters = () => {
     setDateFilter(undefined);
     if (setCustomDateRange) {
@@ -79,127 +106,172 @@ const Page = () => {
     queryFn: commandRqstQ.getAll,
   });
 
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: () => userQ.getAll(),
+  });
+
+  const getRequests = useQuery({
+    queryKey: ["requests"],
+    queryFn: () => requestQ.getAll(),
+  });
+
   const filteredData = React.useMemo(() => {
-      if (!data) return [];
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      const search = searchFilter.toLocaleLowerCase();
-      return data.data.filter((item) => {
-        const itemAmount = getQuotationAmount(item.element);
-        //Search Filter
-        const matchSearch =
-        searchFilter.trim() === "" ? true :
-        item.commandRequest.title.toLocaleLowerCase().includes(search) ||
-        item.commandRequest.reference.includes(search) ||
-        item.ref.includes(search) ||
-        item.element.some(e => e.title.toLocaleLowerCase().includes(search))
-        //Quotation Filter
-        const matchQuotation =
-          quotationFilter === "all"
-            ? true
-            : item.commandRequestId === Number(quotationFilter);
-        //Provider Filter
-        const matchProvider =
-          providerFilter === "all"
-            ? true
-            : item.providerId === Number(providerFilter);
-        //Status Filter
-        const matchStatus =
-          statusFilter === "all" ? true : item.status === statusFilter;
-        // Filter amount
-        const matchAmount =
-          amountTypeFilter === "greater"
-            ? itemAmount > amountFilter
-            : amountTypeFilter === "equal"
-              ? itemAmount === amountFilter
-              : itemAmount < amountFilter;
-        //Date filter
-        let matchDate = true;
-        if (dateFilter) {
-          switch (dateFilter) {
-            case "today":
-              startDate.setHours(0, 0, 0, 0);
-              break;
-            case "week":
-              startDate.setDate(
-                now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-              );
-              startDate.setHours(0, 0, 0, 0);
-              break;
-            case "month":
-              startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-              break;
-            case "year":
-              startDate = new Date(now.getFullYear(), 0, 1);
-              break;
-            case "custom":
-              if (customDateRange?.from && customDateRange?.to) {
-                startDate = customDateRange.from;
-                endDate = customDateRange.to;
-              }
-              break;
-          }
-  
-          if (
-            dateFilter !== "custom" ||
-            (customDateRange?.from && customDateRange?.to)
-          ) {
-            matchDate =
-              new Date(item.createdAt) >= startDate &&
-              new Date(item.createdAt) <= endDate;
-          }
+    if (!data) return [];
+    const now = new Date();
+    let startDate = new Date();
+    let endDate = now;
+    const search = searchFilter.toLocaleLowerCase();
+    return data.data.filter((item) => {
+      const itemAmount = getQuotationAmount(item);
+      //Search Filter
+      const matchSearch =
+        searchFilter.trim() === ""
+          ? true
+          : item.commandRequest.title.toLocaleLowerCase().includes(search) ||
+            item.commandRequest.reference.includes(search) ||
+            item.ref.includes(search) ||
+            item.element.some((e) =>
+              e.title.toLocaleLowerCase().includes(search),
+            );
+      //Quotation Filter
+      const matchQuotation =
+        quotationFilter === "all"
+          ? true
+          : item.commandRequestId === Number(quotationFilter);
+      //Provider Filter
+      const matchProvider =
+        providerFilter === "all"
+          ? true
+          : item.providerId === Number(providerFilter);
+      //Status Filter
+      const matchStatus =
+        statusFilter === "all" ? true : item.status === statusFilter;
+      // Filter amount
+      const matchAmount =
+        amountTypeFilter === "greater"
+          ? itemAmount > amountFilter
+          : amountTypeFilter === "equal"
+            ? itemAmount === amountFilter
+            : itemAmount < amountFilter;
+      //Date filter
+      let matchDate = true;
+      if (dateFilter) {
+        switch (dateFilter) {
+          case "today":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "week":
+            startDate.setDate(
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+            );
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "month":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          case "custom":
+            if (customDateRange?.from && customDateRange?.to) {
+              startDate = customDateRange.from;
+              endDate = customDateRange.to;
+            }
+            break;
         }
-        return matchDate && matchQuotation && matchProvider && matchStatus && matchAmount && matchSearch;
-      });
-    }, [
-      data,
-      customDateRange,
-      dateFilter,
-      quotationFilter,
-      providerFilter,
-      statusFilter,
-      amountFilter,
-      amountTypeFilter,
-      searchFilter
-    ]);
 
-    const validated = filteredData.filter(d=> d.status === "APPROVED").length;
-    const pending = filteredData.filter(d=>d.status === "PENDING").length;
-    const rejected = filteredData.filter(d=>d.status === "REJECTED").length;
-
-    const statistics: Array<StatisticProps> = [
-      {
-        title: "Devis validés",
-        value: validated,
-        variant: "success",
-        more: {
-          title: "Devis rejetés",
-          value: rejected,
-        }
-      },
-      {
-        title: "En attente de validation",
-        value: pending,
-        variant: "default",
-        more: {
-          title: "Total de devis",
-          value: filteredData.length
+        if (
+          dateFilter !== "custom" ||
+          (customDateRange?.from && customDateRange?.to)
+        ) {
+          matchDate =
+            new Date(item.createdAt) >= startDate &&
+            new Date(item.createdAt) <= endDate;
         }
       }
-    ]
+      return (
+        matchDate &&
+        matchQuotation &&
+        matchProvider &&
+        matchStatus &&
+        matchAmount &&
+        matchSearch
+      );
+    });
+  }, [
+    data,
+    customDateRange,
+    dateFilter,
+    quotationFilter,
+    providerFilter,
+    statusFilter,
+    amountFilter,
+    amountTypeFilter,
+    searchFilter,
+  ]);
 
-  if (isLoading || providers.isLoading || commands.isLoading) {
+  const validated = filteredData.filter((d) => d.status === "APPROVED").length;
+  const pending = filteredData.filter((d) => d.status === "PENDING").length;
+  const rejected = filteredData.filter((d) => d.status === "REJECTED").length;
+
+  const statistics: Array<StatisticProps> = [
+    {
+      title: "Devis validés",
+      value: validated,
+      variant: "success",
+      more: {
+        title: "Devis rejetés",
+        value: rejected,
+      },
+    },
+    {
+      title: "En attente de validation",
+      value: pending,
+      variant: "default",
+      more: {
+        title: "Total de devis",
+        value: filteredData.length,
+      },
+    },
+  ];
+
+  if (
+    isLoading ||
+    providers.isLoading ||
+    commands.isLoading ||
+    getUsers.isLoading ||
+    getRequests.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (isError || providers.isError || commands.isError) {
+  if (
+    isError ||
+    providers.isError ||
+    commands.isError ||
+    getUsers.isError ||
+    getRequests.isError
+  ) {
     return (
       <ErrorPage
-        error={error ?? providers.error ?? commands.error ?? undefined}
+        error={
+          error ||
+          providers.error ||
+          commands.error ||
+          getUsers.error ||
+          getRequests.error ||
+          undefined
+        }
       />
     );
   }
-  if (isSuccess && providers.isSuccess && commands.isSuccess)
+  if (
+    isSuccess &&
+    providers.isSuccess &&
+    commands.isSuccess &&
+    getUsers.isSuccess &&
+    getRequests.isSuccess
+  )
     return (
       <div className="content">
         <PageTitle
@@ -275,7 +347,9 @@ const Page = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-                    {QUOTATION_STATUS.filter(r=> data.data.some(d => d.status === r.value)).map((s) => (
+                    {QUOTATION_STATUS.filter((r) =>
+                      data.data.some((d) => d.status === r.value),
+                    ).map((s) => (
                       <SelectItem key={s.value} value={s.value}>
                         {s.name}
                       </SelectItem>
@@ -442,14 +516,16 @@ const Page = () => {
           </SheetContent>
         </Sheet>
         <div className="grid-stats-4">
-          {statistics.map((stat, index)=>(
-            <StatisticCard key={index} {...stat}/>
+          {statistics.map((stat, index) => (
+            <StatisticCard key={index} {...stat} />
           ))}
         </div>
         <DevisTable
           data={filteredData}
           commands={commands.data.data}
           providers={providers.data.data}
+          users={getUsers.data.data}
+          requests={getRequests.data.data}
         />
       </div>
     );

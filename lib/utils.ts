@@ -13,6 +13,7 @@ import {
   User,
   PaymentRequest,
   PayType,
+  Quotation,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
@@ -156,7 +157,7 @@ export function paymentPercentage(payload: BonsCommande): number {
 interface RoleCheck {
   roleList: Role[];
   role:
-    "SUPERADMIN"
+    | "SUPERADMIN"
     | "admin"
     | "achat"
     | "Donner d'ordre achat"
@@ -171,7 +172,7 @@ export function isRole({ roleList, role }: RoleCheck): boolean {
   if (roleList.some((r) => r.label === "SUPERADMIN")) {
     return true;
   }
-  if(roleList.some((r) => r.label === "ADMIN") && role === "admin"){
+  if (roleList.some((r) => r.label === "ADMIN") && role === "admin") {
     return true;
   }
   if (role === "manager" && roleList.some((r) => r.label === "MANAGER")) {
@@ -264,11 +265,20 @@ export const getUserName = (
   return user.firstName.concat(" ", user.lastName);
 };
 
-export const getQuotationAmount = (elements: Array<QuotationElement>) => {
-  return elements.reduce(
-    (total, element) => total + element.priceProposed * element.quantity,
-    0,
-  );
+export const getQuotationAmount = (devis: Quotation) => {
+  const isRealRegime = (regem?: string) => {
+    const v = (regem ?? "").toLowerCase().trim();
+    return v === "reel" || v === "réel";
+  };
+  return devis.element.reduce((total, i) => {
+    const isIr = !i.hasIs
+      ? 0
+      : isRealRegime(devis.provider.regem)
+        ? 0.022
+        : 0.055;
+    const tva = i.tva / 100;
+    return total + i.priceProposed * (1 - i.reduction) * (1 - isIr + tva);
+  }, 0);
 };
 
 export function subText({

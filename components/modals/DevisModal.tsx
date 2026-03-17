@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn, getQuotationAmount, XAF } from "@/lib/utils";
-import { Quotation } from "@/types/types";
+import { Provider, Quotation, RequestModelT, User } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -42,34 +42,25 @@ import { DownloadFile } from "../base/downLoadFile";
 interface DetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: Quotation | undefined;
-  quotation: string | undefined;
+  data: Quotation;
+  title: string | undefined;
+  users: Array<User>;
+  providers: Array<Provider>;
+  requests: Array<RequestModelT>;
 }
 
 export function DevisModal({
   open,
   onOpenChange,
   data,
-  quotation,
+  title,
+  users,
+  providers,
+  requests,
 }: DetailModalProps) {
-  const totalAmount = data?.element ? getQuotationAmount(data.element) : 0;
+  const totalAmount = getQuotationAmount(data);
   const [page, setPage] = React.useState(1);
   const [file, setFile] = React.useState<string | File | undefined>(undefined);
-
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: () => userQ.getAll(),
-  });
-
-  const providersData = useQuery({
-    queryKey: ["providersList"],
-    queryFn: () => providerQ.getAll(),
-  });
-
-  const requestsData = useQuery({
-    queryKey: ["requests"],
-    queryFn: () => requestQ.getAll(),
-  });
 
   // Récupérer les informations de l'utilisateur (à adapter selon votre structure)
   // const getUserName = (userId: string | number | undefined) => {
@@ -80,26 +71,19 @@ export function DevisModal({
 
   // Récupérer le nom du fournisseur (à adapter selon votre structure)
   const getProviderName = (providerId: number | undefined) => {
-    return (
-      providersData.data?.data?.find((p) => p.id === providerId)?.name ||
-      "Non spécifié"
-    );
+    return providers.find((p) => p.id === providerId)?.name || "Non spécifié";
   };
 
   const getUserName = (userId: number | undefined) => {
     return (
-      usersData.data?.data?.find((u) => u.id === userId)?.firstName +
+      users.find((u) => u.id === userId)?.firstName +
         " " +
-        usersData.data?.data?.find((u) => u.id === userId)?.lastName ||
-      "Non spécifique"
+        users.find((u) => u.id === userId)?.lastName || "Non spécifique"
     );
   };
 
   const getRequestTitle = (requestId: number | undefined) => {
-    return (
-      requestsData.data?.data?.find((r) => r.id === requestId)?.label ||
-      "Non spécifié"
-    );
+    return requests.find((r) => r.id === requestId)?.label || "Non spécifié";
   };
 
   // Formater les dates
@@ -126,12 +110,10 @@ export function DevisModal({
         {/* Header */}
         <DialogHeader>
           <DialogTitle className="uppercase">
-            {`Devis - ${quotation || "Sans titre"}`}
+            {`Devis - ${title || "Sans titre"}`}
           </DialogTitle>
           <DialogDescription>
-            {page === 1
-              ? "Détail du devis"
-              : `Justificatif du devis ${quotation}`}
+            {page === 1 ? "Détail du devis" : `Justificatif du devis ${title}`}
           </DialogDescription>
         </DialogHeader>
 
@@ -325,7 +307,7 @@ export function DevisModal({
           <ShowFile
             file={file}
             setPage={setPage}
-            title={`Justificatif du devis ${quotation}`}
+            title={`Justificatif du devis ${title}`}
           />
         )}
 

@@ -96,9 +96,6 @@ export const formSchema = z
     hasPenalties: z.boolean(),
     amountBase: z.coerce.number().optional(),
     penaltyMode: z.string().optional(),
-    rabaisAmount: z.coerce.number().min(0, "Le montant doit être positif"),
-    remiseAmount: z.coerce.number().min(0, "Le montant doit être positif"),
-    ristourneAmount: z.coerce.number().min(0, "Le montant doit être positif"),
     escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
     keepTaxes: z.boolean(),
     hasPrecompt: z.boolean(),
@@ -174,9 +171,6 @@ function CreateForm() {
       penaltyMode: "",
       instalments: [{ percentage: 100, deadLine: undefined }],
       paymentMethod: defaultPaymentMethod,
-      rabaisAmount: 0,
-      remiseAmount: 0,
-      ristourneAmount: 0,
       escompteRate: 0,
       keepTaxes: false,
       hasPrecompt: false,
@@ -226,9 +220,6 @@ function CreateForm() {
         penaltyMode: "",
         instalments: [{ percentage: 100, deadLine: undefined }],
         paymentMethod: defaultPaymentMethod,
-        rabaisAmount: 0,
-        remiseAmount: 0,
-        ristourneAmount: 0,
         escompteRate: 0,
         keepTaxes: false,
         conditions: [],
@@ -280,9 +271,6 @@ function CreateForm() {
             ? new Date(instalment.deadLine)
             : undefined,
         })),
-        rabaisAmount: values.rabaisAmount,
-        remiseAmount: values.remiseAmount,
-        ristourneAmount: values.ristourneAmount,
         escompteRate: values.escompteRate,
         keepTaxes: values.keepTaxes,
         hasPrecompt: values.hasPrecompt,
@@ -446,75 +434,6 @@ function CreateForm() {
                       />
                     </PopoverContent>
                   </Popover>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="rabaisAmount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Rabais"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    {...field}
-                    placeholder="Ex. 3"
-                    className="pr-8"
-                  />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
-                    {"%"}
-                  </span>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="ristourneAmount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Ristourne"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    {...field}
-                    placeholder="Ex. 3"
-                    className="pr-8"
-                  />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
-                    {"%"}
-                  </span>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="remiseAmount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{"Remise"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    {...field}
-                    placeholder="Ex. 5"
-                    className="pr-8"
-                  />
-                  <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
-                    {"%"}
-                  </span>
                 </div>
               </FormControl>
               <FormMessage />

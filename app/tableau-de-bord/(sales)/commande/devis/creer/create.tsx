@@ -65,6 +65,12 @@ const formSchema = z.object({
         unit: z.string(),
         price: z.number({ message: "Veuillez renseigner un prix" }),
         hasIs: z.boolean(),
+        reduction: z.coerce
+          .number()
+          .nonnegative({ message: "Doit être supérieur ou égale à 0" }),
+        tva: z.coerce
+          .number({ message: "Doit être un nombre" })
+          .nonnegative({ message: "Doit être positif" }),
       }),
     )
     .min(1),
@@ -170,6 +176,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
           unit: e.unit,
           priceProposed: e.price,
           hasIs: e.hasIs,
+          tva: e.tva,
+          reduction: e.reduction,
         })),
       };
 

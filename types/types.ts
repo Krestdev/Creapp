@@ -387,10 +387,8 @@ export type QuotationElement = {
   deviId: number;
   status: QuotationElementStatus;
   hasIs: boolean;
-  //tva: number;
-  //rabaisAmount: number;
-  //remiseAmount: number;
-  //ristourneAmount: number;
+  tva: number;
+  reduction: number;
 };
 
 export type Quotation = {
@@ -402,6 +400,7 @@ export type Quotation = {
   status: QuotationStatus;
   commandRequestId: number;
   providerId: number;
+  provider: Provider;
   proof: string | File;
   dueDate: string;
   userId: number;
@@ -503,9 +502,9 @@ export type BonsCommande = {
   motif?: string;
   createdAt: Date;
   updatedAt: Date;
-  rabaisAmount: number; // réduction exceptionnelle
-  remiseAmount: number; // réduction commerciale
-  ristourneAmount: number; // réduction a posteriori
+  //rabaisAmount: number; // réduction exceptionnelle
+  //remiseAmount: number; // réduction commerciale
+  //ristourneAmount: number; // réduction a posteriori
   escompteRate: number;
   keepTaxes: boolean;
   hasPrecompt: boolean;

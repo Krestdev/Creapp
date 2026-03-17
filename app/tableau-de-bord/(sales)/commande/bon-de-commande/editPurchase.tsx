@@ -121,9 +121,6 @@ export const formSchema = z
     amountBase: z.coerce.number().optional(),
     penaltyMode: z.string().optional(),
     providerId: z.coerce.number({ message: "Veuillez définir un fournisseur" }),
-    rabaisAmount: z.coerce.number().min(0, "Le montant doit être positif"),
-    remiseAmount: z.coerce.number().min(0, "Le montant doit être positif"),
-    ristourneAmount: z.coerce.number().min(0, "Le montant doit être positif"),
     escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
     keepTaxes: z.boolean(),
     hasPrecompt: z.boolean(),
@@ -220,9 +217,6 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
       deviId: purchaseOrder.deviId || -1,
       providerId: purchaseOrder.providerId || -1,
       instalments: defaultInstalments,
-      remiseAmount: purchaseOrder.remiseAmount ?? 0,
-      rabaisAmount: purchaseOrder.rabaisAmount ?? 0,
-      ristourneAmount: purchaseOrder.ristourneAmount ?? 0,
       escompteRate: purchaseOrder.escompteRate ?? 0,
       keepTaxes: purchaseOrder.keepTaxes ?? false,
       hasPrecompt: purchaseOrder.hasPrecompt ?? false,
@@ -297,9 +291,6 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
       hasPenalties: values.hasPenalties,
       penaltyMode: values.penaltyMode,
       instalments: purchaseOrder.instalments,
-      ristourneAmount: values.ristourneAmount,
-      rabaisAmount: values.rabaisAmount,
-      remiseAmount: values.remiseAmount,
       escompteRate: values.escompteRate,
       keepTaxes: values.keepTaxes,
       hasPrecompt: values.hasPrecompt,
@@ -508,75 +499,6 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
                           />
                         </PopoverContent>
                       </Popover>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="rabaisAmount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Rabais"}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        {...field}
-                        placeholder="Ex. 3"
-                        className="pr-8"
-                      />
-                      <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
-                        {"%"}
-                      </span>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="ristourneAmount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Ristourne"}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        {...field}
-                        placeholder="Ex. 3"
-                        className="pr-8"
-                      />
-                      <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
-                        {"%"}
-                      </span>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="remiseAmount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Remise"}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        {...field}
-                        placeholder="Ex. 5"
-                        className="pr-8"
-                      />
-                      <span className="absolute top-1/2 right-2 -translate-y-1/2 text-sm text-primary-600 uppercase">
-                        {"%"}
-                      </span>
                     </div>
                   </FormControl>
                   <FormMessage />
