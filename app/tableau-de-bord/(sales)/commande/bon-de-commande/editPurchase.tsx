@@ -505,7 +505,7 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
                 </FormItem>
               )}
             />
-            <FormField
+            {/* <FormField
               control={form.control}
               name="keepTaxes"
               render={({ field }) => (
@@ -528,7 +528,7 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
             <FormField
               control={form.control}
               name="hasPrecompt"
