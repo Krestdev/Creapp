@@ -154,11 +154,13 @@ const Page = () => {
         statusFilter === "all" ? true : item.status === statusFilter;
       // Filter amount
       const matchAmount =
-        amountTypeFilter === "greater"
-          ? itemAmount > amountFilter
-          : amountTypeFilter === "equal"
-            ? itemAmount === amountFilter
-            : itemAmount < amountFilter;
+        amountFilter === 0
+          ? true
+          : amountTypeFilter === "greater"
+            ? itemAmount > amountFilter
+            : amountTypeFilter === "equal"
+              ? itemAmount === amountFilter
+              : itemAmount < amountFilter;
       //Date filter
       let matchDate = true;
       if (dateFilter) {

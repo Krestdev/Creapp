@@ -23,6 +23,8 @@ interface Props {
   categories: Array<Category>;
 }
 
+//Revoir le contenu pour ne considérer que les tickets non payés
+
 function NotPaidRequestsTable({ requests, tickets, users }: Props) {
   const [searchFilter, setSearchFilter] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
@@ -93,7 +95,7 @@ function NotPaidRequestsTable({ requests, tickets, users }: Props) {
 
   const stats: Array<StatisticProps> = [
     {
-      title: "Besoins en attente de paiement",
+      title: "Besoins validés en attente de paiement",
       value: filteredData.length,
       variant: "primary",
     },

@@ -275,7 +275,8 @@ export const getQuotationAmount = (devis: Quotation, providers: Provider[]) => {
   return devis.element.reduce((total, i) => {
     const isIr = !i.hasIs ? 0 : isRealRegime(devis.providerId) ? 0.022 : 0.055;
     const tva = i.tva / 100;
-    return total + i.priceProposed * (1 - i.reduction) * (1 - isIr + tva);
+    const reduction = i.reduction / 100;
+    return total + i.priceProposed * (1 - reduction) * (1 - isIr + tva);
   }, 0);
 };
 
