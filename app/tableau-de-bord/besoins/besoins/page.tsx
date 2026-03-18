@@ -1,5 +1,4 @@
 "use client";
-import { DataTable } from "@/components/base/data-table";
 import {
   StatisticCard,
   StatisticProps,
@@ -31,6 +30,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { getUserName } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
@@ -44,7 +44,6 @@ import { format } from "date-fns";
 import { Settings2 } from "lucide-react";
 import React from "react";
 import { RequestsTable } from "./table-besoins";
-import { getUserName } from "@/lib/utils";
 
 function Page() {
   const { user } = useStore();
@@ -85,9 +84,9 @@ function Page() {
   });
 
   const usersData = useQuery({
-      queryKey: ["users"],
-      queryFn: async () => userQ.getAll(),
-    });
+    queryKey: ["users"],
+    queryFn: async () => userQ.getAll(),
+  });
 
   const [searchFilter, setSearchFilter] = React.useState("");
   const [userFilter, setUserFilter] = React.useState<"all" | string>("all");
@@ -159,10 +158,12 @@ function Page() {
           ? true
           : item.label.toLowerCase().includes(search) ||
             item.ref.toLocaleLowerCase().includes(search);
-    //User Filter
-    const matchUser =
-    userFilter === "all" ? true : 
-    item.userId.toString() === userFilter || !!item.requestOlds?.some(r=> r.userId.toString() === userFilter);
+      //User Filter
+      const matchUser =
+        userFilter === "all"
+          ? true
+          : item.userId.toString() === userFilter ||
+            !!item.requestOlds?.some((r) => r.userId.toString() === userFilter);
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : item.state === statusFilter;
@@ -213,7 +214,12 @@ function Page() {
         }
       }
       return (
-        matchCategory && matchProject && matchStatus && matchDate && matchSearch && matchUser
+        matchCategory &&
+        matchProject &&
+        matchStatus &&
+        matchDate &&
+        matchSearch &&
+        matchUser
       );
     });
   }, [
@@ -224,7 +230,7 @@ function Page() {
     searchFilter,
     dateFilter,
     customDateRange,
-    userFilter
+    userFilter,
   ]);
 
   if (
@@ -380,12 +386,12 @@ function Page() {
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
                     {usersData.data.data
-                    //.filter(u=> requests.data.some(r=> r.userId === u.id))
-                    .map((user) => (
-                      <SelectItem key={user.id} value={String(user.id)}>
-                        {getUserName(usersData.data.data, user.id)}
-                      </SelectItem>
-                    ))}
+                      //.filter(u=> requests.data.some(r=> r.userId === u.id))
+                      .map((user) => (
+                        <SelectItem key={user.id} value={String(user.id)}>
+                          {getUserName(usersData.data.data, user.id)}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -540,7 +546,8 @@ function Page() {
           projects={projectsData.data.data}
           payments={paymentsData.data.data}
           requestTypes={requestTypes.data.data}
-          users={usersData.data?.data}/>
+          users={usersData.data?.data}
+        />
       </div>
     );
   }

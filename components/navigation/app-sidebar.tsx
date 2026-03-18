@@ -10,7 +10,12 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
-import { NavigationItemProps, RequestModelT, Transaction, TransferTransaction } from "@/types/types";
+import {
+  NavigationItemProps,
+  RequestModelT,
+  Transaction,
+  TransferTransaction,
+} from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
@@ -149,24 +154,23 @@ function AppSidebar() {
   });
 
   const getPayType = useQuery({
-      queryKey: ["payType"],
-      queryFn: payTypeQ.getAll,
-    });
+    queryKey: ["payType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   const getBanks = useQuery({
-      queryKey: ["banks"],
-      queryFn: bankQ.getAll,
-    });
+    queryKey: ["banks"],
+    queryFn: bankQ.getAll,
+  });
 
   const filteredTickTransfert = React.useMemo(() => {
     return getTransactions.data?.data.filter((transaction) => {
       //Filter Tab
-      const matchTab = transaction.Type === "TRANSFER" && transaction.status === "PENDING";
+      const matchTab =
+        transaction.Type === "TRANSFER" && transaction.status === "PENDING";
       return matchTab;
     });
-  }, [
-    getTransactions.data?.data,
-  ]);
+  }, [getTransactions.data?.data]);
 
   const filteredData = useMemo(() => {
     if (!SignPay?.data?.data || !signatair.data?.data || !user) {
@@ -204,15 +208,19 @@ function AppSidebar() {
 
     // Séparation des paiements par statut
     const pendingDepensePayments = authorizedPayments.filter(
-      (p) => p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "pending_depense"
+      (p) =>
+        p.signer?.flatMap((u) => u.id)?.includes(currentUserId) &&
+        p.status === "pending_depense",
     );
 
     const unsignedPayments = authorizedPayments.filter(
-      (p) => !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "unsigned"
+      (p) =>
+        !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) &&
+        p.status === "unsigned",
     );
 
     const signedPayments = authorizedPayments.filter(
-      (p) => (p.status === "signed" || p.status === "paid")
+      (p) => p.status === "signed" || p.status === "paid",
     );
 
     // Tous les paiements en attente (pour l'onglet)
@@ -258,20 +266,21 @@ function AppSidebar() {
       getQuotationRequests.data &&
       getQuotations.data
       ? groupQuotationsByCommandRequest(
-        getQuotationRequests.data.data,
-        getQuotations.data.data,
-        providers.data.data,
-      ).filter((c) => c.status === "NOT_PROCESSED")
+          getQuotationRequests.data.data,
+          getQuotations.data.data,
+          providers.data.data,
+        ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
   }, [providers.data, getQuotationRequests.data, getQuotations.data]);
 
   // Récupérer tous les IDs des besoins présents dans les cotations
   const commandRequests = useMemo(() => {
     if (!getQuotationRequests.data) return [];
-    return getQuotationRequests.data.data
-  }, [getQuotationRequests.data])
+    return getQuotationRequests.data.data;
+  }, [getQuotationRequests.data]);
 
-  const isRequestUsed = (requestId: number): boolean => commandRequests.some(c => c.besoins.some(b => b.id === requestId));
+  const isRequestUsed = (requestId: number): boolean =>
+    commandRequests.some((c) => c.besoins.some((b) => b.id === requestId));
 
   // Filtrer les besoins validés qui ne sont pas dans une cotation
   const requestToUse = useMemo(() => {
@@ -337,35 +346,40 @@ function AppSidebar() {
   }, [getPayments.data]);
 
   const overall = useMemo(() => {
-    if (!approvedTicket || !signedTicket || !pendingTicket || !simpleTicket) return [];
+    if (!approvedTicket || !signedTicket || !pendingTicket || !simpleTicket)
+      return [];
     return approvedTicket?.concat(signedTicket, pendingTicket, simpleTicket);
   }, [approvedTicket, signedTicket, pendingTicket, simpleTicket]);
 
   //Signataires
-  const transfersToSign :Array<TransferTransaction> = useMemo(() => {
-      if(!getTransactions.data || !signatair.data) return [];
-      return getTransactions.data.data
-      .filter(t=> t.Type === "TRANSFER")
-      .filter(t => {
-          if(!t.methodId) return false;
-          if(t.from.type === "BANK" && t.to.type === "BANK"){
-              return signatair.data.data.find(x=>x.bankId === t.from.id && x.payTypeId === t.method?.id )?.user?.some(u=> u.id === user?.id)
-          }
-          return false;
-      })
-      .filter(t=> t.isSigned === false && !t.signers.find(s=> s.userId === user?.id))
-      
-    }, [getTransactions.data, signatair.data, user?.id]);
-
-    const transfersToCheck: Array<TransferTransaction> = useMemo(()=>{
-      if(!getTransactions.data) return [];
-      return getTransactions.data.data
-      .filter(t=>t.Type === "TRANSFER")
-      .filter(t=>{
-        if(t.status === "ACCEPTED") return true;
+  const transfersToSign: Array<TransferTransaction> = useMemo(() => {
+    if (!getTransactions.data || !signatair.data) return [];
+    return getTransactions.data.data
+      .filter((t) => t.Type === "TRANSFER")
+      .filter((t) => {
+        if (!t.methodId) return false;
+        if (t.from.type === "BANK" && t.to.type === "BANK") {
+          return signatair.data.data
+            .find((x) => x.bankId === t.from.id && x.payTypeId === t.method?.id)
+            ?.user?.some((u) => u.id === user?.id);
+        }
         return false;
       })
-    },[getTransactions.data])
+      .filter(
+        (t) =>
+          t.isSigned === false && !t.signers.find((s) => s.userId === user?.id),
+      );
+  }, [getTransactions.data, signatair.data, user?.id]);
+
+  const transfersToCheck: Array<TransferTransaction> = useMemo(() => {
+    if (!getTransactions.data) return [];
+    return getTransactions.data.data
+      .filter((t) => t.Type === "TRANSFER")
+      .filter((t) => {
+        if (t.status === "ACCEPTED") return true;
+        return false;
+      });
+  }, [getTransactions.data]);
 
   if (
     getQuotationRequests.isLoading ||
@@ -481,8 +495,7 @@ function AppSidebar() {
             title: "Approbation",
             href: "/tableau-de-bord/besoins/validation",
             authorized: ["SUPERADMIN", "MANAGER"],
-            badgeValue:
-              pendingData.length > 0 ? pendingData.length : undefined,
+            badgeValue: pendingData.length > 0 ? pendingData.length : undefined,
           },
         ],
       },
@@ -552,17 +565,17 @@ function AppSidebar() {
         items: [
           {
             pageId: "PG-03-07-01",
-            title : "Factures",
+            title: "Factures",
             href: "/tableau-de-bord/factures",
             authorized: ["ACCOUNTANT", "SUPERADMIN"],
           },
           {
             pageId: "PG-03-07-02",
-            title : "Paiements",
+            title: "Paiements",
             href: "/tableau-de-bord/factures/paiements",
             authorized: ["ACCOUNTANT", "SUPERADMIN"],
           },
-        ]
+        ],
       },
       {
         pageId: "PG-04",
@@ -586,10 +599,16 @@ function AppSidebar() {
             title: "Transferts",
             href: "/tableau-de-bord/ticket/transferts",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-            badgeValue: filteredTickTransfert &&
-              filteredTickTransfert?.length > 0 ?
-              filteredTickTransfert?.length :
-              undefined,
+            badgeValue:
+              filteredTickTransfert && filteredTickTransfert?.length > 0
+                ? filteredTickTransfert?.length
+                : undefined,
+          },
+          {
+            pageId: "PG-04-04",
+            title: "Besoins",
+            href: "/tableau-de-bord/ticket/besoins",
+            authorized: ["SUPERADMIN", "VOLT_MANAGER"],
           },
           {
             pageId: "PG-04-03",
@@ -614,11 +633,18 @@ function AppSidebar() {
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
-                signedTicket &&
-                pendingTicket &&
-                simpleTicket &&
-                approvedTicket?.length + signedTicket?.length + pendingTicket?.length + simpleTicket?.length > 0
-                ? approvedTicket?.length + signedTicket?.length + pendingTicket?.length + simpleTicket?.length
+              signedTicket &&
+              pendingTicket &&
+              simpleTicket &&
+              approvedTicket?.length +
+                signedTicket?.length +
+                pendingTicket?.length +
+                simpleTicket?.length >
+                0
+                ? approvedTicket?.length +
+                  signedTicket?.length +
+                  pendingTicket?.length +
+                  simpleTicket?.length
                 : undefined,
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
@@ -642,17 +668,20 @@ function AppSidebar() {
             title: "Tickets",
             href: "/tableau-de-bord/signatures/tickets",
             authorized: [],
-            badgeValue: filteredData?.unsignedPayments?.length > 0 ?
-              filteredData?.unsignedPayments?.length : undefined,
+            badgeValue:
+              filteredData?.unsignedPayments?.length > 0
+                ? filteredData?.unsignedPayments?.length
+                : undefined,
           },
           {
             pageId: "PG-0000551-02",
             title: "Transferts",
             href: "/tableau-de-bord/signatures/transferts",
             authorized: [],
-            badgeValue: transfersToSign.length > 0 ? transfersToSign.length : undefined
+            badgeValue:
+              transfersToSign.length > 0 ? transfersToSign.length : undefined,
           },
-        ]
+        ],
       },
       {
         pageId: "PG-56489713246",
@@ -678,7 +707,8 @@ function AppSidebar() {
             title: "Transferts",
             href: "/tableau-de-bord/banques/transactions/transferts",
             authorized: ["SUPERADMIN", "VOLT"],
-            badgeValue: transfersToCheck.length > 0 ? transfersToCheck.length : undefined
+            badgeValue:
+              transfersToCheck.length > 0 ? transfersToCheck.length : undefined,
           },
         ],
       },
@@ -700,8 +730,8 @@ function AppSidebar() {
 
     // Filtrer les liens de navigation selon les rôles de l'utilisateur
     const filteredNavLinks = navLinks.filter((navLink) => {
-      if(navLink.pageId === "PG-0000551"){
-        return !!user?.signatairs && user.signatairs.length > 0
+      if (navLink.pageId === "PG-0000551") {
+        return !!user?.signatairs && user.signatairs.length > 0;
       }
       if (navLink.authorized.length === 0) return true;
       return navLink.authorized.some((role) => userRoles.includes(role));
@@ -721,9 +751,8 @@ function AppSidebar() {
               {...props}
               items={items?.filter((item) => {
                 if (item.authorized.length === 0) return true;
-                return item.authorized.some((role) => userRoles.includes(role))
-              },
-              )}
+                return item.authorized.some((role) => userRoles.includes(role));
+              })}
             />
           ))}
         </SidebarContent>
