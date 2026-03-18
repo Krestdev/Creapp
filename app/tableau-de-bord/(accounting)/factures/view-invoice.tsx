@@ -11,9 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { XAF } from "@/lib/utils";
-import { userQ } from "@/queries/baseModule";
-import { BonsCommande, Invoice } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import { BonsCommande, Invoice, User } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -24,7 +22,7 @@ import {
   HelpCircle,
   LucideHash,
   SquareUser,
-  User
+  UserIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -35,10 +33,10 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   purchases: Array<BonsCommande>;
+  users: Array<User>;
 }
 
-function ViewInvoice({ invoice, open, openChange, purchases }: Props) {
-  const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
+function ViewInvoice({ invoice, open, openChange, purchases, users }: Props) {
   const purchase = purchases.find((p) => p.id === invoice.commandId);
   const files = typeof invoice.proof === "string" ? invoice.proof : "";
 
@@ -46,9 +44,7 @@ function ViewInvoice({ invoice, open, openChange, purchases }: Props) {
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {`facture - ${invoice.title}`}
-          </DialogTitle>
+          <DialogTitle>{`facture - ${invoice.title}`}</DialogTitle>
           <DialogDescription>{`Informations sur la facture de ${purchase?.devi.commandRequest.title ?? invoice.commandId}`}</DialogDescription>
         </DialogHeader>
         {/**Reference */}
@@ -114,9 +110,7 @@ function ViewInvoice({ invoice, open, openChange, purchases }: Props) {
                   .map((proof, index) => (
                     <Link
                       key={index}
-                      href={`${
-                        process.env.NEXT_PUBLIC_API
-                      }/${proof}`}
+                      href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -153,16 +147,15 @@ function ViewInvoice({ invoice, open, openChange, purchases }: Props) {
         {/**Created by */}
         <div className="view-group">
           <span className="view-icon">
-            <User />
+            <UserIcon />
           </span>
           <div className="flex flex-col">
             <p className="view-group-title">{"Initié par"}</p>
             <p className="font-semibold">
-              {getUsers.data?.data.find((u) => u.id === invoice.userId)
-                ?.firstName +
+              {users.find((u) => u.id === invoice.userId)?.firstName +
                 " " +
-                getUsers.data?.data.find((u) => u.id === invoice.userId)
-                  ?.lastName || "Non défini"}
+                users.find((u) => u.id === invoice.userId)?.lastName ||
+                "Non défini"}
             </p>
           </div>
         </div>

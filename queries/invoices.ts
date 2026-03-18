@@ -3,7 +3,15 @@ import { Invoice } from "@/types/types";
 
 export interface NewInvoice extends Omit<
   Invoice,
-  "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status" | "payments" | "userId" | "command"
+  | "id"
+  | "createdAt"
+  | "updatedAt"
+  | "proof"
+  | "reference"
+  | "status"
+  | "payment"
+  | "userId"
+  | "command"
 > {
   proof: File;
   commandId: number;
@@ -12,7 +20,6 @@ export interface NewInvoice extends Omit<
 export interface UpdateInvoice extends Omit<Partial<Invoice>, "proof"> {
   proof?: File;
 }
-
 
 class InvoiceQueries {
   route = "/request/invoice";
@@ -68,7 +75,7 @@ class InvoiceQueries {
       })
       .then((res) => res.data);
   };
-  cancel = async (id: number): Promise<{data: Invoice}> => {
+  cancel = async (id: number): Promise<{ data: Invoice }> => {
     const formData = new FormData();
     formData.append("status", "CANCELLED");
     return api
@@ -76,8 +83,7 @@ class InvoiceQueries {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((res) => res.data);
-
-  }
+  };
 }
 
 export const invoiceQ = new InvoiceQueries();

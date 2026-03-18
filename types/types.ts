@@ -534,7 +534,7 @@ export type Invoice = {
   commandId: number;
   command: BonsCommande;
   userId: number;
-  payments: Array<PaymentRequest>;
+  payment: Array<PaymentRequest>;
 };
 
 export interface NavLink {

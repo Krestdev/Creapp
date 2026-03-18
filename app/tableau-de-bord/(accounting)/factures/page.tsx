@@ -12,15 +12,16 @@ import { Invoice, NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { InvoicesTable } from "./invoices-table";
+import { paymentQ } from "@/queries/payment";
+import { userQ } from "@/queries/baseModule";
 
 function Page() {
-
   const links: Array<NavLink> = [
     {
       title: "Enregistrer une facture",
-      href: "./factures/creer"
-    }
-  ]
+      href: "./factures/creer",
+    },
+  ];
 
   const getInvoices = useQuery({
     queryKey: ["invoices"],
@@ -31,20 +32,42 @@ function Page() {
     queryFn: commadQ.getAll,
   });
 
+  const getPayments = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
+
+  const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
+
   const invoices: Array<Invoice> = useMemo(() => {
     if (!getInvoices.data) return [];
     return getInvoices.data.data;
   }, [getInvoices.data]);
 
-  if (getInvoices.isLoading || getPurchases.isLoading) {
+  if (
+    getInvoices.isLoading ||
+    getPurchases.isLoading ||
+    getPayments.isLoading ||
+    getUsers.isLoading
+  ) {
     return <LoadingPage />;
   }
 
-  if (getInvoices.isError || getPurchases.isError) {
+  if (
+    getInvoices.isError ||
+    getPurchases.isError ||
+    getPayments.isError ||
+    getUsers.isError
+  ) {
     return <ErrorPage />;
   }
 
-  if (getInvoices.isSuccess && getPurchases.isSuccess) {
+  if (
+    getInvoices.isSuccess &&
+    getPurchases.isSuccess &&
+    getPayments.isSuccess &&
+    getUsers.isSuccess
+  ) {
     const statistics: Array<StatisticProps> = [
       {
         title: "Factures Non Payées",
@@ -80,7 +103,12 @@ function Page() {
             <StatisticCard key={id} {...item} />
           ))}
         </div>
-        <InvoicesTable invoices={invoices} purchases={getPurchases.data.data} />
+        <InvoicesTable
+          invoices={invoices}
+          purchases={getPurchases.data.data}
+          payments={getPayments.data.data}
+          users={getUsers.data.data}
+        />
       </div>
     );
   }

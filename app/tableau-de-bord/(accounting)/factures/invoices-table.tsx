@@ -18,7 +18,7 @@ import {
   ChevronDown,
   Eye,
   ListIcon,
-  Settings2
+  Settings2,
 } from "lucide-react";
 import * as React from "react";
 
@@ -70,7 +70,9 @@ import {
   BonsCommande,
   DateFilter,
   INVOICE_STATUS,
-  Invoice
+  Invoice,
+  PaymentRequest,
+  User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -82,26 +84,28 @@ import ViewInvoicePayment from "./view-invoice-payment";
 interface Props {
   invoices: Array<Invoice>;
   purchases: Array<BonsCommande>;
+  payments: Array<PaymentRequest>;
+  users: Array<User>;
 }
 
 export function getInvoiceStatusBadge(status: Invoice["status"]): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
-  const label = INVOICE_STATUS.find(x=> x.value === status)?.name ?? status;
+  const label = INVOICE_STATUS.find((x) => x.value === status)?.name ?? status;
   switch (status) {
     case "UNPAID":
       return { label, variant: "destructive" };
     case "PAID":
       return { label, variant: "success" };
     case "CANCELLED":
-      return { label, variant: "default"};
+      return { label, variant: "default" };
     default:
       return { label, variant: "outline" };
   }
 }
 
-export function InvoicesTable({ invoices, purchases }: Props) {
+export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -612,8 +616,9 @@ export function InvoicesTable({ invoices, purchases }: Props) {
                                 ? "Date de création"
                                 : column.id === "updatedAt"
                                   ? "Date de modification"
-                                  : column.id === "title" ?
-                                    "Titre" : column.id}
+                                  : column.id === "title"
+                                    ? "Titre"
+                                    : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -685,6 +690,7 @@ export function InvoicesTable({ invoices, purchases }: Props) {
           open={showDetail}
           openChange={setShowDetail}
           purchases={purchases}
+          users={users}
         />
       )}
       {selected && (
@@ -693,6 +699,7 @@ export function InvoicesTable({ invoices, purchases }: Props) {
           open={showPayments}
           openChange={setShowPayments}
           purchases={purchases}
+          payments={payments}
         />
       )}
       {selected && (
