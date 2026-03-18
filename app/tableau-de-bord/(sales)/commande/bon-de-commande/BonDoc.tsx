@@ -390,7 +390,6 @@ const styles = StyleSheet.create({
 
 export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
   const real = isRealRegime(doc.provider.regem);
-  const applyIsIr = !doc.keepTaxes;
   const applyPrecompte = doc.hasPrecompt === true;
 
   const lines = doc.devi.element.map((el) => {
@@ -400,7 +399,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
 
     const lineTVA = real ? lineBase * (el.tva / 100) : 0;
 
-    const isIrRate = !applyIsIr
+    const isIrRate = !el.hasIs
       ? 0
       : el.hasIs
         ? real
@@ -514,12 +513,6 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                     <Text style={styles.providerLabel}>Téléphone</Text>
                     <Text style={styles.providerValue}>
                       {doc.provider.phone || "-"}
-                    </Text>
-                  </View>
-                  <View style={[styles.providerCell, styles.providerCellLast]}>
-                    <Text style={styles.providerLabel}>Retenue IS / IR</Text>
-                    <Text style={styles.providerValue}>
-                      {applyIsIr ? "Oui" : "Non"}
                     </Text>
                   </View>
                 </View>
