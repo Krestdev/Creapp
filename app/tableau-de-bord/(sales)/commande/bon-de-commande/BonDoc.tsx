@@ -394,7 +394,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
 
   const lines = doc.devi.element.map((el) => {
     const lineHTBrut = (el.quantity ?? 0) * (el.priceProposed ?? 0);
-    const lineRRR = lineHTBrut * (1 - el.reduction / 100);
+    const lineRRR = lineHTBrut * (el.reduction / 100);
     const lineBase = Math.max(0, lineHTBrut - lineRRR);
 
     const lineTVA = real ? lineBase * (el.tva / 100) : 0;
