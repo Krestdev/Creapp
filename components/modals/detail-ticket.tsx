@@ -29,6 +29,7 @@ import {
   CalendarClock,
   ChevronsUp,
   CreditCard,
+  FileIcon,
   FileText,
   FolderOpen,
   Hash,
@@ -41,6 +42,7 @@ import {
 import { useState } from "react";
 import { DownloadFile } from "../base/downLoadFile";
 import ShowFile from "../base/show-file";
+import Link from "next/link";
 
 interface DetailTicketProps {
   open: boolean;
@@ -375,7 +377,7 @@ export function DetailTicket({
               </div>
 
               {/* Justificatifs */}
-              <Button
+              {/* <Button
                 variant={"ghost"}
                 className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
                 disabled={!data?.proof}
@@ -410,7 +412,55 @@ export function DetailTicket({
                     )}
                   </div>
                 </div>
-              </Button>
+              </Button> */}
+              {/**Justificatif */}
+              <div className="view-group">
+                <span className="view-icon">
+                  <FileIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Justificatif"}</p>
+                  {!!data.justification ? (
+                    <Link
+                      href={`${
+                        process.env.NEXT_PUBLIC_API
+                      }/${data.justification}`}
+                      target="_blank"
+                      className="flex gap-0.5 items-center"
+                    >
+                      <img
+                        src="/images/pdf.png"
+                        alt="justificatif"
+                        className="h-7 w-auto aspect-square"
+                      />
+                      <p className="text-foreground font-medium">
+                        {data.justification
+                          ? "Document justificatif"
+                          : "Aucun justificatif"}
+                      </p>
+                    </Link>
+                  ) : !!data.proof ? (
+                    <Link
+                      href={`${process.env.NEXT_PUBLIC_API}/${data.proof}`}
+                      target="_blank"
+                      className="flex gap-0.5 items-center"
+                    >
+                      <img
+                        src="/images/pdf.png"
+                        alt="justificatif"
+                        className="h-7 w-auto aspect-square"
+                      />
+                      <p className="text-foreground font-medium">
+                        {data.proof
+                          ? "Document justificatif"
+                          : "Aucun justificatif"}
+                      </p>
+                    </Link>
+                  ) : (
+                    <p className="italic">{"Aucun justificatif"}</p>
+                  )}
+                </div>
+              </div>
 
               {/* Fournisseur */}
               {data?.type === "achat" && (
