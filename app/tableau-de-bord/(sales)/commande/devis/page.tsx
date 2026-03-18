@@ -96,7 +96,7 @@ const Page = () => {
   });
   /**Providers fetch */
 
-  const providers = useQuery({
+  const getProviders = useQuery({
     queryKey: ["providers"],
     queryFn: providerQ.getAll,
   });
@@ -116,6 +116,11 @@ const Page = () => {
     queryFn: () => requestQ.getAll(),
   });
 
+  const providers = React.useMemo(() => {
+    if (!getProviders.data) return [];
+    return getProviders.data.data;
+  }, [getProviders.data]);
+
   const filteredData = React.useMemo(() => {
     if (!data) return [];
     const now = new Date();
@@ -123,7 +128,7 @@ const Page = () => {
     let endDate = now;
     const search = searchFilter.toLocaleLowerCase();
     return data.data.filter((item) => {
-      const itemAmount = getQuotationAmount(item);
+      const itemAmount = getQuotationAmount(item, providers);
       //Search Filter
       const matchSearch =
         searchFilter.trim() === ""
@@ -238,7 +243,7 @@ const Page = () => {
 
   if (
     isLoading ||
-    providers.isLoading ||
+    getProviders.isLoading ||
     commands.isLoading ||
     getUsers.isLoading ||
     getRequests.isLoading
@@ -247,7 +252,7 @@ const Page = () => {
   }
   if (
     isError ||
-    providers.isError ||
+    getProviders.isError ||
     commands.isError ||
     getUsers.isError ||
     getRequests.isError
@@ -256,7 +261,7 @@ const Page = () => {
       <ErrorPage
         error={
           error ||
-          providers.error ||
+          getProviders.error ||
           commands.error ||
           getUsers.error ||
           getRequests.error ||
@@ -267,7 +272,7 @@ const Page = () => {
   }
   if (
     isSuccess &&
-    providers.isSuccess &&
+    getProviders.isSuccess &&
     commands.isSuccess &&
     getUsers.isSuccess &&
     getRequests.isSuccess
@@ -322,7 +327,7 @@ const Page = () => {
                     <SelectItem value="all">
                       {"Tous les fournisseurs"}
                     </SelectItem>
-                    {providers.data.data.map((provider) => (
+                    {getProviders.data.data.map((provider) => (
                       <SelectItem
                         key={provider.id}
                         value={provider.id.toString()}
@@ -523,7 +528,7 @@ const Page = () => {
         <DevisTable
           data={filteredData}
           commands={commands.data.data}
-          providers={providers.data.data}
+          providers={getProviders.data.data}
           users={getUsers.data.data}
           requests={getRequests.data.data}
         />

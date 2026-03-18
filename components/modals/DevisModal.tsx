@@ -58,7 +58,7 @@ export function DevisModal({
   providers,
   requests,
 }: DetailModalProps) {
-  const totalAmount = getQuotationAmount(data);
+  const totalAmount = getQuotationAmount(data, providers);
   const [page, setPage] = React.useState(1);
   const [file, setFile] = React.useState<string | File | undefined>(undefined);
 

@@ -195,7 +195,7 @@ export function DevisTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const total = getQuotationAmount(value);
+        const total = getQuotationAmount(value, providers);
         return <div>{XAF.format(total)}</div>;
       },
     },

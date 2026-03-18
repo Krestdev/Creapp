@@ -265,17 +265,15 @@ export const getUserName = (
   return user.firstName.concat(" ", user.lastName);
 };
 
-export const getQuotationAmount = (devis: Quotation) => {
-  const isRealRegime = (regem?: string) => {
-    const v = (regem ?? "").toLowerCase().trim();
+export const getQuotationAmount = (devis: Quotation, providers: Provider[]) => {
+  const isRealRegime = (providerId: number) => {
+    const provider = providers.find((p) => p.id === providerId);
+    if (!provider) return false;
+    const v = (provider.regem ?? "").toLowerCase().trim();
     return v === "reel" || v === "réel";
   };
   return devis.element.reduce((total, i) => {
-    const isIr = !i.hasIs
-      ? 0
-      : isRealRegime(devis.provider.regem)
-        ? 0.022
-        : 0.055;
+    const isIr = !i.hasIs ? 0 : isRealRegime(devis.providerId) ? 0.022 : 0.055;
     const tva = i.tva / 100;
     return total + i.priceProposed * (1 - i.reduction) * (1 - isIr + tva);
   }, 0);
