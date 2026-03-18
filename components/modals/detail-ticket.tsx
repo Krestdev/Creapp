@@ -13,11 +13,13 @@ import {
 } from "@/components/ui/dialog";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
-import { payTypeQ } from "@/queries/payType";
-import { requestQ } from "@/queries/requestModule";
-import { Invoice, PaymentRequest, PayType, RequestModelT, User } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import {
+  Invoice,
+  PaymentRequest,
+  PayType,
+  RequestModelT,
+  User,
+} from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -59,7 +61,7 @@ export function DetailTicket({
   invoice,
   users,
   types,
-  requests
+  requests,
 }: DetailTicketProps) {
   // Fonction pour formater le montant
   const formatMontant = (montant: number | undefined) => {
@@ -71,10 +73,8 @@ export function DetailTicket({
   const [page, setPage] = useState(1);
   const [file, setFile] = useState<string | File | undefined>(undefined);
 
-  const request = requests.find(
-    (req) => req.id === data?.requestId,
-  );
-  const emitter = users.find(u=>u.id === request?.userId);
+  const request = requests.find((req) => req.id === data?.requestId);
+  const emitter = users.find((u) => u.id === request?.userId);
 
   // Fonction pour obtenir la couleur du badge selon la priorité
   const getPrioriteColor = (priorite: string | undefined) => {
@@ -209,12 +209,8 @@ export function DetailTicket({
                     <FileText />
                   </span>
                   <div className="flex flex-col">
-                    <p className="view-group-title">
-                      {"Description"}
-                    </p>
-                    <p>
-                      {data?.description ?? "N/A"}
-                    </p>
+                    <p className="view-group-title">{"Description"}</p>
+                    <p>{data?.description ?? "N/A"}</p>
                   </div>
                 </div>
               )}
@@ -227,9 +223,7 @@ export function DetailTicket({
                       <CalendarClock />
                     </span>
                     <div className="flex flex-col">
-                      <p className="view-group-title">
-                        {"Période"}
-                      </p>
+                      <p className="view-group-title">{"Période"}</p>
                       <p className="font-semibold">
                         {request?.period ? (
                           <p className="font-semibold">{`Du ${format(
@@ -253,9 +247,7 @@ export function DetailTicket({
                         <Users />
                       </span>
                       <div className="flex flex-col">
-                        <p className="view-group-title">
-                          {"Bénéficiaires"}
-                        </p>
+                        <p className="view-group-title">{"Bénéficiaires"}</p>
                         <div className="flex flex-col">
                           {request?.beneficiary === "me" ? (
                             <p className="font-semibold capitalize">
@@ -351,9 +343,7 @@ export function DetailTicket({
                     <Users />
                   </div>
                   <div className="flex flex-col">
-                    <p className="view-group-title">
-                      {"Pour le compte de"}
-                    </p>
+                    <p className="view-group-title">{"Pour le compte de"}</p>
                     {
                       <div className="flex flex-col">
                         <div className="flex flex-col">
@@ -377,9 +367,7 @@ export function DetailTicket({
                   <FolderOpen />
                 </div>
                 <div className="flex flex-col">
-                  <p className="view-group-title">
-                    {"Montant"}
-                  </p>
+                  <p className="view-group-title">{"Montant"}</p>
                   <p className="font-semibold text-primary-700">
                     {formatMontant(data?.price || 0)}
                   </p>
@@ -431,9 +419,7 @@ export function DetailTicket({
                     <Building />
                   </span>
                   <div className="flex flex-col">
-                    <p className="view-group-title">
-                      {"Fournisseur"}
-                    </p>
+                    <p className="view-group-title">{"Fournisseur"}</p>
                     <p className="font-semibold">
                       {invoice?.command.provider.name ?? "N/A"}
                     </p>
@@ -448,9 +434,7 @@ export function DetailTicket({
                     <Receipt />
                   </span>
                   <div className="flex flex-col">
-                    <p className="view-group-title">
-                      {"Bon de commande"}
-                    </p>
+                    <p className="view-group-title">{"Bon de commande"}</p>
                     <p className="font-semibold">
                       {invoice?.command.reference ?? "N/A"}
                     </p>
@@ -462,17 +446,14 @@ export function DetailTicket({
               {data?.type === "achat" && (
                 <div className="view-group">
                   <span className="view-icon">
-                    <CreditCard  />
+                    <CreditCard />
                   </span>
                   <div className="flex flex-col">
-                    <p className="view-group-title">
-                      {"Moyen de paiement"}
-                    </p>
+                    <p className="view-group-title">{"Moyen de paiement"}</p>
                     <p className="font-semibold">
                       {translateMoyenPaiement(
-                        types.find(
-                          (p) => p.id === data.methodId,
-                        )?.label || "N/A",
+                        types.find((p) => p.id === data.methodId)?.label ||
+                          "N/A",
                       )}
                     </p>
                   </div>
@@ -498,9 +479,7 @@ export function DetailTicket({
                   <AlertCircle />
                 </span>
                 <div className="flex flex-col">
-                  <p className="view-group-title">
-                    {"Statut"}
-                  </p>
+                  <p className="view-group-title">{"Statut"}</p>
                   <Badge className={getStateColor(data?.status)}>
                     {translateState(data?.status)}
                   </Badge>
@@ -513,9 +492,7 @@ export function DetailTicket({
                   <ChevronsUp />
                 </span>
                 <div className="flex flex-col">
-                  <p className="view-group-title">
-                    {"Priorité"}
-                  </p>
+                  <p className="view-group-title">{"Priorité"}</p>
                   <Badge className={getPrioriteColor(data?.priority)}>
                     {translatePriorite(data?.priority)}
                   </Badge>
@@ -540,33 +517,30 @@ export function DetailTicket({
               </div>
 
               {/**Besoin associé */}
-              {
-                !!data.requestId &&
+              {!!data.requestId && (
                 <>
                   <div className="view-group">
-                  <span className="view-icon">
-                    <ScrollIcon/>
-                  </span>
-                  <div className="flex flex-col">
-                    <p className="view-group-title">{"Besoin associé"}</p>
-                    <p className="font-semibold">
-                      {request?.label}
-                    </p>
+                    <span className="view-icon">
+                      <ScrollIcon />
+                    </span>
+                    <div className="flex flex-col">
+                      <p className="view-group-title">{"Besoin associé"}</p>
+                      <p className="font-semibold">{request?.label}</p>
+                    </div>
                   </div>
-                </div>
                   <div className="view-group">
-                  <span className="view-icon">
-                    <UserRoundIcon/>
-                  </span>
-                  <div className="flex flex-col">
-                    <p className="view-group-title">{"Emetteur du besoin"}</p>
-                    <p className="font-semibold">
-                      {emitter?.firstName.concat(" ", emitter.lastName)}
-                    </p>
+                    <span className="view-icon">
+                      <UserRoundIcon />
+                    </span>
+                    <div className="flex flex-col">
+                      <p className="view-group-title">{"Emetteur du besoin"}</p>
+                      <p className="font-semibold">
+                        {emitter?.firstName.concat(" ", emitter.lastName)}
+                      </p>
+                    </div>
                   </div>
-                </div>
                 </>
-              }
+              )}
 
               {/* Date de création */}
               <div className="view-group">
@@ -591,9 +565,7 @@ export function DetailTicket({
                   <Calendar />
                 </span>
                 <div className="flex flex-col">
-                  <p className="view-group-title">
-                    {"Modifié le"}
-                  </p>
+                  <p className="view-group-title">{"Modifié le"}</p>
                   <p className="font-semibold">
                     {data?.updatedAt
                       ? format(new Date(data.updatedAt), "PPP", { locale: fr })
