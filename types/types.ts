@@ -562,7 +562,7 @@ export const RECEPTION_STATUS = [
 export type Reception = {
   Reference: string;
   id: number;
-  commandId: number;
+  CommandId: number;
   Proof: string;
   Deadline: Date;
   Status: (typeof RECEPTION_STATUS)[number]["value"];
