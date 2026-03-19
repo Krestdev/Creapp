@@ -115,15 +115,7 @@ const Page = () => {
       more: {
         title: "Montant Total",
         value: XAF.format(
-          filteredData.reduce(
-            (total, item) =>
-              total +
-              item.devi.element.reduce(
-                (t, e) => t + e.priceProposed * e.quantity,
-                0,
-              ),
-            0,
-          ),
+          filteredData.reduce((total, item) => total + item.netToPay, 0),
         ),
       },
     },
@@ -147,14 +139,7 @@ const Page = () => {
         value: XAF.format(
           filteredData
             .filter((c) => c.status === "APPROVED")
-            .reduce(
-              (total, item) =>
-                total +
-                item.devi.element
-                  .filter((o) => o.status === "SELECTED")
-                  .reduce((t, e) => t + e.priceProposed * e.quantity, 0),
-              0,
-            ),
+            .reduce((total, item) => total + item.netToPay, 0),
         ),
       },
     },
