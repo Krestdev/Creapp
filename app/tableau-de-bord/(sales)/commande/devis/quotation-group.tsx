@@ -17,7 +17,6 @@ import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -64,9 +63,8 @@ import {
   QuotationGroup as QuotationGroupT,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
-import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { DevisModal } from "@/components/modals/DevisModal";
+import { useRouter } from "next/navigation";
 import { DevisGroup } from "./DevisGroup";
 
 interface QuotationGroupTableProps {
@@ -117,33 +115,44 @@ export function QuotationGroupTable({
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | QuotationGroupStatus
   >("all");
+  const [commandRequestFilter, setCommandRequestFilter] =
+    React.useState<string>("all");
   const [openView, setOpenView] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<QuotationGroup | null>(
     null,
   );
 
+  //Unique array with all commandRequests Ids
+  const commandRequests = [
+    ...new Map(
+      quotations
+        .filter((q) => q.commandRequest)
+        .map((q) => [q.commandRequest.id, q.commandRequest]),
+    ).values(),
+  ];
   const data = React.useMemo(() => {
     return groupQuotationsByCommandRequest(requests, quotations, providers);
   }, [requests, quotations, providers]);
 
   const filteredData = React.useMemo(() => {
-    let filtered = [...data];
+    return data.filter((q) => {
+      //Provider Filter
+      const matchProvider =
+        providerFilter === "all"
+          ? true
+          : q.providers.some((p) => p.id === Number(providerFilter));
+      //Status Filter
+      const matchStatus =
+        statusFilter === "all" ? true : q.status === statusFilter;
+      //Command Request Filter
+      const matchCommandRequest =
+        commandRequestFilter === "all"
+          ? true
+          : q.commandRequest.id === Number(commandRequestFilter);
 
-    // Filtre fournisseur
-    if (providerFilter !== "all") {
-      const providerId = Number(providerFilter);
-      filtered = filtered.filter((g) =>
-        g.providers.some((p) => p.id === providerId),
-      );
-    }
-
-    // Filtre statut
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((g) => g.status === statusFilter);
-    }
-
-    return filtered;
-  }, [data, providerFilter, statusFilter]);
+      return matchProvider && matchStatus && matchCommandRequest;
+    });
+  }, [data, providerFilter, statusFilter, commandRequestFilter]);
 
   const columns: ColumnDef<QuotationGroupT>[] = [
     {
@@ -296,6 +305,7 @@ export function QuotationGroupTable({
   const resetAllFilters = () => {
     setProviderFilter("all");
     setStatusFilter("all");
+    setCommandRequestFilter("all");
     setGlobalFilter("");
     table.resetColumnFilters();
   };
@@ -320,7 +330,7 @@ export function QuotationGroupTable({
                 </SheetDescription>
               </SheetHeader>
               <div className="space-y-5 px-5">
-                <div className="space-y-3">
+                <div className="grid gap-2">
                   <Label htmlFor="searchGroup">{"Recherche globale"}</Label>
                   <Input
                     id="searchGroup"
@@ -331,14 +341,14 @@ export function QuotationGroupTable({
                   />
                 </div>
 
-                <div className="space-y-3">
+                <div className="grid gap-2">
                   <Label>{"Fournisseur"}</Label>
                   <Select
                     value={providerFilter}
                     onValueChange={setProviderFilter}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Tous les fournisseurs" />
+                      <SelectValue placeholder="Sélectionner" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">
@@ -353,7 +363,27 @@ export function QuotationGroupTable({
                   </Select>
                 </div>
 
-                <div className="space-y-3">
+                <div className="grid gap-2">
+                  <Label>{"Demande de cotation"}</Label>
+                  <Select
+                    value={commandRequestFilter}
+                    onValueChange={setCommandRequestFilter}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous les demandes"}</SelectItem>
+                      {commandRequests.map((q) => (
+                        <SelectItem key={q.id} value={q.id.toString()}>
+                          {q.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-2">
                   <Label>{"Statut"}</Label>
                   <Select
                     value={statusFilter}

@@ -650,8 +650,8 @@ export type TransactionSigners = {
 };
 
 export const TRANSACTION_TYPES = [
-  { value: "CREDIT", name: "Crédit" },
-  { value: "DEBIT", name: "Débit" },
+  { value: "CREDIT", name: "Entrée" },
+  { value: "DEBIT", name: "Sortie" },
   { value: "TRANSFER", name: "Transfert" },
 ] as const;
 
