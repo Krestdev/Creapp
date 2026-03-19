@@ -301,7 +301,7 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
                   className="h-4 w-auto aspect-square"
                 />
                 <p className="text-foreground font-medium">
-                  {`Fichier ${index + 1}`}
+                  {`Facture n°${index + 1}`}
                 </p>
               </Link>
             ))}

@@ -204,7 +204,7 @@ export function DevisModal({
                             className="h-7 w-auto aspect-square"
                           />
                           <p className="text-foreground font-medium">
-                            {"Document de preuve"}
+                            {"Devis"}
                           </p>
                         </Link>
                       ))
