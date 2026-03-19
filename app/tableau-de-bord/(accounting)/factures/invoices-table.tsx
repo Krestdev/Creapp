@@ -80,6 +80,11 @@ import Link from "next/link";
 import CancelInvoice from "./cancel-invoice";
 import ViewInvoice from "./view-invoice";
 import ViewInvoicePayment from "./view-invoice-payment";
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
 
 interface Props {
   invoices: Array<Invoice>;
@@ -103,6 +108,19 @@ export function getInvoiceStatusBadge(status: Invoice["status"]): {
     default:
       return { label, variant: "outline" };
   }
+}
+
+function getProgress(invoice: Invoice): { progress: number; value: number } {
+  if (invoice.payment.length === 0) return { progress: 0, value: 0 };
+  const values = invoice.payment.map((p) => {
+    if (p.status !== "paid") return 0;
+    return p.price;
+  });
+  const value = values.reduce((acc, i) => acc + i, 0);
+  return {
+    value,
+    progress: (value * 100) / invoice.amount,
+  };
 }
 
 export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
@@ -325,7 +343,14 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
       cell: ({ row }) => {
         const value = row.original;
         const status = getInvoiceStatusBadge(value.status);
-        return <Badge variant={status.variant}>{status.label}</Badge>;
+        const i = getProgress(value);
+        //return <Badge variant={status.variant}>{status.label}</Badge>;
+        return (
+          <Progress value={i.progress} className={"w-full"}>
+            <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
+            <ProgressValue />
+          </Progress>
+        );
       },
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));

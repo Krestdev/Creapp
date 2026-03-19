@@ -20,6 +20,7 @@ import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
 import { CommandConditionQ } from "@/queries/commandsConditions";
+import { invoiceQ } from "@/queries/invoices";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -40,6 +41,11 @@ const Page = () => {
   const getConditions = useQuery({
     queryKey: ["conditions"],
     queryFn: () => CommandConditionQ.getAll(),
+  });
+
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
 
   const { user } = useStore();
@@ -142,17 +148,38 @@ const Page = () => {
     },
   ];
 
-  if (isLoading || getPayments.isLoading || getConditions.isLoading) {
+  if (
+    isLoading ||
+    getPayments.isLoading ||
+    getConditions.isLoading ||
+    getInvoices.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (isError || getPayments.isError || getConditions.isError) {
+  if (
+    isError ||
+    getPayments.isError ||
+    getConditions.isError ||
+    getInvoices.isError
+  ) {
     return (
       <ErrorPage
-        error={error || getPayments.error || getConditions.error || undefined}
+        error={
+          error ||
+          getPayments.error ||
+          getInvoices.error ||
+          getConditions.error ||
+          undefined
+        }
       />
     );
   }
-  if (isSuccess && getPayments.isSuccess && getConditions.isSuccess)
+  if (
+    isSuccess &&
+    getPayments.isSuccess &&
+    getConditions.isSuccess &&
+    getInvoices.isSuccess
+  )
     return (
       <div className="content">
         <PageTitle
@@ -183,6 +210,7 @@ const Page = () => {
           data={filteredData}
           payments={getPayments.data.data}
           conditions={getConditions.data.data}
+          invoices={getInvoices.data.data}
         />
       </div>
     );

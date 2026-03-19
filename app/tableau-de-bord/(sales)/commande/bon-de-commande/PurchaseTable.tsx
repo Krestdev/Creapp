@@ -66,6 +66,7 @@ import { userQ } from "@/queries/baseModule";
 import {
   BonsCommande,
   CommandCondition,
+  Invoice,
   PaymentRequest,
   PRIORITIES,
   PURCHASE_ORDER_STATUS,
@@ -76,11 +77,17 @@ import AddSignedFile from "./add-signed-file";
 import EditPurchase from "./editPurchase";
 import ViewPurchase from "./viewPurchase";
 import Link from "next/link";
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
 
 interface BonsCommandeTableProps {
   data: Array<BonsCommande>;
   payments: Array<PaymentRequest>;
   conditions: Array<CommandCondition>;
+  invoices: Array<Invoice>;
 }
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
@@ -130,6 +137,7 @@ export function PurchaseTable({
   data,
   payments,
   conditions,
+  invoices,
 }: BonsCommandeTableProps) {
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
 
@@ -182,6 +190,24 @@ export function PurchaseTable({
 
     return filtered;
   }, [data, statusFilter, priorityFilter, penaltyFilter]);
+
+  const getProgress = (
+    purchaseOrder: BonsCommande,
+  ): { progress: number; value: number } => {
+    //To-Do complete this code
+    const data = invoices.filter((i) => i.commandId === purchaseOrder.id);
+    const values = data.flatMap((i) =>
+      i.payment.map((p) => {
+        if (p.status !== "paid") return 0;
+        return p.price;
+      }),
+    );
+    return {
+      progress:
+        (values.reduce((acc, i) => acc + i, 0) * 100) / purchaseOrder.netToPay,
+      value: values.reduce((acc, i) => acc + i, 0),
+    };
+  };
 
   const columns: ColumnDef<BonsCommande>[] = [
     {
@@ -305,40 +331,16 @@ export function PurchaseTable({
       accessorKey: "payment",
       header: () => <span className="tablehead">{"Statut de paiement"}</span>,
       cell: ({ row }) => {
-        const pay = React.useMemo(() => {
-          return payments
-            ?.filter((payment) => payment.invoiceId === row.original.id)
-            .filter((c) => c.status === "paid");
-        }, [payments, row.original]);
-
-        const getColor = (value: number) => {
-          if (value < 40) return "bg-red-500";
-          if (value < 70) return "bg-yellow-500";
-          return "bg-green-500";
-        };
-
-        // Pourcentage de payement
-        const paid =
-          pay?.flatMap((x) => x.price).reduce((a, b) => a + b, 0) ?? 0;
-        const total = totalAmountPurchase(row.original);
-
-        const percent = (paid / total) * 100;
-
-        const value = Math.min(100, Math.max(0, percent));
-        const color = getColor(value);
+        const original = row.original;
+        const i = getProgress(original);
 
         return (
-          <div className="w-full">
-            <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className={`h-full ${color} transition-all duration-300`}
-                style={{ width: `${value}%` }}
-              />
-            </div>
-
-            <div className="mt-1 text-sm text-right text-gray-600">
-              {Number.isInteger(value) ? value : value.toFixed(2)} %
-            </div>
+          <div className="grid gap-1.5">
+            <Progress value={i.progress} className={"w-full"}>
+              <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
+              <ProgressValue />
+            </Progress>
+            <p className="text-end font-medium">{`Montant total : ${XAF.format(original.netToPay)}`}</p>
           </div>
         );
       },
