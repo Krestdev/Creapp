@@ -45,7 +45,7 @@ import {
   TableCellsSplitIcon,
   TextQuoteIcon,
   User2,
-  WalletCardsIcon
+  WalletCardsIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useMemo } from "react";
@@ -149,11 +149,11 @@ function ViewExpense({
           ? "destructive"
           : payment.priority === "medium"
             ? "sky"
-            : payment.priority === "low" ?
-            "outline"
-            : "default";
+            : payment.priority === "low"
+              ? "outline"
+              : "default";
 
-    const label:string =
+    const label: string =
       payment.priority === "urgent"
         ? "Urgent"
         : payment.priority === "high"
@@ -218,8 +218,20 @@ function ViewExpense({
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Type"}</p>
-              <Badge variant={getPaymentTypeBadge({type:payment.type, payTypes: payTypes}).variant}>
-                {getPaymentTypeBadge({type:payment.type, payTypes: payTypes}).label}
+              <Badge
+                variant={
+                  getPaymentTypeBadge({
+                    type: payment.type,
+                    payTypes: payTypes,
+                  }).variant
+                }
+              >
+                {
+                  getPaymentTypeBadge({
+                    type: payment.type,
+                    payTypes: payTypes,
+                  }).label
+                }
               </Badge>
             </div>
           </div>
@@ -271,28 +283,28 @@ function ViewExpense({
           {/* Demande associée */}
           {hasValue(payment.requestId) && (
             <>
-            <div className="view-group">
-              <span className="view-icon">
-                <ScrollIcon />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Besoin"}</p>
-                <p className="font-semibold">
-                  {requests.find((r) => r.id === payment.requestId)?.label}
-                </p>
+              <div className="view-group">
+                <span className="view-icon">
+                  <ScrollIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Besoin"}</p>
+                  <p className="font-semibold">
+                    {requests.find((r) => r.id === payment.requestId)?.label}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="view-group">
-              <span className="view-icon">
-                <CircleUserRoundIcon />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Emetteur du besoin"}</p>
-                <p className="font-semibold">
-                  {initiator?.firstName.concat(" ", initiator.lastName)}
-                </p>
+              <div className="view-group">
+                <span className="view-icon">
+                  <CircleUserRoundIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Emetteur du besoin"}</p>
+                  <p className="font-semibold">
+                    {initiator?.firstName.concat(" ", initiator.lastName)}
+                  </p>
+                </div>
               </div>
-            </div>
             </>
           )}
 
@@ -398,9 +410,7 @@ function ViewExpense({
                     <FileIcon />
                   </span>
                   <div className="flex flex-col">
-                    <p className="view-group-title">
-                      {"Justification"}
-                    </p>
+                    <p className="view-group-title">{"Justification"}</p>
                     <Link
                       href={`${process.env.NEXT_PUBLIC_API}/${payment.justification}`}
                       target="_blank"
@@ -422,15 +432,13 @@ function ViewExpense({
           )}
 
           {/* Justificatif */}
-          {hasValue(payment.proof) && (
-            <div className="view-group">
-              <span className="view-icon">
-                <LucideFile />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">
-                  {"Justificatif"}
-                </p>
+          <div className="view-group">
+            <span className="view-icon">
+              <LucideFile />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Justificatif"}</p>
+              {typeof payment.proof === "string" ? (
                 <Link
                   href={`${process.env.NEXT_PUBLIC_API}/${payment.proof}`}
                   target="_blank"
@@ -441,13 +449,26 @@ function ViewExpense({
                     alt="justificatif"
                     className="h-7 w-auto aspect-square"
                   />
-                  <p className="text-foreground font-medium">
-                    {"Document justificatif"}
-                  </p>
+                  <p className="text-foreground font-medium">{"Document"}</p>
                 </Link>
-              </div>
+              ) : typeof payment.justification === "string" ? (
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_API}/${payment.justification}`}
+                  target="_blank"
+                  className="flex gap-0.5 items-center"
+                >
+                  <img
+                    src="/images/pdf.png"
+                    alt="justificatif"
+                    className="h-7 w-auto aspect-square"
+                  />
+                  <p className="text-foreground font-medium">{"Document"}</p>
+                </Link>
+              ) : (
+                <p className="italic">{"Aucun document"}</p>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Méthode de paiement */}
           {hasValue(payment.methodId) && (
@@ -456,9 +477,7 @@ function ViewExpense({
                 <CreditCard />
               </span>
               <div className="flex flex-col">
-                <p className="view-group-title">
-                  {"Méthode de paiement"}
-                </p>
+                <p className="view-group-title">{"Méthode de paiement"}</p>
                 <p className="font-semibold">{methodName}</p>
               </div>
             </div>
@@ -511,9 +530,7 @@ function ViewExpense({
                   <Calendar />
                 </span>
                 <div className="flex flex-col">
-                  <p className="view-group-title">
-                    {"Modifié le"}
-                  </p>
+                  <p className="view-group-title">{"Modifié le"}</p>
                   <p className="font-semibold">
                     {format(
                       new Date(payment.updatedAt),
@@ -563,9 +580,7 @@ function ViewExpense({
                 <AlertCircle className="h-5 w-5" />
               </span>
               <div className="flex flex-col">
-                <p className="view-group-title">
-                  {"Mode de signature"}
-                </p>
+                <p className="view-group-title">{"Mode de signature"}</p>
                 <p className="font-medium">
                   {signataires?.mode === "ONE"
                     ? "Un dans la liste"

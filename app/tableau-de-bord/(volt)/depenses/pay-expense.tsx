@@ -61,8 +61,9 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
   );
 
   const pay = useMutation({
-    mutationFn: async (payload: Omit<TransactionProps, "userId" | "updatedAt">) =>
-      transactionQ.update(ticket.transactionId!, payload),
+    mutationFn: async (
+      payload: Omit<TransactionProps, "userId" | "updatedAt">,
+    ) => transactionQ.update(ticket.transactionId!, payload),
     onSuccess: () => {
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
@@ -73,9 +74,8 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
   });
 
   const paymentsData = useMutation({
-    mutationFn: async (
-      data: Omit<Partial<PaymentRequest>, "proof">
-    ) => paymentQ.update(ticket.id!, data),
+    mutationFn: async (data: Omit<Partial<PaymentRequest>, "proof">) =>
+      paymentQ.update(ticket.id!, data),
     onSuccess: () => {
       toast.success("Votre dépense a été payée avec succès !");
       form.reset();
@@ -99,18 +99,18 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
       status: "paid",
     };
 
-    ticket.status === "pending_depense" ?
-      paymentsData.mutate({
-        status: "paid"
-      })
+    ticket.status === "pending_depense"
+      ? paymentsData.mutate({
+          status: "paid",
+        })
       : pay.mutate(payload);
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="uppercase">{`Payer - ${ticket.title}`}</DialogTitle>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{`Payer - ${ticket.title}`}</DialogTitle>
           <DialogDescription>{`Paiement du ticket ${ticket.reference}`}</DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto px-6 pb-4">
