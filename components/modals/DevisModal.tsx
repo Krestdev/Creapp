@@ -62,11 +62,12 @@ export function DevisModal({
   // };
 
   // Récupérer le nom du fournisseur (à adapter selon votre structure)
-  const getProviderName = (providerId: number | undefined) => {
+  const getProviderName = (providerId?: number) => {
     return providers.find((p) => p.id === providerId)?.name || "Non spécifié";
   };
+  const provider = providers.find((p) => p.id === data.providerId);
 
-  const getUserName = (userId: number | undefined) => {
+  const getUserName = (userId?: number) => {
     return (
       users.find((u) => u.id === userId)?.firstName +
         " " +
@@ -74,12 +75,12 @@ export function DevisModal({
     );
   };
 
-  const getRequestTitle = (requestId: number | undefined) => {
+  const getRequestTitle = (requestId?: number) => {
     return requests.find((r) => r.id === requestId)?.label || "Non spécifié";
   };
 
   // Formater les dates
-  const formatDate = (dateString: string | undefined) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return "Non spécifié";
     try {
       return format(new Date(dateString), "PPP", { locale: fr });
@@ -234,43 +235,60 @@ export function DevisModal({
                   <TableRow>
                     <TableHead>{"Besoin"}</TableHead>
                     <TableHead>{"Élément"}</TableHead>
-                    <TableHead>{"Quantité"}</TableHead>
-                    <TableHead>{"Prix Unitaire"}</TableHead>
+                    <TableHead>{"Prix HT"}</TableHead>
+                    <TableHead>{"Réduction"}</TableHead>
+                    <TableHead>{"TVA"}</TableHead>
+                    <TableHead>{"IS/IR"}</TableHead>
                     <TableHead>{"Total"}</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {data?.element?.map((el, index) => (
-                    <TableRow
-                      key={index}
-                      className={cn(
-                        index % 2 === 0 ? "bg-white" : "bg-gray-50",
-                        el.status === "SELECTED" && "bg-green-50!",
-                        el.status === "REJECTED" && "bg-red-50!",
-                      )}
-                    >
-                      <TableCell className="font-medium inline-flex gap-1 items-center">
-                        {getRequestTitle(el.requestModelId) || "N/A"}
-                        {el.status === "SELECTED" && (
-                          <CheckCircle size={12} className="text-green-600" />
+                  {data?.element?.map((el, index) => {
+                    //IS/IR
+                    const isIr = !el.hasIs
+                      ? 0
+                      : !provider
+                        ? 0
+                        : provider.regem === "Réel"
+                          ? 2.2
+                          : 5.5;
+                    //Lines
+                    const lineBase = el.priceProposed * el.quantity;
+                    const lineReduction = (lineBase * el.reduction) / 100;
+                    const lineTVA = ((lineBase - lineReduction) * el.tva) / 100;
+                    const lineIsIr = ((lineBase - lineReduction) * isIr) / 100;
+                    return (
+                      <TableRow
+                        key={index}
+                        className={cn(
+                          index % 2 === 0 ? "bg-white" : "bg-gray-50",
+                          el.status === "SELECTED" && "bg-green-50!",
+                          el.status === "REJECTED" && "bg-red-50!",
                         )}
-                        {el.status === "REJECTED" && (
-                          <XCircle size={12} className="text-destructive" />
-                        )}
-                      </TableCell>
-                      <TableCell>{el.title || "N/A"}</TableCell>
-                      <TableCell>
-                        {el.quantity || 0} {el.unit || "unité"}
-                      </TableCell>
-                      <TableCell>{XAF.format(el.priceProposed || 0)}</TableCell>
-                      <TableCell>
-                        {XAF.format(
-                          (el.quantity || 0) * (el.priceProposed || 0),
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                      >
+                        <TableCell className="font-medium inline-flex gap-1 items-center">
+                          {getRequestTitle(el.requestModelId) || "N/A"}
+                          {el.status === "SELECTED" && (
+                            <CheckCircle size={12} className="text-green-600" />
+                          )}
+                          {el.status === "REJECTED" && (
+                            <XCircle size={12} className="text-destructive" />
+                          )}
+                        </TableCell>
+                        <TableCell>{el.title ?? "N/A"}</TableCell>
+                        <TableCell>{`${XAF.format(el.priceProposed ?? 0)} x(${el.quantity})`}</TableCell>
+                        <TableCell>{XAF.format(lineReduction)}</TableCell>
+                        <TableCell>{XAF.format(lineTVA)}</TableCell>
+                        <TableCell>{XAF.format(lineIsIr)}</TableCell>
+                        <TableCell>
+                          {XAF.format(
+                            lineBase - lineReduction + lineTVA - lineIsIr,
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

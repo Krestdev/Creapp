@@ -266,17 +266,20 @@ export const getUserName = (
 };
 
 export const getQuotationAmount = (devis: Quotation, providers: Provider[]) => {
-  const isRealRegime = (providerId: number) => {
+  const isValue = (providerId: number): number => {
     const provider = providers.find((p) => p.id === providerId);
-    if (!provider) return false;
-    const v = (provider.regem ?? "").toLowerCase().trim();
-    return v === "reel" || v === "réel";
+    if (!provider) return 0;
+    if (!provider.regem) return 0;
+    if (provider.regem === "Réel") return 0.022;
+    return 0.055;
   };
   return devis.element.reduce((total, i) => {
-    const isIr = !i.hasIs ? 0 : isRealRegime(devis.providerId) ? 0.022 : 0.055;
+    const isIr = !i.hasIs ? 0 : isValue(devis.providerId);
     const tva = i.tva / 100;
     const reduction = i.reduction / 100;
-    return total + i.priceProposed * (1 - reduction) * (1 - isIr + tva);
+    return (
+      total + i.priceProposed * i.quantity * (1 - reduction) * (1 - isIr + tva)
+    );
   }, 0);
 };
 
