@@ -319,7 +319,7 @@ export function PurchaseTable({
 
     {
       accessorKey: "status",
-      header: () => <span className="tablehead">{"Statut"}</span>,
+      header: () => <span className="tablehead">{"État de paiement"}</span>,
       cell: ({ row }) => {
         const value = row.getValue("status") as Status;
         const { label, variant } = getStatusLabel(value);
@@ -335,13 +335,10 @@ export function PurchaseTable({
         const i = getProgress(original);
 
         return (
-          <div className="grid gap-1.5">
-            <Progress value={i.progress} className={"w-full"}>
-              <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
-              <ProgressValue />
-            </Progress>
-            <p className="text-end font-medium">{`Montant total : ${XAF.format(original.netToPay)}`}</p>
-          </div>
+          <Progress value={i.progress} className={"w-full"}>
+            <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
+            <ProgressValue />
+          </Progress>
         );
       },
     },

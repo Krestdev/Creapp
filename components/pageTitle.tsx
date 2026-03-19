@@ -7,12 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import Link from "next/link";
 
-const PageTitle = ({
-  title,
-  subtitle,
-  color,
-  links = [],
-}: PageTitleProps) => {
+const PageTitle = ({ title, subtitle, color, links = [] }: PageTitleProps) => {
   const router = useRouter();
   const getBackground = (
     color: PageTitleProps["color"],
@@ -65,6 +60,18 @@ const PageTitle = ({
                   disabled={link.disabled}
                 >
                   {link.title}
+                  {link.badge && link.badge > 0 && (
+                    <span
+                      className={cn(
+                        "h-6 min-w-6 px-2 rounded flex items-center text-center text-sm font-medium",
+                        isLast
+                          ? "bg-white text-gray-900"
+                          : "bg-accent text-white",
+                      )}
+                    >
+                      {link.badge}
+                    </span>
+                  )}
                 </Button>
               </Link>
             );

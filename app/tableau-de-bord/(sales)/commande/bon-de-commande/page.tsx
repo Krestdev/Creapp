@@ -21,6 +21,7 @@ import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
 import { CommandConditionQ } from "@/queries/commandsConditions";
 import { invoiceQ } from "@/queries/invoices";
+import { receptionQ } from "@/queries/reception";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -48,11 +49,21 @@ const Page = () => {
     queryFn: invoiceQ.getAll,
   });
 
+  const getReceptions = useQuery({
+    queryKey: ["receptions"],
+    queryFn: receptionQ.getAll,
+  });
+
   const { user } = useStore();
   const auth = isRole({
     roleList: user?.role || [],
     role: "Donner d'ordre achat",
   });
+
+  const receptions = useMemo(() => {
+    if (!getReceptions.data) return [];
+    return getReceptions.data.data.filter((r) => r.Status !== "COMPLETED");
+  }, [getReceptions.data]);
 
   const filteredData: Array<BonsCommande> = useMemo(() => {
     const list = data?.data ?? [];
@@ -92,6 +103,7 @@ const Page = () => {
       title: "Receptions",
       href: "./bon-de-commande/receptions",
       disabled: false,
+      badge: receptions.length,
     },
   ];
 
@@ -152,7 +164,8 @@ const Page = () => {
     isLoading ||
     getPayments.isLoading ||
     getConditions.isLoading ||
-    getInvoices.isLoading
+    getInvoices.isLoading ||
+    getReceptions.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -160,7 +173,8 @@ const Page = () => {
     isError ||
     getPayments.isError ||
     getConditions.isError ||
-    getInvoices.isError
+    getInvoices.isError ||
+    getReceptions.isError
   ) {
     return (
       <ErrorPage
@@ -169,6 +183,7 @@ const Page = () => {
           getPayments.error ||
           getInvoices.error ||
           getConditions.error ||
+          getReceptions.error ||
           undefined
         }
       />
@@ -178,7 +193,8 @@ const Page = () => {
     isSuccess &&
     getPayments.isSuccess &&
     getConditions.isSuccess &&
-    getInvoices.isSuccess
+    getInvoices.isSuccess &&
+    getReceptions.isSuccess
   )
     return (
       <div className="content">

@@ -542,6 +542,7 @@ export interface NavLink {
   href: string;
   disabled?: boolean;
   hide?: boolean;
+  badge?: number;
 }
 
 export type DateFilter =
