@@ -17,13 +17,13 @@ import {
   BanIcon,
   ChevronDown,
   Eye,
-  ListIcon,
   Settings2,
+  WalletCardsIcon,
 } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components//base/pagination";
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import { badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -42,6 +42,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -72,6 +77,7 @@ import {
   INVOICE_STATUS,
   Invoice,
   PaymentRequest,
+  Provider,
   User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
@@ -81,15 +87,19 @@ import CancelInvoice from "./cancel-invoice";
 import ViewInvoice from "./view-invoice";
 import ViewInvoicePayment from "./view-invoice-payment";
 import {
-  Progress,
-  ProgressLabel,
-  ProgressValue,
-} from "@/components/ui/progress";
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 
 interface Props {
   invoices: Array<Invoice>;
   purchases: Array<BonsCommande>;
   payments: Array<PaymentRequest>;
+  providers: Array<Provider>;
   users: Array<User>;
 }
 
@@ -123,7 +133,13 @@ function getProgress(invoice: Invoice): { progress: number; value: number } {
   };
 }
 
-export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
+export function InvoicesTable({
+  invoices,
+  purchases,
+  payments,
+  users,
+  providers,
+}: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -146,6 +162,16 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | Invoice["status"]
   >("all");
+  const [providerFilter, setProviderFilter] = React.useState<"all" | string>(
+    "",
+  );
+  const [purchaseFilter, setPurchaseFilter] = React.useState<"all" | string>(
+    "",
+  );
+  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
+    "greater" | "inferior" | "equal" | "aucun"
+  >("aucun");
+  const [amountFilter, setAmountFilter] = React.useState<number>(0);
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
@@ -160,7 +186,13 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
     }
     setGlobalFilter("");
     setStatusFilter("all");
+    setProviderFilter("all");
+    setPurchaseFilter("");
+    setAmountFilter(0);
+    setAmountTypeFilter("aucun");
   };
+
+  const providersData = ["Tous", ...providers.map((p) => p.name)];
 
   const data: Array<Invoice> = React.useMemo(() => {
     return invoices.filter((invoice) => {
@@ -207,9 +239,44 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
             new Date(invoice.createdAt) <= endDate;
         }
       }
-      return matchDate && matchStatus;
+      //Amount Filter
+      const matchAmount =
+        amountTypeFilter === "aucun"
+          ? true
+          : amountTypeFilter === "greater"
+            ? invoice.amount > amountFilter
+            : amountTypeFilter === "equal"
+              ? invoice.amount === amountFilter
+              : invoice.amount < amountFilter;
+      //Provider Filter
+      const matchProvider =
+        providerFilter === ""
+          ? true
+          : Number(providerFilter) === invoice.command.providerId;
+
+      //Purchase Filter
+      const matchPurchaseOrder =
+        purchaseFilter === ""
+          ? true
+          : Number(purchaseFilter) === invoice.commandId;
+
+      return (
+        matchDate &&
+        matchStatus &&
+        matchAmount &&
+        matchProvider &&
+        matchPurchaseOrder
+      );
     });
-  }, [statusFilter, customDateRange, dateFilter]);
+  }, [
+    statusFilter,
+    customDateRange,
+    dateFilter,
+    amountFilter,
+    amountTypeFilter,
+    providerFilter,
+    purchaseFilter,
+  ]);
 
   const columns: ColumnDef<Invoice>[] = [
     {
@@ -266,47 +333,22 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
       },
     },
     {
-      accessorKey: "proof",
+      id: "purchaseOrder",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Documents"}
+            {"Bon de commande"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
-        const proofField = row.original.proof;
-        const elements =
-          typeof proofField === "string" && proofField.length > 0
-            ? proofField.split(";").filter(Boolean)
-            : Array.isArray(proofField)
-              ? proofField.map(String).filter(Boolean)
-              : [];
-        return (
-          <div className="font-medium flex flex-wrap gap-1.5">
-            {elements.map((proof, index) => (
-              <Link
-                key={index}
-                href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
-                target="_blank"
-                className="flex gap-0.5 items-center px-2 py-1 rounded border"
-              >
-                <img
-                  src="/images/pdf.png"
-                  alt="preuve"
-                  className="h-4 w-auto aspect-square"
-                />
-                <p className="text-foreground font-medium">
-                  {`Facture n°${index + 1}`}
-                </p>
-              </Link>
-            ))}
-          </div>
-        );
+        const value = row.original;
+        const purchase = purchases.find((p) => p.id === value.commandId);
+        return <div>{purchase?.devi.commandRequest.title ?? "--"}</div>;
       },
     },
     {
@@ -354,6 +396,48 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
       },
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
+      },
+    },
+    {
+      accessorKey: "proof",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Documents"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const proofField = row.original.proof;
+        const elements =
+          typeof proofField === "string" && proofField.length > 0
+            ? proofField.split(";").filter(Boolean)
+            : Array.isArray(proofField)
+              ? proofField.map(String).filter(Boolean)
+              : [];
+        return (
+          <div className="font-medium flex flex-wrap gap-1.5">
+            {elements.map((proof, index) => (
+              <Link
+                key={index}
+                href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
+                target="_blank"
+                className="flex gap-0.5 items-center px-2 py-1 rounded border"
+              >
+                <img
+                  src="/images/pdf.png"
+                  alt="preuve"
+                  className="h-4 w-auto aspect-square"
+                />
+                <p className="text-foreground font-medium">{`Facture`}</p>
+              </Link>
+            ))}
+          </div>
+        );
       },
     },
     {
@@ -409,7 +493,7 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
                   setShowPayments(true);
                 }}
               >
-                <ListIcon />
+                <WalletCardsIcon />
                 {"Voir les paiements"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -419,7 +503,9 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
                   setSelected(item);
                   setCancel(true);
                 }}
-                disabled={item.status !== "UNPAID"}
+                disabled={
+                  item.payment.filter((p) => p.status === "paid").length > 0
+                }
               >
                 <BanIcon />
                 {"Annuler"}
@@ -488,6 +574,7 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
                   className="w-full"
                 />
               </div>
+              {/**Status Filter */}
               <div className="grid gap-1.5">
                 <Label>{"Statut"}</Label>
                 <Select
@@ -508,6 +595,127 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              {/**Provider Filter */}
+              <div className="grid gap-1.5">
+                <Label>{"Fournisseur"}</Label>
+                {/* <Select
+                  value={providerFilter}
+                  onValueChange={setProviderFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un fournisseur" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {providers.map((p) => (
+                      <SelectItem key={p.id} value={p.id.toString()}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select> */}
+                <Combobox
+                  items={providersData}
+                  value={providerFilter}
+                  onValueChange={(v) => setProviderFilter(v ?? "Tous")}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun bon de commande correspondant"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item) => (
+                        <ComboboxItem key={item} value={item}>
+                          {item}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </div>
+              {/**Purchase Order Filter */}
+              <div className="grid gap-1.5">
+                <Label>{"Bon de commande"}</Label>
+                {/* <Select
+                  value={purchaseFilter}
+                  onValueChange={setPurchaseFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un Bon" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {purchases.map((p) => (
+                      <SelectItem key={p.id} value={p.id.toString()}>
+                        {p.devi.commandRequest.title ?? p.reference}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select> */}
+                <Combobox
+                  items={purchases}
+                  value={
+                    purchases.find((p) => p.id === Number(purchaseFilter)) ??
+                    null
+                  }
+                  onValueChange={(v) =>
+                    setPurchaseFilter(v?.id.toString() ?? "")
+                  }
+                  itemToStringLabel={(v) => v.devi.commandRequest.title}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun bon de commande correspondant"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: BonsCommande) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.devi.commandRequest.title}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </div>
+              {/* Filter by amount */}
+              <div className="grid gap-1.5">
+                <Label>{"Comparer le montant"}</Label>
+                <Select
+                  value={amountTypeFilter}
+                  onValueChange={(v) =>
+                    setAmountTypeFilter(
+                      v as "greater" | "inferior" | "equal" | "aucun",
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="aucun">{"Aucun"}</SelectItem>
+                    <SelectItem value="greater">{"Supérieur"}</SelectItem>
+                    <SelectItem value="equal">{"Égal"}</SelectItem>
+                    <SelectItem value="inferior">{"Inférieur"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>{"Montant"}</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Ex. 250 000"
+                    value={amountFilter ?? 0}
+                    onChange={(e) => setAmountFilter(Number(e.target.value))}
+                    className="w-full pr-12"
+                  />
+                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                    {"FCFA"}
+                  </span>
+                </div>
               </div>
 
               {/* Filtre par période */}

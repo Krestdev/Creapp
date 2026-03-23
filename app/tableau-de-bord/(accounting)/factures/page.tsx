@@ -14,6 +14,8 @@ import { useMemo } from "react";
 import { InvoicesTable } from "./invoices-table";
 import { paymentQ } from "@/queries/payment";
 import { userQ } from "@/queries/baseModule";
+import { XAF } from "@/lib/utils";
+import { providerQ } from "@/queries/providers";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -37,6 +39,11 @@ function Page() {
     queryFn: paymentQ.getAll,
   });
 
+  const getProviders = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
+
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
 
   const invoices: Array<Invoice> = useMemo(() => {
@@ -44,11 +51,16 @@ function Page() {
     return getInvoices.data.data;
   }, [getInvoices.data]);
 
+  const payments = invoices
+    .flatMap((i) => i.payment)
+    .filter((p) => p.status === "paid");
+
   if (
     getInvoices.isLoading ||
     getPurchases.isLoading ||
     getPayments.isLoading ||
-    getUsers.isLoading
+    getUsers.isLoading ||
+    getProviders.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -57,16 +69,29 @@ function Page() {
     getInvoices.isError ||
     getPurchases.isError ||
     getPayments.isError ||
-    getUsers.isError
+    getUsers.isError ||
+    getProviders.isError
   ) {
-    return <ErrorPage />;
+    return (
+      <ErrorPage
+        error={
+          getInvoices.error ||
+          getPurchases.error ||
+          getPayments.error ||
+          getUsers.error ||
+          getProviders.error ||
+          undefined
+        }
+      />
+    );
   }
 
   if (
     getInvoices.isSuccess &&
     getPurchases.isSuccess &&
     getPayments.isSuccess &&
-    getUsers.isSuccess
+    getUsers.isSuccess &&
+    getProviders.isSuccess
   ) {
     const statistics: Array<StatisticProps> = [
       {
@@ -80,14 +105,22 @@ function Page() {
         variant: "destructive",
       },
       {
-        title: "Factures Validées",
+        title: "Factures Payées",
         value: invoices.filter((p) => p.status === "PAID").length,
         variant: "success",
+        more: {
+          title: "Montant payé",
+          value: XAF.format(payments.reduce((acc, i) => acc + i.price, 0)),
+        },
       },
       {
         title: "Total de factures",
         value: invoices.length,
         variant: "default",
+        more: {
+          title: "Montant total",
+          value: XAF.format(invoices.reduce((acc, i) => acc + i.amount, 0)),
+        },
       },
     ];
     return (
@@ -108,6 +141,7 @@ function Page() {
           purchases={getPurchases.data.data}
           payments={getPayments.data.data}
           users={getUsers.data.data}
+          providers={getProviders.data.data}
         />
       </div>
     );
