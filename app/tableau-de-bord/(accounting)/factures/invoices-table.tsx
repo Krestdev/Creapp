@@ -142,6 +142,7 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPayments, setShowPayments] = React.useState<boolean>(false);
   const [cancel, setCancel] = React.useState<boolean>(false);
+  const [statusSearch, setStatusSearch] = React.useState("");
 
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | Invoice["status"]
@@ -153,14 +154,15 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
 
   // Réinitialiser tous les filtres
-  const resetAllFilters = () => {
-    setDateFilter(undefined);
-    if (setCustomDateRange) {
-      setCustomDateRange(undefined);
-    }
-    setGlobalFilter("");
-    setStatusFilter("all");
-  };
+ const resetAllFilters = () => {
+  setGlobalFilter("");
+  setStatusFilter("all");
+  setDateFilter(undefined);
+  setCustomDateRange(undefined);
+  setCustomOpen(false);
+  // Réinitialiser la recherche
+  setStatusSearch("");
+};
 
   const data: Array<Invoice> = React.useMemo(() => {
     return invoices.filter((invoice) => {
@@ -465,147 +467,247 @@ export function InvoicesTable({ invoices, purchases, payments, users }: Props) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <Sheet>
-          <SheetTrigger asChild>
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
+  <SheetTrigger asChild>
+    <Button variant={"outline"}>
+      <Settings2 />
+      {"Filtres"}
+    </Button>
+  </SheetTrigger>
+  <SheetContent>
+    <SheetHeader>
+      <SheetTitle>{"Filtres"}</SheetTitle>
+      <SheetDescription>
+        {"Configurer les filtres pour affiner les données"}
+      </SheetDescription>
+    </SheetHeader>
+    <div className="px-5 grid gap-5">
+      <div className="grid gap-1.5">
+        <Label>{"Recherche"}</Label>
+        <Input
+          placeholder="Référence"
+          value={globalFilter ?? ""}
+          onChange={(event) => setGlobalFilter(event.target.value)}
+          className="w-full"
+        />
+      </div>
+
+      {/* Filtre par statut avec recherche */}
+      <div className="grid gap-1.5">
+        <Label>{"Statut"}</Label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full justify-between">
+              <span className="truncate">
+                {statusFilter === "all"
+                  ? "Tous les statuts"
+                  : INVOICE_STATUS.find(s => s.value === statusFilter)?.name || "Sélectionner"}
+              </span>
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-5 grid gap-5">
-              <div className="grid gap-1.5">
-                <Label>{"Recherche"}</Label>
-                <Input
-                  placeholder="Référence"
-                  value={globalFilter ?? ""}
-                  onChange={(event) => setGlobalFilter(event.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <Label>{"Statut"}</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) =>
-                    setStatusFilter(value as "all" | Invoice["status"])
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Filtrer par statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
-                    {INVOICE_STATUS.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Filtre par période */}
-              <div className="grid gap-1.5">
-                <Label>{"Période"}</Label>
-                <Select
-                  onValueChange={(v) => {
-                    if (v !== "custom") {
-                      setCustomDateRange(undefined);
-                      setCustomOpen(false);
-                    }
-                    if (v === "all") return setDateFilter(undefined);
-                    setDateFilter(v as Exclude<DateFilter, undefined>);
-                    setCustomOpen(v === "custom");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
-                    <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                    <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                    <SelectItem value="month">{"Ce mois"}</SelectItem>
-                    <SelectItem value="year">{"Cette année"}</SelectItem>
-                    <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Collapsible
-                  open={customOpen}
-                  onOpenChange={setCustomOpen}
-                  disabled={dateFilter !== "custom"}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      {"Plage personnalisée"}
-                      <span className="text-muted-foreground text-xs">
-                        {customDateRange?.from && customDateRange.to
-                          ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
-                          : "Choisir"}
-                      </span>
-                    </Button>
-                  </CollapsibleTrigger>
-
-                  <CollapsibleContent className="space-y-4 pt-4">
-                    <Calendar
-                      mode="range"
-                      selected={customDateRange}
-                      onSelect={(range) =>
-                        setCustomDateRange(range as { from: Date; to: Date })
-                      }
-                      numberOfMonths={1}
-                      className="rounded-md border w-full"
-                    />
-                    <div className="space-y-1">
-                      <Button
-                        className="w-full"
-                        onClick={() => {
-                          setCustomDateRange(undefined);
-                          setDateFilter(undefined);
-                          setCustomOpen(false);
-                        }}
-                      >
-                        {"Annuler"}
-                      </Button>
-                      <Button
-                        className="w-full"
-                        variant={"outline"}
-                        onClick={() => {
-                          setCustomOpen(false);
-                        }}
-                      >
-                        {"Réduire"}
-                      </Button>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-
-              {/* Bouton pour réinitialiser les filtres */}
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={resetAllFilters}
-                  className="w-full"
-                >
-                  {"Réinitialiser"}
-                </Button>
-              </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+            <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+              <Input
+                placeholder="Rechercher un statut..."
+                className="h-8"
+                value={statusSearch}
+                onChange={(e) => setStatusSearch(e.target.value)}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                autoFocus
+              />
             </div>
-          </SheetContent>
-        </Sheet>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                setStatusFilter("all");
+                setStatusSearch("");
+              }}
+              className={statusFilter === "all" ? "bg-accent" : ""}
+            >
+              <span>Tous les statuts</span>
+            </DropdownMenuItem>
+            {INVOICE_STATUS
+              .filter(s =>
+                s.name.toLowerCase().includes(statusSearch.toLowerCase())
+              )
+              .map((s) => (
+                <DropdownMenuItem
+                  key={s.value}
+                  onClick={() => {
+                    setStatusFilter(s.value);
+                    setStatusSearch("");
+                  }}
+                  className={statusFilter === s.value ? "bg-accent" : ""}
+                >
+                  <span>{s.name}</span>
+                </DropdownMenuItem>
+              ))}
+            {INVOICE_STATUS.filter(s =>
+              s.name.toLowerCase().includes(statusSearch.toLowerCase())
+            ).length === 0 && (
+              <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                Aucun statut trouvé
+              </div>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Filtre par période */}
+      <div className="grid gap-1.5">
+        <Label>{"Période"}</Label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full justify-between">
+              <span className="truncate">
+                {dateFilter === undefined
+                  ? "Toutes les périodes"
+                  : dateFilter === "today"
+                  ? "Aujourd'hui"
+                  : dateFilter === "week"
+                  ? "Cette semaine"
+                  : dateFilter === "month"
+                  ? "Ce mois"
+                  : dateFilter === "year"
+                  ? "Cette année"
+                  : dateFilter === "custom"
+                  ? "Personnalisé"
+                  : "Sélectionner une période"}
+              </span>
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+            <DropdownMenuItem
+              onClick={() => {
+                setDateFilter(undefined);
+                setCustomDateRange(undefined);
+                setCustomOpen(false);
+              }}
+              className={dateFilter === undefined ? "bg-accent" : ""}
+            >
+              <span>Toutes les périodes</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setDateFilter("today");
+                setCustomOpen(false);
+              }}
+              className={dateFilter === "today" ? "bg-accent" : ""}
+            >
+              <span>Aujourd'hui</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setDateFilter("week");
+                setCustomOpen(false);
+              }}
+              className={dateFilter === "week" ? "bg-accent" : ""}
+            >
+              <span>Cette semaine</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setDateFilter("month");
+                setCustomOpen(false);
+              }}
+              className={dateFilter === "month" ? "bg-accent" : ""}
+            >
+              <span>Ce mois</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setDateFilter("year");
+                setCustomOpen(false);
+              }}
+              className={dateFilter === "year" ? "bg-accent" : ""}
+            >
+              <span>Cette année</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setDateFilter("custom");
+                setCustomOpen(true);
+              }}
+              className={dateFilter === "custom" ? "bg-accent" : ""}
+            >
+              <span>Personnalisé</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Collapsible
+          open={customOpen}
+          onOpenChange={setCustomOpen}
+          disabled={dateFilter !== "custom"}
+        >
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-between"
+            >
+              {"Plage personnalisée"}
+              <span className="text-muted-foreground text-xs">
+                {customDateRange?.from && customDateRange.to
+                  ? `${format(
+                      customDateRange.from,
+                      "dd/MM/yyyy",
+                    )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                  : "Choisir"}
+              </span>
+            </Button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="space-y-4 pt-4">
+            <Calendar
+              mode="range"
+              selected={customDateRange}
+              onSelect={(range) =>
+                setCustomDateRange(range as { from: Date; to: Date })
+              }
+              numberOfMonths={1}
+              className="rounded-md border w-full"
+            />
+            <div className="space-y-1">
+              <Button
+                className="w-full"
+                onClick={() => {
+                  setCustomDateRange(undefined);
+                  setDateFilter(undefined);
+                  setCustomOpen(false);
+                }}
+              >
+                {"Annuler"}
+              </Button>
+              <Button
+                className="w-full"
+                variant={"outline"}
+                onClick={() => {
+                  setCustomOpen(false);
+                }}
+              >
+                {"Réduire"}
+              </Button>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+
+      {/* Bouton pour réinitialiser les filtres */}
+      <div className="flex items-end">
+        <Button
+          variant="outline"
+          onClick={resetAllFilters}
+          className="w-full"
+        >
+          {"Réinitialiser"}
+        </Button>
+      </div>
+    </div>
+  </SheetContent>
+</Sheet>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">

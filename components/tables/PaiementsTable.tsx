@@ -182,6 +182,8 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
   const [priorityFilter, setPriorityFilter] = React.useState<
     "all" | PaymentRequest["priority"]
   >("all");
+  const [prioritySearch, setPrioritySearch] = React.useState("");
+  const [statusSearch, setStatusSearch] = React.useState("");
 
   const toReject = useMutation({
     mutationFn: async (data: PaymentRequest) =>
@@ -196,21 +198,24 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
   });
 
   // Filtrer les données par statut et priorité
-  const filteredByStatusAndPriority:Array<PaymentRequest> = React.useMemo(() => {
-    let filtered = payments;
+  const filteredByStatusAndPriority: Array<PaymentRequest> =
+    React.useMemo(() => {
+      let filtered = payments;
 
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(p => p.status === statusFilter);
-    }
+      if (statusFilter !== "all") {
+        filtered = filtered.filter((p) => p.status === statusFilter);
+      }
 
-    if (priorityFilter !== "all") {
-      filtered = filtered.filter(p => p.priority === priorityFilter);
-    }
+      if (priorityFilter !== "all") {
+        filtered = filtered.filter((p) => p.priority === priorityFilter);
+      }
 
-    return filtered;
-  }, [payments, statusFilter, priorityFilter]);
+      return filtered;
+    }, [payments, statusFilter, priorityFilter]);
 
-  const columns: ColumnDef<PaymentRequest & { providerName: string; bonCommandeTitle: string }>[] = [
+  const columns: ColumnDef<
+    PaymentRequest & { providerName: string; bonCommandeTitle: string }
+  >[] = [
     {
       accessorKey: "reference",
       header: ({ column }) => {
@@ -243,7 +248,9 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.invoiceId;
-        const purchase = invoices.find(i=> i.id === value)?.command.devi.commandRequest.title ?? "Non défini"
+        const purchase =
+          invoices.find((i) => i.id === value)?.command.devi.commandRequest
+            .title ?? "Non défini";
         return <div>{purchase}</div>;
       },
     },
@@ -262,7 +269,9 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.invoiceId;
-        const providerName = invoices.find(i=> i.id === value)?.command.provider.name ?? "Créaconsult"
+        const providerName =
+          invoices.find((i) => i.id === value)?.command.provider.name ??
+          "Créaconsult";
         return <div>{providerName}</div>;
       },
     },
@@ -419,13 +428,21 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
       const searchStr = filterValue.toLowerCase();
 
       // Recherche dans tous les champs pertinents
-      const reference = (row.getValue("reference") || "").toString().toLowerCase();
-      const bonCommandeTitle = (row.getValue("bonCommandeTitle") || "").toString().toLowerCase();
-      const providerName = (row.getValue("providerName") || "").toString().toLowerCase();
+      const reference = (row.getValue("reference") || "")
+        .toString()
+        .toLowerCase();
+      const bonCommandeTitle = (row.getValue("bonCommandeTitle") || "")
+        .toString()
+        .toLowerCase();
+      const providerName = (row.getValue("providerName") || "")
+        .toString()
+        .toLowerCase();
 
-      return reference.includes(searchStr) ||
+      return (
+        reference.includes(searchStr) ||
         bonCommandeTitle.includes(searchStr) ||
-        providerName.includes(searchStr);
+        providerName.includes(searchStr)
+      );
     },
   });
 
@@ -433,7 +450,9 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
     setGlobalFilter("");
     setPriorityFilter("all");
     setStatusFilter("all");
-    setColumnFilters([]);
+    // Réinitialiser les recherches
+    setPrioritySearch("");
+    setStatusSearch("");
   };
 
   return (
@@ -466,48 +485,153 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
                   onChange={(e) => setGlobalFilter(e.target.value)}
                 />
               </div>
+
+              {/* Filtre par priorité avec recherche */}
               <div className="space-y-3">
                 <Label>{"Priorité"}</Label>
-                <Select
-                  value={priorityFilter}
-                  onValueChange={(v: "all" | PaymentRequest["priority"]) =>
-                    setPriorityFilter(v)
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Toutes les priorités" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
-                    {PRIORITIES.map((p) => (
-                      <SelectItem key={p.value} value={p.value}>
-                        {p.name}
-                      </SelectItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {priorityFilter === "all"
+                          ? "Toutes les priorités"
+                          : PRIORITIES.find((p) => p.value === priorityFilter)
+                              ?.name || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher une priorité..."
+                        className="h-8"
+                        value={prioritySearch}
+                        onChange={(e) => setPrioritySearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setPriorityFilter("all");
+                        setPrioritySearch("");
+                      }}
+                      className={priorityFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <span>Toutes les priorités</span>
+                    </DropdownMenuItem>
+                    {PRIORITIES.filter((p) =>
+                      p.name
+                        .toLowerCase()
+                        .includes(prioritySearch.toLowerCase()),
+                    ).map((p) => (
+                      <DropdownMenuItem
+                        key={p.value}
+                        onClick={() => {
+                          setPriorityFilter(p.value);
+                          setPrioritySearch("");
+                        }}
+                        className={
+                          priorityFilter === p.value ? "bg-accent" : ""
+                        }
+                      >
+                        <span>{p.name}</span>
+                      </DropdownMenuItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                    {PRIORITIES.filter((p) =>
+                      p.name
+                        .toLowerCase()
+                        .includes(prioritySearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucune priorité trouvée
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
+              {/* Filtre par statut avec recherche */}
               <div className="space-y-3">
                 <Label>{"Statut"}</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(v) =>
-                    setStatusFilter(v as "all" | PaymentRequest["status"])
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Toutes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
-                    {PAY_STATUS.filter(s => payments.some(d => d.status === s.value)).map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {statusFilter === "all"
+                          ? "Tous les statuts"
+                          : PAY_STATUS.find((s) => s.value === statusFilter)
+                              ?.name || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un statut..."
+                        className="h-8"
+                        value={statusSearch}
+                        onChange={(e) => setStatusSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setStatusFilter("all");
+                        setStatusSearch("");
+                      }}
+                      className={statusFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <span>Tous les statuts</span>
+                    </DropdownMenuItem>
+                    {PAY_STATUS.filter((s) =>
+                      payments.some((d) => d.status === s.value),
+                    )
+                      .filter((s) =>
+                        s.name
+                          .toLowerCase()
+                          .includes(statusSearch.toLowerCase()),
+                      )
+                      .map((s) => (
+                        <DropdownMenuItem
+                          key={s.value}
+                          onClick={() => {
+                            setStatusFilter(s.value);
+                            setStatusSearch("");
+                          }}
+                          className={
+                            statusFilter === s.value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{s.name}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    {PAY_STATUS.filter((s) =>
+                      payments.some((d) => d.status === s.value),
+                    ).filter((s) =>
+                      s.name.toLowerCase().includes(statusSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun statut trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div className="flex gap-2">
@@ -523,7 +647,9 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
                   className="flex-1"
                   onClick={() => {
                     // Fermer le sheet
-                    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+                    document.dispatchEvent(
+                      new KeyboardEvent("keydown", { key: "Escape" }),
+                    );
                   }}
                 >
                   {"Appliquer"}
@@ -534,17 +660,23 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
         </Sheet>
 
         {/* Indicateur de filtres actifs */}
-        {(statusFilter !== "all" || priorityFilter !== "all" || globalFilter.trim() !== "") && (
+        {(statusFilter !== "all" ||
+          priorityFilter !== "all" ||
+          globalFilter.trim() !== "") && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground mr-auto">
             <span className="font-medium">Filtres actifs:</span>
             {statusFilter !== "all" && (
               <Badge variant="outline" className="text-xs">
-                Statut: {PAY_STATUS.find(s => s.value === statusFilter)?.name || statusFilter}
+                Statut:{" "}
+                {PAY_STATUS.find((s) => s.value === statusFilter)?.name ||
+                  statusFilter}
               </Badge>
             )}
             {priorityFilter !== "all" && (
               <Badge variant="outline" className="text-xs">
-                Priorité: {PRIORITIES.find(p => p.value === priorityFilter)?.name || priorityFilter}
+                Priorité:{" "}
+                {PRIORITIES.find((p) => p.value === priorityFilter)?.name ||
+                  priorityFilter}
               </Badge>
             )}
             {globalFilter.trim() !== "" && (
@@ -620,9 +752,9 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -669,7 +801,9 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
       {/* Afficher le nombre de résultats filtrés */}
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <div>
-          {table.getFilteredRowModel().rows.length} résultat{table.getFilteredRowModel().rows.length > 1 ? 's' : ''} sur {payments.length}
+          {table.getFilteredRowModel().rows.length} résultat
+          {table.getFilteredRowModel().rows.length > 1 ? "s" : ""} sur{" "}
+          {payments.length}
         </div>
         <Pagination table={table} />
       </div>

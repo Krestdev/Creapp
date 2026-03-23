@@ -69,6 +69,7 @@ import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import EditTypeOthers from "@/components/besoin/EditTypeOthers";
 
 const statusConfig = {
   pending: {
@@ -124,7 +125,7 @@ export function TableMyRequests({
   projects,
   payments,
   requestTypes,
-  users
+  users,
 }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -145,6 +146,7 @@ export function TableMyRequests({
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isUpdateFacModalOpen, setIsUpdateFacModalOpen] = React.useState(false);
   const [isUpdateRHModalOpen, setIsUpdateRHModalOpen] = React.useState(false);
+  const [isUpdateOthersModalOpen, setIsUpdateOthersModalOpen] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
 
@@ -238,11 +240,11 @@ export function TableMyRequests({
         const modifier = original.requestOlds?.find((r) => r.id !== user?.id);
         const modified = !modifier
           ? false
-          : modifier.priority !==original.priority ||
+          : modifier.priority !== original.priority ||
             modifier.amount !== original.amount ||
-            modifier.dueDate !==original.dueDate ||
-            modifier.quantity !==original.quantity ||
-            modifier.unit !==original.unit;
+            modifier.dueDate !== original.dueDate ||
+            modifier.quantity !== original.quantity ||
+            modifier.unit !== original.unit;
         return (
           <div className="flex items-center gap-1.5 uppercase">
             {!!modified && (
@@ -270,7 +272,10 @@ export function TableMyRequests({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getRequestTypeBadge({type:value.type, requestTypes: requestTypes});
+        const type = getRequestTypeBadge({
+          type: value.type,
+          requestTypes: requestTypes,
+        });
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },
@@ -405,7 +410,9 @@ export function TableMyRequests({
                     item.type === "facilitation"
                       ? setIsUpdateFacModalOpen(true)
                       : item.type === "ressource_humaine"
-                        ? setIsUpdateRHModalOpen(true)
+                        ? setIsUpdateRHModalOpen(true) :
+                        item.type === "others" ?
+                        setIsUpdateOthersModalOpen(true)
                         : setIsUpdateModalOpen(true);
                   }}
                   disabled={item.state !== "pending"}
@@ -476,7 +483,10 @@ export function TableMyRequests({
       if (statusLabel.includes(searchValue)) return true;
 
       // 6. Recherche dans le type
-      const typeBadge = getRequestTypeBadge({type:item.type, requestTypes: requestTypes});
+      const typeBadge = getRequestTypeBadge({
+        type: item.type,
+        requestTypes: requestTypes,
+      });
       if (typeBadge.label.toLowerCase().includes(searchValue)) return true;
 
       // 7. Recherche dans la date (formatée)
@@ -633,7 +643,7 @@ export function TableMyRequests({
             open={isUpdateFacModalOpen}
             onOpenChange={setIsUpdateFacModalOpen}
             requestData={selectedItem}
-            users={users.filter(u=> !!u.verified && u.verified === true)}
+            users={users.filter((u) => !!u.verified && u.verified === true)}
             projects={projects}
           />
           <UpdateRHRequest
@@ -642,6 +652,14 @@ export function TableMyRequests({
             requestData={selectedItem}
             users={users}
             projects={projects}
+          />
+          <EditTypeOthers
+            requestId={selectedItem.id}
+            users={users}
+            categories={categories}
+            projects={projects}
+            open={isUpdateOthersModalOpen}
+            onOpenChange={setIsUpdateOthersModalOpen}
           />
         </>
       )}

@@ -138,18 +138,18 @@ function TransferTable({ data }: Props) {
       const search = searchFilter.toLocaleLowerCase();
       // Search Filter
       const matchSearch =
-      search.trim() === "" ? true :
-      transaction.id.toString().toLocaleLowerCase().includes(search) ||
-      transaction.label.toLocaleLowerCase().includes(search) ||
-      transaction.amount.toString().includes(search) ||
-      transaction.to.label.toLocaleLowerCase().includes(search) ||
-      transaction.from.label.toLocaleLowerCase().includes(search)
+        search.trim() === ""
+          ? true
+          : transaction.id.toString().toLocaleLowerCase().includes(search) ||
+            transaction.label.toLocaleLowerCase().includes(search) ||
+            transaction.amount.toString().includes(search) ||
+            transaction.to.label.toLocaleLowerCase().includes(search) ||
+            transaction.from.label.toLocaleLowerCase().includes(search);
       //Filter Tab
       const matchTab =
         selectedTab === 0
           ? transaction.Type === "TRANSFER" && transaction.status === "PENDING"
-          : (transaction.Type === "TRANSFER" &&
-              transaction.status !== "PENDING")
+          : transaction.Type === "TRANSFER" && transaction.status !== "PENDING";
 
       // Filter amount
       const matchAmount =
@@ -204,7 +204,7 @@ function TransferTable({ data }: Props) {
     amountFilter,
     amountTypeFilter,
     selectedTab,
-    searchFilter
+    searchFilter,
   ]);
 
   // Réinitialiser tous les filtres
@@ -300,8 +300,14 @@ function TransferTable({ data }: Props) {
       },
       cell: ({ row }) => {
         const source = row.original.from;
-        const destination = row.original.to
-        return <span className="flex items-center gap-1.5">{source.label}<ArrowRightIcon size={12} />{destination.label}</span>;
+        const destination = row.original.to;
+        return (
+          <span className="flex items-center gap-1.5">
+            {source.label}
+            <ArrowRightIcon size={12} />
+            {destination.label}
+          </span>
+        );
       },
     },
     {
@@ -342,8 +348,20 @@ function TransferTable({ data }: Props) {
       cell: ({ row }) => {
         const value = row.original.status;
         return (
-          <Badge variant={value === "PENDING" ? "amber" : value === "REJECTED" ? "destructive" : "success"}>
-            {value === "PENDING" ? "En attente" : value === "REJECTED" ? "Rejeté" : "Approuvé"}
+          <Badge
+            variant={
+              value === "PENDING"
+                ? "amber"
+                : value === "REJECTED"
+                  ? "destructive"
+                  : "success"
+            }
+          >
+            {value === "PENDING"
+              ? "En attente"
+              : value === "REJECTED"
+                ? "Rejeté"
+                : "Approuvé"}
           </Badge>
         );
       },
@@ -366,7 +384,10 @@ function TransferTable({ data }: Props) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() =>{setSelected(item); setView(true)}}
+                onClick={() => {
+                  setSelected(item);
+                  setView(true);
+                }}
               >
                 <EyeIcon />
                 {"Voir"}
@@ -451,7 +472,7 @@ function TransferTable({ data }: Props) {
               <SheetHeader>
                 <SheetTitle>{"Filtres"}</SheetTitle>
                 <SheetDescription>
-                  {"Configurer les fitres pour affiner les données"}
+                  {"Configurer les filtres pour affiner les données"}
                 </SheetDescription>
               </SheetHeader>
               <div className="px-5 grid gap-5">
@@ -470,23 +491,54 @@ function TransferTable({ data }: Props) {
 
                 {/* Filter by amount */}
                 <div className="grid gap-1.5">
-                  <Label>{"Montant"}</Label>
-                  <Select
-                    value={amountTypeFilter}
-                    onValueChange={(v) =>
-                      setAmountTypeFilter(v as "greater" | "inferior" | "equal")
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner une période" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="greater">{"Supérieur"}</SelectItem>
-                      <SelectItem value="equal">{"Égal"}</SelectItem>
-                      <SelectItem value="inferior">{"Inférieur"}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>{"Comparer le montant"}</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {amountTypeFilter === "greater"
+                            ? "Supérieur"
+                            : amountTypeFilter === "equal"
+                              ? "Égal"
+                              : amountTypeFilter === "inferior"
+                                ? "Inférieur"
+                                : "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                      <DropdownMenuItem
+                        onClick={() => setAmountTypeFilter("greater")}
+                        className={
+                          amountTypeFilter === "greater" ? "bg-accent" : ""
+                        }
+                      >
+                        <span>Supérieur</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setAmountTypeFilter("equal")}
+                        className={
+                          amountTypeFilter === "equal" ? "bg-accent" : ""
+                        }
+                      >
+                        <span>Égal</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setAmountTypeFilter("inferior")}
+                        className={
+                          amountTypeFilter === "inferior" ? "bg-accent" : ""
+                        }
+                      >
+                        <span>Inférieur</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
+
                 <div className="grid gap-1.5">
                   <Label>{"Montant"}</Label>
                   <div className="relative">
@@ -506,31 +558,89 @@ function TransferTable({ data }: Props) {
                 {/* Filtre par période */}
                 <div className="grid gap-1.5">
                   <Label>{"Période"}</Label>
-                  <Select
-                    onValueChange={(v) => {
-                      if (v !== "custom") {
-                        setCustomDateRange(undefined);
-                        setCustomOpen(false);
-                      }
-                      if (v === "all") return setDateFilter(undefined);
-                      setDateFilter(v as Exclude<DateFilter, undefined>);
-                      setCustomOpen(v === "custom");
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner une période" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {"Toutes les périodes"}
-                      </SelectItem>
-                      <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                      <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                      <SelectItem value="month">{"Ce mois"}</SelectItem>
-                      <SelectItem value="year">{"Cette année"}</SelectItem>
-                      <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {dateFilter === undefined
+                            ? "Toutes les périodes"
+                            : dateFilter === "today"
+                              ? "Aujourd'hui"
+                              : dateFilter === "week"
+                                ? "Cette semaine"
+                                : dateFilter === "month"
+                                  ? "Ce mois"
+                                  : dateFilter === "year"
+                                    ? "Cette année"
+                                    : dateFilter === "custom"
+                                      ? "Personnalisé"
+                                      : "Sélectionner une période"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter(undefined);
+                          setCustomDateRange(undefined);
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === undefined ? "bg-accent" : ""}
+                      >
+                        <span>Toutes les périodes</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("today");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "today" ? "bg-accent" : ""}
+                      >
+                        <span>Aujourd'hui</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("week");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "week" ? "bg-accent" : ""}
+                      >
+                        <span>Cette semaine</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("month");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "month" ? "bg-accent" : ""}
+                      >
+                        <span>Ce mois</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("year");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "year" ? "bg-accent" : ""}
+                      >
+                        <span>Cette année</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("custom");
+                          setCustomOpen(true);
+                        }}
+                        className={dateFilter === "custom" ? "bg-accent" : ""}
+                      >
+                        <span>Personnalisé</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   <Collapsible
                     open={customOpen}
                     onOpenChange={setCustomOpen}
@@ -707,9 +817,13 @@ function TransferTable({ data }: Props) {
           userId={user?.id ?? 0}
         />
       )}
-      {
-        selected && <ViewTransaction open={view} openChange={setView} transaction={selected} />
-      }
+      {selected && (
+        <ViewTransaction
+          open={view}
+          openChange={setView}
+          transaction={selected}
+        />
+      )}
     </div>
   );
 }

@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/table";
 import { cn, getRequestTypeBadge } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { } from "@/queries/commandRqstModule";
+import {} from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
   Invoice,
@@ -52,7 +52,7 @@ import {
   PaymentRequest,
   RequestModelT,
   RequestType,
-  User
+  User,
 } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -154,8 +154,13 @@ const getStatusVariant = (
   }
 };
 
-export function TicketTable({ data, requestTypeData, invoices, users, requests }: TicketsTableProps) {
-  
+export function TicketTable({
+  data,
+  requestTypeData,
+  invoices,
+  users,
+  requests,
+}: TicketsTableProps) {
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<"all" | PaymentRequest["type"]>(
     "all",
@@ -179,28 +184,28 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
         selectedTab === 0
           ? c.status === "accepted" || c.status === "pending"
           : c.status === "paid" ||
-          c.status === "validated" ||
-          c.status === "unsigned" ||
-          c.status === "signed" ||
-          c.status === "simple_signed";
+            c.status === "validated" ||
+            c.status === "unsigned" ||
+            c.status === "signed" ||
+            c.status === "simple_signed";
       //searchFilter
       const matchSearch =
         searchFilter === ""
           ? true
           : c.id === Number(searchFilter) ||
-          c.price === Number(searchFilter) ||
-          c.account
-            ?.toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.title
-            .toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.description
-            ?.toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.reference
-            .toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase());
+            c.price === Number(searchFilter) ||
+            c.account
+              ?.toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.title
+              .toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.description
+              ?.toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.reference
+              .toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase());
       //TypeFilter
       const matchType = typeFilter === "all" ? true : c.type === typeFilter;
       //StatusFilter
@@ -225,11 +230,14 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
 
   const resetAllFilters = () => {
     setSearchFilter("");
-    setStatusFilter("all");
     setPriorityFilter("all");
+    setStatusFilter("all");
     setTypeFilter("all");
+    // Réinitialiser les recherches
+    setPrioritySearch("");
+    setStatusSearch("");
+    setTypeSearch("");
   };
-
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -246,6 +254,9 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
   const [openRejectModal, setOpenRejectModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<PaymentRequest>();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice>();
+  const [prioritySearch, setPrioritySearch] = useState("");
+  const [statusSearch, setStatusSearch] = useState("");
+  const [typeSearch, setTypeSearch] = useState("");
 
   const [message, setMessage] = useState<string>("");
 
@@ -297,7 +308,10 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getRequestTypeBadge({type:value.type, requestTypes: requestTypeData});
+        const type = getRequestTypeBadge({
+          type: value.type,
+          requestTypes: requestTypeData,
+        });
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },
@@ -318,7 +332,9 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
         const invoiceId = row.original.invoiceId;
         const invoice = invoices.find((item) => item.id === Number(invoiceId));
         return (
-          <div className="uppercase">{invoice?.command.provider.name ?? "--"}</div>
+          <div className="uppercase">
+            {invoice?.command.provider.name ?? "--"}
+          </div>
         );
       },
     },
@@ -578,11 +594,11 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
               <SheetHeader>
                 <SheetTitle>{"Filtres"}</SheetTitle>
                 <SheetDescription>
-                  {"Configurer les fitres pour affiner les données"}
+                  {"Configurer les filtres pour affiner les données"}
                 </SheetDescription>
               </SheetHeader>
               <div className="px-5 grid gap-5">
-                {/**Search */}
+                {/** Search */}
                 <div className="grid gap-1.5">
                   <Label>{"Recherche"}</Label>
                   <Input
@@ -592,75 +608,227 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
                     className="w-full"
                   />
                 </div>
-                {/**Priority */}
+
+                {/** Priority */}
                 <div className="grid gap-1.5">
                   <Label>{"Priorité"}</Label>
-                  <Select
-                    value={priorityFilter}
-                    onValueChange={(v) =>
-                      setPriorityFilter(v as "all" | PaymentRequest["priority"])
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {PRIORITIES.map((priority) => (
-                        <SelectItem key={priority.value} value={priority.value}>
-                          {priority.name}
-                        </SelectItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {priorityFilter === "all"
+                            ? "Toutes les priorités"
+                            : PRIORITIES.find((p) => p.value === priorityFilter)
+                                ?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher une priorité..."
+                          className="h-8"
+                          value={prioritySearch}
+                          onChange={(e) => setPrioritySearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setPriorityFilter("all");
+                          setPrioritySearch("");
+                        }}
+                        className={priorityFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Toutes les priorités</span>
+                      </DropdownMenuItem>
+                      {PRIORITIES.filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(prioritySearch.toLowerCase()),
+                      ).map((priority) => (
+                        <DropdownMenuItem
+                          key={priority.value}
+                          onClick={() => {
+                            setPriorityFilter(priority.value);
+                            setPrioritySearch("");
+                          }}
+                          className={
+                            priorityFilter === priority.value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{priority.name}</span>
+                        </DropdownMenuItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                      {PRIORITIES.filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(prioritySearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucune priorité trouvée
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
+
                 {/** Status */}
                 <div className="grid gap-1.5">
                   <Label>{"Statut"}</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(v) =>
-                      setStatusFilter(v as "all" | PaymentRequest["status"])
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {statusFilter === "all"
+                            ? "Tous les statuts"
+                            : PAY_STATUS.find((s) => s.value === statusFilter)
+                                ?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher un statut..."
+                          className="h-8"
+                          value={statusSearch}
+                          onChange={(e) => setStatusSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setStatusFilter("all");
+                          setStatusSearch("");
+                        }}
+                        className={statusFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Tous les statuts</span>
+                      </DropdownMenuItem>
                       {PAY_STATUS.filter(
                         (c) =>
                           c.value === "accepted" || c.value === "validated",
-                      ).map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {getStatusVariant(status.value).label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      )
+                        .filter((s) =>
+                          s.name
+                            .toLowerCase()
+                            .includes(statusSearch.toLowerCase()),
+                        )
+                        .map((status) => (
+                          <DropdownMenuItem
+                            key={status.value}
+                            onClick={() => {
+                              setStatusFilter(status.value);
+                              setStatusSearch("");
+                            }}
+                            className={
+                              statusFilter === status.value ? "bg-accent" : ""
+                            }
+                          >
+                            <span>{getStatusVariant(status.value).label}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      {PAY_STATUS.filter(
+                        (c) =>
+                          c.value === "accepted" || c.value === "validated",
+                      ).filter((s) =>
+                        s.name
+                          .toLowerCase()
+                          .includes(statusSearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun statut trouvé
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-                {/** */}
+
+                {/** Type */}
                 <div className="grid gap-1.5">
                   <Label>{"Type"}</Label>
-                  <Select
-                    value={typeFilter}
-                    onValueChange={(v) =>
-                      setTypeFilter(v as "all" | PaymentRequest["type"])
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Filtrer par type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous les types"}</SelectItem>
-                      {PAYMENT_TYPES.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.name}
-                        </SelectItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {typeFilter === "all"
+                            ? "Tous les types"
+                            : PAYMENT_TYPES.find((t) => t.value === typeFilter)
+                                ?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher un type..."
+                          className="h-8"
+                          value={typeSearch}
+                          onChange={(e) => setTypeSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setTypeFilter("all");
+                          setTypeSearch("");
+                        }}
+                        className={typeFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Tous les types</span>
+                      </DropdownMenuItem>
+                      {PAYMENT_TYPES.filter((t) =>
+                        t.name.toLowerCase().includes(typeSearch.toLowerCase()),
+                      ).map((type) => (
+                        <DropdownMenuItem
+                          key={type.value}
+                          onClick={() => {
+                            setTypeFilter(type.value);
+                            setTypeSearch("");
+                          }}
+                          className={
+                            typeFilter === type.value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{type.name}</span>
+                        </DropdownMenuItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                      {PAYMENT_TYPES.filter((t) =>
+                        t.name.toLowerCase().includes(typeSearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun type trouvé
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
+
                 {/* Bouton pour réinitialiser les filtres */}
                 <div className="flex items-end">
                   <Button
@@ -742,9 +910,9 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -792,29 +960,35 @@ export function TicketTable({ data, requestTypeData, invoices, users, requests }
       </div>
       <Pagination table={table} />
 
-      {
-        !!selectedTicket &&
+      {!!selectedTicket && (
         <DetailTicket
-        open={openDetailModal}
-        onOpenChange={setOpenDetailModal}
-        data={selectedTicket}
-        invoice={selectedInvoice}
-        action={() =>
-          paymentMutation.mutate({
-            id: selectedTicket?.id!,
-            data: { status: "paid" },
-          })
-        }
-        users={users}
-        types={requestTypeData}
-        requests={requests}
-      />}
+          open={openDetailModal}
+          onOpenChange={setOpenDetailModal}
+          data={selectedTicket}
+          invoice={selectedInvoice}
+          action={() =>
+            paymentMutation.mutate({
+              id: selectedTicket?.id!,
+              data: { status: "paid" },
+            })
+          }
+          users={users}
+          types={requestTypeData}
+          requests={requests}
+        />
+      )}
 
       <ModalWarning
         open={openValidationModal}
         variant="success"
         onOpenChange={setOpenValidationModal}
-        title={"Approbation" + " - " + selectedTicket?.title + " - " + selectedTicket?.reference}
+        title={
+          "Approbation" +
+          " - " +
+          selectedTicket?.title +
+          " - " +
+          selectedTicket?.reference
+        }
         description={"Voulez-vous valider ce ticket ?"}
         onAction={() =>
           validateMutation.mutate({
