@@ -23,6 +23,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -121,7 +122,8 @@ export function QuotationGroupTable({
   const [selectedItem, setSelectedItem] = React.useState<QuotationGroup | null>(
     null,
   );
-
+const [providerSearch, setProviderSearch] = React.useState("");
+const [commandRequestSearch, setCommandRequestSearch] = React.useState("");
   //Unique array with all commandRequests Ids
   const commandRequests = [
     ...new Map(
@@ -303,12 +305,14 @@ export function QuotationGroupTable({
   });
 
   const resetAllFilters = () => {
-    setProviderFilter("all");
-    setStatusFilter("all");
-    setCommandRequestFilter("all");
-    setGlobalFilter("");
-    table.resetColumnFilters();
-  };
+  setGlobalFilter("");
+  setProviderFilter("all");
+  setCommandRequestFilter("all");
+  setStatusFilter("all");
+  // Réinitialiser les recherches
+  setProviderSearch("");
+  setCommandRequestSearch("");
+};
 
   return (
     <div className="w-full space-y-4">
@@ -341,68 +345,230 @@ export function QuotationGroupTable({
                   />
                 </div>
 
+                {/* Filtre par fournisseur */}
                 <div className="grid gap-2">
                   <Label>{"Fournisseur"}</Label>
-                  <Select
-                    value={providerFilter}
-                    onValueChange={setProviderFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {"Tous les fournisseurs"}
-                      </SelectItem>
-                      {providers.map((p) => (
-                        <SelectItem key={p.id} value={p.id.toString()}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {providerFilter === "all"
+                            ? "Tous les fournisseurs"
+                            : providers.find(
+                                (p) => p.id.toString() === providerFilter,
+                              )?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher un fournisseur..."
+                          className="h-8"
+                          value={providerSearch}
+                          onChange={(e) => setProviderSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setProviderFilter("all");
+                          setProviderSearch("");
+                        }}
+                        className={providerFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>Tous les fournisseurs</span>
+                        </div>
+                      </DropdownMenuItem>
+                      {providers
+                        .filter((provider) =>
+                          provider.name
+                            .toLowerCase()
+                            .includes(providerSearch.toLowerCase()),
+                        )
+                        .map((provider) => (
+                          <DropdownMenuItem
+                            key={provider.id}
+                            onClick={() => {
+                              setProviderFilter(provider.id.toString());
+                              setProviderSearch("");
+                            }}
+                            className={
+                              providerFilter === provider.id.toString()
+                                ? "bg-accent"
+                                : ""
+                            }
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{provider.name}</span>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      {providers.filter((provider) =>
+                        provider.name
+                          .toLowerCase()
+                          .includes(providerSearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun fournisseur trouvé
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
+                {/* Filtre par demande de cotation */}
                 <div className="grid gap-2">
                   <Label>{"Demande de cotation"}</Label>
-                  <Select
-                    value={commandRequestFilter}
-                    onValueChange={setCommandRequestFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous les demandes"}</SelectItem>
-                      {commandRequests.map((q) => (
-                        <SelectItem key={q.id} value={q.id.toString()}>
-                          {q.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {commandRequestFilter === "all"
+                            ? "Toutes les demandes"
+                            : commandRequests.find(
+                                (q) => q.id.toString() === commandRequestFilter,
+                              )?.title || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher une demande..."
+                          className="h-8"
+                          value={commandRequestSearch}
+                          onChange={(e) =>
+                            setCommandRequestSearch(e.target.value)
+                          }
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setCommandRequestFilter("all");
+                          setCommandRequestSearch("");
+                        }}
+                        className={
+                          commandRequestFilter === "all" ? "bg-accent" : ""
+                        }
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>Toutes les demandes</span>
+                        </div>
+                      </DropdownMenuItem>
+                      {commandRequests
+                        .filter((request) =>
+                          request.title
+                            .toLowerCase()
+                            .includes(commandRequestSearch.toLowerCase()),
+                        )
+                        .map((request) => (
+                          <DropdownMenuItem
+                            key={request.id}
+                            onClick={() => {
+                              setCommandRequestFilter(request.id.toString());
+                              setCommandRequestSearch("");
+                            }}
+                            className={
+                              commandRequestFilter === request.id.toString()
+                                ? "bg-accent"
+                                : ""
+                            }
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{request.title}</span>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      {commandRequests.filter((request) =>
+                        request.title
+                          .toLowerCase()
+                          .includes(commandRequestSearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucune demande trouvée
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
+                {/* Filtre par statut */}
                 <div className="grid gap-2">
                   <Label>{"Statut"}</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(v: "all" | QuotationGroupStatus) =>
-                      setStatusFilter(v)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Tous les statuts" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      <SelectItem value="NOT_PROCESSED">
-                        {"Non traité"}
-                      </SelectItem>
-                      <SelectItem value="IN_PROGRESS">{"En cours"}</SelectItem>
-                      <SelectItem value="PROCESSED">{"Traité"}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {statusFilter === "all"
+                            ? "Tous les statuts"
+                            : statusFilter === "NOT_PROCESSED"
+                              ? "Non traité"
+                              : statusFilter === "IN_PROGRESS"
+                                ? "En cours"
+                                : statusFilter === "PROCESSED"
+                                  ? "Traité"
+                                  : "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setStatusFilter("all");
+                        }}
+                        className={statusFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Tous les statuts</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setStatusFilter("NOT_PROCESSED")}
+                        className={
+                          statusFilter === "NOT_PROCESSED" ? "bg-accent" : ""
+                        }
+                      >
+                        <span>Non traité</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setStatusFilter("IN_PROGRESS")}
+                        className={
+                          statusFilter === "IN_PROGRESS" ? "bg-accent" : ""
+                        }
+                      >
+                        <span>En cours</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setStatusFilter("PROCESSED")}
+                        className={
+                          statusFilter === "PROCESSED" ? "bg-accent" : ""
+                        }
+                      >
+                        <span>Traité</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <Button

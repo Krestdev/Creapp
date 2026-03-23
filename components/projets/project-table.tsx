@@ -41,13 +41,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -130,6 +123,8 @@ export function ProjectTable({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [isCompletedModalOpen, setIsCompletedModalOpen] = React.useState(false);
   const [isSuspendedModalOpen, setIsSuspendedModalOpen] = React.useState(false);
+  const [statusSearch, setStatusSearch] = React.useState("");
+  const [chiefSearch, setChiefSearch] = React.useState("");
 
   // Obtenir la liste unique des chefs de projet
   const uniqueChiefs = React.useMemo(() => {
@@ -256,7 +251,7 @@ export function ProjectTable({
         const searchText = [
           project.reference || "",
           project.label || "",
-          project.chief.firstName.concat(" ", project.chief.lastName),
+          project.chief && project.chief.firstName.concat(" ", project.chief.lastName),
         ]
           .map((text) => normalizeText(text))
           .join(" ");
@@ -288,6 +283,7 @@ export function ProjectTable({
     ) {
       filtered = filtered.filter(
         (project) =>
+          project.chief &&
           project.chief.firstName.concat(" ", project.chief.lastName) ===
           effectiveFilters.chiefFilter,
       );
@@ -648,7 +644,7 @@ export function ProjectTable({
   return (
     <div className="content">
       <div className="flex flex-wrap justify-between gap-4">
-        <Sheet>
+        <Sheet modal={false}>
           <SheetTrigger asChild>
             <Button variant={"outline"}>
               <Settings2 />
@@ -674,64 +670,211 @@ export function ProjectTable({
                   className="w-full"
                 />
               </div>
-              {/* Filtre par statut */}
+
+              {/* Filtre par statut - Version DropdownMenu avec recherche */}
               <div className="grid gap-1.5">
                 <Label>{"Statut"}</Label>
-                <Select
-                  value={
-                    typeof effectiveFilters.statusFilter === "string"
-                      ? effectiveFilters.statusFilter
-                      : "multiple"
-                  }
-                  onValueChange={(value) =>
-                    updateFilter(
-                      "statusFilter",
-                      value === "all" ? "all" : value,
-                    )
-                  }
+                <DropdownMenu
+                  onOpenChange={(open) => {
+                    if (!open) {
+                      // Réinitialiser la recherche quand le menu se ferme
+                      setStatusSearch("");
+                    }
+                  }}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Tous les statuts" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-                    {uniqueStatuses.map((status) => {
-                      const badgeInfo = getBadge(status);
-                      return (
-                        <SelectItem key={status} value={status}>
-                          <div className="flex items-center gap-2">
-                            {badgeInfo.icon && (
-                              <badgeInfo.icon className="h-4 w-4" />
-                            )}
-                            {badgeInfo.label}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span>
+                        {effectiveFilters.statusFilter === "all"
+                          ? "Tous les statuts"
+                          : getBadge(effectiveFilters.statusFilter as string)
+                              .label}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto"
+                    onInteractOutside={(e) => {
+                      // Empêche la fermeture quand on clique dans l'input
+                      const target = e.target as HTMLElement;
+                      if (target.closest("input")) {
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    <div
+                      className="p-2 sticky top-0 bg-popover z-10"
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      <Input
+                        placeholder="Rechercher un statut..."
+                        className="h-8"
+                        value={statusSearch}
+                        onChange={(e) => setStatusSearch(e.target.value)}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        onKeyDown={(e) => {
+                          e.stopPropagation();
+                        }}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={(e) => e.preventDefault()}
+                      onClick={() => updateFilter("statusFilter", "all")}
+                      className={
+                        effectiveFilters.statusFilter === "all"
+                          ? "bg-accent"
+                          : ""
+                      }
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Tous les statuts</span>
+                      </div>
+                    </DropdownMenuItem>
+                    {uniqueStatuses
+                      .filter(
+                        (status) =>
+                          getBadge(status)
+                            .label.toLowerCase()
+                            .includes(statusSearch.toLowerCase()) ||
+                          status
+                            .toLowerCase()
+                            .includes(statusSearch.toLowerCase()),
+                      )
+                      .map((status) => {
+                        const badgeInfo = getBadge(status);
+                        return (
+                          <DropdownMenuItem
+                            key={status}
+                            onSelect={(e) => e.preventDefault()}
+                            onClick={() => {
+                              updateFilter("statusFilter", status);
+                              setStatusSearch("");
+                            }}
+                            className={
+                              effectiveFilters.statusFilter === status
+                                ? "bg-accent"
+                                : ""
+                            }
+                          >
+                            <div className="flex items-center gap-2 w-full">
+                              {badgeInfo.icon && (
+                                <badgeInfo.icon className="h-4 w-4" />
+                              )}
+                              <span>{badgeInfo.label}</span>
+                              <Badge
+                                variant="outline"
+                                className="ml-auto text-xs"
+                              >
+                                {status}
+                              </Badge>
+                            </div>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
-              {/* Filtre par chef de projet */}
+              {/* Filtre par chef de projet - Version DropdownMenu avec recherche */}
               <div className="grid gap-1.5">
                 <Label>{"Chef de Projet"}</Label>
-                <Select
-                  value={effectiveFilters.chiefFilter}
-                  onValueChange={(value) => updateFilter("chiefFilter", value)}
+                <DropdownMenu
+                  onOpenChange={(open) => {
+                    if (!open) {
+                      setChiefSearch("");
+                    }
+                  }}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Tous les chefs" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
-                    {uniqueChiefs.map((chief) => (
-                      <SelectItem key={chief} value={chief}>
-                        {chief}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span>
+                        {effectiveFilters.chiefFilter === "all"
+                          ? "Tous les chefs"
+                          : effectiveFilters.chiefFilter}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto"
+                    onCloseAutoFocus={(e) => {
+                      e.preventDefault();
+                    }}
+                  >
+                    <div
+                      className="p-2 sticky top-0 bg-popover z-10"
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      <Input
+                        placeholder="Rechercher un statut..."
+                        className="h-8"
+                        value={chiefSearch}
+                        onChange={(e) => setChiefSearch(e.target.value)}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        onKeyDown={(e) => {
+                          e.stopPropagation();
+                        }}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => updateFilter("chiefFilter", "all")}
+                      className={
+                        effectiveFilters.chiefFilter === "all"
+                          ? "bg-accent"
+                          : ""
+                      }
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Tous les chefs</span>
+                      </div>
+                    </DropdownMenuItem>
+                    {uniqueChiefs
+                      .filter((chief) =>
+                        chief.toLowerCase().includes(chiefSearch.toLowerCase()),
+                      )
+                      .map((chief) => (
+                        <DropdownMenuItem
+                          key={chief}
+                          onClick={() => {
+                            updateFilter("chiefFilter", chief);
+                            setChiefSearch("");
+                          }}
+                          className={
+                            effectiveFilters.chiefFilter === chief
+                              ? "bg-accent"
+                              : ""
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <span>{chief}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+
               {/* Bouton pour réinitialiser les filtres */}
               <div className="flex items-end">
                 <Button

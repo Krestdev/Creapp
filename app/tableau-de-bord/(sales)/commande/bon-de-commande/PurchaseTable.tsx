@@ -33,6 +33,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -157,6 +158,8 @@ export function PurchaseTable({
   const [priorityFilter, setPriorityFilter] = React.useState<"all" | Priority>(
     "all",
   );
+  const [statusSearch, setStatusSearch] = React.useState("");
+  const [prioritySearch, setPrioritySearch] = React.useState("");
   const [penaltyFilter, setPenaltyFilter] = React.useState<
     "all" | "yes" | "no"
   >("all");
@@ -196,6 +199,8 @@ export function PurchaseTable({
   ): { progress: number; value: number } => {
     //To-Do complete this code
     const data = invoices.filter((i) => i.commandId === purchaseOrder.id);
+    console.log(data);
+
     const values = data.flatMap((i) =>
       i.payment.map((p) => {
         if (p.status !== "paid") return 0;
@@ -495,11 +500,13 @@ export function PurchaseTable({
   });
 
   const resetAllFilters = () => {
+    setGlobalFilter("");
     setStatusFilter("all");
     setPriorityFilter("all");
-    setPenaltyFilter("all");
-    setGlobalFilter("");
-    table.resetColumnFilters();
+    // Réinitialiser les recherches
+    setStatusSearch("");
+    setPrioritySearch("");
+    // setPenaltyFilter("all"); // Si vous décommentez le filtre pénalités
   };
 
   return (
@@ -535,66 +542,191 @@ export function PurchaseTable({
                   />
                 </div>
 
+                {/* Filtre par statut avec recherche */}
                 <div className="space-y-3">
                   <Label>{"Statut"}</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(v: "all" | Status) => setStatusFilter(v)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Tous les statuts" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {PURCHASE_ORDER_STATUS.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>
-                          {s.name}
-                        </SelectItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {statusFilter === "all"
+                            ? "Tous les statuts"
+                            : PURCHASE_ORDER_STATUS.find(
+                                (s) => s.value === statusFilter,
+                              )?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher un statut..."
+                          className="h-8"
+                          value={statusSearch}
+                          onChange={(e) => setStatusSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setStatusFilter("all");
+                          setStatusSearch("");
+                        }}
+                        className={statusFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Tous les statuts</span>
+                      </DropdownMenuItem>
+                      {PURCHASE_ORDER_STATUS.filter((s) =>
+                        s.name
+                          .toLowerCase()
+                          .includes(statusSearch.toLowerCase()),
+                      ).map((s) => (
+                        <DropdownMenuItem
+                          key={s.value}
+                          onClick={() => {
+                            setStatusFilter(s.value as Status);
+                            setStatusSearch("");
+                          }}
+                          className={
+                            statusFilter === s.value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{s.name}</span>
+                        </DropdownMenuItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                      {PURCHASE_ORDER_STATUS.filter((s) =>
+                        s.name
+                          .toLowerCase()
+                          .includes(statusSearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun statut trouvé
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
+                {/* Filtre par priorité avec recherche */}
                 <div className="space-y-3">
                   <Label>{"Priorité"}</Label>
-                  <Select
-                    value={priorityFilter}
-                    onValueChange={(v: "all" | Priority) =>
-                      setPriorityFilter(v)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Toutes les priorités" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Toutes"}</SelectItem>
-                      {PRIORITIES.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.name}
-                        </SelectItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {priorityFilter === "all"
+                            ? "Toutes les priorités"
+                            : PRIORITIES.find((p) => p.value === priorityFilter)
+                                ?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher une priorité..."
+                          className="h-8"
+                          value={prioritySearch}
+                          onChange={(e) => setPrioritySearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setPriorityFilter("all");
+                          setPrioritySearch("");
+                        }}
+                        className={priorityFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Toutes les priorités</span>
+                      </DropdownMenuItem>
+                      {PRIORITIES.filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(prioritySearch.toLowerCase()),
+                      ).map((p) => (
+                        <DropdownMenuItem
+                          key={p.value}
+                          onClick={() => {
+                            setPriorityFilter(p.value as Priority);
+                            setPrioritySearch("");
+                          }}
+                          className={
+                            priorityFilter === p.value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{p.name}</span>
+                        </DropdownMenuItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                      {PRIORITIES.filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(prioritySearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucune priorité trouvée
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
+                {/* Filtre par pénalités (commenté) */}
                 {/* <div className="space-y-3">
-                  <Label>{"Pénalités"}</Label>
-                  <Select
-                    value={penaltyFilter}
-                    onValueChange={(v: "all" | "yes" | "no") =>
-                      setPenaltyFilter(v)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Toutes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Toutes"}</SelectItem>
-                      <SelectItem value="yes">{"Oui"}</SelectItem>
-                      <SelectItem value="no">{"Non"}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div> */}
+        <Label>{"Pénalités"}</Label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full justify-between">
+              <span className="truncate">
+                {penaltyFilter === "all"
+                  ? "Toutes"
+                  : penaltyFilter === "yes"
+                  ? "Oui"
+                  : penaltyFilter === "no"
+                  ? "Non"
+                  : "Sélectionner"}
+              </span>
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+            <DropdownMenuItem
+              onClick={() => setPenaltyFilter("all")}
+              className={penaltyFilter === "all" ? "bg-accent" : ""}
+            >
+              <span>Toutes</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setPenaltyFilter("yes")}
+              className={penaltyFilter === "yes" ? "bg-accent" : ""}
+            >
+              <span>Oui</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setPenaltyFilter("no")}
+              className={penaltyFilter === "no" ? "bg-accent" : ""}
+            >
+              <span>Non</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div> */}
 
                 <Button
                   variant="outline"
