@@ -103,7 +103,7 @@ const Page = () => {
       title: "Receptions",
       href: "./bon-de-commande/receptions",
       disabled: false,
-      badge: receptions.length,
+      badge: receptions.length > 0 ? receptions.length : undefined,
     },
   ];
 

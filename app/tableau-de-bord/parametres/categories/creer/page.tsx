@@ -374,9 +374,7 @@ const Page = () => {
                                 : []
                             }
                             value={field.value?.toString() || ""}
-                            onChange={(value) =>
-                              field.onChange(parseInt(value))
-                            }
+                            onChange={field.onChange}
                             placeholder="Sélectionner"
                           />
                           <FormMessage />
