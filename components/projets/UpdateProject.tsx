@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Field, FieldError, FieldGroup, FieldLabel } from "../ui/field";
 import { Textarea } from "../ui/textarea";
+import { SearchableSelect } from "../base/searchableSelect";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -195,10 +196,12 @@ export default function UpdateProject({
                 control={form.control}
                 render={({ field, fieldState }) => {
                   const options = userApi.data
-                    ? userApi.data.data.filter((u) => u.verified).map((user) => ({
-                      value: user.id,
-                      label: user.lastName + " " + user.firstName,
-                    }))
+                    ? userApi.data.data
+                        .filter((u) => u.verified)
+                        .map((user) => ({
+                          value: String(user.id),
+                          label: user.lastName + " " + user.firstName,
+                        }))
                     : [];
                   return (
                     <Field data-invalid={fieldState.invalid} className="gap-1">
@@ -207,7 +210,16 @@ export default function UpdateProject({
                         <span className="text-destructive">*</span>
                       </FieldLabel>
 
-                      <Select
+                      <SearchableSelect
+                        width="w-full"
+                        allLabel="" // Pas d'option "all"
+                        options={options}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Sélectionner un chef de projet"
+                        emptyLabel="Aucun utilisateur trouvé"
+                      />
+                      {/* <Select
                         value={field.value.toString()}
                         onValueChange={field.onChange}
                       >
@@ -226,7 +238,7 @@ export default function UpdateProject({
                             </SelectItem>
                           ))}
                         </SelectContent>
-                      </Select>
+                      </Select> */}
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
                       )}

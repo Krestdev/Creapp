@@ -297,7 +297,7 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
               <FormLabel isRequired>{"Projet"}</FormLabel>
               <FormControl>
                 <Combobox
-                  items={projects}
+                  items={projects.filter(x => x.status !== "cancelled")}
                   value={projects.find((p) => p.id === field.value) ?? null}
                   onValueChange={(v) => field.onChange(v?.id ?? "")}
                 >
