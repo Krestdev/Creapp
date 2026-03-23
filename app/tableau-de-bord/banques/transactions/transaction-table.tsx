@@ -103,8 +103,8 @@ function TransactionTable({
   const [amountFilter, setAmountFilter] = React.useState<number>(0);
   const [bankFilter, setBankFilter] = React.useState<string>("all");
   const [amountTypeFilter, setAmountTypeFilter] = React.useState<
-    "greater" | "inferior" | "equal"
-  >("greater");
+    "greater" | "inferior" | "equal" | "aucun"
+  >("aucun");
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
@@ -227,11 +227,13 @@ function TransactionTable({
         typeFilter === "all" ? true : transaction.Type === typeFilter;
       // Filter amount
       const matchAmount =
-        amountTypeFilter === "greater"
-          ? transaction.amount > amountFilter
-          : amountTypeFilter === "equal"
-            ? transaction.amount === amountFilter
-            : transaction.amount < amountFilter;
+        amountTypeFilter === "aucun"
+          ? true
+          : amountTypeFilter === "greater"
+            ? transaction.amount > amountFilter
+            : amountTypeFilter === "equal"
+              ? transaction.amount === amountFilter
+              : transaction.amount < amountFilter;
 
       // Filtre par date
       let matchDate = true;
@@ -636,13 +638,16 @@ function TransactionTable({
                 <Select
                   value={amountTypeFilter}
                   onValueChange={(v) =>
-                    setAmountTypeFilter(v as "greater" | "inferior" | "equal")
+                    setAmountTypeFilter(
+                      v as "greater" | "inferior" | "equal" | "aucun",
+                    )
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
+                    <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="aucun">{"Aucun"}</SelectItem>
                     <SelectItem value="greater">{"Supérieur"}</SelectItem>
                     <SelectItem value="equal">{"Égal"}</SelectItem>
                     <SelectItem value="inferior">{"Inférieur"}</SelectItem>

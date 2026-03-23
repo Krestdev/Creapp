@@ -79,7 +79,7 @@ class InvoiceQueries {
     const formData = new FormData();
     formData.append("status", "CANCELLED");
     return api
-      .put(`${this.route}/${id}`, formData, {
+      .put(`${this.route}/cancel/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((res) => res.data);

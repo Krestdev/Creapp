@@ -22,10 +22,8 @@ interface Props {
 }
 
 function CancelInvoice({ open, openChange, invoice, purchases }: Props) {
-
   const toCancel = useMutation({
-    mutationFn: async () =>
-      invoiceQ.cancel(invoice.id),
+    mutationFn: async () => invoiceQ.cancel(invoice.id),
     onSuccess: () => {
       toast.success("Facture annulée avec succès !");
       openChange(false);
@@ -41,31 +39,31 @@ function CancelInvoice({ open, openChange, invoice, purchases }: Props) {
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
         <DialogHeader variant={"error"}>
-          <DialogTitle>
-            {`Annuler ${invoice.title}`}
-          </DialogTitle>
-          <DialogDescription>{"Êtes-vous sûr de vouloir annuler cette Facture ?"}</DialogDescription>
+          <DialogTitle>{`Annuler ${invoice.title}`}</DialogTitle>
+          <DialogDescription>
+            {"Êtes-vous sûr de vouloir annuler cette Facture ?"}
+          </DialogDescription>
         </DialogHeader>
-            <DialogFooter>
-              <Button
-                type="submit"
-                variant={"destructive"}
-                disabled={toCancel.isPending}
-                isLoading={toCancel.isPending}
-              >
-                {"Annuler"}
-              </Button>
-              <Button
-                variant={"outline"}
-                onClick={(e) => {
-                  e.preventDefault();
-                  openChange(false);
-                }}
-                disabled={toCancel.isPending}
-              >
-                {"Annuler"}
-              </Button>
-            </DialogFooter>
+        <DialogFooter>
+          <Button
+            onClick={onSubmit}
+            variant={"destructive"}
+            disabled={toCancel.isPending}
+            isLoading={toCancel.isPending}
+          >
+            {"Annuler"}
+          </Button>
+          <Button
+            variant={"outline"}
+            onClick={(e) => {
+              e.preventDefault();
+              openChange(false);
+            }}
+            disabled={toCancel.isPending}
+          >
+            {"Annuler"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
