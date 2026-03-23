@@ -51,6 +51,7 @@ export const PAYMENT_TYPES = [
   { value: "others", name: "Autres" },
   { value: "transport", name: "Transport" },
   { value: "gas", name: "Carburant" },
+  { value: "appro", name: "Approvisionnement" },
 ] as const;
 
 export const PAYMENT_METHOD = [
