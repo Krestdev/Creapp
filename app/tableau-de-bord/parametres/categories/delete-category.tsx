@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { categoryQ } from "@/queries/categoryModule";
 import { Category } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface ShowCategoryProps {
@@ -23,8 +23,13 @@ interface ShowCategoryProps {
 
 export function DeleteCategory({ open, onOpenChange, category }: ShowCategoryProps) {
 
+  const queryClient = useQueryClient()
     const {mutate, isPending} = useMutation({
     mutationFn: (id: number) => categoryQ.deleteCategory(id),
+    onSuccess() {
+      onOpenChange(false)
+      queryClient.invalidateQueries({queryKey: ['categories']})
+    },
     onError: (error: Error) => {
       toast.error(error.message);
     },
