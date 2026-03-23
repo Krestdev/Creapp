@@ -18,6 +18,8 @@ import ExpensesTable from "./expenses-table";
 import { providerQ } from "@/queries/providers";
 import { requestQ } from "@/queries/requestModule";
 import { userQ } from "@/queries/baseModule";
+import { invoiceQ } from "@/queries/invoices";
+import { projectQ } from "@/queries/projectModule";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -39,9 +41,9 @@ function Page() {
     queryFn: requestTypeQ.getAll,
   });
 
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
 
   const getPaymentType = useQuery({
@@ -56,12 +58,17 @@ function Page() {
     },
   });
 
+  const getProjects = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => {
+      return projectQ.getAll();
+    },
+  });
+
   const getUsers = useQuery({
     queryKey: ["users"],
     queryFn: () => userQ.getAll(),
   });
-
-
 
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
   const getProviders = useQuery({
@@ -70,36 +77,39 @@ function Page() {
   });
   if (
     isLoading ||
-    getPurchases.isLoading ||
+    getInvoices.isLoading ||
     getBanks.isLoading ||
     getRequestType.isLoading ||
     getPaymentType.isLoading ||
     request.isLoading ||
     getProviders.isLoading ||
+    getProjects.isLoading ||
     getUsers.isLoading
   ) {
     return <LoadingPage />;
   }
   if (
     isError ||
-    getPurchases.isError ||
+    getInvoices.isError ||
     getBanks.isError ||
     getRequestType.isError ||
     getPaymentType.isError ||
     request.isError ||
     getProviders.isError ||
+    getProjects.isError ||
     getUsers.isError
   ) {
     return (
       <ErrorPage
         error={
           error ||
-          getPurchases.error ||
+          getInvoices.error ||
           getBanks.error ||
           getRequestType.error ||
           getPaymentType.error ||
           getProviders.error ||
           request.error ||
+          getProjects.error ||
           getUsers.error ||
           undefined
         }
@@ -108,17 +118,18 @@ function Page() {
   }
   if (
     isSuccess &&
-    getPurchases.isSuccess &&
+    getInvoices.isSuccess &&
     getBanks.isSuccess &&
     getRequestType.isSuccess &&
     getPaymentType.isSuccess &&
     request.isSuccess &&
     getProviders.isSuccess &&
+    getProjects.isSuccess &&
     getUsers.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
-        title: "Tickets en attente",
+        title: "Tickets en attente de traitement",
         value: data.data.filter(
           (p) => p.status === "pending_depense" || p.status === "validated",
         ).length,
@@ -127,10 +138,7 @@ function Page() {
           title: "Montant total",
           value: XAF.format(
             data.data
-              .filter(
-                (p) =>
-                  p.status === "validated",
-              )
+              .filter((p) => p.status === "validated")
               .reduce((total, el) => total + el.price, 0),
           ),
         },
@@ -149,14 +157,21 @@ function Page() {
         },
       },
       {
-        title: "Tickets en attente de paiement",
-        value: data.data.filter((p) => p.status === "pending_depense" || p.status === "signed" || p.status === "simple_signed").length,
+        title: "Tickets signés en attente de paiement",
+        value: data.data.filter(
+          (p) =>
+            p.status === "pending_depense" ||
+            p.status === "signed" ||
+            p.status === "simple_signed",
+        ).length,
         variant: "default",
         more: {
           title: "Montant total",
           value: XAF.format(
             data.data
-              .filter((p) => p.status === "signed" || p.status === "simple_signed")
+              .filter(
+                (p) => p.status === "signed" || p.status === "simple_signed",
+              )
               .reduce((total, el) => total + el.price, 0),
           ),
         },
@@ -179,12 +194,13 @@ function Page() {
         <ExpensesTable
           payments={data.data}
           banks={getBanks.data.data}
-          purchases={getPurchases.data.data}
+          invoices={getInvoices.data.data}
           requestTypes={getRequestType.data.data}
-          getPaymentType={getPaymentType}
+          paymentTypes={getPaymentType.data.data}
           providers={getProviders.data.data}
           request={request.data.data}
           users={getUsers.data.data}
+          projects={getProjects.data.data}
         />
       </div>
     );

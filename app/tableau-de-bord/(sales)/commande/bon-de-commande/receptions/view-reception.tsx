@@ -8,7 +8,13 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@/components/ui/dialog";
-import { CommandRequestT, Quotation, Reception, RECEPTION_STATUS, User } from "@/types/types";
+import {
+  CommandRequestT,
+  Quotation,
+  Reception,
+  RECEPTION_STATUS,
+  User,
+} from "@/types/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -37,7 +43,13 @@ interface Props {
   cmdReqst: CommandRequestT[];
 }
 
-function ViewReception({ open, onOpenChange, reception, devis, cmdReqst }: Props) {
+function ViewReception({
+  open,
+  onOpenChange,
+  reception,
+  devis,
+  cmdReqst,
+}: Props) {
   const getStatusBadge = (
     status: Reception["Status"],
   ): {
@@ -58,8 +70,8 @@ function ViewReception({ open, onOpenChange, reception, devis, cmdReqst }: Props
     }
   };
 
-  const devi = devis.find((d) => d.id === reception.Command?.deviId)
-  const cmdReqs = cmdReqst.find((c) => c.id === devi?.commandRequestId)
+  const devi = devis.find((d) => d.id === reception.Command?.deviId);
+  const cmdReqs = cmdReqst.find((c) => c.id === devi?.commandRequestId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -148,7 +160,13 @@ function ViewReception({ open, onOpenChange, reception, devis, cmdReqst }: Props
                     key={id}
                   >
                     <Badge
-                      variant={item.delivered === 0 ? "destructive" : item.delivered === item.quantity ? "success" : "amber"}
+                      variant={
+                        item.delivered === 0
+                          ? "destructive"
+                          : item.delivered === item.quantity
+                            ? "success"
+                            : "amber"
+                      }
                     >
                       {`${item.delivered}/${item.quantity}`}
                     </Badge>
@@ -166,7 +184,9 @@ function ViewReception({ open, onOpenChange, reception, devis, cmdReqst }: Props
             <div className="flex flex-col">
               <p className="view-group-title">{"Commentaires"}</p>
               <p className="font-semibold">
-                {!!reception.note && reception.note.length > 0 ? reception.note : "Aucune note enregistrée"}
+                {!!reception.note && reception.note.length > 0
+                  ? reception.note
+                  : "Aucune note enregistrée"}
               </p>
             </div>
           </div>
@@ -182,8 +202,7 @@ function ViewReception({ open, onOpenChange, reception, devis, cmdReqst }: Props
                   reception.Proof.split(";").map((proof, index) => (
                     <Link
                       key={index}
-                      href={`${process.env.NEXT_PUBLIC_API
-                        }/${proof}`}
+                      href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -193,7 +212,7 @@ function ViewReception({ open, onOpenChange, reception, devis, cmdReqst }: Props
                         className="h-7 w-auto aspect-square"
                       />
                       <p className="text-foreground font-medium">
-                        {`Fichier_${index + 1}`}
+                        {`Preuve de réception numéro ${index + 1}`}
                       </p>
                     </Link>
                   ))

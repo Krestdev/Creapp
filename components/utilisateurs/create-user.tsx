@@ -13,7 +13,7 @@ import { userQ } from "@/queries/baseModule";
 import { ResponseT, Role, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -38,6 +38,29 @@ const formSchema = z
   });
 
 export default function CreateUserForm() {
+  // Récupérer les rôles
+  const roleData = useQuery({
+    queryKey: ["roles"],
+    queryFn: () => userQ.getRoles(),
+  });
+
+  const ROLES =
+    roleData?.data?.data.map((r: Role) => ({
+      id: r.id!,
+      label: r.label,
+    })) || [];
+
+  // Trouver l'ID du rôle USER
+  const userRoleId = ROLES.find((r) => r.label === "USER")?.id;
+
+  const [selectedRole, setSelectedRole] = useState<
+    { id: number; label: string }[]
+  >(
+    userRoleId 
+      ? [{ id: userRoleId, label: "USER" }] 
+      : []
+  );
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,14 +70,19 @@ export default function CreateUserForm() {
       password: "",
       cpassword: "",
       phone: "",
-      role: [],
+      role: userRoleId ? [userRoleId] : [], // Définir USER comme valeur par défaut
       poste: "",
     },
   });
 
-  const [selectedRole, setSelectedRole] = useState<
-    { id: number; label: string }[]
-  >([]);
+  // Mettre à jour selectedRole quand les rôles sont chargés
+  useEffect(() => {
+    if (userRoleId && selectedRole.length === 0) {
+      const defaultRole = { id: userRoleId, label: "USER" };
+      setSelectedRole([defaultRole]);
+      form.setValue("role", [userRoleId]);
+    }
+  }, [userRoleId, form, selectedRole.length]);
 
   // const router = useRouter();
   const registerAPI = useMutation({
@@ -73,26 +101,15 @@ export default function CreateUserForm() {
         password: "",
         cpassword: "",
         phone: "",
-        role: [],
+        role: userRoleId ? [userRoleId] : [], // Garder USER par défaut après reset
         poste: "",
       });
-      setSelectedRole([]);
+      setSelectedRole(userRoleId ? [{ id: userRoleId, label: "USER" }] : []);
     },
     onError: (error: Error) => {
       toast.error(error.message);
     },
   });
-
-  const roleData = useQuery({
-    queryKey: ["roles"],
-    queryFn: () => userQ.getRoles(),
-  });
-
-  const ROLES =
-    roleData?.data?.data.map((r: Role) => ({
-      id: r.id!,
-      label: r.label,
-    })) || [];
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     let data: Omit<
@@ -247,7 +264,7 @@ export default function CreateUserForm() {
           <MultiSelectRole
             display="Role"
             roles={ROLES.filter(
-              (r) => r.label !== "MANAGER" && r.label !== "USER",
+              (r) => r.label !== "MANAGER" && r.label !== "USER" && r.label !== "SUPERADMIN",
             )}
             selected={selectedRole}
             onChange={(selected) => {

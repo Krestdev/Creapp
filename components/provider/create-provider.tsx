@@ -93,7 +93,7 @@ const formSchema = z.object({
       },
       { message: "Date invalide" },
     ),
-  banck_attestation: SingleFileArray,
+  banck_attestation: SingleFileArray.optional(),
   expireAtbanck_attestation: z
     .string({ message: "Veuillez définir une date" })
     .refine(
@@ -103,7 +103,8 @@ const formSchema = z.object({
         return !isNaN(d.getTime()) && d > now;
       },
       { message: "Date invalide" },
-    ),
+    )
+    .optional(),
   RCCM: z.string().optional(),
   NIU: z.string().optional(),
   regem: z.string().optional(),
@@ -183,8 +184,10 @@ export default function CreateProviderForm() {
       expireAtplan_localisation: new Date(values.expireAtplan_localisation),
       commerce_registre: values.commerce_registre?.[0],
       expireAtcommerce_registre: new Date(values.expireAtcommerce_registre),
-      banck_attestation: values.banck_attestation?.[0],
-      expireAtbanck_attestation: new Date(values.expireAtbanck_attestation),
+      banck_attestation: values.banck_attestation?.[0] ?? undefined,
+      expireAtbanck_attestation: values.expireAtbanck_attestation
+        ? new Date(values.expireAtbanck_attestation)
+        : undefined,
     };
     registerAPI.mutate(data);
   }
@@ -677,7 +680,7 @@ export default function CreateProviderForm() {
           name="banck_attestation"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"Attestation bancaire"}</FormLabel>
+              <FormLabel>{"Attestation bancaire"}</FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value}
@@ -697,7 +700,7 @@ export default function CreateProviderForm() {
           name="expireAtbanck_attestation"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>
+              <FormLabel>
                 {"Date d'expiration de l'Attestation Bancaire"}
               </FormLabel>
               <FormControl>

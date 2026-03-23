@@ -262,12 +262,12 @@ export default function UpdateRequest({
 
     requestMutation.mutate({
       label: values.titre,
-      description: values.description || null,
+      description: values.description,
       categoryId: Number(values.categorie),
       quantity: Number(values.quantity),
       unit: values.unite!,
       beneficiary: values.beneficiaire!,
-      benef: values.beneficiaire === "groupe" ? values.utilisateurs! : null,
+      benef: values.beneficiaire === "groupe" ? values.utilisateurs : [],
       userId: Number(user?.id),
       dueDate: values.datelimite!,
       projectId: Number(values.projet),

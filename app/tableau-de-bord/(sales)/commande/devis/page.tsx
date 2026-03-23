@@ -1,59 +1,101 @@
 "use client";
 
-import { StatisticCard, StatisticProps } from "@/components/base/TitleValueCard";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { DevisTable } from "@/components/tables/DevisTable";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { getQuotationAmount } from "@/lib/utils";
+import { userQ } from "@/queries/baseModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { providerQ } from "@/queries/providers";
 import { quotationQ } from "@/queries/quotation";
-import { DateFilter, NavLink, QUOTATION_STATUS, QuotationStatus } from "@/types/types";
+import { requestQ } from "@/queries/requestModule";
+import {
+  DateFilter,
+  NavLink,
+  QUOTATION_STATUS,
+  QuotationStatus,
+} from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Settings2 } from "lucide-react";
+import { ChevronDown, Settings2 } from "lucide-react";
 import React from "react";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Page = () => {
   const [searchFilter, setSearchFilter] = React.useState<string>("");
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
-    const [quotationFilter, setQuotationFilter] = React.useState<"all" | string>(
-      "all",
-    );
-    const [statusFilter, setStatusFilter] = React.useState<
-      "all" | QuotationStatus
-    >("all");
-    const [amountFilter, setAmountFilter] = React.useState<number>(0);
-    const [amountTypeFilter, setAmountTypeFilter] = React.useState<
-      "greater" | "inferior" | "equal"
-    >("greater");
-  
-    // modal specific states
-    const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-    const [customDateRange, setCustomDateRange] = React.useState<
-      { from: Date; to: Date } | undefined
-    >();
-    const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-    // Reset Filters
+  const [quotationFilter, setQuotationFilter] = React.useState<"all" | string>(
+    "all",
+  );
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | QuotationStatus
+  >("all");
+  const [amountFilter, setAmountFilter] = React.useState<number>(0);
+  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
+    "greater" | "inferior" | "equal"
+  >("greater");
+  const [providerSearch, setProviderSearch] = React.useState("");
+  const [statusSearch, setStatusSearch] = React.useState("");
+  const [quotationSearch, setQuotationSearch] = React.useState("");
+
+  // modal specific states
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+  const [customDateRange, setCustomDateRange] = React.useState<
+    { from: Date; to: Date } | undefined
+  >();
+  const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
+  // Reset Filters
   const resetAllFilters = () => {
-    setDateFilter(undefined);
-    if (setCustomDateRange) {
-      setCustomDateRange(undefined);
-    }
-    setProviderFilter("all");
-    setQuotationFilter("all");
-    setStatusFilter("all");
-    setAmountFilter(0);
-    setAmountTypeFilter("greater");
     setSearchFilter("");
+    setProviderFilter("all");
+    setStatusFilter("all");
+    setQuotationFilter("all");
+    setAmountTypeFilter("greater");
+    setAmountFilter(0);
+    setDateFilter(undefined);
+    setCustomDateRange(undefined);
+    setCustomOpen(false);
+    // Réinitialiser les recherches
+    setProviderSearch("");
+    setStatusSearch("");
+    setQuotationSearch("");
   };
   const links: Array<NavLink> = [
     {
@@ -69,7 +111,7 @@ const Page = () => {
   });
   /**Providers fetch */
 
-  const providers = useQuery({
+  const getProviders = useQuery({
     queryKey: ["providers"],
     queryFn: providerQ.getAll,
   });
@@ -79,127 +121,179 @@ const Page = () => {
     queryFn: commandRqstQ.getAll,
   });
 
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: () => userQ.getAll(),
+  });
+
+  const getRequests = useQuery({
+    queryKey: ["requests"],
+    queryFn: () => requestQ.getAll(),
+  });
+
+  const providers = React.useMemo(() => {
+    if (!getProviders.data) return [];
+    return getProviders.data.data;
+  }, [getProviders.data]);
+
   const filteredData = React.useMemo(() => {
-      if (!data) return [];
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      const search = searchFilter.toLocaleLowerCase();
-      return data.data.filter((item) => {
-        const itemAmount = getQuotationAmount(item.element);
-        //Search Filter
-        const matchSearch =
-        searchFilter.trim() === "" ? true :
-        item.commandRequest.title.toLocaleLowerCase().includes(search) ||
-        item.commandRequest.reference.includes(search) ||
-        item.ref.includes(search) ||
-        item.element.some(e => e.title.toLocaleLowerCase().includes(search))
-        //Quotation Filter
-        const matchQuotation =
-          quotationFilter === "all"
-            ? true
-            : item.commandRequestId === Number(quotationFilter);
-        //Provider Filter
-        const matchProvider =
-          providerFilter === "all"
-            ? true
-            : item.providerId === Number(providerFilter);
-        //Status Filter
-        const matchStatus =
-          statusFilter === "all" ? true : item.status === statusFilter;
-        // Filter amount
-        const matchAmount =
-          amountTypeFilter === "greater"
+    if (!data) return [];
+    const now = new Date();
+    let startDate = new Date();
+    let endDate = now;
+    const search = searchFilter.toLocaleLowerCase();
+    return data.data.filter((item) => {
+      const itemAmount = getQuotationAmount(item, providers);
+      //Search Filter
+      const matchSearch =
+        searchFilter.trim() === ""
+          ? true
+          : item.commandRequest.title.toLocaleLowerCase().includes(search) ||
+            item.commandRequest.reference.includes(search) ||
+            item.ref.includes(search) ||
+            item.element.some((e) =>
+              e.title.toLocaleLowerCase().includes(search),
+            );
+      //Quotation Filter
+      const matchQuotation =
+        quotationFilter === "all"
+          ? true
+          : item.commandRequestId === Number(quotationFilter);
+      //Provider Filter
+      const matchProvider =
+        providerFilter === "all"
+          ? true
+          : item.providerId === Number(providerFilter);
+      //Status Filter
+      const matchStatus =
+        statusFilter === "all" ? true : item.status === statusFilter;
+      // Filter amount
+      const matchAmount =
+        amountFilter === 0
+          ? true
+          : amountTypeFilter === "greater"
             ? itemAmount > amountFilter
             : amountTypeFilter === "equal"
               ? itemAmount === amountFilter
               : itemAmount < amountFilter;
-        //Date filter
-        let matchDate = true;
-        if (dateFilter) {
-          switch (dateFilter) {
-            case "today":
-              startDate.setHours(0, 0, 0, 0);
-              break;
-            case "week":
-              startDate.setDate(
-                now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-              );
-              startDate.setHours(0, 0, 0, 0);
-              break;
-            case "month":
-              startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-              break;
-            case "year":
-              startDate = new Date(now.getFullYear(), 0, 1);
-              break;
-            case "custom":
-              if (customDateRange?.from && customDateRange?.to) {
-                startDate = customDateRange.from;
-                endDate = customDateRange.to;
-              }
-              break;
-          }
-  
-          if (
-            dateFilter !== "custom" ||
-            (customDateRange?.from && customDateRange?.to)
-          ) {
-            matchDate =
-              new Date(item.createdAt) >= startDate &&
-              new Date(item.createdAt) <= endDate;
-          }
+      //Date filter
+      let matchDate = true;
+      if (dateFilter) {
+        switch (dateFilter) {
+          case "today":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "week":
+            startDate.setDate(
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+            );
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "month":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          case "custom":
+            if (customDateRange?.from && customDateRange?.to) {
+              startDate = customDateRange.from;
+              endDate = customDateRange.to;
+            }
+            break;
         }
-        return matchDate && matchQuotation && matchProvider && matchStatus && matchAmount && matchSearch;
-      });
-    }, [
-      data,
-      customDateRange,
-      dateFilter,
-      quotationFilter,
-      providerFilter,
-      statusFilter,
-      amountFilter,
-      amountTypeFilter,
-      searchFilter
-    ]);
 
-    const validated = filteredData.filter(d=> d.status === "APPROVED").length;
-    const pending = filteredData.filter(d=>d.status === "PENDING").length;
-    const rejected = filteredData.filter(d=>d.status === "REJECTED").length;
-
-    const statistics: Array<StatisticProps> = [
-      {
-        title: "Devis validés",
-        value: validated,
-        variant: "success",
-        more: {
-          title: "Devis rejetés",
-          value: rejected,
-        }
-      },
-      {
-        title: "En attente de validation",
-        value: pending,
-        variant: "default",
-        more: {
-          title: "Total de devis",
-          value: filteredData.length
+        if (
+          dateFilter !== "custom" ||
+          (customDateRange?.from && customDateRange?.to)
+        ) {
+          matchDate =
+            new Date(item.createdAt) >= startDate &&
+            new Date(item.createdAt) <= endDate;
         }
       }
-    ]
+      return (
+        matchDate &&
+        matchQuotation &&
+        matchProvider &&
+        matchStatus &&
+        matchAmount &&
+        matchSearch
+      );
+    });
+  }, [
+    data,
+    customDateRange,
+    dateFilter,
+    quotationFilter,
+    providerFilter,
+    statusFilter,
+    amountFilter,
+    amountTypeFilter,
+    searchFilter,
+  ]);
 
-  if (isLoading || providers.isLoading || commands.isLoading) {
+  const validated = filteredData.filter((d) => d.status === "APPROVED").length;
+  const pending = filteredData.filter((d) => d.status === "PENDING").length;
+  const rejected = filteredData.filter((d) => d.status === "REJECTED").length;
+
+  const statistics: Array<StatisticProps> = [
+    {
+      title: "Devis validés",
+      value: validated,
+      variant: "success",
+      more: {
+        title: "Devis rejetés",
+        value: rejected,
+      },
+    },
+    {
+      title: "En attente de validation",
+      value: pending,
+      variant: "default",
+      more: {
+        title: "Total de devis",
+        value: filteredData.length,
+      },
+    },
+  ];
+
+  if (
+    isLoading ||
+    getProviders.isLoading ||
+    commands.isLoading ||
+    getUsers.isLoading ||
+    getRequests.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (isError || providers.isError || commands.isError) {
+  if (
+    isError ||
+    getProviders.isError ||
+    commands.isError ||
+    getUsers.isError ||
+    getRequests.isError
+  ) {
     return (
       <ErrorPage
-        error={error ?? providers.error ?? commands.error ?? undefined}
+        error={
+          error ||
+          getProviders.error ||
+          commands.error ||
+          getUsers.error ||
+          getRequests.error ||
+          undefined
+        }
       />
     );
   }
-  if (isSuccess && providers.isSuccess && commands.isSuccess)
+  if (
+    isSuccess &&
+    getProviders.isSuccess &&
+    commands.isSuccess &&
+    getUsers.isSuccess &&
+    getRequests.isSuccess
+  )
     return (
       <div className="content">
         <PageTitle
@@ -239,75 +333,244 @@ const Page = () => {
               {/* Filtre par fournisseur */}
               <div className="grid gap-1.5">
                 <Label>{"Fournisseur"}</Label>
-                <Select
-                  value={providerFilter}
-                  onValueChange={setProviderFilter}
-                >
-                  <SelectTrigger className="min-w-40 w-full">
-                    <SelectValue placeholder="Tous les fournisseurs" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">
-                      {"Tous les fournisseurs"}
-                    </SelectItem>
-                    {providers.data.data.map((provider) => (
-                      <SelectItem
-                        key={provider.id}
-                        value={provider.id.toString()}
-                      >
-                        {provider.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {providerFilter === "all"
+                          ? "Tous les fournisseurs"
+                          : getProviders.data.data.find(
+                              (p) => p.id.toString() === providerFilter,
+                            )?.name || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un fournisseur..."
+                        className="h-8"
+                        value={providerSearch}
+                        onChange={(e) => setProviderSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setProviderFilter("all");
+                        setProviderSearch("");
+                      }}
+                      className={providerFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Tous les fournisseurs</span>
+                      </div>
+                    </DropdownMenuItem>
+                    {getProviders.data.data
+                      .filter((provider) =>
+                        provider.name
+                          .toLowerCase()
+                          .includes(providerSearch.toLowerCase()),
+                      )
+                      .map((provider) => (
+                        <DropdownMenuItem
+                          key={provider.id}
+                          onClick={() => {
+                            setProviderFilter(provider.id.toString());
+                            setProviderSearch("");
+                          }}
+                          className={
+                            providerFilter === provider.id.toString()
+                              ? "bg-accent"
+                              : ""
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <span>{provider.name}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    {getProviders.data.data.filter((provider) =>
+                      provider.name
+                        .toLowerCase()
+                        .includes(providerSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun fournisseur trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+
               {/* Filtre par statut */}
               <div className="grid gap-1.5">
                 <Label>{"Statut"}</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(v) =>
-                    setStatusFilter(v as typeof statusFilter)
-                  }
-                >
-                  <SelectTrigger className="min-w-40 w-full">
-                    <SelectValue placeholder="Tous les statuts" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-                    {QUOTATION_STATUS.filter(r=> data.data.some(d => d.status === r.value)).map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {statusFilter === "all"
+                          ? "Tous les statuts"
+                          : QUOTATION_STATUS.find(
+                              (s) => s.value === statusFilter,
+                            )?.name || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un statut..."
+                        className="h-8"
+                        value={statusSearch}
+                        onChange={(e) => setStatusSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setStatusFilter("all");
+                        setStatusSearch("");
+                      }}
+                      className={statusFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Tous les statuts</span>
+                      </div>
+                    </DropdownMenuItem>
+                    {QUOTATION_STATUS.filter((s) =>
+                      data.data.some((d) => d.status === s.value),
+                    )
+                      .filter((s) =>
+                        s.name
+                          .toLowerCase()
+                          .includes(statusSearch.toLowerCase()),
+                      )
+                      .map((s) => (
+                        <DropdownMenuItem
+                          key={s.value}
+                          onClick={() => {
+                            setStatusFilter(s.value);
+                            setStatusSearch("");
+                          }}
+                          className={
+                            statusFilter === s.value ? "bg-accent" : ""
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <span>{s.name}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    {QUOTATION_STATUS.filter((s) =>
+                      data.data.some((d) => d.status === s.value),
+                    ).filter((s) =>
+                      s.name.toLowerCase().includes(statusSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun statut trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Filtre par demande de cotation */}
               <div className="grid gap-1.5">
                 <Label>{"Demande de cotation"}</Label>
-                <Select
-                  value={quotationFilter}
-                  onValueChange={(v) =>
-                    setQuotationFilter(v as typeof quotationFilter)
-                  }
-                >
-                  <SelectTrigger className="min-w-40 w-full">
-                    <SelectValue placeholder="Toutes les demandes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes les demandes"}</SelectItem>
-                    {commands.data.data.map((command) => (
-                      <SelectItem
-                        key={command.id}
-                        value={command.id.toString()}
-                      >
-                        {`${command.title} - ${command.reference}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {quotationFilter === "all"
+                          ? "Toutes les demandes"
+                          : commands.data.data.find(
+                              (c) => c.id.toString() === quotationFilter,
+                            )?.title || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher une demande..."
+                        className="h-8"
+                        value={quotationSearch}
+                        onChange={(e) => setQuotationSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setQuotationFilter("all");
+                        setQuotationSearch("");
+                      }}
+                      className={quotationFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Toutes les demandes</span>
+                      </div>
+                    </DropdownMenuItem>
+                    {commands.data.data
+                      .filter((command) =>
+                        `${command.title} - ${command.reference}`
+                          .toLowerCase()
+                          .includes(quotationSearch.toLowerCase()),
+                      )
+                      .map((command) => (
+                        <DropdownMenuItem
+                          key={command.id}
+                          onClick={() => {
+                            setQuotationFilter(command.id.toString());
+                            setQuotationSearch("");
+                          }}
+                          className={
+                            quotationFilter === command.id.toString()
+                              ? "bg-accent"
+                              : ""
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="truncate">{`${command.title} - ${command.reference}`}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    {commands.data.data.filter((command) =>
+                      `${command.title} - ${command.reference}`
+                        .toLowerCase()
+                        .includes(quotationSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucune demande trouvée
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Filter by amount */}
@@ -348,29 +611,89 @@ const Page = () => {
               {/* Filtre par période */}
               <div className="grid gap-1.5">
                 <Label>{"Période"}</Label>
-                <Select
-                  onValueChange={(v) => {
-                    if (v !== "custom") {
-                      setCustomDateRange(undefined);
-                      setCustomOpen(false);
-                    }
-                    if (v === "all") return setDateFilter(undefined);
-                    setDateFilter(v as Exclude<DateFilter, undefined>);
-                    setCustomOpen(v === "custom");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
-                    <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                    <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                    <SelectItem value="month">{"Ce mois"}</SelectItem>
-                    <SelectItem value="year">{"Cette année"}</SelectItem>
-                    <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {dateFilter === undefined
+                          ? "Toutes les périodes"
+                          : dateFilter === "today"
+                            ? "Aujourd'hui"
+                            : dateFilter === "week"
+                              ? "Cette semaine"
+                              : dateFilter === "month"
+                                ? "Ce mois"
+                                : dateFilter === "year"
+                                  ? "Cette année"
+                                  : dateFilter === "custom"
+                                    ? "Personnalisé"
+                                    : "Sélectionner une période"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter(undefined);
+                        setCustomDateRange(undefined);
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === undefined ? "bg-accent" : ""}
+                    >
+                      <span>Toutes les périodes</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("today");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "today" ? "bg-accent" : ""}
+                    >
+                      <span>Aujourd'hui</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("week");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "week" ? "bg-accent" : ""}
+                    >
+                      <span>Cette semaine</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("month");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "month" ? "bg-accent" : ""}
+                    >
+                      <span>Ce mois</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("year");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "year" ? "bg-accent" : ""}
+                    >
+                      <span>Cette année</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("custom");
+                        setCustomOpen(true);
+                      }}
+                      className={dateFilter === "custom" ? "bg-accent" : ""}
+                    >
+                      <span>Personnalisé</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <Collapsible
                   open={customOpen}
                   onOpenChange={setCustomOpen}
@@ -442,14 +765,16 @@ const Page = () => {
           </SheetContent>
         </Sheet>
         <div className="grid-stats-4">
-          {statistics.map((stat, index)=>(
-            <StatisticCard key={index} {...stat}/>
+          {statistics.map((stat, index) => (
+            <StatisticCard key={index} {...stat} />
           ))}
         </div>
         <DevisTable
           data={filteredData}
           commands={commands.data.data}
-          providers={providers.data.data}
+          providers={getProviders.data.data}
+          users={getUsers.data.data}
+          requests={getRequests.data.data}
         />
       </div>
     );

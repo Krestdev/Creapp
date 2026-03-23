@@ -17,16 +17,15 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { XAF } from "@/lib/utils";
-import { projectQ } from "@/queries/projectModule";
-import { purchaseQ } from "@/queries/purchase-order";
-import { PaymentRequest } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import { Invoice, PaymentRequest, ProjectT } from "@/types/types";
 
 interface ChartPieLabelListProps {
   data?: PaymentRequest[];
   chartType: "type" | "project" | "fournisseur";
   title?: string;
   description?: string;
+  projects?: ProjectT[];
+  invoices?: Invoice[];
 }
 
 const PAYMENT_TYPES = {
@@ -60,26 +59,19 @@ const CHART_COLORS = [
 ];
 
 export function ChartPieLabelList({
-  data = [],
+  data=[],
   chartType,
+  invoices=[],
+  projects=[],
   title = "Répartition des dépenses",
 }: ChartPieLabelListProps) {
-  const { data: projectData } = useQuery({
-    queryKey: ["projectsList"],
-    queryFn: projectQ.getAll,
-  });
 
-  const { data: commandData } = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
-  });
+  // les Factures (liste des IDs)
+  const invoiceIds = data.flatMap((x) => x.invoiceId);
 
-  // les commandes (liste des IDs)
-  const commandIds = data.flatMap((x) => x.commandId);
-
-  // Je vais chercher les fournisseurs des commandes qui appartiennent à commandIds
-  const providerData = commandData?.data.filter((command) =>
-    commandIds.includes(command.id),
+  // Je vais chercher les fournisseurs des factures qui appartiennent à invoiceIds
+  const providerData = invoices.filter((invoice) =>
+    invoiceIds.includes(invoice.id),
   );
 
   // Préparer les données
@@ -100,13 +92,13 @@ export function ChartPieLabelList({
         case "project":
           key = payment.projectId
             ? `Projet ${
-                projectData?.data.find((p) => p.id === payment.projectId)?.label
+                projects.find((p) => p.id === payment.projectId)?.label
               }`
             : "Sans projet";
           break;
         case "fournisseur":
           const provider =
-            providerData?.find((p) => p.id === payment.commandId)?.provider
+            providerData.find((p) => p.id === payment.invoiceId)?.command.provider
               .name || "Inconnu";
           key =
             provider.length > 12 ? `${provider.substring(0, 10)}...` : provider;

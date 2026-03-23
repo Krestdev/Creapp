@@ -48,6 +48,9 @@ export const PAYMENT_TYPES = [
   { value: "speciaux", name: "Spécial" },
   { value: "achat", name: "Achat" },
   { value: "CURRENT", name: "Dépenses Courantes" },
+  { value: "others", name: "Autres" },
+  { value: "transport", name: "Transport" },
+  { value: "gas", name: "Carburant" },
 ] as const;
 
 export const PAYMENT_METHOD = [
@@ -97,7 +100,9 @@ export type PaymentRequest = {
   isPartial: boolean;
   reason?: string;
   userId: number;
-  commandId?: number | null;
+  //commandId?: number | null;
+  invoiceId?: number;
+  invoice?: Invoice;
   requestId?: number | null;
   projectId?: number | null;
   createdAt: string;
@@ -107,6 +112,8 @@ export type PaymentRequest = {
   bankId?: number | null;
   transactionId?: number | null;
   methodId?: number | null;
+  method?: PayType;
+  bank?: Bank;
   signer?: User[] | null;
 };
 
@@ -128,6 +135,7 @@ export type User = {
   role: Role[];
   members: Member[];
   validators?: { id?: number; userId: number; rank: number }[];
+  signatairs?: Array<Signatair>;
 };
 
 export type Role = {
@@ -169,7 +177,7 @@ export type Member = {
 // projects
 
 export type ProjectT = {
-  id?: number;
+  id: number;
   reference: string;
   userId: number;
   createdAt?: Date;
@@ -198,26 +206,32 @@ export type RequestModelT = {
   updatedAt: Date;
   label: string;
   userId: number;
-  description: string | null;
+  description: string;
   quantity: number;
   dueDate: Date;
   unit: string;
   beneficiary: string;
-  benef?: number[] | null;
+  benef?: number[];
   period?: DateRange | undefined;
   beficiaryList?:
-  | { id: number; firstName: string; lastName: string; email: string }[]
-  | null;
+    | { id: number; firstName: string; lastName: string; email: string }[]
+    | null;
   state: (typeof REQUEST_STATUS)[number]["value"];
   priority: "medium" | "high" | "low" | "urgent";
-  projectId?: number | null;
+  projectId?: number;
   project?: ProjectT;
-  categoryId?: number | null;
-  category?: number | null;
-  proof?: (string | File)[] | null | undefined;
-  type?: "speciaux" | "ressource_humaine" | "facilitation" | "achat";
+  categoryId?: number;
+  category?: number;
+  proof?: (string | File)[];
+  type: (typeof PAYMENT_TYPES)[number]["value"];
   amount?: number;
-  benFac?: { list: { id: number; name: string; amount: number }[] } | null;
+  benFac?: { list: { id: number; name: string; amount: number }[] };
+  //Gas & Transport
+  driverId?: number;
+  model?: Vehicle;
+  km?: number;
+  liters?: number;
+  //
   requestOlds?: Array<{
     id: number;
     dueDate: Date;
@@ -281,6 +295,8 @@ export type Category = {
   label: string;
   description?: string;
   validators: { id?: number; userId: number; rank: number }[];
+  requestTypeId: number;
+  type: RequestType;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -358,7 +374,8 @@ export const QUOTATION_ELEMENT_STATUS = [
 ] as const;
 
 export type QuotationStatus = (typeof QUOTATION_STATUS)[number]["value"];
-export type QuotationElementStatus = (typeof QUOTATION_ELEMENT_STATUS)[number]["value"];
+export type QuotationElementStatus =
+  (typeof QUOTATION_ELEMENT_STATUS)[number]["value"];
 
 export type QuotationElement = {
   id: number;
@@ -369,6 +386,9 @@ export type QuotationElement = {
   priceProposed: number;
   deviId: number;
   status: QuotationElementStatus;
+  hasIs: boolean;
+  tva: number;
+  reduction: number;
 };
 
 export type Quotation = {
@@ -380,6 +400,7 @@ export type Quotation = {
   status: QuotationStatus;
   commandRequestId: number;
   providerId: number;
+  provider: Provider;
   proof: string | File;
   dueDate: string;
   userId: number;
@@ -481,14 +502,39 @@ export type BonsCommande = {
   motif?: string;
   createdAt: Date;
   updatedAt: Date;
-  rabaisAmount: number; // réduction exceptionnelle
-  remiseAmount: number; // réduction commerciale
-  ristourneAmount: number; // réduction a posteriori
+  //rabaisAmount: number; // réduction exceptionnelle
+  //remiseAmount: number; // réduction commerciale
+  //ristourneAmount: number; // réduction a posteriori
   escompteRate: number;
   keepTaxes: boolean;
+  hasPrecompt: boolean;
   netToPay: number;
   commandConditions: Array<CommandCondition>;
   commandFile?: string;
+  invoice: Array<Invoice>;
+};
+
+export const INVOICE_STATUS = [
+  { value: "UNPAID", name: "Non payée" },
+  { value: "PAID", name: "Payée" },
+  { value: "CANCELLED", name: "Annulée" },
+] as const;
+
+export type Invoice = {
+  id: number;
+  title: string;
+  reference: string;
+  amount: number;
+  proof?: string;
+  isPartial: boolean;
+  deadline: Date;
+  status: (typeof INVOICE_STATUS)[number]["value"];
+  createdAt: Date;
+  updatedAt: Date;
+  commandId: number;
+  command: BonsCommande;
+  userId: number;
+  payment: Array<PaymentRequest>;
 };
 
 export interface NavLink {
@@ -496,6 +542,7 @@ export interface NavLink {
   href: string;
   disabled?: boolean;
   hide?: boolean;
+  badge?: number;
 }
 
 export type DateFilter =
@@ -515,7 +562,7 @@ export const RECEPTION_STATUS = [
 export type Reception = {
   Reference: string;
   id: number;
-  commandId: number;
+  CommandId: number;
   Proof: string;
   Deadline: Date;
   Status: (typeof RECEPTION_STATUS)[number]["value"];
@@ -525,7 +572,9 @@ export type Reception = {
   updatedAt?: Date;
   Command: BonsCommande;
   Provider: Provider;
-  Deliverables: Array<QuotationElement & { isDelivered: boolean; delivered:number }>;
+  Deliverables: Array<
+    QuotationElement & { isDelivered: boolean; delivered: number }
+  >;
   note: string;
 };
 
@@ -550,7 +599,7 @@ export type Notification = {
 
 export const notificationRoutes: Record<string, string> = {
   BESOIN_A_VALIDER: "/tableau-de-bord/besoins/validation",
-  BESOIN_VALIDE: "/tableau-de-bord/besoins/mylist",
+  BESOIN_VALIDE: "/tableau-de-bord/besoins/mes-besoins",
 
   DEVIS_A_VALIDER: "/tableau-de-bord/commande/devis/approbation",
   BON_COMMANDE_CREE: "/tableau-de-bord/commande/bon-de-commande",
@@ -598,11 +647,11 @@ export type TransactionSigners = {
   transactionId: number;
   signed: boolean;
   signedAt: Date;
-}
+};
 
 export const TRANSACTION_TYPES = [
-  { value: "CREDIT", name: "Crédit" },
-  { value: "DEBIT", name: "Débit" },
+  { value: "CREDIT", name: "Entrée" },
+  { value: "DEBIT", name: "Sortie" },
   { value: "TRANSFER", name: "Transfert" },
 ] as const;
 
@@ -635,12 +684,22 @@ export type DebitTransaction = TransactionBase & {
   Type: "DEBIT";
   from: Bank;
   payement?: PaymentRequest | null;
-  to: { id: number; label: string; accountNumber?: string; phoneNumber?: string };
+  to: {
+    id: number;
+    label: string;
+    accountNumber?: string;
+    phoneNumber?: string;
+  };
 };
 
 export type CreditTransaction = TransactionBase & {
   Type: "CREDIT";
-  from: { id: number; label: string; accountNumber?: string; phoneNumber?: string };
+  from: {
+    id: number;
+    label: string;
+    accountNumber?: string;
+    phoneNumber?: string;
+  };
   to: Bank;
   payement?: PaymentRequest | null;
 };
@@ -679,15 +738,18 @@ export type Vehicle = {
   picture?: string | File;
   createdAt: string;
   updatedAt: string;
+  serial: string; //Numero de chassis
+  purchaseDate: string;
 };
 
 export type RequestType = {
   id: number;
   label: string;
   description: string;
-  type: string;
+  type: (typeof PAYMENT_TYPES)[number]["value"];
   createdAt: Date;
   updatedAt?: Date;
+  categories: Array<Category>;
 };
 
 type SignMode = "ONE" | "BOTH";

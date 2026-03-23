@@ -33,6 +33,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -65,6 +66,8 @@ import { totalAmountPurchase, XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
 import {
   BonsCommande,
+  CommandCondition,
+  Invoice,
   PaymentRequest,
   PRIORITIES,
   PURCHASE_ORDER_STATUS,
@@ -75,10 +78,17 @@ import AddSignedFile from "./add-signed-file";
 import EditPurchase from "./editPurchase";
 import ViewPurchase from "./viewPurchase";
 import Link from "next/link";
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
 
 interface BonsCommandeTableProps {
   data: Array<BonsCommande>;
-  payments: Array<PaymentRequest> | undefined;
+  payments: Array<PaymentRequest>;
+  conditions: Array<CommandCondition>;
+  invoices: Array<Invoice>;
 }
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
@@ -124,7 +134,12 @@ const getPriorityLabel = (
   }
 };
 
-export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
+export function PurchaseTable({
+  data,
+  payments,
+  conditions,
+  invoices,
+}: BonsCommandeTableProps) {
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
 
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -143,6 +158,8 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
   const [priorityFilter, setPriorityFilter] = React.useState<"all" | Priority>(
     "all",
   );
+  const [statusSearch, setStatusSearch] = React.useState("");
+  const [prioritySearch, setPrioritySearch] = React.useState("");
   const [penaltyFilter, setPenaltyFilter] = React.useState<
     "all" | "yes" | "no"
   >("all");
@@ -176,6 +193,26 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
 
     return filtered;
   }, [data, statusFilter, priorityFilter, penaltyFilter]);
+
+  const getProgress = (
+    purchaseOrder: BonsCommande,
+  ): { progress: number; value: number } => {
+    //To-Do complete this code
+    const data = invoices.filter((i) => i.commandId === purchaseOrder.id);
+    console.log(data);
+
+    const values = data.flatMap((i) =>
+      i.payment.map((p) => {
+        if (p.status !== "paid") return 0;
+        return p.price;
+      }),
+    );
+    return {
+      progress:
+        (values.reduce((acc, i) => acc + i, 0) * 100) / purchaseOrder.netToPay,
+      value: values.reduce((acc, i) => acc + i, 0),
+    };
+  };
 
   const columns: ColumnDef<BonsCommande>[] = [
     {
@@ -287,7 +324,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
 
     {
       accessorKey: "status",
-      header: () => <span className="tablehead">{"Statut"}</span>,
+      header: () => <span className="tablehead">{"État de paiement"}</span>,
       cell: ({ row }) => {
         const value = row.getValue("status") as Status;
         const { label, variant } = getStatusLabel(value);
@@ -299,41 +336,14 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
       accessorKey: "payment",
       header: () => <span className="tablehead">{"Statut de paiement"}</span>,
       cell: ({ row }) => {
-        const pay = React.useMemo(() => {
-          return payments
-            ?.filter((payment) => payment.commandId === row.original.id)
-            .filter((c) => c.status === "paid");
-        }, [payments, row.original]);
-
-        const getColor = (value: number) => {
-          if (value < 40) return "bg-red-500";
-          if (value < 70) return "bg-yellow-500";
-          return "bg-green-500";
-        };
-
-        // Pourcentage de payement
-        const paid =
-          pay?.flatMap((x) => x.price).reduce((a, b) => a + b, 0) ?? 0;
-        const total = totalAmountPurchase(row.original);
-
-        const percent = (paid / total) * 100;
-
-        const value = Math.min(100, Math.max(0, percent));
-        const color = getColor(value);
+        const original = row.original;
+        const i = getProgress(original);
 
         return (
-          <div className="w-full">
-            <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className={`h-full ${color} transition-all duration-300`}
-                style={{ width: `${value}%` }}
-              />
-            </div>
-
-            <div className="mt-1 text-sm text-right text-gray-600">
-              {Number.isInteger(value) ? value : value.toFixed(2)} %
-            </div>
-          </div>
+          <Progress value={i.progress} className={"w-full"}>
+            <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
+            <ProgressValue />
+          </Progress>
         );
       },
     },
@@ -423,18 +433,17 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                 <FileTextIcon />
                 {"Compléter (Bon signé)"}
               </DropdownMenuItem>
-              {
-                !!item.commandFile && item.commandFile.length > 0 &&
-                <Link href={`${process.env.NEXT_PUBLIC_API
-                  }/${item.commandFile}`} target="_blank">
-                  <DropdownMenuItem
-                  className="cursor-pointer"
+              {!!item.commandFile && item.commandFile.length > 0 && (
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_API}/${item.commandFile}`}
+                  target="_blank"
                 >
-                  <FileSpreadsheetIcon />
-                  {"Voir le bon signé"}
-                </DropdownMenuItem>
-                  </Link>
-              }
+                  <DropdownMenuItem className="cursor-pointer">
+                    <FileSpreadsheetIcon />
+                    {"Voir le bon signé"}
+                  </DropdownMenuItem>
+                </Link>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -491,11 +500,13 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
   });
 
   const resetAllFilters = () => {
+    setGlobalFilter("");
     setStatusFilter("all");
     setPriorityFilter("all");
-    setPenaltyFilter("all");
-    setGlobalFilter("");
-    table.resetColumnFilters();
+    // Réinitialiser les recherches
+    setStatusSearch("");
+    setPrioritySearch("");
+    // setPenaltyFilter("all"); // Si vous décommentez le filtre pénalités
   };
 
   return (
@@ -531,66 +542,191 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
                   />
                 </div>
 
+                {/* Filtre par statut avec recherche */}
                 <div className="space-y-3">
                   <Label>{"Statut"}</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(v: "all" | Status) => setStatusFilter(v)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Tous les statuts" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {PURCHASE_ORDER_STATUS.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>
-                          {s.name}
-                        </SelectItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {statusFilter === "all"
+                            ? "Tous les statuts"
+                            : PURCHASE_ORDER_STATUS.find(
+                                (s) => s.value === statusFilter,
+                              )?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher un statut..."
+                          className="h-8"
+                          value={statusSearch}
+                          onChange={(e) => setStatusSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setStatusFilter("all");
+                          setStatusSearch("");
+                        }}
+                        className={statusFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Tous les statuts</span>
+                      </DropdownMenuItem>
+                      {PURCHASE_ORDER_STATUS.filter((s) =>
+                        s.name
+                          .toLowerCase()
+                          .includes(statusSearch.toLowerCase()),
+                      ).map((s) => (
+                        <DropdownMenuItem
+                          key={s.value}
+                          onClick={() => {
+                            setStatusFilter(s.value as Status);
+                            setStatusSearch("");
+                          }}
+                          className={
+                            statusFilter === s.value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{s.name}</span>
+                        </DropdownMenuItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                      {PURCHASE_ORDER_STATUS.filter((s) =>
+                        s.name
+                          .toLowerCase()
+                          .includes(statusSearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun statut trouvé
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
+                {/* Filtre par priorité avec recherche */}
                 <div className="space-y-3">
                   <Label>{"Priorité"}</Label>
-                  <Select
-                    value={priorityFilter}
-                    onValueChange={(v: "all" | Priority) =>
-                      setPriorityFilter(v)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Toutes les priorités" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Toutes"}</SelectItem>
-                      {PRIORITIES.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.name}
-                        </SelectItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {priorityFilter === "all"
+                            ? "Toutes les priorités"
+                            : PRIORITIES.find((p) => p.value === priorityFilter)
+                                ?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher une priorité..."
+                          className="h-8"
+                          value={prioritySearch}
+                          onChange={(e) => setPrioritySearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setPriorityFilter("all");
+                          setPrioritySearch("");
+                        }}
+                        className={priorityFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Toutes les priorités</span>
+                      </DropdownMenuItem>
+                      {PRIORITIES.filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(prioritySearch.toLowerCase()),
+                      ).map((p) => (
+                        <DropdownMenuItem
+                          key={p.value}
+                          onClick={() => {
+                            setPriorityFilter(p.value as Priority);
+                            setPrioritySearch("");
+                          }}
+                          className={
+                            priorityFilter === p.value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{p.name}</span>
+                        </DropdownMenuItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                      {PRIORITIES.filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(prioritySearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucune priorité trouvée
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
+                {/* Filtre par pénalités (commenté) */}
                 {/* <div className="space-y-3">
-                  <Label>{"Pénalités"}</Label>
-                  <Select
-                    value={penaltyFilter}
-                    onValueChange={(v: "all" | "yes" | "no") =>
-                      setPenaltyFilter(v)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Toutes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Toutes"}</SelectItem>
-                      <SelectItem value="yes">{"Oui"}</SelectItem>
-                      <SelectItem value="no">{"Non"}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div> */}
+        <Label>{"Pénalités"}</Label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full justify-between">
+              <span className="truncate">
+                {penaltyFilter === "all"
+                  ? "Toutes"
+                  : penaltyFilter === "yes"
+                  ? "Oui"
+                  : penaltyFilter === "no"
+                  ? "Non"
+                  : "Sélectionner"}
+              </span>
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+            <DropdownMenuItem
+              onClick={() => setPenaltyFilter("all")}
+              className={penaltyFilter === "all" ? "bg-accent" : ""}
+            >
+              <span>Toutes</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setPenaltyFilter("yes")}
+              className={penaltyFilter === "yes" ? "bg-accent" : ""}
+            >
+              <span>Oui</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setPenaltyFilter("no")}
+              className={penaltyFilter === "no" ? "bg-accent" : ""}
+            >
+              <span>Non</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div> */}
 
                 <Button
                   variant="outline"
@@ -775,6 +911,7 @@ export function PurchaseTable({ data, payments }: BonsCommandeTableProps) {
           open={edit}
           openChange={setEdit}
           purchaseOrder={selectedValue}
+          conditions={conditions}
         />
       )}
       {selectedValue && (

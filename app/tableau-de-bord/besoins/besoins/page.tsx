@@ -1,5 +1,4 @@
 "use client";
-import { DataTable } from "@/components/base/data-table";
 import {
   StatisticCard,
   StatisticProps,
@@ -31,6 +30,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { getUserName } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
@@ -41,10 +41,18 @@ import { requestTypeQ } from "@/queries/requestType";
 import { DateFilter, REQUEST_STATUS } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Settings2 } from "lucide-react";
+import { ChevronDown, Settings2 } from "lucide-react";
 import React from "react";
 import { RequestsTable } from "./table-besoins";
-import { getUserName } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function Page() {
   const { user } = useStore();
@@ -85,9 +93,9 @@ function Page() {
   });
 
   const usersData = useQuery({
-      queryKey: ["users"],
-      queryFn: async () => userQ.getAll(),
-    });
+    queryKey: ["users"],
+    queryFn: async () => userQ.getAll(),
+  });
 
   const [searchFilter, setSearchFilter] = React.useState("");
   const [userFilter, setUserFilter] = React.useState<"all" | string>("all");
@@ -100,15 +108,26 @@ function Page() {
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
+  const [categorySearch, setCategorySearch] = React.useState("");
+  const [userSearch, setUserSearch] = React.useState("");
+  const [projectSearch, setProjectSearch] = React.useState("");
+  const [statusSearch, setStatusSearch] = React.useState("");
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
+    setSearchFilter("");
+    setCategoryFilter("all");
+    setUserFilter("all");
+    setProjectFilter("all");
+    setStatusFilter("all");
     setDateFilter(undefined);
     setCustomDateRange(undefined);
-    setSearchFilter("");
-    setProjectFilter("all");
-    setCategoryFilter("all");
-    setStatusFilter("all");
+    setIsCustomDateModalOpen(false);
+    // Réinitialiser les recherches
+    setCategorySearch("");
+    setUserSearch("");
+    setProjectSearch("");
+    setStatusSearch("");
   };
 
   const uniqueCategories = React.useMemo(() => {
@@ -159,10 +178,12 @@ function Page() {
           ? true
           : item.label.toLowerCase().includes(search) ||
             item.ref.toLocaleLowerCase().includes(search);
-    //User Filter
-    const matchUser =
-    userFilter === "all" ? true : 
-    item.userId.toString() === userFilter || !!item.requestOlds?.some(r=> r.userId.toString() === userFilter);
+      //User Filter
+      const matchUser =
+        userFilter === "all"
+          ? true
+          : item.userId.toString() === userFilter ||
+            !!item.requestOlds?.some((r) => r.userId.toString() === userFilter);
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : item.state === statusFilter;
@@ -213,7 +234,12 @@ function Page() {
         }
       }
       return (
-        matchCategory && matchProject && matchStatus && matchDate && matchSearch && matchUser
+        matchCategory &&
+        matchProject &&
+        matchStatus &&
+        matchDate &&
+        matchSearch &&
+        matchUser
       );
     });
   }, [
@@ -224,7 +250,7 @@ function Page() {
     searchFilter,
     dateFilter,
     customDateRange,
-    userFilter
+    userFilter,
   ]);
 
   if (
@@ -330,7 +356,7 @@ function Page() {
             <SheetHeader>
               <SheetTitle>{"Filtres"}</SheetTitle>
               <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
+                {"Configurer les filtres pour affiner les données"}
               </SheetDescription>
             </SheetHeader>
             <div className="px-5 grid gap-5">
@@ -345,120 +371,413 @@ function Page() {
                   className="w-full"
                 />
               </div>
+
               {/* Category filter */}
               <div className="grid gap-1.5">
                 <Label htmlFor="category">{"Catégorie"}</Label>
-                <Select
-                  name="category"
-                  value={categoryFilter}
-                  onValueChange={(v) => setCategoryFilter(String(v))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une Catégorie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes"}</SelectItem>
-                    {uniqueCategories.map((category) => (
-                      <SelectItem key={category.id} value={String(category.id)}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {categoryFilter === "all"
+                          ? "Toutes les catégories"
+                          : uniqueCategories.find(
+                              (c) => String(c.id) === categoryFilter,
+                            )?.name || "Sélectionner une catégorie"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher une catégorie..."
+                        className="h-8"
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setCategoryFilter("all");
+                        setCategorySearch("");
+                      }}
+                      className={categoryFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Toutes les catégories</span>
+                      </div>
+                    </DropdownMenuItem>
+                    {uniqueCategories
+                      .filter((category) =>
+                        category.name
+                          .toLowerCase()
+                          .includes(categorySearch.toLowerCase()),
+                      )
+                      .map((category) => (
+                        <DropdownMenuItem
+                          key={category.id}
+                          onClick={() => {
+                            setCategoryFilter(String(category.id));
+                            setCategorySearch("");
+                          }}
+                          className={
+                            categoryFilter === String(category.id)
+                              ? "bg-accent"
+                              : ""
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="truncate">{category.name}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    {uniqueCategories.filter((category) =>
+                      category.name
+                        .toLowerCase()
+                        .includes(categorySearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucune catégorie trouvée
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+
               {/* User filter */}
               <div className="grid gap-1.5">
                 <Label htmlFor="initiator">{"Utilisateur"}</Label>
-                <Select
-                  name="initiator"
-                  value={userFilter}
-                  onValueChange={(v) => setUserFilter(v)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une utilisateur" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {userFilter === "all"
+                          ? "Tous les utilisateurs"
+                          : getUserName(
+                              usersData.data.data,
+                              Number(userFilter),
+                            ) || "Sélectionner un utilisateur"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un utilisateur..."
+                        className="h-8"
+                        value={userSearch}
+                        onChange={(e) => setUserSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setUserFilter("all");
+                        setUserSearch("");
+                      }}
+                      className={userFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Tous les utilisateurs</span>
+                      </div>
+                    </DropdownMenuItem>
                     {usersData.data.data
-                    //.filter(u=> requests.data.some(r=> r.userId === u.id))
-                    .map((user) => (
-                      <SelectItem key={user.id} value={String(user.id)}>
-                        {getUserName(usersData.data.data, user.id)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      .filter((user) =>
+                        getUserName(usersData.data.data, user.id)!
+                          .toLowerCase()
+                          .includes(userSearch.toLowerCase()),
+                      )
+                      .map((user) => (
+                        <DropdownMenuItem
+                          key={user.id}
+                          onClick={() => {
+                            setUserFilter(String(user.id));
+                            setUserSearch("");
+                          }}
+                          className={
+                            userFilter === String(user.id) ? "bg-accent" : ""
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="truncate">
+                              {getUserName(usersData.data.data, user.id)}
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    {usersData.data.data.filter((user) =>
+                      getUserName(usersData.data.data, user.id)!
+                        .toLowerCase()
+                        .includes(userSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun utilisateur trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Project filter */}
               <div className="grid gap-1.5">
                 <Label htmlFor="project">{"Projet"}</Label>
-                <Select
-                  name="project"
-                  value={projectFilter}
-                  onValueChange={(v) => setProjectFilter(String(v))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un projet" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
-                    {uniqueProjects.map((project) => (
-                      <SelectItem key={project.id} value={String(project.id)}>
-                        {project.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {projectFilter === "all"
+                          ? "Tous les projets"
+                          : uniqueProjects.find(
+                              (p) => String(p.id) === projectFilter,
+                            )?.label || "Sélectionner un projet"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un projet..."
+                        className="h-8"
+                        value={projectSearch}
+                        onChange={(e) => setProjectSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setProjectFilter("all");
+                        setProjectSearch("");
+                      }}
+                      className={projectFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Tous les projets</span>
+                      </div>
+                    </DropdownMenuItem>
+                    {uniqueProjects
+                      .filter((project) =>
+                        project.label
+                          .toLowerCase()
+                          .includes(projectSearch.toLowerCase()),
+                      )
+                      .map((project) => (
+                        <DropdownMenuItem
+                          key={project.id}
+                          onClick={() => {
+                            setProjectFilter(String(project.id));
+                            setProjectSearch("");
+                          }}
+                          className={
+                            projectFilter === String(project.id)
+                              ? "bg-accent"
+                              : ""
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="truncate">{project.label}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    {uniqueProjects.filter((project) =>
+                      project.label
+                        .toLowerCase()
+                        .includes(projectSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun projet trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Status filter */}
               <div className="grid gap-1.5">
                 <Label htmlFor="status">{"Statut"}</Label>
-                <Select
-                  name="status"
-                  value={statusFilter}
-                  onValueChange={(v) => setStatusFilter(String(v))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
-                    {REQUEST_STATUS.map((state) => (
-                      <SelectItem key={state.value} value={state.value}>
-                        {state.name}
-                      </SelectItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {statusFilter === "all"
+                          ? "Tous les statuts"
+                          : REQUEST_STATUS.find((s) => s.value === statusFilter)
+                              ?.name || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un statut..."
+                        className="h-8"
+                        value={statusSearch}
+                        onChange={(e) => setStatusSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setStatusFilter("all");
+                        setStatusSearch("");
+                      }}
+                      className={statusFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Tous les statuts</span>
+                      </div>
+                    </DropdownMenuItem>
+                    {REQUEST_STATUS.filter((status) =>
+                      status.name
+                        .toLowerCase()
+                        .includes(statusSearch.toLowerCase()),
+                    ).map((status) => (
+                      <DropdownMenuItem
+                        key={status.value}
+                        onClick={() => {
+                          setStatusFilter(status.value);
+                          setStatusSearch("");
+                        }}
+                        className={
+                          statusFilter === status.value ? "bg-accent" : ""
+                        }
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{status.name}</span>
+                        </div>
+                      </DropdownMenuItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                    {REQUEST_STATUS.filter((status) =>
+                      status.name
+                        .toLowerCase()
+                        .includes(statusSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun statut trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+
               {/* Filtre par période */}
               <div className="grid gap-1.5">
                 <Label>{"Période"}</Label>
-                <Select
-                  onValueChange={(v) => {
-                    if (v !== "custom") {
-                      setCustomDateRange(undefined);
-                      setIsCustomDateModalOpen(false);
-                    }
-                    if (v === "all") return setDateFilter(undefined);
-                    setDateFilter(v as Exclude<DateFilter, undefined>);
-                    setIsCustomDateModalOpen(v === "custom");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
-                    <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                    <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                    <SelectItem value="month">{"Ce mois"}</SelectItem>
-                    <SelectItem value="year">{"Cette année"}</SelectItem>
-                    <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {dateFilter === undefined
+                          ? "Toutes les périodes"
+                          : dateFilter === "today"
+                            ? "Aujourd'hui"
+                            : dateFilter === "week"
+                              ? "Cette semaine"
+                              : dateFilter === "month"
+                                ? "Ce mois"
+                                : dateFilter === "year"
+                                  ? "Cette année"
+                                  : dateFilter === "custom"
+                                    ? "Personnalisé"
+                                    : "Sélectionner une période"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter(undefined);
+                        setCustomDateRange(undefined);
+                        setIsCustomDateModalOpen(false);
+                      }}
+                      className={dateFilter === undefined ? "bg-accent" : ""}
+                    >
+                      <span>Toutes les périodes</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("today");
+                        setIsCustomDateModalOpen(false);
+                      }}
+                      className={dateFilter === "today" ? "bg-accent" : ""}
+                    >
+                      <span>Aujourd'hui</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("week");
+                        setIsCustomDateModalOpen(false);
+                      }}
+                      className={dateFilter === "week" ? "bg-accent" : ""}
+                    >
+                      <span>Cette semaine</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("month");
+                        setIsCustomDateModalOpen(false);
+                      }}
+                      className={dateFilter === "month" ? "bg-accent" : ""}
+                    >
+                      <span>Ce mois</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("year");
+                        setIsCustomDateModalOpen(false);
+                      }}
+                      className={dateFilter === "year" ? "bg-accent" : ""}
+                    >
+                      <span>Cette année</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("custom");
+                        setIsCustomDateModalOpen(true);
+                      }}
+                      className={dateFilter === "custom" ? "bg-accent" : ""}
+                    >
+                      <span>Personnalisé</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <Collapsible
                   open={isCustomDateModalOpen}
                   onOpenChange={setIsCustomDateModalOpen}
@@ -540,7 +859,8 @@ function Page() {
           projects={projectsData.data.data}
           payments={paymentsData.data.data}
           requestTypes={requestTypes.data.data}
-          users={usersData.data?.data}/>
+          users={usersData.data?.data}
+        />
       </div>
     );
   }

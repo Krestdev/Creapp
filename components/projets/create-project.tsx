@@ -132,9 +132,9 @@ export function ProjectCreateForm() {
           render={({ field }) => {
             const options = userApi.data
               ? userApi.data.data.filter((u) => u.verified).map((user) => ({
-                value: user.id,
-                label: user.lastName + " " + user.firstName,
-              }))
+                  value: String(user.id),
+                  label: user.lastName + " " + user.firstName,
+                }))
               : [];
             return (
               <FormItem>
@@ -143,38 +143,14 @@ export function ProjectCreateForm() {
                   <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
-                  {/* <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {options.map((option, id) => (
-                        <SelectItem
-                          key={id}
-                          value={String(option.value)}
-                          className="capitalize"
-                        >
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                      {options.length === 0 && (
-                        <SelectItem value="-" disabled>
-                          {"Aucun utilisateur enregistré"}
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select> */}
                   <SearchableSelect
                     width="w-full"
-                    allLabel=""
-                    options={
-                      userApi.data?.data.map((user) => ({
-                        value: String(user.id),
-                        label: user.lastName + " " + user.firstName,
-                      })) || []
-                    }
-                    {...field}
-                    placeholder="Sélectionner"
+                    allLabel="" // Pas d'option "all"
+                    options={options}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Sélectionner un chef de projet"
+                    emptyLabel="Aucun utilisateur trouvé"
                   />
                 </FormControl>
                 <FormMessage />

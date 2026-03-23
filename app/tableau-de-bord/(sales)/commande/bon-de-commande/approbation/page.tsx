@@ -11,7 +11,7 @@ function Page() {
   const { user } = useStore();
   const auth =
     user?.role.some(
-      (c) => c.label === "ADMIN" || c.label === "SALES_MANAGER"
+      (c) => c.label === "SUPERADMIN" || c.label === "SALES_MANAGER"
     ) ?? false;
 
   const { isSuccess, isError, error, isLoading, data } = useQuery({

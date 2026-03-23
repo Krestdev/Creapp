@@ -10,7 +10,12 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
-import { NavigationItemProps, RequestModelT, Transaction, TransferTransaction } from "@/types/types";
+import {
+  NavigationItemProps,
+  RequestModelT,
+  Transaction,
+  TransferTransaction,
+} from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
@@ -23,6 +28,7 @@ import {
   LogOutIcon,
   ReceiptIcon,
   ScrollText,
+  Settings2Icon,
   SettingsIcon,
   SignatureIcon,
   Ticket,
@@ -148,24 +154,23 @@ function AppSidebar() {
   });
 
   const getPayType = useQuery({
-      queryKey: ["payType"],
-      queryFn: payTypeQ.getAll,
-    });
+    queryKey: ["payType"],
+    queryFn: payTypeQ.getAll,
+  });
 
   const getBanks = useQuery({
-      queryKey: ["banks"],
-      queryFn: bankQ.getAll,
-    });
+    queryKey: ["banks"],
+    queryFn: bankQ.getAll,
+  });
 
   const filteredTickTransfert = React.useMemo(() => {
     return getTransactions.data?.data.filter((transaction) => {
       //Filter Tab
-      const matchTab = transaction.Type === "TRANSFER" && transaction.status === "PENDING";
+      const matchTab =
+        transaction.Type === "TRANSFER" && transaction.status === "PENDING";
       return matchTab;
     });
-  }, [
-    getTransactions.data?.data,
-  ]);
+  }, [getTransactions.data?.data]);
 
   const filteredData = useMemo(() => {
     if (!SignPay?.data?.data || !signatair.data?.data || !user) {
@@ -203,15 +208,19 @@ function AppSidebar() {
 
     // Séparation des paiements par statut
     const pendingDepensePayments = authorizedPayments.filter(
-      (p) => p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "pending_depense"
+      (p) =>
+        p.signer?.flatMap((u) => u.id)?.includes(currentUserId) &&
+        p.status === "pending_depense",
     );
 
     const unsignedPayments = authorizedPayments.filter(
-      (p) => !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "unsigned"
+      (p) =>
+        !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) &&
+        p.status === "unsigned",
     );
 
     const signedPayments = authorizedPayments.filter(
-      (p) => (p.status === "signed" || p.status === "paid")
+      (p) => p.status === "signed" || p.status === "paid",
     );
 
     // Tous les paiements en attente (pour l'onglet)
@@ -257,20 +266,21 @@ function AppSidebar() {
       getQuotationRequests.data &&
       getQuotations.data
       ? groupQuotationsByCommandRequest(
-        getQuotationRequests.data.data,
-        getQuotations.data.data,
-        providers.data.data,
-      ).filter((c) => c.status === "NOT_PROCESSED")
+          getQuotationRequests.data.data,
+          getQuotations.data.data,
+          providers.data.data,
+        ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
   }, [providers.data, getQuotationRequests.data, getQuotations.data]);
 
   // Récupérer tous les IDs des besoins présents dans les cotations
   const commandRequests = useMemo(() => {
     if (!getQuotationRequests.data) return [];
-    return getQuotationRequests.data.data
-  }, [getQuotationRequests.data])
+    return getQuotationRequests.data.data;
+  }, [getQuotationRequests.data]);
 
-  const isRequestUsed = (requestId: number): boolean => commandRequests.some(c => c.besoins.some(b => b.id === requestId));
+  const isRequestUsed = (requestId: number): boolean =>
+    commandRequests.some((c) => c.besoins.some((b) => b.id === requestId));
 
   // Filtrer les besoins validés qui ne sont pas dans une cotation
   const requestToUse = useMemo(() => {
@@ -336,35 +346,40 @@ function AppSidebar() {
   }, [getPayments.data]);
 
   const overall = useMemo(() => {
-    if (!approvedTicket || !signedTicket || !pendingTicket || !simpleTicket) return [];
+    if (!approvedTicket || !signedTicket || !pendingTicket || !simpleTicket)
+      return [];
     return approvedTicket?.concat(signedTicket, pendingTicket, simpleTicket);
   }, [approvedTicket, signedTicket, pendingTicket, simpleTicket]);
 
   //Signataires
-  const transfersToSign :Array<TransferTransaction> = useMemo(() => {
-      if(!getTransactions.data || !signatair.data) return [];
-      return getTransactions.data.data
-      .filter(t=> t.Type === "TRANSFER")
-      .filter(t => {
-          if(!t.methodId) return false;
-          if(t.from.type === "BANK" && t.to.type === "BANK"){
-              return signatair.data.data.find(x=>x.bankId === t.from.id && x.payTypeId === t.method?.id )?.user?.some(u=> u.id === user?.id)
-          }
-          return false;
-      })
-      .filter(t=> t.isSigned === false && !t.signers.find(s=> s.userId === user?.id))
-      
-    }, [getTransactions.data, signatair.data, user?.id]);
-
-    const transfersToCheck: Array<TransferTransaction> = useMemo(()=>{
-      if(!getTransactions.data) return [];
-      return getTransactions.data.data
-      .filter(t=>t.Type === "TRANSFER")
-      .filter(t=>{
-        if(t.status === "ACCEPTED") return true;
+  const transfersToSign: Array<TransferTransaction> = useMemo(() => {
+    if (!getTransactions.data || !signatair.data) return [];
+    return getTransactions.data.data
+      .filter((t) => t.Type === "TRANSFER")
+      .filter((t) => {
+        if (!t.methodId) return false;
+        if (t.from.type === "BANK" && t.to.type === "BANK") {
+          return signatair.data.data
+            .find((x) => x.bankId === t.from.id && x.payTypeId === t.method?.id)
+            ?.user?.some((u) => u.id === user?.id);
+        }
         return false;
       })
-    },[getTransactions.data])
+      .filter(
+        (t) =>
+          t.isSigned === false && !t.signers.find((s) => s.userId === user?.id),
+      );
+  }, [getTransactions.data, signatair.data, user?.id]);
+
+  const transfersToCheck: Array<TransferTransaction> = useMemo(() => {
+    if (!getTransactions.data) return [];
+    return getTransactions.data.data
+      .filter((t) => t.Type === "TRANSFER")
+      .filter((t) => {
+        if (t.status === "ACCEPTED") return true;
+        return false;
+      });
+  }, [getTransactions.data]);
 
   if (
     getQuotationRequests.isLoading ||
@@ -446,42 +461,41 @@ function AppSidebar() {
       {
         pageId: "PG-00",
         icon: BriefcaseBusiness,
-        href: "/tableau-de-bord/projets/liste",
-        authorized: ["ADMIN"],
+        href: "/tableau-de-bord/projets",
+        authorized: ["SUPERADMIN", "ADMIN"],
         title: "Projets",
       },
       {
         icon: ScrollText,
         pageId: "PG-02",
         href: "/tableau-de-bord/besoins",
-        authorized: ["ADMIN", "MANAGER", "USER"],
+        authorized: ["SUPERADMIN", "MANAGER", "USER"],
         title: "Besoins",
         items: [
           {
             pageId: "PG-02-01",
             title: "Créer un besoin",
             href: "/tableau-de-bord/besoins/creer",
-            authorized: ["ADMIN", "MANAGER", "USER"],
+            authorized: ["SUPERADMIN", "MANAGER", "USER"],
           },
           {
             pageId: "PG-02-02",
             title: "Mes besoins",
             href: "/tableau-de-bord/besoins/mes-besoins",
-            authorized: ["ADMIN", "MANAGER", "USER"],
+            authorized: ["SUPERADMIN", "MANAGER", "USER"],
           },
           {
             pageId: "PG-02-04",
             title: "Tous les besoins",
             href: "/tableau-de-bord/besoins/besoins",
-            authorized: ["ADMIN"],
+            authorized: ["SUPERADMIN"],
           },
           {
             pageId: "PG-02-03",
             title: "Approbation",
             href: "/tableau-de-bord/besoins/validation",
-            authorized: ["ADMIN", "MANAGER"],
-            badgeValue:
-              pendingData.length > 0 ? pendingData.length : undefined,
+            authorized: ["SUPERADMIN", "MANAGER"],
+            badgeValue: pendingData.length > 0 ? pendingData.length : undefined,
           },
         ],
       },
@@ -489,14 +503,14 @@ function AppSidebar() {
         pageId: "PG-03",
         icon: ClipboardList,
         href: "/tableau-de-bord/commande",
-        authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
+        authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
         title: "Commande",
         items: [
           {
             pageId: "PG-03-01",
             title: "Demande de cotation",
             href: "/tableau-de-bord/commande/cotation",
-            authorized: ["ADMIN", "SALES"],
+            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
             badgeValue:
               requestToUse.length > 0 ? requestToUse.length : undefined,
           },
@@ -504,13 +518,13 @@ function AppSidebar() {
             pageId: "PG-03-02",
             title: "Devis",
             href: "/tableau-de-bord/commande/devis",
-            authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
           },
           {
             pageId: "PG-03-45",
             title: "Approbation Devis",
             href: "/tableau-de-bord/commande/devis/approbation",
-            authorized: ["ADMIN", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES_MANAGER"],
             badgeValue:
               approbationDevis && approbationDevis.length > 0
                 ? approbationDevis?.length
@@ -520,7 +534,7 @@ function AppSidebar() {
             pageId: "PG-03-5",
             title: "Bons de commande",
             href: "/tableau-de-bord/commande/bon-de-commande",
-            authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
             badgeValue:
               devisTraite && devisTraite.length > 0
                 ? devisTraite?.length
@@ -530,21 +544,15 @@ function AppSidebar() {
             pageId: "PG-03-44",
             title: "Approbation BC",
             href: "/tableau-de-bord/commande/bon-de-commande/approbation",
-            authorized: ["ADMIN", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES_MANAGER"],
             badgeValue:
               purchase && purchase.length > 0 ? purchase?.length : undefined,
-          },
-          {
-            pageId: "PG-03-06",
-            title: "Paiements",
-            href: "/tableau-de-bord/commande/paiements",
-            authorized: ["ADMIN", "SALES"],
           },
           {
             pageId: "PG-03-065897",
             title: "Statistiques",
             href: "/tableau-de-bord/commande/bon-de-commande/statistiques",
-            authorized: ["ADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
           },
         ],
       },
@@ -552,35 +560,35 @@ function AppSidebar() {
         pageId: "PG-03-07",
         title: "Factures",
         href: "/tableau-de-bord/factures",
-        authorized: ["ADMIN", "ACCOUNTING"],
+        authorized: ["SUPERADMIN", "ACCOUNTANT"],
         icon: ReceiptIcon,
         items: [
           {
             pageId: "PG-03-07-01",
-            title : "Factures",
+            title: "Factures",
             href: "/tableau-de-bord/factures",
-            authorized: ["ACCOUNTING", "ADMIN"],
+            authorized: ["ACCOUNTANT", "SUPERADMIN"],
           },
           {
             pageId: "PG-03-07-02",
-            title : "Paiements",
+            title: "Paiements",
             href: "/tableau-de-bord/factures/paiements",
-            authorized: ["ACCOUNTING", "ADMIN"],
+            authorized: ["ACCOUNTANT", "SUPERADMIN"],
           },
-        ]
+        ],
       },
       {
         pageId: "PG-04",
         icon: Ticket,
         href: "/tableau-de-bord/ticket",
-        authorized: ["ADMIN", "VOLT_MANAGER"],
+        authorized: ["SUPERADMIN", "VOLT_MANAGER"],
         title: "Tickets",
         items: [
           {
             pageId: "PG-04-01",
             title: "Tickets",
             href: "/tableau-de-bord/ticket",
-            authorized: ["ADMIN", "VOLT_MANAGER"],
+            authorized: ["SUPERADMIN", "VOLT_MANAGER"],
             badgeValue:
               ticketPending && ticketPending.length > 0
                 ? ticketPending?.length
@@ -590,17 +598,23 @@ function AppSidebar() {
             pageId: "PG-04-02",
             title: "Transferts",
             href: "/tableau-de-bord/ticket/transferts",
-            authorized: ["ADMIN", "VOLT_MANAGER"],
-            badgeValue: filteredTickTransfert &&
-              filteredTickTransfert?.length > 0 ?
-              filteredTickTransfert?.length :
-              undefined,
+            authorized: ["SUPERADMIN", "VOLT_MANAGER"],
+            badgeValue:
+              filteredTickTransfert && filteredTickTransfert?.length > 0
+                ? filteredTickTransfert?.length
+                : undefined,
+          },
+          {
+            pageId: "PG-04-04",
+            title: "Besoins",
+            href: "/tableau-de-bord/ticket/besoins",
+            authorized: ["SUPERADMIN", "VOLT_MANAGER"],
           },
           {
             pageId: "PG-04-03",
             title: "Statistiques",
             href: "/tableau-de-bord/ticket/statistiques",
-            authorized: ["ADMIN", "VOLT_MANAGER"],
+            authorized: ["SUPERADMIN", "VOLT_MANAGER"],
           },
         ],
       },
@@ -608,7 +622,7 @@ function AppSidebar() {
         pageId: "PG-91",
         icon: DollarSign,
         href: "/tableau-de-bord/depenses",
-        authorized: ["VOLT", "ADMIN"],
+        authorized: ["VOLT", "SUPERADMIN"],
         title: "Dépenses",
         badgeValue:
           overall && overall?.length > 0 ? overall?.length : undefined,
@@ -619,19 +633,26 @@ function AppSidebar() {
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
-                signedTicket &&
-                pendingTicket &&
-                simpleTicket &&
-                approvedTicket?.length + signedTicket?.length + pendingTicket?.length + simpleTicket?.length > 0
-                ? approvedTicket?.length + signedTicket?.length + pendingTicket?.length + simpleTicket?.length
+              signedTicket &&
+              pendingTicket &&
+              simpleTicket &&
+              approvedTicket?.length +
+                signedTicket?.length +
+                pendingTicket?.length +
+                simpleTicket?.length >
+                0
+                ? approvedTicket?.length +
+                  signedTicket?.length +
+                  pendingTicket?.length +
+                  simpleTicket?.length
                 : undefined,
-            authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+            authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
           {
             pageId: "PG-23354987-01",
             title: "Créer une dépense",
             href: "/tableau-de-bord/depenses/creer",
-            authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+            authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
         ],
       },
@@ -647,57 +668,71 @@ function AppSidebar() {
             title: "Tickets",
             href: "/tableau-de-bord/signatures/tickets",
             authorized: [],
-            badgeValue: filteredData?.unsignedPayments?.length > 0 ?
-              filteredData?.unsignedPayments?.length : undefined,
+            badgeValue:
+              filteredData?.unsignedPayments?.length > 0
+                ? filteredData?.unsignedPayments?.length
+                : undefined,
           },
           {
             pageId: "PG-0000551-02",
             title: "Transferts",
             href: "/tableau-de-bord/signatures/transferts",
             authorized: [],
-            badgeValue: transfersToSign.length > 0 ? transfersToSign.length : undefined
+            badgeValue:
+              transfersToSign.length > 0 ? transfersToSign.length : undefined,
           },
-        ]
+        ],
       },
       {
         pageId: "PG-56489713246",
         icon: LandmarkIcon,
         href: "/tableau-de-bord/banques",
-        authorized: ["ACCOUNTANT", "VOLT", "ADMIN"],
+        authorized: ["ACCOUNTANT", "VOLT", "SUPERADMIN"],
         title: "Banques",
         items: [
           {
             pageId: "PG-23354987-00",
             title: "Liste des comptes",
             href: "/tableau-de-bord/banques",
-            authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+            authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
           {
             pageId: "PG-23354987-01",
             title: "Transactions",
             href: "/tableau-de-bord/banques/transactions",
-            authorized: ["ADMIN", "ACCOUNTANT", "VOLT"],
+            authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
           {
             pageId: "PG-23354987-02",
             title: "Transferts",
             href: "/tableau-de-bord/banques/transactions/transferts",
-            authorized: ["ADMIN", "VOLT"],
-            badgeValue: transfersToCheck.length > 0 ? transfersToCheck.length : undefined
+            authorized: ["SUPERADMIN", "VOLT"],
+            badgeValue:
+              transfersToCheck.length > 0 ? transfersToCheck.length : undefined,
           },
         ],
+      },
+      {
+        pageId: "PG-10235-01",
+        title: "Règlages Commandes",
+        href: "/tableau-de-bord/parametres-commandes",
+        authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+        icon: Settings2Icon,
       },
       {
         pageId: "PG-08",
         icon: SettingsIcon,
         href: "/tableau-de-bord/parametres",
-        authorized: ["ADMIN"],
+        authorized: ["SUPERADMIN", "ADMIN"],
         title: "Paramètres",
       },
     ];
 
     // Filtrer les liens de navigation selon les rôles de l'utilisateur
     const filteredNavLinks = navLinks.filter((navLink) => {
+      if (navLink.pageId === "PG-0000551") {
+        return !!user?.signatairs && user.signatairs.length > 0;
+      }
       if (navLink.authorized.length === 0) return true;
       return navLink.authorized.some((role) => userRoles.includes(role));
     });
@@ -716,9 +751,8 @@ function AppSidebar() {
               {...props}
               items={items?.filter((item) => {
                 if (item.authorized.length === 0) return true;
-                return item.authorized.some((role) => userRoles.includes(role))
-              },
-              )}
+                return item.authorized.some((role) => userRoles.includes(role));
+              })}
             />
           ))}
         </SidebarContent>

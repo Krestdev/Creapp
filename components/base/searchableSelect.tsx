@@ -41,122 +41,114 @@ export function SearchableSelect({
   options,
   placeholder = "Sélectionner...",
   emptyLabel = "Aucun résultat",
-  allLabel = "Tous",
-  width = "w-fit",
+  allLabel = "",
+  width = "w-full",
   className,
   disabled = false,
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
-  const [contentWidth, setContentWidth] = React.useState<number>(0);
-  const contentRef = React.useRef<HTMLDivElement>(null);
-
-  // 🔁 Reset automatique de la recherche à la fermeture
   const [search, setSearch] = React.useState("");
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const [triggerWidth, setTriggerWidth] = React.useState<number>(0);
+
+  // Reset search when closed
   React.useEffect(() => {
-    if (!open) setSearch("");
+    if (!open) {
+      setSearch("");
+    }
   }, [open]);
 
-  // Mettre à jour la largeur du contenu quand il change
+  // Get trigger width when open
   React.useEffect(() => {
-    if (open && contentRef.current) {
-      // Attendre un tick pour que le contenu soit rendu
-      setTimeout(() => {
-        if (contentRef.current) {
-          const width = contentRef.current.offsetWidth;
-          setContentWidth(width);
-        }
-      }, 0);
+    if (open && triggerRef.current) {
+      setTriggerWidth(triggerRef.current.offsetWidth);
     }
-  }, [open, options, search]);
+  }, [open]);
 
   const selected = options.find((o) => o.value === value);
 
+  // Determine if we should show the "all" option
+  const showAllOption = allLabel && allLabel.trim() !== "";
+
   return (
-    <div className="inline-block">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className={cn(
-              `${width} h-10 justify-between`,
-              !selected && "text-muted-foreground",
-              className
-            )}
-            disabled={disabled}
-          >
-            <span className="truncate flex-1 text-left max-w-[270px]">
-              {selected ? selected.label : placeholder}
-            </span>
-            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="p-0 w-auto"
-          align="start"
-          ref={contentRef}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          ref={triggerRef}
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={cn(
+            `${width} h-10 justify-between font-normal text-sm font-sans`,
+            !selected && "text-muted-foreground",
+            className,
+          )}
+          disabled={disabled}
         >
-          <Command className="w-[350px]">
-            <CommandInput
-              placeholder="Rechercher..."
-              value={search}
-              onValueChange={setSearch}
-              className="w-full"
-            />
+          <span className="truncate flex-1 text-left">
+            {selected ? selected.label : placeholder}
+          </span>
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="p-0"
+        align="start"
+        style={{ width: triggerWidth > 0 ? triggerWidth : "auto" }}
+      >
+        <Command>
+          <CommandInput
+            placeholder="Rechercher..."
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandEmpty>{emptyLabel}</CommandEmpty>
+          <CommandGroup className="max-h-[300px] overflow-y-auto">
+            {showAllOption && (
+              <CommandItem
+                value={allLabel} 
+                onSelect={() => {
+                  onChange("all");
+                  setOpen(false);
+                }}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4 shrink-0",
+                    value === "all" ? "opacity-100" : "opacity-0",
+                  )}
+                />
+                <span>{allLabel}</span>
+              </CommandItem>
+            )}
 
-            <CommandEmpty>{emptyLabel}</CommandEmpty>
+            {options.map((option) => (
+              <CommandItem
+                key={option.value}
+                value={option.label} 
+                onSelect={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4 shrink-0",
+                    value === option.value ? "opacity-100" : "opacity-0",
+                  )}
+                />
+                <span>{option.label}</span>
+              </CommandItem>
+            ))}
 
-            <CommandGroup className="w-full max-h-[300px] overflow-y-auto">
-              {/* Option ALL */}
-              {allLabel && (
-                <CommandItem
-                  value="all"
-                  onSelect={() => {
-                    onChange("all");
-                    setOpen(false);
-                  }}
-                  className="w-full"
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4 shrink-0",
-                      value === "all" ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  <span className="truncate">{allLabel}</span>
-                </CommandItem>
-              )}
-
-              {options
-                .filter((option) =>
-                  option.label.toLowerCase().includes(search.toLowerCase())
-                )
-                .map((option, index) => (
-                  <CommandItem
-                    key={index}
-                    value={option.value}
-                    onSelect={() => {
-                      onChange(option.value);
-                      setOpen(false);
-                    }}
-                    className="w-full"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4 shrink-0",
-                        value === option.value
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                    <span className="truncate">{option.label}</span>
-                  </CommandItem>
-                ))}
-            </CommandGroup>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    </div>
+            {options.length === 0 && !showAllOption && (
+              <CommandItem disabled className="text-muted-foreground">
+                {emptyLabel}
+              </CommandItem>
+            )}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

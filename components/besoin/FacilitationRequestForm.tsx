@@ -12,12 +12,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
-import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
-import { RequestModelT } from "@/types/types";
+import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -38,6 +36,20 @@ import {
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import BeneficiairesList from "./AddBenef";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "../ui/combobox";
+
+interface Props {
+  users: Array<User>;
+  projects: Array<ProjectT>;
+  categories: Array<Category>;
+}
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -50,7 +62,6 @@ const SingleFileSchema = z
     ]),
   )
   .max(1, "Pas plus d'un document")
-  .nullable()
   .default([]);
 
 const formSchema = z.object({
@@ -59,13 +70,19 @@ const formSchema = z.object({
   delai: z
     .date()
     .min(new Date(), "Le delai d'exécution doit être dans le futur"),
-  category: z.string().min(1, "La categorie est requise"),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().min(1, "La description est requise"),
   justificatif: SingleFileSchema,
 });
 
-export default function FacilitationRequestForm() {
+export default function FacilitationRequestForm({
+  users,
+  projects,
+  categories,
+}: Props) {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -81,30 +98,12 @@ export default function FacilitationRequestForm() {
     defaultValues: {
       beneficiaire: "",
       projet: "",
-      category: "facilitation",
+      categoryId: undefined,
       delai: undefined,
       justificatif: [],
       title: "",
       description: "",
     },
-  });
-
-  // ----------------------------------------------------------------------
-  // QUERY PROJECTS
-  // ----------------------------------------------------------------------
-
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => projectQ.getAll(),
-  });
-
-  // ----------------------------------------------------------------------
-  // QUERY USERS
-  // ----------------------------------------------------------------------
-
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => userQ.getAll(),
   });
 
   // ----------------------------------------------------------------------
@@ -142,8 +141,8 @@ export default function FacilitationRequestForm() {
       "id" | "createdAt" | "updatedAt" | "ref" | "validators"
     > = {
       label: values.title,
-      description: values.description || null,
-      categoryId: 0,
+      description: values.description ?? "",
+      categoryId: values.categoryId,
       quantity: 1,
       unit: "unit",
       beneficiary: values.beneficiaire,
@@ -171,7 +170,7 @@ export default function FacilitationRequestForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 max-w-3xl md:mx-12"
+        className="space-y-8 max-w-3xl"
       >
         <div className="flex flex-col @min-[640px]:grid @min-[640px]:grid-cols-2 gap-4">
           {/* PROJET */}
@@ -184,7 +183,7 @@ export default function FacilitationRequestForm() {
                 <SearchableSelect
                   onChange={field.onChange}
                   options={
-                    projectsData.data?.data
+                    projects
                       ?.filter(
                         (p) =>
                           p.status !== "cancelled" &&
@@ -206,23 +205,42 @@ export default function FacilitationRequestForm() {
             )}
           />
 
-          {/* CATEGORIE */}
+          {/* Category */}
           <FormField
             control={form.control}
-            name="category"
+            name="categoryId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel isRequired>{"Categorie"}</FormLabel>
-                <Select value={field.value}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une categorie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="facilitation">
-                      {"Facilitation"}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Select
+                    defaultValue={field.value ? String(field.value) : undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="min-w-60 w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.filter((c) => c.type.type === "facilitation")
+                        .length === 0 ? (
+                        <SelectItem value="#" disabled>
+                          {"Aucune catégorie enregistrée"}
+                        </SelectItem>
+                      ) : (
+                        categories
+                          .filter((c) => c.type.type === "facilitation")
+                          .map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.label}
+                            </SelectItem>
+                          ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -248,18 +266,29 @@ export default function FacilitationRequestForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel isRequired>{"Recepteur pour compte"}</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un recepteur pour compte" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {usersData.data?.data.filter((u) => u.verified).map((user) => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
-                        {user.lastName + " " + user.firstName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  items={users.filter((u) => u.verified)}
+                  value={
+                    users.find((user) => user.id.toString() === field.value) ??
+                    null
+                  }
+                  onValueChange={(v) => field.onChange(v?.id.toString() ?? "")}
+                  itemToStringLabel={(v) => v.firstName.concat(" ", v.lastName)}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun utilisateur enregistré"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: User) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.firstName.concat(" ", item.lastName)}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
                 <FormMessage />
               </FormItem>
             )}

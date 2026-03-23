@@ -17,15 +17,17 @@ import { providerQ } from "@/queries/providers";
 import { payTypeQ } from "@/queries/payType";
 import { requestQ } from "@/queries/requestModule";
 import { userQ } from "@/queries/baseModule";
+import { invoiceQ } from "@/queries/invoices";
+import { projectQ } from "@/queries/projectModule";
 ;
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: ["payments"],
     queryFn: paymentQ.getAll,
   });
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
   const getRequestType = useQuery({
     queryKey: ["requestType"],
@@ -47,41 +49,49 @@ function Page() {
     queryFn: userQ.getAll,
   });
 
+  const getProjects = useQuery({
+      queryKey: ["projects"],
+      queryFn: projectQ.getAll,
+    });
+
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
   const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll });
   if (
     isLoading ||
-    getPurchases.isLoading ||
+    getInvoices.isLoading ||
     getRequestType.isLoading ||
     getBanks.isLoading ||
     getProviders.isLoading ||
     getRequest.isLoading ||
     getUsers.isLoading ||
-    getPaymentType.isLoading
+    getPaymentType.isLoading ||
+    getProjects.isLoading
   ) {
     return <LoadingPage />;
   }
   if (
     isError ||
-    getPurchases.isError ||
+    getInvoices.isError ||
     getRequestType.isError ||
     getBanks.isError ||
     getProviders.isError ||
     getRequest.isError ||
     getUsers.isError ||
-    getPaymentType.isError
+    getPaymentType.isError ||
+    getProjects.isError
   ) {
     return (
       <ErrorPage
         error={
           error ||
-          getPurchases.error ||
+          getInvoices.error ||
           getRequestType.error ||
           getBanks.error ||
           getProviders.error ||
           getPaymentType.error ||
           getRequest.error ||
           getUsers.error ||
+          getProjects.error ||
           undefined
         }
       />
@@ -89,13 +99,14 @@ function Page() {
   }
   if (
     isSuccess &&
-    getPurchases.isSuccess &&
+    getInvoices.isSuccess &&
     getRequestType.isSuccess &&
     getBanks.isSuccess &&
     getProviders.isSuccess &&
     getRequest.isSuccess &&
     getUsers.isSuccess &&
-    getPaymentType.isSuccess
+    getPaymentType.isSuccess &&
+    getProjects.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -147,25 +158,27 @@ function Page() {
           payments={data.data.filter(
             (p) => p.status === "validated" && p.type !== "CURRENT"
           )}
-          purchases={getPurchases.data.data}
+          invoices={getInvoices.data.data}
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
-          getPaymentType={getPaymentType}
+          paymentTypes={getPaymentType.data.data}
           request={getRequest.data.data}
           users={getUsers.data.data}
+          projects={getProjects.data.data}
         />
         <ExpensesTable
           payments={data.data.filter(
             (p) => p.status === "paid" && p.type !== "CURRENT"
           )}
-          purchases={getPurchases.data.data}
+          invoices={getInvoices.data.data}
           banks={getBanks.data.data}
           requestTypes={getRequestType.data.data}
           providers={getProviders.data.data}
-          getPaymentType={getPaymentType}
+          paymentTypes={getPaymentType.data.data}
           request={getRequest.data.data}
           users={getUsers.data.data}
+          projects={getProjects.data.data}
         />
       </div>
     );

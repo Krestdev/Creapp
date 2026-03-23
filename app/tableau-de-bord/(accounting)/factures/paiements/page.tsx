@@ -3,6 +3,7 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { PaiementsTable } from "@/components/tables/PaiementsTable";
+import { invoiceQ } from "@/queries/invoices";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import { NavLink } from "@/types/types";
@@ -24,16 +25,20 @@ function Page() {
     queryKey: ["purchaseOrders"],
     queryFn: purchaseQ.getAll,
   });
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
+  });
 
-  if (getPayments.isLoading || getPurchases.isLoading) {
+  if (getPayments.isLoading || getPurchases.isLoading || getInvoices.isLoading) {
     return <LoadingPage />;
   }
 
-  if (getPayments.isError || getPurchases.isError) {
+  if (getPayments.isError || getPurchases.isError || getInvoices.isError) {
     return <ErrorPage />;
   }
 
-  if (getPayments.isSuccess && getPurchases.isSuccess)
+  if (getPayments.isSuccess && getPurchases.isSuccess && getInvoices.isSuccess)
     return (
       <div className="flex flex-col gap-6">
         <PageTitle
@@ -47,6 +52,7 @@ function Page() {
         <PaiementsTable
           payments={getPayments.data.data.filter((p) => p.type === "achat")}
           purchases={getPurchases.data.data}
+          invoices={getInvoices.data.data}
         />
       </div>
     );

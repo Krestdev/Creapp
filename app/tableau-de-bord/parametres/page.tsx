@@ -2,7 +2,7 @@
 
 import PageTitle from "@/components/pageTitle";
 import SettingsCard from "@/components/settings/settings-card";
-import { Box, Building2, FileText, Car, LucideProps, Stamp, Users } from "lucide-react";
+import { Box, Car, LucideProps, Stamp, Users } from "lucide-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export default function SettingsPage() {
@@ -38,19 +38,19 @@ export default function SettingsPage() {
                 pageId: "PG-08-01",
                 title: "Liste",
                 href: "/tableau-de-bord/parametres/utilisateurs",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
               {
                 pageId: "PG-08-02",
                 title: "Ajouter",
                 href: "/tableau-de-bord/parametres/utilisateurs/creer",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
               {
                 pageId: "PG-08-03",
                 title: "Rôles",
                 href: "/tableau-de-bord/parametres/utilisateurs/roles",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
             ],
           },
@@ -65,34 +65,13 @@ export default function SettingsPage() {
                 pageId: "PG-08-02",
                 title: "Liste",
                 href: "/tableau-de-bord/parametres/signataires",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
               {
                 pageId: "PG-08-01",
                 title: "Configurer les signataires",
                 href: "/tableau-de-bord/parametres/signataires/creer",
-                authorized: ["ADMIN"],
-              },
-            ],
-          },
-          {
-            title: "Fournisseurs",
-            description: "Gérer les fournisseurs",
-            icon: Building2,
-            href: "/tableau-de-bord/parametres/fournisseurs",
-            color: "from-amber-500 to-amber-600",
-            items: [
-              {
-                pageId: "PG-08-02",
-                title: "Liste",
-                href: "/tableau-de-bord/parametres/fournisseurs",
-                authorized: ["ADMIN"],
-              },
-              {
-                pageId: "PG-08-01",
-                title: "Ajouter",
-                href: "/tableau-de-bord/parametres/fournisseurs/creer",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
             ],
           },
@@ -107,13 +86,13 @@ export default function SettingsPage() {
                 pageId: "PG-08-02",
                 title: "Types",
                 href: "/tableau-de-bord/parametres/type-de-besoins",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
               {
                 pageId: "PG-08-01",
                 title: "Catégories",
                 href: "/tableau-de-bord/parametres/categories",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
             ],
           },
@@ -133,13 +112,13 @@ export default function SettingsPage() {
                 pageId: "PG-08-02",
                 title: "Liste",
                 href: "/tableau-de-bord/parametres/chauffeurs",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
               {
                 pageId: "PG-08-01",
                 title: "Ajouter",
                 href: "/tableau-de-bord/parametres/chauffeurs/creer",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
             ],
           },
@@ -154,35 +133,14 @@ export default function SettingsPage() {
                 pageId: "PG-08-02",
                 title: "Liste",
                 href: "/tableau-de-bord/parametres/vehicules",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
               {
                 pageId: "PG-08-01",
                 title: "Ajouter",
                 href: "/tableau-de-bord/parametres/vehicules/creer",
-                authorized: ["ADMIN"],
+                authorized: ["ADMIN", "SUPERADMIN"],
               },
-            ],
-          },
-          {
-            title: "Bon de commande",
-            description: "Configurer les bons de commande",
-            icon: FileText,
-            href: "/tableau-de-bord/parametres/conditions-bc",
-            color: "from-fuchsia-500 to-fuchsia-600",
-            items: [
-              {
-                pageId: "PG-08-02",
-                title: "Conditions générales",
-                href: "/tableau-de-bord/parametres/bon-de-commande/conditions-generales",
-                authorized: ["ADMIN"],
-              },
-              // {
-              //   pageId: "PG-08-01",
-              //   title: "Ajouter",
-              //   href: "/tableau-de-bord/parametres/conditions-bc/creer",
-              //   authorized: ["ADMIN"],
-              // },
             ],
           },
         ],
@@ -190,17 +148,7 @@ export default function SettingsPage() {
     ];
 
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto space-y-4">
-        {/* Header */}
-        {/* <div className="mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-2">
-            Paramètres
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Gérez votre compte et les paramètres de votre organisation
-          </p>
-        </div> */}
+      <div className="content">
         <PageTitle
           title="Paramètres"
           subtitle="Gérez votre compte et les paramètres de votre organisation"
@@ -208,7 +156,6 @@ export default function SettingsPage() {
         />
 
         {/* Settings Groups */}
-        <div className="space-y-12">
           {settingsGroups.map((group) => (
             <div key={group.category}>
               <h2 className="text-2xl font-semibold text-foreground mb-6">
@@ -229,8 +176,6 @@ export default function SettingsPage() {
               </div>
             </div>
           ))}
-        </div>
       </div>
-    </main>
   );
 }

@@ -188,7 +188,9 @@ export const useFileUpload = (
         maxFiles !== Number.POSITIVE_INFINITY &&
         state.files.length + newFilesArray.length > maxFiles
       ) {
-        errors.push(`Vous ne pouvez ajouter qu'au maximum ${maxFiles} fichiers.`);
+        errors.push(
+          `Vous ne pouvez ajouter qu'au maximum ${maxFiles} fichiers.`,
+        );
         setState((prev) => ({ ...prev, errors }));
         return;
       }
@@ -377,6 +379,7 @@ export const useFileUpload = (
         // biome-ignore lint/suspicious/noExplicitAny: Intentional
         ref: inputRef as any,
         type: "file" as const,
+        capture: "environment" as const,
       };
     },
     [accept, multiple, handleFileChange],

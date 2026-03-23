@@ -12,13 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Eye,
-  LucidePen,
-  Trash
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, Eye, LucidePen, Trash } from "lucide-react";
 import * as React from "react";
 
 import CancelQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/cancel";
@@ -47,7 +41,9 @@ import {
   Provider,
   Quotation,
   QuotationElement,
-  QuotationStatus
+  QuotationStatus,
+  RequestModelT,
+  User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -59,9 +55,17 @@ interface DevisTableProps {
   data: Quotation[];
   providers: Array<Provider>;
   commands: Array<CommandRequestT>;
+  requests: Array<RequestModelT>;
+  users: Array<User>;
 }
 
-export function DevisTable({ data, providers, commands }: DevisTableProps) {
+export function DevisTable({
+  data,
+  providers,
+  commands,
+  requests,
+  users,
+}: DevisTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -81,7 +85,6 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
   const [selectedQuotation, setSelectedQuotation] = React.useState<
     string | undefined
   >(undefined);
-
 
   const getProviderName = (providerId: number) => {
     const provider = providers.find((p) => p.id === providerId);
@@ -191,8 +194,8 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
         );
       },
       cell: ({ row }) => {
-        const elements = row.getValue("element") as QuotationElement[];
-        const total = getQuotationAmount(elements);
+        const value = row.original;
+        const total = getQuotationAmount(value, providers);
         return <div>{XAF.format(total)}</div>;
       },
     },
@@ -331,44 +334,43 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
         <h3>{`Devis (${data.length})`}</h3>
 
         {/* Menu des colonnes */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                {"Colonnes"}
-                <ChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  let columnName = column.id;
-                  if (column.id === "ref") columnName = "Référence";
-                  else if (column.id === "commandRequestId")
-                    columnName = "Demande de cotation";
-                  else if (column.id === "providerId")
-                    columnName = "Fournisseur";
-                  else if (column.id === "montant") columnName = "Montant";
-                  else if (column.id === "status") columnName = "Statut";
-                  else if (column.id === "createdAt")
-                    columnName = "Date de création";
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              {"Colonnes"}
+              <ChevronDown />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => {
+                let columnName = column.id;
+                if (column.id === "ref") columnName = "Référence";
+                else if (column.id === "commandRequestId")
+                  columnName = "Demande de cotation";
+                else if (column.id === "providerId") columnName = "Fournisseur";
+                else if (column.id === "montant") columnName = "Montant";
+                else if (column.id === "status") columnName = "Statut";
+                else if (column.id === "createdAt")
+                  columnName = "Date de création";
 
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {columnName}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {columnName}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       {/* Table */}
       <div className="rounded-md border">
@@ -435,12 +437,17 @@ export function DevisTable({ data, providers, commands }: DevisTableProps) {
         </div>
       )}
 
-      <DevisModal
-        open={isDevisModalOpen}
-        onOpenChange={setIsDevisModalOpen}
-        data={selectedDevis}
-        quotation={selectedQuotation}
-      />
+      {selectedDevis && (
+        <DevisModal
+          open={isDevisModalOpen}
+          onOpenChange={setIsDevisModalOpen}
+          data={selectedDevis}
+          title={selectedQuotation}
+          users={users}
+          requests={requests}
+          providers={providers}
+        />
+      )}
 
       {/* Modal pour la plage de dates personnalisée */}
       {selectedDevis && (

@@ -11,7 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Eye, Pencil, Settings2 } from "lucide-react";
+import { ArrowUpDown, ChevronDown, Eye, Settings2 } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
@@ -56,7 +56,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
+import { cn, getTransactionTypeBadge, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   Bank,
@@ -77,33 +77,21 @@ interface Props {
   banks: Array<Bank>;
 }
 
-function getTypeBadge(type: Transaction["Type"]): {
-  label: string;
-  variant: VariantProps<typeof badgeVariants>["variant"];
-} {
-  const typeData = TRANSACTION_TYPES.find((t) => t.value === type);
-  const label = typeData?.name ?? "Inconnu";
-
-  switch (type) {
-    case "CREDIT":
-      return { label, variant: "success" };
-    case "DEBIT":
-      return { label, variant: "destructive" };
-    case "TRANSFER":
-      return { label, variant: "blue" };
-    default:
-      return { label: type, variant: "outline" };
-  }
-}
-
-function TransactionTable({ data, canEdit, banks, filterByType = false }: Props) {
+function TransactionTable({
+  data,
+  canEdit,
+  banks,
+  filterByType = false,
+}: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      type: false,
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [searchFilter, setSearchFilter] = React.useState("");
@@ -115,8 +103,8 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
   const [amountFilter, setAmountFilter] = React.useState<number>(0);
   const [bankFilter, setBankFilter] = React.useState<string>("all");
   const [amountTypeFilter, setAmountTypeFilter] = React.useState<
-    "greater" | "inferior" | "equal"
-  >("greater");
+    "greater" | "inferior" | "equal" | "aucun"
+  >("aucun");
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
@@ -129,7 +117,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
   >("all");
 
   const getBadge = (
-    transaction: Transaction
+    transaction: Transaction,
   ): {
     label: string;
     variant: VariantProps<typeof badgeVariants>["variant"];
@@ -137,41 +125,41 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
     const status = transaction.status;
     const label =
       TRANSACTION_STATUS.find((t) => t.value === status)?.name ?? "Inconnu";
-      if(transaction.Type !== "TRANSFER"){
-        switch (status) {
-          case "APPROVED":
-            return { label, variant: "success" };
-          case "REJECTED":
-            return { label, variant: "destructive" };
-          case "PENDING":
-            return { label, variant: "amber" };
-          default:
-            return { label, variant: "outline" };
-        }
-      }
-      const isSigned = transaction.isSigned;
-      if(isSigned === true){
-        switch (status) {
-          case "APPROVED":
-            return { label, variant: "success" };
-          case "ACCEPTED":
-            return { label: "Signé", variant: "teal" };
-          default:
-            return { label, variant: "outline" };
-        }
-      }
+    if (transaction.Type !== "TRANSFER") {
       switch (status) {
-          case "REJECTED":
-            return { label, variant: "destructive" };
-          case "PENDING":
-            return { label, variant: "amber" };
-          case "ACCEPTED":
-            return { label: "À signer", variant: "primary" };
-          case "APPROVED":
-            return {label, variant: "success"};
-          default:
-            return { label, variant: "outline" };
-        }
+        case "APPROVED":
+          return { label, variant: "success" };
+        case "REJECTED":
+          return { label, variant: "destructive" };
+        case "PENDING":
+          return { label, variant: "amber" };
+        default:
+          return { label, variant: "outline" };
+      }
+    }
+    const isSigned = transaction.isSigned;
+    if (isSigned === true) {
+      switch (status) {
+        case "APPROVED":
+          return { label, variant: "success" };
+        case "ACCEPTED":
+          return { label: "Signé", variant: "teal" };
+        default:
+          return { label, variant: "outline" };
+      }
+    }
+    switch (status) {
+      case "REJECTED":
+        return { label, variant: "destructive" };
+      case "PENDING":
+        return { label, variant: "amber" };
+      case "ACCEPTED":
+        return { label: "À signer", variant: "primary" };
+      case "APPROVED":
+        return { label, variant: "success" };
+      default:
+        return { label, variant: "outline" };
+    }
   };
 
   // Réinitialiser tous les filtres
@@ -197,11 +185,13 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
       const search = searchFilter.toLocaleLowerCase();
       //Search Filter
       const matchSearch =
-      search.trim() === "" ? true : transaction.label.toLocaleLowerCase().includes(search) 
-      || transaction.amount.toString().includes(search)
-      || transaction.to.label.includes(search)
-      || transaction.from.label.includes(search)
-      || transaction.id.toString().includes(search)
+        search.trim() === ""
+          ? true
+          : transaction.label.toLocaleLowerCase().includes(search) ||
+            transaction.amount.toString().includes(search) ||
+            transaction.to.label.includes(search) ||
+            transaction.from.label.includes(search) ||
+            transaction.id.toString().includes(search);
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : transaction.status === statusFilter;
@@ -237,11 +227,13 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
         typeFilter === "all" ? true : transaction.Type === typeFilter;
       // Filter amount
       const matchAmount =
-        amountTypeFilter === "greater"
-          ? transaction.amount > amountFilter
-          : amountTypeFilter === "equal"
-            ? transaction.amount === amountFilter
-            : transaction.amount < amountFilter;
+        amountTypeFilter === "aucun"
+          ? true
+          : amountTypeFilter === "greater"
+            ? transaction.amount > amountFilter
+            : amountTypeFilter === "equal"
+              ? transaction.amount === amountFilter
+              : transaction.amount < amountFilter;
 
       // Filtre par date
       let matchDate = true;
@@ -252,7 +244,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
             break;
           case "week":
             startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
             );
             startDate.setHours(0, 0, 0, 0);
             break;
@@ -275,13 +267,19 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
           (customDateRange?.from && customDateRange?.to)
         ) {
           matchDate =
-            transaction.createdAt >= startDate &&
-            transaction.createdAt <= endDate;
+            new Date(transaction.createdAt) >= startDate &&
+            new Date(transaction.createdAt) <= endDate;
         }
       }
-      return matchStatus && matchType && matchDate && matchAmount && matchBank && matchSearch;
-    })
-      ;
+      return (
+        matchStatus &&
+        matchType &&
+        matchDate &&
+        matchAmount &&
+        matchBank &&
+        matchSearch
+      );
+    });
   }, [
     data,
     dateFilter,
@@ -291,7 +289,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
     statusFilter,
     typeFilter,
     bankFilter,
-    searchFilter
+    searchFilter,
   ]);
 
   const columns: ColumnDef<Transaction>[] = [
@@ -353,7 +351,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
               "font-bold",
               type === "CREDIT"
                 ? "text-green-600"
-                : type === "DEBIT" && "text-red-600"
+                : type === "DEBIT" && "text-red-600",
             )}
           >
             {XAF.format(value)}
@@ -376,7 +374,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
       },
       cell: ({ row }) => {
         const value = row.original.Type;
-        const { variant, label } = getTypeBadge(value);
+        const { variant, label } = getTransactionTypeBadge(value);
         return <Badge variant={variant}>{label}</Badge>;
       },
     },
@@ -483,7 +481,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
-              {canEdit && (
+              {/* {canEdit && (
                 <DropdownMenuItem
                   onClick={() => {
                     setSelected(item);
@@ -493,7 +491,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                   <Pencil />
                   {"Modifier"}
                 </DropdownMenuItem>
-              )}
+              )} */}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -604,7 +602,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                     <SelectContent>
                       <SelectItem value={"all"}>{"Tous"}</SelectItem>
                       {TRANSACTION_TYPES.filter(
-                        (t) => t.value !== "TRANSFER"
+                        (t) => t.value !== "TRANSFER",
                       ).map((t, id) => (
                         <SelectItem key={id} value={t.value}>
                           {t.name}
@@ -618,20 +616,19 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
               {/* Filter par Compte(Bank) */}
               <div className="grid gap-1.5">
                 <Label>{"Compte"}</Label>
-                <Select
-                  value={bankFilter}
-                  onValueChange={setBankFilter}
-                >
+                <Select value={bankFilter} onValueChange={setBankFilter}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Sélectionner un Compte" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {
-                      banks.filter(b=> !!b.type && b.type !== "null").map((bank) => (
-                        <SelectItem key={bank.id} value={String(bank.id)}>{bank.label}</SelectItem>
-                      ))
-                    }
+                    {banks
+                      .filter((b) => !!b.type && b.type !== "null")
+                      .map((bank) => (
+                        <SelectItem key={bank.id} value={String(bank.id)}>
+                          {bank.label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -641,13 +638,16 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                 <Select
                   value={amountTypeFilter}
                   onValueChange={(v) =>
-                    setAmountTypeFilter(v as "greater" | "inferior" | "equal")
+                    setAmountTypeFilter(
+                      v as "greater" | "inferior" | "equal" | "aucun",
+                    )
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
+                    <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="aucun">{"Aucun"}</SelectItem>
                     <SelectItem value="greater">{"Supérieur"}</SelectItem>
                     <SelectItem value="equal">{"Égal"}</SelectItem>
                     <SelectItem value="inferior">{"Inférieur"}</SelectItem>
@@ -710,9 +710,9 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                            customDateRange.from,
-                            "dd/MM/yyyy"
-                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy",
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -799,9 +799,9 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                               ? "Montant"
                               : column.id === "type"
                                 ? "Type"
-                                // : column.id === "status"
-                                //   ? "Statut"
-                                : column.id === "bank"
+                                : // : column.id === "status"
+                                  //   ? "Statut"
+                                  column.id === "bank"
                                   ? "Banque"
                                   : column.id === "ref"
                                     ? "Référence"
@@ -829,9 +829,9 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -852,7 +852,7 @@ function TransactionTable({ data, canEdit, banks, filterByType = false }: Props)
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

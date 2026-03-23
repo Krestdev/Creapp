@@ -53,12 +53,17 @@ function Roles({ data }: Props) {
             "Accès aux commandes et aux pages d'approbation liées (Devis, Bon de commande).",
           className: "border-teal-200 bg-teal-50 text-teal-600",
         };
-      case "ADMIN":
+      case "SUPERADMIN":
         return {
           description:
             "Vous êtes Tout-puissant. Accès complèt à toutes les pages et fonctionnalités de l'application.",
           className: "border-purple-200 bg-purple-50 text-purple-600",
         };
+      case "ADMIN":
+      return {
+        description: "Accès à la configuration de l'application, gestion des utilisateurs et des rôles.",
+        className: "border-indigo-200 bg-indigo-50 text-indigo-600",
+      }
       case "VOLT":
         return {
           description:
@@ -79,6 +84,11 @@ function Roles({ data }: Props) {
         return {
           description: "Accès aux banques(Transactions, comptes) et factures.",
           className: "border-blue-200 bg-blue-50 text-blue-600",
+        };
+      case "DRIVER":
+        return {
+          description: "Accès à l'émission des besoins de transport et carburant.",
+          className: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-600",
         };
       default:
         return { description: "" };

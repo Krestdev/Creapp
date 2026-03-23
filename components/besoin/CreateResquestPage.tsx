@@ -1,147 +1,156 @@
 "use client";
 
-import React from "react";
-import CreateRequest from "./CreateForm";
-import SpecialRequestForm from "./SpecialRequestForm";
-import FacilitationRequestForm from "./FacilitationRequestForm";
-import RHRequestForm from "./RHRequestForm";
+import CreateTypeGas from "@/app/tableau-de-bord/besoins/creer/create-type-gas";
+import CreateTypeOthers from "@/app/tableau-de-bord/besoins/creer/create-type-others";
+import CreateTypeTransport from "@/app/tableau-de-bord/besoins/creer/create-type-transport";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "../ui/label";
 import { useStore } from "@/providers/datastore";
-import { requestTypeQ } from "@/queries/requestType";
-import LoadingPage from "../loading-page";
-import ErrorPage from "../error-page";
-import { useQuery } from "@tanstack/react-query";
+import {
+  Category,
+  ProjectT,
+  RequestModelT,
+  RequestType,
+  Role,
+  User,
+  Vehicle,
+} from "@/types/types";
+import React from "react";
+import { Label } from "../ui/label";
+import CreateRequest from "./CreateForm";
+import FacilitationRequestForm from "./FacilitationRequestForm";
+import RHRequestForm from "./RHRequestForm";
+import SpecialRequestForm from "./SpecialRequestForm";
 
-const CreateResquestPage = () => {
+interface Props {
+  types: Array<RequestType>;
+  users: Array<User>;
+  projects: Array<ProjectT>;
+  categories: Array<Category>;
+  vehicles: Array<Vehicle>;
+}
+
+const CreateResquestPage = ({
+  types,
+  users,
+  projects,
+  categories,
+  vehicles,
+}: Props) => {
   const { user } = useStore();
-  const [typeBesoin, setTypeBesoin] = React.useState<string>("");
-  const userRoles = user?.role?.flatMap((x) => x.label) || [];
-  const hasRole = (role: string) => userRoles.includes(role);
+  const [requestType, setRequestType] = React.useState<RequestModelT["type"]>();
 
-  const getRequestType = useQuery({
-    queryKey: ["requestType"],
-    queryFn: requestTypeQ.getAll,
-  });
+  const renderForm = () => {
+    switch (requestType) {
+      case "achat":
+        return (
+          <CreateRequest
+            categories={categories}
+            projects={projects}
+            users={users}
+          />
+        );
+      case "speciaux":
+        return <SpecialRequestForm categories={categories} />;
+      case "facilitation":
+        return (
+          <FacilitationRequestForm
+            users={users}
+            projects={projects}
+            categories={categories}
+          />
+        );
+      case "ressource_humaine":
+        return (
+          <RHRequestForm
+            categories={categories}
+            users={users}
+            projects={projects}
+          />
+        );
+      case "others":
+        return (
+          <CreateTypeOthers
+            users={users}
+            categories={categories}
+            projects={projects}
+          />
+        );
+      case "gas":
+        return (
+          <CreateTypeGas
+            users={users}
+            categories={categories}
+            vehicles={vehicles}
+          />
+        );
+      case "transport":
+        return (
+          <CreateTypeTransport
+            users={users}
+            categories={categories}
+            projects={projects}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
-  if (getRequestType.isLoading) {
-    return <LoadingPage />;
-  }
-
-  if (getRequestType.isError) {
-    return <ErrorPage />;
-  }
-
-  if (getRequestType.data?.data.length === 0) {
-    return <ErrorPage message={"Aucun type de besoin trouvé"} />;
-  }
-
-  if (getRequestType.isSuccess && getRequestType.data?.data.length > 0) {
-    const renderForm = () => {
-      switch (typeBesoin) {
-        case getRequestType.data?.data.find((x) => x.type === "achat")?.type:
-          return <CreateRequest />;
-        case getRequestType.data?.data.find((x) => x.type === "speciaux")?.type:
-          return <SpecialRequestForm />;
-        case getRequestType.data?.data.find((x) => x.type === "facilitation")
-          ?.type:
-          return <FacilitationRequestForm />;
-        case getRequestType.data?.data.find(
-          (x) => x.type === "ressource_humaine"
-        )?.type:
-          return <RHRequestForm />;
-        default:
-          return null;
-      }
-    };
-
-    return (
-      <div className="space-y-6">
-        <div className="grid gap-2 mx-12">
-          <Label>{"Type de besoin"}</Label>
-          <Select onValueChange={setTypeBesoin}>
-            <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
-              <SelectValue placeholder="Sélectionner le type de besoin" />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectGroup>
-                {/* Visible par tous */}
-                <SelectItem
-                  value={
-                    getRequestType.data?.data.find((x) => x.type === "achat")
-                      ?.type!
-                  }
-                >
-                  {
-                    getRequestType.data?.data.find((x) => x.type === "achat")
-                      ?.label
-                  }
-                </SelectItem>
-
-                {/* Visible par tous (modifiable si besoin) */}
-                <SelectItem
-                  value={
-                    getRequestType.data?.data.find(
-                      (x) => x.type === "facilitation"
-                    )?.type!
-                  }
-                >
-                  {
-                    getRequestType.data?.data.find(
-                      (x) => x.type === "facilitation"
-                    )?.label
-                  }
-                </SelectItem>
-
-                {/* RH uniquement */}
-                {hasRole("RH") && (
-                  <SelectItem
-                    value={
-                      getRequestType.data?.data.find(
-                        (x) => x.type === "ressource_humaine"
-                      )?.type!
-                    }
-                  >
-                    {
-                      getRequestType.data?.data.find(
-                        (x) => x.type === "ressource_humaine"
-                      )?.label
-                    }
-                  </SelectItem>
-                )}
-
-                {/* VOLT-MANAGER uniquement */}
-                {hasRole("VOLT_MANAGER") && (
-                  <SelectItem
-                    value={
-                      getRequestType.data?.data.find(
-                        (x) => x.type === "speciaux"
-                      )?.type!
-                    }
-                  >
-                    {
-                      getRequestType.data?.data.find(
-                        (x) => x.type === "speciaux"
-                      )?.label
-                    }
-                  </SelectItem>
-                )}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {renderForm()}
-      </div>
+  const typesList = (roles: Array<Role>): Array<RequestType> => {
+    if (roles.some((r) => r.label === "SUPERADMIN")) return types;
+    if (
+      roles.some((r) => r.label === "RH") &&
+      roles.some((r) => r.label === "VOLT_MANAGER")
+    )
+      return types;
+    if (
+      roles.some((r) => r.label === "RH") &&
+      roles.some((r) => r.label === "VOLT_MANAGER")
+    )
+      return types;
+    if (roles.some((r) => r.label === "RH"))
+      return types.filter((t) => t.type !== "speciaux");
+    if (roles.some((r) => r.label === "VOLT_MANAGER"))
+      return types.filter((t) => t.type !== "ressource_humaine");
+    if (roles.some((r) => r.label === "DRIVER"))
+      return types.filter(
+        (t) => t.type !== "ressource_humaine" && t.type !== "speciaux",
+      );
+    return types.filter(
+      (t) => t.type !== "ressource_humaine" && t.type !== "speciaux",
     );
-  }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-2">
+        <Label>{"Type de besoin"}</Label>
+        <Select
+          onValueChange={(v) => setRequestType(v as RequestModelT["type"])}
+        >
+          <SelectTrigger className="w-full md:w-[376px] rounded-[4px]">
+            <SelectValue placeholder="Sélectionner le type de besoin" />
+          </SelectTrigger>
+
+          <SelectContent>
+            {user?.role &&
+              typesList(user.role).map(({ type, label }) => (
+                <SelectItem key={type} value={type}>
+                  {label}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {renderForm()}
+    </div>
+  );
 };
 export default CreateResquestPage;

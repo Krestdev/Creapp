@@ -5,14 +5,17 @@ import StatsCard from "@/components/base/StatsCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import Tickets from "@/components/ticket/tickets";
 import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
+import { invoiceQ } from "@/queries/invoices";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
+import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { PaymentRequest } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { TicketTable } from "./ticket-table";
 
 function Page() {
   const { user } = useStore();
@@ -27,14 +30,29 @@ function Page() {
     queryFn: requestTypeQ.getAll,
   });
 
+  const getRequests = useQuery({
+    queryKey: ["requests"],
+    queryFn: requestQ.getAll,
+  });
+
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll
+  })
+
   const getPurchase = useQuery({
     queryKey: ["purchaseOrders"],
     queryFn: purchaseQ.getAll,
   });
 
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
+  });
+
   const ticketsData: Array<PaymentRequest> = useMemo(() => {
     if (!data?.data) return [];
-    return data?.data.filter((ticket) => ticket.status !== "ghost" && ticket.status !== "rejected" && ticket.status !== "pending" && ticket.status !== "cancelled");
+    return data?.data.filter((ticket) => ticket.status !== "ghost" && ticket.status !== "rejected" && ticket.status !== "cancelled");
   }, [data?.data]);
 
   const pending = useMemo(() => {
@@ -61,15 +79,15 @@ function Page() {
     );
   }, [data?.data]);
 
-  if (isLoading || getRequestType.isLoading || getPurchase.isLoading) {
+  if (isLoading || getRequestType.isLoading || getPurchase.isLoading || getInvoices.isLoading || getRequests.isLoading || getUsers.isLoading) {
     return <LoadingPage />;
   }
 
-  if (isError || getRequestType.isError || getPurchase.isError) {
-    return <ErrorPage error={error || getRequestType.error! || getPurchase.error!} />;
+  if (isError || getRequestType.isError || getPurchase.isError || getInvoices.isError || getRequests.isError || getUsers.isError) {
+    return <ErrorPage error={error || getRequestType.error! || getPurchase.error! || getInvoices.error! || getUsers.error || getRequests.error} />;
   }
 
-  if (isSuccess && getRequestType.isSuccess && getPurchase.isSuccess) {
+  if (isSuccess && getRequestType.isSuccess && getPurchase.isSuccess && getInvoices.isSuccess && getRequests.isSuccess && getUsers.isSuccess) {
     return (
       <div className="flex flex-col gap-6">
         {user?.role.flatMap((r) => r.label).includes("VOLT") ? (
@@ -85,7 +103,7 @@ function Page() {
               subtitle="Validez les tickets de paiement des bons de commandes"
               color="green"
             />
-            <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
+            <div className="grid-stats-4">
               <StatsCard
                 title="Total Tickets"
                 titleColor="text-[#fff]"
@@ -113,10 +131,12 @@ function Page() {
           </>
         )}
         {ticketsData.length > 0 ? (
-          <Tickets
-            purchases={getPurchase.data?.data}
-            ticketsData={ticketsData}
+          <TicketTable
+            invoices={getInvoices.data.data}
+            data={ticketsData}
             requestTypeData={getRequestType.data?.data}
+            users={getUsers.data.data}
+            requests={getRequests.data.data}
           />
         ) : (
           <Empty message={"Aucun ticket disponible"} />

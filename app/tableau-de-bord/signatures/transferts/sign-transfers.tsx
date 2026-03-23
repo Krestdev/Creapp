@@ -1,22 +1,22 @@
 "use client";
 import {
-    type ColumnDef,
-    type ColumnFiltersState,
-    type VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable
+  type ColumnDef,
+  type ColumnFiltersState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
 import {
-    ArrowRightIcon,
-    ArrowUpDown,
-    ChevronDown,
-    Eye,
-    Pencil,
-    Settings2
+  ArrowRightIcon,
+  ArrowUpDown,
+  ChevronDown,
+  Eye,
+  Pencil,
+  Settings2,
 } from "lucide-react";
 import * as React from "react";
 
@@ -26,51 +26,46 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import {
-    Bank,
-    DateFilter,
-    PayType,
-    TransferTransaction
-} from "@/types/types";
+import { Bank, DateFilter, PayType, TransferTransaction } from "@/types/types";
 import { format } from "date-fns";
 import ViewTransaction from "../../banques/transactions/view-transaction";
 import SignTransfer from "./signTransfer";
@@ -107,17 +102,21 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
 
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
-    const tabs = [
-      {
-        id: 0,
-        title: "En attente",
-        badge: data.filter(t=> t.signers?.find(s=> s.userId === user?.id)?.signed === false ).length,
-      },
-      {
-        id: 1,
-        title: "Signés",
-      },
-    ];
+  const tabs = [
+    {
+      id: 0,
+      title: "En attente",
+      badge: data.filter(
+        (transaction) =>
+          transaction.isSigned === false &&
+          !transaction.signers.find((s) => s.userId === user?.id),
+      ).length,
+    },
+    {
+      id: 1,
+      title: "Signés",
+    },
+  ];
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -141,8 +140,10 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
         const search = searchFilter.toLowerCase();
         //Tab Filter
         const matchTab =
-          selectedTab === 0 ? transaction.isSigned === false && !transaction.signers.find(s=> s.userId === user?.id) :
-          !!transaction.signers.find(u=>u.userId === user?.id)
+          selectedTab === 0
+            ? transaction.isSigned === false &&
+              !transaction.signers.find((s) => s.userId === user?.id)
+            : !!transaction.signers.find((u) => u.userId === user?.id);
         // Bank Filter - selon le type de transaction
         let matchBank =
           bankFilter === "all"
@@ -203,9 +204,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
               new Date(transaction.createdAt) <= endDate;
           }
         }
-        return (
-          matchTab && matchDate && matchAmount && matchBank && matchSearch
-        );
+        return matchTab && matchDate && matchAmount && matchBank && matchSearch;
       })
       .sort(
         (a, b) =>
@@ -220,7 +219,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
     bankFilter,
     searchFilter,
     user?.id,
-    selectedTab
+    selectedTab,
   ]);
 
   const columns: ColumnDef<TransferTransaction>[] = [
@@ -257,12 +256,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.amount;
-        return (
-          <span
-          >
-            {XAF.format(value)}
-          </span>
-        );
+        return <span>{XAF.format(value)}</span>;
       },
     },
     {
@@ -280,8 +274,14 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
       },
       cell: ({ row }) => {
         const source = row.original.from;
-        const destination = row.original.to
-        return <span className="flex items-center gap-1.5">{source.label}<ArrowRightIcon size={12} />{destination.label}</span>;
+        const destination = row.original.to;
+        return (
+          <span className="flex items-center gap-1.5">
+            {source.label}
+            <ArrowRightIcon size={12} />
+            {destination.label}
+          </span>
+        );
       },
     },
     {
@@ -316,8 +316,14 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = !!row.original.signers?.some(x=> x.userId === user?.id && x.signed === true);
-        return <Badge variant={value === true ? "success" : "destructive"}>{value === true ? "Signé" : "Non signé"}</Badge>;
+        const value = !!row.original.signers?.some(
+          (x) => x.userId === user?.id && x.signed === true,
+        );
+        return (
+          <Badge variant={value === true ? "success" : "destructive"}>
+            {value === true ? "Signé" : "Non signé"}
+          </Badge>
+        );
       },
     },
     {
@@ -436,11 +442,13 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {banks.filter(b=> !!b.type).map((bank) => (
-                      <SelectItem key={bank.id} value={String(bank.id)}>
-                        {bank.label}
-                      </SelectItem>
-                    ))}
+                    {banks
+                      .filter((b) => !!b.type)
+                      .map((bank) => (
+                        <SelectItem key={bank.id} value={String(bank.id)}>
+                          {bank.label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -602,20 +610,24 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
                         ? "Destination"
                         : column.id === "proof"
                           ? "Preuve"
-                              : column.id === "amount"
-                                ? "Montant"
-                                : column.id === "label"
-                                  ? "Libellé"
-                                  : column.id === "status"
-                                    ? "Statut"
-                                    : column.id}
+                          : column.id === "amount"
+                            ? "Montant"
+                            : column.id === "label"
+                              ? "Libellé"
+                              : column.id === "status"
+                                ? "Statut"
+                                : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <TabBar tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+      <TabBar
+        tabs={tabs}
+        selectedTab={selectedTab}
+        setSelectedTab={setSelectedTab}
+      />
       <h3>{`Demandes (${filteredData.length})`}</h3>
       <div className="rounded-md border">
         <Table>
@@ -675,13 +687,20 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
       </div>
 
       <Pagination table={table} />
-      {
-        selected && 
+      {selected && (
         <>
-        <ViewTransaction open={view} openChange={setView} transaction={selected} />
-        <SignTransfer open={toSign} onOpenChange={setToSign} transfer={selected} />
+          <ViewTransaction
+            open={view}
+            openChange={setView}
+            transaction={selected}
+          />
+          <SignTransfer
+            open={toSign}
+            onOpenChange={setToSign}
+            transfer={selected}
+          />
         </>
-      }
+      )}
     </div>
   );
 }

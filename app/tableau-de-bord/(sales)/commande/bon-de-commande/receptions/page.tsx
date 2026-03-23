@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ReceptionTable } from "./reception-table";
 import { quotationQ } from "@/queries/quotation";
 import { commandRqstQ } from "@/queries/commandRqstModule";
+import { purchaseQ } from "@/queries/purchase-order";
 
 const ReceptionsPage = () => {
   const getReceptions = useQuery({
@@ -26,26 +27,61 @@ const ReceptionsPage = () => {
     queryFn: commandRqstQ.getAll,
   });
 
-  if (getReceptions.isLoading || getDevis.isLoading || cmdReqs.isLoading) return <LoadingPage />;
-  if (getReceptions.isError || getDevis.isError || cmdReqs.isError) return <ErrorPage />;
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
 
-  // ✅ Selon ta consigne : le type réel est getReceptions.data.data
-  const receptions: Reception[] = getReceptions.data?.data ?? [];
-  const devis = getDevis.data?.data ?? [];
-  const cmdReqsData = cmdReqs.data?.data ?? [];
-  return (
-    <div className="flex flex-col gap-6">
-      <PageTitle
-        title={"Réceptions"}
-        subtitle={
-          "Enregistrez les réceptions des livraisons relatives aux bons de commande."
+  if (
+    getReceptions.isLoading ||
+    getDevis.isLoading ||
+    cmdReqs.isLoading ||
+    getPurchases.isLoading
+  )
+    return <LoadingPage />;
+  if (
+    getReceptions.isError ||
+    getDevis.isError ||
+    cmdReqs.isError ||
+    getPurchases.isError
+  )
+    return (
+      <ErrorPage
+        error={
+          getReceptions.error ||
+          getDevis.error ||
+          cmdReqs.error ||
+          getPurchases.error ||
+          undefined
         }
-        color={"red"}
       />
+    );
 
-      <ReceptionTable data={receptions} devis={devis} cmdReqst={cmdReqsData} />
-    </div>
-  );
+  if (
+    getReceptions.isSuccess &&
+    getDevis.isSuccess &&
+    cmdReqs.isSuccess &&
+    getPurchases.isSuccess
+  ) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageTitle
+          title={"Réceptions"}
+          subtitle={
+            "Enregistrez les réceptions des livraisons relatives aux bons de commande."
+          }
+          color={"red"}
+        />
+
+        <ReceptionTable
+          data={getReceptions.data.data}
+          devis={getDevis.data.data}
+          cmdReqst={cmdReqs.data.data}
+          purchases={getPurchases.data.data}
+        />
+      </div>
+    );
+  }
 };
 
 export default ReceptionsPage;

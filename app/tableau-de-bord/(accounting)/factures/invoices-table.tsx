@@ -16,14 +16,14 @@ import {
   ArrowUpDown,
   BanIcon,
   ChevronDown,
-  CircleCheckBigIcon,
   Eye,
   Settings2,
+  WalletCardsIcon,
 } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components//base/pagination";
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import { badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -42,6 +42,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -66,41 +71,75 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { XAF } from "@/lib/utils";
-import { paymentQ } from "@/queries/payment";
 import {
   BonsCommande,
   DateFilter,
-  PAY_STATUS,
+  INVOICE_STATUS,
+  Invoice,
   PaymentRequest,
+  Provider,
+  User,
 } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import Link from "next/link";
-import { toast } from "sonner";
-import RejectInvoice from "./reject-invoice";
+import CancelInvoice from "./cancel-invoice";
 import ViewInvoice from "./view-invoice";
+import ViewInvoicePayment from "./view-invoice-payment";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 
 interface Props {
-  payments: Array<PaymentRequest>;
+  invoices: Array<Invoice>;
   purchases: Array<BonsCommande>;
+  payments: Array<PaymentRequest>;
+  providers: Array<Provider>;
+  users: Array<User>;
 }
 
-export function getInvoiceStatusBadge(status: PaymentRequest["status"]): {
+export function getInvoiceStatusBadge(status: Invoice["status"]): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
+  const label = INVOICE_STATUS.find((x) => x.value === status)?.name ?? status;
   switch (status) {
-    case "pending":
-      return { label: "En attente", variant: "amber" };
-    case "rejected":
-      return { label: "Rejeté", variant: "destructive" };
+    case "UNPAID":
+      return { label, variant: "destructive" };
+    case "PAID":
+      return { label, variant: "success" };
+    case "CANCELLED":
+      return { label, variant: "default" };
     default:
-      return { label: "Approuvé", variant: "success" };
+      return { label, variant: "outline" };
   }
 }
 
-export function InvoicesTable({ payments, purchases }: Props) {
+function getProgress(invoice: Invoice): { progress: number; value: number } {
+  if (invoice.payment.length === 0) return { progress: 0, value: 0 };
+  const values = invoice.payment.map((p) => {
+    if (p.status !== "paid") return 0;
+    return p.price;
+  });
+  const value = values.reduce((acc, i) => acc + i, 0);
+  return {
+    value,
+    progress: (value * 100) / invoice.amount,
+  };
+}
+
+export function InvoicesTable({
+  invoices,
+  purchases,
+  payments,
+  users,
+  providers,
+}: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -113,30 +152,32 @@ export function InvoicesTable({ payments, purchases }: Props) {
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
+  const [selected, setSelected] = React.useState<Invoice | undefined>(
     undefined,
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
-  const [reject, setReject] = React.useState<boolean>(false);
+  const [showPayments, setShowPayments] = React.useState<boolean>(false);
+  const [cancel, setCancel] = React.useState<boolean>(false);
+  const [statusSearch, setStatusSearch] = React.useState("");
 
   const [statusFilter, setStatusFilter] = React.useState<
-    "all" | PaymentRequest["status"]
+    "all" | Invoice["status"]
   >("all");
+  const [providerFilter, setProviderFilter] = React.useState<"all" | string>(
+    "",
+  );
+  const [purchaseFilter, setPurchaseFilter] = React.useState<"all" | string>(
+    "",
+  );
+  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
+    "greater" | "inferior" | "equal" | "aucun"
+  >("aucun");
+  const [amountFilter, setAmountFilter] = React.useState<number>(0);
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-
-  const toApprove = useMutation({
-    mutationFn: async (id: number) => paymentQ.approveInvoice(id),
-    onSuccess: () => {
-      toast.success("Facture approuvée avec succès !");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -146,16 +187,22 @@ export function InvoicesTable({ payments, purchases }: Props) {
     }
     setGlobalFilter("");
     setStatusFilter("all");
+    setProviderFilter("all");
+    setPurchaseFilter("");
+    setAmountFilter(0);
+    setAmountTypeFilter("aucun");
   };
 
-  const data: Array<PaymentRequest> = React.useMemo(() => {
-    return payments.filter((payment) => {
+  const providersData = ["Tous", ...providers.map((p) => p.name)];
+
+  const data: Array<Invoice> = React.useMemo(() => {
+    return invoices.filter((invoice) => {
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
       //Status Filter
       let matchStatus =
-        statusFilter === "all" ? true : payment.status === statusFilter;
+        statusFilter === "all" ? true : invoice.status === statusFilter;
 
       // Filtre par date
       let matchDate = true;
@@ -189,15 +236,50 @@ export function InvoicesTable({ payments, purchases }: Props) {
           (customDateRange?.from && customDateRange?.to)
         ) {
           matchDate =
-            new Date(payment.createdAt) >= startDate &&
-            new Date(payment.createdAt) <= endDate;
+            new Date(invoice.createdAt) >= startDate &&
+            new Date(invoice.createdAt) <= endDate;
         }
       }
-      return matchDate && matchStatus;
-    });
-  }, [statusFilter, customDateRange, dateFilter]);
+      //Amount Filter
+      const matchAmount =
+        amountTypeFilter === "aucun"
+          ? true
+          : amountTypeFilter === "greater"
+            ? invoice.amount > amountFilter
+            : amountTypeFilter === "equal"
+              ? invoice.amount === amountFilter
+              : invoice.amount < amountFilter;
+      //Provider Filter
+      const matchProvider =
+        providerFilter === ""
+          ? true
+          : Number(providerFilter) === invoice.command.providerId;
 
-  const columns: ColumnDef<PaymentRequest>[] = [
+      //Purchase Filter
+      const matchPurchaseOrder =
+        purchaseFilter === ""
+          ? true
+          : Number(purchaseFilter) === invoice.commandId;
+
+      return (
+        matchDate &&
+        matchStatus &&
+        matchAmount &&
+        matchProvider &&
+        matchPurchaseOrder
+      );
+    });
+  }, [
+    statusFilter,
+    customDateRange,
+    dateFilter,
+    amountFilter,
+    amountTypeFilter,
+    providerFilter,
+    purchaseFilter,
+  ]);
+
+  const columns: ColumnDef<Invoice>[] = [
     {
       accessorKey: "reference",
       header: ({ column }) => {
@@ -213,6 +295,23 @@ export function InvoicesTable({ payments, purchases }: Props) {
       },
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("reference")}</div>
+      ),
+    },
+    {
+      accessorKey: "title",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Titre"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("title")}</div>
       ),
     },
     {
@@ -232,6 +331,72 @@ export function InvoicesTable({ payments, purchases }: Props) {
         const value = row.original;
         const purchase = purchases.find((p) => p.id === value.commandId);
         return <div>{purchase?.provider?.name ?? "Inconnu"}</div>;
+      },
+    },
+    {
+      id: "purchaseOrder",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Bon de commande"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const purchase = purchases.find((p) => p.id === value.commandId);
+        return <div>{purchase?.devi.commandRequest.title ?? "--"}</div>;
+      },
+    },
+    {
+      accessorKey: "price",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Montant"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.amount;
+        return <div className="font-medium">{XAF.format(Number(value))}</div>;
+      },
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Statut"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const status = getInvoiceStatusBadge(value.status);
+        const i = getProgress(value);
+        //return <Badge variant={status.variant}>{status.label}</Badge>;
+        return (
+          <Progress value={i.progress} className={"w-full"}>
+            <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
+            <ProgressValue />
+          </Progress>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
       },
     },
     {
@@ -269,53 +434,11 @@ export function InvoicesTable({ payments, purchases }: Props) {
                   alt="preuve"
                   className="h-4 w-auto aspect-square"
                 />
-                <p className="text-foreground font-medium">
-                  {`Fichier ${index + 1}`}
-                </p>
+                <p className="text-foreground font-medium">{`Facture`}</p>
               </Link>
             ))}
           </div>
         );
-      },
-    },
-    {
-      accessorKey: "price",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Montant"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.getValue("price");
-        return <div className="font-medium">{XAF.format(Number(value))}</div>;
-      },
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Statut"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original;
-        const status = getInvoiceStatusBadge(value.status);
-        return <Badge variant={status.variant}>{status.label}</Badge>;
-      },
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
       },
     },
     {
@@ -365,26 +488,28 @@ export function InvoicesTable({ payments, purchases }: Props) {
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  toApprove.mutate(item.id);
+                  setSelected(item);
+                  setShowPayments(true);
                 }}
-                disabled={toApprove.isPending || item.status !== "pending"}
               >
-                <CircleCheckBigIcon />
-                {"Approuver"}
+                <WalletCardsIcon />
+                {"Voir les paiements"}
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => {
                   setSelected(item);
-                  setReject(true);
+                  setCancel(true);
                 }}
-                disabled={toApprove.isPending || item.status !== "pending"}
+                disabled={
+                  item.payment.filter((p) => p.status === "paid").length > 0
+                }
               >
                 <BanIcon />
-                {"Rejeter"}
+                {"Annuler"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -450,12 +575,13 @@ export function InvoicesTable({ payments, purchases }: Props) {
                   className="w-full"
                 />
               </div>
+              {/**Status Filter */}
               <div className="grid gap-1.5">
                 <Label>{"Statut"}</Label>
                 <Select
                   value={statusFilter}
                   onValueChange={(value) =>
-                    setStatusFilter(value as "all" | PaymentRequest["status"])
+                    setStatusFilter(value as "all" | Invoice["status"])
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -463,12 +589,7 @@ export function InvoicesTable({ payments, purchases }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {PAY_STATUS.filter(
-                      (x) =>
-                        x.value === "accepted" ||
-                        x.value === "pending" ||
-                        x.value === "rejected",
-                    ).map((status) => (
+                    {INVOICE_STATUS.map((status) => (
                       <SelectItem key={status.value} value={status.value}>
                         {status.name}
                       </SelectItem>
@@ -476,33 +597,214 @@ export function InvoicesTable({ payments, purchases }: Props) {
                   </SelectContent>
                 </Select>
               </div>
+              {/**Provider Filter */}
+              <div className="grid gap-1.5">
+                <Label>{"Fournisseur"}</Label>
+                {/* <Select
+                  value={providerFilter}
+                  onValueChange={setProviderFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un fournisseur" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {providers.map((p) => (
+                      <SelectItem key={p.id} value={p.id.toString()}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select> */}
+                <Combobox
+                  items={providersData}
+                  value={providerFilter}
+                  onValueChange={(v) => setProviderFilter(v ?? "Tous")}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun bon de commande correspondant"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item) => (
+                        <ComboboxItem key={item} value={item}>
+                          {item}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </div>
+              {/**Purchase Order Filter */}
+              <div className="grid gap-1.5">
+                <Label>{"Bon de commande"}</Label>
+                {/* <Select
+                  value={purchaseFilter}
+                  onValueChange={setPurchaseFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un Bon" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{"Tous"}</SelectItem>
+                    {purchases.map((p) => (
+                      <SelectItem key={p.id} value={p.id.toString()}>
+                        {p.devi.commandRequest.title ?? p.reference}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select> */}
+                <Combobox
+                  items={purchases}
+                  value={
+                    purchases.find((p) => p.id === Number(purchaseFilter)) ??
+                    null
+                  }
+                  onValueChange={(v) =>
+                    setPurchaseFilter(v?.id.toString() ?? "")
+                  }
+                  itemToStringLabel={(v) => v.devi.commandRequest.title}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun bon de commande correspondant"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: BonsCommande) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.devi.commandRequest.title}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </div>
+              {/* Filter by amount */}
+              <div className="grid gap-1.5">
+                <Label>{"Comparer le montant"}</Label>
+                <Select
+                  value={amountTypeFilter}
+                  onValueChange={(v) =>
+                    setAmountTypeFilter(
+                      v as "greater" | "inferior" | "equal" | "aucun",
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="aucun">{"Aucun"}</SelectItem>
+                    <SelectItem value="greater">{"Supérieur"}</SelectItem>
+                    <SelectItem value="equal">{"Égal"}</SelectItem>
+                    <SelectItem value="inferior">{"Inférieur"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>{"Montant"}</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Ex. 250 000"
+                    value={amountFilter ?? 0}
+                    onChange={(e) => setAmountFilter(Number(e.target.value))}
+                    className="w-full pr-12"
+                  />
+                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                    {"FCFA"}
+                  </span>
+                </div>
+              </div>
 
               {/* Filtre par période */}
               <div className="grid gap-1.5">
                 <Label>{"Période"}</Label>
-                <Select
-                  onValueChange={(v) => {
-                    if (v !== "custom") {
-                      setCustomDateRange(undefined);
-                      setCustomOpen(false);
-                    }
-                    if (v === "all") return setDateFilter(undefined);
-                    setDateFilter(v as Exclude<DateFilter, undefined>);
-                    setCustomOpen(v === "custom");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
-                    <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                    <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                    <SelectItem value="month">{"Ce mois"}</SelectItem>
-                    <SelectItem value="year">{"Cette année"}</SelectItem>
-                    <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {dateFilter === undefined
+                          ? "Toutes les périodes"
+                          : dateFilter === "today"
+                            ? "Aujourd'hui"
+                            : dateFilter === "week"
+                              ? "Cette semaine"
+                              : dateFilter === "month"
+                                ? "Ce mois"
+                                : dateFilter === "year"
+                                  ? "Cette année"
+                                  : dateFilter === "custom"
+                                    ? "Personnalisé"
+                                    : "Sélectionner une période"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter(undefined);
+                        setCustomDateRange(undefined);
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === undefined ? "bg-accent" : ""}
+                    >
+                      <span>Toutes les périodes</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("today");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "today" ? "bg-accent" : ""}
+                    >
+                      <span>Aujourd'hui</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("week");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "week" ? "bg-accent" : ""}
+                    >
+                      <span>Cette semaine</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("month");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "month" ? "bg-accent" : ""}
+                    >
+                      <span>Ce mois</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("year");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "year" ? "bg-accent" : ""}
+                    >
+                      <span>Cette année</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("custom");
+                        setCustomOpen(true);
+                      }}
+                      className={dateFilter === "custom" ? "bg-accent" : ""}
+                    >
+                      <span>Personnalisé</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <Collapsible
                   open={customOpen}
                   onOpenChange={setCustomOpen}
@@ -608,7 +910,9 @@ export function InvoicesTable({ payments, purchases }: Props) {
                                 ? "Date de création"
                                 : column.id === "updatedAt"
                                   ? "Date de modification"
-                                  : column.id}
+                                  : column.id === "title"
+                                    ? "Titre"
+                                    : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -676,17 +980,27 @@ export function InvoicesTable({ payments, purchases }: Props) {
       <Pagination table={table} />
       {selected && (
         <ViewInvoice
-          payment={selected}
+          invoice={selected}
           open={showDetail}
           openChange={setShowDetail}
           purchases={purchases}
+          users={users}
         />
       )}
       {selected && (
-        <RejectInvoice
-          payment={selected}
-          open={reject}
-          openChange={setReject}
+        <ViewInvoicePayment
+          invoice={selected}
+          open={showPayments}
+          openChange={setShowPayments}
+          purchases={purchases}
+          payments={payments}
+        />
+      )}
+      {selected && (
+        <CancelInvoice
+          invoice={selected}
+          open={cancel}
+          openChange={setCancel}
           purchases={purchases}
         />
       )}

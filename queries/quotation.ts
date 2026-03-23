@@ -11,6 +11,7 @@ interface CreateQuotation {
     | "updatedAt"
     | "status"
     | "commandRequest"
+    | "provider"
   >;
   elements: Array<Omit<QuotationElement, "id" | "deviId" | "status">>;
 }
@@ -24,6 +25,7 @@ interface UpdateQuotation {
     | "updatedAt"
     | "status"
     | "commandRequest"
+    | "provider"
   >;
   elements: Array<
     { id?: number } & Omit<QuotationElement, "deviId" | "id" | "status">
@@ -66,7 +68,7 @@ class QuotationQueries {
   // UPDATE — PUT multipart
   update = async (
     id: number,
-    { devis, elements }: UpdateQuotation
+    { devis, elements }: UpdateQuotation,
   ): Promise<{ data: Quotation }> => {
     const formData = new FormData();
 
@@ -91,7 +93,7 @@ class QuotationQueries {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
   };
   validate = async (
-    payload: Array<SubmissionElement>
+    payload: Array<SubmissionElement>,
   ): Promise<{ data: Array<Quotation> }> => {
     return api
       .put(`${this.route}/validerDevis`, payload)

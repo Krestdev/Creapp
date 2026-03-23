@@ -9,12 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { XAF } from "@/lib/utils";
-import {
-  Transaction,
-  TRANSACTION_STATUS,
-  TRANSACTION_TYPES,
-} from "@/types/types";
+import { getTransactionTypeBadge, XAF } from "@/lib/utils";
+import { Transaction, TRANSACTION_STATUS } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -27,6 +23,7 @@ import {
   ClipboardPenIcon,
   DollarSign,
   FileIcon,
+  FilePenIcon,
   LucideHash,
   Tag,
   UsersIcon,
@@ -61,19 +58,6 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
       details.push(`Numéro de téléphone: ${target.phoneNumber}`);
     }
     return details;
-  };
-
-  const getTypeBadgeVariant = (type: Transaction["Type"]) => {
-    switch (type) {
-      case "CREDIT":
-        return "success";
-      case "DEBIT":
-        return "destructive";
-      case "TRANSFER":
-        return "blue";
-      default:
-        return "outline";
-    }
   };
 
   const getStatusBadge = (
@@ -142,9 +126,10 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Type de transaction"}</p>
-              <Badge variant={getTypeBadgeVariant(transaction.Type)}>
-                {TRANSACTION_TYPES.find((p) => p.value === transaction.Type)
-                  ?.name ?? "Inconnu"}
+              <Badge
+                variant={getTransactionTypeBadge(transaction.Type).variant}
+              >
+                {getTransactionTypeBadge(transaction.Type).label}
               </Badge>
             </div>
           </div>
@@ -179,8 +164,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
           </div>
 
           {/** Signed */}
-          {
-            transaction.Type === "TRANSFER" &&
+          {transaction.Type === "TRANSFER" && (
             <>
               <div className="view-group">
                 <span className="view-icon">
@@ -189,7 +173,11 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Signature"}</p>
                   <p className="font-semibold">
-                    <Badge variant={transaction.isSigned === true ? "success" : "amber"}>
+                    <Badge
+                      variant={
+                        transaction.isSigned === true ? "success" : "amber"
+                      }
+                    >
                       {transaction.isSigned === true ? "Signé" : "En attente"}
                     </Badge>
                   </p>
@@ -202,22 +190,29 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
                 <div className="w-full flex flex-col">
                   <p className="view-group-title">{"Signataires"}</p>
                   <div className="w-full grid gap-2">
-                    {
-                      transaction.signers?.length === 0 || !transaction.signers ?
-                        <p className="text-sm">{"Aucune signature enregistrée"}</p>
-                        :
-                        transaction.signers.map(u =>
-                          <div key={u.id} className="w-full px-3 py-1.5 rounded-sm border border-green-200 bg-green-50 text-gray-400 flex flex-col">
-                            <p className="text-sm font-medium text-green-600">{u.user.firstName.concat(" ", u.user.lastName)}</p>
-                            <span className="text-xs">{`Signé le ${format(new Date(u.signedAt), "dd MMM yyyy, p", { locale: fr })}`}</span>
-                          </div>
-                        )
-                    }
+                    {transaction.signers?.length === 0 ||
+                    !transaction.signers ? (
+                      <p className="text-sm">
+                        {"Aucune signature enregistrée"}
+                      </p>
+                    ) : (
+                      transaction.signers.map((u) => (
+                        <div
+                          key={u.id}
+                          className="w-full px-3 py-1.5 rounded-sm border border-green-200 bg-green-50 text-gray-400 flex flex-col"
+                        >
+                          <p className="text-sm font-medium text-green-600">
+                            {u.user.firstName.concat(" ", u.user.lastName)}
+                          </p>
+                          <span className="text-xs">{`Signé le ${format(new Date(u.signedAt), "dd MMM yyyy, p", { locale: fr })}`}</span>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
             </>
-          }
+          )}
 
           {/** Source */}
           <div className="view-group">
@@ -279,8 +274,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
                   transaction.proof.split(";").map((proof, index) => (
                     <Link
                       key={index}
-                      href={`${process.env.NEXT_PUBLIC_API
-                        }/${proof}`}
+                      href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -300,6 +294,40 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
               </div>
             </div>
           </div>
+          {/** Signatures */}
+          {transaction.Type === "TRANSFER" && (
+            <div className="view-group">
+              <span className="view-icon">
+                <FilePenIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Signature"}</p>
+                <div className="space-y-1">
+                  {transaction.signDoc ? (
+                    transaction.signDoc.split(";").map((proof, index) => (
+                      <Link
+                        key={index}
+                        href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
+                        target="_blank"
+                        className="flex gap-0.5 items-center"
+                      >
+                        <img
+                          src="/images/pdf.png"
+                          alt="preuve"
+                          className="h-7 w-auto aspect-square"
+                        />
+                        <p className="text-foreground font-medium">
+                          {"Document signé"}
+                        </p>
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="italic">{"Aucune preuve jointe"}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/** Date de création */}
           <div className="view-group">

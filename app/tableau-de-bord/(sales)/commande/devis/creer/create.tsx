@@ -64,6 +64,13 @@ const formSchema = z.object({
         quantity: z.number(),
         unit: z.string(),
         price: z.number({ message: "Veuillez renseigner un prix" }),
+        hasIs: z.boolean(),
+        reduction: z.coerce
+          .number()
+          .nonnegative({ message: "Doit être supérieur ou égale à 0" }),
+        tva: z.coerce
+          .number({ message: "Doit être un nombre" })
+          .nonnegative({ message: "Doit être positif" }),
       }),
     )
     .min(1),
@@ -168,6 +175,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
           quantity: e.quantity,
           unit: e.unit,
           priceProposed: e.price,
+          hasIs: e.hasIs,
+          tva: e.tva,
+          reduction: e.reduction,
         })),
       };
 
@@ -595,10 +605,11 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                       }
                                     >
                                       <span className="truncate">
-                                        {`${item.designation} - ${item.quantity
-                                          } ${item.unit} - ${XAF.format(
-                                            item.price,
-                                          )}`}
+                                        {`${item.designation} - ${
+                                          item.quantity
+                                        } ${item.unit} - ${XAF.format(
+                                          item.price,
+                                        )}`}
                                       </span>
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
                                         {"Modifier"}
@@ -644,7 +655,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           }
                           setOpen(state);
                         }}
-                        needs={selectedNeeds.filter(n => {
+                        needs={selectedNeeds.filter((n) => {
                           const validatedBesoinIds = quotationsData.data.data
                             .flatMap((q) => q.element || []) // On aplatit tous les éléments des devis
                             .filter((el) => el.status === "SELECTED") // Uniquement ceux qui sont validés

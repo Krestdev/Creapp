@@ -29,6 +29,8 @@ import * as React from "react";
 import { Pagination } from "@/components/base/pagination";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -46,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -54,29 +57,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
+import { cn, getPaymentTypeBadge, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   Bank,
-  BonsCommande,
   DateFilter,
+  Invoice,
   PAY_STATUS,
   PAYMENT_TYPES,
   PaymentRequest,
   PayType,
   PRIORITIES,
+  ProjectT,
+  RequestModelT,
   RequestType,
   Signatair,
   Transaction,
+  User
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
-import ViewExpense from "../../(volt)/depenses/view-expense";
-import { useMemo } from "react";
-import SignExpense from "./sign-expense";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { useMemo } from "react";
+import ViewExpense from "../../(volt)/depenses/view-expense";
+import SignExpense from "./sign-expense";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -134,13 +137,16 @@ const statusConfig = {
 
 interface Props {
   payments: Array<PaymentRequest>;
-  purchases: Array<BonsCommande>;
+  invoices: Array<Invoice>;
   type: "pending" | "validated";
   banks: Array<Bank>;
   requestTypes: Array<RequestType>;
   signatair: Array<Signatair>;
   payType: Array<PayType>;
-  transactions: Array<Transaction>
+  transactions: Array<Transaction>;
+  users: Array<User>;
+  projects: Array<ProjectT>;
+  requests: Array<RequestModelT>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -201,13 +207,16 @@ function getStatusBadge(status: PaymentRequest["status"]): {
 
 function ExpensesTableSign({
   payments,
-  purchases,
+  invoices,
   type,
   banks,
   requestTypes,
   signatair,
   payType,
-  transactions
+  transactions,
+  users,
+  projects,
+  requests
 }: Props) {
   const { user } = useStore();
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -262,42 +271,14 @@ function ExpensesTableSign({
   }, [payments, signatair, user]);
 
   // OPTIMISATION: Créer une Map pour les achats pour un accès rapide
-  const purchasesMap = useMemo(() => {
-    const map = new Map<number, BonsCommande>();
-    purchases.forEach(purchase => {
-      map.set(purchase.id, purchase);
+  const invoicesMap = useMemo(() => {
+    const map = new Map<number, Invoice>();
+    invoices.forEach(invoice => {
+      map.set(invoice.id, invoice);
     });
     return map;
-  }, [purchases]);
+  }, [invoices]);
 
-  function getTypeBadge(type: PaymentRequest["type"]): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } {
-    // Cas spécial
-    if (type === "CURRENT") {
-      return {
-        label: "Dépenses courantes",
-        variant: "yellow",
-      };
-    }
-
-    const typeData = requestTypes.find((t) => t.type === type);
-    const label = typeData?.label ?? "Inconnu";
-
-    switch (type) {
-      case "facilitation":
-        return { label, variant: "lime" };
-      case "achat":
-        return { label, variant: "sky" };
-      case "speciaux":
-        return { label, variant: "purple" };
-      case "ressource_humaine":
-        return { label, variant: "blue" };
-      default:
-        return { label, variant: "outline" };
-    }
-  }
 
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -445,7 +426,7 @@ function ExpensesTableSign({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getTypeBadge(value.type);
+        const type = getPaymentTypeBadge({type:value.type, payTypes: payType});
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },
@@ -532,8 +513,8 @@ function ExpensesTableSign({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchasesMap.get(value.commandId || -1);
-        return <div>{purchase?.provider?.name ?? "Creaconsult"}</div>;
+        const invoice = invoicesMap.get(value.invoiceId || -1);
+        return <div>{invoice?.command.provider?.name ?? "Creaconsult"}</div>;
       },
     },
     {
@@ -676,7 +657,7 @@ function ExpensesTableSign({
         );
       },
     },
-  ], [canSign, purchasesMap]);
+  ], [canSign, invoicesMap]);
 
   const table = useReactTable({
     data: filteredData, // Utiliser les paiements pré-filtrés
@@ -1076,8 +1057,11 @@ function ExpensesTableSign({
           open={showDetail}
           openChange={setShowDetail}
           payment={selected}
-          purchases={purchases}
-        />
+          invoices={invoices}
+          projects={projects}
+          users={users}
+          requests={requests} 
+          payTypes={payType}        />
       )}
       {selected && (
         <SignExpense

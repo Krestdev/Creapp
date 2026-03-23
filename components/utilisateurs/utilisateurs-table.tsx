@@ -14,8 +14,7 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  Check,
-  CheckCircle,
+  CheckCheckIcon,
   ChevronDown,
   Eye,
   LucidePen,
@@ -27,11 +26,10 @@ import {
   UserCheck,
   UserX,
   Users,
-  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -58,19 +56,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { userQ } from "@/queries/baseModule";
-import { Role, User as UserT } from "@/types/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Pagination } from "../base/pagination";
-import UpdateUser from "./UpdateUser";
-import { ShowUser } from "./show-user";
 import { TranslateRole } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { ModalWarning } from "../modals/modal-warning";
-import { format } from "date-fns";
-import UpdatePassword from "./updatePassword";
+import { userQ } from "@/queries/baseModule";
 import { signatairQ } from "@/queries/signatair";
+import { Role, User as UserT } from "@/types/types";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { Pagination } from "../base/pagination";
+import { ModalWarning } from "../modals/modal-warning";
+import UpdateUser from "./UpdateUser";
+import { ShowUser } from "./show-user";
+import UpdatePassword from "./updatePassword";
+import { VariantProps } from "class-variance-authority";
 
 interface UtilisateursTableProps {
   data: UserT[];
@@ -118,69 +117,50 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     return allRoles.sort((a, b) => a.localeCompare(b));
   }, [data]);
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "admin":
-        return <Shield className="h-3 w-3" />;
-      case "manager":
-        return <Users className="h-3 w-3" />;
-      case "user":
-        return <User className="h-3 w-3" />;
-      case "viewer":
-        return <Eye className="h-3 w-3" />;
+  const getRoleBadge = (
+    data: Role,
+  ): {
+    label: string;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+  } => {
+    const { label } = data;
+    switch (label) {
+      case "USER":
+        return { label: "Employé", variant: "outline" };
+      case "MANAGER":
+        return { label: "Validateur", variant: "pink" };
+      case "SALES":
+        return { label: "Responsable d'achat", variant: "sky" };
+      case "SALES_MANAGER":
+        return { label: "Donneur d'ordre d'achat", variant: "teal" };
+      case "SUPERADMIN":
+        return { label: "Super Administrateur", variant: "purple" };
+      case "ADMIN":
+        return { label: "Administrateur", variant: "indigo" };
+      case "VOLT":
+        return { label: "Trésorier", variant: "lime" };
+      case "VOLT_MANAGER":
+        return {
+          label: "Donneur d'ordre de décaissement",
+          variant: "destructive",
+        };
+      case "RH":
+        return { label: "Ressources Humaines", variant: "orange" };
+      case "ACCOUNTANT":
+        return { label: "Comptable", variant: "blue" };
+      case "DRIVER":
+        return { label: "Conducteur", variant: "fuchsia" };
       default:
-        return <User className="h-3 w-3" />;
+        return { label, variant: "dark" };
     }
   };
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "bg-purple-500 text-white hover:bg-purple-600";
-      case "manager":
-        return "bg-blue-500 text-white hover:bg-blue-600";
-      case "user":
-        return "bg-green-500 text-white hover:bg-green-600";
-      case "viewer":
-        return "bg-gray-500 text-white hover:bg-gray-600";
-      default:
-        return "bg-gray-500 text-white hover:bg-gray-600";
-    }
-  };
-
-  const getStatutIcon = (statut: boolean) => {
-    switch (statut) {
-      case true:
-        return <CheckCircle className="h-3 w-3" />;
-      default:
-        return <XCircle className="h-3 w-3" />;
-    }
-  };
-
-  const getStatutBadgeColor = (statut: boolean) => {
-    switch (statut) {
-      case true:
-        return "bg-green-500 text-white hover:bg-green-600";
-      default:
-        return "bg-yellow-500 text-white hover:bg-yellow-600";
-    }
-  };
-
-  const getRowColor = (statut: boolean) => {
-    switch (statut) {
+  const getRowColor = (status: boolean) => {
+    switch (status) {
       case true:
         return "bg-green-50";
       default:
         return "bg-yellow-50";
-    }
-  };
-
-  const TranslateStatus = (statut: boolean) => {
-    switch (statut) {
-      case true:
-        return "Vérifié";
-      default:
-        return "Non vérifié";
     }
   };
 
@@ -225,8 +205,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
             className="tablehead cursor-pointer select-none flex items-center"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Utilisateur
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            {"Noms & prénoms"}
+            <ArrowUpDown />
           </span>
         ),
 
@@ -262,8 +242,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Email
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Adresse mail"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -281,27 +261,21 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Rôles
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Rôles"}
+              <ArrowUpDown />
             </span>
           );
         },
         cell: ({ row }) => {
           const role = row.getValue("role") as Role[];
+
           return (
-            <div className="flex flex-wrap max-w-[350px] gap-1">
+            <div className="flex flex-wrap gap-1">
               {role?.map((rol) => {
+                const {label, variant} = getRoleBadge(rol);
                 return (
-                  <Badge
-                    className={`${getRoleBadgeColor(
-                      rol.label,
-                    )} flex items-center gap-1 w-fit`}
-                    key={rol.id}
-                  >
-                    {getRoleIcon(rol.label)}
-                    {TranslateRole(
-                      rol.label.charAt(0).toUpperCase() + rol.label.slice(1),
-                    )}
+                  <Badge key={rol.id} variant={variant}>
+                    {label}
                   </Badge>
                 );
               })}
@@ -328,20 +302,16 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               }
             >
               {"Vérification"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown />
             </span>
           );
         },
         cell: ({ row }) => {
           const status = row.getValue("verified") as boolean;
           return (
-            <Badge
-              className={`${getStatutBadgeColor(
-                status,
-              )} flex items-center gap-1 w-fit`}
-            >
-              {getStatutIcon(status)}
-              {TranslateStatus(status)}
+            <Badge variant={status === true ? "success" : "amber"}>
+              {status === true ? <CheckCheckIcon /> : <LucideX />}
+              {status === true ? "Vérifé" : "Non vérifié"}
             </Badge>
           );
         },
@@ -373,8 +343,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Statut compte
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Statut"}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -382,7 +352,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           const status = row.getValue("status") as string;
           return (
             <Badge variant={status === "active" ? "success" : "destructive"}>
-              {status === "active" ? <Check /> : <LucideX />}
               {status === "active" ? "Actif" : "Suspendu"}
             </Badge>
           );
@@ -469,15 +438,15 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedItem(utilisateur);
                     setIsDetailModalOpen(true);
                   }}
                 >
-                  <Eye className="mr-2 h-4 w-4" />
-                  Voir
+                  <Eye />
+                  {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -486,8 +455,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                     setIsUpdateModalOpen(true);
                   }}
                 >
-                  <LucidePen className="mr-2 h-4 w-4" />
-                  Modifier
+                  <LucidePen />
+                  {"Modifier"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
@@ -495,8 +464,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                     setIsUpdatePasswordModalOpen(true);
                   }}
                 >
-                  <LucidePen className="mr-2 h-4 w-4" />
-                  Modifier le mot de passe
+                  <LucidePen/>
+                  {"Modifier le mot de passe"}
                 </DropdownMenuItem>
                 {utilisateur.status === "inactive" ? (
                   <DropdownMenuItem
@@ -508,8 +477,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                     }
                     disabled={utilisateur.status !== "inactive"}
                   >
-                    <UserCheck className="mr-2 h-4 w-4" />
-                    Activer
+                    <UserCheck />
+                    {"Activer"}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
@@ -530,8 +499,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                       utilisateur.id === user?.id
                     }
                   >
-                    <UserX className="mr-2 h-4 w-4" />
-                    Suspendre
+                    <UserX />
+                    {"Suspendre"}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
@@ -548,8 +517,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   }}
                   disabled={utilisateur.id === user?.id}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Supprimer
+                  <Trash2 />
+                  {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

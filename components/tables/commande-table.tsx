@@ -188,6 +188,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
     setGlobalFilter("");
     setDateFilter(undefined);
     setCustomDateRange(undefined);
+    setCustomOpen(false);
   };
 
   // Fonction pour filtrer les données selon la période sélectionnée
@@ -460,7 +461,7 @@ export function CommandeTable({ data }: CommandeTableProps) {
             <SheetHeader>
               <SheetTitle>{"Filtres"}</SheetTitle>
               <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
+                {"Configurer les filtres pour affiner les données"}
               </SheetDescription>
             </SheetHeader>
             <div className="px-5 grid gap-5">
@@ -476,32 +477,93 @@ export function CommandeTable({ data }: CommandeTableProps) {
                   className="w-full"
                 />
               </div>
+
               {/* Filtre par période */}
               <div className="grid gap-1.5">
                 <Label>{"Période"}</Label>
-                <Select
-                  onValueChange={(v) => {
-                    if (v !== "custom") {
-                      setCustomDateRange(undefined);
-                      setCustomOpen(false);
-                    }
-                    if (v === "all") return setDateFilter(undefined);
-                    setDateFilter(v as Exclude<DateFilter, undefined>);
-                    setCustomOpen(v === "custom");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
-                    <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                    <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                    <SelectItem value="month">{"Ce mois"}</SelectItem>
-                    <SelectItem value="year">{"Cette année"}</SelectItem>
-                    <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {dateFilter === undefined
+                          ? "Toutes les périodes"
+                          : dateFilter === "today"
+                            ? "Aujourd'hui"
+                            : dateFilter === "week"
+                              ? "Cette semaine"
+                              : dateFilter === "month"
+                                ? "Ce mois"
+                                : dateFilter === "year"
+                                  ? "Cette année"
+                                  : dateFilter === "custom"
+                                    ? "Personnalisé"
+                                    : "Sélectionner une période"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter(undefined);
+                        setCustomDateRange(undefined);
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === undefined ? "bg-accent" : ""}
+                    >
+                      <span>Toutes les périodes</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("today");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "today" ? "bg-accent" : ""}
+                    >
+                      <span>Aujourd'hui</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("week");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "week" ? "bg-accent" : ""}
+                    >
+                      <span>Cette semaine</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("month");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "month" ? "bg-accent" : ""}
+                    >
+                      <span>Ce mois</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("year");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "year" ? "bg-accent" : ""}
+                    >
+                      <span>Cette année</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("custom");
+                        setCustomOpen(true);
+                      }}
+                      className={dateFilter === "custom" ? "bg-accent" : ""}
+                    >
+                      <span>Personnalisé</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <Collapsible
                   open={customOpen}
                   onOpenChange={setCustomOpen}

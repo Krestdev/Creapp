@@ -1,7 +1,29 @@
-import { BonsCommande, Provider, QuotationElement, Role, User } from "@/types/types";
+import { badgeVariants } from "@/components/ui/badge";
+import {
+  Bank,
+  BANK_TYPES,
+  BonsCommande,
+  Provider,
+  QuotationElement,
+  RequestModelT,
+  RequestType,
+  Role,
+  Transaction,
+  TRANSACTION_TYPES,
+  User,
+  PaymentRequest,
+  PayType,
+  Quotation,
+} from "@/types/types";
+import { VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
 import { DateRange } from "react-day-picker";
 import { twMerge } from "tailwind-merge";
+
+interface typesProps {
+  type: RequestModelT["type"];
+  requestTypes: Array<RequestType>;
+}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -51,7 +73,7 @@ export const parseFrenchDate = (dateString: string): Date | undefined => {
 };
 
 export const formatToShortName = (
-  fullName: string | undefined | null
+  fullName: string | undefined | null,
 ): string => {
   if (!fullName) return "Undefined";
 
@@ -94,6 +116,8 @@ export const TranslateRole = (role: string) => {
       return "Responsable d'achat";
     case "SALES_MANAGER":
       return "Donneur d'ordre d'achat";
+    case "SUPERADMIN":
+      return "Super Administrateur";
     case "ADMIN":
       return "Administrateur";
     case "VOLT":
@@ -104,47 +128,84 @@ export const TranslateRole = (role: string) => {
       return "Ressources Humaines";
     case "ACCOUNTANT":
       return "Comptable";
+    case "DRIVER":
+      return "Conducteur";
     default:
       return role;
   }
 };
 
 export function totalAmountPurchase(payload: BonsCommande): number {
-  return payload.devi.element.reduce((total, el) => total + el.priceProposed * el.quantity, 0)
+  return payload.devi.element.reduce(
+    (total, el) => total + el.priceProposed * el.quantity,
+    0,
+  );
 }
 
 // Fonction pour calculer le pourcentage du payment d'un bon
 export function paymentPercentage(payload: BonsCommande): number {
-  return (payload.devi.element.reduce((total, el) => total + el.priceProposed * el.quantity, 0) / totalAmountPurchase(payload)) * 100
+  return (
+    (payload.devi.element.reduce(
+      (total, el) => total + el.priceProposed * el.quantity,
+      0,
+    ) /
+      totalAmountPurchase(payload)) *
+    100
+  );
 }
 
 interface RoleCheck {
   roleList: Role[];
-  role: "admin" | "achat" | "Donner d'ordre achat" | "trésorier" | "Donneur d'ordre décaissement" | "rh" | "comptable" |  "manager";
+  role:
+    | "SUPERADMIN"
+    | "admin"
+    | "achat"
+    | "Donner d'ordre achat"
+    | "trésorier"
+    | "Donneur d'ordre décaissement"
+    | "rh"
+    | "comptable"
+    | "manager"
+    | "conducteur";
 }
 export function isRole({ roleList, role }: RoleCheck): boolean {
-  if (roleList.some(r => r.label === "ADMIN")) {
+  if (roleList.some((r) => r.label === "SUPERADMIN")) {
     return true;
   }
-  if (role === "manager" && roleList.some(r => r.label === "MANAGER")) {
+  if (roleList.some((r) => r.label === "ADMIN") && role === "admin") {
     return true;
   }
-  if (role === "achat" && roleList.some(r => r.label === "SALES" || r.label === "SALES_MANAGER")) {
+  if (role === "manager" && roleList.some((r) => r.label === "MANAGER")) {
     return true;
   }
-  if (role === "Donner d'ordre achat" && roleList.some(r => r.label === "SALES_MANAGER")) {
+  if (
+    role === "achat" &&
+    roleList.some((r) => r.label === "SALES" || r.label === "SALES_MANAGER")
+  ) {
     return true;
   }
-  if (role === "trésorier" && roleList.some(r => r.label === "VOLT")) {
+  if (
+    role === "Donner d'ordre achat" &&
+    roleList.some((r) => r.label === "SALES_MANAGER")
+  ) {
     return true;
   }
-  if (role === "Donneur d'ordre décaissement" && roleList.some(r => r.label === "VOLT_MANAGER")) {
+  if (role === "trésorier" && roleList.some((r) => r.label === "VOLT")) {
     return true;
   }
-  if (role === "rh" && roleList.some(r => r.label === "RH")) {
+  if (
+    role === "Donneur d'ordre décaissement" &&
+    roleList.some((r) => r.label === "VOLT_MANAGER")
+  ) {
     return true;
   }
-  if (role === "comptable" && roleList.some(r => r.label === "ACCOUNTANT")) {
+  if (role === "rh" && roleList.some((r) => r.label === "RH")) {
+    return true;
+  }
+  if (role === "comptable" && roleList.some((r) => r.label === "ACCOUNTANT")) {
+    return true;
+  }
+  if (role === "conducteur" && roleList.some((r) => r.label === "DRIVER")) {
     return true;
   }
   return false;
@@ -170,19 +231,21 @@ export function getRandomColor(id?: number) {
     "#218380",
     "#DBCBD8",
     "#F4D35E",
-    "#372772"
+    "#372772",
   ];
-  const value = !!id ? id % colors.length : Math.floor(Math.random() * colors.length);
-  return colors[value]
+  const value = !!id
+    ? id % colors.length
+    : Math.floor(Math.random() * colors.length);
+  return colors[value];
 }
 
 export const getPeriodType = (
-  range: DateRange | undefined
+  range: DateRange | undefined,
 ): "day" | "week" | "month" => {
   if (!range?.from || !range?.to) return "month";
 
   const diffDays = Math.floor(
-    (range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24)
+    (range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24),
   );
 
   if (diffDays <= 7) return "day";
@@ -190,27 +253,146 @@ export const getPeriodType = (
   return "month";
 };
 
-export const getUserName = (users: Array<User> ,userId?: number):string | undefined => {
-    if(!userId) return undefined;
-    const user = users.find((u) => u.id === userId);
-    if(!user){
-      return "Utilisateur introuvable"
-    }
-    return user.firstName.concat(" ", user.lastName);
-  };
+export const getUserName = (
+  users: Array<User>,
+  userId?: number,
+): string | undefined => {
+  if (!userId) return undefined;
+  const user = users.find((u) => u.id === userId);
+  if (!user) {
+    return "Utilisateur introuvable";
+  }
+  return user.firstName.concat(" ", user.lastName);
+};
 
-export const getQuotationAmount = (elements: Array<QuotationElement>) => {
+export const getQuotationAmount = (devis: Quotation, providers: Provider[]) => {
+  const isValue = (providerId: number): number => {
+    const provider = providers.find((p) => p.id === providerId);
+    if (!provider) return 0;
+    if (!provider.regem) return 0;
+    if (provider.regem === "Réel") return 0.022;
+    return 0.055;
+  };
+  return devis.element.reduce((total, i) => {
+    const isIr = !i.hasIs ? 0 : isValue(devis.providerId);
+    const tva = i.tva / 100;
+    const reduction = i.reduction / 100;
     return (
-      elements.reduce(
-        (total, element) => total + (element.priceProposed * element.quantity),
-        0,
-      )
+      total + i.priceProposed * i.quantity * (1 - reduction) * (1 - isIr + tva)
     );
-  };
+  }, 0);
+};
 
-export function subText({text , length = 50}:{text: string; length?: number}) {  
+export function subText({
+  text,
+  length = 50,
+}: {
+  text: string;
+  length?: number;
+}) {
   if (text.length <= length) {
     return text;
   }
-  return text.substring(0, length) + '...';
+  return text.substring(0, length) + "...";
 }
+
+export function getRequestTypeBadge({ type, requestTypes }: typesProps): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const typeData = requestTypes.find((t) => t.type === type);
+  const label = typeData?.label ?? type;
+  switch (type) {
+    case "facilitation":
+      return { label, variant: "lime" };
+    case "achat":
+      return { label, variant: "sky" };
+    case "speciaux":
+      return { label, variant: "purple" };
+    case "ressource_humaine":
+      return { label, variant: "blue" };
+    case "gas":
+      return { label, variant: "teal" };
+    case "transport":
+      return { label, variant: "primary" };
+    case "others":
+      return { label, variant: "dark" };
+    default:
+      return { label, variant: "outline" };
+  }
+}
+
+export function getBankTypeBadge({ type }: { type: Bank["type"] }): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const typeData = BANK_TYPES.find((t) => t.value === type);
+  const label = typeData?.name ?? "Inconnu";
+  switch (type) {
+    case "BANK":
+      return { label, variant: "blue" };
+    case "CASH_REGISTER":
+      return { label, variant: "primary" };
+    case "CASH":
+      return { label, variant: "lime" };
+    default:
+      return { label: type, variant: "outline" };
+  }
+}
+
+export function getTransactionTypeBadge(type: Transaction["Type"]): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const typeData = TRANSACTION_TYPES.find((t) => t.value === type);
+  const label = typeData?.name ?? "Inconnu";
+
+  switch (type) {
+    case "CREDIT":
+      return { label, variant: "success" };
+    case "DEBIT":
+      return { label, variant: "destructive" };
+    case "TRANSFER":
+      return { label, variant: "blue" };
+    default:
+      return { label: type, variant: "outline" };
+  }
+}
+
+export function getPaymentTypeBadge({
+  type,
+  payTypes,
+}: {
+  type: PaymentRequest["type"];
+  payTypes: PayType[];
+}): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const typeData = payTypes.find((t) => t.type === type);
+  const label = typeData?.label ?? type;
+  switch (type) {
+    case "facilitation":
+      return { label, variant: "lime" };
+    case "achat":
+      return { label, variant: "sky" };
+    case "speciaux":
+      return { label, variant: "purple" };
+    case "ressource_humaine":
+      return { label, variant: "blue" };
+    case "gas":
+      return { label, variant: "teal" };
+    case "transport":
+      return { label, variant: "primary" };
+    case "others":
+      return { label, variant: "dark" };
+    default:
+      return { label, variant: "outline" };
+  }
+}
+
+export const formatFCFA = (value?: number) => {
+  if (typeof value !== "number") return "0 FCFA";
+
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " FCFA";
+};

@@ -33,6 +33,7 @@ import FilesUpload from "../comp-547";
 import { SuccessModal } from "../modals/success-modal";
 import { Form, FormControl, FormMessage } from "../ui/form";
 import ViewDepense from "./viewDepense";
+import { requestQ } from "@/queries/requestModule";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -102,13 +103,17 @@ export function TransportForm() {
   });
 
   const ProjectsData = useQuery({
-    queryKey: ["getProjects"],
+    queryKey: ["projects"],
     queryFn: () => projectQ.getAll(),
   });
 
   const usersData = useQuery({
-    queryKey: ["getUsers"],
+    queryKey: ["users"],
     queryFn: () => userQ.getAll(),
+  });
+  const getRequests = useQuery({
+    queryKey: ["requests"],
+    queryFn: () => requestQ.getAll(),
   });
 
   const bankData = useQuery({
@@ -178,6 +183,7 @@ export function TransportForm() {
     !bankData.isLoading &&
     bankData.data &&
     usersData.data &&
+    getRequests.data &&
     ProjectsData.data && (
       <>
         <Form {...form}>
@@ -463,11 +469,14 @@ export function TransportForm() {
             </div>
           </form>
         </Form>
-        {paymentsData.isSuccess && (
+        {paymentsData.isSuccess && getPaymentType.isSuccess && (
           <ViewDepense
             open={view}
             openChange={setView}
             paymentRequest={paymentsData.data.data}
+            payTypes={getPaymentType.data.data}
+            users={usersData.data.data}
+            requests={getRequests.data.data}
           />
         )}
         <SuccessModal

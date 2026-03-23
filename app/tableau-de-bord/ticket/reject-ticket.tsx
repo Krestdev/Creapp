@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { paymentQ } from "@/queries/payment";
-import { BonsCommande, PaymentRequest } from "@/types/types";
+import { Invoice, PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import React from "react";
@@ -29,18 +30,18 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   payment: PaymentRequest;
-  purchases: Array<BonsCommande>;
+  invoices: Array<Invoice>;
 }
 
 const formSchema = z.object({
   reason: z
     .string()
-    .min(4, { message: "Motif trop court" })
+    .min(3, { message: "Motif trop court" })
     .max(60, { message: "Trop long" }),
 });
 type FormValue = z.infer<typeof formSchema>;
 
-function RejectInvoice({ open, openChange, payment, purchases }: Props) {
+function RejectTicket({ open, openChange, payment, invoices }: Props) {
   const form = useForm<FormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,9 +50,9 @@ function RejectInvoice({ open, openChange, payment, purchases }: Props) {
   });
   const toReject = useMutation({
     mutationFn: async (reason: string) =>
-      paymentQ.rejectInvoice({ id: payment.id, reason }),
+      paymentQ.rejectPayment({ id: payment.id, reason }),
     onSuccess: () => {
-      toast.success("Vous avez rejeté une facture avec succès !");
+      toast.success("Vous avez rejeté un ticket avec succès !");
       form.reset({ reason: "" });
       openChange(false);
     },
@@ -62,14 +63,15 @@ function RejectInvoice({ open, openChange, payment, purchases }: Props) {
   const onSubmit = (value: FormValue): void => {
     toReject.mutate(value.reason);
   };
-  const purchase = purchases.find((p) => p.id === payment.commandId);
+  const invoice = invoices.find((i) => i.id === payment.invoiceId);
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
         <DialogHeader variant={"error"}>
           <DialogTitle>
-            {purchase?.devi.commandRequest.title ?? `Paiement`}
+            {payment.title ?? `Rejeter un paiement`}
           </DialogTitle>
+          <DialogDescription>{"Rejeter le paiement"}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -120,4 +122,4 @@ function RejectInvoice({ open, openChange, payment, purchases }: Props) {
   );
 }
 
-export default RejectInvoice;
+export default RejectTicket;

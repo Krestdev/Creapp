@@ -1,8 +1,6 @@
 "use client";
 
-import FilesUpload from "@/components/comp-547";
 import ViewDepense from "@/components/depense/viewDepense";
-import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,6 +33,7 @@ import { signatairQ } from "@/queries/signatair";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import {
   Bank,
+  Invoice,
   PaymentRequest,
   PayType,
   RequestModelT,
@@ -53,8 +52,9 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   banks: Array<Bank>;
-  request: RequestModelT[];
+  requests: RequestModelT[];
   users: Array<User>;
+  invoices: Invoice[];
 }
 
 // Fonction pour vérifier si un moyen de paiement nécessite un numéro de pièce
@@ -83,8 +83,9 @@ function ShareExpense({
   open,
   onOpenChange,
   banks,
-  request,
   users,
+  requests,
+  invoices
 }: Props) {
   const { user } = useStore();
 
@@ -116,9 +117,7 @@ function ShareExpense({
         .number({
           required_error: "Veuillez sélectionner un compte source",
           invalid_type_error: "Veuillez sélectionner un compte source",
-        })
-        .int()
-        .positive("Veuillez sélectionner un compte source"),
+        }),
       ...(hasExistingMethodId
         ? {}
         : {
@@ -145,11 +144,12 @@ function ShareExpense({
   type FormValues = z.infer<typeof formSchema>;
 
   const isFacilitation = ticket.type?.toLowerCase() === "facilitation";
-  const besoinFac = request.find((x) => x.id === ticket.requestId)
+  const besoinFac = requests.find((x) => x.id === ticket.requestId)
   const benef = users.find((x) => x.id === Number(besoinFac?.beneficiary));
 
-  console.log(besoinFac);
-
+  //console.log(besoinFac);
+  //Let's save the user who created the request to use it later on
+  const requestUser = users.find(u=> u.id === requests.find(r=> r.id === ticket.requestId)?.userId);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -159,7 +159,7 @@ function ShareExpense({
       // Si le ticket n'a pas de methodId, laisser undefined
       ...(hasExistingMethodId ? {} : { methodId: undefined }),
       to: {
-        label: isFacilitation ? benef?.firstName + " " + benef?.lastName : "",
+        label: isFacilitation ? benef?.firstName + " " + benef?.lastName : ticket.invoice?.command.provider.name ?? !!ticket.requestId ? requestUser?.firstName.concat(" ", requestUser?.lastName) :  "",
         accountNumber: "",
         phoneNum: "",
       },
@@ -313,7 +313,7 @@ function ShareExpense({
 
   const share = useMutation({
     mutationFn: async (payload: TransactionProps) =>
-      transactionQ.create(payload),
+      transactionQ.createDebitTransaction(payload),
     onSuccess: (data) => {
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
@@ -332,11 +332,6 @@ function ShareExpense({
   );
 
   function onSubmit(values: FormValues) {
-    // Vérifier que fromBankId est défini
-    if (!values.fromBankId) {
-      toast.error("Veuillez sélectionner un compte source");
-      return;
-    }
 
     // Validation manuelle pour docNumber
     if (
@@ -380,6 +375,7 @@ function ShareExpense({
       // Inclure docNumber seulement s'il est fourni
       ...(docNumber && { docNumber: docNumber }),
     };
+    //console.log("Payload à envoyer pour la transaction :", payload);
     share.mutate(payload);
   }
 
@@ -388,9 +384,9 @@ function ShareExpense({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 border-none flex flex-col">
-          <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-            <DialogTitle className="uppercase">
+        <DialogContent>
+          <DialogHeader variant={"secondary"}>
+            <DialogTitle>
               {isCashPayment
                 ? `Payer - ${ticket.title}`
                 : `Soumettre - ${ticket.title}`}
@@ -430,12 +426,12 @@ function ShareExpense({
                 {/* Information sur la méthode de paiement */}
                 <div className="@min-[640px]:col-span-2 p-3 rounded-sm border bg-blue-50/30">
                   <h3 className="font-medium text-sm mb-2">
-                    Information de paiement
+                    {"Information de paiement"}
                   </h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <span className="font-medium text-muted-foreground">
-                        Montant :
+                        {"Montant :"}
                       </span>
                       <p className="font-semibold">
                         {ticket.price.toLocaleString()} FCFA
@@ -453,8 +449,8 @@ function ShareExpense({
                       <FormItem className="@min-[640px]:col-span-2">
                         <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
                         <FormDescription className="text-amber-600">
-                          Ce paiement n'a pas encore de moyen de paiement
-                          défini. Veuillez en sélectionner un.
+                          {`Ce paiement n'a pas encore de moyen de paiement
+                          défini. Veuillez en sélectionner un.`}
                         </FormDescription>
                         <FormControl>
                           <Select
@@ -773,11 +769,14 @@ function ShareExpense({
           </div>
         </DialogContent>
       </Dialog>
-      {paiement && (
+      {paiement && payTypesQuery.isSuccess && (
         <ViewDepense
           open={openDoc}
           openChange={setOpenDoc}
           paymentRequest={paiement}
+          payTypes={payTypesQuery.data.data}
+          users={users}
+          requests={requests}
         />
       )}
     </>

@@ -17,6 +17,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { transactionQ } from "@/queries/transaction";
 import { TransferTransaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,7 +28,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 interface Props {
-  transfer: TransferTransaction
+  transfer: TransferTransaction;
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -40,7 +42,6 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function SignTransfer({ transfer, open, onOpenChange }: Props) {
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,7 +50,8 @@ function SignTransfer({ transfer, open, onOpenChange }: Props) {
   });
 
   const sign = useMutation({
-    mutationFn: async (signDoc: File) => transactionQ.sign({ id: transfer.id, signDoc }),
+    mutationFn: async (signDoc: File) =>
+      transactionQ.sign({ id: transfer.id, signDoc }),
     onSuccess: () => {
       toast.success("Votre signature a été enregistrée avec succès !");
       onOpenChange(false);
@@ -73,6 +75,13 @@ function SignTransfer({ transfer, open, onOpenChange }: Props) {
         <div className="space-y-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+              <div className="w-full grid gap-2">
+                <Label>{"Numéro du document"}</Label>
+                <Input value={transfer.docNumber ?? "Non renseigné"} disabled />
+                <p className="text-sm text-destructive p-2 rounded bg-red-100">
+                  {"Vérifiez que le numéro du document est correct"}
+                </p>
+              </div>
               <FormField
                 control={form.control}
                 name="proof"
@@ -87,6 +96,7 @@ function SignTransfer({ transfer, open, onOpenChange }: Props) {
                         acceptTypes="all"
                         multiple={true}
                         maxFiles={4}
+                        maxSizeMB={15}
                       />
                     </FormControl>
                     <FormMessage />

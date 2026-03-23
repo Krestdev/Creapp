@@ -1,25 +1,20 @@
 "use client";
 
 import {
-    type ColumnDef,
-    type ColumnFiltersState,
-    type SortingState,
-    type VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
 import {
-    AlertCircle,
-    ArrowUpDown,
-    Ban,
-    CheckCircle,
-    Clock,
-    Eye,
-    XCircle
+  ArrowUpDown,
+  Eye
 } from "lucide-react";
 import * as React from "react";
 
@@ -28,28 +23,28 @@ import { Pagination } from "@/components/base/pagination";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import { cn, subText } from "@/lib/utils";
+import { cn, getRequestTypeBadge, subText } from "@/lib/utils";
 import {
-    Category,
-    PaymentRequest,
-    ProjectT,
-    REQUEST_STATUS,
-    RequestModelT,
-    RequestType,
-    User,
+  Category,
+  PaymentRequest,
+  ProjectT,
+  REQUEST_STATUS,
+  RequestModelT,
+  RequestType,
+  User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -110,31 +105,6 @@ export function RequestsTable({
     }
   }
 
-
-  function getTypeBadge(
-    type:
-      | "achat"
-      | "ressource_humaine"
-      | "facilitation"
-      | "speciaux"
-      | undefined,
-  ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-    const typeData = requestTypes.find((t) => t.type === type);
-    const label = typeData?.label ?? "Inconnu";
-    switch (type) {
-      case "facilitation":
-        return { label, variant: "lime" };
-      case "achat":
-        return { label, variant: "sky" };
-      case "speciaux":
-        return { label, variant: "purple" };
-      case "ressource_humaine":
-        return { label, variant: "blue" };
-      default:
-        return { label: type || "Inconnu", variant: "outline" };
-    }
-  }
-
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
     {
@@ -191,8 +161,27 @@ export function RequestsTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getTypeBadge(value.type);
+        const type = getRequestTypeBadge({type:value.type, requestTypes: requestTypes});
         return <Badge variant={type.variant}>{type.label}</Badge>;
+      },
+    },
+    {
+      accessorKey: "userId",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Initié par"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.userId;
+        const user = users.find(u => u.id === value);
+        return <div>{!!user ? user.firstName.concat(" ", user.lastName) : "Utilisateur introuvable"}</div>;
       },
     },
     {
@@ -358,6 +347,8 @@ export function RequestsTable({
                               ? "Projets"
                               : column.id === "categoryId"
                                 ? "Catégories"
+                                : column.id === "userId"
+                                ? "Initié par"
                                 : column.id === "createdAt"
                                   ? "Date d'émission"
                                   : column.id}

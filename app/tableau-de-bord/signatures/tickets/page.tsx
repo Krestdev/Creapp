@@ -1,4 +1,5 @@
 "use client";
+import { TabBar } from "@/components/base/TabBar";
 import {
   StatisticCard,
   StatisticProps,
@@ -7,18 +8,20 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { XAF } from "@/lib/utils";
-import { bankQ } from "@/queries/bank";
-import { paymentQ } from "@/queries/payment";
-import { purchaseQ } from "@/queries/purchase-order";
-import { requestTypeQ } from "@/queries/requestType";
-import ExpensesTableSign from "./expenses-table-sign";
-import { signatairQ } from "@/queries/signatair";
 import { useStore } from "@/providers/datastore";
-import { TabBar } from "@/components/base/TabBar";
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { bankQ } from "@/queries/bank";
+import { invoiceQ } from "@/queries/invoices";
+import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
+import { requestTypeQ } from "@/queries/requestType";
+import { signatairQ } from "@/queries/signatair";
 import { transactionQ } from "@/queries/transaction";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import ExpensesTableSign from "./expenses-table-sign";
+import { userQ } from "@/queries/baseModule";
+import { projectQ } from "@/queries/projectModule";
+import { requestQ } from "@/queries/requestModule";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
@@ -34,9 +37,9 @@ function Page() {
     queryKey: ["requestType"],
     queryFn: requestTypeQ.getAll,
   });
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
   const getBanks = useQuery({
     queryKey: ["banks"],
@@ -50,6 +53,20 @@ function Page() {
     queryKey: ["transactions"],
     queryFn: transactionQ.getAll,
   });
+  const getUsers = useQuery({
+      queryKey: ["users"],
+      queryFn: userQ.getAll,
+    });
+  const getProjects = useQuery({
+      queryKey: ["projects"],
+      queryFn: async () => {
+        return projectQ.getAll();
+      },
+    });
+  const getRequests = useQuery({
+    queryKey: ["requests"],
+    queryFn: requestQ.getAll,
+  })
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { user } = useStore();
@@ -170,35 +187,44 @@ function Page() {
 
   if (
     isLoading ||
-    getPurchases.isLoading ||
+    getInvoices.isLoading ||
     getBanks.isLoading ||
     getRequestType.isLoading ||
     getPayType.isLoading ||
     getTransaction.isLoading ||
-    signatair.isLoading
+    signatair.isLoading ||
+    getProjects.isLoading ||
+    getUsers.isLoading ||
+    getRequests.isLoading
   ) {
     return <LoadingPage />;
   }
 
   if (
     isError ||
-    getPurchases.isError ||
+    getInvoices.isError ||
     getBanks.isError ||
     getRequestType.isError ||
     getPayType.isError ||
     getTransaction.isError ||
-    signatair.isError
+    signatair.isError ||
+    getProjects.isError ||
+    getUsers.isError ||
+    getRequests.isError
   ) {
     return (
       <ErrorPage
         error={
           error ||
-          getPurchases.error ||
+          getInvoices.error ||
           getBanks.error ||
           getRequestType.error ||
           getPayType.error ||
           getTransaction.error ||
           signatair.error ||
+          getProjects.error ||
+          getUsers.error ||
+          getRequests.error ||
           undefined
         }
       />
@@ -210,12 +236,15 @@ function Page() {
 
   if (
     isSuccess &&
-    getPurchases.isSuccess &&
+    getInvoices.isSuccess &&
     getBanks.isSuccess &&
     getRequestType.isSuccess &&
     getPayType.isSuccess &&
     getTransaction.isSuccess &&
-    signatair.isSuccess
+    signatair.isSuccess &&
+    getProjects.isSuccess &&
+    getUsers.isSuccess &&
+    getRequests.isSuccess
   ) {
     return (
       <div className="content">
@@ -241,23 +270,28 @@ function Page() {
             payments={filteredData.unsignedPayments}
             banks={getBanks.data.data}
             type="pending"
-            purchases={getPurchases.data.data}
+            invoices={getInvoices.data.data}
             requestTypes={getRequestType.data.data}
             signatair={signatair.data.data}
             payType={getPayType.data.data}
             transactions={getTransaction.data.data}
-          />
+            projects={getProjects.data.data}
+            users={getUsers.data.data} 
+            requests={getRequests.data.data}          />
         ) : (
           <ExpensesTableSign
             key="signed-table"
             payments={filteredData.signedPayments}
             type="validated"
             banks={getBanks.data.data}
-            purchases={getPurchases.data.data}
+            invoices={getInvoices.data.data}
             requestTypes={getRequestType.data.data}
             signatair={signatair.data.data}
             payType={getPayType.data.data}
             transactions={getTransaction.data.data}
+            projects={getProjects.data.data}
+            users={getUsers.data.data}
+            requests={getRequests.data.data}
           />
         )}
       </div>

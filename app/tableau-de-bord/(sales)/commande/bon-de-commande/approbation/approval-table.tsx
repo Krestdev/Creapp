@@ -40,6 +40,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -149,6 +150,7 @@ export function PurchaseApprovalTable({ data }: Props) {
   const [penaltyFilter, setPenaltyFilter] = React.useState<
     "all" | "true" | "false"
   >("all");
+  const [prioritySearch, setPrioritySearch] = React.useState("");
 
   // modals
   const [view, setView] = React.useState(false);
@@ -193,10 +195,10 @@ export function PurchaseApprovalTable({ data }: Props) {
   }, [data, priorityFilter, penaltyFilter, selectedTab]);
 
   const approveMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (bon: BonsCommande) => {
       // ✅ adapte selon ton query class
       // ex: return purchaseOrderQuery.approve(id);
-      return purchaseOrderQuery.approve(id);
+      return purchaseOrderQuery.approve(bon);
     },
     onSuccess: () => {
       toast.success("Bon de commande approuvé ✅");
@@ -206,10 +208,16 @@ export function PurchaseApprovalTable({ data }: Props) {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+    mutationFn: async ({
+      bon,
+      reason,
+    }: {
+      bon: BonsCommande;
+      reason: string;
+    }) => {
       // ✅ adapte selon ton query class
       // ex: return purchaseOrderQuery.reject(id, reason);
-      return purchaseOrderQuery.reject(id, reason);
+      return purchaseOrderQuery.reject(bon, reason);
     },
     onSuccess: () => {
       toast.success("Bon de commande rejeté ❌");
@@ -235,11 +243,11 @@ export function PurchaseApprovalTable({ data }: Props) {
     }
 
     if (decisionType === "approve") {
-      approveMutation.mutate(selectedValue.id);
+      approveMutation.mutate(selectedValue);
       return;
     }
 
-    rejectMutation.mutate({ id: selectedValue.id, reason: rejectReason });
+    rejectMutation.mutate({ bon: selectedValue, reason: rejectReason });
   };
 
   const columns: ColumnDef<BonsCommande>[] = [
@@ -324,7 +332,11 @@ export function PurchaseApprovalTable({ data }: Props) {
       ),
       cell: ({ row }) => {
         const po = row.original;
-        return <div className="font-medium">{XAF.format(totalAmountPurchase(po))}</div>;
+        return (
+          <div className="font-medium">
+            {XAF.format(totalAmountPurchase(po))}
+          </div>
+        );
       },
     },
 
@@ -489,12 +501,14 @@ export function PurchaseApprovalTable({ data }: Props) {
     },
   });
 
-  const resetAllFilters = () => {
-    setPriorityFilter("all");
-    setPenaltyFilter("all");
-    setGlobalFilter("");
-    table.resetColumnFilters();
-  };
+ const resetAllFilters = () => {
+  setGlobalFilter("");
+  setPriorityFilter("all");
+  // Réinitialiser les recherches
+  setPrioritySearch("");
+  // setPenaltyFilter("all"); // Si vous décommentez le filtre pénalités
+  // setPenaltySearch(""); // Si vous décommentez le filtre pénalités
+};
 
   const isDeciding = approveMutation.isPending || rejectMutation.isPending;
 
@@ -535,46 +549,148 @@ export function PurchaseApprovalTable({ data }: Props) {
                     onChange={(e) => setGlobalFilter(e.target.value)}
                   />
                 </div>
+
+                {/* Filtre par priorité avec recherche */}
                 <div className="space-y-3">
                   <Label>{"Priorité"}</Label>
-                  <Select
-                    value={priorityFilter}
-                    onValueChange={(v: "all" | Priority) =>
-                      setPriorityFilter(v)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Toutes les priorités" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {PRIORITIES.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.name}
-                        </SelectItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {priorityFilter === "all"
+                            ? "Toutes les priorités"
+                            : PRIORITIES.find((p) => p.value === priorityFilter)
+                                ?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher une priorité..."
+                          className="h-8"
+                          value={prioritySearch}
+                          onChange={(e) => setPrioritySearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setPriorityFilter("all");
+                          setPrioritySearch("");
+                        }}
+                        className={priorityFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Toutes les priorités</span>
+                      </DropdownMenuItem>
+                      {PRIORITIES.filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(prioritySearch.toLowerCase()),
+                      ).map((p) => (
+                        <DropdownMenuItem
+                          key={p.value}
+                          onClick={() => {
+                            setPriorityFilter(p.value as Priority);
+                            setPrioritySearch("");
+                          }}
+                          className={
+                            priorityFilter === p.value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{p.name}</span>
+                        </DropdownMenuItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                      {PRIORITIES.filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(prioritySearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucune priorité trouvée
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
+                {/* Filtre par pénalités (commenté) */}
                 {/* <div className="space-y-3">
-                  <Label>{"Pénalités"}</Label>
-                  <Select
-                    value={penaltyFilter}
-                    onValueChange={(v: "all" | "true" | "false") =>
-                      setPenaltyFilter(v)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Tous" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Toutes"}</SelectItem>
-                      <SelectItem value="true">{"Oui"}</SelectItem>
-                      <SelectItem value="false">{"Non"}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div> */}
+                      <Label>{"Pénalités"}</Label>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="w-full justify-between">
+                            <span className="truncate">
+                              {penaltyFilter === "all"
+                                ? "Toutes"
+                                : penaltyFilter === "true"
+                                ? "Oui"
+                                : penaltyFilter === "false"
+                                ? "Non"
+                                : "Sélectionner"}
+                            </span>
+                            <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                          <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                            <Input
+                              placeholder="Rechercher..."
+                              className="h-8"
+                              value={penaltySearch}
+                              onChange={(e) => setPenaltySearch(e.target.value)}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => e.stopPropagation()}
+                              autoFocus
+                            />
+                          </div>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setPenaltyFilter("all");
+                              setPenaltySearch("");
+                            }}
+                            className={penaltyFilter === "all" ? "bg-accent" : ""}
+                          >
+                            <span>Toutes</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setPenaltyFilter("true");
+                              setPenaltySearch("");
+                            }}
+                            className={penaltyFilter === "true" ? "bg-accent" : ""}
+                          >
+                            <span>Oui</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setPenaltyFilter("false");
+                              setPenaltySearch("");
+                            }}
+                            className={penaltyFilter === "false" ? "bg-accent" : ""}
+                          >
+                            <span>Non</span>
+                          </DropdownMenuItem>
+                          {["true", "false"].filter(p =>
+                            p === "true" ? "Oui".toLowerCase().includes(penaltySearch.toLowerCase()) : "Non".toLowerCase().includes(penaltySearch.toLowerCase())
+                          ).length === 0 && penaltySearch !== "" && (
+                            <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                              Aucun résultat trouvé
+                            </div>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div> */}
 
                 <Button
                   variant="outline"
@@ -642,9 +758,9 @@ export function PurchaseApprovalTable({ data }: Props) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -685,14 +801,14 @@ export function PurchaseApprovalTable({ data }: Props) {
                     {(priorityFilter !== "all" ||
                       penaltyFilter !== "all" ||
                       globalFilter) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={resetAllFilters}
-                        >
-                          {"Réinitialiser les filtres"}
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetAllFilters}
+                      >
+                        {"Réinitialiser les filtres"}
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

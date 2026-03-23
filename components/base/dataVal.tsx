@@ -53,7 +53,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getUserName } from "@/lib/utils";
+import { cn, getRequestTypeBadge, getUserName } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
@@ -184,6 +184,10 @@ export function DataVal({
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
+  const [statusSearch, setStatusSearch] = React.useState("");
+  const [categorySearch, setCategorySearch] = React.useState("");
+  const [projectSearch, setProjectSearch] = React.useState("");
+  const [userSearch, setUserSearch] = React.useState("");
 
   // États pour les actions de groupe
   const [isGroupActionDialogOpen, setIsGroupActionDialogOpen] =
@@ -230,8 +234,7 @@ export function DataVal({
       const matchTab =
         selectedTab === 0
           ? myApproval?.validated === false && b.state !== "rejected"
-          : selectedTab === 1 &&
-            myApproval?.validated === true;
+          : selectedTab === 1 && myApproval?.validated === true;
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : b.state === statusFilter;
@@ -312,6 +315,12 @@ export function DataVal({
     setUserFilter("all");
     setDateFilter(undefined);
     setCustomDateRange(undefined);
+    setCustomOpen(false);
+    // Réinitialiser les recherches
+    setStatusSearch("");
+    setCategorySearch("");
+    setProjectSearch("");
+    setUserSearch("");
   };
 
   const categoryIds = [...new Set(data.map((req) => req.categoryId))];
@@ -634,30 +643,6 @@ export function DataVal({
     validatableRows.forEach((row) => row.toggleSelected(true));
   };
 
-  function getTypeBadge(
-    type:
-      | "speciaux"
-      | "ressource_humaine"
-      | "facilitation"
-      | "achat"
-      | undefined,
-  ): { label: string; variant: VariantProps<typeof badgeVariants>["variant"] } {
-    const typeData = requestTypeData?.find((t) => t.type === type);
-    const label = typeData?.label ?? "Inconnu";
-    switch (type) {
-      case "facilitation":
-        return { label, variant: "lime" };
-      case "achat":
-        return { label, variant: "sky" };
-      case "speciaux":
-        return { label, variant: "purple" };
-      case "ressource_humaine":
-        return { label, variant: "blue" };
-      default:
-        return { label: type || "Inconnu", variant: "outline" };
-    }
-  }
-
   // Define columns avec colonne conditionnelle
   const columns: ColumnDef<RequestModelT>[] = React.useMemo(() => {
     const baseColumns: ColumnDef<RequestModelT>[] = [];
@@ -737,7 +722,10 @@ export function DataVal({
         },
         cell: ({ row }) => {
           const value = row.original;
-          const type = getTypeBadge(value.type);
+          const type = getRequestTypeBadge({
+            type: value.type,
+            requestTypes: requestTypeData,
+          });
           return <Badge variant={type.variant}>{type.label}</Badge>;
         },
       },
@@ -1062,7 +1050,7 @@ export function DataVal({
               <SheetHeader>
                 <SheetTitle>{"Filtres"}</SheetTitle>
                 <SheetDescription>
-                  {"Configurer les fitres pour affiner les données"}
+                  {"Configurer les filtres pour affiner les données"}
                 </SheetDescription>
               </SheetHeader>
               <div className="px-5 grid gap-5">
@@ -1082,107 +1070,409 @@ export function DataVal({
                 {/* Filtre par statut */}
                 <div className="grid gap-1.5">
                   <Label>{"Statut"}</Label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {uniqueStatus.map((s) => (
-                        <SelectItem key={s.id} value={String(s.id)}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {statusFilter === "all"
+                            ? "Tous les statuts"
+                            : uniqueStatus.find(
+                                (s) => String(s.id) === statusFilter,
+                              )?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher un statut..."
+                          className="h-8"
+                          value={statusSearch}
+                          onChange={(e) => setStatusSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setStatusFilter("all");
+                          setStatusSearch("");
+                        }}
+                        className={statusFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>Tous les statuts</span>
+                        </div>
+                      </DropdownMenuItem>
+                      {uniqueStatus
+                        .filter((s) =>
+                          s.name
+                            .toLowerCase()
+                            .includes(statusSearch.toLowerCase()),
+                        )
+                        .map((s) => (
+                          <DropdownMenuItem
+                            key={s.id}
+                            onClick={() => {
+                              setStatusFilter(String(s.id));
+                              setStatusSearch("");
+                            }}
+                            className={
+                              statusFilter === String(s.id) ? "bg-accent" : ""
+                            }
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{s.name}</span>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      {uniqueStatus.filter((s) =>
+                        s.name
+                          .toLowerCase()
+                          .includes(statusSearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun statut trouvé
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
+
                 {/* Filtre par Catégorie */}
                 <div className="grid gap-1.5">
                   <Label>{"Catégorie"}</Label>
-                  <Select
-                    value={categoryFilter}
-                    onValueChange={setCategoryFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {categoryFilter === "all"
+                            ? "Toutes les catégories"
+                            : categoriesData.find(
+                                (c) => String(c.id) === categoryFilter,
+                              )?.label || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher une catégorie..."
+                          className="h-8"
+                          value={categorySearch}
+                          onChange={(e) => setCategorySearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setCategoryFilter("all");
+                          setCategorySearch("");
+                        }}
+                        className={categoryFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>Toutes les catégories</span>
+                        </div>
+                      </DropdownMenuItem>
                       {categoriesData
                         .filter((c) => categoryIds.includes(c.id))
-                        .map((s) => (
-                          <SelectItem key={s.id} value={String(s.id)}>
-                            {s.label}
-                          </SelectItem>
+                        .filter((c) =>
+                          c.label
+                            .toLowerCase()
+                            .includes(categorySearch.toLowerCase()),
+                        )
+                        .map((c) => (
+                          <DropdownMenuItem
+                            key={c.id}
+                            onClick={() => {
+                              setCategoryFilter(String(c.id));
+                              setCategorySearch("");
+                            }}
+                            className={
+                              categoryFilter === String(c.id) ? "bg-accent" : ""
+                            }
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{c.label}</span>
+                            </div>
+                          </DropdownMenuItem>
                         ))}
-                    </SelectContent>
-                  </Select>
+                      {categoriesData
+                        .filter((c) => categoryIds.includes(c.id))
+                        .filter((c) =>
+                          c.label
+                            .toLowerCase()
+                            .includes(categorySearch.toLowerCase()),
+                        ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucune catégorie trouvée
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
+
                 {/* Filtre par Projet */}
                 <div className="grid gap-1.5">
                   <Label>{"Projet"}</Label>
-                  <Select
-                    value={projectFilter}
-                    onValueChange={setProjectFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {projectsData.map((p) => (
-                        <SelectItem key={p.id} value={String(p.id)}>
-                          {p.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {projectFilter === "all"
+                            ? "Tous les projets"
+                            : projectsData.find(
+                                (p) => String(p.id) === projectFilter,
+                              )?.label || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher un projet..."
+                          className="h-8"
+                          value={projectSearch}
+                          onChange={(e) => setProjectSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setProjectFilter("all");
+                          setProjectSearch("");
+                        }}
+                        className={projectFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>Tous les projets</span>
+                        </div>
+                      </DropdownMenuItem>
+                      {projectsData
+                        .filter((p) =>
+                          p.label
+                            .toLowerCase()
+                            .includes(projectSearch.toLowerCase()),
+                        )
+                        .map((p) => (
+                          <DropdownMenuItem
+                            key={p.id}
+                            onClick={() => {
+                              setProjectFilter(String(p.id));
+                              setProjectSearch("");
+                            }}
+                            className={
+                              projectFilter === String(p.id) ? "bg-accent" : ""
+                            }
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{p.label}</span>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      {projectsData.filter((p) =>
+                        p.label
+                          .toLowerCase()
+                          .includes(projectSearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun projet trouvé
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
+
                 {/* Filtre par Emetteur */}
                 <div className="grid gap-1.5">
                   <Label>{"Emetteur"}</Label>
-                  <Select value={userFilter} onValueChange={setUserFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {usersData.map((u) => (
-                        <SelectItem key={u.id} value={String(u.id)}>
-                          {u.firstName.concat(" ", u.lastName)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {userFilter === "all"
+                            ? "Tous les émetteurs"
+                            : usersData
+                                .find((u) => String(u.id) === userFilter)
+                                ?.firstName?.concat(" ", usersData.find((u) => String(u.id) === userFilter)!.lastName) ||
+                              "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher un émetteur..."
+                          className="h-8"
+                          value={userSearch}
+                          onChange={(e) => setUserSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setUserFilter("all");
+                          setUserSearch("");
+                        }}
+                        className={userFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>Tous les émetteurs</span>
+                        </div>
+                      </DropdownMenuItem>
+                      {usersData
+                        .filter((u) =>
+                          `${u.firstName} ${u.lastName}`
+                            .toLowerCase()
+                            .includes(userSearch.toLowerCase()),
+                        )
+                        .map((u) => (
+                          <DropdownMenuItem
+                            key={u.id}
+                            onClick={() => {
+                              setUserFilter(String(u.id));
+                              setUserSearch("");
+                            }}
+                            className={
+                              userFilter === String(u.id) ? "bg-accent" : ""
+                            }
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{`${u.firstName} ${u.lastName}`}</span>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      {usersData.filter((u) =>
+                        `${u.firstName} ${u.lastName}`
+                          .toLowerCase()
+                          .includes(userSearch.toLowerCase()),
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun émetteur trouvé
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
+
                 {/* Filtre par période */}
                 <div className="grid gap-1.5">
                   <Label>{"Période"}</Label>
-                  <Select
-                    onValueChange={(v) => {
-                      if (v !== "custom") {
-                        setCustomDateRange(undefined);
-                        setCustomOpen(false);
-                      }
-                      if (v === "all") return setDateFilter(undefined);
-                      setDateFilter(v as Exclude<DateFilter, undefined>);
-                      setCustomOpen(v === "custom");
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner une période" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {"Toutes les périodes"}
-                      </SelectItem>
-                      <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                      <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                      <SelectItem value="month">{"Ce mois"}</SelectItem>
-                      <SelectItem value="year">{"Cette année"}</SelectItem>
-                      <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {dateFilter === undefined
+                            ? "Toutes les périodes"
+                            : dateFilter === "today"
+                              ? "Aujourd'hui"
+                              : dateFilter === "week"
+                                ? "Cette semaine"
+                                : dateFilter === "month"
+                                  ? "Ce mois"
+                                  : dateFilter === "year"
+                                    ? "Cette année"
+                                    : dateFilter === "custom"
+                                      ? "Personnalisé"
+                                      : "Sélectionner une période"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter(undefined);
+                          setCustomDateRange(undefined);
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === undefined ? "bg-accent" : ""}
+                      >
+                        <span>Toutes les périodes</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("today");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "today" ? "bg-accent" : ""}
+                      >
+                        <span>Aujourd'hui</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("week");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "week" ? "bg-accent" : ""}
+                      >
+                        <span>Cette semaine</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("month");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "month" ? "bg-accent" : ""}
+                      >
+                        <span>Ce mois</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("year");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "year" ? "bg-accent" : ""}
+                      >
+                        <span>Cette année</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("custom");
+                          setCustomOpen(true);
+                        }}
+                        className={dateFilter === "custom" ? "bg-accent" : ""}
+                      >
+                        <span>Personnalisé</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   <Collapsible
                     open={customOpen}
                     onOpenChange={setCustomOpen}
@@ -1486,24 +1776,30 @@ export function DataVal({
       )}
 
       {/* Modals */}
-      <DetailBesoin
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        data={selectedItem}
-        actionButton="Approuver"
-        action={() => {
-          if (!selectedItem) return;
+      {selectedItem && (
+        <DetailBesoin
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          data={selectedItem}
+          projects={projectsData}
+          categories={categoriesData}
+          users={usersData}
+          payments={paymentsData}
+          actionButton="Approuver"
+          action={() => {
+            if (!selectedItem) return;
 
-          const validationInfo = getValidationInfo(selectedItem);
-          if (validationInfo.isLastValidator) {
-            setIsModalOpen(false);
-            setIsLastValModalOpen(true);
-          } else {
-            setIsModalOpen(false);
-            openValidationModal("approve", selectedItem);
-          }
-        }}
-      />
+            const validationInfo = getValidationInfo(selectedItem);
+            if (validationInfo.isLastValidator) {
+              setIsModalOpen(false);
+              setIsLastValModalOpen(true);
+            } else {
+              setIsModalOpen(false);
+              openValidationModal("approve", selectedItem);
+            }
+          }}
+        />
+      )}
 
       <ValidationModal
         isMotifRequired={true}
@@ -1547,23 +1843,39 @@ export function DataVal({
         onSubmit={(motif) => handleValidation(motif)}
       />
 
-      <BesoinLastVal
-        open={isLastValModalOpen}
-        onOpenChange={setIsLastValModalOpen}
-        data={selectedItem}
-        titre={"Approuver le besoin"}
-        description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
-      />
-      <BesoinFacLastVal
-        open={isUpdateFacModalOpen}
-        setOpen={setIsUpdateFacModalOpen}
-        requestData={selectedItem}
-      />
-      <BesoinRHLastVal
-        open={isUpdateRHModalOpen}
-        setOpen={setIsUpdateRHModalOpen}
-        requestData={selectedItem}
-      />
+      {selectedItem && (
+        <BesoinLastVal
+          open={isLastValModalOpen}
+          onOpenChange={setIsLastValModalOpen}
+          data={selectedItem}
+          titre={"Approuver le besoin"}
+          description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
+          categories={categoriesData}
+          users={usersData}
+        />
+      )}
+      {selectedItem && (
+        <BesoinFacLastVal
+          open={isUpdateFacModalOpen}
+          setOpen={setIsUpdateFacModalOpen}
+          requestData={selectedItem}
+          categories={categoriesData}
+          users={usersData}
+          projects={projectsData}
+          payments={paymentsData}
+        />
+      )}
+      {selectedItem && (
+        <BesoinRHLastVal
+          open={isUpdateRHModalOpen}
+          setOpen={setIsUpdateRHModalOpen}
+          requestData={selectedItem}
+          payments={paymentsData}
+          users={usersData}
+          categories={categoriesData}
+          projects={projectsData}
+        />
+      )}
     </div>
   );
 }

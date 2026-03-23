@@ -24,15 +24,14 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { totalAmountPurchase } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { paymentQ, UpdatePayment } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import {
-  BonsCommande,
+  Invoice,
   PAYMENT_METHOD,
   PaymentRequest,
-  PRIORITIES,
+  PRIORITIES
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
@@ -80,11 +79,11 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
   payment: PaymentRequest;
-  purchases: Array<BonsCommande>;
+  invoices: Array<Invoice>;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function EditPaymentForm({ payment, purchases, openChange }: Props) {
+function EditPaymentForm({ payment, invoices, openChange }: Props) {
   /**Data states */
   const { user } = useStore();
 
@@ -124,13 +123,13 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
   });
 
   function onSubmit(values: FormValues) {
-    const purchase = purchases.find((p) => p.id === payment.commandId);
+    const invoice = invoices.find((p) => p.id === payment.invoiceId);
 
-    if (!purchase) {
+    if (!invoice) {
       toast.error("Bon de commande invalide");
       return form.setError("root", { message: "Bon de commande invalide" });
     }
-    if (!values.isPartial && values.price !== totalAmountPurchase(purchase)) {
+    if (!values.isPartial && values.price !== invoice.amount) {
       toast.error("Montant incorrect !");
       return form.setError("price", {
         message:
@@ -138,8 +137,8 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
       });
     }
     if (
-      (values.isPartial && values.price >= totalAmountPurchase(purchase)) ||
-      (!values.isPartial && values.price > totalAmountPurchase(purchase))
+      (values.isPartial && values.price >= invoice.amount) ||
+      (!values.isPartial && values.price > invoice.amount)
     ) {
       toast.error("Montant invalide !");
       return form.setError("price", {
@@ -150,10 +149,10 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
     if (values.proof[0] instanceof File) {
       const payload: Partial<UpdatePayment> = {
         methodId: Number(values.methodId),
-        commandId: payment.commandId,
+        invoiceId: payment.invoiceId,
         type: "achat",
         deadline: new Date(values.deadline),
-        title: purchase.devi.commandRequest.title,
+        title: payment.title,
         price: values.price,
         priority: values.priority,
         userId: user?.id ?? 0,
@@ -165,10 +164,10 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
     }
     const payload: Partial<UpdatePayment> = {
       methodId: Number(values.methodId),
-      commandId: payment.commandId,
+      invoiceId: payment.invoiceId,
       type: "achat",
       deadline: new Date(values.deadline),
-      title: purchase.devi.commandRequest.title,
+      title: payment.title,
       price: values.price,
       priority: values.priority,
       userId: user?.id ?? 0,
@@ -255,7 +254,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
 
         {/* is Partial */}
         {/* Paiement partiel */}
-        {/* <FormField
+        <FormField
           control={form.control}
           name="isPartial"
           render={({ field }) => (
@@ -277,7 +276,7 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
               <FormMessage />
             </FormItem>
           )}
-        /> */}
+        />
 
         {/* Montant */}
         <FormField
@@ -290,7 +289,6 @@ function EditPaymentForm({ payment, purchases, openChange }: Props) {
                 <div className="relative">
                   <Input
                     type="number"
-                    disabled={true}
                     value={field.value}
                     onChange={(e) => {
                       const value = e.target.value;

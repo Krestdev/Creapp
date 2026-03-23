@@ -13,7 +13,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
-import { ArrowUpDown, ChevronDown, Eye, HandHelpingIcon, Settings2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Eye,
+  HandHelpingIcon,
+  Settings2,
+} from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
@@ -55,6 +61,7 @@ import {
 } from "@/components/ui/table";
 
 import {
+  BonsCommande,
   CommandRequestT,
   PURCHASE_ORDER_STATUS,
   Quotation,
@@ -70,10 +77,11 @@ interface Props {
   data: Array<Reception>;
   devis: Array<Quotation>;
   cmdReqst: Array<CommandRequestT>;
+  purchases: Array<BonsCommande>;
 }
 
 const getStatusBadge = (
-  status: Reception["Status"]
+  status: Reception["Status"],
 ): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
@@ -92,12 +100,12 @@ const getStatusBadge = (
   }
 };
 
-export function ReceptionTable({ data, devis, cmdReqst }: Props) {
+export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
@@ -181,10 +189,11 @@ export function ReceptionTable({ data, devis, cmdReqst }: Props) {
         </span>
       ),
       cell: ({ row }) => {
-        const name: Reception["Command"] = row.getValue("Command");
+        const original = row.original;
+        const item = purchases.find((p) => p.id === original.CommandId);
         return (
           <div className="font-medium">
-            {name ? name.reference : "Pas de Command"}
+            {item?.devi.commandRequest.title ?? "N/A"}
           </div>
         );
       },
@@ -306,7 +315,7 @@ export function ReceptionTable({ data, devis, cmdReqst }: Props) {
                 }}
               >
                 <HandHelpingIcon />
-                {"Recevoir"}
+                {"Receptionner"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -420,11 +429,15 @@ export function ReceptionTable({ data, devis, cmdReqst }: Props) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{"Tous"}</SelectItem>
-                      {RECEPTION_STATUS.map((s) => ( // CORRECTION ICI : utiliser RECEPTION_STATUS au lieu de PURCHASE_ORDER_STATUS
-                        <SelectItem key={s.value} value={s.value}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
+                      {RECEPTION_STATUS.map(
+                        (
+                          s, // CORRECTION ICI : utiliser RECEPTION_STATUS au lieu de PURCHASE_ORDER_STATUS
+                        ) => (
+                          <SelectItem key={s.value} value={s.value}>
+                            {s.name}
+                          </SelectItem>
+                        ),
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -483,8 +496,10 @@ export function ReceptionTable({ data, devis, cmdReqst }: Props) {
                 else if (column.id === "Deadline") columnName = "Date limite";
                 else if (column.id === "Deliverables") columnName = "Éléments";
                 else if (column.id === "Reference") columnName = "Référence";
-                else if (column.id === "Command") columnName = "Bon de commande";
-                else if (column.id === "createdAt") columnName = "Date de création";
+                else if (column.id === "Command")
+                  columnName = "Bon de commande";
+                else if (column.id === "createdAt")
+                  columnName = "Date de création";
 
                 return (
                   <DropdownMenuCheckboxItem
@@ -516,9 +531,9 @@ export function ReceptionTable({ data, devis, cmdReqst }: Props) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -540,7 +555,7 @@ export function ReceptionTable({ data, devis, cmdReqst }: Props) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

@@ -19,6 +19,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
+import { CommandConditionQ } from "@/queries/commandsConditions";
+import { invoiceQ } from "@/queries/invoices";
+import { receptionQ } from "@/queries/reception";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -36,11 +39,31 @@ const Page = () => {
     queryFn: paymentQ.getAll,
   });
 
+  const getConditions = useQuery({
+    queryKey: ["conditions"],
+    queryFn: () => CommandConditionQ.getAll(),
+  });
+
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
+  });
+
+  const getReceptions = useQuery({
+    queryKey: ["receptions"],
+    queryFn: receptionQ.getAll,
+  });
+
   const { user } = useStore();
   const auth = isRole({
     roleList: user?.role || [],
     role: "Donner d'ordre achat",
   });
+
+  const receptions = useMemo(() => {
+    if (!getReceptions.data) return [];
+    return getReceptions.data.data.filter((r) => r.Status !== "COMPLETED");
+  }, [getReceptions.data]);
 
   const filteredData: Array<BonsCommande> = useMemo(() => {
     const list = data?.data ?? [];
@@ -80,6 +103,7 @@ const Page = () => {
       title: "Receptions",
       href: "./bon-de-commande/receptions",
       disabled: false,
+      badge: receptions.length > 0 ? receptions.length : undefined,
     },
   ];
 
@@ -91,15 +115,7 @@ const Page = () => {
       more: {
         title: "Montant Total",
         value: XAF.format(
-          filteredData.reduce(
-            (total, item) =>
-              total +
-              item.devi.element.reduce(
-                (t, e) => t + e.priceProposed * e.quantity,
-                0,
-              ),
-            0,
-          ),
+          filteredData.reduce((total, item) => total + item.netToPay, 0),
         ),
       },
     },
@@ -123,26 +139,48 @@ const Page = () => {
         value: XAF.format(
           filteredData
             .filter((c) => c.status === "APPROVED")
-            .reduce(
-              (total, item) =>
-                total +
-                item.devi.element
-                  .filter((o) => o.status === "SELECTED")
-                  .reduce((t, e) => t + e.priceProposed * e.quantity, 0),
-              0,
-            ),
+            .reduce((total, item) => total + item.netToPay, 0),
         ),
       },
     },
   ];
 
-  if (isLoading) {
+  if (
+    isLoading ||
+    getPayments.isLoading ||
+    getConditions.isLoading ||
+    getInvoices.isLoading ||
+    getReceptions.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (isError) {
-    return <ErrorPage error={error ?? isError ?? undefined} />;
+  if (
+    isError ||
+    getPayments.isError ||
+    getConditions.isError ||
+    getInvoices.isError ||
+    getReceptions.isError
+  ) {
+    return (
+      <ErrorPage
+        error={
+          error ||
+          getPayments.error ||
+          getInvoices.error ||
+          getConditions.error ||
+          getReceptions.error ||
+          undefined
+        }
+      />
+    );
   }
-  if (isSuccess)
+  if (
+    isSuccess &&
+    getPayments.isSuccess &&
+    getConditions.isSuccess &&
+    getInvoices.isSuccess &&
+    getReceptions.isSuccess
+  )
     return (
       <div className="content">
         <PageTitle
@@ -169,7 +207,12 @@ const Page = () => {
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
         </div>
-        <PurchaseTable data={filteredData} payments={getPayments.data?.data} />
+        <PurchaseTable
+          data={filteredData}
+          payments={getPayments.data.data}
+          conditions={getConditions.data.data}
+          invoices={getInvoices.data.data}
+        />
       </div>
     );
 };

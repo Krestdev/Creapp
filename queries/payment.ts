@@ -6,7 +6,7 @@ export interface NewPayment extends Omit<
   "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status" | "signer"
 > {
   proof: File;
-  commandId: number;
+  invoiceId: number;
 }
 
 export interface UpdatePayment extends Omit<Partial<PaymentRequest>, "proof"> {
@@ -17,6 +17,15 @@ export type PayPayload = Omit<
   PaymentRequest,
   "id" | "createdAt" | "updatedAt" | "status" | "justification" | "signer"
 > & { justification: File };
+
+export type PayloadGasCompletion = {
+  id: number;
+  km: number;
+  price: number;
+  driverId: number;
+  liters: number;
+  deadline: Date;
+}
 
 class PaymentQueries {
   route = "/request/payment";
@@ -195,7 +204,7 @@ class PaymentQueries {
       .then((response) => response.data);
   };
 
-  rejectInvoice = async ({
+  rejectPayment = async ({
     id,
     reason,
   }: {
@@ -256,6 +265,23 @@ class PaymentQueries {
   // --------------------------------------
   delete = async (id: number): Promise<{ data: PaymentRequest }> => {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
+  };
+
+  gasCompletion = async ({
+    payload
+  }: {payload:PayloadGasCompletion}): Promise<{ data: PaymentRequest }> => {
+    const {id, km, liters, price, driverId, deadline } = payload;
+    const formData = new FormData();
+    formData.append("km", km.toString());
+    formData.append("liters", liters.toString());
+    formData.append("price", price.toString());
+    formData.append("driverId", driverId.toString());
+    formData.append("deadline", deadline.toDateString());
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => response.data);
   };
 }
 

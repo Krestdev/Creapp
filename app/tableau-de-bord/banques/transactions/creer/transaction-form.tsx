@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { XAF } from "@/lib/utils";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Bank, TRANSACTION_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -185,7 +186,7 @@ function TransactionForm({ banks, userId }: Props) {
     } else {
       const balance = banks.find(b => b.id === fromBankId)?.balance;
       const val = !balance ? false : balance - rest.amount > 0;
-      if (!val) return form.setError("amount", { message: "Montant invalide" })
+      if (!val) return form.setError("amount", { message: `Le solde disponible est insuffisant. Solde : ${XAF.format(balance ?? 0)}` })
       const payload: TransactionProps = {
         Type: values.Type,
         ...rest,

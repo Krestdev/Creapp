@@ -27,6 +27,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import MultiSelectRole from "../base/multiSelectRole";
+import { useStore } from "@/providers/datastore";
 
 /* =========================
    SCHEMA ZOD
@@ -56,6 +57,7 @@ export default function UpdateUser({
   const [selectedRole, setSelectedRole] = useState<
     { id: number; label: string }[]
   >([]);
+  const { user } = useStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -126,6 +128,20 @@ export default function UpdateUser({
   ========================= */
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (!userData?.id) return;
+    if (
+      userData.role.some((r) => r.label === "SUPERADMIN") &&
+      !user?.role.some((r) => r.label === "SUPERADMIN")
+    )
+      return form.setError("role", {
+        message: "Vous ne pouvez pas modifier un Super Administrateur",
+      });
+    if (
+      userData.role.some((r) => r.label === "ADMIN") &&
+      !user?.role.some((r) => r.label === "SUPERADMIN")
+    )
+      return form.setError("role", {
+        message: "Vous ne pouvez pas modifier un Administrateur",
+      });
 
     const payload: any = {
       email: values.email,
@@ -141,6 +157,7 @@ export default function UpdateUser({
 
     userMutation.mutate({ id: userData.id, data: payload });
   }
+  console.log(form.formState.errors);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -234,18 +251,31 @@ export default function UpdateUser({
             />
 
             <div className="space-y-2 @min-[540px]/dialog:col-span-2">
-              <FormLabel>{"Rôles"}</FormLabel>
-              <MultiSelectRole
-                display="Role"
-                roles={ROLES.filter((r) => r.label !== "MANAGER" && r.id !== 1)}
-                selected={selectedRole}
-                onChange={(selected) => {
-                  setSelectedRole(selected);
-                  form.setValue(
-                    "role",
-                    selected.map((r) => r.id),
-                  );
-                }}
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Rôles"}</FormLabel>
+                    <FormControl>
+                      <MultiSelectRole
+                        display="Role"
+                        roles={ROLES.filter(
+                          (r) =>
+                            r.label !== "MANAGER" &&
+                            r.id !== 1 &&
+                            r.label !== "SUPERADMIN",
+                        )}
+                        selected={selectedRole}
+                        onChange={(selected) => {
+                          setSelectedRole(selected);
+                          field.onChange(selected.map((r) => r.id));
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
           </form>

@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-table";
 import {
   AlertCircle,
+  ArrowRightToLine,
   ArrowUpDown,
   Ban,
   CheckCircle,
@@ -29,9 +30,10 @@ import {
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
+import { TabBar } from "@/components/base/TabBar";
+import DepenseDocument from "@/components/depense/depenseDoc";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -50,32 +52,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
-import {
-  Bank,
-  BonsCommande,
-  PAY_STATUS,
-  PAYMENT_TYPES,
-  PaymentRequest,
-  PayType,
-  PRIORITIES,
-  Provider,
-  RequestModelT,
-  RequestType,
-  User,
-} from "@/types/types";
-import { VariantProps } from "class-variance-authority";
-import ViewExpense from "./view-expense";
-import ShareExpense from "./share-expense";
-import { TabBar } from "@/components/base/TabBar";
-import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -83,10 +59,33 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import PayExpense from "./pay-expense";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn, getRequestTypeBadge, XAF } from "@/lib/utils";
+import {
+  Bank,
+  Invoice,
+  PaymentRequest,
+  PayType,
+  PRIORITIES,
+  ProjectT,
+  Provider,
+  RequestModelT,
+  RequestType,
+  User,
+} from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import DepenseDocument from "@/components/depense/depenseDoc";
-import { UseQueryResult } from "@tanstack/react-query";
+import { VariantProps } from "class-variance-authority";
+import { NoticeFile } from "./notice";
+import PayExpense from "./pay-expense";
+import ShareExpense from "./share-expense";
+import ViewExpense from "./view-expense";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -144,15 +143,14 @@ const statusConfig = {
 
 interface Props {
   payments: Array<PaymentRequest>;
-  purchases: Array<BonsCommande>;
+  invoices: Array<Invoice>;
   banks: Array<Bank>;
   requestTypes: Array<RequestType>;
-  getPaymentType: UseQueryResult<{
-    data: PayType[];
-  }, Error>;
+  paymentTypes: PayType[];
   providers: Array<Provider>;
   request: RequestModelT[];
   users: Array<User>;
+  projects: Array<ProjectT>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -191,14 +189,15 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
   const label =
-    status === "unsigned" ?
-      "En attente de signature" :
-      status === "signed" ?
-        "Signé" :
-        status === "paid" ?
-          "Payé" :
-          status === "simple_signed" ?
-            "Paiement ouvert" : "En attente";
+    status === "unsigned"
+      ? "En attente de signature"
+      : status === "signed"
+        ? "Signé"
+        : status === "paid"
+          ? "Payé"
+          : status === "simple_signed"
+            ? "Paiement ouvert"
+            : "En attente";
 
   switch (status) {
     case "pending_depense":
@@ -216,36 +215,28 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentType, providers, request, users }: Props) {
-  function getTypeBadge(type: PaymentRequest["type"]): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } {
-    // Cas spécial
-    if (type === "CURRENT") {
-      return {
-        label: "Dépenses courantes",
-        variant: "yellow",
-      };
-    }
+function isGasComplete(item: PaymentRequest) {
+  return (
+    item.type === "gas" &&
+    !!item.driverId &&
+    !!item.km &&
+    !!item.liters &&
+    !!item.price &&
+    !!item.deadline
+  );
+}
 
-    const typeData = requestTypes.find((t) => t.type === type);
-    const label = typeData?.label ?? "Inconnu";
-
-    switch (type) {
-      case "facilitation":
-        return { label, variant: "lime" };
-      case "achat":
-        return { label, variant: "sky" };
-      case "speciaux":
-        return { label, variant: "purple" };
-      case "ressource_humaine":
-        return { label, variant: "blue" };
-      default:
-        return { label, variant: "outline" };
-    }
-  }
-
+function ExpensesTable({
+  payments,
+  invoices,
+  banks,
+  requestTypes,
+  paymentTypes,
+  providers,
+  request,
+  users,
+  projects,
+}: Props) {
   const types = requestTypes
     .map((x) => {
       return { value: x.type, label: x.label };
@@ -277,13 +268,16 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
   const [priorityFilter, setPriorityFilter] = React.useState<
     "all" | PaymentRequest["priority"]
   >("all");
-  const [providerFilter, setProviderFilter] = React.useState<"all" | "no-provider" | string>(
-    "all",
-  );
+  const [providerFilter, setProviderFilter] = React.useState<
+    "all" | "no-provider" | string
+  >("all");
   const [amountTypeFilter, setAmountTypeFilter] = React.useState<
     "greater" | "inferior" | "equal"
   >("greater");
   const [amountFilter, setAmountFilter] = React.useState<number>(0);
+  const [paymentMethodFilter, setPaymentMethodFilter] = React.useState<
+    "all" | string
+  >("all");
 
   const resetAllFilters = () => {
     setGlobalFilter("");
@@ -291,6 +285,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
     setTypeFilter("all");
     setAmountFilter(0);
     setAmountTypeFilter("greater");
+    setPaymentMethodFilter("all");
     setProviderFilter("all");
   };
 
@@ -298,14 +293,17 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
     {
       id: 0,
       title: "Tickets en attente",
-      badge: payments.filter(
-        (p) => p.status === "validated",
-      ).length,
+      badge: payments.filter((p) => p.status === "validated").length,
     },
     {
       id: 1,
       title: "Tickets traités",
-      badge: payments.filter((p) => p.status === "pending_depense" || p.status === "signed" || p.status === "simple_signed").length,
+      badge: payments.filter(
+        (p) =>
+          p.status === "pending_depense" ||
+          p.status === "signed" ||
+          p.status === "simple_signed",
+      ).length,
     },
     {
       id: 2,
@@ -324,26 +322,40 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
             : p.price < amountFilter;
       //Filter provider
       const matchProvider =
-        providerFilter === "all" ? true :
-          providerFilter === "no-provider" ? p.commandId === null :
-            purchases.find(c => c.id === p.commandId)?.providerId === Number(providerFilter);
+        providerFilter === "all"
+          ? true
+          : providerFilter === "no-provider"
+            ? !p.invoiceId
+            : invoices.find((c) => c.id === p.invoiceId)?.command.providerId ===
+              Number(providerFilter);
       //Filter tab
       const matchTab =
         selectedTab === 0
-          ? p.status === "validated" ||
-          p.status === "unsigned"
+          ? p.status === "validated" || p.status === "unsigned"
           : selectedTab === 1
             ? p.status === "pending_depense" ||
-            p.status === "signed" ||
-            p.status === "simple_signed"
+              p.status === "signed" ||
+              p.status === "simple_signed"
             : p.status === "paid";
       //Filter type
       const matchType = typeFilter === "all" ? true : p.type === typeFilter;
       //Filter priority
       const matchPriority =
         priorityFilter === "all" ? true : p.priority === priorityFilter;
+      //Filter payment method
+      const matchPaymentMethod =
+        paymentMethodFilter === "all"
+          ? true
+          : String(p.methodId) === paymentMethodFilter;
 
-      return matchTab && matchType && matchPriority && matchAmount && matchProvider;
+      return (
+        matchTab &&
+        matchType &&
+        matchPriority &&
+        matchAmount &&
+        matchProvider &&
+        matchPaymentMethod
+      );
     });
   }, [
     payments,
@@ -353,7 +365,8 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
     amountTypeFilter,
     amountFilter,
     providerFilter,
-    purchases
+    invoices,
+    paymentMethodFilter,
   ]);
 
   const columns: ColumnDef<PaymentRequest>[] = [
@@ -389,7 +402,7 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getTypeBadge(value.type);
+        const type = getRequestTypeBadge({ type: value.type, requestTypes });
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },
@@ -408,13 +421,9 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find((p) => p.id === value.commandId);
+        const invoice = invoices.find((iv) => iv.id === value.invoiceId);
         const title = value.title;
-        return (
-          <div>
-            {purchase?.devi.commandRequest.title ?? value.title ?? "--"}
-          </div>
-        );
+        return <div>{value.title ?? "--"}</div>;
       },
     },
     {
@@ -432,8 +441,8 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find((p) => p.id === value.commandId);
-        return <div>{purchase?.provider?.name ?? "-"}</div>;
+        const invoice = invoices.find((p) => p.id === value.invoiceId);
+        return <div>{invoice?.command.provider.name ?? "--"}</div>;
       },
     },
     {
@@ -484,11 +493,11 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
 
         const priorityA =
           priorityOrder[
-          rowA.getValue(columnId) as keyof typeof priorityOrder
+            rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-          rowB.getValue(columnId) as keyof typeof priorityOrder
+            rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -563,10 +572,20 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
+              {item.type === "gas" && (
+                <DropdownMenuItem disabled={isGasComplete(item)}>
+                  <ArrowRightToLine />
+                  {"Compléter le paiement"}
+                </DropdownMenuItem>
+              )}
               {selectedTab === 1 && (
                 <>
                   <DropdownMenuItem
-                    disabled={item.status !== "pending_depense" && item.status !== "signed" && item.status !== "simple_signed"}
+                    disabled={
+                      item.status !== "pending_depense" &&
+                      item.status !== "signed" &&
+                      item.status !== "simple_signed"
+                    }
                     onClick={() => {
                       setSelected(item);
                       setShowPay(true);
@@ -576,15 +595,27 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
                     {"Payer"}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-
                     <PDFDownloadLink
-                      document={<DepenseDocument getPaymentType={getPaymentType} paymentRequest={item} />}
+                      document={
+                        <DepenseDocument
+                          getPaymentType={paymentTypes}
+                          paymentRequest={item}
+                          users={users}
+                          requests={request}
+                        />
+                      }
                       fileName={`recu-transport-${item.reference}.pdf`}
                     >
                       {({ loading }) => (
-                        <Button disabled={loading} variant={"ghost"} className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5">
+                        <Button
+                          disabled={loading}
+                          variant={"ghost"}
+                          className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5"
+                        >
                           <Download />
-                          {loading ? "Génération du PDF..." : "Télécharger le PDF"}
+                          {loading
+                            ? "Génération du PDF..."
+                            : "Télécharger le PDF"}
                         </Button>
                       )}
                     </PDFDownloadLink>
@@ -593,7 +624,10 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
               )}
               {selectedTab === 0 && (
                 <DropdownMenuItem
-                  disabled={item.status === "unsigned"}
+                  disabled={
+                    item.status === "unsigned" ||
+                    (item.type === "gas" && !isGasComplete(item))
+                  }
                   onClick={() => {
                     setSelected(item);
                     setShowShare(true);
@@ -601,6 +635,25 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
                 >
                   <Signature />
                   {"Traiter"}
+                </DropdownMenuItem>
+              )}
+              {!!item.invoiceId && (
+                <DropdownMenuItem disabled={item.status !== "paid"}>
+                  <PDFDownloadLink
+                    document={<NoticeFile payment={item} />}
+                    fileName={`avis-de-reglement-${item.reference}.pdf`}
+                  >
+                    {({ loading }) => (
+                      <Button
+                        disabled={loading}
+                        variant={"ghost"}
+                        className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5"
+                      >
+                        {loading ? "Chargement..." : "Télécharger"}
+                        <Download />
+                      </Button>
+                    )}
+                  </PDFDownloadLink>
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -739,10 +792,34 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{"Tous"}</SelectItem>
-                      <SelectItem value="no-provider">{"Sans fournisseur"}</SelectItem>
+                      <SelectItem value="no-provider">
+                        {"Sans fournisseur"}
+                      </SelectItem>
                       {providers.map((p) => (
                         <SelectItem key={p.id} value={String(p.id)}>
                           {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/**Filter by payment method */}
+                <div className="grid gap-1.5">
+                  <Label>{"Moyen de paiement"}</Label>
+                  <Select
+                    value={paymentMethodFilter}
+                    onValueChange={(v) =>
+                      setPaymentMethodFilter(v as typeof paymentMethodFilter)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrer par Moyen de paiement" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {paymentTypes.map((p) => (
+                        <SelectItem key={p.id} value={String(p.id)}>
+                          {p.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -860,9 +937,9 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -916,7 +993,11 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
           open={showDetail}
           openChange={setShowDetail}
           payment={selected}
-          purchases={purchases}
+          invoices={invoices}
+          projects={projects}
+          users={users}
+          payTypes={paymentTypes}
+          requests={request}
         />
       )}
       {selected && (
@@ -927,7 +1008,8 @@ function ExpensesTable({ payments, purchases, banks, requestTypes, getPaymentTyp
             onOpenChange={setShowShare}
             banks={banks}
             users={users}
-            request={request}
+            requests={request}
+            invoices={invoices}
           />
           <PayExpense
             ticket={selected}

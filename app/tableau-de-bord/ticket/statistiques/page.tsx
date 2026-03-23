@@ -26,12 +26,12 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -40,25 +40,27 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+
 import { getRandomColor, XAF } from "@/lib/utils";
-import { commadQ } from "@/queries/command";
+import { invoiceQ } from "@/queries/invoices";
 import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
-import { DateFilter, PAY_STATUS, PaymentRequest, PayType } from "@/types/types";
+import { DateFilter, PaymentRequest, PayType } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Settings2 } from "lucide-react";
+import { ChevronDown, Settings2 } from "lucide-react";
 import React from "react";
+import { Input } from "@/components/ui/input";
 
 function Page() {
   const getProviders = useQuery({
     queryKey: ["providers"],
     queryFn: providerQ.getAll,
   });
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: commadQ.getAll,
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
   });
   const getPaymentType = useQuery({
     queryKey: ["paymentType"],
@@ -77,16 +79,24 @@ function Page() {
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
+  const [typeSearch, setTypeSearch] = React.useState("");
+  const [providerSearch, setProviderSearch] = React.useState("");
+  const [methodSearch, setMethodSearch] = React.useState("");
+  const [statusSearch, setStatusSearch] = React.useState("");
   const [customOpen, setCustomOpen] = React.useState<boolean>(false);
   const resetAllFilters = () => {
+    setTypeFilter("all");
+    setProviderFilter("all");
+    setMethodFilter("all");
+    setStatusFilter("all");
     setDateFilter(undefined);
-    if (setCustomDateRange) {
-      setCustomDateRange(undefined);
-      setStatusFilter("all");
-      setTypeFilter("all");
-      setMethodFilter("all");
-      setProviderFilter("all");
-    }
+    setCustomDateRange(undefined);
+    setCustomOpen(false);
+    // Réinitialiser les recherches
+    setTypeSearch("");
+    setProviderSearch("");
+    setMethodSearch("");
+    setStatusSearch("");
   };
   const { data, isLoading, isError, error, isSuccess } = useQuery({
     queryKey: ["payments"],
@@ -103,10 +113,10 @@ function Page() {
       const matchProvider =
         providerFilter === "all"
           ? true
-          : !!payment.commandId
-          ? getPurchases.data?.data.find((p) => p.id === payment.commandId)
-              ?.providerId === Number(providerFilter)
-          : false;
+          : !!payment.invoiceId
+            ? getInvoices.data?.data.find((p) => p.id === payment.invoiceId)
+                ?.command.providerId === Number(providerFilter)
+            : false;
       //Filter by type
       const matchType =
         typeFilter === "all" ? true : payment.type === typeFilter;
@@ -126,7 +136,7 @@ function Page() {
             break;
           case "week":
             startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
             );
             startDate.setHours(0, 0, 0, 0);
             break;
@@ -164,7 +174,7 @@ function Page() {
     typeFilter,
     methodFilter,
     providerFilter,
-    getPurchases.data,
+    getInvoices.data,
     data,
   ]);
 
@@ -172,7 +182,7 @@ function Page() {
   const metrics = React.useMemo(() => {
     const totalAmount = filteredData.reduce(
       (sum, payment) => sum + payment.price,
-      0
+      0,
     );
     const pendingAmount = filteredData
       .filter((p) => p.status === "pending" || p.status === "pending_depense")
@@ -193,21 +203,21 @@ function Page() {
     const approvalRate =
       filteredData.length > 0
         ? (filteredData.filter(
-            (p) => p.status === "validated" || p.status === "paid"
+            (p) => p.status === "validated" || p.status === "paid",
           ).length /
             filteredData.length) *
           100
         : 0;
 
     const pendingCount = filteredData.filter(
-      (p) => p.status === "pending" || p.status === "pending_depense"
+      (p) => p.status === "pending" || p.status === "pending_depense",
     ).length;
     const validatedCount = filteredData.filter(
-      (p) => p.status === "validated"
+      (p) => p.status === "validated",
     ).length;
     const paidCount = filteredData.filter((p) => p.status === "paid").length;
     const rejectedCount = filteredData.filter(
-      (p) => p.status === "rejected"
+      (p) => p.status === "rejected",
     ).length;
 
     return {
@@ -283,7 +293,7 @@ function Page() {
       let config;
       const typeStats: Record<string, { amount: number; count: number }> = {};
       const typeLabels = Object.fromEntries(
-        PAYMENT_TYPES.map((t) => [t.value, t.name])
+        PAYMENT_TYPES.map((t) => [t.value, t.name]),
       );
       const typeColors: Record<string, string> = {
         facilitation: "var(--secondary-600)",
@@ -316,7 +326,7 @@ function Page() {
           Object.entries(typeLabels).map(([key, label]) => [
             key,
             { label, color: typeColors[key] },
-          ])
+          ]),
         ),
       };
       return { data, config };
@@ -335,21 +345,21 @@ function Page() {
         getProviders.data?.data?.map((provider) => [
           provider.id,
           provider.name,
-        ]) || []
+        ]) || [],
       );
 
       filteredData.forEach((payment) => {
         let providerId: number | string = "creaconsult";
         let providerName = "Creaconsult";
 
-        // Trouver le fournisseur via le bon de commande
-        if (payment.commandId) {
-          const purchaseOrder = getPurchases.data?.data?.find(
-            (p) => p.id === payment.commandId
+        // Trouver le fournisseur via la facture
+        if (payment.invoiceId) {
+          const invoice = getInvoices.data?.data?.find(
+            (p) => p.id === payment.invoiceId,
           );
-          if (purchaseOrder?.provider) {
-            providerId = purchaseOrder.provider.id;
-            providerName = purchaseOrder.provider.name;
+          if (invoice?.command.provider) {
+            providerId = invoice.command.provider.id;
+            providerName = invoice.command.provider.name;
             // Mettre à jour le cache des noms si nécessaire
             if (!providerLabels.has(providerId)) {
               providerLabels.set(providerId, providerName);
@@ -386,7 +396,7 @@ function Page() {
             count: stats.count,
             fullName: stats.name,
           };
-        }
+        },
       );
 
       // Trier par montant décroissant
@@ -402,12 +412,12 @@ function Page() {
               label: item.fullName || item.label,
               color: item.color,
             },
-          ])
+          ]),
         ),
       };
 
       return { data: sortedData, config };
-    }, [getProviders.data, filteredData, getPurchases.data]);
+    }, [getProviders.data, filteredData, getInvoices.data]);
 
   // Données pour le graphique par méthode de paiement (basé sur les données API)
   const paymentMethodData: { data: ChartDataItem[]; config: ChartConfig } =
@@ -425,7 +435,7 @@ function Page() {
         paymentMethods.map((method) => [
           method.id.toString(),
           method.label || `Méthode ${method.id}`,
-        ])
+        ]),
       );
 
       // Calculer les statistiques
@@ -454,7 +464,7 @@ function Page() {
           name: `method_${methodId}`,
           count: stats.count,
           fullName: stats.label,
-        })
+        }),
       );
 
       // Trier par montant décroissant
@@ -470,7 +480,7 @@ function Page() {
               label: item.fullName || item.label,
               color: item.color,
             },
-          ])
+          ]),
         ),
       };
 
@@ -499,7 +509,7 @@ function Page() {
     });
 
     const days = Object.keys(daily).sort(
-      (a, b) => new Date(a).getTime() - new Date(b).getTime()
+      (a, b) => new Date(a).getTime() - new Date(b).getTime(),
     );
 
     return days.map((day) => {
@@ -556,7 +566,7 @@ function Page() {
     });
 
     const days = Object.keys(daily).sort(
-      (a, b) => new Date(a).getTime() - new Date(b).getTime()
+      (a, b) => new Date(a).getTime() - new Date(b).getTime(),
     );
 
     return days.map((day) => {
@@ -579,7 +589,7 @@ function Page() {
   if (
     isLoading ||
     getProviders.isLoading ||
-    getPurchases.isLoading ||
+    getInvoices.isLoading ||
     getPaymentType.isLoading
   ) {
     return <LoadingPage />;
@@ -587,7 +597,7 @@ function Page() {
   if (
     isError ||
     getProviders.isError ||
-    getPurchases.isError ||
+    getInvoices.isError ||
     getPaymentType.isError
   ) {
     return (
@@ -595,7 +605,7 @@ function Page() {
         error={
           error ||
           getProviders.error ||
-          getPurchases.error ||
+          getInvoices.error ||
           getPaymentType.error ||
           undefined
         }
@@ -605,7 +615,7 @@ function Page() {
   if (
     isSuccess &&
     getProviders.isSuccess &&
-    getPurchases.isSuccess &&
+    getInvoices.isSuccess &&
     getPaymentType.isSuccess
   ) {
     return (
@@ -629,122 +639,392 @@ function Page() {
               </SheetDescription>
             </SheetHeader>
             <div className="px-5 grid gap-5">
-              {/**Filtre par type */}
+              {/** Filtre par type */}
               <div className="grid gap-1.5">
                 <Label htmlFor="typeFilter">{"Type"}</Label>
-                <Select
-                  value={typeFilter}
-                  onValueChange={(v) =>
-                    setTypeFilter(v as "all" | PaymentRequest["type"])
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                    {PAYMENT_TYPES.map((t, id) => (
-                      <SelectItem key={id} value={t.value}>
-                        {t.name}
-                      </SelectItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {typeFilter === "all"
+                          ? "Tous les types"
+                          : PAYMENT_TYPES.find((t) => t.value === typeFilter)
+                              ?.name || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un type..."
+                        className="h-8"
+                        value={typeSearch}
+                        onChange={(e) => setTypeSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setTypeFilter("all");
+                        setTypeSearch("");
+                      }}
+                      className={typeFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <span>Tous les types</span>
+                    </DropdownMenuItem>
+                    {PAYMENT_TYPES.filter((t) =>
+                      t.name.toLowerCase().includes(typeSearch.toLowerCase()),
+                    ).map((t) => (
+                      <DropdownMenuItem
+                        key={t.value}
+                        onClick={() => {
+                          setTypeFilter(t.value);
+                          setTypeSearch("");
+                        }}
+                        className={typeFilter === t.value ? "bg-accent" : ""}
+                      >
+                        <span>{t.name}</span>
+                      </DropdownMenuItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                    {PAYMENT_TYPES.filter((t) =>
+                      t.name.toLowerCase().includes(typeSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun type trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              {/**Filtre par fournisseur */}
+
+              {/** Filtre par fournisseur */}
               <div className="grid gap-1.5">
                 <Label htmlFor="providerFilter">{"Fournisseur"}</Label>
-                <Select
-                  value={providerFilter}
-                  onValueChange={setProviderFilter}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                    {getProviders.data.data.map((p, id) => (
-                      <SelectItem key={id} value={String(p.id)}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {providerFilter === "all"
+                          ? "Tous les fournisseurs"
+                          : getProviders.data.data.find(
+                              (p) => String(p.id) === providerFilter,
+                            )?.name || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un fournisseur..."
+                        className="h-8"
+                        value={providerSearch}
+                        onChange={(e) => setProviderSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setProviderFilter("all");
+                        setProviderSearch("");
+                      }}
+                      className={providerFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <span>Tous les fournisseurs</span>
+                    </DropdownMenuItem>
+                    {getProviders.data.data
+                      .filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(providerSearch.toLowerCase()),
+                      )
+                      .map((p) => (
+                        <DropdownMenuItem
+                          key={p.id}
+                          onClick={() => {
+                            setProviderFilter(String(p.id));
+                            setProviderSearch("");
+                          }}
+                          className={
+                            providerFilter === String(p.id) ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{p.name}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    {getProviders.data.data.filter((p) =>
+                      p.name
+                        .toLowerCase()
+                        .includes(providerSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun fournisseur trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              {/**Filtre par méthode de paiement */}
+
+              {/** Filtre par méthode de paiement */}
               <div className="grid gap-1.5">
                 <Label htmlFor="statusFilter">{"Méthode de paiement"}</Label>
-                <Select
-                  value={methodFilter}
-                  onValueChange={(v) => setMethodFilter(v)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une méthode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"all"}>{"Toutes"}</SelectItem>
-                    {getPaymentType.data.data.map(
-                      (method: PayType, id: number) => (
-                        <SelectItem key={id} value={String(method.id)}>
-                          {method.label || `Méthode ${method.id}`}
-                        </SelectItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {methodFilter === "all"
+                          ? "Toutes les méthodes"
+                          : getPaymentType.data.data.find(
+                              (m) => String(m.id) === methodFilter,
+                            )?.label || `Méthode ${methodFilter}`}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher une méthode..."
+                        className="h-8"
+                        value={methodSearch}
+                        onChange={(e) => setMethodSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setMethodFilter("all");
+                        setMethodSearch("");
+                      }}
+                      className={methodFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <span>Toutes les méthodes</span>
+                    </DropdownMenuItem>
+                    {getPaymentType.data.data
+                      .filter((method) =>
+                        (method.label || `Méthode ${method.id}`)
+                          .toLowerCase()
+                          .includes(methodSearch.toLowerCase()),
                       )
+                      .map((method) => (
+                        <DropdownMenuItem
+                          key={method.id}
+                          onClick={() => {
+                            setMethodFilter(String(method.id));
+                            setMethodSearch("");
+                          }}
+                          className={
+                            methodFilter === String(method.id)
+                              ? "bg-accent"
+                              : ""
+                          }
+                        >
+                          <span>{method.label || `Méthode ${method.id}`}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    {getPaymentType.data.data.filter((method) =>
+                      (method.label || `Méthode ${method.id}`)
+                        .toLowerCase()
+                        .includes(methodSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucune méthode trouvée
+                      </div>
                     )}
-                  </SelectContent>
-                </Select>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              {/**Filtre par statut */}
+
+              {/** Filtre par statut */}
               <div className="grid gap-1.5">
                 <Label htmlFor="statusFilter">{"Statut"}</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(v) =>
-                    setStatusFilter(v as "all" | PaymentRequest["status"])
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {statusFilter === "all"
+                          ? "Tous les statuts"
+                          : PAY_STATUS.find((s) => s.value === statusFilter)
+                              ?.name || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un statut..."
+                        className="h-8"
+                        value={statusSearch}
+                        onChange={(e) => setStatusSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setStatusFilter("all");
+                        setStatusSearch("");
+                      }}
+                      className={statusFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <span>Tous les statuts</span>
+                    </DropdownMenuItem>
                     {PAY_STATUS.filter(
                       (t) =>
                         t.value === "paid" ||
                         t.value === "pending" ||
-                        t.value === "pending_depense"
-                    ).map((t, id) => (
-                      <SelectItem key={id} value={t.value}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                        t.value === "pending_depense",
+                    )
+                      .filter((s) =>
+                        s.name
+                          .toLowerCase()
+                          .includes(statusSearch.toLowerCase()),
+                      )
+                      .map((t) => (
+                        <DropdownMenuItem
+                          key={t.value}
+                          onClick={() => {
+                            setStatusFilter(t.value);
+                            setStatusSearch("");
+                          }}
+                          className={
+                            statusFilter === t.value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{t.name}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    {PAY_STATUS.filter(
+                      (t) =>
+                        t.value === "paid" ||
+                        t.value === "pending" ||
+                        t.value === "pending_depense",
+                    ).filter((s) =>
+                      s.name.toLowerCase().includes(statusSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun statut trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+
+              {/** Filtre par période */}
               <div className="grid gap-1.5">
                 <Label>{"Période"}</Label>
-                <Select
-                  onValueChange={(v) => {
-                    if (v !== "custom") {
-                      setCustomDateRange(undefined);
-                      setCustomOpen(false);
-                    }
-                    if (v === "all") return setDateFilter(undefined);
-                    setDateFilter(v as Exclude<DateFilter, undefined>);
-                    setCustomOpen(v === "custom");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
-                    <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                    <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                    <SelectItem value="month">{"Ce mois"}</SelectItem>
-                    <SelectItem value="year">{"Cette année"}</SelectItem>
-                    <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {dateFilter === undefined
+                          ? "Toutes les périodes"
+                          : dateFilter === "today"
+                            ? "Aujourd'hui"
+                            : dateFilter === "week"
+                              ? "Cette semaine"
+                              : dateFilter === "month"
+                                ? "Ce mois"
+                                : dateFilter === "year"
+                                  ? "Cette année"
+                                  : dateFilter === "custom"
+                                    ? "Personnalisé"
+                                    : "Sélectionner une période"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter(undefined);
+                        setCustomDateRange(undefined);
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === undefined ? "bg-accent" : ""}
+                    >
+                      <span>Toutes les périodes</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("today");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "today" ? "bg-accent" : ""}
+                    >
+                      <span>Aujourd'hui</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("week");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "week" ? "bg-accent" : ""}
+                    >
+                      <span>Cette semaine</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("month");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "month" ? "bg-accent" : ""}
+                    >
+                      <span>Ce mois</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("year");
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === "year" ? "bg-accent" : ""}
+                    >
+                      <span>Cette année</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter("custom");
+                        setCustomOpen(true);
+                      }}
+                      className={dateFilter === "custom" ? "bg-accent" : ""}
+                    >
+                      <span>Personnalisé</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <Collapsible
                   open={customOpen}
                   onOpenChange={setCustomOpen}
@@ -760,7 +1040,7 @@ function Page() {
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
                               customDateRange.from,
-                              "dd/MM/yyyy"
+                              "dd/MM/yyyy",
                             )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>

@@ -14,6 +14,7 @@ export type CreatePurchasePayload = {
     | "instalments"
     | "netToPay"
     | "commandConditions"
+    | "invoice"
   > & {
     instalments: Array<{
       percentage: number;
@@ -36,12 +37,13 @@ export type updatePoPayload = Omit<
   | "providerId"
   | "netToPay"
   | "commandConditions"
+  | "invoice"
 >;
 
 export type AddFileProps = {
   id: number;
   proof: File;
-}
+};
 
 class PurchaseOrder {
   route = "/request/command";
@@ -53,7 +55,7 @@ class PurchaseOrder {
   };
 
   create = async (
-    payload: CreatePurchasePayload
+    payload: CreatePurchasePayload,
   ): Promise<{ data: BonsCommande }> => {
     return api.post(this.route, payload).then((response) => {
       return response.data;
@@ -61,33 +63,42 @@ class PurchaseOrder {
   };
   update = async (
     payload: updatePoPayload,
-    id: number
+    id: number,
   ): Promise<{ data: BonsCommande }> => {
     return api.put(`${this.route}/${id}`, payload).then((response) => {
       return response.data;
     });
   };
   //Command File Upload
-  addFile = async({id, proof}:AddFileProps): Promise<{data: BonsCommande}> => {
+  addFile = async ({
+    id,
+    proof,
+  }: AddFileProps): Promise<{ data: BonsCommande }> => {
     const formData = new FormData();
-    formData.append('proof', proof);
-    return api.put(`${this.route}/addFile/${id}`, formData,{
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-  }
-  approve = async (id: number): Promise<{ data: BonsCommande }> => {
+    formData.append("proof", proof);
+    return api.put(`${this.route}/addFile/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  };
+  approve = async (item: BonsCommande): Promise<{ data: BonsCommande }> => {
+    const conditions = item.commandConditions.map((condition) => condition.id);
     return api
-      .put(`${this.route}/${id}`, { status: "APPROVED" })
+      .put(`${this.route}/${item.id}`, { status: "APPROVED", conditions })
       .then((response) => {
         return response.data;
       });
   };
   reject = async (
-    id: number,
-    reason: string
+    bon: BonsCommande,
+    reason: string,
   ): Promise<{ data: BonsCommande }> => {
+    const conditions = bon.commandConditions.map((c) => c.id);
     return api
-      .put(`${this.route}/${id}`, { status: "REJECTED", motif: reason })
+      .put(`${this.route}/${bon.id}`, {
+        status: "REJECTED",
+        motif: reason,
+        conditions,
+      })
       .then((response) => {
         return response.data;
       });

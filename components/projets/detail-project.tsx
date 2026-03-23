@@ -141,7 +141,7 @@ export function DetailProject({
                     {"Chef de projet"}
                   </p>
                   <p className="font-semibold">
-                    {data.chief.firstName.concat(" ", data.chief.lastName) || "Non assigné"}
+                    {data.chief ? data.chief.firstName.concat(" ", data.chief.lastName) : "Non assigné"}
                   </p>
                 </div>
               </div>

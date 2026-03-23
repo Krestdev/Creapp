@@ -1,13 +1,25 @@
 "use client";
-
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
+import PageTitle from "@/components/pageTitle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,35 +28,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore } from "@/providers/datastore";
+import { Textarea } from "@/components/ui/textarea";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
-import { Category, ResponseT } from "@/types/types";
+import { requestTypeQ } from "@/queries/requestType";
+import { Category, RequestType, ResponseT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
-import { Textarea } from "../ui/textarea";
-
-export interface ActionResponse<T = any> {
-  success: boolean;
-  message: string;
-  errors?: {
-    [K in keyof T]?: string[];
-  };
-  inputs?: T;
-}
 
 export const formSchema = z.object({
   label: z.string({ message: "This field is required" }),
@@ -59,32 +55,62 @@ export const formSchema = z.object({
     .min(1, "Au moins un ascendant est requis") // MODIFICATION: minimum 1 validateur
     .max(3, "Maximum 3 ascendants autorisés"),
   description: z.string().optional(),
+  requestTypeId: z.coerce.number({ message: "Veuillez sélectionner un type" }),
 });
 
 type Schema = z.infer<typeof formSchema>;
 
-interface UpdateCategoryProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  categoryData: Category | null;
-  onSuccess?: () => void;
-}
+export default function UpdateCategory({ id }: { id: number }) {
+  const router = useRouter();
 
-export function UpdateCategory({
-  open,
-  setOpen,
-  categoryData,
-  onSuccess,
-}: UpdateCategoryProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const getCategories = useQuery({
+    queryKey: ["categoryList"],
+    queryFn: categoryQ.getCategories,
+  });
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll,
+  });
+  const getRequestTypes = useQuery({
+    queryKey: ["types"],
+    queryFn: requestTypeQ.getAll,
+  });
+  const usersList = useMemo(() => {
+    if (!getUsers.isSuccess) return [];
+    return getUsers.data.data;
+  }, [getUsers]);
+  const categories = useMemo(() => {
+    if (!getCategories.isSuccess) return [];
+    return getCategories.data.data;
+  }, [getCategories]);
+  const requestTypes = useMemo(() => {
+    if (!getRequestTypes.isSuccess) return [];
+    return getRequestTypes.data.data;
+  }, [getRequestTypes]);
+
+  //Let's retrieve the category
+  const category = categories.find((c) => c.id === id);
+
   const form = useForm<Schema>({
-    resolver: zodResolver(formSchema as any),
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      label: "",
-      description: "",
-      validators: [],
+      label: category?.label || "",
+      description: category?.description || "",
+      validators: category?.validators || [],
+      requestTypeId: category?.requestTypeId || 0,
     },
   });
+
+  useEffect(() => {
+    if (category) {
+      form.reset({
+        label: category.label,
+        description: category.description,
+        validators: category.validators,
+        requestTypeId: category.requestTypeId,
+      });
+    }
+  }, [category]);
 
   // Field array pour gérer les ascendants
   const { fields, append, remove, move } = useFieldArray({
@@ -92,66 +118,41 @@ export function UpdateCategory({
     name: "validators",
   });
 
-  const { isHydrated } = useStore();
-
-  // Récupérer la liste des utilisateurs
-
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: () => userQ.getAll(),
-    enabled: isHydrated,
-  });
-
   // Réinitialiser le formulaire quand les données changent
   useEffect(() => {
-    if (categoryData) {
-      const validators = categoryData.validators || [];
+    if (category) {
+      const validators = category.validators || [];
 
       // S'assurer qu'il y a au moins un validateur
-      if (validators.length === 0 && categoryData.id !== 0) {
+      if (validators.length === 0 && category.id !== 0) {
         toast.warning(
           "Cette catégorie n'a pas d'ascendant. Veuillez en ajouter au moins un.",
         );
       }
 
       form.reset({
-        label: categoryData.label || "",
-        description: categoryData.description || "",
+        label: category.label || "",
+        description: category.description || "",
         validators: validators.map((validator) => ({
           id: validator.id,
           userId: validator.userId,
           rank: validator.rank,
         })),
+        requestTypeId: category.requestTypeId,
       });
     }
-  }, [categoryData, form]);
+  }, [category, form]);
 
   const categoryApi = useMutation({
     mutationFn: async (data: Partial<Category>) => {
-      setIsLoading(true);
-      try {
-        const response = await categoryQ.updateCategory(
-          categoryData?.id!,
-          data,
-        );
-        return {
-          message: "Category updated successfully",
-          data: response.data,
-        } as ResponseT<Category>;
-      } finally {
-        setIsLoading(false);
-      }
+      return await categoryQ.updateCategory(category?.id!, data);
     },
-    onSuccess: (data: ResponseT<Category>) => {
+    onSuccess: () => {
       toast.success("Catégorie mise à jour avec succès !");
-      setOpen(false);
-      onSuccess?.();
+      router.push("./");
     },
-    onError: (error: any) => {
-      toast.error(
-        "Une erreur est survenue lors de la mise à jour de la catégorie.",
-      );
-      console.error("Update error:", error);
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 
@@ -162,7 +163,7 @@ export function UpdateCategory({
       return;
     }
 
-    const users = usersData.data?.data.filter((u) => u.verified) || [];
+    const users = usersList.filter((u) => u.verified) || [];
     if (users.length === 0) {
       toast.error("Aucun utilisateur disponible");
       return;
@@ -229,14 +230,14 @@ export function UpdateCategory({
 
   // Fonction pour obtenir le nom d'un utilisateur par son ID
   const getUserName = (userId: number) => {
-    const users = usersData.data?.data.filter((u) => u.verified) || [];
+    const users = usersList.filter((u) => u.verified) || [];
     const user = users.find((u) => u.id === userId);
     return user?.lastName + " " + user?.firstName || `Utilisateur #${userId}`;
   };
 
   // Fonction pour obtenir les utilisateurs disponibles (non sélectionnés)
   const getAvailableUsers = (currentIndex?: number) => {
-    const users = usersData.data?.data.filter((u) => u.verified) || [];
+    const users = usersList.filter((u) => u.verified) || [];
     const existingUserIds = fields
       .map((field, index) => {
         // Si on est en train d'éditer un champ, exclure son propre userId
@@ -256,7 +257,7 @@ export function UpdateCategory({
       toast.error("Au moins un ascendant est requis");
       return;
     }
-    if (categoryData?.id === undefined) {
+    if (category?.id === undefined) {
       toast.error("ID de catégorie manquant");
       return;
     }
@@ -272,6 +273,7 @@ export function UpdateCategory({
       label: values.label,
       description: values.description || undefined,
       validators: validators,
+      requestTypeId: values.requestTypeId,
     };
 
     categoryApi.mutate(data);
@@ -285,33 +287,50 @@ export function UpdateCategory({
     });
   }, [fields.length, form]);
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
-        {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white uppercase">
-            {`Catégorie - ${categoryData?.label}`}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
-            {"Modifiez les informations de la catégorie"}
-          </p>
-        </DialogHeader>
+  if (
+    getCategories.isLoading ||
+    getUsers.isLoading ||
+    getRequestTypes.isLoading
+  )
+    return <LoadingPage />;
+
+  if (getCategories.isError || getUsers.isError || getRequestTypes.isError)
+    return (
+      <ErrorPage
+        error={
+          getUsers.error ||
+          getCategories.error ||
+          getRequestTypes.error ||
+          undefined
+        }
+      />
+    );
+
+  if (
+    getCategories.isSuccess &&
+    getUsers.isSuccess &&
+    getRequestTypes.isSuccess
+  ) {
+    if (!category) return <ErrorPage statusCode={404} />;
+    return (
+      <div className="content">
+        <PageTitle
+          title="Modifier une catégorie"
+          subtitle="Mettez à jour les informations relatives à une catégorie"
+          color="blue"
+        />
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onsubmit)}
-            className="flex-1 overflow-y-auto px-6 pb-6 space-y-6"
-          >
+          <form onSubmit={form.handleSubmit(onsubmit)} className="form-3xl">
             {/* Informations de base */}
-            <div className="flex flex-col gap-4">
+            <div className="col-span-full w-full grid gap-4">
               <FormField
                 control={form.control}
                 name="label"
-                disabled={categoryData?.id === 0}
+                disabled={category.id === 0}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Titre de la catégorie *"}</FormLabel>
+                    <FormLabel isRequired>{"Titre de la catégorie"}</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. Madiba AutoRoute" {...field} />
                     </FormControl>
@@ -322,7 +341,7 @@ export function UpdateCategory({
               <FormField
                 control={form.control}
                 name="description"
-                disabled={categoryData?.id === 0}
+                disabled={category.id === 0}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{"Description"}</FormLabel>
@@ -336,13 +355,40 @@ export function UpdateCategory({
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="requestTypeId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Type de besoin"}</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value ? String(field.value) : undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner un type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {requestTypes.map((t, id) => (
+                            <SelectItem key={id} value={t.id.toString()}>
+                              {t.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Section des ascendants */}
-            <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
-              <div className="flex items-center justify-between">
+            <div className="col-span-full w-full space-y-4 border rounded-lg p-4 bg-muted/20">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <FormLabel className="text-lg font-semibold">
+                  <FormLabel className="text-base font-semibold">
                     {"Définissez les ascendants"}
                   </FormLabel>
                   <p className="text-sm text-muted-foreground">
@@ -351,12 +397,12 @@ export function UpdateCategory({
                 </div>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="primary"
                   onClick={addValidator}
-                  disabled={fields.length >= 3 || isLoading}
+                  disabled={fields.length >= 3 || categoryApi.isPending}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un ascendant
+                  {"Ajouter un ascendant"}
+                  <Plus />
                 </Button>
               </div>
 
@@ -364,8 +410,7 @@ export function UpdateCategory({
               {fields.length === 1 && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                   <p className="text-sm text-blue-700">
-                    ⓘ Au moins un ascendant doit être présent. Vous ne pouvez
-                    pas supprimer le dernier ascendant.
+                    {`ⓘ Au moins un ascendant doit être présent. Vous ne pouvez pas supprimer le dernier ascendant.`}
                   </p>
                 </div>
               )}
@@ -380,10 +425,14 @@ export function UpdateCategory({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Badge className="bg-primary text-primary-foreground">
+                          <Badge
+                            variant={
+                              index === fields.length - 1 ? "primary" : "dark"
+                            }
+                          >
                             {`Position ${index + 1}`}
                             {index === fields.length - 1 && (
-                              <span className="ml-1">(Dernier)</span>
+                              <span className="ml-1">{"(Dernier)"}</span>
                             )}
                           </Badge>
                         </div>
@@ -393,38 +442,44 @@ export function UpdateCategory({
                             variant="ghost"
                             size="icon"
                             onClick={() => moveUp(index)}
-                            disabled={index === 0 || isLoading}
+                            disabled={index === 0 || categoryApi.isPending}
                             title="Déplacer vers le haut"
                           >
-                            <ChevronUp className="h-4 w-4" />
+                            <ChevronUp />
                           </Button>
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
                             onClick={() => moveDown(index)}
-                            disabled={index === fields.length - 1 || isLoading}
+                            disabled={
+                              index === fields.length - 1 ||
+                              categoryApi.isPending
+                            }
                             title="Déplacer vers le bas"
                           >
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown />
                           </Button>
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
                             onClick={() => removeValidator(index)}
-                            disabled={fields.length <= 1 || isLoading} // MODIFICATION: désactivé si seul ascendant
-                            className={`text-red-500 hover:text-red-700 ${fields.length <= 1
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                              }`}
+                            disabled={
+                              fields.length <= 1 || categoryApi.isPending
+                            } // MODIFICATION: désactivé si seul ascendant
+                            className={`text-red-500 hover:text-red-700 ${
+                              fields.length <= 1
+                                ? "opacity-50 cursor-not-allowed"
+                                : ""
+                            }`}
                             title={
                               fields.length <= 1
                                 ? "Au moins un ascendant est requis"
                                 : "Supprimer"
                             }
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 />
                           </Button>
                         </div>
                       </div>
@@ -436,40 +491,73 @@ export function UpdateCategory({
                           const availableUsers = getAvailableUsers(index);
                           return (
                             <FormItem>
-                              <FormLabel>{"Nom de l'ascendant *"}</FormLabel>
-                              <Select
-                                value={field.value?.toString() || ""}
-                                onValueChange={(value) =>
-                                  field.onChange(parseInt(value))
-                                }
-                                disabled={isLoading}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Sélectionner un utilisateur">
-                                      {field.value
-                                        ? getUserName(field.value)
-                                        : "Sélectionner un utilisateur"}
-                                    </SelectValue>
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {availableUsers.length > 0 ? (
-                                    availableUsers.map((user) => (
-                                      <SelectItem
-                                        key={user.id}
-                                        value={user.id!.toString()}
-                                      >
-                                        {user.lastName + " " + user.firstName}
+                              <FormLabel isRequired>
+                                {"Nom de l'ascendant"}
+                              </FormLabel>
+                              {/* <Select
+                                  value={field.value?.toString() || ""}
+                                  onValueChange={(value) =>
+                                    field.onChange(parseInt(value))
+                                  }
+                                  disabled={isLoading}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Sélectionner un utilisateur">
+                                        {field.value
+                                          ? getUserName(field.value)
+                                          : "Sélectionner un utilisateur"}
+                                      </SelectValue>
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {availableUsers.length > 0 ? (
+                                      availableUsers.map((user) => (
+                                        <SelectItem
+                                          key={user.id}
+                                          value={user.id!.toString()}
+                                        >
+                                          {user.lastName + " " + user.firstName}
+                                        </SelectItem>
+                                      ))
+                                    ) : (
+                                      <SelectItem value="" disabled>
+                                        {"Aucun utilisateur disponible"}
                                       </SelectItem>
-                                    ))
-                                  ) : (
-                                    <SelectItem value="" disabled>
-                                      {"Aucun utilisateur disponible"}
-                                    </SelectItem>
-                                  )}
-                                </SelectContent>
-                              </Select>
+                                    )}
+                                  </SelectContent>
+                                </Select> */}
+                              <Combobox
+                                items={availableUsers}
+                                value={
+                                  availableUsers.find(
+                                    (u) => u.id === field.value,
+                                  ) ?? null
+                                }
+                                onValueChange={(v) =>
+                                  field.onChange(v?.id ?? "")
+                                }
+                                itemToStringLabel={(u) =>
+                                  u.firstName.concat(" ", u.lastName)
+                                }
+                              >
+                                <ComboboxInput placeholder="Sélectionner" />
+                                <ComboboxContent>
+                                  <ComboboxEmpty>
+                                    {"Aucun utilisateur enregistré"}
+                                  </ComboboxEmpty>
+                                  <ComboboxList>
+                                    {(item: User) => (
+                                      <ComboboxItem key={item.id} value={item}>
+                                        {item.firstName.concat(
+                                          " ",
+                                          item.lastName,
+                                        )}
+                                      </ComboboxItem>
+                                    )}
+                                  </ComboboxList>
+                                </ComboboxContent>
+                              </Combobox>
                               <FormMessage />
                             </FormItem>
                           );
@@ -508,43 +596,31 @@ export function UpdateCategory({
                     type="button"
                     variant="outline"
                     onClick={addValidator}
-                    disabled={isLoading}
+                    disabled={categoryApi.isPending}
                     className="mt-4"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter le premier ascendant
+                    <Plus />
+                    {"Ajouter le premier ascendant"}
                   </Button>
                 </div>
               )}
             </div>
+            {/* Footer avec boutons */}
+            <div className="col-span-full w-full flex items-center justify-end">
+              <Button
+                type="submit"
+                variant={"secondary"}
+                className="w-fit"
+                onClick={form.handleSubmit(onsubmit)}
+                disabled={categoryApi.isPending || fields.length === 0}
+                isLoading={categoryApi.isPending || fields.length === 0}
+              >
+                {"Enregistrer"}
+              </Button>
+            </div>
           </form>
-
-          {/* Footer avec boutons */}
-          <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
-            <Button
-              type="submit"
-              className="w-fit"
-              onClick={form.handleSubmit(onsubmit)}
-              disabled={
-                categoryApi.isPending || isLoading || fields.length === 0
-              }
-            >
-              {categoryApi.isPending || isLoading
-                ? "Mise à jour..."
-                : "Enregistrer"}
-            </Button>
-            <Button
-              type="button"
-              className="w-fit"
-              onClick={() => setOpen(false)}
-              variant={"outline"}
-              disabled={isLoading}
-            >
-              {"Annuler"}
-            </Button>
-          </div>
         </Form>
-      </DialogContent>
-    </Dialog>
-  );
+      </div>
+    );
+  }
 }

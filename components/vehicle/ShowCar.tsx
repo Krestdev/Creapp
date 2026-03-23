@@ -2,26 +2,25 @@
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Vehicle } from "@/types/types";
-import {
-  CalendarDays,
-  CalendarIcon,
-  Car,
-  CarIcon,
-  FileImage,
-  Hash,
-  Info,
-  ScanBarcodeIcon,
-} from "lucide-react";
-import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
+import { Vehicle } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  CalendarIcon,
+  CarFrontIcon,
+  CarIcon,
+  FileImage,
+  ScanBarcodeIcon
+} from "lucide-react";
+import { Button } from "../ui/button";
 
 interface ShowCarProps {
   open: boolean;
@@ -119,6 +118,31 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
                 </p>
               </div>
             </div>
+            {/* CHÂSSIS */}
+            <div className="view-group">
+              <span className="view-icon">
+                <CarFrontIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Numéro de châssis"}</p>
+                <p className="font-semibold">
+                  {vehicleData.serial ?? "Non renseigné"}
+                </p>
+              </div>
+            </div>
+
+            {/* ACQUISITION */}
+            <div className="view-group">
+              <span className="view-icon">
+                <CarFrontIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Date d'acquisition"}</p>
+                <p className="font-semibold">
+                  {vehicleData.purchaseDate ? format(new Date(vehicleData.purchaseDate), "dd MMMM yyyy", {locale: fr}) : "Non renseigné"}
+                </p>
+              </div>
+            </div>
 
             {/* DATE DE CRÉATION */}
             {vehicleData.createdAt && (
@@ -152,15 +176,16 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
           </div>
 
           {/* CLOSE BUTTON */}
-          <div className="flex justify-end pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setOpen(false)}
-              className="min-w-[100px]"
-            >
-              Fermer
-            </Button>
-          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                {"Fermer"}
+              </Button>
+            </DialogClose>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>

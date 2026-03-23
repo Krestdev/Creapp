@@ -53,6 +53,10 @@ import {
 import { transactionQ } from "@/queries/transaction";
 import { bankQ } from "@/queries/bank";
 import TransactionChart from "@/components/base/transaction-chart";
+import { projectQ } from "@/queries/projectModule";
+import { invoiceQ } from "@/queries/invoices";
+import LoadingPage from "@/components/loading-page";
+import ErrorPage from "@/components/error-page";
 
 const DashboardPage = () => {
   const { user } = useStore();
@@ -65,7 +69,7 @@ const DashboardPage = () => {
   const manager = isRole({ roleList: user?.role ?? [], role: "manager" });
 
   // Récupérer les paiements
-  const { data: paymentsData } = useQuery({
+  const { data: paymentsData, isSuccess, isLoading, isError, error } = useQuery({
     queryKey: ["payments"],
     queryFn: paymentQ.getAll,
     enabled: volt_manager || accountant || volt,
@@ -99,6 +103,17 @@ const DashboardPage = () => {
     queryKey: ["banks"],
     queryFn: bankQ.getAll,
     enabled: volt_manager || accountant || volt,
+  });
+
+  const getProjects = useQuery({
+    queryKey: ["projectsList"],
+    queryFn: projectQ.getAll,
+  });
+
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
+    enabled: volt_manager || accountant || volt
   });
 
   const [filters, setFilters] = useState<TableFilters>({
@@ -410,335 +425,344 @@ const DashboardPage = () => {
   );
   const nombreDepenses = getFilteredPayments.length;
 
-  return (
-    <div className="content">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-bold">{"Tableau de bord"}</h1>
-          <h4 className="font-extralight tracking-wide">{`Bonjour ${user?.firstName}`}</h4>
-        </div>
-
-        {/* Filtre de période */}
-        <DropdownMenu>
-          <DropdownMenuTrigger className="h-10 inline-flex gap-2 flex-row items-center text-base border border-input px-5 rounded-md shadow-xs bg-background hover:bg-accent hover:text-accent-foreground">
-            <CalendarIcon />
-            {getDateFilterText()}
-            <ChevronDown
-              className="text-muted-foreground opacity-50"
-              size={16}
-            />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem
-              onClick={clearCustomDateRange}
-              className={cn(
-                "flex items-center justify-between",
-                !filters.dateFilter && "bg-accent",
-              )}
-            >
-              <span>Toutes les périodes</span>
-              {!filters.dateFilter && <ChevronRight className="h-4 w-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                setFilters((prev) => ({ ...prev, dateFilter: "today" }))
-              }
-              className={cn(
-                "flex items-center justify-between",
-                filters.dateFilter === "today" && "bg-accent",
-              )}
-            >
-              <span>Aujourd'hui</span>
-              {filters.dateFilter === "today" && (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                setFilters((prev) => ({ ...prev, dateFilter: "week" }))
-              }
-              className={cn(
-                "flex items-center justify-between",
-                filters.dateFilter === "week" && "bg-accent",
-              )}
-            >
-              <span>Cette semaine</span>
-              {filters.dateFilter === "week" && (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                setFilters((prev) => ({ ...prev, dateFilter: "month" }))
-              }
-              className={cn(
-                "flex items-center justify-between",
-                filters.dateFilter === "month" && "bg-accent",
-              )}
-            >
-              <span>Ce mois</span>
-              {filters.dateFilter === "month" && (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                setFilters((prev) => ({ ...prev, dateFilter: "year" }))
-              }
-              className={cn(
-                "flex items-center justify-between",
-                filters.dateFilter === "year" && "bg-accent",
-              )}
-            >
-              <span>Cette année</span>
-              {filters.dateFilter === "year" && (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleCustomDateClick}
-              className={cn(
-                "flex items-center justify-between",
-                filters.dateFilter === "custom" && "bg-accent",
-              )}
-            >
-              <span className="flex items-center">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Personnaliser
-              </span>
-              {filters.dateFilter === "custom" && (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Modal pour la sélection de dates personnalisées */}
-      <Dialog
-        open={isCustomDateModalOpen}
-        onOpenChange={setIsCustomDateModalOpen}
-      >
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{"Sélectionner une plage de dates"}</DialogTitle>
-            <DialogDescription>
-              {"Choisissez la période que vous souhaitez filtrer"}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="date-from">Date de début</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !tempCustomDateRange?.from && "text-muted-foreground",
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {tempCustomDateRange?.from ? (
-                        format(tempCustomDateRange.from, "PPP", { locale: fr })
-                      ) : (
-                        <span>Sélectionner une date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={tempCustomDateRange?.from}
-                      onSelect={(date) =>
-                        setTempCustomDateRange((prev) => ({
-                          from: date || prev?.from || new Date(),
-                          to: prev?.to || new Date(),
-                        }))
-                      }
-                      initialFocus
-                      locale={fr}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="date-to">Date de fin</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !tempCustomDateRange?.to && "text-muted-foreground",
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {tempCustomDateRange?.to ? (
-                        format(tempCustomDateRange.to, "PPP", { locale: fr })
-                      ) : (
-                        <span>Sélectionner une date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={tempCustomDateRange?.to}
-                      onSelect={(date) =>
-                        setTempCustomDateRange((prev) => ({
-                          from: prev?.from || new Date(),
-                          to: date || prev?.to || new Date(),
-                        }))
-                      }
-                      initialFocus
-                      locale={fr}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            <div className="rounded-md border p-4">
-              <Calendar
-                mode="range"
-                selected={tempCustomDateRange || undefined}
-                onSelect={(range) =>
-                  setTempCustomDateRange(range as { from: Date; to: Date })
-                }
-                numberOfMonths={1}
-                className="rounded-md border"
-                locale={fr}
-              />
-            </div>
+  if(isLoading || myRequestsData.isLoading || allRequestsData.isLoading || getTransactions.isLoading || getBanks.isLoading || getInvoices.isLoading || getProjects.isLoading) return <LoadingPage/>
+  if(isError || myRequestsData.isError || allRequestsData.isError || getTransactions.isError || getBanks.isError || getInvoices.isError || getProjects.isError) return <ErrorPage error={error || myRequestsData.error || allRequestsData.error || getTransactions.error || getBanks.error || getInvoices.error || getProjects.error || undefined}/>
+  if(isSuccess || myRequestsData.isSuccess || allRequestsData.isSuccess || getTransactions.isSuccess || getBanks.isSuccess || getInvoices.isSuccess || getProjects.isSuccess) {
+    return (
+      <div className="content">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="font-bold">{"Tableau de bord"}</h1>
+            <h4 className="font-extralight tracking-wide">{`Bonjour ${user?.firstName}`}</h4>
           </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsCustomDateModalOpen(false)}
-            >
-              Annuler
-            </Button>
-            <Button onClick={applyCustomDateRange}>Appliquer</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Cartes de statistiques */}
-      <div className="grid-stats-4">
-        <StatsCard
-          titleColor="text-[#E4E4E7]"
-          title="En attente de validation"
-          value={String(myAttentes)}
-          description="Besoins rejetés :"
-          descriptionValue={String(myRejetes)}
-          descriptionColor="red"
-          dividerColor="bg-[#2262A2]"
-          className="bg-[#013E7B] text-[#ffffff] border-[#2262A2]"
-          dvalueColor="text-[#DC2626]"
-        />
-        <StatsCard
-          title="Total besoins soumis"
-          titleColor="text-[#52525B]"
-          value={String(mySoumis)}
-          description="Besoins Approuvés :"
-          descriptionValue={String(myValidés)}
-          descriptionColor="text-[#A1A1AA]"
-          dividerColor="bg-[#DFDFDF]"
-          className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
-          dvalueColor="text-green-600"
-        />
-      </div>
-
-      {/* Graphique 1: Mes besoins */}
-      <ChartAreaInteractive
-        filteredData={getMyFilteredData}
-        dateFilter={filters.dateFilter}
-        customDateRange={filters.customDateRange}
-        title="Mes besoins"
-        description={getSubtitle()}
-        type="my"
-      />
-
-      {/* <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
-        <StatsCard
-          titleColor="text-[#E4E4E7]"
-          title="En attente de validation"
-          value={String(allAttentes)}
-          description="Besoins rejetés :"
-          descriptionValue={String(allRejetes)}
-          descriptionColor="red"
-          dividerColor="bg-[#2262A2]"
-          className="bg-[#013E7B] text-[#ffffff] border-[#2262A2]"
-          dvalueColor="text-[#DC2626]"
-        />
-        <StatsCard
-          title="Besoins reçus"
-          titleColor="text-[#52525B]"
-          value={String(allSoumis)}
-          description="Besoins reçus approuvés :"
-          descriptionValue={String(allValidés)}
-          descriptionColor="text-[#A1A1AA]"
-          dividerColor="bg-[#DFDFDF]"
-          className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
-          dvalueColor="text-blue-600"
-        />
-      </div> */}
-
-      {/* Graphique 2: Besoins reçus */}
-      {manager && (
+  
+          {/* Filtre de période */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="h-10 inline-flex gap-2 flex-row items-center text-base border border-input px-5 rounded-md shadow-xs bg-background hover:bg-accent hover:text-accent-foreground">
+              <CalendarIcon />
+              {getDateFilterText()}
+              <ChevronDown
+                className="text-muted-foreground opacity-50"
+                size={16}
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={clearCustomDateRange}
+                className={cn(
+                  "flex items-center justify-between",
+                  !filters.dateFilter && "bg-accent",
+                )}
+              >
+                <span>Toutes les périodes</span>
+                {!filters.dateFilter && <ChevronRight className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, dateFilter: "today" }))
+                }
+                className={cn(
+                  "flex items-center justify-between",
+                  filters.dateFilter === "today" && "bg-accent",
+                )}
+              >
+                <span>Aujourd'hui</span>
+                {filters.dateFilter === "today" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, dateFilter: "week" }))
+                }
+                className={cn(
+                  "flex items-center justify-between",
+                  filters.dateFilter === "week" && "bg-accent",
+                )}
+              >
+                <span>Cette semaine</span>
+                {filters.dateFilter === "week" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, dateFilter: "month" }))
+                }
+                className={cn(
+                  "flex items-center justify-between",
+                  filters.dateFilter === "month" && "bg-accent",
+                )}
+              >
+                <span>Ce mois</span>
+                {filters.dateFilter === "month" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, dateFilter: "year" }))
+                }
+                className={cn(
+                  "flex items-center justify-between",
+                  filters.dateFilter === "year" && "bg-accent",
+                )}
+              >
+                <span>Cette année</span>
+                {filters.dateFilter === "year" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleCustomDateClick}
+                className={cn(
+                  "flex items-center justify-between",
+                  filters.dateFilter === "custom" && "bg-accent",
+                )}
+              >
+                <span className="flex items-center">
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  Personnaliser
+                </span>
+                {filters.dateFilter === "custom" && (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+  
+        {/* Modal pour la sélection de dates personnalisées */}
+        <Dialog
+          open={isCustomDateModalOpen}
+          onOpenChange={setIsCustomDateModalOpen}
+        >
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>{"Sélectionner une plage de dates"}</DialogTitle>
+              <DialogDescription>
+                {"Choisissez la période que vous souhaitez filtrer"}
+              </DialogDescription>
+            </DialogHeader>
+  
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date-from">Date de début</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !tempCustomDateRange?.from && "text-muted-foreground",
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {tempCustomDateRange?.from ? (
+                          format(tempCustomDateRange.from, "PPP", { locale: fr })
+                        ) : (
+                          <span>Sélectionner une date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={tempCustomDateRange?.from}
+                        onSelect={(date) =>
+                          setTempCustomDateRange((prev) => ({
+                            from: date || prev?.from || new Date(),
+                            to: prev?.to || new Date(),
+                          }))
+                        }
+                        initialFocus
+                        locale={fr}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+  
+                <div className="space-y-2">
+                  <Label htmlFor="date-to">Date de fin</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !tempCustomDateRange?.to && "text-muted-foreground",
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {tempCustomDateRange?.to ? (
+                          format(tempCustomDateRange.to, "PPP", { locale: fr })
+                        ) : (
+                          <span>Sélectionner une date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={tempCustomDateRange?.to}
+                        onSelect={(date) =>
+                          setTempCustomDateRange((prev) => ({
+                            from: prev?.from || new Date(),
+                            to: date || prev?.to || new Date(),
+                          }))
+                        }
+                        initialFocus
+                        locale={fr}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+  
+              <div className="rounded-md border p-4">
+                <Calendar
+                  mode="range"
+                  selected={tempCustomDateRange || undefined}
+                  onSelect={(range) =>
+                    setTempCustomDateRange(range as { from: Date; to: Date })
+                  }
+                  numberOfMonths={1}
+                  className="rounded-md border"
+                  locale={fr}
+                />
+              </div>
+            </div>
+  
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsCustomDateModalOpen(false)}
+              >
+                Annuler
+              </Button>
+              <Button onClick={applyCustomDateRange}>Appliquer</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+  
+        {/* Cartes de statistiques */}
+        <div className="grid-stats-4">
+          <StatsCard
+            titleColor="text-[#E4E4E7]"
+            title="En attente de validation"
+            value={String(myAttentes)}
+            description="Besoins rejetés :"
+            descriptionValue={String(myRejetes)}
+            descriptionColor="red"
+            dividerColor="bg-[#2262A2]"
+            className="bg-[#013E7B] text-[#ffffff] border-[#2262A2]"
+            dvalueColor="text-[#DC2626]"
+          />
+          <StatsCard
+            title="Total besoins soumis"
+            titleColor="text-[#52525B]"
+            value={String(mySoumis)}
+            description="Besoins Approuvés :"
+            descriptionValue={String(myValidés)}
+            descriptionColor="text-[#A1A1AA]"
+            dividerColor="bg-[#DFDFDF]"
+            className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
+            dvalueColor="text-green-600"
+          />
+        </div>
+  
+        {/* Graphique 1: Mes besoins */}
         <ChartAreaInteractive
-          filteredData={getAllFilteredData}
+          filteredData={getMyFilteredData}
           dateFilter={filters.dateFilter}
           customDateRange={filters.customDateRange}
-          title="Besoins reçus"
-          description={getReceivedSubtitle()}
-          type="all"
+          title="Mes besoins"
+          description={getSubtitle()}
+          type="my"
         />
-      )}
+  
+        {/* <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
+          <StatsCard
+            titleColor="text-[#E4E4E7]"
+            title="En attente de validation"
+            value={String(allAttentes)}
+            description="Besoins rejetés :"
+            descriptionValue={String(allRejetes)}
+            descriptionColor="red"
+            dividerColor="bg-[#2262A2]"
+            className="bg-[#013E7B] text-[#ffffff] border-[#2262A2]"
+            dvalueColor="text-[#DC2626]"
+          />
+          <StatsCard
+            title="Besoins reçus"
+            titleColor="text-[#52525B]"
+            value={String(allSoumis)}
+            description="Besoins reçus approuvés :"
+            descriptionValue={String(allValidés)}
+            descriptionColor="text-[#A1A1AA]"
+            dividerColor="bg-[#DFDFDF]"
+            className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
+            dvalueColor="text-blue-600"
+          />
+        </div> */}
+  
+        {/* Graphique 2: Besoins reçus */}
+        {manager && (
+          <ChartAreaInteractive
+            filteredData={getAllFilteredData}
+            dateFilter={filters.dateFilter}
+            customDateRange={filters.customDateRange}
+            title="Besoins reçus"
+            description={getReceivedSubtitle()}
+            type="all"
+          />
+        )}
+  
+        {paymentsData?.data && (
+          <Card className="py-4">
+            <CardHeader className="flex flex-col items-stretch border-b sm:flex-row">
+              <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
+                <CardTitle>{"Dépenses"}</CardTitle>
+                <CardDescription>
+                  {`Dépenses totales: ${XAF.format(totalDepenses)}`}
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Dépense par type */}
+              <ChartPieLabelList
+                data={getFilteredPayments}
+                chartType="type"
+                title="Répartition par type"
+                description="Répartition par type de paiement"
+                projects={getProjects.data?.data}
+                invoices={getInvoices.data?.data}
+              />
+              {/* Dépense par fournisseur */}
+              <ChartPieLabelList
+                data={getFilteredPayments}
+                chartType="fournisseur"
+                title="Répartition par fournisseur"
+                description="Répartition par fournisseur"
+                projects={getProjects.data?.data}
+                invoices={getInvoices.data?.data}
+              />
+            </CardContent>
+          </Card>
+        )}
+        {/* {
+          !!getTransactions.data && !!getBanks.data &&
+          <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 gap-4">
+            <TransactionChart transactions={getTransactions.data.data.filter(t=> t.Type !== "TRANSFER")} banks={getBanks.data.data} />
+          </div>
+        } */}
+      </div>
+    );
+  }
 
-      {paymentsData?.data && (
-        <Card className="py-4">
-          <CardHeader className="flex flex-col items-stretch border-b sm:flex-row">
-            <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
-              <CardTitle>{"Dépenses"}</CardTitle>
-              <CardDescription>
-                {`Dépenses totales: ${XAF.format(totalDepenses)}`}
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Dépense par type */}
-            <ChartPieLabelList
-              data={getFilteredPayments}
-              chartType="type"
-              title="Répartition par type"
-              description="Répartition par type de paiement"
-            />
-            {/* Dépense par fournisseur */}
-            <ChartPieLabelList
-              data={getFilteredPayments}
-              chartType="fournisseur"
-              title="Répartition par fournisseur"
-              description="Répartition par fournisseur"
-            />
-          </CardContent>
-        </Card>
-      )}
-      {/* {
-        !!getTransactions.data && !!getBanks.data &&
-        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 gap-4">
-          <TransactionChart transactions={getTransactions.data.data.filter(t=> t.Type !== "TRANSFER")} banks={getBanks.data.data} />
-        </div>
-      } */}
-    </div>
-  );
 };
 
 export default DashboardPage;

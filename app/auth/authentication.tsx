@@ -48,7 +48,7 @@ export default function VerifyEmailClient() {
   const canSubmit = emailFromUrl.includes("@") && otp.length === 6;
 
   const verifyMutation = useMutation({
-    mutationFn: async ({ otp, email }: { otp: number; email: string }) =>
+    mutationFn: async ({ otp, email }: { otp: string; email: string }) =>
       userQuery.getVerificationOtp(otp, email),
     onSuccess: (data) => {
       toast.success(`Votre adresse email a été vérifiée ✅`);
@@ -66,13 +66,13 @@ export default function VerifyEmailClient() {
   const onSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!canSubmit) return;
-    verifyMutation.mutate({ otp: Number(otp), email: emailFromUrl });
+    verifyMutation.mutate({ otp: otp, email: emailFromUrl });
   };
 
   // auto-submit si OTP complet
   React.useEffect(() => {
     if (!canSubmit || verifyMutation.isPending) return;
-    verifyMutation.mutate({ otp: Number(otp), email: emailFromUrl });
+    verifyMutation.mutate({ otp: otp, email: emailFromUrl });
   }, [canSubmit]);
 
   const invalidLink = !emailFromUrl;

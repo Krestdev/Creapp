@@ -1,21 +1,28 @@
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
-import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+} from "@/components/ui/select";
 import { transactionQ } from "@/queries/transaction";
 import { PayType, TransferTransaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,35 +36,38 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   transaction: TransferTransaction;
-  paymentMethods: Array<PayType>
+  paymentMethods: Array<PayType>;
 }
 
 const formSchema = z.object({
-  methodId: z.string({message: "Méthode de transfert requise"}),
+  methodId: z.string({ message: "Méthode de transfert requise" }),
+  docNumber: z.string({ message: "Numéro du document requis" }),
 });
 
 type FormValue = z.infer<typeof formSchema>;
 
 function RequestSign({ open, openChange, transaction, paymentMethods }: Props) {
-
   const form = useForm<FormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       methodId: undefined,
+      docNumber: "",
     },
   });
   const initiateSign = useMutation({
     mutationFn: async ({
       id,
-      methodId
+      methodId,
+      docNumber,
     }: {
       id: number;
       methodId: number;
-    }) => transactionQ.initiateSign({ id, methodId }),
+      docNumber: string;
+    }) => transactionQ.initiateSign({ id, methodId, docNumber }),
     onSuccess: () => {
       toast.success("Transfert mis à jour avec succès !");
       openChange(false);
-      form.reset({ methodId: undefined });
+      form.reset();
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -67,7 +77,8 @@ function RequestSign({ open, openChange, transaction, paymentMethods }: Props) {
     console.log(value);
     initiateSign.mutate({
       id: transaction.id,
-      methodId: Number(value.methodId)
+      methodId: Number(value.methodId),
+      docNumber: value.docNumber,
     });
   };
 
@@ -88,15 +99,35 @@ function RequestSign({ open, openChange, transaction, paymentMethods }: Props) {
                   <FormLabel isRequired>{"Méthode de paiement"}</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionner une méthode de paiement" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {paymentMethods.filter(o=> !o.label?.toLocaleLowerCase().includes("esp")).map(m=>(
-                                <SelectItem key={m.id} value={m.id.toString()}>{m.label}</SelectItem>
-                            ))}
-                        </SelectContent>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner une méthode de paiement" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {paymentMethods
+                          .filter(
+                            (o) =>
+                              !o.label?.toLocaleLowerCase().includes("esp"),
+                          )
+                          .map((m) => (
+                            <SelectItem key={m.id} value={m.id.toString()}>
+                              {m.label}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
                     </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="docNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Numéro du Document"}</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="ex. Cheq-54214..." />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
