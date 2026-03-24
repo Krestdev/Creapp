@@ -43,6 +43,7 @@ import {
 import ViewDepense from "./viewDepense";
 import { requestQ } from "@/queries/requestModule";
 import { userQ } from "@/queries/baseModule";
+import { requestTypeQ } from "@/queries/requestType";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -120,6 +121,11 @@ export function CarburentForm() {
     queryKey: ["drivers"],
     queryFn: () => driverQ.getAll(),
     enabled: isHydrated,
+  });
+
+  const getRequestType = useQuery({
+    queryKey: ["requestType"],
+    queryFn: requestTypeQ.getAll,
   });
 
   const paymentsData = useMutation({
@@ -249,6 +255,7 @@ export function CarburentForm() {
     bankData.data &&
     driverDate.data &&
     getRequests.data &&
+    getRequestType.data &&
     getUsers.data && (
       <>
         <Form {...form}>
@@ -628,6 +635,7 @@ export function CarburentForm() {
             payTypes={getPaymentType.data.data}
             users={getUsers.data.data}
             requests={getRequests.data.data}
+            requestTypes={getRequestType.data.data}
           />
         )}
         <SuccessModal

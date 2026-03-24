@@ -1013,6 +1013,7 @@ function ExpensesTable({
             users={users}
             requests={request}
             invoices={invoices}
+            requestTypes={requestTypes}
           />
           <PayExpense
             ticket={selected}

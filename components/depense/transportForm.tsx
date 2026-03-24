@@ -34,6 +34,7 @@ import { SuccessModal } from "../modals/success-modal";
 import { Form, FormControl, FormMessage } from "../ui/form";
 import ViewDepense from "./viewDepense";
 import { requestQ } from "@/queries/requestModule";
+import { requestTypeQ } from "@/queries/requestType";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -129,6 +130,11 @@ export function TransportForm() {
     queryFn: payTypeQ.getAll,
   });
 
+  const getRequestType = useQuery({
+    queryKey: ["requestType"],
+    queryFn: requestTypeQ.getAll,
+  });
+
   // Calcul du solde de la caisse sélectionnée
   const selectedCaisseBalance = useMemo(() => {
     if (!selectedCaisseId || !bankData.data?.data) return 0;
@@ -192,6 +198,7 @@ export function TransportForm() {
     bankData.data &&
     usersData.data &&
     getRequests.data &&
+    getPaymentType.data &&
     ProjectsData.data && (
       <>
         <Form {...form}>
@@ -492,16 +499,19 @@ export function TransportForm() {
             </div>
           </form>
         </Form>
-        {paymentsData.isSuccess && getPaymentType.isSuccess && (
-          <ViewDepense
-            open={view}
-            openChange={setView}
-            paymentRequest={paymentsData.data.data}
-            payTypes={getPaymentType.data.data}
-            users={usersData.data.data}
-            requests={getRequests.data.data}
-          />
-        )}
+        {paymentsData.isSuccess &&
+          getPaymentType.isSuccess &&
+          getRequestType.data && (
+            <ViewDepense
+              open={view}
+              openChange={setView}
+              paymentRequest={paymentsData.data.data}
+              payTypes={getPaymentType.data.data}
+              users={usersData.data.data}
+              requests={getRequests.data.data}
+              requestTypes={getRequestType.data.data}
+            />
+          )}
         <SuccessModal
           open={isSuccessModalOpen}
           onOpenChange={setIsSuccessModalOpen}

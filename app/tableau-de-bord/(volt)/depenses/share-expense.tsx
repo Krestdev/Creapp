@@ -37,6 +37,7 @@ import {
   PaymentRequest,
   PayType,
   RequestModelT,
+  RequestType,
   Signatair,
   User,
 } from "@/types/types";
@@ -55,6 +56,7 @@ interface Props {
   requests: RequestModelT[];
   users: Array<User>;
   invoices: Invoice[];
+  requestTypes: Array<RequestType>;
 }
 
 // Fonction pour vérifier si un moyen de paiement nécessite un numéro de pièce
@@ -85,7 +87,8 @@ function ShareExpense({
   banks,
   users,
   requests,
-  invoices
+  invoices,
+  requestTypes,
 }: Props) {
   const { user } = useStore();
 
@@ -113,23 +116,22 @@ function ShareExpense({
   const formSchema = useMemo(() => {
     const baseSchema = z.object({
       label: z.string().min(2, "Libellé trop court"),
-      fromBankId: z.coerce
-        .number({
-          required_error: "Veuillez sélectionner un compte source",
-          invalid_type_error: "Veuillez sélectionner un compte source",
-        }),
+      fromBankId: z.coerce.number({
+        required_error: "Veuillez sélectionner un compte source",
+        invalid_type_error: "Veuillez sélectionner un compte source",
+      }),
       ...(hasExistingMethodId
         ? {}
         : {
-          methodId: z
-            .number({
-              required_error: "Veuillez sélectionner un moyen de paiement",
-              invalid_type_error:
-                "Veuillez sélectionner un moyen de paiement",
-            })
-            .int()
-            .positive("Veuillez sélectionner un moyen de paiement"),
-        }),
+            methodId: z
+              .number({
+                required_error: "Veuillez sélectionner un moyen de paiement",
+                invalid_type_error:
+                  "Veuillez sélectionner un moyen de paiement",
+              })
+              .int()
+              .positive("Veuillez sélectionner un moyen de paiement"),
+          }),
       to: z.object({
         label: z.string().min(2, "Libellé trop court"),
         accountNumber: z.string().optional(),
@@ -144,12 +146,14 @@ function ShareExpense({
   type FormValues = z.infer<typeof formSchema>;
 
   const isFacilitation = ticket.type?.toLowerCase() === "facilitation";
-  const besoinFac = requests.find((x) => x.id === ticket.requestId)
+  const besoinFac = requests.find((x) => x.id === ticket.requestId);
   const benef = users.find((x) => x.id === Number(besoinFac?.beneficiary));
 
   //console.log(besoinFac);
   //Let's save the user who created the request to use it later on
-  const requestUser = users.find(u=> u.id === requests.find(r=> r.id === ticket.requestId)?.userId);
+  const requestUser = users.find(
+    (u) => u.id === requests.find((r) => r.id === ticket.requestId)?.userId,
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -159,7 +163,11 @@ function ShareExpense({
       // Si le ticket n'a pas de methodId, laisser undefined
       ...(hasExistingMethodId ? {} : { methodId: undefined }),
       to: {
-        label: isFacilitation ? benef?.firstName + " " + benef?.lastName : ticket.invoice?.command.provider.name ?? !!ticket.requestId ? requestUser?.firstName.concat(" ", requestUser?.lastName) :  "",
+        label: isFacilitation
+          ? benef?.firstName + " " + benef?.lastName
+          : (ticket.invoice?.command.provider.name ?? !!ticket.requestId)
+            ? requestUser?.firstName.concat(" ", requestUser?.lastName)
+            : "",
         accountNumber: "",
         phoneNum: "",
       },
@@ -230,16 +238,12 @@ function ShareExpense({
       case "cash": // Espèces
         if (payTypeLabel === "current") {
           return banks.filter(
-            (bank) =>
-              (bank.type === "CASH") &&
-              bank.Status === true,
+            (bank) => bank.type === "CASH" && bank.Status === true,
           );
         } else {
-          // Pour cash normal : CASH_REGISTER 
+          // Pour cash normal : CASH_REGISTER
           return banks.filter(
-            (bank) =>
-              (bank.type === "CASH_REGISTER") &&
-              bank.Status === true,
+            (bank) => bank.type === "CASH_REGISTER" && bank.Status === true,
           );
         }
 
@@ -332,7 +336,6 @@ function ShareExpense({
   );
 
   function onSubmit(values: FormValues) {
-
     // Validation manuelle pour docNumber
     if (
       requiresDocNumberField &&
@@ -658,7 +661,11 @@ function ShareExpense({
                           {"Nom du destinataire"}
                         </FormLabel>
                         <FormControl>
-                          <Input disabled={isFacilitation} {...field} placeholder="Ex. Krest Holding" />
+                          <Input
+                            disabled={isFacilitation}
+                            {...field}
+                            placeholder="Ex. Krest Holding"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -777,6 +784,7 @@ function ShareExpense({
           payTypes={payTypesQuery.data.data}
           users={users}
           requests={requests}
+          requestTypes={requestTypes}
         />
       )}
     </>
