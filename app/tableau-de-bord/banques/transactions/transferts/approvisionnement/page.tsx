@@ -36,7 +36,7 @@ function Page() {
         r.method?.type === "cash" &&
         r.type !== "transport" &&
         r.type !== "gas" &&
-        r.status === "accepted",
+        r.status === "validated",
     ); //To-Do Complete this
   }, [getPayments.data]);
 
