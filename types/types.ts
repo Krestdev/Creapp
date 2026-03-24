@@ -215,7 +215,7 @@ export type RequestModelT = {
   benef?: number[];
   beneficiaireId?: number;
   period?: DateRange | undefined;
-  paytype?: "cash" | "chq" | "ov" | undefined;
+  paytype?: "cash" | "chq" | "ov";
   beficiaryList?:
     | { id: number; firstName: string; lastName: string; email: string }[]
     | null;
@@ -715,6 +715,7 @@ export type TransferTransaction = TransactionBase & {
   isSigned: boolean;
   signers: Array<TransactionSigners>;
   signDoc?: string;
+  requests: Array<RequestModelT>;
 };
 
 export type Transaction =

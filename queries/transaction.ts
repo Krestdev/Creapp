@@ -29,7 +29,15 @@ export interface TransferProps extends Omit<
 
 export interface ApproProps extends Omit<
   Transaction,
-  "id" | "proof" | "from" | "to" | "createdAt" | "status" | "date" | "updatedAt"
+  | "id"
+  | "proof"
+  | "from"
+  | "to"
+  | "createdAt"
+  | "status"
+  | "date"
+  | "updatedAt"
+  | "requests"
 > {
   fromBankId: number;
   toBankId: number;

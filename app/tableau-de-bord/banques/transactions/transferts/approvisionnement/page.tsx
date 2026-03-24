@@ -30,7 +30,9 @@ function Page() {
 
   const filteredRequests = React.useMemo(() => {
     if (!getRequests.data) return [];
-    return getRequests.data.data.filter((r) => true); //To-Do Complete this
+    return getRequests.data.data.filter(
+      (r) => r.paytype === "cash" && r.type !== "transport" && r.type !== "gas",
+    ); //To-Do Complete this
   }, [getRequests.data]);
 
   if (isLoading || getRequests.isLoading) {

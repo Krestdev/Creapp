@@ -20,6 +20,7 @@ import {
   ArrowUpToLineIcon,
   Calendar,
   CircleHelpIcon,
+  ClipboardListIcon,
   ClipboardPenIcon,
   DollarSign,
   FileIcon,
@@ -296,37 +297,58 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
           </div>
           {/** Signatures */}
           {transaction.Type === "TRANSFER" && (
-            <div className="view-group">
-              <span className="view-icon">
-                <FilePenIcon />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Signature"}</p>
-                <div className="space-y-1">
-                  {transaction.signDoc ? (
-                    transaction.signDoc.split(";").map((proof, index) => (
-                      <Link
-                        key={index}
-                        href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
-                        target="_blank"
-                        className="flex gap-0.5 items-center"
-                      >
-                        <img
-                          src="/images/pdf.png"
-                          alt="preuve"
-                          className="h-7 w-auto aspect-square"
-                        />
-                        <p className="text-foreground font-medium">
-                          {"Document signé"}
-                        </p>
-                      </Link>
-                    ))
-                  ) : (
-                    <p className="italic">{"Aucune preuve jointe"}</p>
-                  )}
+            <>
+              <div className="view-group">
+                <span className="view-icon">
+                  <FilePenIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Signature"}</p>
+                  <div className="space-y-1">
+                    {transaction.signDoc ? (
+                      transaction.signDoc.split(";").map((proof, index) => (
+                        <Link
+                          key={index}
+                          href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
+                          target="_blank"
+                          className="flex gap-0.5 items-center"
+                        >
+                          <img
+                            src="/images/pdf.png"
+                            alt="preuve"
+                            className="h-7 w-auto aspect-square"
+                          />
+                          <p className="text-foreground font-medium">
+                            {"Document signé"}
+                          </p>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="italic">{"Aucune preuve jointe"}</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+              <div className="view-group">
+                <span className="view-icon">
+                  <ClipboardListIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Besoins associés"}</p>
+                  <div className="flex flex-col gap-1.5">
+                    {transaction.requests.map((item) => (
+                      <span
+                        key={item.id}
+                        className="w-full flex gap-2 justify-between text-sm"
+                      >
+                        <p className="line-clamp-1">{item.label}</p>
+                        <p>{XAF.format(item.amount ?? 0)}</p>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           {/** Date de création */}

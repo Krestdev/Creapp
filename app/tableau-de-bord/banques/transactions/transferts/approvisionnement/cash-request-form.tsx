@@ -289,8 +289,8 @@ function CashRequestForm({ banks, needs }: Props) {
         </div>
         <div className="flex flex-col max-h-[70vh] overflow-y-auto gap-2">
           {needs.length === 0 ? (
-            <span className="text-muted-foreground">
-              {"Aucun besoin disponible"}
+            <span className="text-muted-foreground px-3 py-2">
+              {"Aucun besoin disponible."}
             </span>
           ) : (
             needs.map((i) => {
