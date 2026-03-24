@@ -116,6 +116,7 @@ export type PaymentRequest = {
   method?: PayType;
   bank?: Bank;
   signer?: User[] | null;
+  selected: boolean;
 };
 
 export type User = {
@@ -715,7 +716,7 @@ export type TransferTransaction = TransactionBase & {
   isSigned: boolean;
   signers: Array<TransactionSigners>;
   signDoc?: string;
-  requests: Array<RequestModelT>;
+  payments: Array<PaymentRequest>;
 };
 
 export type Transaction =

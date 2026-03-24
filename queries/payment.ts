@@ -3,7 +3,14 @@ import { PaymentRequest } from "@/types/types";
 
 export interface NewPayment extends Omit<
   PaymentRequest,
-  "id" | "createdAt" | "updatedAt" | "proof" | "reference" | "status" | "signer"
+  | "id"
+  | "createdAt"
+  | "updatedAt"
+  | "proof"
+  | "reference"
+  | "status"
+  | "signer"
+  | "selected"
 > {
   proof: File;
   invoiceId: number;
@@ -25,7 +32,7 @@ export type PayloadGasCompletion = {
   driverId: number;
   liters: number;
   deadline: Date;
-}
+};
 
 class PaymentQueries {
   route = "/request/payment";
@@ -67,7 +74,10 @@ class PaymentQueries {
   };
 
   createDepense = async (
-    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "signer"> & {
+    data: Omit<
+      PaymentRequest,
+      "id" | "createdAt" | "updatedAt" | "signer" | "selected"
+    > & {
       caisseId: number;
     },
   ): Promise<{ message: string; data: PaymentRequest }> => {
@@ -268,9 +278,11 @@ class PaymentQueries {
   };
 
   gasCompletion = async ({
-    payload
-  }: {payload:PayloadGasCompletion}): Promise<{ data: PaymentRequest }> => {
-    const {id, km, liters, price, driverId, deadline } = payload;
+    payload,
+  }: {
+    payload: PayloadGasCompletion;
+  }): Promise<{ data: PaymentRequest }> => {
+    const { id, km, liters, price, driverId, deadline } = payload;
     const formData = new FormData();
     formData.append("km", km.toString());
     formData.append("liters", liters.toString());

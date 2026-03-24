@@ -87,7 +87,10 @@ export function TransportForm() {
 
   const paymentsData = useMutation({
     mutationFn: async (
-      data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> & {
+      data: Omit<
+        PaymentRequest,
+        "id" | "createdAt" | "updatedAt" | "selected"
+      > & {
         caisseId: number;
       },
     ) => paymentQ.createDepense(data),
@@ -130,7 +133,7 @@ export function TransportForm() {
   const selectedCaisseBalance = useMemo(() => {
     if (!selectedCaisseId || !bankData.data?.data) return 0;
     const caisse = bankData.data.data.find(
-      (x) => x.id === Number(selectedCaisseId)
+      (x) => x.id === Number(selectedCaisseId),
     );
     return caisse?.balance || 0;
   }, [selectedCaisseId, bankData.data?.data]);
@@ -143,7 +146,7 @@ export function TransportForm() {
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
     // Vérifier le solde avant de soumettre
     const selectedCaisse = bankData.data?.data.find(
-      (x) => x.id === Number(data.caisseId)
+      (x) => x.id === Number(data.caisseId),
     );
 
     if (!selectedCaisse) {
@@ -152,11 +155,16 @@ export function TransportForm() {
     }
 
     if (selectedCaisse.balance < data.Montent) {
-      toast.error(`Solde insuffisant. Solde disponible: ${selectedCaisse.balance} FCFA`);
+      toast.error(
+        `Solde insuffisant. Solde disponible: ${selectedCaisse.balance} FCFA`,
+      );
       return;
     }
 
-    const payment: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt"> = {
+    const payment: Omit<
+      PaymentRequest,
+      "id" | "createdAt" | "updatedAt" | "selected"
+    > = {
       title: data.title,
       price: data.Montent,
       description: data.Description,
@@ -244,13 +252,16 @@ export function TransportForm() {
                         </SelectTrigger>
                         <SelectContent>
                           {options.map((option) => {
-                            const caisse = bankData.data.data.find(x => x.id === option.value);
+                            const caisse = bankData.data.data.find(
+                              (x) => x.id === option.value,
+                            );
                             return (
                               <SelectItem
                                 key={option.value}
                                 value={option.value.toString()}
                               >
-                                {option.label} (Solde: {caisse?.balance || 0} FCFA)
+                                {option.label} (Solde: {caisse?.balance || 0}{" "}
+                                FCFA)
                               </SelectItem>
                             );
                           })}
@@ -261,7 +272,8 @@ export function TransportForm() {
                       )}
                       {field.value && selectedCaisseBalance > 0 && (
                         <p className="text-sm mt-1">
-                          Solde disponible: <strong>{selectedCaisseBalance} FCFA</strong>
+                          Solde disponible:{" "}
+                          <strong>{selectedCaisseBalance} FCFA</strong>
                         </p>
                       )}
                     </Field>
@@ -273,9 +285,11 @@ export function TransportForm() {
                 name="Beneficier"
                 control={form.control}
                 render={({ field, fieldState }) => {
-                  const options = usersData.data.data.filter((x) => x.verified === true).map((user) => {
-                    return { value: user.id, label: user.firstName };
-                  });
+                  const options = usersData.data.data
+                    .filter((x) => x.verified === true)
+                    .map((user) => {
+                      return { value: user.id, label: user.firstName };
+                    });
                   return (
                     <Field data-invalid={fieldState.invalid} className="gap-1">
                       <FieldLabel htmlFor="Beneficier">
@@ -325,14 +339,19 @@ export function TransportForm() {
                       }}
                       aria-invalid={fieldState.invalid}
                       placeholder="1000"
-                      className={!isBalanceSufficient && selectedCaisseId ? "border-red-500" : ""}
+                      className={
+                        !isBalanceSufficient && selectedCaisseId
+                          ? "border-red-500"
+                          : ""
+                      }
                     />
 
                     {selectedCaisseId && (
                       <div className="mt-2">
                         {!isBalanceSufficient && (
                           <p className="text-red-500 text-sm">
-                            ❌ Solde insuffisant. Dépassement de {montentValue - selectedCaisseBalance} FCFA
+                            ❌ Solde insuffisant. Dépassement de{" "}
+                            {montentValue - selectedCaisseBalance} FCFA
                           </p>
                         )}
                       </div>
@@ -453,7 +472,11 @@ export function TransportForm() {
             <div className="flex justify-end items-center w-full">
               <Button
                 variant={"primary"}
-                disabled={paymentsData.isPending || !isBalanceSufficient || !selectedCaisseId}
+                disabled={
+                  paymentsData.isPending ||
+                  !isBalanceSufficient ||
+                  !selectedCaisseId
+                }
                 type="submit"
                 className="min-w-[200px]"
               >

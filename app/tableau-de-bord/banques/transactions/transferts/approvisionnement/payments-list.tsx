@@ -1,13 +1,13 @@
 import { XAF } from "@/lib/utils";
-import { RequestModelT } from "@/types/types";
+import { PaymentRequest } from "@/types/types";
 import React from "react";
 
 interface Props {
-  data: Array<RequestModelT>;
+  data: Array<PaymentRequest>;
   value: Array<number>;
 }
 
-function RequestsList({ data, value }: Props) {
+function PaymentsList({ data, value }: Props) {
   return (
     <React.Fragment>
       {value.length === 0 ? (
@@ -21,9 +21,9 @@ function RequestsList({ data, value }: Props) {
               key={v}
               className="flex gap-1.5 justify-between line-clamp-1 text-sm font-medium px-1.5 py-0.5 rounded bg-gray-50 border"
             >
-              {data.find((i) => i.id === v)?.label}
+              {data.find((i) => i.id === v)?.title}
               <p className="font-semibold shrink-0 text-primary-600">
-                {XAF.format(data.find((i) => i.id === v)?.amount ?? 0)}
+                {XAF.format(data.find((i) => i.id === v)?.price ?? 0)}
               </p>
             </span>
           ))}
@@ -33,4 +33,4 @@ function RequestsList({ data, value }: Props) {
   );
 }
 
-export default RequestsList;
+export default PaymentsList;

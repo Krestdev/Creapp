@@ -126,7 +126,12 @@ export function CarburentForm() {
     mutationFn: async (
       data: Omit<
         PaymentRequest,
-        "id" | "createdAt" | "updatedAt" | "transactionId" | "bankId"
+        | "id"
+        | "createdAt"
+        | "updatedAt"
+        | "transactionId"
+        | "bankId"
+        | "selected"
       > & {
         vehiclesId: number;
       } & {
@@ -175,7 +180,7 @@ export function CarburentForm() {
   const selectedCaisseBalance = useMemo(() => {
     if (!selectedCaisseId || !bankData.data?.data) return 0;
     const caisse = bankData.data.data.find(
-      (x) => x.id === Number(selectedCaisseId)
+      (x) => x.id === Number(selectedCaisseId),
     );
     return caisse?.balance || 0;
   }, [selectedCaisseId, bankData.data?.data]);
@@ -188,7 +193,7 @@ export function CarburentForm() {
   const handleSubmit = form.handleSubmit(async (data: Schema) => {
     // Vérifier le solde avant de soumettre
     const selectedCaisse = bankData.data?.data.find(
-      (x) => x.id === Number(data.caisseId)
+      (x) => x.id === Number(data.caisseId),
     );
 
     if (!selectedCaisse) {
@@ -197,7 +202,9 @@ export function CarburentForm() {
     }
 
     if (selectedCaisse.balance < data.Montent) {
-      toast.error(`Solde insuffisant. Solde disponible: ${selectedCaisse.balance} FCFA`);
+      toast.error(
+        `Solde insuffisant. Solde disponible: ${selectedCaisse.balance} FCFA`,
+      );
       return;
     }
 
@@ -209,6 +216,7 @@ export function CarburentForm() {
       | "vehiclesId"
       | "bankId"
       | "transactionId"
+      | "selected"
     > = {
       title: data.title,
       km: data.km,
@@ -301,14 +309,15 @@ export function CarburentForm() {
                         <SelectContent>
                           {options.map((option) => {
                             const caisse = bankData.data.data.find(
-                              (x) => x.id === option.value
+                              (x) => x.id === option.value,
                             );
                             return (
                               <SelectItem
                                 key={option.value}
                                 value={option.value.toString()}
                               >
-                                {option.label} (Solde: {caisse?.balance || 0} FCFA)
+                                {option.label} (Solde: {caisse?.balance || 0}{" "}
+                                FCFA)
                               </SelectItem>
                             );
                           })}
@@ -319,7 +328,8 @@ export function CarburentForm() {
                       )}
                       {field.value && selectedCaisseBalance > 0 && (
                         <p className="text-sm mt-1">
-                          Solde disponible: <strong>{selectedCaisseBalance} FCFA</strong>
+                          Solde disponible:{" "}
+                          <strong>{selectedCaisseBalance} FCFA</strong>
                         </p>
                       )}
                     </Field>
@@ -410,7 +420,8 @@ export function CarburentForm() {
                       placeholder="850"
                     />
                     <FieldDescription>
-                      Entrez le prix d'un litre de carburant en FCFA. Le nombre de litres sera calculé automatiquement.
+                      Entrez le prix d'un litre de carburant en FCFA. Le nombre
+                      de litres sera calculé automatiquement.
                     </FieldDescription>
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -425,7 +436,8 @@ export function CarburentForm() {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-1">
                     <FieldLabel htmlFor="Montent">
-                      Montant total dépensé <span className="text-destructive">*</span>
+                      Montant total dépensé{" "}
+                      <span className="text-destructive">*</span>
                     </FieldLabel>
                     <Input
                       {...field}
@@ -436,7 +448,11 @@ export function CarburentForm() {
                       }}
                       aria-invalid={fieldState.invalid}
                       placeholder="1000"
-                      className={!isBalanceSufficient && selectedCaisseId ? "border-red-500" : ""}
+                      className={
+                        !isBalanceSufficient && selectedCaisseId
+                          ? "border-red-500"
+                          : ""
+                      }
                     />
 
                     {/* Afficher le calcul du nombre de litres */}
@@ -457,7 +473,8 @@ export function CarburentForm() {
                       <div className="mt-2">
                         {!isBalanceSufficient && (
                           <p className="text-red-500 text-sm">
-                            ❌ Solde insuffisant. Dépassement de {montentValue - selectedCaisseBalance} FCFA
+                            ❌ Solde insuffisant. Dépassement de{" "}
+                            {montentValue - selectedCaisseBalance} FCFA
                           </p>
                         )}
                       </div>
@@ -580,11 +597,14 @@ export function CarburentForm() {
               />
             </FieldGroup>
 
-
             <div className="flex justify-end items-center w-full">
               <Button
                 variant={"primary"}
-                disabled={paymentsData.isPending || !isBalanceSufficient || !selectedCaisseId}
+                disabled={
+                  paymentsData.isPending ||
+                  !isBalanceSufficient ||
+                  !selectedCaisseId
+                }
                 type="submit"
                 className="min-w-[200px]"
               >

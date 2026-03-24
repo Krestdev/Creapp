@@ -20,7 +20,7 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { ApproProps, transactionQ } from "@/queries/transaction";
-import { Bank, RequestModelT } from "@/types/types";
+import { Bank, PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { CheckCheckIcon } from "lucide-react";
@@ -29,11 +29,11 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
-import RequestsList from "./requests-list";
+import PaymentsList from "./payments-list";
 
 interface Props {
   banks: Array<Bank>;
-  needs: Array<RequestModelT>;
+  payments: Array<PaymentRequest>;
 }
 
 const formSchema = z.object({
@@ -43,14 +43,14 @@ const formSchema = z.object({
     .gt(0, "Montant > 0 requis"),
   fromBankId: z.coerce.number().int(),
   toBankId: z.coerce.number().int(),
-  requests: z.array(z.coerce.number(), {
+  payments: z.array(z.coerce.number(), {
     message: "Veuillez ajouter des besoins",
   }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-function CashRequestForm({ banks, needs }: Props) {
+function CashRequestForm({ banks, payments }: Props) {
   const { user } = useStore();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -59,7 +59,7 @@ function CashRequestForm({ banks, needs }: Props) {
       amount: 0,
       fromBankId: undefined,
       toBankId: undefined, //To-Do Here !
-      requests: [],
+      payments: [],
     },
   });
 
@@ -78,27 +78,24 @@ function CashRequestForm({ banks, needs }: Props) {
 
   //Watch from Bank Id
   const fromValue = form.watch("fromBankId");
-  const requestsValue = form.watch("requests");
+  const paymentValue = form.watch("payments");
 
   const onSelectedChange = (id: number) => {
-    const selected = requestsValue.find((v) => v === id);
-    if (!selected) return form.setValue("requests", [...requestsValue, id]);
+    const selected = paymentValue.find((v) => v === id);
+    if (!selected) return form.setValue("payments", [...paymentValue, id]);
     return form.setValue(
-      "requests",
-      requestsValue.filter((r) => r !== id),
+      "payments",
+      paymentValue.filter((r) => r !== id),
     );
   };
 
   useEffect(() => {
-    const requestList = needs.filter((n) =>
-      requestsValue.some((r) => r === n.id),
+    const paymentList = payments.filter((p) =>
+      paymentValue.some((r) => r === p.id),
     );
-    const total = requestList.reduce(
-      (acc, i) => acc + (i.amount ?? 0) * i.quantity,
-      0,
-    );
+    const total = paymentList.reduce((acc, i) => acc + (i.price ?? 0), 0);
     form.setValue("amount", total);
-  }, [requestsValue]);
+  }, [paymentValue]);
 
   const fromBank = React.useMemo(() => {
     if (!fromValue) return null;
@@ -242,12 +239,12 @@ function CashRequestForm({ banks, needs }: Props) {
           </div>
           <FormField
             control={form.control}
-            name="requests"
+            name="payments"
             render={({ field }) => (
               <FormItem>
                 <FormLabel isRequired>{"Besoins"}</FormLabel>
                 <FormControl>
-                  <RequestsList data={needs} value={field.value} />
+                  <PaymentsList data={payments} value={field.value} />
                 </FormControl>
               </FormItem>
             )}
@@ -288,13 +285,13 @@ function CashRequestForm({ banks, needs }: Props) {
           </div>
         </div>
         <div className="flex flex-col max-h-[70vh] overflow-y-auto gap-2">
-          {needs.length === 0 ? (
+          {payments.length === 0 ? (
             <span className="text-muted-foreground px-3 py-2">
               {"Aucun besoin disponible."}
             </span>
           ) : (
-            needs.map((i) => {
-              const status = requestsValue.some((e) => e === i.id);
+            payments.map((i) => {
+              const status = paymentValue.some((e) => e === i.id);
               return (
                 <span
                   className={cn(
@@ -305,13 +302,13 @@ function CashRequestForm({ banks, needs }: Props) {
                   onClick={() => onSelectedChange(i.id)}
                 >
                   <span className="flex items-center gap-2">
-                    <p className="text-base line-clamp-1">{i.label}</p>
+                    <p className="text-base line-clamp-1">{i.title}</p>
                     {status && (
                       <CheckCheckIcon size={16} className="text-primary-600" />
                     )}
                   </span>
                   <span className="text-sm font-semibold text-gray-800">
-                    {XAF.format(i.amount ?? 0)}
+                    {XAF.format(i.price ?? 0)}
                   </span>
                 </span>
               );
