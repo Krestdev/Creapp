@@ -232,7 +232,7 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
                         {"Aucun projet enregistré"}
                       </SelectItem>
                     ) : (
-                      projects.map((category) => (
+                      projects.filter(x => x.status !== "cancelled").map((category) => (
                         <SelectItem
                           key={category.id}
                           value={category.id.toString()}
