@@ -289,6 +289,7 @@ function ExpensesTable({
     setProviderFilter("all");
   };
 
+
   const tabs = [
     {
       id: 0,

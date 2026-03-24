@@ -173,7 +173,7 @@ const Page = () => {
         return types.filter(
           (t) => t.type !== "ressource_humaine" && t.type !== "gas",
         );
-      if (roles.some((r) => r.label === "DRIVER"))
+      if (roles.some((r) => r.label === "ADMIN"))
         return types.filter(
           (t) => t.type !== "ressource_humaine" && t.type !== "speciaux",
         );
