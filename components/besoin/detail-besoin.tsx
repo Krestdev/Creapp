@@ -39,6 +39,7 @@ import {
   MessageSquareXIcon,
   SquareStackIcon,
   TextQuoteIcon,
+  User2,
   UserIcon,
   Users,
   X
@@ -448,6 +449,25 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                 <p className="view-group-title">{"Initié par"}</p>
                 <p className="font-semibold capitalize">
                   {getUserName(String(data.userId))}
+                </p>
+                {!!oldestRequest && !!modifier && (
+                  <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                    <Edit className="h-3 w-3" />
+                    {`Modifié par: ${modifier.firstName.concat(" ", modifier.lastName)}`}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Récepteur pour compte */}
+            <div className="view-group">
+              <span className="view-icon">
+                <User2 />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Récepteur pour compte"}</p>
+                <p className="font-semibold capitalize">
+                  {getUserName(String(data.beneficiary))}
                 </p>
                 {!!oldestRequest && !!modifier && (
                   <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">

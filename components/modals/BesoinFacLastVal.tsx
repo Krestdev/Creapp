@@ -32,7 +32,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
-import { Category, PaymentRequest, ProjectT, RequestModelT, User } from "@/types/types";
+import {
+  Category,
+  PaymentRequest,
+  ProjectT,
+  RequestModelT,
+  User,
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -57,7 +63,7 @@ const SingleFileSchema = z
       z.string(),
     ]),
   )
-  .max(1, "Pas plus d'un document")
+  .max(1, "Pas plus d'un document");
 
 const formSchema = z.object({
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
@@ -69,7 +75,13 @@ const formSchema = z.object({
   description: z.string().min(1, "La description est requise"),
   priority: z.enum(["low", "medium", "high", "urgent"]),
   justificatif: SingleFileSchema,
-  categoryId: z.coerce.number({ message: "Veuillez sélectionner une catégorie" }),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
+  paytype: z.enum(["cash", "chq", "ov"], {
+    required_error: "Sélectionner le moyen de payement",
+    invalid_type_error: "Sélectionner le moyen de payement",
+  }),
 });
 
 interface UpdateFacilitationRequestProps {
@@ -101,7 +113,6 @@ export default function BesoinFacLastVal({
   >([]);
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
-
   const USERS = users.filter((u) => u.verified) || [];
 
   // ----------------------------------------------------------------------
@@ -117,7 +128,8 @@ export default function BesoinFacLastVal({
       title: requestData.label || "",
       description: requestData.description || "",
       priority: requestData.priority,
-      categoryId: requestData.categoryId
+      categoryId: requestData.categoryId,
+      paytype: undefined,
     },
   });
 
@@ -125,9 +137,7 @@ export default function BesoinFacLastVal({
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
 
-  const paiement = payments.find(
-    (x) => x.requestId === requestData?.id,
-  );
+  const paiement = payments.find((x) => x.requestId === requestData?.id);
 
   useEffect(() => {
     if (requestData && open && USERS.length > 0) {
@@ -159,6 +169,7 @@ export default function BesoinFacLastVal({
             beneficiaire: requestData.beneficiary?.toString() || "",
             projet: requestData.projectId?.toString() || "",
             categoryId: requestData.categoryId,
+            paytype: undefined,
             delai: requestData.dueDate
               ? new Date(requestData.dueDate)
               : new Date(),
@@ -188,7 +199,6 @@ export default function BesoinFacLastVal({
   // UPDATE MUTATION
   // ----------------------------------------------------------------------
 
-
   const validator = categories
     .find((cat) => cat.id === requestData?.categoryId)
     ?.validators?.find((v) => v.userId === user?.id);
@@ -200,12 +210,12 @@ export default function BesoinFacLastVal({
     }: {
       id: number;
       validator:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => {
       await requestQ.validate(id, validator?.id!, validator);
     },
@@ -250,6 +260,7 @@ export default function BesoinFacLastVal({
       label: values.title,
       description: values.description,
       categoryId: values.categoryId,
+      paytype: values.paytype,
       quantity: 1,
       unit: "unit",
       beneficiary: values.beneficiaire,
@@ -283,9 +294,7 @@ export default function BesoinFacLastVal({
       <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader>
-          <DialogTitle>
-            {"Approbation"}
-          </DialogTitle>
+          <DialogTitle>{"Approbation"}</DialogTitle>
           <DialogDescription>
             {"Approuver la demande de facilitation existante"}
           </DialogDescription>
@@ -304,9 +313,7 @@ export default function BesoinFacLastVal({
                   name="projet"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel isRequired>
-                        {"Projet concerné"}
-                      </FormLabel>
+                      <FormLabel isRequired>{"Projet concerné"}</FormLabel>
                       <SearchableSelect
                         disabled={true}
                         onChange={field.onChange}
@@ -334,37 +341,48 @@ export default function BesoinFacLastVal({
                 />
 
                 {/* Category */}
-        <FormField
-          control={form.control}
-          name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Categorie"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {
-                      categories.filter(c=> c.type.type === "facilitation").length === 0 ?
-                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
-                      :
-                    categories.filter(c=> c.type.type === "facilitation").map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel isRequired>{"Categorie"}</FormLabel>
+                      <FormControl>
+                        <Select
+                          defaultValue={
+                            field.value ? String(field.value) : undefined
+                          }
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="min-w-60 w-full">
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.filter(
+                              (c) => c.type.type === "facilitation",
+                            ).length === 0 ? (
+                              <SelectItem value="#" disabled>
+                                {"Aucune catégorie enregistrée"}
+                              </SelectItem>
+                            ) : (
+                              categories
+                                .filter((c) => c.type.type === "facilitation")
+                                .map((category) => (
+                                  <SelectItem
+                                    key={category.id}
+                                    value={category.id.toString()}
+                                  >
+                                    {category.label}
+                                  </SelectItem>
+                                ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {/* TITLE */}
                 <FormField
@@ -483,7 +501,6 @@ export default function BesoinFacLastVal({
                         onValueChange={(value) => {
                           field.onChange(value);
                         }}
-
                       >
                         <FormControl>
                           <SelectTrigger className="w-full">
@@ -530,6 +547,34 @@ export default function BesoinFacLastVal({
                     disabledName={true}
                   />
                 </div>
+                {/* Moyen de paiement */}
+                <FormField
+                  control={form.control}
+                  name="paytype"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+                      <FormControl>
+                        <Select
+                          defaultValue={
+                            field.value ? String(field.value) : undefined
+                          }
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="min-w-60 w-full col-span-2">
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cash">Espèces</SelectItem>
+                            <SelectItem value="chq">Chèque</SelectItem>
+                            <SelectItem value="ov">Virement</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {/* JUSTIFICATIF */}
                 <FormField

@@ -280,6 +280,23 @@ function ViewExpense({
             </div>
           )}
 
+          {/* Récepteur pour compte */}
+          {hasValue(request?.beneficiary) && (
+            <>
+              <div className="view-group">
+                <span className="view-icon">
+                  <User2 />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Récepteur pour compte"}</p>
+                  <p className="font-semibold">
+                    {users.find(x => x.id === Number(request?.beneficiary))?.firstName.concat(" ", users.find(x => x.id === Number(request?.beneficiary))!.lastName)}
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Demande associée */}
           {hasValue(payment.requestId) && (
             <>

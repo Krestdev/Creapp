@@ -157,7 +157,7 @@ export default function MyForm({categories, users, projects}:Props) {
       dueDate: values.datelimite,
       projectId: Number(values.projet),
       state: "pending",
-      priority: "medium",
+      priority: "medium"
     };
 
     requestMutation.mutate(requestData);
