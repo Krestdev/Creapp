@@ -103,6 +103,7 @@ import { Textarea } from "../ui/textarea";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { TabBar } from "./TabBar";
+import BesoinLastApproVall from "../modals/BesoinApproValid";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -181,6 +182,8 @@ export function DataVal({
   const [isLastValModalOpen, setIsLastValModalOpen] = React.useState(false);
   const [isUpdateFacModalOpen, setIsUpdateFacModalOpen] = React.useState(false);
   const [isUpdateRHModalOpen, setIsUpdateRHModalOpen] = React.useState(false);
+  const [isUpdateApproModalOpen, setIsUpdateApproModalOpen] =
+    React.useState(false);
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
@@ -302,7 +305,6 @@ export function DataVal({
     projectFilter,
     userFilter,
     selectedTab,
-    categoryFilter,
     dateFilter,
     customDateRange,
   ]);
@@ -461,7 +463,7 @@ export function DataVal({
       validated,
       decision,
       validatorId,
-      isLastValidator, // Nouveau paramètre pour déterminer quelle méthode utiliser
+      isLastValidator,
     }: {
       ids: number[];
       validated: boolean;
@@ -472,16 +474,14 @@ export function DataVal({
         userId: number;
         rank: number;
       };
-      isLastValidator?: boolean; // Pour déterminer si on utilise validateBulk ou reviewBulk
+      isLastValidator?: boolean;
     }) => {
       if (isLastValidator) {
-        // Utiliser validateBulk pour le dernier validateur
         return requestQ.validateBulk({
           ids,
           validatorId: validatorId ?? -1,
         });
       } else {
-        // Utiliser reviewBulk pour les validateurs ascendants
         return requestQ.reviewBulk({
           ids,
           validated,
@@ -497,7 +497,7 @@ export function DataVal({
       toast.success(
         `${selectedCount} besoin(s) ${actionType}(s) avec succès !`,
       );
-      setRowSelection({}); // Réinitialiser la sélection
+      setRowSelection({});
     },
     onError: (error) => {
       console.error("Erreur lors de la validation groupée:", error);
@@ -505,7 +505,6 @@ export function DataVal({
     },
   });
 
-  // Fonction pour gérer les actions de groupe
   const handleGroupAction = async () => {
     if (isProcessingGroupAction) return;
 
@@ -515,7 +514,6 @@ export function DataVal({
       return;
     }
 
-    // Vérifier que l'utilisateur peut valider tous les besoins sélectionnés
     const cannotValidateItems = selectedRows.filter((row) => {
       const item = row.original;
       const validationInfo = getValidationInfo(item);
@@ -544,7 +542,6 @@ export function DataVal({
         ?.find((cat) => cat.id === selectedRows[0].original.categoryId)
         ?.validators?.find((v) => v.userId === user?.id);
 
-      // Vérifier si l'utilisateur est le dernier validateur pour TOUS les besoins sélectionnés
       const isLastValidatorForAll = selectedRows.every((row) => {
         const item = row.original;
         const validationInfo = getValidationInfo(item);
@@ -577,7 +574,6 @@ export function DataVal({
     setIsValidationModalOpen(true);
   };
 
-  // Fonction pour ouvrir le dialogue d'action de groupe
   const openGroupActionDialog = (type: "approve" | "reject") => {
     const selectedRows = table.getSelectedRowModel().rows;
     if (selectedRows.length === 0) {
@@ -589,7 +585,6 @@ export function DataVal({
     setIsGroupActionDialogOpen(true);
   };
 
-  // Fonction pour obtenir l'info de validation pour un besoin
   const getValidationInfo = (request: RequestModelT) => {
     const userPosition = request.validators.find(
       (v) => v.userId === user?.id,
@@ -617,12 +612,10 @@ export function DataVal({
     };
   };
 
-  // Fonction pour désélectionner toutes les lignes
   const deselectAll = () => {
     table.toggleAllPageRowsSelected(false);
   };
 
-  // Fonction pour sélectionner uniquement les éléments validables
   const selectOnlyValidatable = () => {
     const validatableRows = table.getRowModel().rows.filter((row) => {
       const item = row.original;
@@ -636,53 +629,15 @@ export function DataVal({
       );
     });
 
-    // Désélectionner tout d'abord
     deselectAll();
 
-    // Sélectionner uniquement les lignes validables
     validatableRows.forEach((row) => row.toggleSelected(true));
   };
 
-  // Define columns avec colonne conditionnelle
+  // Define columns
   const columns: ColumnDef<RequestModelT>[] = React.useMemo(() => {
     const baseColumns: ColumnDef<RequestModelT>[] = [];
 
-    // Ajouter la colonne checkbox seulement si isCheckable est true
-    // if (isCheckable) {
-    //   baseColumns.push({
-    //     id: "select",
-    //     header: ({ table }) => (
-    //       <div className="flex items-center">
-    //         <Checkbox
-    //           checked={
-    //             table.getIsAllPageRowsSelected() ||
-    //             (table.getIsSomePageRowsSelected() && "indeterminate")
-    //           }
-    //           onCheckedChange={(value) =>
-    //             table.toggleAllPageRowsSelected(!!value)
-    //           }
-    //           aria-label="Sélectionner toutes les lignes"
-    //         />
-    //       </div>
-    //     ),
-    //     cell: ({ row }) => (
-    //       <Checkbox
-    //         checked={row.getIsSelected()}
-    //         onCheckedChange={(value) => row.toggleSelected(!!value)}
-    //         aria-label="Sélectionner cette ligne"
-    //         disabled={
-    //           !getValidationInfo(row.original).canValidate ||
-    //           row.original.state !== "pending" ||
-    //           hasUserAlreadyValidated(row.original)
-    //         }
-    //       />
-    //     ),
-    //     enableSorting: false,
-    //     enableHiding: false,
-    //   });
-    // }
-
-    // Ajouter les autres colonnes
     baseColumns.push(
       {
         accessorKey: "label",
@@ -862,7 +817,6 @@ export function DataVal({
       },
     );
 
-    // Ajouter la colonne Validation de validation (uniquement pour type pending)
     if (type === "pending") {
       baseColumns.push({
         id: "validationProgress",
@@ -892,9 +846,7 @@ export function DataVal({
       });
     }
 
-    // Ajouter la colonne Statut seulement si type === "proceed"
     if (type === "proceed") {
-      // Insérer la colonne statut après les catégories
       baseColumns.splice(3, 0, {
         accessorKey: "state",
         header: ({ column }) => {
@@ -924,7 +876,6 @@ export function DataVal({
       });
     }
 
-    // Toujours ajouter la colonne Actions à la fin
     baseColumns.push({
       id: "actions",
       enableHiding: false,
@@ -967,7 +918,11 @@ export function DataVal({
                         : item.type === "ressource_humaine"
                           ? (setSelectedItem(item),
                             setIsUpdateRHModalOpen(true))
-                          : (setSelectedItem(item), setIsLastValModalOpen(true))
+                          : item.type === "appro"
+                            ? (setSelectedItem(item),
+                              setIsUpdateApproModalOpen(true))
+                            : (setSelectedItem(item),
+                              setIsLastValModalOpen(true))
                       : openValidationModal("approve", item)
                   }
                   disabled={
@@ -977,7 +932,6 @@ export function DataVal({
                 >
                   <CheckCheck className="text-green-500" />
                   {"Approuver"}
-                  {validationInfo.isLastValidator}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => openValidationModal("reject", item)}
@@ -994,7 +948,6 @@ export function DataVal({
                 >
                   <LucideBan className="text-destructive" />
                   {"Rejeter"}
-                  {validationInfo.isLastValidator}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -1007,7 +960,6 @@ export function DataVal({
     return baseColumns;
   }, [type, user?.id, categoriesData, isCheckable]);
 
-  // Table configuration
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -1026,7 +978,6 @@ export function DataVal({
     },
   });
 
-  // Nombre d'éléments sélectionnés
   const selectedCount = Object.keys(rowSelection).length;
   const canValidateSelected = selectedCount > 0 && isCheckable;
 
@@ -1067,7 +1018,6 @@ export function DataVal({
                   />
                 </div>
 
-                {/* Filtre par statut */}
                 <div className="grid gap-1.5">
                   <Label>{"Statut"}</Label>
                   <DropdownMenu>
@@ -1146,7 +1096,6 @@ export function DataVal({
                   </DropdownMenu>
                 </div>
 
-                {/* Filtre par Catégorie */}
                 <div className="grid gap-1.5">
                   <Label>{"Catégorie"}</Label>
                   <DropdownMenu>
@@ -1228,7 +1177,6 @@ export function DataVal({
                   </DropdownMenu>
                 </div>
 
-                {/* Filtre par Projet */}
                 <div className="grid gap-1.5">
                   <Label>{"Projet"}</Label>
                   <DropdownMenu>
@@ -1307,7 +1255,6 @@ export function DataVal({
                   </DropdownMenu>
                 </div>
 
-                {/* Filtre par Emetteur */}
                 <div className="grid gap-1.5">
                   <Label>{"Emetteur"}</Label>
                   <DropdownMenu>
@@ -1321,8 +1268,12 @@ export function DataVal({
                             ? "Tous les émetteurs"
                             : usersData
                                 .find((u) => String(u.id) === userFilter)
-                                ?.firstName?.concat(" ", usersData.find((u) => String(u.id) === userFilter)!.lastName) ||
-                              "Sélectionner"}
+                                ?.firstName?.concat(
+                                  " ",
+                                  usersData.find(
+                                    (u) => String(u.id) === userFilter,
+                                  )!.lastName,
+                                ) || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -1387,7 +1338,6 @@ export function DataVal({
                   </DropdownMenu>
                 </div>
 
-                {/* Filtre par période */}
                 <div className="grid gap-1.5">
                   <Label>{"Période"}</Label>
                   <DropdownMenu>
@@ -1530,7 +1480,6 @@ export function DataVal({
                   </Collapsible>
                 </div>
 
-                {/* Bouton pour réinitialiser les filtres */}
                 <div className="flex items-end">
                   <Button
                     variant="outline"
@@ -1543,7 +1492,6 @@ export function DataVal({
               </div>
             </SheetContent>
           </Sheet>
-          {/* Column visibility */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">{"Colonnes"}</Button>
@@ -1613,7 +1561,6 @@ export function DataVal({
           </Button>
         </div>
       )}
-      {/* Table */}
       {filteredData.length > 0 ? (
         <div className="rounded-md border overflow-hidden">
           <Table>
@@ -1682,16 +1629,15 @@ export function DataVal({
         <Empty message={empty} />
       )}
 
-      {/* Pagination */}
       {filteredData.length > 0 && <Pagination table={table} pageSize={15} />}
 
-      {/* Dialog pour les actions de groupe - seulement si isCheckable est true */}
+      {/* Dialog pour les actions de groupe */}
       {isCheckable && (
         <Dialog
           open={isGroupActionDialogOpen}
           onOpenChange={setIsGroupActionDialogOpen}
         >
-          <DialogContent>
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {groupActionType === "approve" ? (
@@ -1854,6 +1800,7 @@ export function DataVal({
           users={usersData}
         />
       )}
+
       {selectedItem && (
         <BesoinFacLastVal
           open={isUpdateFacModalOpen}
@@ -1865,12 +1812,24 @@ export function DataVal({
           payments={paymentsData}
         />
       )}
+
       {selectedItem && (
         <BesoinRHLastVal
           open={isUpdateRHModalOpen}
           setOpen={setIsUpdateRHModalOpen}
           requestData={selectedItem}
           payments={paymentsData}
+          users={usersData}
+          categories={categoriesData}
+          projects={projectsData}
+        />
+      )}
+
+      {selectedItem && (
+        <BesoinLastApproVall
+          open={isUpdateApproModalOpen}
+          setOpen={setIsUpdateApproModalOpen}
+          requestData={selectedItem}
           users={usersData}
           categories={categoriesData}
           projects={projectsData}

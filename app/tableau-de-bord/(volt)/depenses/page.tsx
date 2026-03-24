@@ -192,7 +192,7 @@ function Page() {
           ))}
         </div>
         <ExpensesTable
-          payments={data.data}
+          payments={data.data.filter(x => x.type !== "appro")}
           banks={getBanks.data.data}
           invoices={getInvoices.data.data}
           requestTypes={getRequestType.data.data}

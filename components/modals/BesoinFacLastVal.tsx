@@ -291,9 +291,9 @@ export default function BesoinFacLastVal({
   // ----------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
-        {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
+        {/* Header - FIXE EN HAUT */}
+        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle>{"Approbation"}</DialogTitle>
           <DialogDescription>
             {"Approuver la demande de facilitation existante"}
@@ -301,11 +301,9 @@ export default function BesoinFacLastVal({
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex-1 overflow-y-auto px-6"
-          >
-            <div className="space-y-8 max-w-3xl mx-auto pb-8">
+          {/* Contenu scrollable */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="space-y-8 max-w-3xl mx-auto">
               <div className="flex flex-col @min-[640px]:grid @min-[640px]:grid-cols-2 gap-4">
                 {/* PROJET */}
                 <FormField
@@ -547,6 +545,7 @@ export default function BesoinFacLastVal({
                     disabledName={true}
                   />
                 </div>
+                
                 {/* Moyen de paiement */}
                 <FormField
                   control={form.control}
@@ -600,9 +599,10 @@ export default function BesoinFacLastVal({
                 />
               </div>
             </div>
-          </form>
-          {/* Boutons - FIXE */}
-          <div className="flex gap-3 p-4 pt-0 shrink-0 w-full justify-end">
+          </div>
+
+          {/* Boutons - FIXE EN BAS */}
+          <div className="flex gap-3 p-4 border-t shrink-0 justify-end">
             <Button
               type="button"
               variant="outline"

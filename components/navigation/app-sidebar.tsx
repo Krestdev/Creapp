@@ -308,7 +308,7 @@ function AppSidebar() {
 
   const approvedTicket = useMemo(() => {
     if (!ticketsData) return [];
-    return ticketsData.filter((ticket) => ticket.status === "validated");
+    return ticketsData.filter(x => x.type !== "appro").filter((ticket) => ticket.status === "validated");
   }, [ticketsData]);
 
   const simpleTicket = useMemo(() => {
