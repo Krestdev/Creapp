@@ -42,6 +42,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { projectHmrIdentifiersSubscribe } from "next/dist/build/swc/generated-native";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -70,6 +71,9 @@ const formSchema = z.object({
   more: z.string().optional(),
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
+  }),
+  projectId: z.coerce.number({
+    message: "Veuillez sélectionner un projet",
   }),
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
@@ -100,7 +104,8 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
       amount: 100,
       dueDate: format(defaultDate, "yyyy-MM-dd"),
       priority: "low",
-      categoryId: undefined,
+      categoryId:
+        categories.find((c) => c.type.type === "appro")?.id || undefined,
       more: "",
     },
   });
@@ -126,10 +131,11 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
       label: values.label,
       description,
       unit: "FCFA",
-      benef: [user?.id ?? 0],
       dueDate: new Date(values.dueDate),
       priority: "medium",
+      amount: values.amount,
       categoryId: values.categoryId,
+      projectId: values.projectId,
       quantity: 1,
       type: "appro",
     });
@@ -199,6 +205,43 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
               <FormLabel isRequired>{"Motif"}</FormLabel>
               <FormControl>
                 <Input placeholder="Ex. Carburant" {...field} disabled />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Project */}
+        <FormField
+          control={form.control}
+          name="projectId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Project"}</FormLabel>
+              <FormControl>
+                <Select
+                  defaultValue={field.value ? String(field.value) : undefined}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="min-w-60 w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.length === 0 ? (
+                      <SelectItem value="#" disabled>
+                        {"Aucun projet enregistré"}
+                      </SelectItem>
+                    ) : (
+                      projects.map((category) => (
+                        <SelectItem
+                          key={category.id}
+                          value={category.id.toString()}
+                        >
+                          {category.label}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
