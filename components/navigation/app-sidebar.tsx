@@ -604,18 +604,18 @@ function AppSidebar() {
                 ? filteredTickTransfert?.length
                 : undefined,
           },
-          {
-            pageId: "PG-04-04",
-            title: "Besoins",
-            href: "/tableau-de-bord/ticket/besoins",
-            authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-          },
-          {
-            pageId: "PG-04-03",
-            title: "Statistiques",
-            href: "/tableau-de-bord/ticket/statistiques",
-            authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-          },
+          // {
+          //   pageId: "PG-04-04",
+          //   title: "Besoins",
+          //   href: "/tableau-de-bord/ticket/besoins",
+          //   authorized: ["SUPERADMIN", "VOLT_MANAGER"],
+          // },
+          // {
+          //   pageId: "PG-04-03",
+          //   title: "Statistiques",
+          //   href: "/tableau-de-bord/ticket/statistiques",
+          //   authorized: ["SUPERADMIN", "VOLT_MANAGER"],
+          // },
         ],
       },
       {
