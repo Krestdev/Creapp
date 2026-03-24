@@ -141,10 +141,10 @@ function TransferTable({ data }: Props) {
         search.trim() === ""
           ? true
           : transaction.id.toString().toLocaleLowerCase().includes(search) ||
-            transaction.label.toLocaleLowerCase().includes(search) ||
-            transaction.amount.toString().includes(search) ||
-            transaction.to.label.toLocaleLowerCase().includes(search) ||
-            transaction.from.label.toLocaleLowerCase().includes(search);
+          transaction.label.toLocaleLowerCase().includes(search) ||
+          transaction.amount.toString().includes(search) ||
+          transaction.to.label.toLocaleLowerCase().includes(search) ||
+          transaction.from.label.toLocaleLowerCase().includes(search);
       //Filter Tab
       const matchTab =
         selectedTab === 0
@@ -154,10 +154,10 @@ function TransferTable({ data }: Props) {
       // Filter amount
       const matchAmount =
         amountTypeFilter === "greater"
-          ? transaction.amount > amountFilter
+          ? transaction.amount >= amountFilter
           : amountTypeFilter === "equal"
             ? transaction.amount === amountFilter
-            : transaction.amount < amountFilter;
+            : transaction.amount <= amountFilter;
 
       // Filtre par date
       let matchDate = true;
@@ -655,9 +655,9 @@ function TransferTable({ data }: Props) {
                         <span className="text-muted-foreground text-xs">
                           {customDateRange?.from && customDateRange.to
                             ? `${format(
-                                customDateRange.from,
-                                "dd/MM/yyyy",
-                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy",
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -765,9 +765,9 @@ function TransferTable({ data }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}

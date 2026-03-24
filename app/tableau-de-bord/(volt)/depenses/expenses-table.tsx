@@ -320,10 +320,10 @@ function ExpensesTable({
       // Filter amount
       const matchAmount =
         amountTypeFilter === "greater"
-          ? p.price > amountFilter
+          ? p.price >= amountFilter
           : amountTypeFilter === "equal"
             ? p.price === amountFilter
-            : p.price < amountFilter;
+            : p.price <= amountFilter;
       //Filter provider
       const matchProvider =
         providerFilter === "all"
@@ -331,15 +331,15 @@ function ExpensesTable({
           : providerFilter === "no-provider"
             ? !p.invoiceId
             : invoices.find((c) => c.id === p.invoiceId)?.command.providerId ===
-              Number(providerFilter);
+            Number(providerFilter);
       //Filter tab
       const matchTab =
         selectedTab === 0
           ? p.status === "validated" || p.status === "unsigned"
           : selectedTab === 1
             ? p.status === "pending_depense" ||
-              p.status === "signed" ||
-              p.status === "simple_signed"
+            p.status === "signed" ||
+            p.status === "simple_signed"
             : p.status === "paid";
       //Filter type
       const matchType = typeFilter === "all" ? true : p.type === typeFilter;
@@ -513,11 +513,11 @@ function ExpensesTable({
 
         const priorityA =
           priorityOrder[
-            rowA.getValue(columnId) as keyof typeof priorityOrder
+          rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-            rowB.getValue(columnId) as keyof typeof priorityOrder
+          rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -981,9 +981,9 @@ function ExpensesTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}
