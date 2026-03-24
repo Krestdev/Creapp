@@ -16,7 +16,7 @@ import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import { Category, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { CalendarIcon, LoaderIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -26,7 +26,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { SearchableSelect } from "../base/searchableSelect";
+import { userQ } from "@/queries/baseModule";
 
 interface Props {
   categories: Array<Category>;
@@ -47,10 +55,17 @@ const formSchema = z.object({
   delai: z
     .date()
     .min(new Date(), "Le delai d'exécution doit être dans le futur"),
-  categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
+  beneficiaireId: z.string().optional(),
+  paytype: z.enum(["cash", "chq", "ov"], {
+    required_error: "Sélectionner le moyen de payement",
+    invalid_type_error: "Sélectionner le moyen de payement",
+  }),
 });
 
-export default function SpecialRequestForm({categories}:Props) {
+export default function SpecialRequestForm({ categories }: Props) {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -66,12 +81,27 @@ export default function SpecialRequestForm({categories}:Props) {
       raison: undefined,
       delai: undefined,
       categoryId: undefined,
+      beneficiaireId: undefined,
+      paytype: undefined
     },
   });
 
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
   // ----------------------------------------------------------------------
+
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => userQ.getAll(),
+  });
+
+  const USERS =
+    getUsers.data?.data
+      .filter((u) => u.verified)
+      .map((u) => ({
+        id: u.id!,
+        name: u.firstName + " " + u.lastName,
+      })) || [];
 
   const requestMutation = useMutation({
     mutationFn: async (
@@ -111,6 +141,8 @@ export default function SpecialRequestForm({categories}:Props) {
       state: "pending",
       priority: "medium",
       categoryId: values.categoryId,
+      benef: Array(Number(values.beneficiaireId)),
+      paytype: values.paytype,
       proof: undefined,
     };
     requestMutation.mutate(requestData);
@@ -141,37 +173,45 @@ export default function SpecialRequestForm({categories}:Props) {
             )}
           />
           {/* Category */}
-        <FormField
-          control={form.control}
-          name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Categorie"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {
-                      categories.filter(c=> c.type.type === "speciaux").length === 0 ?
-                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
-                      :
-                    categories.filter(c=> c.type.type === "speciaux").map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>{"Categorie"}</FormLabel>
+                <FormControl>
+                  <Select
+                    defaultValue={field.value ? String(field.value) : undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="min-w-60 w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.filter((c) => c.type.type === "speciaux")
+                        .length === 0 ? (
+                        <SelectItem value="#" disabled>
+                          {"Aucune catégorie enregistrée"}
+                        </SelectItem>
+                      ) : (
+                        categories
+                          .filter((c) => c.type.type === "speciaux")
+                          .map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.label}
+                            </SelectItem>
+                          ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* MONTANT */}
           <FormField
@@ -183,6 +223,56 @@ export default function SpecialRequestForm({categories}:Props) {
                 <FormControl>
                   <Input type="number" placeholder="ex. 500000" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Recepteur pour compte */}
+          <FormField
+            control={form.control}
+            name="beneficiaireId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>{"Recepteur pour compte"}</FormLabel>
+                <SearchableSelect
+                  width="w-full"
+                  allLabel=""
+                  options={
+                    USERS.filter((u) => u.id !== user?.id).map((user) => ({
+                      value: user.id.toString(),
+                      label: user.name,
+                    })) ?? []
+                  }
+                  value={field.value?.toString() || ""}
+                  onChange={(value) => field.onChange(value)}
+                  placeholder="Sélectionner"
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Moyen de paiement */}
+          <FormField
+            control={form.control}
+            name="paytype"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+                <Select
+                  defaultValue={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="min-w-60 w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">{"Espèces"}</SelectItem>
+                    <SelectItem value="chq">{"Cheque"}</SelectItem>
+                    <SelectItem value="ov">{"Virement"}</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -234,7 +324,7 @@ export default function SpecialRequestForm({categories}:Props) {
             name="raison"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>{"Justification / Raison"}</FormLabel>
+                <FormLabel>{"Commentaire"}</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Expliquez la raison de ce besoin spécial..."

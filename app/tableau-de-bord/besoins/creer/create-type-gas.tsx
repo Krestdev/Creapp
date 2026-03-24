@@ -138,6 +138,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
       priority: "medium",
       categoryId: values.categoryId,
       quantity: 1,
+      paytype: "cash"
     });
   };
   console.log(form.formState.errors);

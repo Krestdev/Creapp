@@ -46,45 +46,29 @@ function NotPaidRequestsTable({ requests, tickets, users }: Props) {
     setCustomDateRange(undefined);
   };
 
-  const paidRequestsIds = tickets
-    .filter((t) => t.status === "paid")
-    .flatMap((t) => {
-      if (t.requestId) return [t.requestId];
-      const besoins = t.invoice?.command.devi.commandRequest.besoins || [];
-      return besoins.map((b) => b.id);
-    });
-  const data: RequestModelT[] = requests.filter(
-    (r) => !paidRequestsIds.some((e) => e === r.id) && r.state === "validated",
-  );
-
-  const filteredData: RequestModelT[] = React.useMemo(() => {
-    return data.filter((r) => {
+  const filteredData: PaymentRequest[] = React.useMemo(() => {
+    return tickets.filter((r) => {
       const search = searchFilter.toLocaleLowerCase();
       //Search Filter
       const matchSearch =
         search.trim() === ""
           ? true
           : r.id === Number(search) ||
-            r.label.toLocaleLowerCase().includes(search);
+            r.title.toLocaleLowerCase().includes(search);
       //Category Filter
       const matchCategory =
-        categoryFilter === "all"
-          ? true
-          : r.categoryId === Number(categoryFilter);
+        categoryFilter === "all" ? true : r.type === categoryFilter;
       //Project Filter
       const matchProject =
         projectFilter === "all" ? true : r.projectId === Number(projectFilter);
       //User Filter
       const matchUser =
-        userFilter === "all"
-          ? true
-          : r.beficiaryList?.some((i) => i.id === Number(userFilter)) ||
-            r.validators.some((i) => i.userId === Number(userFilter));
+        userFilter === "all" ? true : r.benefId === Number(userFilter);
       //Date Filter
-      return matchSearch && matchCategory && matchProject;
+      return matchSearch && matchCategory && matchProject && matchUser;
     });
   }, [
-    data,
+    tickets,
     searchFilter,
     categoryFilter,
     projectFilter,
@@ -101,9 +85,7 @@ function NotPaidRequestsTable({ requests, tickets, users }: Props) {
     },
     {
       title: "Montant estimatif à payer",
-      value: XAF.format(
-        filteredData.reduce((acc, i) => acc + (i.amount ?? 0) * i.quantity, 0),
-      ),
+      value: XAF.format(filteredData.reduce((acc, i) => acc + i.price, 0)),
       variant: "secondary",
     },
   ];
@@ -111,8 +93,8 @@ function NotPaidRequestsTable({ requests, tickets, users }: Props) {
   return (
     <div className="content">
       <PageTitle
-        title="Besoins en attente de Paiement"
-        subtitle="Liste des besoins validés en attente de paiement"
+        title="Rapports"
+        subtitle="Données relatives aux tickets en espèces"
       />
       <div className="grid-stats-4">
         {stats.map((statistic, id) => (

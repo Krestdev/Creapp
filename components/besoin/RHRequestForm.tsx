@@ -83,6 +83,10 @@ const formSchema = z.object({
   beneficiaire: z.array(z.number()).min(1, "Le bénéficiaire est requis"),
   justificatif: SingleFileSchema,
   categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}),
+  paytype: z.enum(["cash", "chq", "ov"], {
+    required_error: "Sélectionner le moyen de payement",
+    invalid_type_error: "Sélectionner le moyen de payement",
+  }),
 });
 
 export default function RHRequestForm({categories, projects, users}:Props) {
@@ -108,6 +112,7 @@ export default function RHRequestForm({categories, projects, users}:Props) {
       beneficiaire: [],
       justificatif: [],
       categoryId: undefined,
+      paytype: undefined
     },
   });
 
@@ -156,6 +161,7 @@ export default function RHRequestForm({categories, projects, users}:Props) {
       amount: Number(values.montant),
       projectId: Number(values.projet),
       categoryId: values.categoryId,
+      paytype: values.paytype,
       quantity: 1,
       unit: "unit",
       userId: Number(user?.id),
@@ -350,6 +356,33 @@ export default function RHRequestForm({categories, projects, users}:Props) {
                 <FormLabel isRequired>{"Montant"}</FormLabel>
                 <FormControl>
                   <Input placeholder="Montant" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Moyen de paiement */}
+          <FormField
+            control={form.control}
+            name="paytype"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+                <FormControl>
+                  <Select
+                    defaultValue={field.value ? String(field.value) : undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="min-w-60 w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">Espèces</SelectItem>
+                      <SelectItem value="chq">Chèque</SelectItem>
+                      <SelectItem value="ov">Virement</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -116,6 +116,7 @@ export type PaymentRequest = {
   method?: PayType;
   bank?: Bank;
   signer?: User[] | null;
+  selected: boolean;
 };
 
 export type User = {
@@ -213,7 +214,9 @@ export type RequestModelT = {
   unit: string;
   beneficiary: string;
   benef?: number[];
+  beneficiaireId?: number;
   period?: DateRange | undefined;
+  paytype?: "cash" | "chq" | "ov";
   beficiaryList?:
     | { id: number; firstName: string; lastName: string; email: string }[]
     | null;
@@ -250,6 +253,8 @@ export type RequestModelT = {
     rank: number;
     userId: number;
     requestModelId: number;
+    createdAt: Date;
+    updatedAt: Date;
   }>;
 };
 
@@ -713,6 +718,7 @@ export type TransferTransaction = TransactionBase & {
   isSigned: boolean;
   signers: Array<TransactionSigners>;
   signDoc?: string;
+  payments: Array<PaymentRequest>;
 };
 
 export type Transaction =

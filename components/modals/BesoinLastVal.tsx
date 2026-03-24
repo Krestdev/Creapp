@@ -143,7 +143,7 @@ export function BesoinLastVal({
         validator: validator,
       });
     },
-    onError: (error:Error) => {
+    onError: (error: Error) => {
       toast.error(error.message ?? "Une erreur est survenue.");
     },
   });
@@ -168,10 +168,10 @@ export function BesoinLastVal({
   }, [open, data, form]);
 
   const submitForm = async (values: FormValues) => {
-    const {unit, quantity, ...rest} = values;
+    const { unit, quantity, ...rest } = values;
     const payload: Partial<RequestModelT> = (data.type === "gas" || data.type === "transport") 
-    ? {id: data.id, label: rest.title, description: rest.description, priority: rest.priority, dueDate: rest.dueDate, userId: data.userId, amount: rest.amount, unit: unit, quantity: Number(quantity)} 
-    : {id: data.id, label: rest.title, description: rest.description, priority: rest.priority, dueDate: rest.dueDate, userId: data.userId, amount: rest.amount};
+      ? { id: data.id, label: rest.title, description: rest.description, priority: rest.priority, dueDate: rest.dueDate, userId: data.userId, amount: rest.amount, unit: unit, quantity: Number(quantity) } 
+      : { id: data.id, label: rest.title, description: rest.description, priority: rest.priority, dueDate: rest.dueDate, userId: data.userId, amount: rest.amount };
     try {
       requestMutation.mutate(payload);
     } catch {
@@ -182,7 +182,6 @@ export function BesoinLastVal({
   const handleRetry = () => {
     requestMutation.reset();
   };
-
 
   const headerDescription = isError
     ? "Une erreur est survenue. Vous pouvez réessayer."
@@ -213,10 +212,11 @@ export function BesoinLastVal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="flex flex-col max-h-[90vh] p-0">
         {/* HEADER - Fixé en haut */}
         <DialogHeader
           variant={isError ? "error" : isSuccess ? "success" : "default"}
+          className="px-6 pt-6 pb-4 border-b shrink-0"
         >
           <DialogTitle>
             {"Approbation"}
@@ -226,11 +226,11 @@ export function BesoinLastVal({
 
         {/* FORM - Zone scrollable */}
         {!isSuccess && !isError && (
-          <div className="flex-1 overflow-y-auto px-6 pb-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(submitForm)}
-                className="space-y-4 pb-4"
+                className="space-y-4"
               >
                 {/* Titre */}
                 <FormField
@@ -246,38 +246,39 @@ export function BesoinLastVal({
                     </FormItem>
                   )}
                 />
-                {
-                  !!requestBy &&
+                
+                {!!requestBy && (
                   <div className="grid gap-2">
-                  <Label>{"Emetteur"}</Label>
-                  <Input value={requestBy.firstName.concat(" ", requestBy.lastName)} disabled />
-                </div>
-                }
-                {
-                  !!data.amount &&
+                    <Label>{"Emetteur"}</Label>
+                    <Input value={requestBy.firstName.concat(" ", requestBy.lastName)} disabled />
+                  </div>
+                )}
+                
+                {!!data.amount && (
                   <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{"Montant"}</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type="number"
-                            placeholder="Ex. 15 000 FCFA"
-                            {...field}
-                            className="pr-12"
-                          />
-                          <p className="absolute right-2 top-1/2 -translate-y-1/2">
-                            {"FCFA"}
-                          </p>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />}
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{"Montant"}</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              placeholder="Ex. 15 000 FCFA"
+                              {...field}
+                              className="pr-12"
+                            />
+                            <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                              {"FCFA"}
+                            </p>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 {/* Date */}
                 <FormField
@@ -347,56 +348,56 @@ export function BesoinLastVal({
                 />
 
                 {/* Quantité */}
-                {
-                  data.type !== "transport" &&
+                {data.type !== "transport" && (
                   <FormField
-                  control={form.control}
-                  name="quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Quantité"}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Quantité..."
-                          {...field}
-                          disabled={isPending}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />}
+                    control={form.control}
+                    name="quantity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel isRequired>{"Quantité"}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Quantité..."
+                            {...field}
+                            disabled={isPending}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 {/* UNIT */}
-                {
-                  data.type !== "transport" &&
+                {data.type !== "transport" && (
                   <FormField
-                  control={form.control}
-                  name="unit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{"Unité"}</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
-                            <SelectValue placeholder="Sélectionner l'unité" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {units.map((unit) => (
-                            <SelectItem key={unit.value} value={unit.value}>
-                              {unit.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />}
+                    control={form.control}
+                    name="unit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{"Unité"}</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
+                              <SelectValue placeholder="Sélectionner l'unité" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {units.map((unit) => (
+                              <SelectItem key={unit.value} value={unit.value}>
+                                {unit.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 {/* Description */}
                 <FormField
@@ -418,35 +419,38 @@ export function BesoinLastVal({
                     </FormItem>
                   )}
                 />
-
-                {/* Boutons */}
-                <DialogFooter>
-                  <Button
-                    type="submit"
-                    variant={"success"}
-                    disabled={isPending}
-                    isLoading={isPending}
-                  >
-                    {"Approuver"}
-                  </Button>
-                  <DialogClose asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={isPending}
-                    >
-                      {"Fermer"}
-                    </Button>
-                  </DialogClose>
-                </DialogFooter>
               </form>
             </Form>
           </div>
         )}
 
-        {/* Footer Success/Error */}
+        {/* Footer - Fixe en bas pour le formulaire */}
+        {!isSuccess && !isError && (
+          <DialogFooter className="px-6 py-4 border-t mt-auto shrink-0">
+            <Button
+              type="submit"
+              variant={"success"}
+              disabled={isPending}
+              isLoading={isPending}
+              onClick={form.handleSubmit(submitForm)}
+            >
+              {"Approuver"}
+            </Button>
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isPending}
+              >
+                {"Fermer"}
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        )}
+
+        {/* Footer Success/Error - Fixe en bas */}
         {(isSuccess || isError) && (
-          <div className="shrink-0 flex gap-3 p-6 pt-0 ml-auto">
+          <div className="shrink-0 flex gap-3 px-6 py-4 border-t mt-auto justify-end">
             {/* Bouton pour réessayer */}
             {isError && (
               <Button type="button" variant={"primary"} onClick={handleRetry}>

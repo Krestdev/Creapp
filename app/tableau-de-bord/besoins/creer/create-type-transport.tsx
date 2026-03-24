@@ -122,6 +122,7 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
       categoryId: values.categoryId,
       quantity: 1,
       unit: "FCFA",
+      paytype: "cash"
     });
   };
   return (

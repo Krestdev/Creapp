@@ -39,6 +39,7 @@ import {
   MessageSquareXIcon,
   SquareStackIcon,
   TextQuoteIcon,
+  User2,
   UserIcon,
   Users,
   X
@@ -85,7 +86,6 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
     return user?.lastName + " " + user?.firstName || userId;
   };
 
-
   const paiement = payments.find(
     (x) => x.requestId === data?.id,
   );
@@ -113,8 +113,6 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
         return { label: status, variant: "default" };
     }
   };
-
-  // Reste du code inchangé...
 
   const statusConfig = {
     pending: {
@@ -157,7 +155,6 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
           ? "Faible"
           : "Elevé";
 
-
   // Récupérer l'ancienne valeur pour l'affichage
   const oldestRequest = initialValues;
   const hasAmountChanged = !!data.amount && !!initialValues && initialValues.amount !== data.amount;
@@ -166,13 +163,16 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
   const hasQuantityChanged = data.type === "achat" && !!initialValues && initialValues.quantity !== data.quantity;
   const modifier = users.find(u => u.id === oldestRequest?.id);
 
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{`Besoin - ${data.label}`}</DialogTitle>
-            <DialogDescription>{"Détails du besoin"}</DialogDescription>
-          </DialogHeader>
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-3xl flex flex-col max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle>{`Besoin - ${data.label}`}</DialogTitle>
+          <DialogDescription>{"Détails du besoin"}</DialogDescription>
+        </DialogHeader>
+        
+        {/* Contenu scrollable */}
+        <div className="flex-1 overflow-y-auto px-1">
           <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
             {/**Reference */}
             <div className="view-group">
@@ -458,6 +458,25 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
               </div>
             </div>
 
+            {/* Récepteur pour compte */}
+            {modifier && <div className="view-group">
+              <span className="view-icon">
+                <User2 />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Récepteur pour compte"}</p>
+                <p className="font-semibold capitalize">
+                  {getUserName(String(data.beneficiary))}
+                </p>
+                {!!oldestRequest && !!modifier && (
+                  <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                    <Edit className="h-3 w-3" />
+                    {`Modifié par: ${modifier.firstName.concat(" ", modifier.lastName)}`}
+                  </p>
+                )}
+              </div>
+            </div>}
+
             {/* Date de création */}
             <div className="view-group">
               <span className="view-icon">
@@ -513,7 +532,7 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
             </div>
 
             {/* Bénéficiaires */}
-            {data.type !== "speciaux" && (
+            {data.type !== "speciaux" && data.beneficiary !== undefined && (
               <div className="view-group">
                 <span className="view-icon">
                   <Users />
@@ -587,13 +606,15 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                 </div>
               )}
           </div>
-          {/* Boutons du footer */}
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">{"Fermer"}</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+        </div>
+        
+        {/* Boutons du footer - fixe en bas */}
+        <DialogFooter className="mt-4 pt-4 border-t">
+          <DialogClose asChild>
+            <Button variant="outline">{"Fermer"}</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

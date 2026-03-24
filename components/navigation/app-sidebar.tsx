@@ -308,7 +308,9 @@ function AppSidebar() {
 
   const approvedTicket = useMemo(() => {
     if (!ticketsData) return [];
-    return ticketsData.filter((ticket) => ticket.status === "validated");
+    return ticketsData
+      .filter((x) => x.type !== "appro")
+      .filter((ticket) => ticket.status === "validated");
   }, [ticketsData]);
 
   const simpleTicket = useMemo(() => {
@@ -606,16 +608,16 @@ function AppSidebar() {
           },
           {
             pageId: "PG-04-04",
-            title: "Besoins",
-            href: "/tableau-de-bord/ticket/besoins",
+            title: "Rapports",
+            href: "/tableau-de-bord/ticket/rapports",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
           },
-          {
+          /* {
             pageId: "PG-04-03",
             title: "Statistiques",
             href: "/tableau-de-bord/ticket/statistiques",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-          },
+          }, */
         ],
       },
       {

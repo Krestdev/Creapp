@@ -3,54 +3,61 @@ import { Pagination } from "@/components/base/pagination";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { DateFilter, Transaction, TRANSACTION_STATUS } from "@/types/types";
 import {
-    type ColumnDef,
-    type ColumnFiltersState,
-    type SortingState,
-    type VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import {
-    ArrowUpDown,
-    ChevronDown,
-    Settings2
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, Settings2 } from "lucide-react";
 import React from "react";
 import RejectDialog from "./reject-dialog";
 
@@ -59,10 +66,10 @@ interface Props {
 }
 
 function TransferHistory({ data }: Props) {
-    const { user } = useStore();
+  const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -77,76 +84,95 @@ function TransferHistory({ data }: Props) {
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
-  const [statusFilter, setStatusFilter] = React.useState<"all" | Transaction["status"]>("all");
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | Transaction["status"]
+  >("all");
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
 
-  const getBadge = (status:Transaction["status"]):{label: string; variant: VariantProps<typeof badgeVariants>["variant"]} =>{
-    const label = TRANSACTION_STATUS.find(t=> t.value === status)?.name ?? "Inconnu";
-    switch(status){
-        case "APPROVED":
-            return {label, variant:"success" };
-        case "REJECTED":
-            return {label, variant: "destructive"};
-        case "PENDING":
-            return {label, variant: "amber"};
-        default: return {label, variant: "outline"}
+  const getBadge = (
+    status: Transaction["status"],
+  ): {
+    label: string;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+  } => {
+    const label =
+      TRANSACTION_STATUS.find((t) => t.value === status)?.name ?? "Inconnu";
+    switch (status) {
+      case "APPROVED":
+        return { label, variant: "success" };
+      case "REJECTED":
+        return { label, variant: "destructive" };
+      case "PENDING":
+        return { label, variant: "amber" };
+      default:
+        return { label, variant: "outline" };
     }
   };
 
-  const filteredData = React.useMemo(()=>{
-    return data.filter((transaction)=>{
+  const filteredData = React.useMemo(() => {
+    return data.filter((transaction) => {
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
       //Status Filter
       const matchStatus =
-      statusFilter === "all" ? true : transaction.status === statusFilter;
+        statusFilter === "all" ? true : transaction.status === statusFilter;
       // Filter amount minimum
-        const matchMinAmount = 
-        !amountMinFilter ? true : transaction.amount >= amountMinFilter;
-        
-        // Filter amount maximum
-        const matchMaxAmount =
-        !amountMaxFilter ? true : transaction.amount <= amountMaxFilter;
+      const matchMinAmount = !amountMinFilter
+        ? true
+        : transaction.amount >= amountMinFilter;
 
-        // Filtre par date
-        let matchDate = true;
-            if (dateFilter) {
-      switch (dateFilter) {
-        case "today":
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case "week":
-          startDate.setDate(
-            now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
-          );
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case "month":
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        case "year":
-          startDate = new Date(now.getFullYear(), 0, 1);
-          break;
-        case "custom":
-          if (customDateRange?.from && customDateRange?.to) {
-            startDate = customDateRange.from;
-            endDate = customDateRange.to;
-          }
-          break;
-      }
+      // Filter amount maximum
+      const matchMaxAmount = !amountMaxFilter
+        ? true
+        : transaction.amount <= amountMaxFilter;
 
-      if (
-        dateFilter !== "custom" ||
-        (customDateRange?.from && customDateRange?.to)
-      ) {
-        matchDate = transaction.createdAt >= startDate && transaction.createdAt <= endDate;
-        ;
+      // Filtre par date
+      let matchDate = true;
+      if (dateFilter) {
+        switch (dateFilter) {
+          case "today":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "week":
+            startDate.setDate(
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+            );
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "month":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          case "custom":
+            if (customDateRange?.from && customDateRange?.to) {
+              startDate = customDateRange.from;
+              endDate = customDateRange.to;
+            }
+            break;
+        }
+
+        if (
+          dateFilter !== "custom" ||
+          (customDateRange?.from && customDateRange?.to)
+        ) {
+          matchDate =
+            transaction.createdAt >= startDate &&
+            transaction.createdAt <= endDate;
+        }
       }
-    }
-    return matchStatus && matchDate && matchMaxAmount && matchMinAmount;
-    })
-  },[data, dateFilter, customDateRange, amountMaxFilter, amountMinFilter, statusFilter]);
+      return matchStatus && matchDate && matchMaxAmount && matchMinAmount;
+    });
+  }, [
+    data,
+    dateFilter,
+    customDateRange,
+    amountMaxFilter,
+    amountMinFilter,
+    statusFilter,
+  ]);
 
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
@@ -213,9 +239,7 @@ function TransferHistory({ data }: Props) {
       cell: ({ row }) => {
         const value = row.original.amount;
         const type = row.original.Type;
-        return (
-          <span className={"font-bold"}>{XAF.format(value)}</span>
-        );
+        return <span className={"font-bold"}>{XAF.format(value)}</span>;
       },
     },
     {
@@ -282,10 +306,8 @@ function TransferHistory({ data }: Props) {
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
-        const {label, variant} = getBadge(item.status);
-        return (
-          <Badge variant={variant}>{label}</Badge>
-        );
+        const { label, variant } = getBadge(item.status);
+        return <Badge variant={variant}>{label}</Badge>;
       },
     },
   ];
@@ -357,52 +379,59 @@ function TransferHistory({ data }: Props) {
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="statusFilter">{"Statut"}</Label>
-                <Select value={statusFilter} onValueChange={(v)=>setStatusFilter(v as "all" | Transaction["status"])}>
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner un statut" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                        {
-                            TRANSACTION_STATUS.filter((t)=> t.value !== "PENDING").map((t, id)=>(
-                                <SelectItem key={id} value={t.value}>{t.name}</SelectItem>
-                            ))
-                        }
-                    </SelectContent>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(v) =>
+                    setStatusFilter(v as "all" | Transaction["status"])
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
+                    {TRANSACTION_STATUS.filter(
+                      (t) => t.value !== "PENDING",
+                    ).map((t, id) => (
+                      <SelectItem key={id} value={t.value}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
 
               {/* Filtre par montant */}
               <div className="grid gap-1.5">
-            <Label>{"Montant min"}</Label>
-            <div className="relative">
-                <Input
-                type="number"
-                placeholder="Montant minimim"
-                value={amountMinFilter}
-                onChange={(e)=>setAmountMinFilter(Number(e.target.value))}
-                className="w-full"
-                />
-                <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                <Label>{"Montant min"}</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Montant minimim"
+                    value={amountMinFilter}
+                    onChange={(e) => setAmountMinFilter(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
                     {"FCFA"}
                   </span>
-            </div>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{"Montant maximum"}</Label>
-            <div className="relative">
-                <Input
-                type="number"
-                placeholder="Montant max"
-                value={amountMaxFilter}
-                onChange={(e)=>setAmountMaxFilter(Number(e.target.value))}
-                className="w-full"
-                />
-                <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                </div>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>{"Montant maximum"}</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Montant max"
+                    value={amountMaxFilter}
+                    onChange={(e) => setAmountMaxFilter(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
                     {"FCFA"}
                   </span>
-            </div>
-          </div>
+                </div>
+              </div>
 
               {/* Filtre par période */}
               <div className="grid gap-1.5">
@@ -445,7 +474,7 @@ function TransferHistory({ data }: Props) {
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
                               customDateRange.from,
-                              "dd/MM/yyyy"
+                              "dd/MM/yyyy",
                             )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
@@ -456,9 +485,13 @@ function TransferHistory({ data }: Props) {
                     <Calendar
                       mode="range"
                       selected={customDateRange}
-                      onSelect={(range) =>
-                        setCustomDateRange(range as { from: Date; to: Date })
-                      }
+                      onSelect={(range) => {
+                        if (!range?.from || !range?.to) return;
+                        const from = new Date(range.from);
+                        const to = new Date(range.to);
+                        to.setHours(23, 59, 59, 999);
+                        setCustomDateRange({ from, to });
+                      }}
                       numberOfMonths={1}
                       className="rounded-md border w-full"
                     />
@@ -524,14 +557,14 @@ function TransferHistory({ data }: Props) {
                     {column.id === "from"
                       ? "Source"
                       : column.id === "to"
-                      ? "Destination"
-                      : column.id === "proof"
-                      ? "Preuve"
-                      : column.id === "createdAt"
-                      ? "Date"
-                      : column.id === "amount"
-                      ? "Montant"
-                      : column.id}
+                        ? "Destination"
+                        : column.id === "proof"
+                          ? "Preuve"
+                          : column.id === "createdAt"
+                            ? "Date"
+                            : column.id === "amount"
+                              ? "Montant"
+                              : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -554,7 +587,7 @@ function TransferHistory({ data }: Props) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -576,7 +609,7 @@ function TransferHistory({ data }: Props) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -597,7 +630,14 @@ function TransferHistory({ data }: Props) {
       </div>
 
       <Pagination table={table} />
-      {selected && <RejectDialog transaction={selected} open={reject} openChange={setReject} userId={user?.id ?? 0} />}
+      {selected && (
+        <RejectDialog
+          transaction={selected}
+          open={reject}
+          openChange={setReject}
+          userId={user?.id ?? 0}
+        />
+      )}
     </div>
   );
 }
