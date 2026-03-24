@@ -22,4 +22,5 @@ export const units: Array<{ name: string; value: string }> = [
   { name: "Centimètre (cm)", value: "cm" },
   { name: "Millimètre (mm)", value: "mm" },
   { name: "Kilomètre (km)", value: "km" },
+  { name: "Forfait", value: "Forfait" },
 ];
