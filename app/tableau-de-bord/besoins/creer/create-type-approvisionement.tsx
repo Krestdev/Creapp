@@ -132,6 +132,7 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
       categoryId: values.categoryId,
       quantity: 1,
       type: "appro",
+      paytype: "cash"
     });
   };
   console.log(form.formState.errors);

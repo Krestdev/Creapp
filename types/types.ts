@@ -213,7 +213,9 @@ export type RequestModelT = {
   unit: string;
   beneficiary: string;
   benef?: number[];
+  beneficiaireId?: number;
   period?: DateRange | undefined;
+  paytype?: "cash" | "chq" | "ov" | undefined;
   beficiaryList?:
     | { id: number; firstName: string; lastName: string; email: string }[]
     | null;

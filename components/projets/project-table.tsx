@@ -378,7 +378,7 @@ export function ProjectTable({
           );
         },
         cell: ({ row }) => (
-          <div className="uppercase">{row.getValue("label")}</div>
+          <div className="max-w-[500px] truncate uppercase">{row.getValue("label")}</div>
         ),
       },
       {

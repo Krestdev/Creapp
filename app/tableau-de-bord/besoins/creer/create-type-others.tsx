@@ -127,6 +127,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       priority: values.priority,
       categoryId: values.categoryId,
       projectId: values.projectId,
+      paytype: "cash"
     });
   };
   return (
