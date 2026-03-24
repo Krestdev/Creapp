@@ -336,13 +336,13 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Besoins associés"}</p>
                   <div className="flex flex-col gap-1.5">
-                    {transaction.requests.map((item) => (
+                    {transaction.payments.map((item) => (
                       <span
                         key={item.id}
                         className="w-full flex gap-2 justify-between text-sm"
                       >
-                        <p className="line-clamp-1">{item.label}</p>
-                        <p>{XAF.format(item.amount ?? 0)}</p>
+                        <p className="line-clamp-1">{item.title}</p>
+                        <p>{XAF.format(item.price ?? 0)}</p>
                       </span>
                     ))}
                   </div>

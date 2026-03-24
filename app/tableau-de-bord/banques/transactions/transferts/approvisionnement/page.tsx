@@ -8,6 +8,7 @@ import React from "react";
 import CashSupplyForm from "./cash-supply-form";
 import { requestQ } from "@/queries/requestModule";
 import CashRequestForm from "./cash-request-form";
+import { paymentQ } from "@/queries/payment";
 
 function Page() {
   const {
@@ -18,9 +19,9 @@ function Page() {
     error,
   } = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
 
-  const getRequests = useQuery({
-    queryKey: ["requests"],
-    queryFn: requestQ.getAll,
+  const getPayments = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
   });
 
   const filteredBanks = React.useMemo(() => {
@@ -28,20 +29,21 @@ function Page() {
     return banks.data.filter((c) => !!c.type);
   }, [banks]);
 
-  const filteredRequests = React.useMemo(() => {
-    if (!getRequests.data) return [];
-    return getRequests.data.data.filter(
-      (r) => r.paytype === "cash" && r.type !== "transport" && r.type !== "gas",
+  const filteredPayments = React.useMemo(() => {
+    if (!getPayments.data) return [];
+    return getPayments.data.data.filter(
+      (r) =>
+        r.method?.type === "cash" && r.type !== "transport" && r.type !== "gas",
     ); //To-Do Complete this
-  }, [getRequests.data]);
+  }, [getPayments.data]);
 
-  if (isLoading || getRequests.isLoading) {
+  if (isLoading || getPayments.isLoading) {
     return <LoadingPage />;
   }
-  if (isError || getRequests.isError) {
-    return <ErrorPage error={error || getRequests.error || undefined} />;
+  if (isError || getPayments.isError) {
+    return <ErrorPage error={error || getPayments.error || undefined} />;
   }
-  if (isSuccess && getRequests.isSuccess)
+  if (isSuccess && getPayments.isSuccess)
     return (
       <div className="content">
         <PageTitle
@@ -50,7 +52,7 @@ function Page() {
           color="blue"
         />
         {/*  <CashSupplyForm banks={filteredBanks} requests={filteredRequests} /> */}
-        <CashRequestForm banks={filteredBanks} needs={filteredRequests} />
+        <CashRequestForm banks={filteredBanks} payments={filteredPayments} />
       </div>
     );
 }

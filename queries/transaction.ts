@@ -37,11 +37,11 @@ export interface ApproProps extends Omit<
   | "status"
   | "date"
   | "updatedAt"
-  | "requests"
+  | "payments"
 > {
   fromBankId: number;
   toBankId: number;
-  requests?: Array<number>;
+  payments?: Array<number>;
 }
 
 export interface StatusUpdateProps {
