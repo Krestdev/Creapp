@@ -35,6 +35,11 @@ function Page() {
     queryFn: projectQ.getAll,
   });
 
+  const payments = React.useMemo(() => {
+    if (!getPayments.data) return [];
+    return getPayments.data.data.filter((p) => p.method?.type === "cash");
+  }, [getPayments.data]);
+
   if (
     getRequests.isLoading ||
     getUsers.isLoading ||
@@ -73,7 +78,7 @@ function Page() {
       <NotPaidRequestsTable
         requests={getRequests.data.data}
         users={getUsers.data.data}
-        tickets={getPayments.data.data}
+        tickets={payments}
         categories={getCategories.data.data}
         projects={getProjects.data.data}
       />

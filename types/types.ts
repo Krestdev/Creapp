@@ -253,6 +253,8 @@ export type RequestModelT = {
     rank: number;
     userId: number;
     requestModelId: number;
+    createdAt: Date;
+    updatedAt: Date;
   }>;
 };
 
