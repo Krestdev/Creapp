@@ -289,7 +289,6 @@ function ExpensesTable({
     setProviderFilter("all");
   };
 
-
   const tabs = [
     {
       id: 0,
@@ -424,7 +423,9 @@ function ExpensesTable({
         const value = row.original;
         const invoice = invoices.find((iv) => iv.id === value.invoiceId);
         const title = value.title;
-        return <div className="max-w-[500px] truncate">{value.title ?? "--"}</div>;
+        return (
+          <div className="max-w-[500px] truncate">{value.title ?? "--"}</div>
+        );
       },
     },
     {
@@ -603,6 +604,7 @@ function ExpensesTable({
                           paymentRequest={item}
                           users={users}
                           requests={request}
+                          requestTypes={requestTypes}
                         />
                       }
                       fileName={`recu-transport-${item.reference}.pdf`}
