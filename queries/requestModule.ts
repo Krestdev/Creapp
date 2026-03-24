@@ -55,6 +55,22 @@ export type newRequestGas = Omit<
   benef: Array<number>;
   vehiclesId: number;
 };
+
+export type newRequestApprovisionement = Omit<
+  RequestModelT,
+  | "id"
+  | "createdAt"
+  | "updatedAt"
+  | "ref"
+  | "validators"
+  | "proof"
+  | "userId"
+  | "beneficiary"
+  | "liters"
+  | "km"
+  | "state"
+>;
+
 class RequestQueries {
   route = "/request/object";
 
@@ -76,6 +92,25 @@ class RequestQueries {
     >,
   ): Promise<{ data: RequestModelT }> => {
     return api.post(this.route, data).then((res) => res.data);
+  };
+
+  createApprovisionement = async (
+    data: Omit<
+      RequestModelT,
+      | "id"
+      | "updatedAt"
+      | "ref"
+      | "validators"
+      | "proof"
+      | "userId"
+      | "createdAt"
+      | "beneficiary"
+      | "state"
+    >,
+  ) => {
+    return api.post(`${this.route}/approvisionement`, data).then((response) => {
+      return response.data;
+    });
   };
 
   special = async (

@@ -29,6 +29,7 @@ import CreateTypeGas from "./create-type-gas";
 import CreateTypeOthers from "./create-type-others";
 import CreateTypeTransport from "./create-type-transport";
 import { ArrowLeft } from "lucide-react";
+import CreateTypeApprovisionement from "./create-type-approvisionement";
 
 const Page = () => {
   const { user } = useStore();
@@ -139,6 +140,14 @@ const Page = () => {
         case "transport":
           return (
             <CreateTypeTransport
+              users={getUsers.data.data}
+              categories={getCategories.data.data}
+              projects={getProjects.data.data}
+            />
+          );
+        case "appro":
+          return (
+            <CreateTypeApprovisionement
               users={getUsers.data.data}
               categories={getCategories.data.data}
               projects={getProjects.data.data}

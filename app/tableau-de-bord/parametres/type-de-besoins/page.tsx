@@ -37,7 +37,7 @@ const Page = () => {
         />
         <div className="grid-stats-4">
           {getRequestType.data?.data.map((item) => (
-            <Card className="h-full justify-between">
+            <Card key={item.id} className="h-full justify-between">
               <div>
                 <CardHeader className="flex justify-between">
                   <CardTitle className="text-lg">{item.label}</CardTitle>
