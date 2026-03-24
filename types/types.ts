@@ -72,7 +72,6 @@ export const PAY_STATUS = [
   { value: "unsigned", name: "En attente de signature" },
   { value: "simple_signed", name: "Paiement ouvert" },
   { value: "signed", name: "Signé" },
-  { value: "simple_signed", name: "Ouvert" },
 ] as const;
 
 export type PaymentRequest = {
