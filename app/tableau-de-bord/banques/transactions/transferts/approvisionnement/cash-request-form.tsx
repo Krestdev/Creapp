@@ -294,6 +294,7 @@ function CashRequestForm({ banks, payments }: Props) {
               const status = paymentValue.some((e) => e === i.id);
               return (
                 <span
+                  key={i.id}
                   className={cn(
                     "px-3 py-2 flex flex-col gap-1 border rounded bg-white cursor-pointer",
                     status &&

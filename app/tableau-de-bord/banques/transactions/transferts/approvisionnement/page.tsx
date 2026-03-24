@@ -3,12 +3,10 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { bankQ } from "@/queries/bank";
+import { paymentQ } from "@/queries/payment";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import CashSupplyForm from "./cash-supply-form";
-import { requestQ } from "@/queries/requestModule";
 import CashRequestForm from "./cash-request-form";
-import { paymentQ } from "@/queries/payment";
 
 function Page() {
   const {
@@ -36,7 +34,8 @@ function Page() {
         r.method?.type === "cash" &&
         r.type !== "transport" &&
         r.type !== "gas" &&
-        r.status === "accepted",
+        r.status === "validated" &&
+        r.selected === false,
     ); //To-Do Complete this
   }, [getPayments.data]);
 
@@ -54,7 +53,6 @@ function Page() {
           subtitle="Initier une demande de transfert de fonds vers la caisse"
           color="blue"
         />
-        {/*  <CashSupplyForm banks={filteredBanks} requests={filteredRequests} /> */}
         <CashRequestForm banks={filteredBanks} payments={filteredPayments} />
       </div>
     );
