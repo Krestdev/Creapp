@@ -27,6 +27,15 @@ export interface TransferProps extends Omit<
   isDirect: boolean;
 }
 
+export interface ApproProps extends Omit<
+  Transaction,
+  "id" | "proof" | "from" | "to" | "createdAt" | "status" | "date" | "updatedAt"
+> {
+  fromBankId: number;
+  toBankId: number;
+  requests?: Array<number>;
+}
+
 export interface StatusUpdateProps {
   id: number;
   status: Transaction["status"];
@@ -226,6 +235,9 @@ class TransactionQuery {
       .then((response) => {
         return response.data;
       });
+  };
+  createAppro = async (data: ApproProps): Promise<{ data: Transaction }> => {
+    return api.post("/request/appro", data).then((response) => response.data);
   };
 }
 

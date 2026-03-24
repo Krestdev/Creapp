@@ -15,6 +15,10 @@ function Page() {
       title: "Demande de transfert",
       href: "./transferts/creer",
     },
+    {
+      title: "Approvisionnement",
+      href: "./transferts/approvisionnement",
+    },
   ];
   const getTransactions = useQuery({
     queryKey: ["transactions"],
@@ -22,22 +26,54 @@ function Page() {
   });
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
 
-  const getPaymentMethods = useQuery({queryKey: ["paymentType"], queryFn: payTypeQ.getAll});
+  const getPaymentMethods = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: payTypeQ.getAll,
+  });
 
-  if (getTransactions.isLoading || getBanks.isLoading || getPaymentMethods.isLoading) {
+  if (
+    getTransactions.isLoading ||
+    getBanks.isLoading ||
+    getPaymentMethods.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (getTransactions.isError || getBanks.isError || getPaymentMethods.isError) {
+  if (
+    getTransactions.isError ||
+    getBanks.isError ||
+    getPaymentMethods.isError
+  ) {
     return (
-      <ErrorPage error={getTransactions.error || getBanks.error || getPaymentMethods.error || undefined} />
+      <ErrorPage
+        error={
+          getTransactions.error ||
+          getBanks.error ||
+          getPaymentMethods.error ||
+          undefined
+        }
+      />
     );
   }
-  if (getTransactions.isSuccess && getBanks.isSuccess && getPaymentMethods.isSuccess)
+  if (
+    getTransactions.isSuccess &&
+    getBanks.isSuccess &&
+    getPaymentMethods.isSuccess
+  )
     return (
       <div className="content">
-        <PageTitle title="Transferts" subtitle="Historique des transferts" links={links} />
+        <PageTitle
+          title="Transferts"
+          subtitle="Historique des transferts"
+          links={links}
+        />
         <TransferTable
-          data={getTransactions.data.data.filter((t) => t.Type === "TRANSFER").sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())}
+          data={getTransactions.data.data
+            .filter((t) => t.Type === "TRANSFER")
+            .sort(
+              (a, b) =>
+                new Date(b.updatedAt).getTime() -
+                new Date(a.updatedAt).getTime(),
+            )}
           banks={getBanks.data.data}
           paymentMethods={getPaymentMethods.data.data}
         />

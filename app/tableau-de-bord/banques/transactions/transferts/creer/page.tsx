@@ -159,10 +159,13 @@ function Page() {
           "Vous ne pouvez transférer de la Caisse que vers une sous-caisse !",
       });
     }
-    if (fromType === "BANK" && toType === "CASH") {
+    if (
+      fromType === "BANK" &&
+      (toType === "CASH" || toType === "CASH_REGISTER")
+    ) {
       return form.setError("toBankId", {
         message:
-          "Vous ne pouvez transférer vers une sous-caisse depuis une banque !",
+          "Vous ne pouvez transférer vers une caisse ou une sous-caisse depuis une banque !",
       });
     }
     setFormData(values);
