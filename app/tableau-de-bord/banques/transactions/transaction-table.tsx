@@ -722,9 +722,13 @@ function TransactionTable({
                     <Calendar
                       mode="range"
                       selected={customDateRange}
-                      onSelect={(range) =>
-                        setCustomDateRange(range as { from: Date; to: Date })
-                      }
+                      onSelect={(range) => {
+                        if (!range?.from || !range?.to) return;
+                        const from = new Date(range.from);
+                        const to = new Date(range.to);
+                        to.setHours(23, 59, 59, 999);
+                        setCustomDateRange({ from, to });
+                      }}
                       numberOfMonths={1}
                       className="rounded-md border w-full"
                     />
