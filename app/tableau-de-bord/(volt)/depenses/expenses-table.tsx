@@ -15,6 +15,7 @@ import {
   AlertCircle,
   ArrowRightToLine,
   ArrowUpDown,
+  AsteriskIcon,
   Ban,
   CheckCircle,
   ChevronDown,
@@ -255,6 +256,9 @@ function ExpensesTable({
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [selectedFilter, setSelectedFilter] = React.useState<
+    "true" | "false" | "all"
+  >("all");
   const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
     undefined,
   );
@@ -347,6 +351,11 @@ function ExpensesTable({
         paymentMethodFilter === "all"
           ? true
           : String(p.methodId) === paymentMethodFilter;
+      //Filter selected (approvisionnés)
+      const matchSelected =
+        selectedFilter === "all"
+          ? true
+          : p.selected === Boolean(selectedFilter);
 
       return (
         matchTab &&
@@ -354,7 +363,8 @@ function ExpensesTable({
         matchPriority &&
         matchAmount &&
         matchProvider &&
-        matchPaymentMethod
+        matchPaymentMethod &&
+        matchSelected
       );
     });
   }, [
@@ -367,6 +377,7 @@ function ExpensesTable({
     providerFilter,
     invoices,
     paymentMethodFilter,
+    selectedFilter,
   ]);
 
   const columns: ColumnDef<PaymentRequest>[] = [
@@ -424,7 +435,14 @@ function ExpensesTable({
         const invoice = invoices.find((iv) => iv.id === value.invoiceId);
         const title = value.title;
         return (
-          <div className="max-w-[500px] truncate">{value.title ?? "--"}</div>
+          <div className="max-w-[500px] flex gap-1.5">
+            {value.selected === true && (
+              <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
+                <AsteriskIcon size={16} />
+              </span>
+            )}
+            <span className="line-clamp-1">{value.title ?? "--"}</span>
+          </div>
         );
       },
     },
@@ -756,6 +774,29 @@ function ExpensesTable({
                           {p.label}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/**Type Selected Filter (Approvisionné) */}
+                <div className="grid gap-1.5">
+                  <Label>{"Approvisionnés"}</Label>
+                  <Select
+                    value={selectedFilter}
+                    onValueChange={(value) =>
+                      setSelectedFilter(value as "all" | "true" | "false")
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      <SelectItem value={"true"}>
+                        {"Paiements approvisionnés"}
+                      </SelectItem>
+                      <SelectItem value={"false"}>
+                        {"Paiements non-approvisionnés"}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
