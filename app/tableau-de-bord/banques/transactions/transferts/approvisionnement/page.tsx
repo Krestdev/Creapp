@@ -33,7 +33,10 @@ function Page() {
     if (!getPayments.data) return [];
     return getPayments.data.data.filter(
       (r) =>
-        r.method?.type === "cash" && r.type !== "transport" && r.type !== "gas",
+        r.method?.type === "cash" &&
+        r.type !== "transport" &&
+        r.type !== "gas" &&
+        r.status === "accepted",
     ); //To-Do Complete this
   }, [getPayments.data]);
 

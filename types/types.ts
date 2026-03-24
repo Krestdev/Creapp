@@ -116,6 +116,7 @@ export type PaymentRequest = {
   method?: PayType;
   bank?: Bank;
   signer?: User[] | null;
+  selected: boolean;
 };
 
 export type User = {
