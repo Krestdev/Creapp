@@ -245,7 +245,9 @@ class TransactionQuery {
       });
   };
   createAppro = async (data: ApproProps): Promise<{ data: Transaction }> => {
-    return api.post("/request/appro", data).then((response) => response.data);
+    return api
+      .post("/transaction/appro", data)
+      .then((response) => response.data);
   };
 }
 
