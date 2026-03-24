@@ -532,7 +532,7 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
             </div>
 
             {/* Bénéficiaires */}
-            {data.type !== "speciaux" && (
+            {data.type !== "speciaux" && data.beneficiary !== undefined && (
               <div className="view-group">
                 <span className="view-icon">
                   <Users />

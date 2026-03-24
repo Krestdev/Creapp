@@ -136,7 +136,7 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
             <div
               className={`${
                 row.getValue("description") ? "" : "italic"
-              } first-letter:uppercase lowercase`}
+              } first-letter:uppercase lowercase max-w-[400px] truncate`}
             >
               {row.getValue("description")
                 ? row.getValue("description")
