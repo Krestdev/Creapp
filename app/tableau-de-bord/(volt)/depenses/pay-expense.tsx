@@ -31,6 +31,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   banks: Array<Bank>;
+  transactions: Array<Transaction>;
 }
 
 const formSchema = z.object({
@@ -41,7 +42,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function PayExpense({ ticket, open, onOpenChange }: Props) {
+function PayExpense({ ticket, open, onOpenChange, transactions }: Props) {
   const { user } = useStore();
 
   const form = useForm<FormValues>({
@@ -51,14 +52,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
     },
   });
 
-  const gettransaction = useQuery({
-    queryKey: ["transactions"],
-    queryFn: transactionQ.getAll,
-  });
-
-  const trans = gettransaction.data?.data.find(
-    (item) => item.id === ticket.transactionId,
-  );
+  const trans = transactions.find((item) => item.id === ticket.transactionId);
 
   const pay = useMutation({
     mutationFn: async (

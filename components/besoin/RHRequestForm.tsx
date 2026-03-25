@@ -35,8 +35,13 @@ import { z } from "zod";
 import MultiSelectUsers from "../base/multiSelectUsers";
 import { SearchableSelect } from "../base/searchableSelect";
 import FilesUpload from "../comp-547";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 interface Props {
   categories: Array<Category>;
@@ -47,6 +52,10 @@ interface Props {
 // ----------------------------------------------------------------------
 // VALIDATION
 // ----------------------------------------------------------------------
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
 const SingleFileSchema = z
   .array(
     z.union([
@@ -77,19 +86,19 @@ const formSchema = z.object({
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Le montant doit être un nombre positif",
     }),
-  date_limite: z
-    .date()
-    .min(new Date(), "La date limite doit être dans le futur"),
+  date_limite: z.date().min(today, "La date limite doit être dans le futur"),
   beneficiaire: z.array(z.number()).min(1, "Le bénéficiaire est requis"),
   justificatif: SingleFileSchema,
-  categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
   paytype: z.enum(["cash", "chq", "ov"], {
     required_error: "Sélectionner le moyen de payement",
     invalid_type_error: "Sélectionner le moyen de payement",
   }),
 });
 
-export default function RHRequestForm({categories, projects, users}:Props) {
+export default function RHRequestForm({ categories, projects, users }: Props) {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -97,6 +106,7 @@ export default function RHRequestForm({categories, projects, users}:Props) {
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
   // ----------------------------------------------------------------------
+
   const form = useForm<z.input<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -112,15 +122,17 @@ export default function RHRequestForm({categories, projects, users}:Props) {
       beneficiaire: [],
       justificatif: [],
       categoryId: undefined,
-      paytype: undefined
+      paytype: undefined,
     },
   });
 
   const USERS =
-    users.filter((u) => u.verified).map((u) => ({
-      id: u.id!,
-      name: u.firstName + " " + u.lastName,
-    })) || [];
+    users
+      .filter((u) => u.verified)
+      .map((u) => ({
+        id: u.id!,
+        name: u.firstName + " " + u.lastName,
+      })) || [];
 
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
@@ -186,9 +198,7 @@ export default function RHRequestForm({categories, projects, users}:Props) {
             name="projet"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>
-                  {"Projet concerné"}
-                </FormLabel>
+                <FormLabel isRequired>{"Projet concerné"}</FormLabel>
                 <SearchableSelect
                   onChange={field.onChange}
                   options={
@@ -230,37 +240,46 @@ export default function RHRequestForm({categories, projects, users}:Props) {
           />
 
           {/* Category */}
-        <FormField
-          control={form.control}
-          name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Categorie"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {
-                      categories.filter(c=> c.type.type === "ressource_humaine").length === 0 ?
-                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
-                      :
-                    categories.filter(c=> c.type.type === "ressource_humaine").map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>{"Categorie"}</FormLabel>
+                <FormControl>
+                  <Select
+                    defaultValue={field.value ? String(field.value) : undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="min-w-60 w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.filter(
+                        (c) => c.type.type === "ressource_humaine",
+                      ).length === 0 ? (
+                        <SelectItem value="#" disabled>
+                          {"Aucune catégorie enregistrée"}
+                        </SelectItem>
+                      ) : (
+                        categories
+                          .filter((c) => c.type.type === "ressource_humaine")
+                          .map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.label}
+                            </SelectItem>
+                          ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* PERIODE - RANGE */}
           <FormField

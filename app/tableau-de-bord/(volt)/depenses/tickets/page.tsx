@@ -19,7 +19,7 @@ import { requestQ } from "@/queries/requestModule";
 import { userQ } from "@/queries/baseModule";
 import { invoiceQ } from "@/queries/invoices";
 import { projectQ } from "@/queries/projectModule";
-;
+import { transactionQ } from "@/queries/transaction";
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: ["payments"],
@@ -50,12 +50,20 @@ function Page() {
   });
 
   const getProjects = useQuery({
-      queryKey: ["projects"],
-      queryFn: projectQ.getAll,
-    });
+    queryKey: ["projects"],
+    queryFn: projectQ.getAll,
+  });
+
+  const getTransactions = useQuery({
+    queryKey: ["transactions"],
+    queryFn: transactionQ.getAll,
+  });
 
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
-  const getProviders = useQuery({ queryKey: ["providers"], queryFn: providerQ.getAll });
+  const getProviders = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
   if (
     isLoading ||
     getInvoices.isLoading ||
@@ -65,7 +73,8 @@ function Page() {
     getRequest.isLoading ||
     getUsers.isLoading ||
     getPaymentType.isLoading ||
-    getProjects.isLoading
+    getProjects.isLoading ||
+    getTransactions.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -78,7 +87,8 @@ function Page() {
     getRequest.isError ||
     getUsers.isError ||
     getPaymentType.isError ||
-    getProjects.isError
+    getProjects.isError ||
+    getTransactions.isError
   ) {
     return (
       <ErrorPage
@@ -92,6 +102,7 @@ function Page() {
           getRequest.error ||
           getUsers.error ||
           getProjects.error ||
+          getTransactions.error ||
           undefined
         }
       />
@@ -106,13 +117,14 @@ function Page() {
     getRequest.isSuccess &&
     getUsers.isSuccess &&
     getPaymentType.isSuccess &&
-    getProjects.isSuccess
+    getProjects.isSuccess &&
+    getTransactions.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente",
         value: data.data.filter(
-          (p) => p.status === "validated" && p.type !== "CURRENT"
+          (p) => p.status === "validated" && p.type !== "CURRENT",
         ).length,
         variant: "primary",
         more: {
@@ -120,14 +132,14 @@ function Page() {
           value: XAF.format(
             data.data
               .filter((p) => p.status === "validated" && p.type !== "CURRENT")
-              .reduce((total, el) => total + el.price, 0)
+              .reduce((total, el) => total + el.price, 0),
           ),
         },
       },
       {
         title: "Tickets payés",
         value: data.data.filter(
-          (p) => p.status === "paid" && p.type !== "CURRENT"
+          (p) => p.status === "paid" && p.type !== "CURRENT",
         ).length,
         variant: "secondary",
         more: {
@@ -135,7 +147,7 @@ function Page() {
           value: XAF.format(
             data.data
               .filter((p) => p.status === "paid" && p.type !== "CURRENT")
-              .reduce((total, el) => total + el.price, 0)
+              .reduce((total, el) => total + el.price, 0),
           ),
         },
       },
@@ -156,7 +168,7 @@ function Page() {
         </div>
         <ExpensesTable
           payments={data.data.filter(
-            (p) => p.status === "validated" && p.type !== "CURRENT"
+            (p) => p.status === "validated" && p.type !== "CURRENT",
           )}
           invoices={getInvoices.data.data}
           banks={getBanks.data.data}
@@ -166,10 +178,11 @@ function Page() {
           request={getRequest.data.data}
           users={getUsers.data.data}
           projects={getProjects.data.data}
+          transactions={getTransactions.data.data}
         />
         <ExpensesTable
           payments={data.data.filter(
-            (p) => p.status === "paid" && p.type !== "CURRENT"
+            (p) => p.status === "paid" && p.type !== "CURRENT",
           )}
           invoices={getInvoices.data.data}
           banks={getBanks.data.data}
@@ -179,6 +192,7 @@ function Page() {
           request={getRequest.data.data}
           users={getUsers.data.data}
           projects={getProjects.data.data}
+          transactions={getTransactions.data.data}
         />
       </div>
     );

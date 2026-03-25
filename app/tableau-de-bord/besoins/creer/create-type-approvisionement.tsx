@@ -61,6 +61,7 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
 ];
 
 const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 const formSchema = z.object({
   label: z
@@ -138,7 +139,7 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
       projectId: values.projectId,
       quantity: 1,
       type: "appro",
-      paytype: "cash"
+      paytype: "cash",
     });
   };
   console.log(form.formState.errors);
@@ -232,14 +233,16 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
                         {"Aucun projet enregistré"}
                       </SelectItem>
                     ) : (
-                      projects.filter(x => x.status !== "cancelled").map((category) => (
-                        <SelectItem
-                          key={category.id}
-                          value={category.id.toString()}
-                        >
-                          {category.label}
-                        </SelectItem>
-                      ))
+                      projects
+                        .filter((x) => x.status !== "cancelled")
+                        .map((category) => (
+                          <SelectItem
+                            key={category.id}
+                            value={category.id.toString()}
+                          >
+                            {category.label}
+                          </SelectItem>
+                        ))
                     )}
                   </SelectContent>
                 </Select>

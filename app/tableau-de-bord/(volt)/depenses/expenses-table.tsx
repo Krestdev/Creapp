@@ -79,6 +79,7 @@ import {
   Provider,
   RequestModelT,
   RequestType,
+  Transaction,
   User,
 } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -152,6 +153,7 @@ interface Props {
   request: RequestModelT[];
   users: Array<User>;
   projects: Array<ProjectT>;
+  transactions: Array<Transaction>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -237,6 +239,7 @@ function ExpensesTable({
   request,
   users,
   projects,
+  transactions,
 }: Props) {
   const types = requestTypes
     .map((x) => {
@@ -331,15 +334,15 @@ function ExpensesTable({
           : providerFilter === "no-provider"
             ? !p.invoiceId
             : invoices.find((c) => c.id === p.invoiceId)?.command.providerId ===
-            Number(providerFilter);
+              Number(providerFilter);
       //Filter tab
       const matchTab =
         selectedTab === 0
           ? p.status === "validated" || p.status === "unsigned"
           : selectedTab === 1
             ? p.status === "pending_depense" ||
-            p.status === "signed" ||
-            p.status === "simple_signed"
+              p.status === "signed" ||
+              p.status === "simple_signed"
             : p.status === "paid";
       //Filter type
       const matchType = typeFilter === "all" ? true : p.type === typeFilter;
@@ -513,11 +516,11 @@ function ExpensesTable({
 
         const priorityA =
           priorityOrder[
-          rowA.getValue(columnId) as keyof typeof priorityOrder
+            rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-          rowB.getValue(columnId) as keyof typeof priorityOrder
+            rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -981,9 +984,9 @@ function ExpensesTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -1061,6 +1064,7 @@ function ExpensesTable({
             open={showPay}
             onOpenChange={setShowPay}
             banks={banks}
+            transactions={transactions}
           />
         </>
       )}
