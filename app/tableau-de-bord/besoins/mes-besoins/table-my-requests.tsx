@@ -296,7 +296,7 @@ export function TableMyRequests({
         const projectId = row.getValue("projectId") as string;
         const project = projects.find((proj) => proj.id === Number(projectId));
         return (
-          <div className="first-letter:uppercase lowercase">
+          <div className="first-letter:uppercase lowercase max-w-[500px] truncate">
             {project?.label || projectId}
           </div>
         );
