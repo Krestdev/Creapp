@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { LucidePlus, LucideX, X } from "lucide-react";
+import { LucidePlus, LucideX, X, Search } from "lucide-react";
 import { Button } from "../ui/button";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Input } from "../ui/input";
 
 type User = {
   id: number;
@@ -30,6 +31,7 @@ export default function MultiSelectUsers({
   disabled = false,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fermer le dropdown quand on clique à l'extérieur
@@ -40,6 +42,7 @@ export default function MultiSelectUsers({
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setOpen(false);
+        setSearchTerm(""); // Réinitialiser la recherche quand on ferme
       }
     };
 
@@ -49,22 +52,40 @@ export default function MultiSelectUsers({
     };
   }, []);
 
-  const available = users.filter((u) => !selected.some((s) => s.id === u.id));
+  // Filtrer les utilisateurs disponibles en fonction de la recherche
+  const available = users.filter(
+    (u) => !selected.some((s) => s.id === u.id)
+  );
+
+  const filteredAvailable = available.filter((user) =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const addUser = (user: User) => {
     onChange([...selected, user]);
+    setSearchTerm(""); // Réinitialiser la recherche après ajout
   };
 
   const addUserAll = () => {
     onChange([...selected, ...users]);
+    setSearchTerm(""); // Réinitialiser la recherche
   };
 
   const removeUserAll = () => {
     onChange([]);
+    setSearchTerm(""); // Réinitialiser la recherche
   };
 
   const removeUser = (id: number) => {
     onChange(selected.filter((u) => u.id !== id));
+  };
+
+  // Réinitialiser la recherche quand on ferme le dropdown
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      setSearchTerm("");
+    }
   };
 
   return (
@@ -102,7 +123,7 @@ export default function MultiSelectUsers({
         <Button
           variant={"ghost"}
           type="button"
-          onClick={() => setOpen(!open)}
+          onClick={() => handleOpenChange(!open)}
           className={`${display === "user" ? "ml-auto" : "mx-auto w-full border"
             }`}
         >
@@ -143,41 +164,85 @@ export default function MultiSelectUsers({
         )}
 
         {open && (
-          <div className="absolute right-0 top-full w-full bg-white shadow-md rounded-lg border z-20 transition-all ease-in-out max-h-60 overflow-y-auto">
-            {available.length === 0 ? (
-              <>
-                <div
-                  className="p-2 cursor-pointer hover:bg-gray-100 transition-colors"
-                  onClick={() => removeUserAll()}
-                >
-                  {"Tout retirer"}
-                </div>
-                <p className="p-2 text-sm text-gray-500 text-center">
-                  {display === "request"
-                    ? "Aucun besoin disponible"
-                    : "Aucun utilisateur disponible"}
-                </p>
-              </>
-            ) : (
-              <>
-                {/* Tous les utilisateurs disponibles */}
-                <div
-                  className="p-2 cursor-pointer hover:bg-gray-100 transition-colors"
-                  onClick={() => addUserAll()}
-                >
-                  {"Tous les utilisateurs"}
-                </div>
-                {available.map((user) => (
-                  <div
-                    key={user.id}
-                    onClick={() => addUser(user)}
-                    className="p-2 cursor-pointer hover:bg-gray-100 transition-colors"
+          <div className="absolute right-0 top-full w-full bg-white shadow-md rounded-lg border z-20 transition-all ease-in-out">
+            {/* Barre de recherche */}
+            <div className="p-2 border-b sticky top-0 bg-white">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder={
+                    display === "request"
+                      ? "Rechercher un besoin..."
+                      : "Rechercher un utilisateur..."
+                  }
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 h-8 text-sm"
+                  autoFocus
+                  onClick={(e) => e.stopPropagation()}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
                   >
-                    {user.name}
-                  </div>
-                ))}
-              </>
-            )}
+                    <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Liste des résultats */}
+            <div className="max-h-60 overflow-y-auto">
+              {filteredAvailable.length === 0 ? (
+                <>
+                  {available.length > 0 && searchTerm && (
+                    <p className="p-2 text-sm text-gray-500 text-center">
+                      {display === "request"
+                        ? "Aucun besoin trouvé"
+                        : "Aucun utilisateur trouvé"}
+                    </p>
+                  )}
+                  {available.length === 0 && (
+                    <>
+                      <div
+                        className="p-2 cursor-pointer hover:bg-gray-100 transition-colors border-b"
+                        onClick={() => removeUserAll()}
+                      >
+                        {"Tout retirer"}
+                      </div>
+                      <p className="p-2 text-sm text-gray-500 text-center">
+                        {display === "request"
+                          ? "Aucun besoin disponible"
+                          : "Aucun utilisateur disponible"}
+                      </p>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Tous les utilisateurs disponibles */}
+                  {available.length > 0 && searchTerm === "" && (
+                    <div
+                      className="p-2 cursor-pointer hover:bg-gray-100 transition-colors border-b"
+                      onClick={() => addUserAll()}
+                    >
+                      {"Tous les utilisateurs"}
+                    </div>
+                  )}
+                  {filteredAvailable.map((user) => (
+                    <div
+                      key={user.id}
+                      onClick={() => addUser(user)}
+                      className="p-2 cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
+                      {user.name}
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>

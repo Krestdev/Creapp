@@ -144,7 +144,7 @@ export default function UpdateRHRequest({
   );
 
   useEffect(() => {
-    if ( open && USERS.length > 0) {
+    if (open && USERS.length > 0) {
       const initializeForm = async () => {
         try {
           // Formater la période si elle existe
@@ -251,10 +251,10 @@ export default function UpdateRHRequest({
       benef: values.beneficiaire,
       proof: values.justificatif,
       // Champs fixes
-      categoryId: 1,
+      categoryId: requestData.categoryId,
       quantity: 1,
       unit: "unit",
-      userId: Number(user?.id),
+      userId: Number(requestData.userId),
       type: "ressource_humaine",
       // Garder les valeurs originales pour les champs non modifiables
       state: requestData?.state || "pending",
@@ -271,9 +271,9 @@ export default function UpdateRHRequest({
   // ----------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader variant={"secondary"}>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 flex flex-col">
+        {/* Header - FIXE EN HAUT */}
+        <DialogHeader variant={"secondary"} className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle>
             {`Modifier - ${requestData.label}`}
           </DialogTitle>
@@ -283,123 +283,70 @@ export default function UpdateRHRequest({
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="form-3xl"
-          >
-                {/* PROJET */}
-                <FormField
-                  control={form.control}
-                  name="projet"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>
-                        {"Projet"}
-                      </FormLabel>
-                      <SearchableSelect
-                        onChange={field.onChange}
-                        options={
-                          projects
-                            .filter(
-                              (p) =>
-                                p.status !== "cancelled" &&
-                                p.status !== "Completed" &&
-                                p.status !== "on-hold",
-                            )
-                            .map((p) => ({
-                              value: p.id!.toString(),
-                              label: p.label,
-                            })) ?? []
-                        }
-                        value={field.value}
-                        width="w-full"
-                        allLabel=""
-                        placeholder="Sélectionner un projet"
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {/* Contenu scrollable */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="space-y-4">
+              {/* PROJET */}
+              <FormField
+                control={form.control}
+                name="projet"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>
+                      {"Projet"}
+                    </FormLabel>
+                    <SearchableSelect
+                      onChange={field.onChange}
+                      options={
+                        projects
+                          .filter(
+                            (p) =>
+                              p.status !== "cancelled" &&
+                              p.status !== "Completed" &&
+                              p.status !== "on-hold",
+                          )
+                          .map((p) => ({
+                            value: p.id!.toString(),
+                            label: p.label,
+                          })) ?? []
+                      }
+                      value={field.value}
+                      width="w-full"
+                      allLabel=""
+                      placeholder="Sélectionner un projet"
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                {/* TITRE */}
-                <FormField
-                  control={form.control}
-                  name="titre"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>
-                        {"Titre"}
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex. Salaires Octobre" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* TITRE */}
+              <FormField
+                control={form.control}
+                name="titre"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>
+                      {"Titre"}
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex. Salaires Octobre" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                {/* PERIODE - RANGE */}
-                <FormField
-                  control={form.control}
-                  name="periode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>
-                        {"Période"}
-                      </FormLabel>
-                      <FormControl>
-                        <Popover>
-                          <PopoverTrigger asChild className="h-10 w-full">
-                            <FormControl>
-                              <Button
-                                type="button"
-                                variant={"outline"}
-                                className="w-full pl-3 text-left font-normal"
-                              >
-                                {field.value?.from && field.value?.to ? (
-                                  <>
-                                    {format(field.value.from, "PPP", {
-                                      locale: fr,
-                                    })}{" "}
-                                    -{" "}
-                                    {format(field.value.to, "PPP", {
-                                      locale: fr,
-                                    })}
-                                  </>
-                                ) : (
-                                  <span>{"Choisir une période"}</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="range"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              numberOfMonths={2}
-                              locale={fr}
-                              className="rounded-md border"
-                              defaultMonth={field.value?.from || new Date()}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* DATE LIMITE */}
-                <FormField
-                  control={form.control}
-                  name="date_limite"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel isRequired>
-                        {"Date limite"}
-                      </FormLabel>
+              {/* PERIODE - RANGE */}
+              <FormField
+                control={form.control}
+                name="periode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>
+                      {"Période"}
+                    </FormLabel>
+                    <FormControl>
                       <Popover>
                         <PopoverTrigger asChild className="h-10 w-full">
                           <FormControl>
@@ -408,10 +355,18 @@ export default function UpdateRHRequest({
                               variant={"outline"}
                               className="w-full pl-3 text-left font-normal"
                             >
-                              {field.value ? (
-                                format(field.value, "PPP", { locale: fr })
+                              {field.value?.from && field.value?.to ? (
+                                <>
+                                  {format(field.value.from, "PPP", {
+                                    locale: fr,
+                                  })}{" "}
+                                  -{" "}
+                                  {format(field.value.to, "PPP", {
+                                    locale: fr,
+                                  })}
+                                </>
                               ) : (
-                                <span>{"Choisir une date"}</span>
+                                <span>{"Choisir une période"}</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -419,106 +374,152 @@ export default function UpdateRHRequest({
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
-                            mode="single"
+                            mode="range"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) => date < new Date()}
+                            numberOfMonths={2}
                             locale={fr}
+                            className="rounded-md border"
+                            defaultMonth={field.value?.from || new Date()}
                           />
                         </PopoverContent>
                       </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                {/* MONTANT */}
-                <FormField
-                  control={form.control}
-                  name="montant"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>
-                        {"Montant"}
-                      </FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="ex. 500 000" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* BENEFICIAIRE */}
-                <FormField
-                  control={form.control}
-                  name="beneficiaire"
-                  render={({ field }) => (
-                    <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel isRequired>
-                        {"Bénéficiaire(s)"}
-                      </FormLabel>
-                      <FormControl>
-                        <MultiSelectUsers
-                          users={USERS}
-                          selected={USERS.filter((u) =>
-                            field.value?.includes(u.id),
-                          )}
-                          onChange={(selectedUsers) => {
-                            field.onChange(selectedUsers.map((u) => u.id));
-                          }}
-                          display={"user"}
+              {/* DATE LIMITE */}
+              <FormField
+                control={form.control}
+                name="date_limite"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel isRequired>
+                      {"Date limite"}
+                    </FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild className="h-10 w-full">
+                        <FormControl>
+                          <Button
+                            type="button"
+                            variant={"outline"}
+                            className="w-full pl-3 text-left font-normal"
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP", { locale: fr })
+                            ) : (
+                              <span>{"Choisir une date"}</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date < new Date()}
+                          locale={fr}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                {/* JUSTIFICATIF */}
-                <FormField
-                  control={form.control}
-                  name="justificatif"
-                  render={({ field }) => (
-                    <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel>{"Justificatif"}</FormLabel>
-                      <FormControl>
-                        <FilesUpload
-                          value={field.value || []}
-                          onChange={field.onChange}
-                          name={field.name}
-                          acceptTypes="all"
-                          multiple={false}
-                          maxFiles={1}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* MONTANT */}
+              <FormField
+                control={form.control}
+                name="montant"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>
+                      {"Montant"}
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="ex. 500 000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                {/* DESCRIPTION */}
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel isRequired>
-                        {"Description détaillée du besoin"}
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Description détaillée du besoin RH"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-          </form>
-          {/* Boutons - FIXE */}
-          <DialogFooter>
+              {/* BENEFICIAIRE */}
+              <FormField
+                control={form.control}
+                name="beneficiaire"
+                render={({ field }) => (
+                  <FormItem className="@min-[640px]:col-span-2">
+                    <FormLabel isRequired>
+                      {"Bénéficiaire(s)"}
+                    </FormLabel>
+                    <FormControl>
+                      <MultiSelectUsers
+                        users={USERS}
+                        selected={USERS.filter((u) =>
+                          field.value?.includes(u.id),
+                        )}
+                        onChange={(selectedUsers) => {
+                          field.onChange(selectedUsers.map((u) => u.id));
+                        }}
+                        display={"user"}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* JUSTIFICATIF */}
+              <FormField
+                control={form.control}
+                name="justificatif"
+                render={({ field }) => (
+                  <FormItem className="@min-[640px]:col-span-2">
+                    <FormLabel>{"Justificatif"}</FormLabel>
+                    <FormControl>
+                      <FilesUpload
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        name={field.name}
+                        acceptTypes="all"
+                        multiple={false}
+                        maxFiles={1}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* DESCRIPTION */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="@min-[640px]:col-span-2">
+                    <FormLabel isRequired>
+                      {"Description détaillée du besoin"}
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Description détaillée du besoin RH"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Boutons - FIXE EN BAS */}
+          <DialogFooter className="px-6 py-4 border-t shrink-0">
             <DialogClose asChild>
               <Button
                 type="button"
@@ -533,6 +534,7 @@ export default function UpdateRHRequest({
               disabled={updateMutation.isPending || !isFormInitialized}
               isLoading={updateMutation.isPending}
               variant={"secondary"}
+              onClick={form.handleSubmit(onSubmit)}
             >
               {"Enregistrer les modifications"}
             </Button>
