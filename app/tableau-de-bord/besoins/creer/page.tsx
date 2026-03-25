@@ -169,31 +169,50 @@ const Page = () => {
       USER: ["facilitation", "others", "achat", "transport"],
     };
 
+    // const typesList = (roles: Array<Role>): Array<RequestType> => {
+    //   // SUPERADMIN shortcut
+    //   if (roles.some((r) => r.label === "SUPERADMIN")) return types;
+    //   if (
+    //     roles.some((r) => r.label === "RH") &&
+    //     roles.some((r) => r.label === "VOLT_MANAGER")
+    //   )
+    //     return types.filter((t) => t.type !== "gas");
+    //   if (roles.some((r) => r.label === "RH"))
+    //     return types.filter((t) => t.type !== "speciaux" && t.type !== "gas");
+    //   if (roles.some((r) => r.label === "VOLT_MANAGER"))
+    //     return types.filter(
+    //       (t) => t.type !== "ressource_humaine" && t.type !== "gas",
+    //     );
+    //   if (roles.some((r) => r.label === "ADMIN"))
+    //     return types.filter(
+    //       (t) => t.type !== "ressource_humaine" && t.type !== "speciaux",
+    //     );
+    //   return types.filter(
+    //     (t) =>
+    //       t.type !== "ressource_humaine" &&
+    //       t.type !== "speciaux" &&
+    //       t.type !== "gas",
+    //   );
+    // };
+
     const typesList = (roles: Array<Role>): Array<RequestType> => {
       // SUPERADMIN shortcut
       if (roles.some((r) => r.label === "SUPERADMIN")) return types;
-      if (
-        roles.some((r) => r.label === "RH") &&
-        roles.some((r) => r.label === "VOLT_MANAGER")
-      )
-        return types.filter((t) => t.type !== "gas");
-      if (roles.some((r) => r.label === "RH"))
-        return types.filter((t) => t.type !== "speciaux" && t.type !== "gas");
-      if (roles.some((r) => r.label === "VOLT_MANAGER"))
-        return types.filter(
-          (t) => t.type !== "ressource_humaine" && t.type !== "gas",
-        );
-      if (roles.some((r) => r.label === "ADMIN"))
-        return types.filter(
-          (t) => t.type !== "ressource_humaine" && t.type !== "speciaux",
-        );
-      return types.filter(
-        (t) =>
-          t.type !== "ressource_humaine" &&
-          t.type !== "speciaux" &&
-          t.type !== "gas",
-      );
+
+      // Collect allowed types from all roles
+      const allowedTypes = new Set<string>();
+
+      roles.forEach((role) => {
+        const permissions = rolePermissions[role.label];
+        if (permissions) {
+          permissions.forEach((p) => allowedTypes.add(p));
+        }
+      });
+
+      // Filter based on combined permissions
+      return types.filter((t) => allowedTypes.has(t.type));
     };
+
     const getTypeClassName = (
       type: RequestModelT["type"],
     ): { className: HTMLDivElement["className"] } => {
