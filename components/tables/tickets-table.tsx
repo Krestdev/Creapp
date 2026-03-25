@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import { cn, company, getPaymentTypeBadge } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { } from "@/queries/commandRqstModule";
+import {} from "@/queries/commandRqstModule";
 import { invoiceQ } from "@/queries/invoices";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
@@ -31,7 +31,7 @@ import {
   PaymentRequest,
   RequestModelT,
   RequestType,
-  User
+  User,
 } from "@/types/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -143,7 +143,6 @@ export function TicketsTable({
   requests,
   payTypes,
 }: TicketsTableProps) {
-
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -166,7 +165,13 @@ export function TicketsTable({
 
   const { user } = useStore();
 
-  const { data: invoices, isSuccess, isLoading, isError, error } = useQuery({
+  const {
+    data: invoices,
+    isSuccess,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["invoices"],
     queryFn: invoiceQ.getAll,
   });
@@ -217,7 +222,10 @@ export function TicketsTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getPaymentTypeBadge({type:value.type, payTypes});
+        const type = getPaymentTypeBadge({
+          type: value.type,
+          typeList: requestTypeData,
+        });
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },
@@ -236,9 +244,13 @@ export function TicketsTable({
       },
       cell: ({ row }) => {
         const invoiceId = row.original.invoiceId;
-        const invoice = invoices?.data?.find((item) => item.id === Number(invoiceId));
+        const invoice = invoices?.data?.find(
+          (item) => item.id === Number(invoiceId),
+        );
         return (
-          <div className="uppercase">{invoice?.command.provider.name || company.name}</div>
+          <div className="uppercase">
+            {invoice?.command.provider.name || company.name}
+          </div>
         );
       },
     },
@@ -397,7 +409,9 @@ export function TicketsTable({
         const item = row.original;
 
         const invoiceId = row.original.invoiceId;
-        const invoice = invoices?.data?.find((item) => item.id === Number(invoiceId));
+        const invoice = invoices?.data?.find(
+          (item) => item.id === Number(invoiceId),
+        );
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
@@ -549,9 +563,9 @@ export function TicketsTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -599,23 +613,23 @@ export function TicketsTable({
       </div>
       <Pagination table={table} />
 
-      {
-        selectedTicket && 
+      {selectedTicket && (
         <DetailTicket
-        open={openDetailModal}
-        onOpenChange={setOpenDetailModal}
-        data={selectedTicket}
-        invoice={selectedInvoice}
-        action={() =>
-          paymentMutation.mutate({
-            id: selectedTicket?.id!,
-            data: { status: "paid" },
-          })
-        }
-        users={users}
-        types={requestTypeData}
-        requests={requests}
-      />}
+          open={openDetailModal}
+          onOpenChange={setOpenDetailModal}
+          data={selectedTicket}
+          invoice={selectedInvoice}
+          action={() =>
+            paymentMutation.mutate({
+              id: selectedTicket?.id!,
+              data: { status: "paid" },
+            })
+          }
+          users={users}
+          types={requestTypeData}
+          requests={requests}
+        />
+      )}
 
       <ApproveTicket
         open={openValidationModal}

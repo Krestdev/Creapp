@@ -361,15 +361,15 @@ export function getTransactionTypeBadge(type: Transaction["Type"]): {
 
 export function getPaymentTypeBadge({
   type,
-  payTypes,
+  typeList,
 }: {
   type: PaymentRequest["type"];
-  payTypes: PayType[];
+  typeList: RequestType[];
 }): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
-  const typeData = payTypes.find((t) => t.type === type);
+  const typeData = typeList.find((t) => t.type === type);
   const label = typeData?.label ?? type;
   switch (type) {
     case "facilitation":

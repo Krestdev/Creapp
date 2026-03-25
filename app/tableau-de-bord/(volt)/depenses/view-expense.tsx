@@ -18,6 +18,7 @@ import {
   PayType,
   ProjectT,
   RequestModelT,
+  RequestType,
   User,
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
@@ -59,6 +60,7 @@ interface Props {
   projects: ProjectT[];
   users: User[];
   requests: RequestModelT[];
+  requestTypes: Array<RequestType>;
 }
 
 function getStatusBadge(status: PaymentRequest["status"]): {
@@ -105,6 +107,7 @@ function ViewExpense({
   projects,
   users,
   requests,
+  requestTypes,
 }: Props) {
   const invoice = invoices.find((p) => p.id === payment.invoiceId);
   const getSignataire = useQuery({
@@ -222,14 +225,14 @@ function ViewExpense({
                 variant={
                   getPaymentTypeBadge({
                     type: payment.type,
-                    payTypes: payTypes,
+                    typeList: requestTypes,
                   }).variant
                 }
               >
                 {
                   getPaymentTypeBadge({
                     type: payment.type,
-                    payTypes: payTypes,
+                    typeList: requestTypes,
                   }).label
                 }
               </Badge>
@@ -290,7 +293,14 @@ function ViewExpense({
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Récepteur pour compte"}</p>
                   <p className="font-semibold">
-                    {users.find(x => x.id === Number(request?.beneficiary))?.firstName.concat(" ", users.find(x => x.id === Number(request?.beneficiary))!.lastName)}
+                    {users
+                      .find((x) => x.id === Number(request?.beneficiary))
+                      ?.firstName.concat(
+                        " ",
+                        users.find(
+                          (x) => x.id === Number(request?.beneficiary),
+                        )!.lastName,
+                      )}
                   </p>
                 </div>
               </div>
