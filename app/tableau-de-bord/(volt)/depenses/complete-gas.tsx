@@ -74,7 +74,15 @@ function CompleteGas({ ticket, open, onOpenChange, users }: Props) {
   })
 
   const onSubmit = (values: z.infer<typeof formSchema>): void => {
-    console.log(values);
+    //console.log(values);
+    payGas.mutate({
+      id: ticket.id,
+      price: values.price,
+      liters: values.liters,
+      km: values.km,
+      driverId: values.driverId,
+      deadline: new Date(values.deadline),
+    });
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

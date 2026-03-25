@@ -89,6 +89,7 @@ import { NoticeFile } from "./notice";
 import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
+import CompleteGas from "./complete-gas";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -270,6 +271,7 @@ function ExpensesTable({
   );
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPay, setShowPay] = React.useState<boolean>(false);
+  const [showGas, setShowGas] = React.useState<boolean>(false);
   const [showShare, setShowShare] = React.useState<boolean>(false);
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const [typeFilter, setTypeFilter] = React.useState<
@@ -599,7 +601,7 @@ function ExpensesTable({
                 {"Voir"}
               </DropdownMenuItem>
               {item.type === "gas" && (
-                <DropdownMenuItem disabled={isGasComplete(item)}>
+                <DropdownMenuItem disabled={isGasComplete(item)} onClick={()=>{setSelected(item);setShowGas(true)}}>
                   <ArrowRightToLine />
                   {"Compléter le paiement"}
                 </DropdownMenuItem>
@@ -1073,6 +1075,7 @@ function ExpensesTable({
             banks={banks}
             transactions={transactions}
           />
+          <CompleteGas ticket={selected} open={showGas} onOpenChange={setShowGas} users={users}/>
         </>
       )}
     </div>

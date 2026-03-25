@@ -290,7 +290,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
     if (paymentRequest.beneficiary) {
       return `${paymentRequest.beneficiary.firstName} ${paymentRequest.beneficiary.lastName}`;
     }
-    return "N/A";
+    return undefined;
   };
 
   const request = requests.find((r) => r.id === paymentRequest.requestId);
