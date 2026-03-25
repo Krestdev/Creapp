@@ -85,7 +85,7 @@ export function SearchableSelect({
           )}
           disabled={disabled}
         >
-          <span className="truncate flex-1 text-left">
+          <span className="max-w-70 truncate flex-1 text-left">
             {selected ? selected.label : placeholder}
           </span>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

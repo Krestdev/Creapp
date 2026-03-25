@@ -247,6 +247,21 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
               <FormItem>
                 <FormLabel isRequired>{"Categorie"}</FormLabel>
                 <FormControl>
+<<<<<<< HEAD
+                  <SearchableSelect
+                    onChange={field.onChange}
+                    options={categories
+                      .filter((c) => c.type.type === "ressource_humaine")
+                      .map((c) => ({
+                        value: c.id!.toString(),
+                        label: c.label,
+                      }))}
+                    value={String(field.value)}
+                    width="w-full"
+                    allLabel=""
+                    placeholder="Sélectionner un projet"
+                  />
+=======
                   <Select
                     defaultValue={field.value ? String(field.value) : undefined}
                     onValueChange={field.onChange}
@@ -275,6 +290,7 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
                       )}
                     </SelectContent>
                   </Select>
+>>>>>>> c9d9ec20db22b1df9717502392bd7f1a4b43f4d0
                 </FormControl>
                 <FormMessage />
               </FormItem>
