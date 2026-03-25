@@ -9,7 +9,6 @@ export type newRequestOthers = Omit<
   | "updatedAt"
   | "ref"
   | "validators"
-  | "proof"
   | "state"
   | "userId"
   | "beneficiary"
