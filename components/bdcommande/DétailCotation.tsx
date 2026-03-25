@@ -1,145 +1,159 @@
-import React from "react";
+import { CommandRequestT } from "@/types/types";
 import {
+  Document,
+  Image,
   Page,
+  StyleSheet,
   Text,
   View,
-  Document,
-  StyleSheet,
-  Font,
-  Image,
 } from "@react-pdf/renderer";
-import { CommandRequestT } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-
-// Charger les variantes nécessaires
-Font.register({
-  family: "Poppins",
-  fonts: [
-    { src: "/fonts/Poppins-Regular.ttf", fontWeight: 400 },
-    { src: "/fonts/Poppins-Bold.ttf", fontWeight: 700 },
-    { src: "/fonts/Poppins-Italic.ttf", fontWeight: 400, fontStyle: "italic" },
-    {
-      src: "/fonts/Poppins-BoldItalic.ttf",
-      fontWeight: 700,
-      fontStyle: "italic",
-    },
-  ],
-});
 
 const CotationPDF = ({ data }: { data: CommandRequestT }) => {
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Papier entete */}
-        <Image style={styles.headerImage} src={"/images/crea.jpg"} fixed />
+      <Page size="A4" style={styles.page} wrap>
+        <Image style={styles.background} src="/images/crea.jpg" fixed />
 
         <View style={styles.content}>
-          {/* --------- TITRE --------- */}
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>{"Demande de Cotation"}</Text>
+          <View style={styles.hero}>
+            <Text style={styles.kicker}>Consultation fournisseurs</Text>
+            <Text style={styles.title}>Demande de cotation</Text>
+            <Text style={styles.subtitle}>
+              Merci de bien vouloir nous transmettre votre meilleure offre pour
+              les éléments ci-dessous, dans le respect des spécifications
+              indiquées.
+            </Text>
           </View>
 
-          {/* --------- INFORMATIONS --------- */}
-          <View style={styles.infoSection}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{"Objet :"} </Text>
-              <Text style={styles.infoValue}>{data.title}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{"Référence : "}</Text>
-              <Text style={styles.infoValue}>{data.reference}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>
-                {"Date limite de soumission : "}
-              </Text>
-              <Text style={styles.infoValue}>
-                {format(data.dueDate, "PPP", { locale: fr })}
-              </Text>
-            </View>
-
-            <View style={styles.contactSection}>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{"Contact principal : "}</Text>
-                <Text style={styles.infoValue}>{data.name}</Text>
+          <View style={styles.metaCard}>
+            <View style={styles.metaGrid}>
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>Objet</Text>
+                <Text style={styles.metaValue}>{data.title || "-"}</Text>
               </View>
 
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{"Téléphone : "}</Text>
-                <Text style={styles.infoValue}>{data.phone}</Text>
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>Référence</Text>
+                <Text style={styles.metaValue}>{data.reference || "-"}</Text>
               </View>
-            </View>
-          </View>
 
-          {/* --------- LISTE DES ELEMENTS --------- */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{"Liste des éléments"}</Text>
-          </View>
-
-          {/* --------- TABLEAU --------- */}
-          <View style={styles.table}>
-            {/* En-tête */}
-            <View style={styles.tableHeader}>
-              <View style={[styles.headerCell, styles.headerCell1]}>
-                <Text style={styles.headerText}>{"TITRE DU BESOIN"}</Text>
-              </View>
-              <View style={[styles.headerCell, styles.headerCell2]}>
-                <Text style={styles.headerText}>
-                  {"DESCRIPTION DÉTAILLÉE & SPÉCIFICATIONS"}
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>Date limite de soumission</Text>
+                <Text style={styles.metaValue}>
+                  {data.dueDate
+                    ? format(data.dueDate, "PPP", { locale: fr })
+                    : "-"}
                 </Text>
               </View>
-              <View style={[styles.headerCell, styles.headerCell3]}>
-                <Text style={styles.headerText}>{"UNITÉ"}</Text>
+
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>Contact principal</Text>
+                <Text style={styles.metaValue}>{data.name || "-"}</Text>
               </View>
-              <View style={[styles.headerCell, styles.headerCell4]}>
-                <Text style={styles.headerText}>{"QUANTITÉ"}</Text>
+
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>Téléphone</Text>
+                <Text style={styles.metaValue}>{data.phone || "-"}</Text>
+              </View>
+
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>Date de création</Text>
+                <Text style={styles.metaValue}>
+                  {data.createdAt
+                    ? format(data.createdAt, "PPP", { locale: fr })
+                    : "-"}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionBar} />
+            <Text style={styles.sectionTitle}>Éléments demandés</Text>
+          </View>
+
+          <View style={styles.table}>
+            <View style={styles.tableHeader} fixed>
+              <View style={[styles.th, styles.colTitle]}>
+                <Text style={styles.thText}>Besoin</Text>
+              </View>
+              <View style={[styles.th, styles.colDescription]}>
+                <Text style={styles.thText}>Description détaillée</Text>
+              </View>
+              <View style={[styles.th, styles.colUnit]}>
+                <Text style={styles.thText}>Unité</Text>
+              </View>
+              <View style={[styles.th, styles.colQty, styles.noBorderRight]}>
+                <Text style={styles.thText}>Quantité</Text>
               </View>
             </View>
 
-            {/* Lignes */}
             {data.besoins.map((item, index) => (
               <View
                 key={index}
-                wrap={false}
                 style={[
-                  styles.tableRow,
-                  index === data.besoins.length - 1
-                    ? styles.tableRowLast
-                    : styles.tableRow,
+                  styles.tr,
+                  index % 2 === 0 ? styles.rowEven : styles.rowOdd,
+                  index === data.besoins.length - 1 ? styles.lastRow : {},
                 ]}
+                wrap={false}
               >
-                <View style={[styles.cell, styles.cell1]}>
-                  <Text style={styles.cellText}>{item.label || "-"}</Text>
+                <View style={[styles.td, styles.colTitle]}>
+                  <Text style={styles.primaryCellText}>
+                    {item.label || "-"}
+                  </Text>
                 </View>
-                <View style={[styles.cell, styles.cell2]}>
+
+                <View style={[styles.td, styles.colDescription]}>
                   <Text style={styles.cellText}>{item.description || "-"}</Text>
                 </View>
-                <View style={[styles.cell, styles.cell3]}>
+
+                <View style={[styles.td, styles.colUnit]}>
                   <Text style={styles.cellText}>{item.unit || "-"}</Text>
                 </View>
-                <View style={[styles.cell, styles.cell4]}>
-                  <Text style={styles.cellText}>{item.quantity || "-"}</Text>
+
+                <View style={[styles.td, styles.colQty, styles.noBorderRight]}>
+                  <Text style={styles.qtyText}>
+                    {item.quantity !== undefined && item.quantity !== null
+                      ? String(item.quantity)
+                      : "-"}
+                  </Text>
                 </View>
               </View>
             ))}
           </View>
+
+          <View style={styles.noteBox}>
+            <Text style={styles.noteTitle}>Consignes</Text>
+            <Text style={styles.noteText}>
+              Veuillez préciser pour chaque ligne votre conformité aux
+              spécifications demandées, ainsi que toute observation utile liée à
+              la disponibilité, au délai, à la garantie ou aux conditions
+              particulières.
+            </Text>
+          </View>
         </View>
-        {/* --------- FOOTER --------- */}
-        {/* Footer with page numbers */}
-        <Text
-          style={styles.pageNumber}
-          render={({ pageNumber, totalPages }) =>
-            `Page ${pageNumber} / ${totalPages}`
-          }
-          fixed
-        />
 
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>
-            {`Créé le ${format(data.createdAt, "PPP", { locale: fr })}.`}
+          <Text style={styles.footerLeft}>
+            {`Créé le ${
+              data.createdAt
+                ? format(data.createdAt, "PPP", { locale: fr })
+                : "-"
+            }`}
+          </Text>
+
+          <Text
+            style={styles.footerCenter}
+            render={({ pageNumber, totalPages }) =>
+              `Page ${pageNumber} / ${totalPages}`
+            }
+          />
+
+          <Text style={styles.footerRight}>
+            Document généré automatiquement
           </Text>
         </View>
       </Page>
@@ -151,228 +165,258 @@ export default CotationPDF;
 
 const styles = StyleSheet.create({
   page: {
-    // display: "flex",
-    // flexDirection: "column",
-    fontFamily: "Poppins",
+    fontFamily: "Helvetica",
     fontSize: 10,
-    lineHeight: 1.4,
-    backgroundColor: "#fff",
-    // position: "relative",
-    // height: "100%",
-    objectFit: "cover",
-    paddingBottom: 120,
-    paddingTop: 100,
-    paddingLeft: 40,
-    paddingRight: 40,
-  },
-
-  content: {
-    // flexGrow: 1,
+    backgroundColor: "#FFFFFF",
     position: "relative",
-    wrap: true,
-    // minHeight: "100%",
+    paddingTop: 110,
+    paddingBottom: 90,
+    paddingHorizontal: 34,
+    color: "#111827",
   },
 
-  headerImage: {
-    width: "100%",
-    height: "100%",
-    minHeight: "100%",
-    zIndex: -1,
+  background: {
     position: "absolute",
     top: 0,
     left: 0,
     bottom: 0,
-    // right: 0,
+    width: "100%",
+    height: "100%",
+    minHeight: "100%",
+    zIndex: -1,
   },
 
-  // ===== TITRE =====
-  titleContainer: {
-    marginBottom: 12,
+  content: {
+    display: "flex",
+    flexDirection: "column",
+  },
+
+  hero: {
+    marginBottom: 18,
+  },
+
+  kicker: {
+    fontSize: 9,
+    color: "#6B7280",
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
+    marginBottom: 4,
   },
 
   title: {
-    fontSize: 16,
+    fontSize: 20,
+    fontWeight: 700,
     color: "#700032",
-    fontWeight: "bold",
-    letterSpacing: 1,
-    lineHeight: "150%",
-  },
-
-  // ===== INFORMATIONS =====
-  infoSection: {
-    display: "flex",
-    flexDirection: "column",
-    marginBottom: 25,
-  },
-
-  infoRow: {
-    flexDirection: "row",
     marginBottom: 6,
   },
 
-  infoLabel: {
-    textDecoration: "underline",
+  subtitle: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    color: "#4B5563",
+    maxWidth: "88%",
   },
 
-  infoValue: {
-    flex: 1,
+  metaCard: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "#FAFAFA",
+    borderRadius: 6,
+    padding: 14,
+    marginBottom: 20,
   },
 
-  contactSection: {
+  metaGrid: {
     display: "flex",
-    flexDirection: "column",
-    marginTop: 15,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    rowGap: 10,
   },
 
-  // ===== SECTION TITRE =====
+  metaItem: {
+    width: "50%",
+    paddingRight: 12,
+  },
+
+  metaLabel: {
+    fontSize: 8,
+    color: "#6B7280",
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+
+  metaValue: {
+    fontSize: 10,
+    color: "#111827",
+    fontWeight: 500,
+    lineHeight: 1.4,
+  },
+
   sectionHeader: {
-    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+    gap: 8,
+  },
+
+  sectionBar: {
+    width: 4,
+    height: 14,
+    backgroundColor: "#700032",
   },
 
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: "semibold",
-    color: "#000",
-    letterSpacing: 0.5,
+    fontSize: 13,
+    fontWeight: 600,
+    color: "#111827",
   },
 
-  // ===== TABLEAU =====
   table: {
     width: "100%",
     borderWidth: 1,
-    borderColor: "#DFDFDF",
-    borderStyle: "solid",
-    marginBottom: 24,
-    display: "flex",
-    flexDirection: "column",
+    borderColor: "#D1D5DB",
+    backgroundColor: "#FFFFFF",
+    marginBottom: 18,
   },
 
   tableHeader: {
-    display: "flex",
     flexDirection: "row",
-    alignItems: "stretch", // Changé de "center" à "stretch" pour étirer verticalement
-    justifyContent: "space-between",
-    backgroundColor: "#F4F4F5",
-    width: "100%",
-    // Ajout des bordures supérieure et inférieure
-    borderTopWidth: 1,
-    borderTopColor: "#DFDFDF",
-    borderTopStyle: "solid",
+    backgroundColor: "#F3F4F6",
     borderBottomWidth: 1,
-    borderBottomColor: "#DFDFDF",
-    borderBottomStyle: "solid",
+    borderBottomColor: "#D1D5DB",
+    minHeight: 38,
   },
 
-  // Style commun pour toutes les cellules d'en-tête
-  headerCell: {
-    paddingVertical: 8,
+  th: {
+    paddingVertical: 9,
     paddingHorizontal: 8,
     justifyContent: "center",
-    alignItems: "flex-start",
     borderRightWidth: 1,
-    borderRightColor: "#DFDFDF",
-    borderRightStyle: "solid",
-    display: "flex",
-    flexDirection: "column",
-    // Assure que la cellule s'étend sur toute la hauteur
-    height: "100%",
+    borderRightColor: "#D1D5DB",
   },
 
-  // Largeurs spécifiques pour chaque colonne d'en-tête
-  headerCell1: { width: "31%" },
-  headerCell2: { width: "39%" },
-  headerCell3: { width: "15%" },
-  headerCell4: {
-    width: "15%",
-    borderRightWidth: 0,
-  },
-
-  headerText: {
-    fontWeight: "bold",
-    fontSize: 12,
+  thText: {
+    fontSize: 9,
+    fontWeight: 700,
     textTransform: "uppercase",
-    textAlign: "left",
-    flexWrap: "wrap",
-    width: "100%",
+    color: "#374151",
     lineHeight: 1.25,
   },
 
-  tableRow: {
-    display: "flex",
+  tr: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: "#D1D5DB",
-    borderBottomStyle: "solid",
-    width: "100%",
+    borderBottomColor: "#E5E7EB",
+    minHeight: 42,
   },
 
-  tableRowLast: {
+  rowEven: {
+    backgroundColor: "#FFFFFF",
+  },
+
+  rowOdd: {
+    backgroundColor: "#FCFCFD",
+  },
+
+  lastRow: {
     borderBottomWidth: 0,
   },
 
-  // Style commun pour toutes les cellules de contenu
-  cell: {
-    paddingVertical: 8,
+  td: {
+    paddingVertical: 9,
     paddingHorizontal: 8,
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
     borderRightWidth: 1,
-    borderRightColor: "#DFDFDF",
-    borderRightStyle: "solid",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
+    borderRightColor: "#E5E7EB",
+    justifyContent: "flex-start",
   },
 
-  // Largeurs spécifiques pour chaque colonne de contenu
-  cell1: {
-    width: "31%",
-  },
-
-  cell2: {
-    width: "39%",
-  },
-
-  cell3: {
-    width: "15%",
-  },
-
-  cell4: {
-    width: "15%",
-    borderRightWidth: 0,
+  primaryCellText: {
+    fontSize: 10,
+    fontWeight: 600,
+    lineHeight: 1.45,
+    color: "#111827",
   },
 
   cellText: {
-    fontSize: 12,
-    textAlign: "left",
-    flexWrap: "wrap",
-    width: "100%",
-    wordBreak: "break-word",
-    lineHeight: 1.375,
-  },
-
-  // ===== FOOTER =====
-  footer: {
-    bottom: 115,
-    position: "absolute",
-    right: 40,
-  },
-
-  footerText: {
     fontSize: 10,
-    color: "#666",
+    lineHeight: 1.45,
+    color: "#374151",
+  },
+
+  qtyText: {
+    fontSize: 10,
+    lineHeight: 1.45,
+    color: "#111827",
+    fontWeight: 600,
     textAlign: "right",
   },
 
-  pageNumber: {
-    position: "absolute",
-    bottom: 115,
-    left: 0,
-    right: 0,
-    textAlign: "center",
+  colTitle: {
+    width: "26%",
+  },
+
+  colDescription: {
+    width: "46%",
+  },
+
+  colUnit: {
+    width: "13%",
+  },
+
+  colQty: {
+    width: "15%",
+    alignItems: "flex-end",
+  },
+
+  noBorderRight: {
+    borderRightWidth: 0,
+  },
+
+  noteBox: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "#FAFAFA",
+    padding: 12,
+    borderRadius: 6,
+  },
+
+  noteTitle: {
     fontSize: 10,
-    color: "grey",
+    fontWeight: 600,
+    color: "#111827",
+    marginBottom: 4,
+  },
+
+  noteText: {
+    fontSize: 9,
+    lineHeight: 1.5,
+    color: "#4B5563",
+  },
+
+  footer: {
+    position: "absolute",
+    bottom: 92,
+    left: 60,
+    right: 60,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: 9,
+    color: "#6B7280",
+  },
+
+  footerLeft: {
+    width: "33%",
+    textAlign: "left",
+  },
+
+  footerCenter: {
+    width: "34%",
+    textAlign: "center",
+  },
+
+  footerRight: {
+    width: "33%",
+    textAlign: "right",
   },
 });
