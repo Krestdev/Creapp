@@ -31,12 +31,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { newRequestGas, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, User, Vehicle } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -72,13 +74,7 @@ const formSchema = z.object({
   km: z.coerce.number(),
   liters: z.coerce.number(),
   benef: z.coerce.number(),
-  dueDate: z.string({ message: "Veuillez définir une date" }).refine(
-    (val) => {
-      const d = new Date(val);
-      return !isNaN(d.getTime()) && d >= today;
-    },
-    { message: "Date invalide" },
-  ),
+  dueDate: z.date().min(today, "La date limite doit être dans le futur"),
   unit: z.string(),
   priority: z.enum(REQUEST_PRIORITIES),
 });
@@ -102,7 +98,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
       amount: 100,
       liters: 1,
       benef: user?.id,
-      dueDate: format(defaultDate, "yyyy-MM-dd"),
+      dueDate:defaultDate,
       priority: "low",
       vehiclesId: undefined,
       km: 1,
@@ -241,77 +237,45 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
             )}
           />
         )}
-        {/* Date limite de soumission */}
+        {/* DATE LIMITE */}
         <FormField
           control={form.control}
           name="dueDate"
-          render={({ field }) => {
-            // Convertir la valeur string en Date pour le calendrier
-            const selectedDate = field.value
-              ? new Date(field.value)
-              : undefined;
-
-            return (
-              <FormItem>
-                <FormLabel isRequired>{"Date limite"}</FormLabel>
-                <FormControl>
-                  <div className="relative flex gap-2">
-                    <Input
-                      id={field.name}
-                      value={field.value || ""}
-                      placeholder="Sélectionner une date"
-                      className="bg-background pr-10"
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "ArrowDown") {
-                          e.preventDefault();
-                          setDueDate(true);
-                        }
-                      }}
-                    />
-                    <Popover open={dueDate} onOpenChange={setDueDate}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="date-picker"
-                          type="button"
-                          variant="ghost"
-                          className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
-                        >
-                          <CalendarIcon className="size-3.5" />
-                          <span className="sr-only">
-                            {"Sélectionner une date"}
-                          </span>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-auto overflow-hidden p-0"
-                        align="end"
-                        alignOffset={-8}
-                        sideOffset={10}
-                      >
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          defaultMonth={selectedDate || today}
-                          captionLayout="dropdown"
-                          onSelect={(date) => {
-                            if (!date) return;
-                            const value = format(date, "yyyy-MM-dd");
-                            field.onChange(value);
-                            setDueDate(false);
-                          }}
-                          disabled={(date) => date < new Date()}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            );
-          }}
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel isRequired>{"Date limite"}</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild className="h-10 w-full!">
+                  <FormControl className="w-full">
+                    <Button
+                      type="button"
+                      variant={"outline"}
+                      className={cn(
+                        "w-[320px] pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground",
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, "PPP", { locale: fr })
+                      ) : (
+                        <span>{"Choisir une date"}</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) => date < new Date()}
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
         />
         {/* Vehicle */}
         <FormField

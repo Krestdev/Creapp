@@ -705,7 +705,7 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="text-sm first-letter:uppercase lowercase">
+          <div className="text-sm first-letter:uppercase lowercase max-w-[500px] truncate">
             {getProjectName(row.getValue("projectId"))}
           </div>
         ),

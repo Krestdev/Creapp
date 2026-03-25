@@ -140,7 +140,7 @@ export function RequestsTable({
       cell: ({ row }) => {
         const original = row.original;
         return (
-          <div className="flex items-center gap-1.5 uppercase">
+          <div className="flex items-center gap-1.5 uppercase max-w-[500px] truncate">
             {subText({ text: original.label })}
           </div>
         );
@@ -201,7 +201,7 @@ export function RequestsTable({
         const projectId = row.getValue("projectId") as string;
         const project = projects.find((proj) => proj.id === Number(projectId));
         return (
-          <div className="first-letter:uppercase lowercase">
+          <div className="first-letter:uppercase lowercase max-w-[500px] truncate">
             {project?.label || projectId}
           </div>
         );
