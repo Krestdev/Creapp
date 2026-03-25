@@ -27,7 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
-import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { signatairQ } from "@/queries/signatair";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
@@ -39,6 +38,7 @@ import {
   RequestModelT,
   RequestType,
   Signatair,
+  Transaction,
   User,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,6 +57,9 @@ interface Props {
   users: Array<User>;
   invoices: Invoice[];
   requestTypes: Array<RequestType>;
+  transactions: Array<Transaction>;
+  payTypes: Array<PayType>;
+  signataires: Array<Signatair>;
 }
 
 // Fonction pour vérifier si un moyen de paiement nécessite un numéro de pièce
@@ -89,23 +92,14 @@ function ShareExpense({
   requests,
   invoices,
   requestTypes,
+  transactions,
+  signataires,
+  payTypes,
 }: Props) {
   const { user } = useStore();
 
   const [openDoc, setOpenDoc] = useState(false);
   const [paiement, setPaiement] = useState<PaymentRequest | null>(null);
-
-  // Récupérer la liste des signataires
-  const getSignataires = useQuery({
-    queryKey: ["SignatairList"],
-    queryFn: signatairQ.getAll,
-  });
-
-  // Récupérer les types de paiement
-  const payTypesQuery = useQuery({
-    queryKey: ["payTypes"],
-    queryFn: payTypeQ.getAll,
-  });
 
   // Vérifier si le ticket a déjà un methodId
   const hasExistingMethodId = useMemo(() => {
@@ -198,14 +192,12 @@ function ShareExpense({
     // Priorité : methodId du formulaire (si présent) puis methodId du ticket
     const methodId = selectedMethodId || ticket.methodId;
 
-    if (!payTypesQuery.data?.data || !methodId) {
+    if (!payTypes || !methodId) {
       return null;
     }
 
-    return payTypesQuery.data.data.find(
-      (payType: PayType) => payType.id === methodId,
-    );
-  }, [payTypesQuery.data?.data, ticket.methodId, selectedMethodId]);
+    return payTypes.find((payType: PayType) => payType.id === methodId);
+  }, [payTypes, ticket.methodId, selectedMethodId]);
 
   // Vérifier si le mode de paiement est "espèces" en se basant aussi sur le select du formulaire
   const isCashPayment = useMemo(() => {
@@ -232,7 +224,6 @@ function ShareExpense({
     }
 
     const paymentType = paymentMethod.type.toLowerCase();
-    const payTypeLabel = ticket.type?.toLowerCase() || "";
 
     switch (paymentType) {
       case "cash": // Espèces
@@ -256,19 +247,19 @@ function ShareExpense({
 
   // Récupérer la configuration de signature correspondante
   const relevantSignataireConfig = useMemo(() => {
-    if (!getSignataires.data?.data || !selectedBankId || !paymentMethod?.id) {
+    if (!signataires || !selectedBankId || !paymentMethod?.id) {
       return null;
     }
 
     // Trouver la configuration pour cette banque et ce type de paiement
-    const config = getSignataires.data.data.find(
+    const config = signataires.find(
       (signataire: Signatair) =>
         signataire.bankId === selectedBankId &&
         signataire.payTypeId === paymentMethod.id,
     );
 
     return config || null;
-  }, [getSignataires.data?.data, selectedBankId, paymentMethod?.id]);
+  }, [signataires, selectedBankId, paymentMethod?.id]);
 
   // Formater la liste des signataires pour l'affichage
   const signatairesList = useMemo(() => {
@@ -299,16 +290,6 @@ function ShareExpense({
     }
   };
 
-  const gettransaction = useQuery({
-    queryKey: ["transactions"],
-    queryFn: transactionQ.getAll,
-  });
-
-  const getPaiement = useQuery({
-    queryKey: ["paiement"],
-    queryFn: paymentQ.getAll,
-  });
-
   const share = useMutation({
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.createDebitTransaction(payload),
@@ -325,9 +306,7 @@ function ShareExpense({
     },
   });
 
-  const trans = gettransaction.data?.data.find(
-    (item) => item.id === ticket.transactionId,
-  );
+  const trans = transactions.find((item) => item.id === ticket.transactionId);
 
   function onSubmit(values: FormValues) {
     // Validation manuelle pour docNumber
@@ -462,7 +441,7 @@ function ShareExpense({
                               <SelectValue placeholder="Sélectionner un moyen de paiement" />
                             </SelectTrigger>
                             <SelectContent>
-                              {payTypesQuery.data?.data?.map((payType) => (
+                              {payTypes.map((payType) => (
                                 <SelectItem
                                   key={payType.id}
                                   value={String(payType.id)}
@@ -770,12 +749,12 @@ function ShareExpense({
           </div>
         </DialogContent>
       </Dialog>
-      {paiement && payTypesQuery.isSuccess && (
+      {paiement && (
         <ViewDepense
           open={openDoc}
           openChange={setOpenDoc}
           paymentRequest={paiement}
-          payTypes={payTypesQuery.data.data}
+          payTypes={payTypes}
           users={users}
           requests={requests}
           requestTypes={requestTypes}

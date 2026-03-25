@@ -79,6 +79,7 @@ import {
   Provider,
   RequestModelT,
   RequestType,
+  Signatair,
   Transaction,
   User,
 } from "@/types/types";
@@ -154,6 +155,7 @@ interface Props {
   users: Array<User>;
   projects: Array<ProjectT>;
   transactions: Array<Transaction>;
+  signataires: Array<Signatair>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -240,6 +242,7 @@ function ExpensesTable({
   users,
   projects,
   transactions,
+  signataires,
 }: Props) {
   const types = requestTypes
     .map((x) => {
@@ -1059,6 +1062,9 @@ function ExpensesTable({
             requests={request}
             invoices={invoices}
             requestTypes={requestTypes}
+            transactions={transactions}
+            signataires={signataires}
+            payTypes={paymentTypes}
           />
           <PayExpense
             ticket={selected}

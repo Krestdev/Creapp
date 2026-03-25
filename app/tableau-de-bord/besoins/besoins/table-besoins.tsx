@@ -12,10 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  Eye
-} from "lucide-react";
+import { ArrowUpDown, AsteriskIcon, Eye } from "lucide-react";
 import * as React from "react";
 
 import Empty from "@/components/base/empty";
@@ -26,7 +23,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Table,
@@ -51,14 +48,13 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewRequest from "./view-request";
 
-
 interface Props {
   data: Array<RequestModelT>;
   categories: Array<Category>;
   projects: Array<ProjectT>;
   payments: Array<PaymentRequest>;
   requestTypes: Array<RequestType>;
-  users : Array<User>;
+  users: Array<User>;
 }
 
 export function RequestsTable({
@@ -67,7 +63,7 @@ export function RequestsTable({
   projects,
   payments,
   requestTypes,
-  users
+  users,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -85,25 +81,51 @@ export function RequestsTable({
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT>();
   const [view, setView] = React.useState(false);
 
-
   // Fonction sécurisée pour obtenir la configuration du statut
-  const getStatusBadge = (status :RequestModelT["state"]): {label: string; variant:VariantProps<typeof badgeVariants>["variant"], className?: HTMLButtonElement["className"]} => {
-    const label = REQUEST_STATUS.find(s => s.value === status)?.name ?? status;
-    switch(status){
-        case "cancel":
-            return {label, variant: "outline"};
-        case "in-review":
-            return {label, variant: "sky", className: "bg-sky-50 hover:bg-sky-100"};
-        case "pending":
-            return {label, variant: "amber", className: "bg-amber-50 hover:bg-amber-100"};
-        case "rejected":
-            return {label, variant: "destructive", className: "bg-red-50 hover:bg-red-100"};
-        case "store":
-            return {label, variant: "blue", className: "bg-blue-50 hover:bg-blue-100"};
-        case "validated":
-            return {label, variant: "success", className: "bg-green-50 hover:bg-green-100"};
+  const getStatusBadge = (
+    status: RequestModelT["state"],
+  ): {
+    label: string;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+    className?: HTMLButtonElement["className"];
+  } => {
+    const label =
+      REQUEST_STATUS.find((s) => s.value === status)?.name ?? status;
+    switch (status) {
+      case "cancel":
+        return { label, variant: "outline" };
+      case "in-review":
+        return {
+          label,
+          variant: "sky",
+          className: "bg-sky-50 hover:bg-sky-100",
+        };
+      case "pending":
+        return {
+          label,
+          variant: "amber",
+          className: "bg-amber-50 hover:bg-amber-100",
+        };
+      case "rejected":
+        return {
+          label,
+          variant: "destructive",
+          className: "bg-red-50 hover:bg-red-100",
+        };
+      case "store":
+        return {
+          label,
+          variant: "blue",
+          className: "bg-blue-50 hover:bg-blue-100",
+        };
+      case "validated":
+        return {
+          label,
+          variant: "success",
+          className: "bg-green-50 hover:bg-green-100",
+        };
     }
-  }
+  };
 
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
@@ -139,8 +161,23 @@ export function RequestsTable({
       },
       cell: ({ row }) => {
         const original = row.original;
+        const modifier = original.requestOlds?.find(
+          (r) => r.id !== original.userId,
+        );
+        const modified = !modifier
+          ? false
+          : modifier.priority !== original.priority ||
+            modifier.amount !== original.amount ||
+            modifier.dueDate !== original.dueDate ||
+            modifier.quantity !== original.quantity ||
+            modifier.unit !== original.unit;
         return (
           <div className="flex items-center gap-1.5 uppercase">
+            {!!modified && (
+              <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
+                <AsteriskIcon size={16} />
+              </span>
+            )}
             {subText({ text: original.label })}
           </div>
         );
@@ -161,7 +198,10 @@ export function RequestsTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getRequestTypeBadge({type:value.type, requestTypes: requestTypes});
+        const type = getRequestTypeBadge({
+          type: value.type,
+          requestTypes: requestTypes,
+        });
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },
@@ -180,8 +220,11 @@ export function RequestsTable({
       },
       cell: ({ row }) => {
         const value = row.original.userId;
-        const user = users.find(u => u.id === value);
-        return <div>{!!user ? user.firstName.concat(" ", user.lastName) : "Utilisateur introuvable"}</div>;
+        const user = users.find((u) => u.id === value);
+        const userName = !!user
+          ? user.firstName.concat(" ", user.lastName)
+          : "Introuvable";
+        return <div>{subText({ text: userName, length: 21 })}</div>;
       },
     },
     {
@@ -198,11 +241,14 @@ export function RequestsTable({
         );
       },
       cell: ({ row }) => {
-        const projectId = row.getValue("projectId") as string;
+        const projectId = row.original.projectId;
         const project = projects.find((proj) => proj.id === Number(projectId));
+        const title = projectId
+          ? (project?.label ?? projectId.toString())
+          : "--";
         return (
-          <div className="first-letter:uppercase lowercase">
-            {project?.label || projectId}
+          <div className="first-letter:uppercase lowercase max-w-[500px] truncate">
+            {subText({ text: title, length: 21 })}
           </div>
         );
       },
@@ -225,9 +271,10 @@ export function RequestsTable({
         const getCategoryName = (id: number) => {
           return categories.find((x) => x.id === id)?.label || id;
         };
+        const category = getCategoryName(Number(categoryId));
         return (
           <div className="first-letter:uppercase lowercase">
-            {getCategoryName(Number(categoryId))}
+            {subText({ text: category.toString(), length: 21 })}
           </div>
         );
       },
@@ -266,13 +313,9 @@ export function RequestsTable({
       },
       cell: ({ row }) => {
         const status = row.original.state;
-        const {label, variant} = getStatusBadge(status);
+        const { label, variant } = getStatusBadge(status);
 
-        return (
-          <Badge variant={variant}>
-            {label}
-          </Badge>
-        );
+        return <Badge variant={variant}>{label}</Badge>;
       },
     },
     {
@@ -287,8 +330,16 @@ export function RequestsTable({
           paiement?.proof !== null;
 
         return (
-          <Button variant={"outline"} onClick={()=>{setSelectedItem(item);
-                    setView(true);}}><Eye/>{"Voir"}</Button>
+          <Button
+            variant={"outline"}
+            onClick={() => {
+              setSelectedItem(item);
+              setView(true);
+            }}
+          >
+            <Eye />
+            {"Voir"}
+          </Button>
         );
       },
     },
@@ -348,10 +399,10 @@ export function RequestsTable({
                               : column.id === "categoryId"
                                 ? "Catégories"
                                 : column.id === "userId"
-                                ? "Initié par"
-                                : column.id === "createdAt"
-                                  ? "Date d'émission"
-                                  : column.id}
+                                  ? "Initié par"
+                                  : column.id === "createdAt"
+                                    ? "Date d'émission"
+                                    : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -388,7 +439,7 @@ export function RequestsTable({
             <TableBody>
               {table.getRowModel().rows.map((row) => {
                 const status = row.original.state;
-                const {className} = getStatusBadge(status);
+                const { className } = getStatusBadge(status);
 
                 return (
                   <TableRow
@@ -421,8 +472,17 @@ export function RequestsTable({
       {table.getRowModel().rows?.length > 0 && (
         <Pagination table={table} pageSize={15} />
       )}
-      {selectedItem && <ViewRequest open={view} openChange={setView} payments={payments} users={users} categories={categories} request={selectedItem} projects={projects} />}
-
+      {selectedItem && (
+        <ViewRequest
+          open={view}
+          openChange={setView}
+          payments={payments}
+          users={users}
+          categories={categories}
+          request={selectedItem}
+          projects={projects}
+        />
+      )}
     </div>
   );
 }

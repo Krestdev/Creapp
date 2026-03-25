@@ -99,7 +99,7 @@ class TransactionQuery {
     const formData = new FormData();
     formData.append("label", payload.label);
     formData.append("amount", String(payload.amount));
-    formData.append("Type", payload.Type);
+    formData.append("Type", "DEBIT");
     formData.append("date", String(payload.date));
     formData.append("userId", String(payload.userId));
     formData.append("paymentId", String(payload.paymentId));

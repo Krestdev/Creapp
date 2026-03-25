@@ -146,7 +146,8 @@ export function TableMyRequests({
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isUpdateFacModalOpen, setIsUpdateFacModalOpen] = React.useState(false);
   const [isUpdateRHModalOpen, setIsUpdateRHModalOpen] = React.useState(false);
-  const [isUpdateOthersModalOpen, setIsUpdateOthersModalOpen] = React.useState(false);
+  const [isUpdateOthersModalOpen, setIsUpdateOthersModalOpen] =
+    React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
 
@@ -252,7 +253,7 @@ export function TableMyRequests({
                 <AsteriskIcon size={16} />
               </span>
             )}
-            {subText({ text: row.getValue("label") })}
+            {subText({ text: row.getValue("label"), length: 21 })}
           </div>
         );
       },
@@ -293,11 +294,14 @@ export function TableMyRequests({
         );
       },
       cell: ({ row }) => {
-        const projectId = row.getValue("projectId") as string;
+        const projectId = row.original.projectId;
         const project = projects.find((proj) => proj.id === Number(projectId));
+        const title = projectId
+          ? (project?.label ?? projectId.toString())
+          : "--";
         return (
           <div className="first-letter:uppercase lowercase max-w-[500px] truncate">
-            {project?.label || projectId}
+            {subText({ text: title, length: 21 })}
           </div>
         );
       },
@@ -320,9 +324,10 @@ export function TableMyRequests({
         const getCategoryName = (id: number) => {
           return categories.find((x) => x.id === id)?.label || id;
         };
+        const category = getCategoryName(Number(categoryId));
         return (
           <div className="first-letter:uppercase lowercase">
-            {getCategoryName(Number(categoryId))}
+            {subText({ text: category.toString(), length: 21 })}
           </div>
         );
       },
@@ -410,10 +415,10 @@ export function TableMyRequests({
                     item.type === "facilitation"
                       ? setIsUpdateFacModalOpen(true)
                       : item.type === "ressource_humaine"
-                        ? setIsUpdateRHModalOpen(true) :
-                        item.type === "others" ?
-                        setIsUpdateOthersModalOpen(true)
-                        : setIsUpdateModalOpen(true);
+                        ? setIsUpdateRHModalOpen(true)
+                        : item.type === "others"
+                          ? setIsUpdateOthersModalOpen(true)
+                          : setIsUpdateModalOpen(true);
                   }}
                   disabled={item.state !== "pending"}
                 >
