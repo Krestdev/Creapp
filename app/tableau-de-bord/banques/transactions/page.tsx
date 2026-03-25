@@ -17,7 +17,6 @@ function Page() {
     {
       title: "Créer une transaction",
       href: "./transactions/creer",
-      hide: !auth,
     },
   ];
 
