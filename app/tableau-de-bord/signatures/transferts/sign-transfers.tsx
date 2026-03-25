@@ -142,31 +142,31 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
         const matchTab =
           selectedTab === 0
             ? transaction.isSigned === false &&
-              !transaction.signers.find((s) => s.userId === user?.id)
+            !transaction.signers.find((s) => s.userId === user?.id)
             : !!transaction.signers.find((u) => u.userId === user?.id);
         // Bank Filter - selon le type de transaction
         let matchBank =
           bankFilter === "all"
             ? true
             : transaction.from.id.toString() === bankFilter ||
-              transaction.to.id.toString() === bankFilter;
+            transaction.to.id.toString() === bankFilter;
         // Search Filter
         const matchSearch =
           search.trim() === ""
             ? true
             : transaction.id.toString().toLocaleLowerCase().includes(search) ||
-              transaction.label.toLocaleLowerCase().includes(search) ||
-              transaction.amount.toString().includes(search) ||
-              transaction.to.label.toLocaleLowerCase().includes(search) ||
-              transaction.from.label.toLocaleLowerCase().includes(search);
+            transaction.label.toLocaleLowerCase().includes(search) ||
+            transaction.amount.toString().includes(search) ||
+            transaction.to.label.toLocaleLowerCase().includes(search) ||
+            transaction.from.label.toLocaleLowerCase().includes(search);
 
         // Filter amount
         const matchAmount =
           amountTypeFilter === "greater"
-            ? transaction.amount > amountFilter
+            ? transaction.amount >= amountFilter
             : amountTypeFilter === "equal"
               ? transaction.amount === amountFilter
-              : transaction.amount < amountFilter;
+              : transaction.amount <= amountFilter;
 
         // Filtre par date
         let matchDate = true;
@@ -527,9 +527,9 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            customDateRange.from,
+                            "dd/MM/yyyy",
+                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -647,9 +647,9 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}

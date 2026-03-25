@@ -56,6 +56,7 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
 ];
 
 const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 const formSchema = z.object({
   label: z
@@ -122,7 +123,7 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
       categoryId: values.categoryId,
       quantity: 1,
       unit: "FCFA",
-      paytype: "cash"
+      paytype: "cash",
     });
   };
   return (
@@ -298,7 +299,7 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
               <FormLabel isRequired>{"Projet"}</FormLabel>
               <FormControl>
                 <Combobox
-                  items={projects.filter(x => x.status !== "cancelled")}
+                  items={projects.filter((x) => x.status !== "cancelled")}
                   value={projects.find((p) => p.id === field.value) ?? null}
                   onValueChange={(v) => field.onChange(v?.id ?? "")}
                 >

@@ -160,7 +160,17 @@ const Page = () => {
 
     const types = getRequestType.data.data;
 
+    const rolePermissions: Record<string, Array<string>> = {
+      SUPERADMIN: ["*"],
+      RH: ["ressource_humaine"],
+      VOLT_MANAGER: ["speciaux"],
+      DRIVER: ["gas"],
+      VOLT: ["appro"],
+      USER: ["facilitation", "others", "achat", "transport"],
+    };
+
     const typesList = (roles: Array<Role>): Array<RequestType> => {
+      // SUPERADMIN shortcut
       if (roles.some((r) => r.label === "SUPERADMIN")) return types;
       if (
         roles.some((r) => r.label === "RH") &&

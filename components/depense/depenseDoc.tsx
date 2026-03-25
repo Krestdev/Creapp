@@ -3,6 +3,7 @@ import {
   PaymentRequest,
   PayType,
   RequestModelT,
+  RequestType,
   User,
 } from "@/types/types";
 import {
@@ -15,7 +16,7 @@ import {
 } from "@react-pdf/renderer";
 import React from "react";
 import { formatFCFA } from "@/lib/utils";
-import logo from "@/public/logo-icon.png"
+import logo from "@/public/logo-icon.png";
 
 const styles = StyleSheet.create({
   page: {
@@ -267,6 +268,7 @@ interface ReceiptPDFProps {
   getPaymentType: PayType[];
   users: Array<User>;
   requests: Array<RequestModelT>;
+  requestTypes: Array<RequestType>;
 }
 
 const DepenseDocument: React.FC<ReceiptPDFProps> = ({
@@ -274,12 +276,15 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
   getPaymentType,
   users,
   requests,
+  requestTypes,
 }) => {
   const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("fr-FR");
   };
 
+  //Let's get the requestType
+  const rType = requestTypes.find((r) => r.type === paymentRequest.type);
 
   const getBeneficiaryName = () => {
     if (paymentRequest.beneficiary) {
@@ -292,9 +297,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
 
   const emitter = request?.beficiaryList?.[0]
     ? `${request.beficiaryList[0].firstName} ${request.beficiaryList[0].lastName}`
-    : `${
-        users.find((user) => user.id === request?.userId)?.firstName || ""
-      } ${
+    : `${users.find((user) => user.id === request?.userId)?.firstName || ""} ${
         users.find((user) => user.id === request?.userId)?.lastName || ""
       }`.trim() || "N/A";
 
@@ -310,7 +313,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
 
   const documentTitle = "Décharge de paiement en espèces";
 
-  const driver = users.find(u=>u.id === paymentRequest?.driverId);
+  const driver = users.find((u) => u.id === paymentRequest?.driverId);
 
   return (
     <Document>
@@ -371,7 +374,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Type de paiement</Text>
-              <Text style={styles.infoValue}>{paymentRequest.type || "N/A"}</Text>
+              <Text style={styles.infoValue}>{rType?.label ?? "N/A"}</Text>
             </View>
 
             <View style={styles.infoRow}>
@@ -379,7 +382,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
               <Text style={styles.infoValue}>{paymentMethod}</Text>
             </View>
 
-{/*             <View style={styles.infoRow}>
+            {/*             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Statut</Text>
               <Text style={styles.infoValue}>
                 {PAY_STATUS.find((x) => x.value === paymentRequest.status)?.name ||
@@ -395,13 +398,17 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
             <View
               style={[
                 styles.infoRow,
-                !paymentRequest.model && !paymentRequest.km && !paymentRequest.liters
+                !paymentRequest.model &&
+                !paymentRequest.km &&
+                !paymentRequest.liters
                   ? styles.infoRowLast
                   : {},
               ]}
             >
               <Text style={styles.infoLabel}>Montant</Text>
-              <Text style={styles.infoValue}>{formatFCFA(paymentRequest.price)}</Text>
+              <Text style={styles.infoValue}>
+                {formatFCFA(paymentRequest.price)}
+              </Text>
             </View>
 
             {paymentRequest.model && (
@@ -491,7 +498,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
                   Nom, signature et mention “fonds reçus”
                 </Text>
               </View>
-{/*               <Text style={styles.signatureDate}>
+              {/*               <Text style={styles.signatureDate}>
                 Date: {formatDate(new Date())}
               </Text> */}
             </View>
@@ -512,12 +519,8 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Document généré automatiquement
-          </Text>
-          <Text style={styles.footerText}>
-            {paymentRequest.reference}
-          </Text>
+          <Text style={styles.footerText}>Document généré automatiquement</Text>
+          <Text style={styles.footerText}>{paymentRequest.reference}</Text>
         </View>
       </Page>
     </Document>

@@ -20,6 +20,7 @@ import { requestQ } from "@/queries/requestModule";
 import { userQ } from "@/queries/baseModule";
 import { invoiceQ } from "@/queries/invoices";
 import { projectQ } from "@/queries/projectModule";
+import { transactionQ } from "@/queries/transaction";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -71,6 +72,12 @@ function Page() {
   });
 
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
+
+  const getTransactions = useQuery({
+    queryKey: ["transactions"],
+    queryFn: transactionQ.getAll,
+  });
+
   const getProviders = useQuery({
     queryKey: ["providers"],
     queryFn: providerQ.getAll,
@@ -84,7 +91,8 @@ function Page() {
     request.isLoading ||
     getProviders.isLoading ||
     getProjects.isLoading ||
-    getUsers.isLoading
+    getUsers.isLoading ||
+    getTransactions.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -97,7 +105,8 @@ function Page() {
     request.isError ||
     getProviders.isError ||
     getProjects.isError ||
-    getUsers.isError
+    getUsers.isError ||
+    getTransactions.isError
   ) {
     return (
       <ErrorPage
@@ -111,6 +120,7 @@ function Page() {
           request.error ||
           getProjects.error ||
           getUsers.error ||
+          getTransactions.error ||
           undefined
         }
       />
@@ -125,7 +135,8 @@ function Page() {
     request.isSuccess &&
     getProviders.isSuccess &&
     getProjects.isSuccess &&
-    getUsers.isSuccess
+    getUsers.isSuccess &&
+    getTransactions.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -192,7 +203,7 @@ function Page() {
           ))}
         </div>
         <ExpensesTable
-          payments={data.data.filter(x => x.type !== "appro")}
+          payments={data.data.filter((x) => x.type !== "appro")}
           banks={getBanks.data.data}
           invoices={getInvoices.data.data}
           requestTypes={getRequestType.data.data}
@@ -201,6 +212,7 @@ function Page() {
           request={request.data.data}
           users={getUsers.data.data}
           projects={getProjects.data.data}
+          transactions={getTransactions.data.data}
         />
       </div>
     );

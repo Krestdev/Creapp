@@ -51,33 +51,32 @@ function Page() {
   });
 
   const ticketsData: Array<PaymentRequest> = useMemo(() => {
-    if (!data?.data) return [];
-    return data?.data.filter((ticket) => ticket.status !== "ghost" && ticket.status !== "rejected" && ticket.status !== "cancelled");
-  }, [data?.data]);
+    if (!data) return [];
+    return data.data.filter((ticket) => ticket.status !== "ghost" && ticket.status !== "cancelled");
+  }, [data]);
 
   const pending = useMemo(() => {
-    if (!data?.data) return [];
+    if (!data) return [];
     return ticketsData.filter((ticket) =>
-      ticket.status === "accepted"
+      ticket.status === "accepted" || ticket.status === "pending"
     );
-  }, [data?.data]);
+  }, [data]);
 
   const approved = useMemo(() => {
-    if (!data?.data) return [];
-    return ticketsData.filter(
+    if (!data) return [];
+    return data.data.filter(
       (ticket) =>
-        ticket.status !== "accepted"
+        ticket.status !== "ghost" && ticket.status !== "rejected" && ticket.status !== "cancelled" && ticket.status !== "accepted" && ticket.status !== "pending"
     );
-  }, [data?.data]);
+  }, [data]);
 
   const unPaid = useMemo(() => {
-    if (!data?.data) return [];
-    return ticketsData.filter(
+    if (!data) return [];
+    return data.data.filter(
       (ticket) =>
-        ticket.status !== "paid" &&
-        ticket.status !== "accepted"
+        ticket.status === "validated" || ticket.status === "signed" || ticket.status === "simple_signed" || ticket.status === "unsigned"
     );
-  }, [data?.data]);
+  }, [data]);
 
   if (isLoading || getRequestType.isLoading || getPurchase.isLoading || getInvoices.isLoading || getRequests.isLoading || getUsers.isLoading) {
     return <LoadingPage />;

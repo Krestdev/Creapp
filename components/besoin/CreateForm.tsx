@@ -55,9 +55,14 @@ interface Props {
 // ----------------------------------------------------------------------
 // VALIDATION
 // ----------------------------------------------------------------------
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
 const formSchema = z.object({
   projet: z.string().min(1, "Le projet est requis"),
-  categoryId: z.coerce.number({message: "Veuillez sélectionner une catégorie"}),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
   titre: z.string().min(1, "Le titre est requis"),
   description: z.string(),
   quantity: z
@@ -67,14 +72,12 @@ const formSchema = z.object({
       message: "Le montant doit être un nombre valide",
     }),
   unite: z.string().min(1, "L'unité est requise"),
-  datelimite: z
-    .date()
-    .min(new Date(), "La date limite doit être dans le futur"),
+  datelimite: z.date().min(today, "La date limite doit être dans le futur"),
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
   beneficiaireId: z.string().optional(), // Nouveau champ pour sélectionner un seul utilisateur
 });
 
-export default function MyForm({categories, users, projects}:Props) {
+export default function MyForm({ categories, users, projects }: Props) {
   const { user } = useStore();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -106,12 +109,13 @@ export default function MyForm({categories, users, projects}:Props) {
     }
   }, [beneficiaire, form]);
 
-
   const USERS =
-    users.filter((u) => u.verified).map((u) => ({
-      id: u.id!,
-      name: u.firstName + " " + u.lastName,
-    })) || [];
+    users
+      .filter((u) => u.verified)
+      .map((u) => ({
+        id: u.id!,
+        name: u.firstName + " " + u.lastName,
+      })) || [];
 
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
@@ -152,12 +156,13 @@ export default function MyForm({categories, users, projects}:Props) {
       type: "achat",
       benef:
         values.beneficiaire === "autre" && values.beneficiaireId
-          ? [Number(values.beneficiaireId)] : undefined,
+          ? [Number(values.beneficiaireId)]
+          : undefined,
       userId: Number(user?.id),
       dueDate: values.datelimite,
       projectId: Number(values.projet),
       state: "pending",
-      priority: "medium"
+      priority: "medium",
     };
 
     requestMutation.mutate(requestData);
@@ -205,37 +210,45 @@ export default function MyForm({categories, users, projects}:Props) {
           />
 
           {/* Category */}
-        <FormField
-          control={form.control}
-          name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Categorie"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {
-                      categories.filter(c=> c.type.type === "achat").length === 0 ?
-                      <SelectItem value="#" disabled>{"Aucune catégorie enregistrée"}</SelectItem>
-                      :
-                    categories.filter(c=> c.type.type === "achat").map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>{"Categorie"}</FormLabel>
+                <FormControl>
+                  <Select
+                    defaultValue={field.value ? String(field.value) : undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="min-w-60 w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.filter((c) => c.type.type === "achat")
+                        .length === 0 ? (
+                        <SelectItem value="#" disabled>
+                          {"Aucune catégorie enregistrée"}
+                        </SelectItem>
+                      ) : (
+                        categories
+                          .filter((c) => c.type.type === "achat")
+                          .map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.label}
+                            </SelectItem>
+                          ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* TITRE */}
           <FormField

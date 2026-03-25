@@ -43,6 +43,10 @@ interface Props {
 // ----------------------------------------------------------------------
 // VALIDATION
 // ----------------------------------------------------------------------
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
 const formSchema = z.object({
   titre: z.string().min(1, "Le titre est requis"),
   montant: z
@@ -52,9 +56,7 @@ const formSchema = z.object({
       message: "Le montant doit être un nombre positif",
     }),
   raison: z.string().optional(),
-  delai: z
-    .date()
-    .min(new Date(), "Le delai d'exécution doit être dans le futur"),
+  delai: z.date().min(today, "Le delai d'exécution doit être dans le futur"),
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),
@@ -82,7 +84,7 @@ export default function SpecialRequestForm({ categories }: Props) {
       delai: undefined,
       categoryId: undefined,
       beneficiaireId: undefined,
-      paytype: undefined
+      paytype: undefined,
     },
   });
 

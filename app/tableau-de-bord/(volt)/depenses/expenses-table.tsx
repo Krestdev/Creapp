@@ -15,6 +15,7 @@ import {
   AlertCircle,
   ArrowRightToLine,
   ArrowUpDown,
+  AsteriskIcon,
   Ban,
   CheckCircle,
   ChevronDown,
@@ -78,6 +79,7 @@ import {
   Provider,
   RequestModelT,
   RequestType,
+  Transaction,
   User,
 } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -151,6 +153,7 @@ interface Props {
   request: RequestModelT[];
   users: Array<User>;
   projects: Array<ProjectT>;
+  transactions: Array<Transaction>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -236,6 +239,7 @@ function ExpensesTable({
   request,
   users,
   projects,
+  transactions,
 }: Props) {
   const types = requestTypes
     .map((x) => {
@@ -255,6 +259,9 @@ function ExpensesTable({
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [selectedFilter, setSelectedFilter] = React.useState<
+    "true" | "false" | "all"
+  >("all");
   const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
     undefined,
   );
@@ -289,7 +296,6 @@ function ExpensesTable({
     setProviderFilter("all");
   };
 
-
   const tabs = [
     {
       id: 0,
@@ -317,10 +323,10 @@ function ExpensesTable({
       // Filter amount
       const matchAmount =
         amountTypeFilter === "greater"
-          ? p.price > amountFilter
+          ? p.price >= amountFilter
           : amountTypeFilter === "equal"
             ? p.price === amountFilter
-            : p.price < amountFilter;
+            : p.price <= amountFilter;
       //Filter provider
       const matchProvider =
         providerFilter === "all"
@@ -348,6 +354,11 @@ function ExpensesTable({
         paymentMethodFilter === "all"
           ? true
           : String(p.methodId) === paymentMethodFilter;
+      //Filter selected (approvisionnés)
+      const matchSelected =
+        selectedFilter === "all"
+          ? true
+          : p.selected === Boolean(selectedFilter);
 
       return (
         matchTab &&
@@ -355,7 +366,8 @@ function ExpensesTable({
         matchPriority &&
         matchAmount &&
         matchProvider &&
-        matchPaymentMethod
+        matchPaymentMethod &&
+        matchSelected
       );
     });
   }, [
@@ -368,6 +380,7 @@ function ExpensesTable({
     providerFilter,
     invoices,
     paymentMethodFilter,
+    selectedFilter,
   ]);
 
   const columns: ColumnDef<PaymentRequest>[] = [
@@ -424,7 +437,16 @@ function ExpensesTable({
         const value = row.original;
         const invoice = invoices.find((iv) => iv.id === value.invoiceId);
         const title = value.title;
-        return <div className="max-w-[500px] truncate">{value.title ?? "--"}</div>;
+        return (
+          <div className="max-w-[500px] flex gap-1.5">
+            {value.selected === true && (
+              <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
+                <AsteriskIcon size={16} />
+              </span>
+            )}
+            <span className="line-clamp-1">{value.title ?? "--"}</span>
+          </div>
+        );
       },
     },
     {
@@ -603,6 +625,7 @@ function ExpensesTable({
                           paymentRequest={item}
                           users={users}
                           requests={request}
+                          requestTypes={requestTypes}
                         />
                       }
                       fileName={`recu-transport-${item.reference}.pdf`}
@@ -754,6 +777,29 @@ function ExpensesTable({
                           {p.label}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/**Type Selected Filter (Approvisionné) */}
+                <div className="grid gap-1.5">
+                  <Label>{"Approvisionnés"}</Label>
+                  <Select
+                    value={selectedFilter}
+                    onValueChange={(value) =>
+                      setSelectedFilter(value as "all" | "true" | "false")
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      <SelectItem value={"true"}>
+                        {"Paiements approvisionnés"}
+                      </SelectItem>
+                      <SelectItem value={"false"}>
+                        {"Paiements non-approvisionnés"}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1011,12 +1057,14 @@ function ExpensesTable({
             users={users}
             requests={request}
             invoices={invoices}
+            requestTypes={requestTypes}
           />
           <PayExpense
             ticket={selected}
             open={showPay}
             onOpenChange={setShowPay}
             banks={banks}
+            transactions={transactions}
           />
         </>
       )}

@@ -57,6 +57,7 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
 ];
 
 const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 const formSchema = z.object({
   label: z
@@ -127,7 +128,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       priority: values.priority,
       categoryId: values.categoryId,
       projectId: values.projectId,
-      paytype: "cash"
+      paytype: "cash",
     });
   };
   return (
@@ -208,7 +209,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
               <FormLabel isRequired>{"Projet"}</FormLabel>
               <FormControl>
                 <Combobox
-                  items={projects.filter(x => x.status !== "cancelled")}
+                  items={projects.filter((x) => x.status !== "cancelled")}
                   value={projects.find((p) => p.id === field.value) ?? null}
                   onValueChange={(v) => field.onChange(v?.id ?? "")}
                 >
