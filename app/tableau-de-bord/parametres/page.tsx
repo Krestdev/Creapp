@@ -101,27 +101,27 @@ export default function SettingsPage() {
       {
         category: "Système",
         items: [
-          {
-            title: "Chauffeurs",
-            description: "Enregistrement des véhicules",
-            icon: Car,
-            href: "/tableau-de-bord/parametres/chauffeurs",
-            color: "from-orange-500 to-orange-600",
-            items: [
-              {
-                pageId: "PG-08-02",
-                title: "Liste",
-                href: "/tableau-de-bord/parametres/chauffeurs",
-                authorized: ["ADMIN", "SUPERADMIN"],
-              },
-              {
-                pageId: "PG-08-01",
-                title: "Ajouter",
-                href: "/tableau-de-bord/parametres/chauffeurs/creer",
-                authorized: ["ADMIN", "SUPERADMIN"],
-              },
-            ],
-          },
+          // {
+          //   title: "Chauffeurs",
+          //   description: "Enregistrement des véhicules",
+          //   icon: Car,
+          //   href: "/tableau-de-bord/parametres/chauffeurs",
+          //   color: "from-orange-500 to-orange-600",
+          //   items: [
+          //     {
+          //       pageId: "PG-08-02",
+          //       title: "Liste",
+          //       href: "/tableau-de-bord/parametres/chauffeurs",
+          //       authorized: ["ADMIN", "SUPERADMIN"],
+          //     },
+          //     {
+          //       pageId: "PG-08-01",
+          //       title: "Ajouter",
+          //       href: "/tableau-de-bord/parametres/chauffeurs/creer",
+          //       authorized: ["ADMIN", "SUPERADMIN"],
+          //     },
+          //   ],
+          // },
           {
             title: "Véhicules",
             description: "Enregistrement des véhicules",
