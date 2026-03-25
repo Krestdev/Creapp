@@ -129,7 +129,7 @@ export default function UpdateRequestFac({
   );
 
   useEffect(() => {
-    if ( open && users.length > 0) {
+    if (open && users.length > 0) {
       const initializeForm = async () => {
         try {
           // Récupérer la liste des bénéficiaires depuis benFac
@@ -195,7 +195,6 @@ export default function UpdateRequestFac({
     onSuccess: () => {
       toast.success("Votre besoin a été modifié avec succès !");
       onOpenChange(false);
-
     },
 
     onError: (error: Error) => {
@@ -214,12 +213,12 @@ export default function UpdateRequestFac({
     const requestDataUpdate: Partial<RequestModelT> = {
       label: values.title,
       description: values.description,
-      categoryId: 0,
+      categoryId: requestData.categoryId, // Garder l'ID de catégorie original
       quantity: 1,
       unit: "unit",
       beneficiary: values.beneficiaire,
       benef: Array(user?.id),
-      userId: Number(user?.id),
+      userId: requestData.userId, // Garder l'utilisateur original
       dueDate: values.delai,
       projectId: Number(values.projet),
       proof: values.justificatif,
@@ -245,8 +244,9 @@ export default function UpdateRequestFac({
   // ----------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"secondary"}>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 flex flex-col">
+        {/* Header - FIXE EN HAUT */}
+        <DialogHeader variant={"secondary"} className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle>{requestData.label}</DialogTitle>
           <DialogDescription>
             {"Modifiez les informations du besoin"}
@@ -254,11 +254,9 @@ export default function UpdateRequestFac({
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="form-3xl"
-          >
-            <div className="space-y-8 max-w-3xl mx-auto pb-8">
+          {/* Contenu scrollable */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="space-y-8 max-w-3xl mx-auto">
               <div className="flex flex-col @min-[640px]:grid @min-[640px]:grid-cols-2 gap-4">
                 {/* PROJET */}
                 <FormField
@@ -306,6 +304,7 @@ export default function UpdateRequestFac({
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
+                        disabled={true}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionner une categorie" />
@@ -464,9 +463,10 @@ export default function UpdateRequestFac({
                 />
               </div>
             </div>
-          </form>
-          {/* Boutons - FIXE */}
-          <DialogFooter>
+          </div>
+
+          {/* Boutons - FIXE EN BAS */}
+          <DialogFooter className="px-6 py-4 border-t shrink-0">
             <DialogClose asChild>
               <Button
                 type="button"
@@ -481,7 +481,7 @@ export default function UpdateRequestFac({
               variant={"secondary"}
               disabled={updateMutation.isPending || !isFormInitialized}
               isLoading={updateMutation.isPending}
-              onClick={() => form.handleSubmit(onSubmit)()}
+              onClick={form.handleSubmit(onSubmit)}
             >
               {"Modifier la demande"}
             </Button>

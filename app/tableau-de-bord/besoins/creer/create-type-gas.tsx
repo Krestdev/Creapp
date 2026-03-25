@@ -90,6 +90,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
   const [dueDate, setDueDate] = React.useState<boolean>(false);
 
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const defaultDate = new Date();
   defaultDate.setDate(today.getDate() + 7);
 
@@ -138,7 +139,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
       priority: "medium",
       categoryId: values.categoryId,
       quantity: 1,
-      paytype: "cash"
+      paytype: "cash",
     });
   };
   console.log(form.formState.errors);

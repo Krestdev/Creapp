@@ -256,18 +256,9 @@ function CashRequestForm({ banks, payments }: Props) {
               <FormItem>
                 <FormLabel isRequired>{"Montant"}</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      {...field}
-                      placeholder="Ex. 50 000"
-                      className="pr-12"
-                      disabled
-                    />
-                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                      {"FCFA"}
-                    </span>
-                  </div>
+                  <span className="w-full flex items-center rounded border border-input px-4 h-10 text-xl font-bold text-primary-600 select-none">
+                    {XAF.format(field.value)}
+                  </span>
                 </FormControl>
                 <FormMessage />
               </FormItem>

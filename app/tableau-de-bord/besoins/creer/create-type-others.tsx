@@ -1,4 +1,5 @@
 "use client";
+import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -57,6 +58,16 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
 ];
 
 const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const SingleFileSchema = z
+  .array(
+    z.union([
+      z.instanceof(File, { message: "Doit être un fichier valide" }),
+      z.string(),
+    ]),
+  )
+  .min(1, { message: "Le justificatif est requis" });
 
 const formSchema = z.object({
   label: z
@@ -78,8 +89,9 @@ const formSchema = z.object({
     },
     { message: "Date invalide" },
   ),
-  unit: z.string(),
+  unit: z.string().min(1, "Veuillez sélectionner une unité"),
   priority: z.enum(REQUEST_PRIORITIES),
+  // proof: SingleFileSchema,
 });
 
 function CreateTypeOthers({ users, categories, projects }: Props) {
@@ -100,6 +112,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       unit: "",
       categoryId: undefined,
       projectId: undefined,
+      // proof: [], 
     },
   });
 
@@ -115,7 +128,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: z.infer<typeof formSchema> ) => {
     mutate({
       label: values.label,
       description: values.description,
@@ -127,9 +140,11 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       priority: values.priority,
       categoryId: values.categoryId,
       projectId: values.projectId,
-      paytype: "cash"
+      paytype: "cash",
+      // proof: values.proof,
     });
   };
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
@@ -208,7 +223,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
               <FormLabel isRequired>{"Projet"}</FormLabel>
               <FormControl>
                 <Combobox
-                  items={projects.filter(x => x.status !== "cancelled")}
+                  items={projects.filter((x) => x.status !== "cancelled")}
                   value={projects.find((p) => p.id === field.value) ?? null}
                   onValueChange={(v) => field.onChange(v?.id ?? "")}
                 >
@@ -234,7 +249,6 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
           control={form.control}
           name="dueDate"
           render={({ field }) => {
-            // Convertir la valeur string en Date pour le calendrier
             const selectedDate = field.value
               ? new Date(field.value)
               : undefined;
@@ -427,6 +441,27 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
             </FormItem>
           )}
         />
+        {/* JUSTIFICATIF */}
+        {/* <FormField
+          control={form.control}
+          name="proof"
+          render={({ field }) => (
+            <FormItem className="md:col-span-2">
+              <FormLabel isRequired>{"Justificatif"}</FormLabel>
+              <FormControl>
+                <FilesUpload
+                  value={field.value || []}
+                  onChange={field.onChange}
+                  name={field.name}
+                  acceptTypes="all"
+                  multiple={false}
+                  maxFiles={1}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        /> */}
         <div className="@min-[640px]:col-span-full w-full flex justify-end">
           <Button
             variant={"primary"}

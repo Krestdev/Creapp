@@ -355,10 +355,10 @@ function ExpensesTableSign({
       // Filter amount
       const matchAmount =
         amountTypeFilter === "greater"
-          ? p.price > amountFilter
+          ? p.price >= amountFilter
           : amountTypeFilter === "equal"
             ? p.price === amountFilter
-            : p.price < amountFilter;
+            : p.price <= amountFilter;
       // Bank Filter - selon le type de transaction
       const matchBank =
         bankFilter === "all" ? true : p.bankId?.toString() === bankFilter;
@@ -453,7 +453,7 @@ function ExpensesTableSign({
           const value = row.original;
           const type = getPaymentTypeBadge({
             type: value.type,
-            payTypes: payType,
+            typeList: requestTypes,
           });
           return <Badge variant={type.variant}>{type.label}</Badge>;
         },
@@ -1115,6 +1115,7 @@ function ExpensesTableSign({
           users={users}
           requests={requests}
           payTypes={payType}
+          requestTypes={requestTypes}
         />
       )}
       {selected && (

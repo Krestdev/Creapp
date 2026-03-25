@@ -236,17 +236,11 @@ function ShareExpense({
 
     switch (paymentType) {
       case "cash": // Espèces
-        if (payTypeLabel === "current") {
-          return banks.filter(
-            (bank) => bank.type === "CASH" && bank.Status === true,
-          );
-        } else {
-          // Pour cash normal : CASH_REGISTER
-          return banks.filter(
-            (bank) => bank.type === "CASH_REGISTER" && bank.Status === true,
-          );
-        }
-
+        return banks.filter(
+          (bank) =>
+            (bank.type === "CASH_REGISTER" || bank.type === "CASH") &&
+            bank.Status === true,
+        );
       case "ov": // Ordre de virement
       case "chq": // Chèque
         // Pour les virements et chèques : banques uniquement

@@ -54,6 +54,10 @@ interface Props {
 // ----------------------------------------------------------------------
 // VALIDATION
 // ----------------------------------------------------------------------
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
 const SingleFileSchema = z
   .array(
     z.union([
@@ -67,9 +71,7 @@ const SingleFileSchema = z
 const formSchema = z.object({
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
   projet: z.string().min(1, "Le projet est requis"),
-  delai: z
-    .date()
-    .min(new Date(), "Le delai d'exécution doit être dans le futur"),
+  delai: z.date().min(today, "Le delai d'exécution doit être dans le futur"),
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),
@@ -384,7 +386,7 @@ export default function FacilitationRequestForm({
             className="min-w-[200px]"
             isLoading={requestMutation.isPending}
           >
-            {"Soumettre la demande de facilitation"}
+            {"Soumettre la demande"}
           </Button>
         </div>
       </form>
@@ -392,7 +394,7 @@ export default function FacilitationRequestForm({
       <SuccessModal
         open={isSuccessModalOpen}
         onOpenChange={setIsSuccessModalOpen}
-        message="Votre demande de facilitation a été soumise avec succès."
+        message="Votre demande a été soumise avec succès."
       />
     </Form>
   );
