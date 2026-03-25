@@ -396,3 +396,7 @@ export const formatFCFA = (value?: number) => {
 
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " FCFA";
 };
+
+export const getModifiedProps = ({ data }: { data: RequestModelT }) => {
+  //To-Do
+};

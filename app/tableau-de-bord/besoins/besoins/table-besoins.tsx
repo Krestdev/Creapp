@@ -247,7 +247,7 @@ export function RequestsTable({
           ? (project?.label ?? projectId.toString())
           : "--";
         return (
-          <div className="first-letter:uppercase lowercase max-w-[500px] truncate">
+          <div className="first-letter:uppercase lowercase">
             {subText({ text: title, length: 21 })}
           </div>
         );

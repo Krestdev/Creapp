@@ -20,6 +20,7 @@ import { userQ } from "@/queries/baseModule";
 import { invoiceQ } from "@/queries/invoices";
 import { projectQ } from "@/queries/projectModule";
 import { transactionQ } from "@/queries/transaction";
+import { signatairQ } from "@/queries/signatair";
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: ["payments"],
@@ -64,6 +65,12 @@ function Page() {
     queryKey: ["providers"],
     queryFn: providerQ.getAll,
   });
+
+  const getSignataires = useQuery({
+    queryKey: ["SignatairList"],
+    queryFn: signatairQ.getAll,
+  });
+
   if (
     isLoading ||
     getInvoices.isLoading ||
@@ -74,7 +81,8 @@ function Page() {
     getUsers.isLoading ||
     getPaymentType.isLoading ||
     getProjects.isLoading ||
-    getTransactions.isLoading
+    getTransactions.isLoading ||
+    getSignataires.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -88,7 +96,8 @@ function Page() {
     getUsers.isError ||
     getPaymentType.isError ||
     getProjects.isError ||
-    getTransactions.isError
+    getTransactions.isError ||
+    getSignataires.isError
   ) {
     return (
       <ErrorPage
@@ -103,6 +112,7 @@ function Page() {
           getUsers.error ||
           getProjects.error ||
           getTransactions.error ||
+          getSignataires.error ||
           undefined
         }
       />
@@ -118,7 +128,8 @@ function Page() {
     getUsers.isSuccess &&
     getPaymentType.isSuccess &&
     getProjects.isSuccess &&
-    getTransactions.isSuccess
+    getTransactions.isSuccess &&
+    getSignataires.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -179,6 +190,7 @@ function Page() {
           users={getUsers.data.data}
           projects={getProjects.data.data}
           transactions={getTransactions.data.data}
+          signataires={getSignataires.data.data}
         />
         <ExpensesTable
           payments={data.data.filter(
@@ -193,6 +205,7 @@ function Page() {
           users={getUsers.data.data}
           projects={getProjects.data.data}
           transactions={getTransactions.data.data}
+          signataires={getSignataires.data.data}
         />
       </div>
     );
