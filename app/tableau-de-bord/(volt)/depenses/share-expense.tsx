@@ -27,8 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
-import { payTypeQ } from "@/queries/payType";
-import { signatairQ } from "@/queries/signatair";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import {
   Bank,
@@ -42,8 +40,8 @@ import {
   User,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -168,6 +166,26 @@ function ShareExpense({
       docNumber: "",
     },
   });
+
+  useEffect(() => {
+    if (open)
+      return form.reset({
+        label: ticket.title,
+        fromBankId: undefined,
+        // Si le ticket n'a pas de methodId, laisser undefined
+        ...(hasExistingMethodId ? {} : { methodId: undefined }),
+        to: {
+          label: isFacilitation
+            ? benef?.firstName + " " + benef?.lastName
+            : (ticket.invoice?.command.provider.name ?? !!ticket.requestId)
+              ? requestUser?.firstName.concat(" ", requestUser?.lastName)
+              : "",
+          accountNumber: "",
+          phoneNum: "",
+        },
+        docNumber: "",
+      });
+  }, [open]);
 
   // Observer la valeur de la banque sélectionnée
   const selectedBankId = useWatch({
