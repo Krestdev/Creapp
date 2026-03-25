@@ -1045,6 +1045,7 @@ function ExpensesTable({
           users={users}
           payTypes={paymentTypes}
           requests={request}
+          requestTypes={requestTypes}
         />
       )}
       {selected && (

@@ -346,7 +346,9 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
           <View style={styles.heroTop}>
             <View>
               <Text style={styles.heroLabel}>Bénéficiaire</Text>
-              <Text style={styles.heroValue}>{emitter || beneficiaryName}</Text>
+              <Text style={styles.heroValue}>
+                {beneficiaryName ?? emitter.concat(" (Emetteur)")}
+              </Text>
             </View>
 
             <View style={styles.amountBox}>

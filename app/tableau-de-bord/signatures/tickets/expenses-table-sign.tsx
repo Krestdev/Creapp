@@ -348,10 +348,10 @@ function ExpensesTableSign({
         search.trim() === ""
           ? true
           : p.id.toString().toLocaleLowerCase().includes(search) ||
-          p.account?.toLocaleLowerCase().includes(search) ||
-          p.price.toString().includes(search) ||
-          p.reference.toLocaleLowerCase().includes(search) ||
-          p.title.toLocaleLowerCase().includes(search);
+            p.account?.toLocaleLowerCase().includes(search) ||
+            p.price.toString().includes(search) ||
+            p.reference.toLocaleLowerCase().includes(search) ||
+            p.title.toLocaleLowerCase().includes(search);
       // Filter amount
       const matchAmount =
         amountTypeFilter === "greater"
@@ -453,7 +453,7 @@ function ExpensesTableSign({
           const value = row.original;
           const type = getPaymentTypeBadge({
             type: value.type,
-            payTypes: payType,
+            typeList: requestTypes,
           });
           return <Badge variant={type.variant}>{type.label}</Badge>;
         },
@@ -598,11 +598,11 @@ function ExpensesTableSign({
 
           const priorityA =
             priorityOrder[
-            rowA.getValue(columnId) as keyof typeof priorityOrder
+              rowA.getValue(columnId) as keyof typeof priorityOrder
             ] || 0;
           const priorityB =
             priorityOrder[
-            rowB.getValue(columnId) as keyof typeof priorityOrder
+              rowB.getValue(columnId) as keyof typeof priorityOrder
             ] || 0;
 
           return priorityA - priorityB;
@@ -878,9 +878,9 @@ function ExpensesTableSign({
                         <span className="text-muted-foreground text-xs">
                           {customDateRange?.from && customDateRange.to
                             ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                                customDateRange.from,
+                                "dd/MM/yyyy",
+                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -1038,8 +1038,9 @@ function ExpensesTableSign({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${authorizedPayments.length
-        })`}</h3>
+      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${
+        authorizedPayments.length
+      })`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -1054,9 +1055,9 @@ function ExpensesTableSign({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -1114,6 +1115,7 @@ function ExpensesTableSign({
           users={users}
           requests={requests}
           payTypes={payType}
+          requestTypes={requestTypes}
         />
       )}
       {selected && (
