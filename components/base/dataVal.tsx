@@ -22,6 +22,7 @@ import {
   Hourglass,
   LoaderIcon,
   LucideBan,
+  LucideCreditCard,
   LucideIcon,
   Paperclip,
   Settings2,
@@ -104,6 +105,7 @@ import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { TabBar } from "./TabBar";
 import BesoinLastApproVall from "../modals/BesoinApproValid";
+import UpdatePaymentMethod from "../modals/UpdatePaymentMethod";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -183,6 +185,9 @@ export function DataVal({
   const [isUpdateFacModalOpen, setIsUpdateFacModalOpen] = React.useState(false);
   const [isUpdateRHModalOpen, setIsUpdateRHModalOpen] = React.useState(false);
   const [isUpdateApproModalOpen, setIsUpdateApproModalOpen] =
+    React.useState(false);
+  // Ajoutez ce state avec les autres states de modals
+  const [isUpdatePaymentModalOpen, setIsUpdatePaymentModalOpen] =
     React.useState(false);
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
@@ -949,6 +954,22 @@ export function DataVal({
                   <LucideBan className="text-destructive" />
                   {"Rejeter"}
                 </DropdownMenuItem>
+                {item.type === "facilitation" && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelectedItem(item);
+                      setIsUpdatePaymentModalOpen(true);
+                    }}
+                    disabled={
+                      !validationInfo.canValidate ||
+                      item.state !== "pending" ||
+                      userHasValidated
+                    }
+                  >
+                    <LucideCreditCard className="h-4 w-4 text-blue-500" />
+                    {"Modifier le moyen de paiement"}
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             {isAttach ? <Paperclip size={16} /> : ""}
@@ -1833,6 +1854,23 @@ export function DataVal({
           users={usersData}
           categories={categoriesData}
           projects={projectsData}
+        />
+      )}
+
+      {selectedItem && (
+        <UpdatePaymentMethod
+          open={isUpdatePaymentModalOpen}
+          setOpen={setIsUpdatePaymentModalOpen}
+          requestData={selectedItem}
+          categories={categoriesData}
+          users={usersData}
+          projects={projectsData}
+          payments={paymentsData}
+          onSuccess={() => {
+            // Rafraîchir les données si nécessaire
+            // Vous pouvez ajouter un callback pour revalider les requêtes
+            
+          }}
         />
       )}
     </div>

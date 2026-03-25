@@ -247,7 +247,6 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
               <FormItem>
                 <FormLabel isRequired>{"Categorie"}</FormLabel>
                 <FormControl>
-<<<<<<< HEAD
                   <SearchableSelect
                     onChange={field.onChange}
                     options={categories
@@ -261,36 +260,6 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
                     allLabel=""
                     placeholder="Sélectionner un projet"
                   />
-=======
-                  <Select
-                    defaultValue={field.value ? String(field.value) : undefined}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="min-w-60 w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.filter(
-                        (c) => c.type.type === "ressource_humaine",
-                      ).length === 0 ? (
-                        <SelectItem value="#" disabled>
-                          {"Aucune catégorie enregistrée"}
-                        </SelectItem>
-                      ) : (
-                        categories
-                          .filter((c) => c.type.type === "ressource_humaine")
-                          .map((category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={category.id.toString()}
-                            >
-                              {category.label}
-                            </SelectItem>
-                          ))
-                      )}
-                    </SelectContent>
-                  </Select>
->>>>>>> c9d9ec20db22b1df9717502392bd7f1a4b43f4d0
                 </FormControl>
                 <FormMessage />
               </FormItem>
