@@ -27,7 +27,7 @@ export type PayPayload = Omit<
 
 export type PayloadGasCompletion = {
   id: number;
-  km: number;
+  //km: number;
   price: number;
   driverId: number;
   liters: number;
@@ -282,9 +282,9 @@ class PaymentQueries {
   }: {
     payload: PayloadGasCompletion;
   }): Promise<{ data: PaymentRequest }> => {
-    const { id, km, liters, price, driverId, deadline } = payload;
+    const { id, liters, price, driverId, deadline } = payload;
     const formData = new FormData();
-    formData.append("km", km.toString());
+    //formData.append("km", km.toString());
     formData.append("liters", liters.toString());
     formData.append("price", price.toString());
     formData.append("driverId", driverId.toString());
