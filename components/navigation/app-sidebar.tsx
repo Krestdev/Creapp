@@ -512,7 +512,7 @@ function AppSidebar() {
             pageId: "PG-03-01",
             title: "Demande de cotation",
             href: "/tableau-de-bord/commande/cotation",
-            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES"],
             badgeValue:
               requestToUse.length > 0 ? requestToUse.length : undefined,
           },
@@ -520,7 +520,7 @@ function AppSidebar() {
             pageId: "PG-03-02",
             title: "Devis",
             href: "/tableau-de-bord/commande/devis",
-            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES"],
           },
           {
             pageId: "PG-03-45",
@@ -536,7 +536,7 @@ function AppSidebar() {
             pageId: "PG-03-5",
             title: "Bons de commande",
             href: "/tableau-de-bord/commande/bon-de-commande",
-            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES"],
             badgeValue:
               devisTraite && devisTraite.length > 0
                 ? devisTraite?.length
