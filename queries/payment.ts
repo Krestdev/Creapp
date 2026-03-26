@@ -283,15 +283,12 @@ class PaymentQueries {
     payload: PayloadGasCompletion;
   }): Promise<{ data: PaymentRequest }> => {
     const { id, liters, price, driverId, deadline } = payload;
-    const formData = new FormData();
-    //formData.append("km", km.toString());
-    formData.append("liters", liters.toString());
-    formData.append("price", price.toString());
-    formData.append("driverId", driverId.toString());
-    formData.append("deadline", deadline.toDateString());
     return api
-      .put(`${this.route}/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      .put(`${this.route}/gas/${id}`, {
+        liters,
+        price,
+        driverId,
+        deadline,
       })
       .then((response) => response.data);
   };
