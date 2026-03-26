@@ -409,7 +409,7 @@ function ViewRequest({
                     <div className="flex flex-col">
                       {request.beneficiary === "me" ? (
                         <p className="font-semibold capitalize">
-                          {request.requestOlds && request.requestOlds[0].id ? getUserName(users, request.requestOlds[0].id) : "Introuvable"}
+                          {request.requestOlds && request.requestOlds[0].userId ? getUserName(users, request.requestOlds[0].userId) : "Introuvable"}
                         </p>
                       ) : (
                         <div className="flex flex-col">
