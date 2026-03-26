@@ -960,11 +960,11 @@ export function DataVal({
                       setSelectedItem(item);
                       setIsUpdatePaymentModalOpen(true);
                     }}
-                    disabled={
-                      !validationInfo.canValidate ||
-                      item.state !== "pending" ||
-                      userHasValidated
-                    }
+                    // disabled={
+                    //   !validationInfo.canValidate ||
+                    //   item.state !== "pending" ||
+                    //   userHasValidated
+                    // }
                   >
                     <LucideCreditCard className="h-4 w-4 text-blue-500" />
                     {"Modifier le moyen de paiement"}
