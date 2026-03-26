@@ -225,8 +225,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
 function isGasComplete(item: PaymentRequest) {
   return (
     item.type === "gas" &&
-    !!item.driverId &&
-    !!item.km &&
+    !!item.benefId &&
     !!item.liters &&
     !!item.price &&
     !!item.deadline
