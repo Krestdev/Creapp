@@ -25,7 +25,9 @@ function Page() {
           subtitle="Approuvez ou rejetez les demandes de transfert de fonds."
           color="green"
         />
-        <TransferTable data={data.data} />
+        <TransferTable
+          data={data.data.filter(x => !x.from.type?.includes("CASH"))}
+        />
       </div>
     );
   }

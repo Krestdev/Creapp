@@ -9,6 +9,7 @@ import { transactionQ } from "@/queries/transaction";
 import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import TransactionTable from "./transaction-table";
+import { StatisticCard } from "@/components/base/TitleValueCard";
 
 function Page() {
   const { user } = useStore();
@@ -25,6 +26,11 @@ function Page() {
     queryFn: transactionQ.getAll,
   });
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
+
+  const entreeTrans = getTransactions.data?.data.filter(
+    (t) => t.Type === "CREDIT" && t.status === "APPROVED",
+  ) || [];
+
 
   if (getTransactions.isLoading || getBanks.isLoading) {
     return <LoadingPage />;
@@ -44,7 +50,7 @@ function Page() {
         />
         <TransactionTable
           data={getTransactions.data.data
-            .filter((t) => t.status === "APPROVED")
+            .filter((t) => t.status === "APPROVED" && t.Type !== "TRANSFER")
             .sort(
               (a, b) =>
                 new Date(b.updatedAt).getTime() -

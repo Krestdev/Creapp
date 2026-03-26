@@ -43,24 +43,26 @@ const SingleFileArray = z
 
 const formSchema = z.object({
   name: z.string().min(1),
-  phone: z
-    .string()
-    .min(1)
-    .refine((val) => !isNaN(Number(val)), {
-      message: "Le numéro de téléphone doit contenir uniquement des chiffres",
-    }),
-  email: z.string().email(),
+  phone: z.string(),
+  // .min(1)
+  // .refine((val) => !isNaN(Number(val)), {
+  //   message: "Le numéro de téléphone doit contenir uniquement des chiffres",
+  // }),
+  email: z.string().email().optional(),
   address: z.string(),
   carte_contribuable: SingleFileArray,
   acf: SingleFileArray,
-  expireAtacf: z.string({ message: "Veuillez définir une date" }).refine(
-    (val) => {
-      const d = new Date(val);
-      const now = new Date();
-      return !isNaN(d.getTime()) && d > now;
-    },
-    { message: "Date invalide" },
-  ),
+  expireAtacf: z
+    .string({ message: "Veuillez définir une date" })
+    .refine(
+      (val) => {
+        const d = new Date(val);
+        const now = new Date();
+        return !isNaN(d.getTime()) && d > now;
+      },
+      { message: "Date invalide" },
+    )
+    .optional(),
   expireAtcarte_contribuable: z
     .string({ message: "Veuillez définir une date" })
     .refine(
@@ -70,7 +72,8 @@ const formSchema = z.object({
         return !isNaN(d.getTime()) && d > now;
       },
       { message: "Date invalide" },
-    ),
+    )
+    .optional(),
   plan_localisation: SingleFileArray,
   commerce_registre: SingleFileArray,
   expireAtplan_localisation: z
@@ -82,7 +85,8 @@ const formSchema = z.object({
         return !isNaN(d.getTime()) && d > now;
       },
       { message: "Date invalide" },
-    ),
+    )
+    .optional(),
   expireAtcommerce_registre: z
     .string({ message: "Veuillez définir une date" })
     .refine(
@@ -92,7 +96,8 @@ const formSchema = z.object({
         return !isNaN(d.getTime()) && d > now;
       },
       { message: "Date invalide" },
-    ),
+    )
+    .optional(),
   banck_attestation: SingleFileArray.optional(),
   expireAtbanck_attestation: z
     .string({ message: "Veuillez définir une date" })
@@ -119,7 +124,7 @@ export default function CreateProviderForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      email: undefined,
       address: "",
       name: "",
       phone: "",
@@ -128,11 +133,11 @@ export default function CreateProviderForm() {
       plan_localisation: [],
       commerce_registre: [],
       banck_attestation: [],
-      expireAtbanck_attestation: format(new Date(), "yyyy-MM-dd"),
-      expireAtacf: format(new Date(), "yyyy-MM-dd"),
-      expireAtcarte_contribuable: format(new Date(), "yyyy-MM-dd"),
-      expireAtplan_localisation: format(new Date(), "yyyy-MM-dd"),
-      expireAtcommerce_registre: format(new Date(), "yyyy-MM-dd"),
+      expireAtbanck_attestation: undefined,
+      expireAtacf: undefined,
+      expireAtcarte_contribuable: undefined,
+      expireAtplan_localisation: undefined,
+      expireAtcommerce_registre: undefined,
     },
   });
 
@@ -155,11 +160,11 @@ export default function CreateProviderForm() {
         plan_localisation: [],
         commerce_registre: [],
         banck_attestation: [],
-        expireAtbanck_attestation: format(new Date(), "yyyy-MM-dd"),
-        expireAtacf: format(new Date(), "yyyy-MM-dd"),
-        expireAtcarte_contribuable: format(new Date(), "yyyy-MM-dd"),
-        expireAtplan_localisation: format(new Date(), "yyyy-MM-dd"),
-        expireAtcommerce_registre: format(new Date(), "yyyy-MM-dd"),
+        expireAtbanck_attestation: undefined,
+        expireAtacf: undefined,
+        expireAtcarte_contribuable: undefined,
+        expireAtplan_localisation: undefined,
+        expireAtcommerce_registre: undefined,
       });
     },
     onError: (error: Error) => {
@@ -178,12 +183,18 @@ export default function CreateProviderForm() {
       address: values.address,
       carte_contribuable: values.carte_contribuable?.[0],
       acf: values.acf?.[0],
-      expireAtacf: new Date(values.expireAtacf),
-      expireAtcarte_contribuable: new Date(values.expireAtcarte_contribuable),
+      expireAtacf: values.expireAtacf ? new Date(values.expireAtacf) : undefined,
+      expireAtcarte_contribuable: values.expireAtcarte_contribuable
+        ? new Date(values.expireAtcarte_contribuable)
+        : undefined,
       plan_localisation: values.plan_localisation?.[0],
-      expireAtplan_localisation: new Date(values.expireAtplan_localisation),
+      expireAtplan_localisation: values.expireAtplan_localisation
+        ? new Date(values.expireAtplan_localisation)
+        : undefined,
       commerce_registre: values.commerce_registre?.[0],
-      expireAtcommerce_registre: new Date(values.expireAtcommerce_registre),
+      expireAtcommerce_registre: values.expireAtcommerce_registre
+        ? new Date(values.expireAtcommerce_registre)
+        : undefined,
       banck_attestation: values.banck_attestation?.[0] ?? undefined,
       expireAtbanck_attestation: values.expireAtbanck_attestation
         ? new Date(values.expireAtbanck_attestation)
@@ -214,7 +225,7 @@ export default function CreateProviderForm() {
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Numéro de téléphone"}</FormLabel>
+              <FormLabel>{"Numéro de téléphone"}</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="ex. 695 555 555" type="number" {...field} />
               </FormControl>
@@ -229,7 +240,7 @@ export default function CreateProviderForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Adresse mail"}</FormLabel>
+              <FormLabel>{"Adresse mail"}</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="ex. johndoe@gemail.com" {...field} />
               </FormControl>
@@ -244,7 +255,7 @@ export default function CreateProviderForm() {
           name="address"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Adresse"}</FormLabel>
+              <FormLabel>{"Adresse"}</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="ex. Boulevard de la Liberté" {...field} />
               </FormControl>
@@ -259,7 +270,7 @@ export default function CreateProviderForm() {
           name="RCCM"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"RCCM"}</FormLabel>
+              <FormLabel>{"RCCM"}</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="RC/234/456/..." {...field} />
               </FormControl>
@@ -273,7 +284,7 @@ export default function CreateProviderForm() {
           name="NIU"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"NIU"}</FormLabel>
+              <FormLabel>{"NIU"}</FormLabel>
               <FormControl className="w-full">
                 <Input placeholder="QA123..." {...field} />
               </FormControl>
@@ -290,7 +301,7 @@ export default function CreateProviderForm() {
           name="regem"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"Régime"}</FormLabel>
+              <FormLabel>{"Régime"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
@@ -318,7 +329,7 @@ export default function CreateProviderForm() {
           name="carte_contribuable"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"Carte contribuable"}</FormLabel>
+              <FormLabel>{"Carte contribuable"}</FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value}
@@ -339,7 +350,7 @@ export default function CreateProviderForm() {
           name="expireAtcarte_contribuable"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>
+              <FormLabel>
                 {"Date d'expiration Carte contribuable"}
               </FormLabel>
               <FormControl>
@@ -410,7 +421,7 @@ export default function CreateProviderForm() {
           name="acf"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"ACF"}</FormLabel>
+              <FormLabel>{"ACF"}</FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value}
@@ -430,7 +441,7 @@ export default function CreateProviderForm() {
           name="expireAtacf"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Date d'expiration de l'ACF"}</FormLabel>
+              <FormLabel>{"Date d'expiration de l'ACF"}</FormLabel>
               <FormControl>
                 <div className="relative flex gap-2">
                   <Input
@@ -496,7 +507,7 @@ export default function CreateProviderForm() {
           name="plan_localisation"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"Plan de localisation"}</FormLabel>
+              <FormLabel>{"Plan de localisation"}</FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value}
@@ -517,7 +528,7 @@ export default function CreateProviderForm() {
           name="expireAtplan_localisation"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>
+              <FormLabel>
                 {"Date d'expiration Plan de localisation"}
               </FormLabel>
               <FormControl>
@@ -588,7 +599,7 @@ export default function CreateProviderForm() {
           name="commerce_registre"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"registre de commerce"}</FormLabel>
+              <FormLabel>{"registre de commerce"}</FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value}
@@ -609,7 +620,7 @@ export default function CreateProviderForm() {
           name="expireAtcommerce_registre"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>
+              <FormLabel>
                 {"Date d'expiration Registre de commerce"}
               </FormLabel>
               <FormControl>
