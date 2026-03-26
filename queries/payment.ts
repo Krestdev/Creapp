@@ -29,7 +29,7 @@ export type PayloadGasCompletion = {
   id: number;
   //km: number;
   price: number;
-  driverId: number;
+  benefId: number;
   liters: number;
   deadline: Date;
 };
@@ -282,12 +282,12 @@ class PaymentQueries {
   }: {
     payload: PayloadGasCompletion;
   }): Promise<{ data: PaymentRequest }> => {
-    const { id, liters, price, driverId, deadline } = payload;
+    const { id, liters, price, benefId, deadline } = payload;
     return api
       .put(`${this.route}/gas/${id}`, {
         liters,
         price,
-        driverId,
+        benefId,
         deadline,
       })
       .then((response) => response.data);
