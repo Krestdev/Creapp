@@ -598,7 +598,7 @@ function AppSidebar() {
           },
           {
             pageId: "PG-04-02",
-            title: "Transferts",
+            title: "Approvisionnements",
             href: "/tableau-de-bord/ticket/transferts",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
             badgeValue:

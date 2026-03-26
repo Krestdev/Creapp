@@ -693,6 +693,7 @@ export type DebitTransaction = TransactionBase & {
   to: {
     id: number;
     label: string;
+    type?: "BANK" | "CASH" | "CASH_REGISTER" | "null";
     accountNumber?: string;
     phoneNumber?: string;
   };
@@ -703,6 +704,7 @@ export type CreditTransaction = TransactionBase & {
   from: {
     id: number;
     label: string;
+    type?: "BANK" | "CASH" | "CASH_REGISTER" | "null";
     accountNumber?: string;
     phoneNumber?: string;
   };

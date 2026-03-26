@@ -23,6 +23,7 @@ import {
   ClipboardListIcon,
   ClipboardPenIcon,
   DollarSign,
+  File,
   FileIcon,
   FilePenIcon,
   LucideHash,
@@ -31,6 +32,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import { PaymentRequest } from "@/types/types";
 
 interface Props {
   open: boolean;
@@ -41,9 +43,9 @@ interface Props {
 function ViewTransaction({ open, openChange, transaction }: Props) {
   const getSourceDetails = (source: Transaction["from"]) => {
     const details = [];
-    if ("accountNumber" in source && source.accountNumber) {
-      details.push(`Numéro de compte: ${source.accountNumber}`);
-    }
+    // if ("accountNumber" in source && source.accountNumber) {
+    //   details.push(`Numéro de compte: ${source.accountNumber}`);
+    // }
     if ("phoneNumber" in source && source.phoneNumber) {
       details.push(`Numéro de téléphone: ${source.phoneNumber}`);
     }
@@ -52,9 +54,9 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
 
   const getTargetDetails = (target: Transaction["to"]) => {
     const details = [];
-    if ("accountNumber" in target && target.accountNumber) {
-      details.push(`Numéro de compte: ${target.accountNumber}`);
-    }
+    // if ("accountNumber" in target && target.accountNumber) {
+    //   details.push(`Numéro de compte: ${target.accountNumber}`);
+    // }
     if ("phoneNumber" in target && target.phoneNumber) {
       details.push(`Numéro de téléphone: ${target.phoneNumber}`);
     }
@@ -80,6 +82,37 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
         return { label, variant: "outline" };
     }
   };
+
+  function getPaiementStatusBadge(status: PaymentRequest["status"]): {
+    label: string;
+    variant: VariantProps<typeof badgeVariants>["variant"];
+  } {
+    const label =
+      status === "unsigned"
+        ? "En attente de signature"
+        : status === "signed"
+          ? "Signé"
+          : status === "paid"
+            ? "Payé"
+            : status === "simple_signed"
+              ? "Paiement ouvert"
+              : "En attente";
+
+    switch (status) {
+      case "pending_depense":
+        return { label, variant: "yellow" };
+      case "unsigned":
+        return { label, variant: "teal" };
+      case "signed":
+        return { label, variant: "lime" };
+      case "paid":
+        return { label, variant: "success" };
+      case "simple_signed":
+        return { label, variant: "success" };
+      default:
+        return { label, variant: "yellow" };
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
@@ -169,18 +202,14 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             <>
               <div className="view-group">
                 <span className="view-icon">
-                  <ClipboardPenIcon />
+                  <File />
                 </span>
                 <div className="flex flex-col">
-                  <p className="view-group-title">{"Signature"}</p>
+                  <p className="view-group-title">{"Document à signer"}</p>
                   <p className="font-semibold">
-                    <Badge
-                      variant={
-                        transaction.isSigned === true ? "success" : "amber"
-                      }
-                    >
-                      {transaction.isSigned === true ? "Signé" : "En attente"}
-                    </Badge>
+                    {transaction.method?.label! +
+                      " N°" +
+                      transaction?.docNumber}
                   </p>
                 </div>
               </div>
@@ -189,7 +218,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
                   <UsersIcon />
                 </span>
                 <div className="w-full flex flex-col">
-                  <p className="view-group-title">{"Signataires"}</p>
+                  <p className="view-group-title">{"Signé par"}</p>
                   <div className="w-full grid gap-2">
                     {transaction.signers?.length === 0 ||
                     !transaction.signers ? (
@@ -222,25 +251,21 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">
-                {transaction.Type === "CREDIT"
+                {/* {transaction.Type === "CREDIT"
                   ? "Source"
                   : transaction.Type === "DEBIT"
                     ? "Compte débité"
-                    : "Compte d'origine"}
+                    : "Compte d'origine"} */}
+                {"Mouvement"}
               </p>
-              <div className="space-y-0.5">
-                <p className="font-semibold">{transaction.from.label}</p>
-                {getSourceDetails(transaction.from).map((detail, index) => (
-                  <p key={index} className="text-sm text-gray-600">
-                    {detail}
-                  </p>
-                ))}
+              <div className="w-full flex flex-row items-center justify-between">
+                <p className="font-semibold">{`${transaction.from.label} → ${transaction.to.label}`}</p>
               </div>
             </div>
           </div>
 
           {/** Destination */}
-          <div className="view-group">
+          {/* <div className="view-group">
             <span className="view-icon">
               <ArrowDownToLineIcon />
             </span>
@@ -261,7 +286,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/** Preuve */}
           <div className="view-group">
@@ -303,7 +328,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
                   <FilePenIcon />
                 </span>
                 <div className="flex flex-col">
-                  <p className="view-group-title">{"Signature"}</p>
+                  <p className="view-group-title">{"Preuve de signature"}</p>
                   <div className="space-y-1">
                     {transaction.signDoc ? (
                       transaction.signDoc.split(";").map((proof, index) => (
@@ -329,20 +354,29 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
                   </div>
                 </div>
               </div>
-              <div className="view-group">
+              <div className="view-group col-span-2">
                 <span className="view-icon">
                   <ClipboardListIcon />
                 </span>
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Besoins associés"}</p>
-                  <div className="flex flex-col gap-1.5">
-                    {transaction.payments.map((item) => (
+                  <div className="flex flex-col">
+                    {transaction.payments.map((item, i) => (
                       <span
                         key={item.id}
-                        className="w-full flex gap-2 justify-between text-sm"
+                        className={`p-1.5 w-full grid grid-cols-2 gap-2 justify-between text-sm ${i % 2 === 0 ? "bg-gray-100" : ""}`}
                       >
                         <p className="line-clamp-1">{item.title}</p>
-                        <p>{XAF.format(item.price ?? 0)}</p>
+                        <div className="grid grid-cols-2 items-center max-w-[300px]">
+                          <p>{XAF.format(item.price ?? 0)}</p>
+                          <Badge
+                            variant={
+                              getPaiementStatusBadge(item.status).variant
+                            }
+                          >
+                            {getPaiementStatusBadge(item.status).label}
+                          </Badge>
+                        </div>
                       </span>
                     ))}
                   </div>
