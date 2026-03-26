@@ -339,15 +339,15 @@ function ExpensesTable({
           : providerFilter === "no-provider"
             ? !p.invoiceId
             : invoices.find((c) => c.id === p.invoiceId)?.command.providerId ===
-            Number(providerFilter);
+              Number(providerFilter);
       //Filter tab
       const matchTab =
         selectedTab === 0
           ? p.status === "validated" || p.status === "unsigned"
           : selectedTab === 1
             ? p.status === "pending_depense" ||
-            p.status === "signed" ||
-            p.status === "simple_signed"
+              p.status === "signed" ||
+              p.status === "simple_signed"
             : p.status === "paid";
       //Filter type
       const matchType = typeFilter === "all" ? true : p.type === typeFilter;
@@ -440,11 +440,20 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
+        const isSelected = value.selected === true;
+        const transactionStatus = isSelected
+          ? transactions.find(
+              (t) =>
+                t.Type === "TRANSFER" &&
+                t.payments.some((p) => p.id === value.id) &&
+                t.status === "APPROVED",
+            )
+          : false;
         const invoice = invoices.find((iv) => iv.id === value.invoiceId);
         const title = value.title;
         return (
           <div className="max-w-[500px] flex gap-1.5">
-            {value.selected === true && (
+            {!!transactionStatus && (
               <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
                 <AsteriskIcon size={16} />
               </span>
@@ -521,11 +530,11 @@ function ExpensesTable({
 
         const priorityA =
           priorityOrder[
-          rowA.getValue(columnId) as keyof typeof priorityOrder
+            rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-          rowB.getValue(columnId) as keyof typeof priorityOrder
+            rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -601,7 +610,13 @@ function ExpensesTable({
                 {"Voir"}
               </DropdownMenuItem>
               {item.type === "gas" && (
-                <DropdownMenuItem disabled={isGasComplete(item)} onClick={() => { setSelected(item); setShowGas(true) }}>
+                <DropdownMenuItem
+                  disabled={isGasComplete(item)}
+                  onClick={() => {
+                    setSelected(item);
+                    setShowGas(true);
+                  }}
+                >
                   <ArrowRightToLine />
                   {"Compléter le paiement"}
                 </DropdownMenuItem>
@@ -989,9 +1004,9 @@ function ExpensesTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -1075,7 +1090,14 @@ function ExpensesTable({
             banks={banks}
             transactions={transactions}
           />
-          <CompleteGas ticket={selected} open={showGas} onOpenChange={setShowGas} users={users} requests={request} />
+          <CompleteGas
+            ticket={selected}
+            open={showGas}
+            onOpenChange={setShowGas}
+            users={users}
+            requests={request}
+            requestTypes={requestTypes}
+          />
         </>
       )}
     </div>

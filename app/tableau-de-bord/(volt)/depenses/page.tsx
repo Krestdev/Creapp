@@ -22,13 +22,14 @@ import { invoiceQ } from "@/queries/invoices";
 import { projectQ } from "@/queries/projectModule";
 import { transactionQ } from "@/queries/transaction";
 import { signatairQ } from "@/queries/signatair";
+import { useMemo } from "react";
 
 function Page() {
   const links: Array<NavLink> = [
     {
       title: "Créer une dépense",
       href: "/tableau-de-bord/depenses/creer",
-      hide: false,
+      hide: true,
       disabled: false,
     },
   ];
@@ -88,6 +89,11 @@ function Page() {
     queryKey: ["SignatairList"],
     queryFn: signatairQ.getAll,
   });
+
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    return data.data.filter((x) => x.type !== "appro");
+  }, [data]);
 
   if (
     isLoading ||
@@ -152,9 +158,7 @@ function Page() {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente de traitement",
-        value: data.data.filter(
-          (p) => p.status === "pending_depense" || p.status === "validated",
-        ).length,
+        value: filteredData.filter((p) => p.status === "validated").length,
         variant: "primary",
         more: {
           title: "Montant total",
@@ -167,7 +171,7 @@ function Page() {
       },
       {
         title: "Tickets payés",
-        value: data.data.filter((p) => p.status === "paid").length,
+        value: filteredData.filter((p) => p.status === "paid").length,
         variant: "secondary",
         more: {
           title: "Montant total",
@@ -180,11 +184,8 @@ function Page() {
       },
       {
         title: "Tickets signés en attente de paiement",
-        value: data.data.filter(
-          (p) =>
-            p.status === "pending_depense" ||
-            p.status === "signed" ||
-            p.status === "simple_signed",
+        value: filteredData.filter(
+          (p) => p.status === "signed" || p.status === "simple_signed",
         ).length,
         variant: "default",
         more: {
@@ -214,7 +215,7 @@ function Page() {
           ))}
         </div>
         <ExpensesTable
-          payments={data.data.filter((x) => x.type !== "appro")}
+          payments={filteredData}
           banks={getBanks.data.data}
           invoices={getInvoices.data.data}
           requestTypes={getRequestType.data.data}

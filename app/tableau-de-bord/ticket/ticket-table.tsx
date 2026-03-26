@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/table";
 import { cn, getRequestTypeBadge } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { } from "@/queries/commandRqstModule";
+import {} from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
   Invoice,
@@ -81,6 +81,7 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import RejectTicket from "./reject-ticket";
+import CardTicket from "./card-ticket";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
@@ -184,28 +185,28 @@ export function TicketTable({
         selectedTab === 0
           ? c.status === "accepted" || c.status === "pending"
           : c.status === "paid" ||
-          c.status === "validated" ||
-          c.status === "unsigned" ||
-          c.status === "signed" ||
-          c.status === "simple_signed";
+            c.status === "validated" ||
+            c.status === "unsigned" ||
+            c.status === "signed" ||
+            c.status === "simple_signed";
       //searchFilter
       const matchSearch =
         searchFilter === ""
           ? true
           : c.id === Number(searchFilter) ||
-          c.price === Number(searchFilter) ||
-          c.account
-            ?.toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.title
-            .toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.description
-            ?.toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.reference
-            .toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase());
+            c.price === Number(searchFilter) ||
+            c.account
+              ?.toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.title
+              .toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.description
+              ?.toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.reference
+              .toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase());
       //TypeFilter
       const matchType = typeFilter === "all" ? true : c.type === typeFilter;
       //StatusFilter
@@ -521,7 +522,14 @@ export function TicketTable({
                   setSelectedTicket(item);
                   setOpenValidationModal(true);
                 }}
-                disabled={item.status === "validated" || item.status === "signed" || item.status === "simple_signed" || item.status === "unsigned" || item.status === "paid" || item.status === "rejected"}
+                disabled={
+                  item.status === "validated" ||
+                  item.status === "signed" ||
+                  item.status === "simple_signed" ||
+                  item.status === "unsigned" ||
+                  item.status === "paid" ||
+                  item.status === "rejected"
+                }
               >
                 <LucideCheck className="text-green-600" />
                 {"Approuver"}
@@ -532,7 +540,14 @@ export function TicketTable({
                   setSelectedTicket(item);
                   setOpenRejectModal(true);
                 }}
-                disabled={item.status === "validated" || item.status === "signed" || item.status === "simple_signed" || item.status === "unsigned" || item.status === "paid" || item.status === "rejected"}
+                disabled={
+                  item.status === "validated" ||
+                  item.status === "signed" ||
+                  item.status === "simple_signed" ||
+                  item.status === "unsigned" ||
+                  item.status === "paid" ||
+                  item.status === "rejected"
+                }
               >
                 <BanIcon />
                 {"Rejeter"}
@@ -576,7 +591,7 @@ export function TicketTable({
 
   return (
     <div className="content">
-      <div className="flex gap-4 items-center justify-between">
+      <div className="flex flex-wrap gap-4 items-center justify-between">
         <TabBar
           tabs={tabs}
           setSelectedTab={setSelectedTab}
@@ -622,7 +637,7 @@ export function TicketTable({
                           {priorityFilter === "all"
                             ? "Toutes les priorités"
                             : PRIORITIES.find((p) => p.value === priorityFilter)
-                              ?.name || "Sélectionner"}
+                                ?.name || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -673,10 +688,10 @@ export function TicketTable({
                           .toLowerCase()
                           .includes(prioritySearch.toLowerCase()),
                       ).length === 0 && (
-                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                            Aucune priorité trouvée
-                          </div>
-                        )}
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucune priorité trouvée
+                        </div>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -694,7 +709,7 @@ export function TicketTable({
                           {statusFilter === "all"
                             ? "Tous les statuts"
                             : PAY_STATUS.find((s) => s.value === statusFilter)
-                              ?.name || "Sélectionner"}
+                                ?.name || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -753,10 +768,10 @@ export function TicketTable({
                           .toLowerCase()
                           .includes(statusSearch.toLowerCase()),
                       ).length === 0 && (
-                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                            Aucun statut trouvé
-                          </div>
-                        )}
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun statut trouvé
+                        </div>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -774,7 +789,7 @@ export function TicketTable({
                           {typeFilter === "all"
                             ? "Tous les types"
                             : PAYMENT_TYPES.find((t) => t.value === typeFilter)
-                              ?.name || "Sélectionner"}
+                                ?.name || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -821,10 +836,10 @@ export function TicketTable({
                       {PAYMENT_TYPES.filter((t) =>
                         t.name.toLowerCase().includes(typeSearch.toLowerCase()),
                       ).length === 0 && (
-                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                            Aucun type trouvé
-                          </div>
-                        )}
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun type trouvé
+                        </div>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -896,69 +911,83 @@ export function TicketTable({
           </DropdownMenu>
         </div>
       </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className="border-r last:border-r-0"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                const config = getPriorityBadge(row.original.priority);
-                //
-
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className={cn(config?.rowClassName || "")}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
+      <section className="hidden @min-[760px]:grid gap-6">
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead
+                        key={header.id}
                         className="border-r last:border-r-0"
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  {"Aucun résultat"}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      <Pagination table={table} />
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => {
+                  const config = getPriorityBadge(row.original.priority);
+                  //
+
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      className={cn(config?.rowClassName || "")}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className="border-r last:border-r-0"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    {"Aucun résultat"}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <Pagination table={table} />
+      </section>
+      <section className="grid grid-cols-1 @min-[740px]:grid-cols-2 gap-4 @min-[760px]:hidden">
+        {filteredData.map((e) => (
+          <CardTicket
+            key={e.id}
+            data={e}
+            requestTypeData={requestTypeData}
+            invoices={invoices}
+            users={users}
+            requests={requests}
+          />
+        ))}
+      </section>
 
       {!!selectedTicket && (
         <DetailTicket
@@ -966,12 +995,6 @@ export function TicketTable({
           onOpenChange={setOpenDetailModal}
           data={selectedTicket}
           invoice={selectedInvoice}
-          action={() =>
-            paymentMutation.mutate({
-              id: selectedTicket?.id!,
-              data: { status: "paid" },
-            })
-          }
           users={users}
           types={requestTypeData}
           requests={requests}
