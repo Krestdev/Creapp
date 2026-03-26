@@ -48,7 +48,6 @@ interface DetailTicketProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: PaymentRequest;
-  action: () => void;
   invoice?: Invoice;
   requests: RequestModelT[];
   users: User[];
@@ -59,7 +58,6 @@ export function DetailTicket({
   open,
   onOpenChange,
   data,
-  action,
   invoice,
   users,
   types,

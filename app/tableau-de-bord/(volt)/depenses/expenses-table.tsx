@@ -256,7 +256,9 @@ function ExpensesTable({
   const beneficiairesMap = new Map<string, { value: string; label: string }>();
 
   // Créer un Set des requestIds qui ont des paiements
-  const requestIdsWithPayments = new Set(payments.filter(x => x.status === "validated").map((p) => p.requestId));
+  const requestIdsWithPayments = new Set(
+    payments.filter((x) => x.status === "validated").map((p) => p.requestId),
+  );
 
   // Filtrer les demandes qui ont au moins un paiement
   request
@@ -575,6 +577,9 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
+        const invoice = invoices.find((iv) => iv.id === value.invoiceId);
+
+        const title = value.title;
         return (
           <div className="max-w-[500px] flex gap-1.5">
             {value.selected === true && (
@@ -1575,6 +1580,7 @@ function ExpensesTable({
             onOpenChange={setShowGas}
             users={users}
             requests={request}
+            requestTypes={requestTypes}
           />
         </>
       )}

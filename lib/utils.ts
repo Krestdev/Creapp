@@ -14,6 +14,7 @@ import {
   PaymentRequest,
   PayType,
   Quotation,
+  PRIORITIES,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
@@ -388,6 +389,44 @@ export function getPaymentTypeBadge({
       return { label, variant: "dark" };
     default:
       return { label, variant: "outline" };
+  }
+}
+
+export function getPaymentPriorityBadge({
+  priority,
+}: {
+  priority: PaymentRequest["priority"];
+}): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const label = PRIORITIES.find((c) => c.value === priority)?.name ?? "Inconnu";
+  switch (priority) {
+    case "low":
+      return {
+        label,
+        variant: "amber",
+      };
+    case "medium":
+      return {
+        label,
+        variant: "success",
+      };
+    case "high":
+      return {
+        label,
+        variant: "destructive",
+      };
+    case "urgent":
+      return {
+        label,
+        variant: "primary",
+      };
+    default:
+      return {
+        label: "Inconnu",
+        variant: "outline",
+      };
   }
 }
 

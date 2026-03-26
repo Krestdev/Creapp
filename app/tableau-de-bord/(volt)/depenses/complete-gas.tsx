@@ -1,7 +1,15 @@
 "use client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -11,14 +19,35 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getRequestTypeBadge } from "@/lib/utils";
 import { PayloadGasCompletion, paymentQ } from "@/queries/payment";
-import { Bank, PaymentRequest, RequestModelT, User } from "@/types/types";
+import {
+  PaymentRequest,
+  RequestModelT,
+  RequestType,
+  User,
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import {
+  ArchiveIcon,
+  CalendarIcon,
+  TextQuoteIcon,
+  UserRoundIcon,
+} from "lucide-react";
 import React, { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -29,17 +58,26 @@ interface Props {
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   users: Array<User>;
-  requests: Array<RequestModelT>
+  requests: Array<RequestModelT>;
+  requestTypes: Array<RequestType>;
 }
 
 const formSchema = z.object({
-  price: z.coerce.number({ message: "Veuillez définir le montant" }).refine((data) => data > 0, { message: "Le montant doit être supérieur à 0" }),
+  price: z.coerce
+    .number({ message: "Veuillez définir le montant" })
+    .refine((data) => data > 0, {
+      message: "Le montant doit être supérieur à 0",
+    }),
   /* km: z.coerce.number({
     message: "Veuillez définir le Kilométrage avant recharge",
   }), */
-  liters: z.coerce.number({
-    message: "Veuillez définir le nombre de litres rechargés",
-  }).refine((data) => data > 0, { message: "Le nombre de litres doit être supérieur à 0" }),
+  liters: z.coerce
+    .number({
+      message: "Veuillez définir le nombre de litres rechargés",
+    })
+    .refine((data) => data > 0, {
+      message: "Le nombre de litres doit être supérieur à 0",
+    }),
   driverId: z.coerce.number({ message: "Veuillez sélectionner le conducteur" }),
   deadline: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
@@ -50,16 +88,27 @@ const formSchema = z.object({
   ),
 });
 
-function CompleteGas({ ticket, open, onOpenChange, users, requests }: Props) {
+function CompleteGas({
+  ticket,
+  open,
+  onOpenChange,
+  users,
+  requests,
+  requestTypes,
+}: Props) {
   //Drivers
   const filteredUsers = useMemo(() => {
-    return users.filter(u => u.role.some(r => r.label === "DRIVER"));
+    return users.filter((u) => u.role.some((r) => r.label === "DRIVER"));
   }, [users]);
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
 
-  const request = requests.find(r => r.id === ticket.requestId);
-  const emitter = filteredUsers.find(u => u.id === request?.userId);
+  const request = requests.find((r) => r.id === ticket.requestId);
+  const emitter = filteredUsers.find((u) => u.id === request?.userId);
+
+  const typeBadge = !!request
+    ? getRequestTypeBadge({ type: request.type, requestTypes: requestTypes })
+    : undefined;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -80,20 +129,21 @@ function CompleteGas({ ticket, open, onOpenChange, users, requests }: Props) {
         liters: 0,
         driverId: emitter?.id,
         deadline: format(new Date(), "yyyy-MM-dd"),
-      })
+      });
     }
   }, [open]);
 
   const payGas = useMutation({
-    mutationFn: async (payload: PayloadGasCompletion) => paymentQ.gasCompletion({ payload }),
+    mutationFn: async (payload: PayloadGasCompletion) =>
+      paymentQ.gasCompletion({ payload }),
     onSuccess: () => {
       toast.success("Paiement mis à jour avec succès !");
       onOpenChange(false);
     },
     onError: (error: Error) => {
       toast.error(error.message ?? "Une erreur est survenue");
-    }
-  })
+    },
+  });
 
   const onSubmit = (values: z.infer<typeof formSchema>): void => {
     //console.log(values);
@@ -109,12 +159,49 @@ function CompleteGas({ ticket, open, onOpenChange, users, requests }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader variant={"secondary"}>
           <DialogTitle>{`Compléter - ${ticket.title}`}</DialogTitle>
           <DialogDescription>
             {`Remplissez le formulaire pour compléter les informations relatives au ticket de carburant`}
           </DialogDescription>
         </DialogHeader>
+        <div className="grid gap-4 p-3 rounded-md border border-dashed bg-gray-100">
+          {/**Emetteur */}
+          <div className="view-group">
+            <span className="view-icon">
+              <UserRoundIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Emetteur du besoin"}</p>
+              <p className="font-semibold">
+                {!emitter
+                  ? "Introuvable"
+                  : emitter.firstName.concat(" ", emitter.lastName)}
+              </p>
+            </div>
+          </div>
+          {/**Type de besoin */}
+          <div className="view-group">
+            <span className="view-icon">
+              <ArchiveIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Type de besoin"}</p>
+              {!!typeBadge && (
+                <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
+              )}
+            </div>
+          </div>
+          <div className="view-group">
+            <span className="view-icon">
+              <TextQuoteIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Description"}</p>
+              <p className="">{request?.description ?? "--"}</p>
+            </div>
+          </div>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
             <FormField
@@ -252,7 +339,7 @@ function CompleteGas({ ticket, open, onOpenChange, users, requests }: Props) {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )
+                );
               }}
             />
             <FormField
@@ -262,16 +349,28 @@ function CompleteGas({ ticket, open, onOpenChange, users, requests }: Props) {
                 <FormItem>
                   <FormLabel isRequired>{"Conducteur"}</FormLabel>
                   <FormControl>
-                    <Select value={field.value ? field.value.toString() : undefined} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value ? field.value.toString() : undefined}
+                      onValueChange={field.onChange}
+                    >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder={"Sélectionner un conducteur"} />
+                        <SelectValue
+                          placeholder={"Sélectionner un conducteur"}
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {users.filter(u => u.role.some(r => r.label === "DRIVER")).map(user => (
-                          <SelectItem key={user.id} value={user.id.toString()}>
-                            {user.firstName.concat(" ", user.lastName)}
-                          </SelectItem>
-                        ))}
+                        {users
+                          .filter((u) =>
+                            u.role.some((r) => r.label === "DRIVER"),
+                          )
+                          .map((user) => (
+                            <SelectItem
+                              key={user.id}
+                              value={user.id.toString()}
+                            >
+                              {user.firstName.concat(" ", user.lastName)}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -279,9 +378,19 @@ function CompleteGas({ ticket, open, onOpenChange, users, requests }: Props) {
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button type="submit" variant={"primary"}>{"Enregistrer"}</Button>
-              <Button variant={"outline"} onClick={(e) => { e.preventDefault(); onOpenChange(false) }}>{"Annuler"}</Button>
+            <DialogFooter className="w-full">
+              <Button type="submit" variant={"primary"}>
+                {"Enregistrer"}
+              </Button>
+              <Button
+                variant={"outline"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onOpenChange(false);
+                }}
+              >
+                {"Annuler"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

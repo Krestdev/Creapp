@@ -83,7 +83,7 @@ function Page() {
   const router = useRouter();
   const create = useMutation({
     mutationFn: async (payload: TransferProps) =>
-      transactionQ.createTransaction(payload),
+      transactionQ.createTransfer(payload),
     onSuccess: () => {
       toast.success("Votre demande de transfert a été initiée avec succès !");
       setFormData(null);
@@ -344,7 +344,7 @@ function Page() {
                       ...formData,
                       Type: "TRANSFER",
                       userId: user?.id ?? 0,
-                      isDirect: isInstant(formData),
+                      status: isInstant(formData) ? "APPROVED" : "PENDING",
                     });
                     setShow(false);
                   }}

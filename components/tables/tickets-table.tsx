@@ -619,12 +619,6 @@ export function TicketsTable({
           onOpenChange={setOpenDetailModal}
           data={selectedTicket}
           invoice={selectedInvoice}
-          action={() =>
-            paymentMutation.mutate({
-              id: selectedTicket?.id!,
-              data: { status: "paid" },
-            })
-          }
           users={users}
           types={requestTypeData}
           requests={requests}

@@ -650,12 +650,12 @@ function AppSidebar() {
                 : undefined,
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
-          {
+          /* {
             pageId: "PG-23354987-01",
             title: "Créer une dépense",
             href: "/tableau-de-bord/depenses/creer",
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
-          },
+          }, */
         ],
       },
       {
