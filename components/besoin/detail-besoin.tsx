@@ -593,7 +593,9 @@ export function DetailBesoin({
                     <div className="flex flex-col">
                       {data.beneficiary === "me" ? (
                         <p className="font-semibold capitalize">
-                          {users.find(x => x.id === data.userId)?.firstName + " " + users.find(x => x.id === data.userId)?.lastName}
+                          {data.requestOlds && data.requestOlds[0].userId
+                            ? getUserName(data.requestOlds[0].userId.toString())
+                            : "Introuvable"}
                         </p>
                       ) : (
                         <div className="flex flex-col">
