@@ -593,7 +593,7 @@ export function DetailBesoin({
                     <div className="flex flex-col">
                       {data.beneficiary === "me" ? (
                         <p className="font-semibold capitalize">
-                          {user?.lastName + " " + user?.firstName}
+                          {users.find(x => x.id === data.userId)?.firstName + " " + users.find(x => x.id === data.userId)?.lastName}
                         </p>
                       ) : (
                         <div className="flex flex-col">

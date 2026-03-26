@@ -804,7 +804,7 @@ export function DataVal({
           return (
             <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
               {beneficiary.toLocaleLowerCase() === "me"
-                ? getUserName(usersData, user?.id)
+                ? getUserName(usersData, item.userId)
                 : item.type?.toLocaleLowerCase().includes("facili")
                   ? item.benFac?.list
                       .map((li) => li.name)
