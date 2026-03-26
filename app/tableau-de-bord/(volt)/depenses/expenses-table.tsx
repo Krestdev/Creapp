@@ -577,12 +577,20 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
+        const isSelected = value.selected === true;
+        const transactionStatus = isSelected
+          ? transactions.find(
+              (t) =>
+                t.Type === "TRANSFER" &&
+                t.payments.some((p) => p.id === value.id) &&
+                t.status === "APPROVED",
+            )
+          : false;
         const invoice = invoices.find((iv) => iv.id === value.invoiceId);
-
         const title = value.title;
         return (
           <div className="max-w-[500px] flex gap-1.5">
-            {value.selected === true && (
+            {!!transactionStatus && (
               <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
                 <AsteriskIcon size={16} />
               </span>
