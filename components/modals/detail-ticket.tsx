@@ -601,7 +601,11 @@ export function DetailTicket({
                   </p>
                   <p className="font-semibold">
                     {data?.createdAt
-                      ? format(new Date(data.createdAt), "PPP", { locale: fr })
+                      ? format(
+                          new Date(data.createdAt),
+                          "dd MMMM yyyy à hh:mm",
+                          { locale: fr },
+                        )
                       : "N/A"}
                   </p>
                 </div>
@@ -616,7 +620,11 @@ export function DetailTicket({
                   <p className="view-group-title">{"Modifié le"}</p>
                   <p className="font-semibold">
                     {data?.updatedAt
-                      ? format(new Date(data.updatedAt), "PPP", { locale: fr })
+                      ? format(
+                          new Date(data.updatedAt),
+                          "dd MMMM yyyy à hh:mm",
+                          { locale: fr },
+                        )
                       : "N/A"}
                   </p>
                 </div>

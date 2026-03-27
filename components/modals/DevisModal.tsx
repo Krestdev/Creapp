@@ -83,7 +83,9 @@ export function DevisModal({
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Non spécifié";
     try {
-      return format(new Date(dateString), "PPP", { locale: fr });
+      return format(new Date(dateString), "dd MMMM yyyy à hh:mm", {
+        locale: fr,
+      });
     } catch {
       return "Date invalide";
     }
@@ -91,12 +93,10 @@ export function DevisModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[90vw] lg:max-w-[920px] max-h-screen overflow-y-auto overflow-x-hidden">
+      <DialogContent className="sm:max-w-3xl">
         {/* Header */}
         <DialogHeader>
-          <DialogTitle className="uppercase">
-            {`Devis - ${title || "Sans titre"}`}
-          </DialogTitle>
+          <DialogTitle>{`Devis - ${title || "Sans titre"}`}</DialogTitle>
           <DialogDescription>{"Détail du devis"}</DialogDescription>
         </DialogHeader>
 

@@ -393,9 +393,13 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             <div className="flex flex-col">
               <p className="view-group-title">{"Date de la demande"}</p>
               <p className="font-semibold">
-                {format(new Date(transaction.createdAt), "dd MMMM yyyy, p", {
-                  locale: fr,
-                })}
+                {format(
+                  new Date(transaction.createdAt),
+                  "dd MMMM yyyy à hh:mm",
+                  {
+                    locale: fr,
+                  },
+                )}
               </p>
             </div>
           </div>
@@ -408,7 +412,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Date de la transaction"}</p>
                 <p className="font-semibold">
-                  {format(new Date(transaction.date), "dd MMMM yyyy, p", {
+                  {format(new Date(transaction.date), "dd MMMM yyyy à hh:mm", {
                     locale: fr,
                   })}
                 </p>
