@@ -47,6 +47,7 @@ export const PAYMENT_TYPES = [
   { value: "ressource_humaine", name: "Ressources Humaines" },
   { value: "speciaux", name: "Spécial" },
   { value: "achat", name: "Achat" },
+  { value: "CURRENT", name: "Dépenses Courantes" },
   { value: "others", name: "Autres" },
   { value: "transport", name: "Transport" },
   { value: "gas", name: "Carburant" },
