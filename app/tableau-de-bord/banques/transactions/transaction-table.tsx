@@ -65,18 +65,23 @@ import {
   Transaction,
   TRANSACTION_STATUS,
   TRANSACTION_TYPES,
+  User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewTransaction from "./view-transaction";
-import { StatisticCard, StatisticProps } from "@/components/base/TitleValueCard";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 
 interface Props {
   data: Array<Transaction>;
   canEdit: boolean;
   filterByType?: boolean;
   banks: Array<Bank>;
+  users: Array<User>;
 }
 
 function TransactionTable({
@@ -84,6 +89,7 @@ function TransactionTable({
   canEdit,
   banks,
   filterByType = false,
+  users,
 }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -324,33 +330,33 @@ function TransactionTable({
   const montantEntree = entreeTrans.reduce((sum, t) => sum + t.amount, 0);
   const sortieTrans = filteredData.filter((t) => t.Type === "DEBIT");
   const montantSotie = sortieTrans.reduce((sum, t) => sum + t.amount, 0);
-  const total = filteredData.filter(x => x.Type !== "TRANSFER");
+  const total = filteredData.filter((x) => x.Type !== "TRANSFER");
 
   const Statistics: Array<StatisticProps> = [
-      {
-        title: "Entrée",
-        value: entreeTrans.length,
-        variant: "secondary",
-        more: {
-          title: "Nombre de transaction",
-          value: XAF.format(montantEntree),
-        },
+    {
+      title: "Entrée",
+      value: entreeTrans.length,
+      variant: "secondary",
+      more: {
+        title: "Nombre de transaction",
+        value: XAF.format(montantEntree),
       },
-      {
-        title: "Sortie",
-        value: sortieTrans.length,
-        variant: "default",
-        more: {
-          title: "Nombre de transaction",
-          value: XAF.format(montantSotie),
-        },
+    },
+    {
+      title: "Sortie",
+      value: sortieTrans.length,
+      variant: "default",
+      more: {
+        title: "Nombre de transaction",
+        value: XAF.format(montantSotie),
       },
-      {
-        title: "Total",
-        value: total.length,
-        variant: "default",
-      },
-    ];
+    },
+    {
+      title: "Total",
+      value: total.length,
+      variant: "default",
+    },
+  ];
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -513,6 +519,29 @@ function TransactionTable({
         const value = row.original;
         const { variant, label } = getBadge(value);
         return <Badge variant={variant}>{label}</Badge>;
+      },
+    },
+    {
+      accessorKey: "userId",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Crée par"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.userId;
+        const user = users.find((u) => u.id === value);
+        return (
+          <span>
+            {user ? user.firstName.concat(" ", user.lastName) : "N/A"}
+          </span>
+        );
       },
     },
     {
@@ -1136,6 +1165,7 @@ function TransactionTable({
           transaction={selected}
           open={view}
           openChange={setView}
+          users={users}
         />
       )}
       {/* {selected && <EditTransaction transaction={selected} open={edit} openChange={setEdit} />} */}

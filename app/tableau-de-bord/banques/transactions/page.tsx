@@ -10,6 +10,8 @@ import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import TransactionTable from "./transaction-table";
 import { StatisticCard } from "@/components/base/TitleValueCard";
+import { userQ } from "@/queries/baseModule";
+import React from "react";
 
 function Page() {
   const { user } = useStore();
@@ -26,21 +28,34 @@ function Page() {
     queryFn: transactionQ.getAll,
   });
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll,
+  });
 
-  const entreeTrans = getTransactions.data?.data.filter(
-    (t) => t.Type === "CREDIT" && t.status === "APPROVED",
-  ) || [];
+  const filteredTransactions = React.useMemo(() => {
+    if (!getTransactions.data) return [];
+    return getTransactions.data.data
+      .filter((t) => t.status === "APPROVED" && t.Type !== "TRANSFER")
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      );
+  }, [getTransactions.data]);
 
-
-  if (getTransactions.isLoading || getBanks.isLoading) {
+  if (getTransactions.isLoading || getBanks.isLoading || getUsers.isLoading) {
     return <LoadingPage />;
   }
-  if (getTransactions.isError || getBanks.isError) {
+  if (getTransactions.isError || getBanks.isError || getUsers.isError) {
     return (
-      <ErrorPage error={getTransactions.error || getBanks.error || undefined} />
+      <ErrorPage
+        error={
+          getTransactions.error || getBanks.error || getUsers.error || undefined
+        }
+      />
     );
   }
-  if (getTransactions.isSuccess && getBanks.isSuccess)
+  if (getTransactions.isSuccess && getBanks.isSuccess && getUsers.isSuccess)
     return (
       <div className="content">
         <PageTitle
@@ -49,16 +64,11 @@ function Page() {
           links={links}
         />
         <TransactionTable
-          data={getTransactions.data.data
-            .filter((t) => t.status === "APPROVED" && t.Type !== "TRANSFER")
-            .sort(
-              (a, b) =>
-                new Date(b.updatedAt).getTime() -
-                new Date(a.updatedAt).getTime(),
-            )}
+          data={filteredTransactions}
           canEdit={true}
           banks={getBanks.data.data}
           filterByType
+          users={getUsers.data.data}
         />
       </div>
     );

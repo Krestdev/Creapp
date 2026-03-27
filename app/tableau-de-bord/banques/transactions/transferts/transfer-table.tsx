@@ -72,6 +72,7 @@ import {
   Transaction,
   TRANSACTION_STATUS,
   TransferTransaction,
+  User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -85,9 +86,10 @@ interface Props {
   data: Array<TransferTransaction>;
   banks: Array<Bank>;
   paymentMethods: Array<PayType>;
+  users: Array<User>;
 }
 
-function TransferTable({ data, banks, paymentMethods }: Props) {
+function TransferTable({ data, banks, paymentMethods, users }: Props) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
@@ -179,10 +181,10 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
         search.trim() === ""
           ? true
           : transaction.id.toString().toLocaleLowerCase().includes(search) ||
-          transaction.label.toLocaleLowerCase().includes(search) ||
-          transaction.amount.toString().includes(search) ||
-          transaction.to.label.toLocaleLowerCase().includes(search) ||
-          transaction.from.label.toLocaleLowerCase().includes(search);
+            transaction.label.toLocaleLowerCase().includes(search) ||
+            transaction.amount.toString().includes(search) ||
+            transaction.to.label.toLocaleLowerCase().includes(search) ||
+            transaction.from.label.toLocaleLowerCase().includes(search);
 
       if (bankFilter !== "all") {
         // Vérifier selon le type de transaction
@@ -422,6 +424,29 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
         const value = row.original;
         const { variant, label } = getBadge(value.status, value.isSigned);
         return <Badge variant={variant}>{label}</Badge>;
+      },
+    },
+    {
+      accessorKey: "userId",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Crée par"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.userId;
+        const user = users.find((u) => u.id === value);
+        return (
+          <span>
+            {user ? user.firstName.concat(" ", user.lastName) : "N/A"}
+          </span>
+        );
       },
     },
     {
@@ -668,9 +693,9 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                            customDateRange.from,
-                            "dd/MM/yyyy",
-                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy",
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -787,9 +812,9 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -837,6 +862,7 @@ function TransferTable({ data, banks, paymentMethods }: Props) {
             transaction={selected}
             open={view}
             openChange={setView}
+            users={users}
           />
 
           <EditTransferDialog

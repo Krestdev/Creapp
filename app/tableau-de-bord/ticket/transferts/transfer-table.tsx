@@ -43,7 +43,7 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { transactionQ } from "@/queries/transaction";
-import { DateFilter, Transaction } from "@/types/types";
+import { DateFilter, Transaction, User } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import {
   type ColumnDef,
@@ -78,9 +78,10 @@ import { SoldeDialog } from "./SoldeDialog";
 
 interface Props {
   data: Array<Transaction>;
+  users: Array<User>;
 }
 
-function TransferTable({ data }: Props) {
+function TransferTable({ data, users }: Props) {
   const tabs = [
     {
       id: 0,
@@ -827,6 +828,7 @@ function TransferTable({ data }: Props) {
           open={view}
           openChange={setView}
           transaction={selected}
+          users={users}
         />
       )}
       <SoldeDialog open={showSolde} onOpenChange={setShowSolde} />
