@@ -338,7 +338,7 @@ function TransactionTable({
       value: entreeTrans.length,
       variant: "secondary",
       more: {
-        title: "Nombre de transaction",
+        title: "Montant Total",
         value: XAF.format(montantEntree),
       },
     },
@@ -347,7 +347,7 @@ function TransactionTable({
       value: sortieTrans.length,
       variant: "default",
       more: {
-        title: "Nombre de transaction",
+        title: "Montant Total",
         value: XAF.format(montantSotie),
       },
     },
