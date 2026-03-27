@@ -373,7 +373,7 @@ function ViewRequest({
             <div className="flex flex-col">
               <p className="view-group-title">{"Créé le"}</p>
               <p className="font-semibold">
-                {format(request.createdAt, "dd MMMM yyyy à hh:mm", {
+                {format(request.createdAt, "dd MMMM yyyy à kk:mm", {
                   locale: fr,
                 })}
               </p>
@@ -390,7 +390,7 @@ function ViewRequest({
                 <p className="view-group-title">{"Modifié le"}</p>
               </div>
               <p className="font-semibold">
-                {format(request.updatedAt, "dd MMMM yyyy à hh:mm", {
+                {format(request.updatedAt, "dd MMMM yyyy à kk:mm", {
                   locale: fr,
                 })}
               </p>

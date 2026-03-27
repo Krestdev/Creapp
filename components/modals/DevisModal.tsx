@@ -83,7 +83,7 @@ export function DevisModal({
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Non spécifié";
     try {
-      return format(new Date(dateString), "dd MMMM yyyy à hh:mm", {
+      return format(new Date(dateString), "dd MMMM yyyy à kk:mm", {
         locale: fr,
       });
     } catch {

@@ -395,7 +395,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
               <p className="font-semibold">
                 {format(
                   new Date(transaction.createdAt),
-                  "dd MMMM yyyy à hh:mm",
+                  "dd MMMM yyyy à kk:mm",
                   {
                     locale: fr,
                   },
@@ -412,7 +412,7 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Date de la transaction"}</p>
                 <p className="font-semibold">
-                  {format(new Date(transaction.date), "dd MMMM yyyy à hh:mm", {
+                  {format(new Date(transaction.date), "dd MMMM yyyy à kk:mm", {
                     locale: fr,
                   })}
                 </p>

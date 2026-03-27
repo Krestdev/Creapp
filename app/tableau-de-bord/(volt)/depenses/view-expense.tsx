@@ -181,7 +181,6 @@ function ViewExpense({
 
   const signers = signataires?.user;
 
-
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-[760px]">
@@ -563,7 +562,7 @@ function ViewExpense({
             <div className="flex flex-col">
               <p className="view-group-title">{"Créé le"}</p>
               <p className="font-semibold">
-                {format(new Date(payment.createdAt), "dd MMMM yyyy à HH:mm", {
+                {format(new Date(payment.createdAt), "dd MMMM yyyy à kk:mm", {
                   locale: fr,
                 })}
               </p>
@@ -582,7 +581,7 @@ function ViewExpense({
                   <p className="font-semibold">
                     {format(
                       new Date(payment.updatedAt),
-                      "dd MMMM yyyy à HH:mm",
+                      "dd MMMM yyyy à kk:mm",
                       {
                         locale: fr,
                       },
@@ -668,7 +667,7 @@ function ViewExpense({
                           {s.firstName + " " + s.lastName}
                         </p>
                         {/* {signer && <p className="text-sm text-muted-foreground">
-                              {format(new Date(signer.createdAt!), "dd MMMM yyyy à HH:mm", {
+                              {format(new Date(signer.createdAt!), "dd MMMM yyyy à kk:mm", {
                                 locale: fr,
                               })}
                             </p>} */}

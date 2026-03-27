@@ -603,7 +603,7 @@ export function DetailTicket({
                     {data?.createdAt
                       ? format(
                           new Date(data.createdAt),
-                          "dd MMMM yyyy à hh:mm",
+                          "dd MMMM yyyy à kk:mm",
                           { locale: fr },
                         )
                       : "N/A"}
@@ -622,7 +622,7 @@ export function DetailTicket({
                     {data?.updatedAt
                       ? format(
                           new Date(data.updatedAt),
-                          "dd MMMM yyyy à hh:mm",
+                          "dd MMMM yyyy à kk:mm",
                           { locale: fr },
                         )
                       : "N/A"}

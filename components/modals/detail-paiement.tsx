@@ -221,7 +221,7 @@ function DetailPaiement({ payment, open, openChange, invoices }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Créé le"}</p>
             <p className="font-semibold">
-              {format(new Date(payment.createdAt), "dd MMMM yyyy à hh:mm", {
+              {format(new Date(payment.createdAt), "dd MMMM yyyy à kk:mm", {
                 locale: fr,
               })}
             </p>
@@ -235,7 +235,7 @@ function DetailPaiement({ payment, open, openChange, invoices }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Modifié le"}</p>
             <p className="font-semibold">
-              {format(new Date(payment.updatedAt), "dd MMMM yyyy à hh:mm", {
+              {format(new Date(payment.updatedAt), "dd MMMM yyyy à kk:mm", {
                 locale: fr,
               })}
             </p>

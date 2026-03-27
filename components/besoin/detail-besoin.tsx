@@ -520,7 +520,7 @@ export function DetailBesoin({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Créé le"}</p>
                 <p className="font-semibold">
-                  {format(data.createdAt, "dd MMMM yyyy à hh:mm", {
+                  {format(data.createdAt, "dd MMMM yyyy à kk:mm", {
                     locale: fr,
                   })}
                 </p>
@@ -537,7 +537,7 @@ export function DetailBesoin({
                   <p className="view-group-title">{"Modifié le"}</p>
                 </div>
                 <p className="font-semibold">
-                  {format(data.updatedAt, "dd MMMM yyyy à hh:mm", {
+                  {format(data.updatedAt, "dd MMMM yyyy à kk:mm", {
                     locale: fr,
                   })}
                 </p>
@@ -680,7 +680,7 @@ export function DetailBesoin({
                                 <span className="font-medium tracking-tighter">
                                   {format(
                                     new Date(v.updatedAt),
-                                    "dd MMMM yyyy à hh:mm",
+                                    "dd MMMM yyyy à kk:mm",
                                     {
                                       locale: fr,
                                     },
