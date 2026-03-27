@@ -88,7 +88,6 @@ export function ChartPieLabelList({
       let key = "";
       const price = payment.price || 0;
 
-      console.log("Processing payment:", payment);
       switch (chartType) {
         case "type":
           key =
@@ -147,7 +146,6 @@ export function ChartPieLabelList({
   const totalAmount = chartData.reduce((sum, item) => sum + item.amount, 0);
 
   const translateType = (type: string) => {
-    console.log("Translating type:", type);
     switch (type) {
       case "FAC":
         return "Facilitation";
@@ -164,7 +162,6 @@ export function ChartPieLabelList({
     }
   };
 
-  console.log("Chart data with percentages:", chartData);
   // Calculer les pourcentages pour les labels - 2 chiffres après la virgule
   const chartDataWithPercent = chartData.map((item) => ({
     ...item,
