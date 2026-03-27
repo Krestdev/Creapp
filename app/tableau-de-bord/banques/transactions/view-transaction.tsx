@@ -425,6 +425,24 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
               </div>
             </div>
           )}
+          {/** Date de mise à jour */}
+          <div className="view-group">
+            <span className="view-icon">
+              <Calendar />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Date de mise à jour"}</p>
+              <p className="font-semibold">
+                {format(
+                  new Date(transaction.updatedAt),
+                  "dd MMMM yyyy à kk:mm",
+                  {
+                    locale: fr,
+                  },
+                )}
+              </p>
+            </div>
+          </div>
           {/** Créé par */}
           <div className="view-group">
             <span className="view-icon">

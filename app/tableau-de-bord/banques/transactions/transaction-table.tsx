@@ -488,13 +488,35 @@ function TransactionTable({
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Date"}
+            {"Créé le"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
         const value = row.original.createdAt;
+        return (
+          <span>
+            {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "updatedAt",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Mis à jour le"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.updatedAt;
         return (
           <span>
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
