@@ -656,6 +656,7 @@ export function TableMyRequests({
             requestData={selectedItem}
             users={users.filter((u) => !!u.verified && u.verified === true)}
             projects={projects}
+            payments={payments}
           />
           <UpdateRHRequest
             open={isUpdateRHModalOpen}

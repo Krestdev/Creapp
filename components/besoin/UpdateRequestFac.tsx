@@ -33,14 +33,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { paymentQ } from "@/queries/payment";
 import { requestQ } from "@/queries/requestModule";
-import { ProjectT, RequestModelT, User } from "@/types/types";
+import { PaymentRequest, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, LoaderIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -54,11 +53,11 @@ import BeneficiairesList from "./AddBenef";
 // VALIDATION
 // ----------------------------------------------------------------------
 const SingleFileSchema = z.array(
-    z.union([
-      z.instanceof(File, { message: "Doit être un fichier valide" }),
-      z.string(),
-    ]),
-  );
+  z.union([
+    z.instanceof(File, { message: "Doit être un fichier valide" }),
+    z.string(),
+  ]),
+);
 
 const formSchema = z.object({
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
@@ -78,6 +77,7 @@ interface UpdateFacilitationRequestProps {
   requestData: RequestModelT;
   users: Array<User>;
   projects: Array<ProjectT>;
+  payments: Array<PaymentRequest>;
 }
 
 export default function UpdateRequestFac({
@@ -85,7 +85,8 @@ export default function UpdateRequestFac({
   onOpenChange,
   requestData,
   users,
-  projects
+  projects,
+  payments,
 }: UpdateFacilitationRequestProps) {
   const { user } = useStore();
 
@@ -94,15 +95,6 @@ export default function UpdateRequestFac({
     { id: number; nom: string; montant: number }[]
   >([]);
   const [isFormInitialized, setIsFormInitialized] = useState(false);
-
-  // ----------------------------------------------------------------------
-  // QUERY PAYMENTS
-  // ----------------------------------------------------------------------
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: async () => paymentQ.getAll(),
-  });
-  
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -124,9 +116,7 @@ export default function UpdateRequestFac({
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
 
-  const paiement = paymentsData.data?.data.find(
-    (x) => x.requestId === requestData?.id,
-  );
+  const paiement = payments.find((x) => x.requestId === requestData?.id);
 
   useEffect(() => {
     if (open && users.length > 0) {
@@ -244,9 +234,9 @@ export default function UpdateRequestFac({
   // ----------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-3xl">
         {/* Header - FIXE EN HAUT */}
-        <DialogHeader variant={"secondary"} className="px-6 pt-6 pb-4 border-b shrink-0">
+        <DialogHeader variant={"secondary"}>
           <DialogTitle>{requestData.label}</DialogTitle>
           <DialogDescription>
             {"Modifiez les informations du besoin"}
@@ -255,218 +245,192 @@ export default function UpdateRequestFac({
 
         <Form {...form}>
           {/* Contenu scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <div className="space-y-8 max-w-3xl mx-auto">
-              <div className="flex flex-col @min-[640px]:grid @min-[640px]:grid-cols-2 gap-4">
-                {/* PROJET */}
-                <FormField
-                  control={form.control}
-                  name="projet"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>
-                        {"Projet concerné"}
-                      </FormLabel>
-                      <SearchableSelect
-                        onChange={field.onChange}
-                        options={
-                          projects
-                          .filter(
-                              (p) =>
-                                p.status !== "cancelled" &&
-                                p.status !== "Completed" &&
-                                p.status !== "on-hold",
-                            )
-                            .map((p) => ({
-                              value: p.id!.toString(),
-                              label: p.label,
-                            })) ?? []
-                        }
-                        value={field.value}
-                        width="w-full"
-                        allLabel=""
-                        placeholder="Sélectionner un projet"
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* CATEGORIE */}
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>
-                        {"Categorie"}
-                      </FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={true}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionner une categorie" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="facilitation">
-                            {"Facilitation"}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* TITLE */}
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>
-                        {"Titre"}
-                      </FormLabel>
-                      <Input
-                        {...field}
-                        placeholder="ex. Achat du carburant groupe"
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* BENEFICIAIRE */}
-                <FormField
-                  control={form.control}
-                  name="beneficiaire"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>
-                        {"Recepteur pour compte"}
-                      </FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionner un recepteur pour compte" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {users.map((user) => (
-                            <SelectItem
-                              key={user.id}
-                              value={user.id!.toString()}
-                            >
-                              {user.lastName + " " + user.firstName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* DELAI */}
-                <FormField
-                  control={form.control}
-                  name="delai"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>
-                        {"Date limite"}
-                      </FormLabel>
-                      <FormControl>
-                        <Popover
-                          open={openCalendar}
-                          onOpenChange={setOpenCalendar}
-                        >
-                          <PopoverTrigger asChild className="h-10 w-full">
-                            <FormControl>
-                              <Button
-                                type="button"
-                                variant={"outline"}
-                                className="w-full pl-3 text-left font-normal"
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP", { locale: fr })
-                                ) : (
-                                  <span>{"Choisir une date"}</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={(d) => {
-                                field.onChange(d);
-                                setOpenCalendar(false);
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Description/Détail */}
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel isRequired>
-                        {"Description/Détail"}
-                      </FormLabel>
-                      <Textarea {...field} placeholder="Décrivez le besoin" />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* LISTE DES BÉNÉFICIAIRES */}
-                <div className="@min-[640px]:col-span-2">
-                  <BeneficiairesList
-                    onBeneficiairesChange={setBeneficiairesList}
-                    initialBeneficiaires={beneficiairesList}
+          <div className="flex flex-col @min-[640px]/dialog:grid @min-[640px]/dialog:grid-cols-2 gap-4">
+            {/* PROJET */}
+            <FormField
+              control={form.control}
+              name="projet"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Projet concerné"}</FormLabel>
+                  <SearchableSelect
+                    onChange={field.onChange}
+                    options={
+                      projects
+                        .filter(
+                          (p) =>
+                            p.status !== "cancelled" &&
+                            p.status !== "Completed" &&
+                            p.status !== "on-hold",
+                        )
+                        .map((p) => ({
+                          value: p.id!.toString(),
+                          label: p.label,
+                        })) ?? []
+                    }
+                    value={field.value}
+                    width="w-full"
+                    allLabel=""
+                    placeholder="Sélectionner un projet"
                   />
-                </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                {/* JUSTIFICATIF */}
-                <FormField
-                  control={form.control}
-                  name="justificatif"
-                  render={({ field }) => (
-                    <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel>{"Justificatif"}</FormLabel>
-                      <FormControl>
-                        <FilesUpload
-                          value={field.value || []}
-                          onChange={field.onChange}
-                          name={field.name}
-                          acceptTypes="all"
-                          multiple={false}
-                          maxFiles={1}
+            {/* CATEGORIE */}
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Categorie"}</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={true}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner une categorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="facilitation">
+                        {"Facilitation"}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* TITLE */}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Titre"}</FormLabel>
+                  <Input
+                    {...field}
+                    placeholder="ex. Achat du carburant groupe"
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* BENEFICIAIRE */}
+            <FormField
+              control={form.control}
+              name="beneficiaire"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Recepteur pour compte"}</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un recepteur pour compte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {users.map((user) => (
+                        <SelectItem key={user.id} value={user.id!.toString()}>
+                          {user.lastName + " " + user.firstName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* DELAI */}
+            <FormField
+              control={form.control}
+              name="delai"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Date limite"}</FormLabel>
+                  <FormControl>
+                    <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
+                      <PopoverTrigger asChild className="h-10 w-full">
+                        <FormControl>
+                          <Button
+                            type="button"
+                            variant={"outline"}
+                            className="w-full pl-3 text-left font-normal"
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP", { locale: fr })
+                            ) : (
+                              <span>{"Choisir une date"}</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(d) => {
+                            field.onChange(d);
+                            setOpenCalendar(false);
+                          }}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          </div>
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
+            {/* Description/Détail */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="@min-[640px]:col-span-2">
+                  <FormLabel isRequired>{"Description/Détail"}</FormLabel>
+                  <Textarea {...field} placeholder="Décrivez le besoin" />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* LISTE DES BÉNÉFICIAIRES */}
+            <div className="@min-[640px]/dialog:col-span-2">
+              <BeneficiairesList
+                onBeneficiairesChange={setBeneficiairesList}
+                initialBeneficiaires={beneficiairesList}
+              />
+            </div>
+
+            {/* JUSTIFICATIF */}
+            <FormField
+              control={form.control}
+              name="justificatif"
+              render={({ field }) => (
+                <FormItem className="@min-[640px]/dialog:col-span-2">
+                  <FormLabel>{"Justificatif"}</FormLabel>
+                  <FormControl>
+                    <FilesUpload
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      name={field.name}
+                      acceptTypes="all"
+                      multiple={false}
+                      maxFiles={1}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           {/* Boutons - FIXE EN BAS */}
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
+          <DialogFooter className="w-full">
             <DialogClose asChild>
               <Button
                 type="button"
