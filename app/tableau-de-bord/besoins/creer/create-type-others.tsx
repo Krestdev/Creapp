@@ -91,7 +91,7 @@ const formSchema = z.object({
   ),
   unit: z.string().min(1, "Veuillez sélectionner une unité"),
   priority: z.enum(REQUEST_PRIORITIES),
-  proof: SingleFileSchema,
+  // proof: SingleFileSchema,
 });
 
 function CreateTypeOthers({ users, categories, projects }: Props) {
@@ -112,7 +112,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       unit: "",
       categoryId: undefined,
       projectId: undefined,
-      proof: [], // Ceci correspond maintenant au type non optionnel
+      // proof: [], 
     },
   });
 
@@ -141,7 +141,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       categoryId: values.categoryId,
       projectId: values.projectId,
       paytype: "cash",
-      proof: values.proof,
+      // proof: values.proof,
     });
   };
   
@@ -442,7 +442,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
           )}
         />
         {/* JUSTIFICATIF */}
-        <FormField
+        {/* <FormField
           control={form.control}
           name="proof"
           render={({ field }) => (
@@ -461,7 +461,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <div className="@min-[640px]:col-span-full w-full flex justify-end">
           <Button
             variant={"primary"}

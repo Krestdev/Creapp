@@ -14,6 +14,7 @@ import {
   PaymentRequest,
   PayType,
   Quotation,
+  PRIORITIES,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
@@ -391,8 +392,58 @@ export function getPaymentTypeBadge({
   }
 }
 
+export function getPaymentPriorityBadge({
+  priority,
+}: {
+  priority: PaymentRequest["priority"];
+}): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} {
+  const label = PRIORITIES.find((c) => c.value === priority)?.name ?? "Inconnu";
+  switch (priority) {
+    case "low":
+      return {
+        label,
+        variant: "amber",
+      };
+    case "medium":
+      return {
+        label,
+        variant: "success",
+      };
+    case "high":
+      return {
+        label,
+        variant: "destructive",
+      };
+    case "urgent":
+      return {
+        label,
+        variant: "primary",
+      };
+    default:
+      return {
+        label: "Inconnu",
+        variant: "outline",
+      };
+  }
+}
+
 export const formatFCFA = (value?: number) => {
   if (typeof value !== "number") return "0 FCFA";
 
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " FCFA";
+};
+
+export const getModifiedProps = ({
+  data,
+}: {
+  data: RequestModelT;
+}): Array<{ key: string; userId: number }> => {
+  //To-Do
+  const oldReq = data.requestOlds;
+  if (!oldReq || oldReq.length === 0) return [];
+  //const oldValues = oldReq.
+  return [];
 };

@@ -239,17 +239,17 @@ function CreateForm() {
       toast.error("Devis introuvable");
       return;
     }
-    const provider = getProviders.data?.data.find(
-      (p) => p.id === quotation.providerId,
-    );
-    const result = provider ? isProviderValid(provider) : false;
+    // const provider = getProviders.data?.data.find(
+    //   (p) => p.id === quotation.providerId,
+    // );
+    // const result = provider ? isProviderValid(provider) : false;
 
-    if (!result) {
-      toast.error(
-        "Fournisseur Invalide ! Veuillez compléter les informations relatives au fournisseurs",
-      );
-      return;
-    }
+    // if (!result) {
+    //   toast.error(
+    //     "Fournisseur Invalide ! Veuillez compléter les informations relatives au fournisseurs",
+    //   );
+    //   return;
+    // }
 
     const ids = quotation?.commandRequest.besoins.map((b) => b.id);
 

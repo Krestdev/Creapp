@@ -386,7 +386,7 @@ export default function FacilitationRequestForm({
             className="min-w-[200px]"
             isLoading={requestMutation.isPending}
           >
-            {"Soumettre la demande de facilitation"}
+            {"Soumettre la demande"}
           </Button>
         </div>
       </form>
@@ -394,7 +394,7 @@ export default function FacilitationRequestForm({
       <SuccessModal
         open={isSuccessModalOpen}
         onOpenChange={setIsSuccessModalOpen}
-        message="Votre demande de facilitation a été soumise avec succès."
+        message="Votre demande a été soumise avec succès."
       />
     </Form>
   );

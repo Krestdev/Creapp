@@ -17,7 +17,13 @@ import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { paymentQ } from "@/queries/payment";
 import { projectQ } from "@/queries/projectModule";
-import { Category, PaymentRequest, ProjectT, RequestModelT, User } from "@/types/types";
+import {
+  Category,
+  PaymentRequest,
+  ProjectT,
+  RequestModelT,
+  User,
+} from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
@@ -42,7 +48,7 @@ import {
   User2,
   UserIcon,
   Users,
-  X
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { Skeleton } from "../ui/skeleton";
@@ -59,25 +65,29 @@ interface DetailModalProps {
   categories: Category[];
 }
 
-export function DetailBesoin({ open, onOpenChange, data, users, payments, projects, categories }: DetailModalProps) {
+export function DetailBesoin({
+  open,
+  onOpenChange,
+  data,
+  users,
+  payments,
+  projects,
+  categories,
+}: DetailModalProps) {
   const { user } = useStore();
   const userId = user?.id;
 
   //Get old values
-  const initialValues = data.requestOlds?.find(r => r.userId !== user?.id);
+  const initialValues = data.requestOlds?.find((r) => r.userId !== user?.id);
 
   // Fonctions pour récupérer les noms
   const getProjectName = (projectId: string) => {
-    const project = projects.find(
-      (proj) => proj.id === Number(projectId),
-    );
+    const project = projects.find((proj) => proj.id === Number(projectId));
     return project?.label || projectId;
   };
 
   const getCategoryName = (categoryId: string) => {
-    const category = categories.find(
-      (cat) => cat.id === Number(categoryId),
-    );
+    const category = categories.find((cat) => cat.id === Number(categoryId));
     return category?.label || categoryId;
   };
 
@@ -86,9 +96,7 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
     return user?.lastName + " " + user?.firstName || userId;
   };
 
-  const paiement = payments.find(
-    (x) => x.requestId === data?.id,
-  );
+  const paiement = payments.find((x) => x.requestId === data?.id);
 
   const getStatusBadge = (
     status: RequestModelT["state"],
@@ -157,11 +165,17 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
 
   // Récupérer l'ancienne valeur pour l'affichage
   const oldestRequest = initialValues;
-  const hasAmountChanged = !!data.amount && !!initialValues && initialValues.amount !== data.amount;
-  const hasPriorityChanged = !!initialValues && initialValues.priority !== data.priority;
-  const hasDueDateChanged = !!initialValues && initialValues.dueDate !== data.dueDate;
-  const hasQuantityChanged = data.type === "achat" && !!initialValues && initialValues.quantity !== data.quantity;
-  const modifier = users.find(u => u.id === oldestRequest?.id);
+  const hasAmountChanged =
+    !!data.amount && !!initialValues && initialValues.amount !== data.amount;
+  const hasPriorityChanged =
+    !!initialValues && initialValues.priority !== data.priority;
+  const hasDueDateChanged =
+    !!initialValues && initialValues.dueDate !== data.dueDate;
+  const hasQuantityChanged =
+    data.type === "achat" &&
+    !!initialValues &&
+    initialValues.quantity !== data.quantity;
+  const modifier = users.find((u) => u.id === oldestRequest?.id);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -170,7 +184,7 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
           <DialogTitle>{`Besoin - ${data.label}`}</DialogTitle>
           <DialogDescription>{"Détails du besoin"}</DialogDescription>
         </DialogHeader>
-        
+
         {/* Contenu scrollable */}
         <div className="flex-1 overflow-y-auto px-1">
           <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
@@ -197,7 +211,10 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                   <div className="flex items-center gap-2">
                     <p className="view-group-title">{"Montant"}</p>
                     {hasAmountChanged && (
-                      <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
+                      <Badge
+                        variant="outline"
+                        className="h-5 text-xs flex items-center gap-1"
+                      >
                         <Edit />
                         {"Modifié"}
                       </Badge>
@@ -249,7 +266,9 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
               <div className="flex flex-col">
                 <p className="view-group-title">{"Catégorie"}</p>
                 <p className="font-semibold">
-                  {!getCategoryName(String(data.categoryId)).includes("facilita")
+                  {!getCategoryName(String(data.categoryId)).includes(
+                    "facilita",
+                  )
                     ? getCategoryName(String(data.categoryId))
                     : data.type === "facilitation"
                       ? "Facilitation"
@@ -269,7 +288,10 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                 <div className="flex items-center gap-2">
                   <p className="view-group-title">{"Priorité"}</p>
                   {hasPriorityChanged && (
-                    <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
+                    <Badge
+                      variant="outline"
+                      className="h-5 text-xs flex items-center gap-1"
+                    >
                       <Edit />
                       {"Modifié"}
                     </Badge>
@@ -297,9 +319,14 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                 </Badge>
                 {hasPriorityChanged && oldestRequest?.priority && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Ancienne valeur: {oldestRequest.priority === "urgent" ? "Urgent" :
-                      oldestRequest.priority === "medium" ? "Moyen" :
-                        oldestRequest.priority === "low" ? "Faible" : "Élevé"}
+                    Ancienne valeur:{" "}
+                    {oldestRequest.priority === "urgent"
+                      ? "Urgent"
+                      : oldestRequest.priority === "medium"
+                        ? "Moyen"
+                        : oldestRequest.priority === "low"
+                          ? "Faible"
+                          : "Élevé"}
                   </p>
                 )}
               </div>
@@ -329,7 +356,9 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                   <p className="text-destructive">
                     {data.validators
                       ?.filter((r) => r.decision?.startsWith("rejected"))
-                      .map((r) => r.decision?.replace(/^rejected - \s*/i, "").trim())
+                      .map((r) =>
+                        r.decision?.replace(/^rejected - \s*/i, "").trim(),
+                      )
                       .join(", ") || "Aucun motif fourni"}
                   </p>
                 </div>
@@ -347,8 +376,9 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                   <div className="space-y-1">
                     {!!paiement?.proof ? (
                       <Link
-                        href={`${process.env.NEXT_PUBLIC_API
-                          }/${paiement?.proof as string}`}
+                        href={`${
+                          process.env.NEXT_PUBLIC_API
+                        }/${paiement?.proof as string}`}
                         target="_blank"
                         className="flex gap-0.5 items-center"
                       >
@@ -376,7 +406,10 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                   <div className="flex items-center gap-2">
                     <p className="view-group-title">{"Quantité"}</p>
                     {hasQuantityChanged && (
-                      <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
+                      <Badge
+                        variant="outline"
+                        className="h-5 text-xs flex items-center gap-1"
+                      >
                         <Edit />
                         {"Modifié"}
                       </Badge>
@@ -459,23 +492,25 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
             </div>
 
             {/* Récepteur pour compte */}
-            {modifier && <div className="view-group">
-              <span className="view-icon">
-                <User2 />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Récepteur pour compte"}</p>
-                <p className="font-semibold capitalize">
-                  {getUserName(String(data.beneficiary))}
-                </p>
-                {!!oldestRequest && !!modifier && (
-                  <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                    <Edit className="h-3 w-3" />
-                    {`Modifié par: ${modifier.firstName.concat(" ", modifier.lastName)}`}
+            {modifier && (
+              <div className="view-group">
+                <span className="view-icon">
+                  <User2 />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Récepteur pour compte"}</p>
+                  <p className="font-semibold capitalize">
+                    {getUserName(String(data.beneficiary))}
                   </p>
-                )}
+                  {!!oldestRequest && !!modifier && (
+                    <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                      <Edit className="h-3 w-3" />
+                      {`Modifié par: ${modifier.firstName.concat(" ", modifier.lastName)}`}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>}
+            )}
 
             {/* Date de création */}
             <div className="view-group">
@@ -485,7 +520,9 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
               <div className="flex flex-col">
                 <p className="view-group-title">{"Créé le"}</p>
                 <p className="font-semibold">
-                  {format(data.createdAt, "PPP", { locale: fr })}
+                  {format(data.createdAt, "dd MMMM yyyy à kk:mm", {
+                    locale: fr,
+                  })}
                 </p>
               </div>
             </div>
@@ -500,7 +537,9 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                   <p className="view-group-title">{"Modifié le"}</p>
                 </div>
                 <p className="font-semibold">
-                  {format(data.updatedAt, "PPP", { locale: fr })}
+                  {format(data.updatedAt, "dd MMMM yyyy à kk:mm", {
+                    locale: fr,
+                  })}
                 </p>
               </div>
             </div>
@@ -514,7 +553,10 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                 <div className="flex items-center gap-2">
                   <p className="view-group-title">{"Date limite"}</p>
                   {hasDueDateChanged && (
-                    <Badge variant="outline" className="h-5 text-xs flex items-center gap-1">
+                    <Badge
+                      variant="outline"
+                      className="h-5 text-xs flex items-center gap-1"
+                    >
                       <Edit />
                       {"Modifié"}
                     </Badge>
@@ -545,19 +587,19 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                   </p>
                   {data.type === "facilitation" ? (
                     <p className="font-semibold capitalize">
-                      {users.find(
-                        (u) => u.id === Number(data.beneficiary),
-                      )?.firstName +
+                      {users.find((u) => u.id === Number(data.beneficiary))
+                        ?.firstName +
                         " " +
-                        users.find(
-                          (u) => u.id === Number(data.beneficiary),
-                        )?.lastName}
+                        users.find((u) => u.id === Number(data.beneficiary))
+                          ?.lastName}
                     </p>
                   ) : (
                     <div className="flex flex-col">
                       {data.beneficiary === "me" ? (
                         <p className="font-semibold capitalize">
-                          {user?.lastName + " " + user?.firstName}
+                          {data.requestOlds && data.requestOlds[0].userId
+                            ? getUserName(data.requestOlds[0].userId.toString())
+                            : "Introuvable"}
                         </p>
                       ) : (
                         <div className="flex flex-col">
@@ -569,10 +611,11 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
                               <p
                                 key={ben.id}
                                 className="font-semibold capitalize"
-                              >{`${beneficiary?.firstName +
-                                " " +
-                                beneficiary?.lastName || ben.id
-                                }`}</p>
+                              >{`${
+                                beneficiary?.firstName +
+                                  " " +
+                                  beneficiary?.lastName || ben.id
+                              }`}</p>
                             );
                           })}
                         </div>
@@ -584,30 +627,77 @@ export function DetailBesoin({ open, onOpenChange, data, users, payments, projec
             )}
 
             {/* Validation History */}
-            {
-              data.type === "speciaux" ? null : (
-                <div className="view-group">
-                  <span className="view-icon">
-                    <SquareStackIcon />
-                  </span>
-                  <div className="flex flex-col">
-                    <p className="view-group-title">{"Historique de validation"}</p>
-                    <div className="grid gap-2">
-                      {data.validators.sort((a, b) => a.rank - b.rank).map(v => {
+            {data.type === "speciaux" ? null : (
+              <div className="view-group">
+                <span className="view-icon">
+                  <SquareStackIcon />
+                </span>
+                <div className="w-full flex flex-col">
+                  <p className="view-group-title">
+                    {"Historique de validation"}
+                  </p>
+                  <div className="grid gap-2">
+                    {data.validators
+                      .sort((a, b) => a.rank - b.rank)
+                      .map((v) => {
                         return (
-                          <div key={v.id} className={cn("px-3 py-2 flex flex-col gap-1 border", !v.decision ? "bg-gray-50 border-gray-200" : v.decision.includes("reject") ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200")}>
-                            <p className={cn("text-sm font-medium", !v.decision ? "text-gray-600" : v.decision.includes("reject") ? "text-red-600" : "text-green-600")}>{!v.decision ? "En attente" : v.decision.includes("reject") ? "Rejeté" : "Approuvé"}</p>
-                            <span>{users.find(u => u.id === v.userId)?.firstName + " " + users.find(u => u.id === v.userId)?.lastName}</span>
+                          <div
+                            key={v.id}
+                            className={cn(
+                              "px-3 py-2 flex flex-col gap-1 border",
+                              !v.decision
+                                ? "bg-gray-50 border-gray-200"
+                                : v.decision.includes("reject")
+                                  ? "bg-red-50 border-red-200"
+                                  : "bg-green-50 border-green-200",
+                            )}
+                          >
+                            <p
+                              className={cn(
+                                "text-sm font-medium",
+                                !v.decision
+                                  ? "text-gray-600"
+                                  : v.decision.includes("reject")
+                                    ? "text-red-600"
+                                    : "text-green-600",
+                              )}
+                            >
+                              {!v.decision
+                                ? "En attente"
+                                : v.decision.includes("reject")
+                                  ? "Rejeté"
+                                  : "Approuvé"}
+                            </p>
+                            <div className="flex flex-col">
+                              <span>
+                                {users.find((u) => u.id === v.userId)
+                                  ?.firstName +
+                                  " " +
+                                  users.find((u) => u.id === v.userId)
+                                    ?.lastName}
+                              </span>
+                              {v.decision && (
+                                <span className="font-medium tracking-tighter">
+                                  {format(
+                                    new Date(v.updatedAt),
+                                    "dd MMMM yyyy à kk:mm",
+                                    {
+                                      locale: fr,
+                                    },
+                                  )}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        )
+                        );
                       })}
-                    </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
           </div>
         </div>
-        
+
         {/* Boutons du footer - fixe en bas */}
         <DialogFooter className="mt-4 pt-4 border-t">
           <DialogClose asChild>

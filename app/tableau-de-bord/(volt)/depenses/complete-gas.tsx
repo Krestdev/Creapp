@@ -1,7 +1,15 @@
 "use client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -11,15 +19,36 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getRequestTypeBadge } from "@/lib/utils";
 import { PayloadGasCompletion, paymentQ } from "@/queries/payment";
-import { Bank, PaymentRequest, User } from "@/types/types";
+import {
+  PaymentRequest,
+  RequestModelT,
+  RequestType,
+  User,
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import React from "react";
+import {
+  ArchiveIcon,
+  CalendarIcon,
+  TextQuoteIcon,
+  UserRoundIcon,
+} from "lucide-react";
+import React, { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -29,16 +58,26 @@ interface Props {
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   users: Array<User>;
+  requests: Array<RequestModelT>;
+  requestTypes: Array<RequestType>;
 }
 
 const formSchema = z.object({
-  price: z.coerce.number({ message: "Veuillez définir le montant" }),
-  km: z.coerce.number({
+  price: z.coerce
+    .number({ message: "Veuillez définir le montant" })
+    .refine((data) => data > 0, {
+      message: "Le montant doit être supérieur à 0",
+    }),
+  /* km: z.coerce.number({
     message: "Veuillez définir le Kilométrage avant recharge",
-  }),
-  liters: z.coerce.number({
-    message: "Veuillez définir le nombre de litres rechargés",
-  }),
+  }), */
+  liters: z.coerce
+    .number({
+      message: "Veuillez définir le nombre de litres rechargés",
+    })
+    .refine((data) => data > 0, {
+      message: "Le nombre de litres doit être supérieur à 0",
+    }),
   driverId: z.coerce.number({ message: "Veuillez sélectionner le conducteur" }),
   deadline: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
@@ -49,36 +88,120 @@ const formSchema = z.object({
   ),
 });
 
-function CompleteGas({ ticket, open, onOpenChange, users }: Props) {
-    const [dueDate, setDueDate] = React.useState<boolean>(false);
+function CompleteGas({
+  ticket,
+  open,
+  onOpenChange,
+  users,
+  requests,
+  requestTypes,
+}: Props) {
+  //Drivers
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => u.role.some((r) => r.label === "DRIVER"));
+  }, [users]);
+
+  const [dueDate, setDueDate] = React.useState<boolean>(false);
+
+  const request = requests.find((r) => r.id === ticket.requestId);
+  const emitter = filteredUsers.find((u) => u.id === request?.userId);
+
+  const typeBadge = !!request
+    ? getRequestTypeBadge({ type: request.type, requestTypes: requestTypes })
+    : undefined;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      price: 10000,
-      km: 180000,
-      liters: 50,
-      driverId: ticket.userId,
+      price: 0,
+      //km: 180000,
+      liters: 0,
+      driverId: emitter?.id,
       deadline: format(new Date(), "yyyy-MM-dd"),
     },
   });
 
-  const payGas = useMutation({
-    mutationFn: async(payload:PayloadGasCompletion)=>paymentQ.gasCompletion({payload}),
-    onSuccess:()=>{
-        toast.success("Paiement mis à jour avec succès !");
-        onOpenChange(false);
-    },
-    onError: (error:Error)=>{
-        toast.error(error.message ?? "Une erreur est survenue");
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        price: 0,
+        //km: 180000,
+        liters: 0,
+        driverId: emitter?.id,
+        deadline: format(new Date(), "yyyy-MM-dd"),
+      });
     }
-  })
+  }, [open]);
+
+  const payGas = useMutation({
+    mutationFn: async (payload: PayloadGasCompletion) =>
+      paymentQ.gasCompletion({ payload }),
+    onSuccess: () => {
+      toast.success("Paiement mis à jour avec succès !");
+      onOpenChange(false);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? "Une erreur est survenue");
+    },
+  });
 
   const onSubmit = (values: z.infer<typeof formSchema>): void => {
-    console.log(values);
+    //console.log(values);
+    payGas.mutate({
+      id: ticket.id,
+      price: values.price,
+      liters: values.liters,
+      //km: values.km,
+      benefId: values.driverId,
+      deadline: new Date(values.deadline),
+    });
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
+        <DialogHeader variant={"secondary"}>
+          <DialogTitle>{`Compléter - ${ticket.title}`}</DialogTitle>
+          <DialogDescription>
+            {`Remplissez le formulaire pour compléter les informations relatives au ticket de carburant`}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 p-3 rounded-md border border-dashed bg-gray-100">
+          {/**Emetteur */}
+          <div className="view-group">
+            <span className="view-icon">
+              <UserRoundIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Emetteur du besoin"}</p>
+              <p className="font-semibold">
+                {!emitter
+                  ? "Introuvable"
+                  : emitter.firstName.concat(" ", emitter.lastName)}
+              </p>
+            </div>
+          </div>
+          {/**Type de besoin */}
+          <div className="view-group">
+            <span className="view-icon">
+              <ArchiveIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Type de besoin"}</p>
+              {!!typeBadge && (
+                <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
+              )}
+            </div>
+          </div>
+          <div className="view-group">
+            <span className="view-icon">
+              <TextQuoteIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Description"}</p>
+              <p className="">{request?.description ?? "--"}</p>
+            </div>
+          </div>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
             <FormField
@@ -100,7 +223,7 @@ function CompleteGas({ ticket, open, onOpenChange, users }: Props) {
                       </p>
                     </div>
                   </FormControl>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -123,11 +246,11 @@ function CompleteGas({ ticket, open, onOpenChange, users }: Props) {
                       </p>
                     </div>
                   </FormControl>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
+            {/* <FormField
               control={form.control}
               name="km"
               render={({ field }) => (
@@ -149,102 +272,125 @@ function CompleteGas({ ticket, open, onOpenChange, users }: Props) {
                   <FormMessage/>
                 </FormItem>
               )}
-            />
+            /> */}
             <FormField
               control={form.control}
               name="deadline"
               render={({ field }) => {
-                 const selectedDate = field.value
-              ? new Date(field.value)
-              : undefined;
-                return(
-                <FormItem>
-                  <FormLabel isRequired>{"Date"}</FormLabel>
-                  <FormControl>
-                    <div className="relative flex gap-2">
-                    <Input
-                      id={field.name}
-                      value={field.value || ""}
-                      placeholder="Sélectionner une date"
-                      className="bg-background pr-10"
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "ArrowDown") {
-                          e.preventDefault();
-                          setDueDate(true);
-                        }
-                      }}
-                    />
-                    <Popover open={dueDate} onOpenChange={setDueDate}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="date-picker"
-                          type="button"
-                          variant="ghost"
-                          className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
-                        >
-                          <CalendarIcon className="size-3.5" />
-                          <span className="sr-only">
-                            {"Sélectionner une date"}
-                          </span>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-auto overflow-hidden p-0"
-                        align="end"
-                        alignOffset={-8}
-                        sideOffset={10}
-                      >
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          defaultMonth={selectedDate}
-                          captionLayout="dropdown"
-                          onSelect={(date) => {
-                            if (!date) return;
-                            const value = format(date, "yyyy-MM-dd");
-                            field.onChange(value);
-                            setDueDate(false);
+                const selectedDate = field.value
+                  ? new Date(field.value)
+                  : undefined;
+                return (
+                  <FormItem>
+                    <FormLabel isRequired>{"Date"}</FormLabel>
+                    <FormControl>
+                      <div className="relative flex gap-2">
+                        <Input
+                          id={field.name}
+                          value={field.value || ""}
+                          placeholder="Sélectionner une date"
+                          className="bg-background pr-10"
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
                           }}
-                          disabled={(date) => date < new Date()}
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowDown") {
+                              e.preventDefault();
+                              setDueDate(true);
+                            }
+                          }}
                         />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}}
+                        <Popover open={dueDate} onOpenChange={setDueDate}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              id="date-picker"
+                              type="button"
+                              variant="ghost"
+                              className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                            >
+                              <CalendarIcon className="size-3.5" />
+                              <span className="sr-only">
+                                {"Sélectionner une date"}
+                              </span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-auto overflow-hidden p-0"
+                            align="end"
+                            alignOffset={-8}
+                            sideOffset={10}
+                          >
+                            <Calendar
+                              mode="single"
+                              selected={selectedDate}
+                              defaultMonth={selectedDate}
+                              captionLayout="dropdown"
+                              onSelect={(date) => {
+                                if (!date) return;
+                                const value = format(date, "yyyy-MM-dd");
+                                field.onChange(value);
+                                setDueDate(false);
+                              }}
+                              disabled={(date) => date < new Date()}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}
-              name="km"
+              name="driverId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel isRequired>{"Conducteur"}</FormLabel>
                   <FormControl>
-                    <Select value={field.value ? field.value.toString() : undefined} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder={"Sélectionner un conducteur"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {users.filter(u=> u.role.some(r=>r.label === "DRIVER")).map(user=>(
-                                <SelectItem key={user.id} value={user.id.toString()}>
-                                    {user.firstName.concat(" ", user.lastName)}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
+                    <Select
+                      value={field.value ? field.value.toString() : undefined}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue
+                          placeholder={"Sélectionner un conducteur"}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {users
+                          .filter((u) =>
+                            u.role.some((r) => r.label === "DRIVER"),
+                          )
+                          .map((user) => (
+                            <SelectItem
+                              key={user.id}
+                              value={user.id.toString()}
+                            >
+                              {user.firstName.concat(" ", user.lastName)}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
                     </Select>
                   </FormControl>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-            <DialogFooter>
-                <Button type="submit" variant={"primary"}>{"Enregistrer"}</Button>
-                <Button variant={"outline"} onClick={(e)=>{e.preventDefault(); onOpenChange(false)}}>{"Annuler"}</Button>
+            <DialogFooter className="w-full">
+              <Button type="submit" variant={"primary"}>
+                {"Enregistrer"}
+              </Button>
+              <Button
+                variant={"outline"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onOpenChange(false);
+                }}
+              >
+                {"Annuler"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

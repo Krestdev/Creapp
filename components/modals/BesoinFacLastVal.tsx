@@ -35,6 +35,7 @@ import { requestQ } from "@/queries/requestModule";
 import {
   Category,
   PaymentRequest,
+  PayType,
   ProjectT,
   RequestModelT,
   User,
@@ -388,10 +389,7 @@ export default function BesoinFacLastVal({
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        {"Titre"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
+                      <FormLabel isRequired>{"Titre"} </FormLabel>
                       <Input
                         {...field}
                         placeholder="ex. Achat du carburant groupe"
@@ -408,9 +406,8 @@ export default function BesoinFacLastVal({
                   name="beneficiaire"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel isRequired>
                         {"Recepteur pour compte"}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <Select
                         value={field.value}
@@ -442,10 +439,7 @@ export default function BesoinFacLastVal({
                   name="delai"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        {"Date limite"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
+                      <FormLabel isRequired>{"Date limite"}</FormLabel>
                       <FormControl>
                         <Popover
                           open={openCalendar}
@@ -490,10 +484,7 @@ export default function BesoinFacLastVal({
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        {"Priorité"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
+                      <FormLabel isRequired>{"Priorité"}</FormLabel>
                       <Select
                         {...field}
                         onValueChange={(value) => {
@@ -523,10 +514,7 @@ export default function BesoinFacLastVal({
                   name="description"
                   render={({ field }) => (
                     <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel>
-                        {"Description/Détail"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
+                      <FormLabel isRequired>{"Description/Détail"}</FormLabel>
                       <Textarea
                         disabled={true}
                         {...field}
@@ -545,7 +533,7 @@ export default function BesoinFacLastVal({
                     disabledName={true}
                   />
                 </div>
-                
+
                 {/* Moyen de paiement */}
                 <FormField
                   control={form.control}
@@ -560,7 +548,7 @@ export default function BesoinFacLastVal({
                           }
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger className="min-w-60 w-full col-span-2">
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Sélectionner" />
                           </SelectTrigger>
                           <SelectContent>

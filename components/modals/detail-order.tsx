@@ -2,7 +2,10 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -29,24 +32,12 @@ export function DetailOrder({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[750px] overflow-y-auto p-0 gap-0 overflow-x-hidden border-none flex flex-col">
-        {/* Header with burgundy background */}
-        <DialogHeader
-          className={
-            message
-              ? `bg-[#2d8b15] text-white p-6 m-4 rounded-lg pb-8 relative`
-              : "bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative"
-          }
-        >
-          <DialogTitle className="text-xl font-semibold text-white uppercase">
-            {`Demande - ${data.title}`}
-          </DialogTitle>
-          <Description className="text-sm text-white/80 mt-1">
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{`Demande - ${data.title}`}</DialogTitle>
+          <DialogDescription>
             {message || "Détails de la commande"}
-          </Description>
-          <p className="text-sm text-white/80 mt-1">
-            {"Informations relatives à la commande"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
         <div style={{ height: "500px", marginBottom: "20px" }}>
           <PDFViewer width="100%" height="100%">
@@ -55,16 +46,12 @@ export function DetailOrder({
         </div>
 
         {/* Footer buttons */}
-        <div className="flex w-full justify-end gap-3 p-6 pt-0">
+        <DialogFooter>
           <DownloadButton data={data} />
-          <Button
-            variant="outline"
-            className="bg-transparent"
-            onClick={() => onOpenChange(false)}
-          >
-            {"Fermer"}
-          </Button>
-        </div>
+          <DialogClose asChild>
+            <Button variant="outline">{"Fermer"}</Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

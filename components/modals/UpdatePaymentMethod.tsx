@@ -269,7 +269,7 @@ export default function UpdatePaymentMethod({
                   Traitement...
                 </>
               ) : (
-                "Valider"
+                "Appliquer"
               )}
             </Button>
           </DialogFooter>

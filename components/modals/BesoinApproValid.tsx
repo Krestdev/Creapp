@@ -32,7 +32,13 @@ import {
 } from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
 import { newRequestApprovisionement, requestQ } from "@/queries/requestModule";
-import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
+import {
+  Category,
+  PRIORITIES,
+  ProjectT,
+  RequestModelT,
+  User,
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -49,7 +55,7 @@ interface Props {
   users: Array<User>;
   categories: Array<Category>;
   projects: Array<ProjectT>;
-  requestData?: any; // Ajoutez le type approprié si nécessaire
+  requestData?: RequestModelT; // Ajoutez le type approprié si nécessaire
 }
 
 const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
@@ -112,6 +118,7 @@ function BesoinLastApproVall({
         ? format(new Date(requestData.dueDate), "yyyy-MM-dd")
         : format(defaultDate, "yyyy-MM-dd"),
       priority: requestData?.priority || "low",
+      projectId: requestData?.projectId,
       categoryId:
         requestData?.categoryId ||
         categories.find((c) => c.type.type === "appro")?.id ||
@@ -120,13 +127,43 @@ function BesoinLastApproVall({
     },
   });
 
+  const validator = categories
+    .find((cat) => cat.id === requestData?.categoryId)
+    ?.validators?.find((v) => v.userId === user?.id);
+
+  const validateRequest = useMutation({
+    mutationFn: async ({
+      id,
+      validator,
+    }: {
+      id: number;
+      validator:
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
+    }) => {
+      await requestQ.validate(id, validator?.id!, validator);
+    },
+    onSuccess: () => {
+      toast.success("Besoin approuvé avec succès !");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la validation");
+    },
+  });
+
   const { mutate, isPending } = useMutation({
     mutationFn: async (payload: newRequestApprovisionement) =>
-      requestQ.createApprovisionement(payload),
+      requestQ.update(requestData?.id!, payload),
     onSuccess: () => {
-      toast.success("Votre besoin a été soumis avec succès !");
+      validateRequest.mutateAsync({
+        id: requestData?.id!,
+        validator: validator,
+      });
       setOpen(false);
-      router.push("./mes-besoins");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -175,7 +212,7 @@ function BesoinLastApproVall({
                   <FormItem>
                     <FormLabel isRequired>{"Titre"}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex. Carburant" {...field} />
+                      <Input disabled placeholder="Ex. Carburant" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

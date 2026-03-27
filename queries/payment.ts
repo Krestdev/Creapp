@@ -27,9 +27,9 @@ export type PayPayload = Omit<
 
 export type PayloadGasCompletion = {
   id: number;
-  km: number;
+  //km: number;
   price: number;
-  driverId: number;
+  benefId: number;
   liters: number;
   deadline: Date;
 };
@@ -282,16 +282,13 @@ class PaymentQueries {
   }: {
     payload: PayloadGasCompletion;
   }): Promise<{ data: PaymentRequest }> => {
-    const { id, km, liters, price, driverId, deadline } = payload;
-    const formData = new FormData();
-    formData.append("km", km.toString());
-    formData.append("liters", liters.toString());
-    formData.append("price", price.toString());
-    formData.append("driverId", driverId.toString());
-    formData.append("deadline", deadline.toDateString());
+    const { id, liters, price, benefId, deadline } = payload;
     return api
-      .put(`${this.route}/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      .put(`${this.route}/gas/${id}`, {
+        liters,
+        price,
+        benefId,
+        deadline,
       })
       .then((response) => response.data);
   };

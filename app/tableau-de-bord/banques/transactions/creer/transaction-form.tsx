@@ -45,9 +45,9 @@ interface Props {
 const TX_TYPES = TRANSACTION_TYPES.filter((c) => c.value !== "TRANSFER").map(
   (t) => t.value,
 ) as [
-    (typeof TRANSACTION_TYPES)[number]["value"],
-    ...(typeof TRANSACTION_TYPES)[number]["value"][],
-  ];
+  (typeof TRANSACTION_TYPES)[number]["value"],
+  ...(typeof TRANSACTION_TYPES)[number]["value"][],
+];
 
 const sourceSchema = z.object({
   label: z.string().optional(),
@@ -74,10 +74,10 @@ export const formSchema = z
     Type: z.enum(TX_TYPES),
 
     from: sourceSchema.optional(),
-    fromBankId: z.coerce.number().int().positive().optional(),
+    fromBankId: z.coerce.number().int().optional(),
 
     to: sourceSchema.optional(),
-    toBankId: z.coerce.number().int().positive().optional(),
+    toBankId: z.coerce.number().int().optional(),
 
     proof: z
       .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
@@ -85,7 +85,10 @@ export const formSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.Type === "DEBIT") {
-      if (!data.fromBankId || isNaN(Number(data.fromBankId))) {
+      if (
+        typeof data.fromBankId !== "number" ||
+        isNaN(Number(data.fromBankId))
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["fromBankId"],
@@ -103,7 +106,7 @@ export const formSchema = z
     }
 
     if (data.Type === "CREDIT") {
-      if (!data.toBankId || isNaN(Number(data.toBankId))) {
+      if (typeof data.toBankId !== "number" || isNaN(Number(data.toBankId))) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["toBankId"],
@@ -120,7 +123,6 @@ export const formSchema = z
       }
     }
   });
-
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -141,8 +143,6 @@ function TransactionForm({ banks, userId }: Props) {
       proof: [],
     },
   });
-
-
 
   const router = useRouter();
 
@@ -170,7 +170,6 @@ function TransactionForm({ banks, userId }: Props) {
     }
   }, [type, form]);
 
-
   function onSubmit(values: FormValues) {
     const { Type, from, to, fromBankId, toBankId, date, ...rest } = values;
     if (Type === "CREDIT") {
@@ -178,21 +177,32 @@ function TransactionForm({ banks, userId }: Props) {
         Type: values.Type,
         ...rest,
         date: new Date(date),
-        from: { label: values.from?.label ?? "", accountNumber: values.from?.accountNumber, phoneNumber: values.from?.phoneNumber },
+        from: {
+          label: values.from?.label ?? "",
+          accountNumber: values.from?.accountNumber,
+          phoneNumber: values.from?.phoneNumber,
+        },
         toBankId: values.toBankId,
         userId,
       };
       return create.mutate(payload);
     } else {
-      const balance = banks.find(b => b.id === fromBankId)?.balance;
+      const balance = banks.find((b) => b.id === fromBankId)?.balance;
       const val = !balance ? false : balance - rest.amount > 0;
-      if (!val) return form.setError("amount", { message: `Le solde disponible est insuffisant. Solde : ${XAF.format(balance ?? 0)}` })
+      if (!val)
+        return form.setError("amount", {
+          message: `Le solde disponible est insuffisant. Solde : ${XAF.format(balance ?? 0)}`,
+        });
       const payload: TransactionProps = {
         Type: values.Type,
         ...rest,
         date: new Date(date),
         fromBankId: values.fromBankId,
-        to: { label: values.to?.label ?? "", accountNumber: values.to?.accountNumber, phoneNumber: values.to?.phoneNumber },
+        to: {
+          label: values.to?.label ?? "",
+          accountNumber: values.to?.accountNumber,
+          phoneNumber: values.to?.phoneNumber,
+        },
         userId,
       };
       return create.mutate(payload);
@@ -345,11 +355,13 @@ function TransactionForm({ banks, userId }: Props) {
                         <SelectValue placeholder="Sélectionner un compte" />
                       </SelectTrigger>
                       <SelectContent>
-                        {banks.filter(b => !!b.type && b.type !== "null").map((bank) => (
-                          <SelectItem key={bank.id} value={String(bank.id)}>
-                            {bank.label}
-                          </SelectItem>
-                        ))}
+                        {banks
+                          .filter((b) => !!b.type && b.type !== "null")
+                          .map((bank) => (
+                            <SelectItem key={bank.id} value={String(bank.id)}>
+                              {bank.label}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -433,11 +445,13 @@ function TransactionForm({ banks, userId }: Props) {
                         <SelectValue placeholder="Sélectionner un compte" />
                       </SelectTrigger>
                       <SelectContent>
-                        {banks.filter(b => !!b.type && b.type !== "null").map((bank) => (
-                          <SelectItem key={bank.id} value={String(bank.id)}>
-                            {bank.label}
-                          </SelectItem>
-                        ))}
+                        {banks
+                          .filter((b) => !!b.type && b.type !== "null")
+                          .map((bank) => (
+                            <SelectItem key={bank.id} value={String(bank.id)}>
+                              {bank.label}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </FormControl>

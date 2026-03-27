@@ -705,7 +705,7 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="text-sm first-letter:uppercase lowercase">
+          <div className="text-sm first-letter:uppercase lowercase max-w-[500px] truncate">
             {getProjectName(row.getValue("projectId"))}
           </div>
         ),
@@ -804,7 +804,7 @@ export function DataVal({
           return (
             <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
               {beneficiary.toLocaleLowerCase() === "me"
-                ? getUserName(usersData, user?.id)
+                ? getUserName(usersData, item.userId)
                 : item.type?.toLocaleLowerCase().includes("facili")
                   ? item.benFac?.list
                       .map((li) => li.name)
@@ -960,11 +960,11 @@ export function DataVal({
                       setSelectedItem(item);
                       setIsUpdatePaymentModalOpen(true);
                     }}
-                    disabled={
-                      !validationInfo.canValidate ||
-                      item.state !== "pending" ||
-                      userHasValidated
-                    }
+                    // disabled={
+                    //   !validationInfo.canValidate ||
+                    //   item.state !== "pending" ||
+                    //   userHasValidated
+                    // }
                   >
                     <LucideCreditCard className="h-4 w-4 text-blue-500" />
                     {"Modifier le moyen de paiement"}

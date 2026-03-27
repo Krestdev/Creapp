@@ -43,7 +43,7 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { transactionQ } from "@/queries/transaction";
-import { DateFilter, Transaction } from "@/types/types";
+import { DateFilter, Transaction, User } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import {
   type ColumnDef,
@@ -74,12 +74,14 @@ import RejectDialog from "./reject-dialog";
 import { TabBar } from "@/components/base/TabBar";
 import { Badge } from "@/components/ui/badge";
 import ViewTransaction from "../../banques/transactions/view-transaction";
+import { SoldeDialog } from "./SoldeDialog";
 
 interface Props {
   data: Array<Transaction>;
+  users: Array<User>;
 }
 
-function TransferTable({ data }: Props) {
+function TransferTable({ data, users }: Props) {
   const tabs = [
     {
       id: 0,
@@ -114,6 +116,7 @@ function TransferTable({ data }: Props) {
     { from: Date; to: Date } | undefined
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
+  const [showSolde, setShowSolde] = React.useState<boolean>(false);
 
   const approve = useMutation({
     mutationFn: async ({ id }: { id: number }) =>
@@ -141,10 +144,10 @@ function TransferTable({ data }: Props) {
         search.trim() === ""
           ? true
           : transaction.id.toString().toLocaleLowerCase().includes(search) ||
-          transaction.label.toLocaleLowerCase().includes(search) ||
-          transaction.amount.toString().includes(search) ||
-          transaction.to.label.toLocaleLowerCase().includes(search) ||
-          transaction.from.label.toLocaleLowerCase().includes(search);
+            transaction.label.toLocaleLowerCase().includes(search) ||
+            transaction.amount.toString().includes(search) ||
+            transaction.to.label.toLocaleLowerCase().includes(search) ||
+            transaction.from.label.toLocaleLowerCase().includes(search);
       //Filter Tab
       const matchTab =
         selectedTab === 0
@@ -461,6 +464,9 @@ function TransferTable({ data }: Props) {
           setSelectedTab={setSelectedTab}
         />
         <div className="flex items-center gap-3">
+          <Button onClick={() => setShowSolde(true)} variant={"primary"}>
+            {"Voir les soldes"}
+          </Button>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant={"outline"}>
@@ -655,9 +661,9 @@ function TransferTable({ data }: Props) {
                         <span className="text-muted-foreground text-xs">
                           {customDateRange?.from && customDateRange.to
                             ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                                customDateRange.from,
+                                "dd/MM/yyyy",
+                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -765,9 +771,9 @@ function TransferTable({ data }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -822,8 +828,10 @@ function TransferTable({ data }: Props) {
           open={view}
           openChange={setView}
           transaction={selected}
+          users={users}
         />
       )}
+      <SoldeDialog open={showSolde} onOpenChange={setShowSolde} />
     </div>
   );
 }

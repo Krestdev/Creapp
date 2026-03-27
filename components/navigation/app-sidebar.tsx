@@ -512,7 +512,7 @@ function AppSidebar() {
             pageId: "PG-03-01",
             title: "Demande de cotation",
             href: "/tableau-de-bord/commande/cotation",
-            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES"],
             badgeValue:
               requestToUse.length > 0 ? requestToUse.length : undefined,
           },
@@ -520,7 +520,7 @@ function AppSidebar() {
             pageId: "PG-03-02",
             title: "Devis",
             href: "/tableau-de-bord/commande/devis",
-            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES"],
           },
           {
             pageId: "PG-03-45",
@@ -536,7 +536,7 @@ function AppSidebar() {
             pageId: "PG-03-5",
             title: "Bons de commande",
             href: "/tableau-de-bord/commande/bon-de-commande",
-            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES"],
             badgeValue:
               devisTraite && devisTraite.length > 0
                 ? devisTraite?.length
@@ -598,7 +598,7 @@ function AppSidebar() {
           },
           {
             pageId: "PG-04-02",
-            title: "Transferts",
+            title: "Approvisionnements",
             href: "/tableau-de-bord/ticket/transferts",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
             badgeValue:
@@ -650,12 +650,12 @@ function AppSidebar() {
                 : undefined,
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
-          {
+          /* {
             pageId: "PG-23354987-01",
             title: "Créer une dépense",
             href: "/tableau-de-bord/depenses/creer",
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
-          },
+          }, */
         ],
       },
       {

@@ -17,11 +17,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useStore } from "@/providers/datastore";
-import { paymentQ } from "@/queries/payment";
-import { TransactionProps, transactionQ } from "@/queries/transaction";
+import { transactionQ } from "@/queries/transaction";
 import { Bank, PaymentRequest, Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -52,12 +51,16 @@ function PayExpense({ ticket, open, onOpenChange, transactions }: Props) {
     },
   });
 
-  const trans = transactions.find((item) => item.id === ticket.transactionId);
+  const transaction = transactions.find(
+    (item) => item.id === ticket.transactionId,
+  );
 
   const pay = useMutation({
-    mutationFn: async (
-      payload: Omit<TransactionProps, "userId" | "updatedAt">,
-    ) => transactionQ.update(ticket.transactionId!, payload),
+    mutationFn: async (payload: {
+      id: number;
+      proof: File;
+      paymentId: number;
+    }) => transactionQ.completePayment(payload),
     onSuccess: () => {
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
@@ -67,37 +70,17 @@ function PayExpense({ ticket, open, onOpenChange, transactions }: Props) {
     },
   });
 
-  const paymentsData = useMutation({
-    mutationFn: async (data: Omit<Partial<PaymentRequest>, "proof">) =>
-      paymentQ.update(ticket.id!, data),
-    onSuccess: () => {
-      toast.success("Votre dépense a été payée avec succès !");
-      form.reset();
-      onOpenChange(false);
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
-
   function onSubmit(values: FormValues) {
-    const { proof, ...rest } = values;
-    const payload: Omit<TransactionProps, "userId" | "updatedAt"> = {
-      ...rest,
-      proof,
-      Type: trans?.Type!,
-      paymentId: ticket.id,
-      label: ticket.title,
-      amount: ticket.price,
-      date: new Date(),
-      status: "paid",
-    };
+    if (!!transaction) {
+      const payload: { id: number; proof: File; paymentId: number } = {
+        proof: values.proof[0],
+        id: transaction.id,
+        paymentId: ticket.id,
+      };
 
-    ticket.status === "pending_depense"
-      ? paymentsData.mutate({
-          status: "paid",
-        })
-      : pay.mutate(payload);
+      pay.mutate(payload);
+    }
+    return form.setError("proof", { message: "Transaction introuvable" });
   }
 
   return (

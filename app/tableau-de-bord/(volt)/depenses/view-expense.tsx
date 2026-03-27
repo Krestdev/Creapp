@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn, getPaymentTypeBadge, XAF } from "@/lib/utils";
 import { signatairQ } from "@/queries/signatair";
+import { vehicleQ } from "@/queries/vehicule";
 import {
   Invoice,
   PAY_STATUS,
@@ -30,6 +31,7 @@ import {
   BriefcaseBusinessIcon,
   Calendar,
   CalendarFoldIcon,
+  Car,
   ChevronsUp,
   CircleUserRoundIcon,
   CreditCard,
@@ -109,6 +111,12 @@ function ViewExpense({
   requests,
   requestTypes,
 }: Props) {
+  const request = requests.find((r) => r.id === payment.requestId);
+  const vehicleData = useQuery({
+    queryKey: ["vehicle"],
+    queryFn: () => vehicleQ.getOne(request?.vehiclesId!),
+  });
+
   const invoice = invoices.find((p) => p.id === payment.invoiceId);
   const getSignataire = useQuery({
     queryKey: ["signatairs"],
@@ -139,7 +147,6 @@ function ViewExpense({
     );
   };
 
-  const request = requests.find((r) => r.id === payment.requestId);
   const initiator = users.find((u) => u.id === request?.userId);
 
   const getPriorityBadge = () => {
@@ -173,6 +180,7 @@ function ViewExpense({
   };
 
   const signers = signataires?.user;
+
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-[760px]">
@@ -249,6 +257,18 @@ function ViewExpense({
               <p className="font-semibold">{XAF.format(payment.price)}</p>
             </div>
           </div>
+
+          {request?.type === "gas" && (
+            <div className="view-group">
+              <span className="view-icon">
+                <Car />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Véhicule"}</p>
+                <p>{`${vehicleData.data?.data.mark} ${vehicleData.data?.data.label}`}</p>
+              </div>
+            </div>
+          )}
 
           {/* Bénéficiaire */}
           {hasValue(payment.benefId) && (
@@ -542,7 +562,7 @@ function ViewExpense({
             <div className="flex flex-col">
               <p className="view-group-title">{"Créé le"}</p>
               <p className="font-semibold">
-                {format(new Date(payment.createdAt), "dd MMMM yyyy à HH:mm", {
+                {format(new Date(payment.createdAt), "dd MMMM yyyy à kk:mm", {
                   locale: fr,
                 })}
               </p>
@@ -561,7 +581,7 @@ function ViewExpense({
                   <p className="font-semibold">
                     {format(
                       new Date(payment.updatedAt),
-                      "dd MMMM yyyy à HH:mm",
+                      "dd MMMM yyyy à kk:mm",
                       {
                         locale: fr,
                       },
@@ -647,7 +667,7 @@ function ViewExpense({
                           {s.firstName + " " + s.lastName}
                         </p>
                         {/* {signer && <p className="text-sm text-muted-foreground">
-                              {format(new Date(signer.createdAt!), "dd MMMM yyyy à HH:mm", {
+                              {format(new Date(signer.createdAt!), "dd MMMM yyyy à kk:mm", {
                                 locale: fr,
                               })}
                             </p>} */}

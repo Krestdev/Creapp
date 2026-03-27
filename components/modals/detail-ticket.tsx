@@ -48,7 +48,6 @@ interface DetailTicketProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: PaymentRequest;
-  action: () => void;
   invoice?: Invoice;
   requests: RequestModelT[];
   users: User[];
@@ -59,7 +58,6 @@ export function DetailTicket({
   open,
   onOpenChange,
   data,
-  action,
   invoice,
   users,
   types,
@@ -603,7 +601,11 @@ export function DetailTicket({
                   </p>
                   <p className="font-semibold">
                     {data?.createdAt
-                      ? format(new Date(data.createdAt), "PPP", { locale: fr })
+                      ? format(
+                          new Date(data.createdAt),
+                          "dd MMMM yyyy à kk:mm",
+                          { locale: fr },
+                        )
                       : "N/A"}
                   </p>
                 </div>
@@ -618,7 +620,11 @@ export function DetailTicket({
                   <p className="view-group-title">{"Modifié le"}</p>
                   <p className="font-semibold">
                     {data?.updatedAt
-                      ? format(new Date(data.updatedAt), "PPP", { locale: fr })
+                      ? format(
+                          new Date(data.updatedAt),
+                          "dd MMMM yyyy à kk:mm",
+                          { locale: fr },
+                        )
                       : "N/A"}
                   </p>
                 </div>
