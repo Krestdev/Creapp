@@ -291,6 +291,7 @@ function TransactionTable({
             if (customDateRange?.from && customDateRange?.to) {
               startDate = customDateRange.from;
               endDate = customDateRange.to;
+              endDate.setHours(23);
             }
             break;
         }
@@ -300,8 +301,8 @@ function TransactionTable({
           (customDateRange?.from && customDateRange?.to)
         ) {
           matchDate =
-            new Date(transaction.createdAt) >= startDate &&
-            new Date(transaction.createdAt) <= endDate;
+            new Date(transaction.updatedAt) >= startDate &&
+            new Date(transaction.updatedAt) <= endDate;
         }
       }
 

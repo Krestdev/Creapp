@@ -199,6 +199,7 @@ const Page = () => {
             if (customDateRange?.from && customDateRange?.to) {
               startDate = customDateRange.from;
               endDate = customDateRange.to;
+              endDate.setHours(23);
             }
             break;
         }
