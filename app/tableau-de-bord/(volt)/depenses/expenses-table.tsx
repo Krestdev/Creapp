@@ -72,6 +72,7 @@ import {
 import { cn, getRequestTypeBadge, XAF } from "@/lib/utils";
 import {
   Bank,
+  DateFilter,
   Invoice,
   PaymentRequest,
   PayType,
@@ -93,6 +94,12 @@ import ViewExpense from "./view-expense";
 import CompleteGas from "./complete-gas";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Calendar } from "@/components/ui/calendar";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -370,6 +377,11 @@ function ExpensesTable({
   const [paymentMethodFilter, setPaymentMethodFilter] = React.useState<
     "all" | string
   >("all");
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+  const [customDateRange, setCustomDateRange] = React.useState<
+    { from: Date; to: Date } | undefined
+  >();
+  const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
   // States pour les recherches dans les dropdowns
   const [typeSearch, setTypeSearch] = React.useState("");
   const [beneSearch, setBeneSearch] = React.useState("");
@@ -385,6 +397,8 @@ function ExpensesTable({
     setAmountTypeFilter("greater");
     setPaymentMethodFilter("all");
     setProviderFilter("all");
+    setDateFilter(undefined);
+    setCustomDateRange(undefined);
   };
 
   const tabs = [
@@ -411,6 +425,9 @@ function ExpensesTable({
 
   const filteredData = React.useMemo(() => {
     return payments.filter((p) => {
+      const now = new Date();
+      let startDate = new Date();
+      let endDate = now;
       // Filter amount
       const matchAmount =
         amountTypeFilter === "greater"
@@ -499,6 +516,43 @@ function ExpensesTable({
         selectedFilter === "all"
           ? true
           : p.selected === Boolean(selectedFilter);
+      // Filtre par date
+      let matchDate = true;
+      if (dateFilter) {
+        switch (dateFilter) {
+          case "today":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "week":
+            startDate.setDate(
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+            );
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "month":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          case "custom":
+            if (customDateRange?.from && customDateRange?.to) {
+              startDate = customDateRange.from;
+              endDate = customDateRange.to;
+              endDate.setHours(23);
+            }
+            break;
+        }
+
+        if (
+          dateFilter !== "custom" ||
+          (customDateRange?.from && customDateRange?.to)
+        ) {
+          matchDate =
+            new Date(p.updatedAt ?? p.createdAt) >= startDate &&
+            new Date(p.updatedAt ?? p.createdAt) <= endDate;
+        }
+      }
 
       return (
         matchTab &&
@@ -508,7 +562,8 @@ function ExpensesTable({
         matchProvider &&
         matchPaymentMethod &&
         matchSelected &&
-        matchBeneficiary
+        matchBeneficiary &&
+        matchDate
       );
     });
   }, [
@@ -524,6 +579,8 @@ function ExpensesTable({
     selectedFilter,
     beneFilter,
     request,
+    dateFilter,
+    customDateRange,
   ]);
 
   const columns: ColumnDef<PaymentRequest>[] = [
@@ -1449,6 +1506,152 @@ function ExpensesTable({
                       {"FCFA"}
                     </span>
                   </div>
+                </div>
+                {/* Filtre par période */}
+                <div className="grid gap-1.5">
+                  <Label>{"Période"}</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {dateFilter === undefined
+                            ? "Toutes les périodes"
+                            : dateFilter === "today"
+                              ? "Aujourd'hui"
+                              : dateFilter === "week"
+                                ? "Cette semaine"
+                                : dateFilter === "month"
+                                  ? "Ce mois"
+                                  : dateFilter === "year"
+                                    ? "Cette année"
+                                    : dateFilter === "custom"
+                                      ? "Personnalisé"
+                                      : "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter(undefined);
+                          setCustomDateRange(undefined);
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === undefined ? "bg-accent" : ""}
+                      >
+                        <span>Toutes les périodes</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("today");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "today" ? "bg-accent" : ""}
+                      >
+                        <span>Aujourd'hui</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("week");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "week" ? "bg-accent" : ""}
+                      >
+                        <span>Cette semaine</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("month");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "month" ? "bg-accent" : ""}
+                      >
+                        <span>Ce mois</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("year");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "year" ? "bg-accent" : ""}
+                      >
+                        <span>Cette année</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("custom");
+                          setCustomOpen(true);
+                        }}
+                        className={dateFilter === "custom" ? "bg-accent" : ""}
+                      >
+                        <span>Personnalisé</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <Collapsible
+                    open={customOpen}
+                    onOpenChange={setCustomOpen}
+                    disabled={dateFilter !== "custom"}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        {"Plage personnalisée"}
+                        <span className="text-muted-foreground text-xs">
+                          {customDateRange?.from && customDateRange.to
+                            ? `${format(
+                                customDateRange.from,
+                                "dd/MM/yyyy",
+                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            : "Choisir"}
+                        </span>
+                      </Button>
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent className="space-y-4 pt-4">
+                      <Calendar
+                        mode="range"
+                        selected={customDateRange}
+                        onSelect={(range) => {
+                          if (!range?.from || !range?.to) return;
+                          const from = new Date(range.from);
+                          const to = new Date(range.to);
+                          to.setHours(23, 59, 59, 999);
+                          setCustomDateRange({ from, to });
+                        }}
+                        numberOfMonths={1}
+                        className="rounded-md border w-full"
+                      />
+                      <div className="space-y-1">
+                        <Button
+                          className="w-full"
+                          onClick={() => {
+                            setCustomDateRange(undefined);
+                            setDateFilter(undefined);
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Annuler"}
+                        </Button>
+                        <Button
+                          className="w-full"
+                          variant={"outline"}
+                          onClick={() => {
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Réduire"}
+                        </Button>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
 
                 {/* Bouton pour réinitialiser les filtres */}

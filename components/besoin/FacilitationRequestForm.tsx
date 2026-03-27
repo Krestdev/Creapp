@@ -326,7 +326,7 @@ export default function FacilitationRequestForm({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date) => date <= new Date()}
+                        disabled={(date) => date <= new Date()} //To-Do : Correct to be able to set today
                       />
                     </PopoverContent>
                   </Popover>

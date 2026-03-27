@@ -107,12 +107,12 @@ function TransactionTable({
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
 
-  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [amountFilter, setAmountFilter] = React.useState<number>(0);
   const [bankFilter, setBankFilter] = React.useState<string>("all");
   const [amountTypeFilter, setAmountTypeFilter] = React.useState<
     "greater" | "inferior" | "equal" | "aucun"
   >("aucun");
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
