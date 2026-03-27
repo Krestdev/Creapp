@@ -112,7 +112,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       unit: "",
       categoryId: undefined,
       projectId: undefined,
-      // proof: [], 
+      // proof: [],
     },
   });
 
@@ -128,7 +128,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema> ) => {
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
     mutate({
       label: values.label,
       description: values.description,
@@ -144,7 +144,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       // proof: values.proof,
     });
   };
-  
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
@@ -304,7 +304,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
                             field.onChange(value);
                             setDueDate(false);
                           }}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => date <= new Date()}
                         />
                       </PopoverContent>
                     </Popover>

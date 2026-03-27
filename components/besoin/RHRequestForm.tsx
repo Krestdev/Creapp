@@ -341,7 +341,7 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date < new Date()}
+                      disabled={(date) => date <= new Date()}
                       locale={fr}
                     />
                   </PopoverContent>

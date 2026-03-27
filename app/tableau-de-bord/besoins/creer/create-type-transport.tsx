@@ -256,7 +256,7 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
                             field.onChange(value);
                             setDueDate(false);
                           }}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => date <= new Date()}
                         />
                       </PopoverContent>
                     </Popover>

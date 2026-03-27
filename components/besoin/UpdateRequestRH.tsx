@@ -109,8 +109,9 @@ export default function UpdateRHRequest({
     queryFn: async () => paymentQ.getAll(),
   });
 
-  const USERS =
-    users.filter((u) => u.verified).map((u) => ({
+  const USERS = users
+    .filter((u) => u.verified)
+    .map((u) => ({
       id: u.id!,
       name: u.firstName + " " + u.lastName,
     }));
@@ -273,10 +274,11 @@ export default function UpdateRHRequest({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 flex flex-col">
         {/* Header - FIXE EN HAUT */}
-        <DialogHeader variant={"secondary"} className="px-6 pt-6 pb-4 border-b shrink-0">
-          <DialogTitle>
-            {`Modifier - ${requestData.label}`}
-          </DialogTitle>
+        <DialogHeader
+          variant={"secondary"}
+          className="px-6 pt-6 pb-4 border-b shrink-0"
+        >
+          <DialogTitle>{`Modifier - ${requestData.label}`}</DialogTitle>
           <DialogDescription>
             {"Modifiez les informations du besoin en ressources humaines"}
           </DialogDescription>
@@ -292,9 +294,7 @@ export default function UpdateRHRequest({
                 name="projet"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>
-                      {"Projet"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Projet"}</FormLabel>
                     <SearchableSelect
                       onChange={field.onChange}
                       options={
@@ -326,9 +326,7 @@ export default function UpdateRHRequest({
                 name="titre"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>
-                      {"Titre"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Titre"}</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex. Salaires Octobre" {...field} />
                     </FormControl>
@@ -343,9 +341,7 @@ export default function UpdateRHRequest({
                 name="periode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>
-                      {"Période"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Période"}</FormLabel>
                     <FormControl>
                       <Popover>
                         <PopoverTrigger asChild className="h-10 w-full">
@@ -396,9 +392,7 @@ export default function UpdateRHRequest({
                 name="date_limite"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel isRequired>
-                      {"Date limite"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Date limite"}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild className="h-10 w-full">
                         <FormControl>
@@ -421,7 +415,7 @@ export default function UpdateRHRequest({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => date <= new Date()}
                           locale={fr}
                         />
                       </PopoverContent>
@@ -437,11 +431,13 @@ export default function UpdateRHRequest({
                 name="montant"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>
-                      {"Montant"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Montant"}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="ex. 500 000" {...field} />
+                      <Input
+                        type="number"
+                        placeholder="ex. 500 000"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -454,9 +450,7 @@ export default function UpdateRHRequest({
                 name="beneficiaire"
                 render={({ field }) => (
                   <FormItem className="@min-[640px]:col-span-2">
-                    <FormLabel isRequired>
-                      {"Bénéficiaire(s)"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Bénéficiaire(s)"}</FormLabel>
                     <FormControl>
                       <MultiSelectUsers
                         users={USERS}

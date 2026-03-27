@@ -98,7 +98,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
       amount: 100,
       liters: 1,
       benef: user?.id,
-      dueDate:defaultDate,
+      dueDate: defaultDate,
       priority: "low",
       vehiclesId: undefined,
       km: 1,
@@ -269,7 +269,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => date <= new Date()}
                   />
                 </PopoverContent>
               </Popover>

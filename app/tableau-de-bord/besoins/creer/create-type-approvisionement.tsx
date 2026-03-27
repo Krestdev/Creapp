@@ -2,14 +2,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
-import {
   Form,
   FormControl,
   FormField,
@@ -30,19 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import {
-  newRequestApprovisionement,
-  newRequestGas,
-  requestQ,
-} from "@/queries/requestModule";
-import { Category, PRIORITIES, ProjectT, User, Vehicle } from "@/types/types";
+import { newRequestApprovisionement, requestQ } from "@/queries/requestModule";
+import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { projectHmrIdentifiersSubscribe } from "next/dist/build/swc/generated-native";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -312,7 +298,7 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
                             field.onChange(value);
                             setDueDate(false);
                           }}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => date <= new Date()}
                         />
                       </PopoverContent>
                     </Popover>
