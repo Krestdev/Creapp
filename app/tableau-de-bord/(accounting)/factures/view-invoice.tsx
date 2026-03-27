@@ -167,7 +167,7 @@ function ViewInvoice({ invoice, open, openChange, purchases, users }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Créé le"}</p>
             <p className="font-semibold">
-              {format(new Date(invoice.createdAt), "dd MMMM yyyy", {
+              {format(new Date(invoice.createdAt), "dd MMMM yyyy à hh:mm", {
                 locale: fr,
               })}
             </p>
