@@ -36,7 +36,7 @@ function Page() {
   const filteredTransactions = React.useMemo(() => {
     if (!getTransactions.data) return [];
     return getTransactions.data.data
-      .filter((t) => t.status === "APPROVED" && t.Type !== "TRANSFER")
+      .filter((t) => t.status === "APPROVED" /* && t.Type !== "TRANSFER" */)
       .sort(
         (a, b) =>
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),

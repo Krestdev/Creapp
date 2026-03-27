@@ -57,7 +57,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getTransactionTypeBadge, XAF } from "@/lib/utils";
+import { cn, getTransactionTypeBadge, subText, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   Bank,
@@ -392,7 +392,11 @@ function TransactionTable({
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return <span className="font-medium">{value}</span>;
+        return (
+          <span className="font-medium">
+            {subText({ text: value, length: 21 })}
+          </span>
+        );
       },
     },
     {
@@ -481,28 +485,6 @@ function TransactionTable({
       },
     },
     {
-      accessorKey: "createdAt",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Créé le"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original.createdAt;
-        return (
-          <span>
-            {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
-          </span>
-        );
-      },
-    },
-    {
       accessorKey: "updatedAt",
       header: ({ column }) => {
         return (
@@ -510,7 +492,7 @@ function TransactionTable({
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Mis à jour le"}
+            {"Effectué le"}
             <ArrowUpDown />
           </span>
         );
@@ -561,7 +543,12 @@ function TransactionTable({
         const user = users.find((u) => u.id === value);
         return (
           <span>
-            {user ? user.firstName.concat(" ", user.lastName) : "N/A"}
+            {user
+              ? subText({
+                  text: user.firstName.concat(" ", user.lastName),
+                  length: 21,
+                })
+              : "N/A"}
           </span>
         );
       },

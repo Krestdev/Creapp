@@ -91,6 +91,8 @@ import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
 import CompleteGas from "./complete-gas";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -753,9 +755,36 @@ function ExpensesTable({
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("createdAt")}</div>
-      ),
+      cell: ({ row }) => {
+        const value = row.original.createdAt;
+        return (
+          <div>
+            {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "updatedAt",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Mise à jour le"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.updatedAt;
+        return (
+          <div>
+            {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
+          </div>
+        );
+      },
     },
     {
       id: "actions",
