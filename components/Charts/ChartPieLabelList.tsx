@@ -17,7 +17,12 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { XAF } from "@/lib/utils";
-import { Invoice, PaymentRequest, ProjectT } from "@/types/types";
+import {
+  Invoice,
+  PAYMENT_TYPES,
+  PaymentRequest,
+  ProjectT,
+} from "@/types/types";
 
 interface ChartPieLabelListProps {
   data?: PaymentRequest[];
@@ -28,12 +33,12 @@ interface ChartPieLabelListProps {
   invoices?: Invoice[];
 }
 
-const PAYMENT_TYPES = {
-  salary: "Salaire",
-  invoice: "Facture",
-  expense: "Dépense",
-  other: "Autre",
-} as const;
+// const PAYMENT_TYPES = {
+//   salary: "Salaire",
+//   invoice: "Facture",
+//   expense: "Dépense",
+//   other: "Autre",
+// } as const;
 
 const CHART_COLORS = [
   "#2563EB", // bleu
@@ -59,13 +64,12 @@ const CHART_COLORS = [
 ];
 
 export function ChartPieLabelList({
-  data=[],
+  data = [],
   chartType,
-  invoices=[],
-  projects=[],
+  invoices = [],
+  projects = [],
   title = "Répartition des dépenses",
 }: ChartPieLabelListProps) {
-
   // les Factures (liste des IDs)
   const invoiceIds = data.flatMap((x) => x.invoiceId);
 
@@ -84,10 +88,12 @@ export function ChartPieLabelList({
       let key = "";
       const price = payment.price || 0;
 
+      console.log("Processing payment:", payment);
       switch (chartType) {
         case "type":
-          const type = payment.type || "other";
-          key = PAYMENT_TYPES[type as keyof typeof PAYMENT_TYPES] || type;
+          key =
+            PAYMENT_TYPES.find((x) => x.value === payment.type)?.value ||
+            ("other" as any);
           break;
         case "project":
           key = payment.projectId
@@ -98,8 +104,8 @@ export function ChartPieLabelList({
           break;
         case "fournisseur":
           const provider =
-            providerData.find((p) => p.id === payment.invoiceId)?.command.provider
-              .name || "Inconnu";
+            providerData.find((p) => p.id === payment.invoiceId)?.command
+              .provider.name || "Inconnu";
           key =
             provider.length > 12 ? `${provider.substring(0, 10)}...` : provider;
           break;
@@ -141,6 +147,7 @@ export function ChartPieLabelList({
   const totalAmount = chartData.reduce((sum, item) => sum + item.amount, 0);
 
   const translateType = (type: string) => {
+    console.log("Translating type:", type);
     switch (type) {
       case "FAC":
         return "Facilitation";
@@ -157,10 +164,11 @@ export function ChartPieLabelList({
     }
   };
 
+  console.log("Chart data with percentages:", chartData);
   // Calculer les pourcentages pour les labels - 2 chiffres après la virgule
   const chartDataWithPercent = chartData.map((item) => ({
     ...item,
-    name: translateType(item.name),
+    name: PAYMENT_TYPES.find((e) => e.value === item.name)?.name || "others",
     // CORRECTION : utiliser toFixed(2) au lieu de Math.round
     percent:
       totalAmount > 0
