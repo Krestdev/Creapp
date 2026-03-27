@@ -420,7 +420,10 @@ export function TableMyRequests({
                           ? setIsUpdateOthersModalOpen(true)
                           : setIsUpdateModalOpen(true);
                   }}
-                  disabled={item.state !== "pending"}
+                  disabled={
+                    item.state !== "pending" ||
+                    item.validators.some((v) => !!v.decision)
+                  }
                 >
                   <LucidePen />
                   {"Modifier"}
@@ -643,6 +646,9 @@ export function TableMyRequests({
             open={isUpdateModalOpen}
             setOpen={setIsUpdateModalOpen}
             requestData={selectedItem}
+            users={users}
+            projects={projects}
+            categories={categories}
           />
           <UpdateRequestFac
             open={isUpdateFacModalOpen}
@@ -659,7 +665,7 @@ export function TableMyRequests({
             projects={projects}
           />
           <EditTypeOthers
-            requestId={selectedItem.id}
+            request={selectedItem}
             users={users}
             categories={categories}
             projects={projects}

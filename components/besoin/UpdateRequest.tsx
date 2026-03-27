@@ -6,6 +6,8 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -33,22 +35,19 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
 import { requestQ } from "@/queries/requestModule";
 
-import { categoryQ } from "@/queries/categoryModule";
-import { RequestModelT } from "@/types/types";
+import { units } from "@/data/unit";
+import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ChevronDownIcon, LoaderIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { units } from "@/data/unit";
-import { projectQ } from "@/queries/projectModule";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -71,14 +70,18 @@ interface UpdateRequestProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   requestData: RequestModelT;
-  onSuccess?: () => void;
+  projects: Array<ProjectT>;
+  users: Array<User>;
+  categories: Array<Category>;
 }
 
 export default function UpdateRequest({
   open,
   setOpen,
   requestData,
-  onSuccess,
+  users,
+  projects,
+  categories,
 }: UpdateRequestProps) {
   const { user } = useStore();
 
@@ -88,33 +91,13 @@ export default function UpdateRequest({
     { id: number; name: string }[]
   >([]);
 
-  // ----------------------------------------------------------------------
-  // QUERY PROJECTS
-  // ----------------------------------------------------------------------
-  const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => projectQ.getAll(),
-  });
-
-  // ----------------------------------------------------------------------
-  // QUERY USERS
-  // ----------------------------------------------------------------------
-
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => userQ.getAll(),
-  });
-
   const USERS =
-    usersData.data?.data.filter((u) => u.verified).map((u) => ({
-      id: u.id!,
-      name: u.firstName + " " + u.lastName,
-    })) || [];
-
-  const categoriesData = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => categoryQ.getCategories(),
-  });
+    users
+      .filter((u) => u.verified)
+      .map((u) => ({
+        id: u.id!,
+        name: u.firstName + " " + u.lastName,
+      })) || [];
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -135,7 +118,6 @@ export default function UpdateRequest({
   });
 
   const beneficiaire = form.watch("beneficiaire");
-  const selectedCategorie = form.watch("categorie");
 
   // si on repasse à "me", on vide les utilisateurs
   useEffect(() => {
@@ -149,7 +131,7 @@ export default function UpdateRequest({
   // INITIALISATION DES DONNEES DU BESOIN
   // ----------------------------------------------------------------------
   useEffect(() => {
-    if (requestData && open && categoriesData.data) {
+    if (open) {
       // Attendre que les catégories soient chargées
       const initializeForm = async () => {
         // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
@@ -183,7 +165,7 @@ export default function UpdateRequest({
 
       initializeForm();
     }
-  }, [requestData, open, categoriesData.data, form]);
+  }, [requestData, open, form, USERS]);
 
   // Ajouter un état pour suivre le chargement des données
   const [isFormInitialized, setIsFormInitialized] = useState(false);
@@ -191,7 +173,7 @@ export default function UpdateRequest({
   // Et modifier l'useEffect comme ceci :
   // Et modifier l'useEffect comme ceci :
   useEffect(() => {
-    if (requestData && open && categoriesData.data && USERS.length > 0) {
+    if (open && USERS.length > 0) {
       const initializeForm = async () => {
         // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
         const usersSelection: { id: number; name: string }[] = [];
@@ -232,7 +214,7 @@ export default function UpdateRequest({
     } else {
       setIsFormInitialized(false);
     }
-  }, [requestData, open, categoriesData.data, USERS.length, form]);
+  }, [requestData, open, USERS.length, form]);
 
   // ----------------------------------------------------------------------
   // REQUEST MUTATION
@@ -240,14 +222,13 @@ export default function UpdateRequest({
 
   const requestMutation = useMutation({
     mutationFn: async (data: Partial<RequestModelT>) => {
-      if (!requestData?.id) throw new Error("ID du besoin manquant");
+      if (!requestData.id) throw new Error("ID du besoin manquant");
       return requestQ.update(Number(requestData.id), data);
     },
 
     onSuccess: () => {
       toast.success("Besoin modifié avec succès !");
       setOpen(false);
-      onSuccess?.();
     },
 
     onError: () =>
@@ -281,15 +262,13 @@ export default function UpdateRequest({
   // ----------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-3xl">
         {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white uppercase">
-            {"BESOIN - " + requestData?.label}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+        <DialogHeader variant={"secondary"}>
+          <DialogTitle>{"Besoin - " + requestData?.label}</DialogTitle>
+          <DialogDescription>
             {"Modifiez les informations du besoin existant"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -318,7 +297,7 @@ export default function UpdateRequest({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {projectsData.data?.data.map((p) => (
+                            {projects.map((p) => (
                               <SelectItem key={p.id} value={p.id!.toString()}>
                                 {p.label}
                               </SelectItem>
@@ -347,7 +326,7 @@ export default function UpdateRequest({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {categoriesData.data?.data?.map((c) => (
+                            {categories.map((c) => (
                               <SelectItem key={c.id} value={c.id!.toString()}>
                                 {c.label}
                               </SelectItem>
@@ -365,7 +344,7 @@ export default function UpdateRequest({
                     name="titre"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Titre</FormLabel>
+                        <FormLabel>{"Titre"}</FormLabel>
                         <FormControl>
                           <Input placeholder="Titre du besoin" {...field} />
                         </FormControl>
@@ -380,7 +359,7 @@ export default function UpdateRequest({
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>{"Description"}</FormLabel>
                         <FormControl>
                           <Textarea
                             className="resize-none"
@@ -399,7 +378,7 @@ export default function UpdateRequest({
                     name="datelimite"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Date limite</FormLabel>
+                        <FormLabel>{"Date limite"}</FormLabel>
                         <FormControl>
                           <Popover
                             open={openCalendar}
@@ -443,7 +422,7 @@ export default function UpdateRequest({
                     name="quantity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Quantité</FormLabel>
+                        <FormLabel>{"Quantité"}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -462,7 +441,7 @@ export default function UpdateRequest({
                     name="unite"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Unité</FormLabel>
+                        <FormLabel>{"Unité"}</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
@@ -491,7 +470,7 @@ export default function UpdateRequest({
                     name="beneficiaire"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Bénéficiaire</FormLabel>
+                        <FormLabel>{"Bénéficiaire"}</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
@@ -518,7 +497,7 @@ export default function UpdateRequest({
                       name="utilisateurs"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Utilisateurs</FormLabel>
+                          <FormLabel>{"Utilisateurs"}</FormLabel>
 
                           <MultiSelectUsers
                             display="user"
@@ -540,26 +519,23 @@ export default function UpdateRequest({
             </div>
 
             {/* Boutons - FIXE */}
-            <div className="flex gap-4 justify-end p-6 pt-0 shrink-0">
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
                 disabled={requestMutation.isPending}
               >
-                Annuler
+                {"Annuler"}
               </Button>
               <Button
                 type="submit"
                 disabled={requestMutation.isPending}
-                className="bg-[#8B1538] hover:bg-[#7A1230]"
+                isLoading={requestMutation.isPending}
               >
-                Modifier le besoin
-                {requestMutation.isPending && (
-                  <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />
-                )}
+                {"Modifier le besoin"}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
