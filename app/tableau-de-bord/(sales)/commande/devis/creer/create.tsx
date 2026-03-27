@@ -36,7 +36,6 @@ import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, FolderX, Plus, X } from "lucide-react";
-import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -65,15 +64,11 @@ const formSchema = z.object({
         unit: z.string(),
         price: z.number({ message: "Veuillez renseigner un prix" }),
         hasIs: z.boolean(),
-        reduction: z.coerce
-          .number()
-          .nonnegative({ message: "Doit être supérieur ou égale à 0" }),
-        tva: z.coerce
-          .number({ message: "Doit être un nombre" })
-          .nonnegative({ message: "Doit être positif" }),
+        reduction: z.number().nonnegative(),
+        tva: z.number().nonnegative(),
       }),
     )
-    .min(1),
+    .min(1, { message: "Veuillez ajouter au moins un élément" }),
   proof: z.array(
     z.union([
       z.instanceof(File, { message: "Doit être un fichier valide" }),
@@ -90,7 +85,6 @@ interface Props {
 }
 
 function CreateQuotation({ quotation, openChange }: Props) {
-  const router = useRouter();
   const intentRef = React.useRef<"save" | "saveAndCreate">("save");
   const [open, setOpen] = React.useState<boolean>(false);
   const [openP, setOpenP] = React.useState<boolean>(false);
@@ -103,45 +97,49 @@ function CreateQuotation({ quotation, openChange }: Props) {
   const [previousCommandId, setPreviousCommandId] = React.useState<
     number | undefined
   >(undefined);
+  const [search, setSearch] = React.useState("");
+  const [dueDate, setDueDate] = React.useState<boolean>(false);
   const { user } = useStore();
 
-  /**Demandes de cotation */
+  /** Demandes de cotation */
   const cmdRqstData = useQuery({
     queryKey: ["commands"],
     queryFn: commandRqstQ.getAll,
   });
 
-  /**Devis */
+  /** Devis */
   const quotationsData = useQuery({
     queryKey: ["quotations"],
     queryFn: quotationQ.getAll,
   });
 
-  /**Fournisseurs */
+  /** Fournisseurs */
   const providersData = useQuery({
     queryKey: ["providers"],
     queryFn: providerQ.getAll,
   });
 
-  /**Data states */
-  const [dueDate, setDueDate] = React.useState<boolean>(false);
-
-  // Utiliser useMemo pour les valeurs par défaut stables
+  /** Valeurs par défaut du formulaire - CORRIGÉ POUR CORRESPONDRE À LA STRUCTURE */
   const defaultValues = useMemo(() => {
     const today = new Date();
     today.setDate(today.getDate() + 3);
 
     if (quotation) {
+      console.log("Quotation data:", quotation); // Pour déboguer
+
       return {
         commandRequestId: quotation.commandRequestId,
         providerId: quotation.providerId,
         elements: quotation.element.map((c) => ({
-          id: c.id,
-          needId: c.requestModelId,
-          designation: c.title,
-          price: c.priceProposed,
+          id: c.id, // ← Important : garder l'ID pour la mise à jour
+          needId: c.requestModelId, // ← Correction : requestModelId -> needId
+          designation: c.title, // ← Correction : title -> designation
           quantity: c.quantity,
           unit: c.unit,
+          price: c.priceProposed,
+          hasIs: c.hasIs ?? false,
+          reduction: c.reduction ?? 0,
+          tva: c.tva ?? 0,
         })),
         dueDate: format(new Date(quotation.dueDate), "yyyy-MM-dd"),
         proof: quotation.proof ? [quotation.proof] : [],
@@ -155,23 +153,33 @@ function CreateQuotation({ quotation, openChange }: Props) {
       dueDate: format(today, "yyyy-MM-dd"),
       proof: [],
     };
-  }, [quotation]); // Seulement quotation comme dépendance
+  }, [quotation]);
 
-  /**Quotation */
+  /** Formulaire */
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: defaultValues,
+    mode: "onChange",
+  });
+
+  /** Mutation pour créer/modifier un devis */
   const { mutate, isPending } = useMutation({
     mutationFn: async ({ values, id }: { values: FormValues; id?: number }) => {
+      // Gestion du fichier justificatif
+      const proofValue = values.proof[0];
+
       const payload = {
         devis: {
           commandRequestId: values.commandRequestId,
           providerId: values.providerId,
-          proof: values.proof[0],
+          proof: proofValue,
           dueDate: new Date(values.dueDate).toISOString(),
           userId: user && user.id ? user.id : 0,
         },
         elements: values.elements.map((e) => ({
-          id: e.id,
-          requestModelId: e.needId,
-          title: e.designation,
+          id: e.id, // ← Inclure l'ID pour la mise à jour
+          requestModelId: e.needId, // ← Correction : needId -> requestModelId
+          title: e.designation, // ← Correction : designation -> title
           quantity: e.quantity,
           unit: e.unit,
           priceProposed: e.price,
@@ -180,6 +188,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
           reduction: e.reduction,
         })),
       };
+
+      console.log("Payload to send:", payload); // Pour déboguer
 
       if (!id) {
         return quotationQ.create(payload);
@@ -200,28 +210,36 @@ function CreateQuotation({ quotation, openChange }: Props) {
 
       if (intent === "save" && openChange) {
         openChange(false);
-      } else {
-        // Réinitialisation complète pour un nouvel ajout
-        form.reset(defaultValues);
+      } else if (intent === "saveAndCreate") {
+        // Réinitialisation pour un nouvel ajout
+        form.reset({
+          commandRequestId: undefined,
+          providerId: undefined,
+          elements: [],
+          dueDate: format(
+            new Date(new Date().setDate(new Date().getDate() + 3)),
+            "yyyy-MM-dd",
+          ),
+          proof: [],
+        });
+        setSelectedNeeds([]);
+        setPreviousCommandId(undefined);
         intentRef.current = "save";
       }
     },
     onError: (error) => {
-      console.error(error);
-      toast.error("Une erreur est survenue lors de la création du devis.");
+      console.error("Mutation error:", error);
+      toast.error(
+        "Une erreur est survenue lors de la création/modification du devis.",
+      );
     },
   });
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: defaultValues,
-  });
-
-  // Réinitialiser le formulaire quand `quotation` change
+  /** Réinitialiser le formulaire quand `quotation` change */
   useEffect(() => {
     if (quotation) {
       form.reset(defaultValues);
-      const commandId = form.getValues("commandRequestId");
+      const commandId = defaultValues.commandRequestId;
       if (commandId && cmdRqstData.data) {
         const command = cmdRqstData.data.data.find((c) => c.id === commandId);
         setSelectedNeeds(command?.besoins || []);
@@ -230,60 +248,89 @@ function CreateQuotation({ quotation, openChange }: Props) {
     }
   }, [quotation, defaultValues, cmdRqstData.data, form]);
 
-  // Mettre à jour les besoins sélectionnés quand la demande change
-  useEffect(() => {
-    const currentCommandId = form.getValues("commandRequestId");
+  /** Mettre à jour les besoins sélectionnés quand la demande change */
+  const watchedCommandId = form.watch("commandRequestId");
 
-    // Vérifier si la commande a réellement changé
-    if (currentCommandId !== previousCommandId) {
-      if (currentCommandId && cmdRqstData.data) {
+  useEffect(() => {
+    if (watchedCommandId !== previousCommandId) {
+      if (watchedCommandId && cmdRqstData.data) {
         const command = cmdRqstData.data.data.find(
-          (c) => c.id === currentCommandId,
+          (c) => c.id === watchedCommandId,
         );
         setSelectedNeeds(command?.besoins || []);
       } else {
         setSelectedNeeds([]);
       }
 
-      // Réinitialiser seulement si c'est une nouvelle sélection
+      // Réinitialisation lors du changement de demande
       if (
         previousCommandId !== undefined &&
-        currentCommandId !== previousCommandId
+        watchedCommandId !== previousCommandId
       ) {
         // Réinitialiser le fournisseur
-        if (form.getValues("providerId") !== undefined) {
-          form.setValue("providerId", undefined as any);
-        }
-
-        // Réinitialiser les éléments seulement s'il y en a
-        const currentElements = form.getValues("elements");
-        if (currentElements.length > 0) {
-          form.setValue("elements", []);
-        }
-
-        setSearch("");
+        form.setValue("providerId", undefined as any);
+        // Réinitialiser les éléments
+        form.setValue("elements", []);
         setEditingIndex(null);
         setEditingElement(null);
       }
 
-      setPreviousCommandId(currentCommandId);
+      setPreviousCommandId(watchedCommandId);
     }
-  }, [form.watch("commandRequestId")]); // Seulement dépendant de la valeur watchée
+  }, [watchedCommandId, previousCommandId, cmdRqstData.data, form]);
 
-  const [search, setSearch] = React.useState("");
+  /** Fonction pour normaliser le texte (recherche) */
+  const normalizeText = useCallback(
+    (value: string) =>
+      value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase(),
+    [],
+  );
 
-  const normalizeText = (value: string) =>
-    value
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
+  /** Fournisseurs filtrés */
+  const filteredProviders = useMemo(
+    () =>
+      providersData.data?.data.filter((provider) =>
+        normalizeText(provider.name).includes(normalizeText(search)),
+      ) ?? [],
+    [providersData.data?.data, search, normalizeText],
+  );
 
-  const filteredProviders =
-    providersData.data?.data.filter((provider) =>
-      normalizeText(provider.name).includes(normalizeText(search)),
-    ) ?? [];
+  /** Vérifier si un fournisseur est déjà utilisé pour cette demande */
+  const isProviderUsed = useCallback(
+    (providerId: number) => {
+      const currentCommandId = form.getValues("commandRequestId");
+      return quotationsData.data?.data
+        .filter((x) => x.commandRequestId === currentCommandId)
+        .some((u) => u.providerId === providerId && u.id !== quotation?.id); // ← Exclure le devis actuel
+    },
+    [form, quotationsData.data, quotation?.id],
+  );
 
-  // Fonction pour gérer l'édition d'un élément
+  /** Vérifier si une demande de cotation a encore des besoins disponibles */
+  const hasAvailableNeeds = useCallback(
+    (requestId: number) => {
+      const request = cmdRqstData.data?.data.find((r) => r.id === requestId);
+      if (!request) return false;
+
+      const allBesoinIds = request.besoins.map((b) => b.id);
+      const validatedBesoinIds =
+        quotationsData.data?.data
+          .filter(
+            (q) => q.commandRequestId === requestId && q.id !== quotation?.id,
+          ) // ← Exclure le devis actuel
+          .flatMap((q) => q.element || [])
+          .filter((el) => el.status === "SELECTED")
+          .map((el) => el.requestModelId) || [];
+
+      return !allBesoinIds.every((id) => validatedBesoinIds.includes(id));
+    },
+    [cmdRqstData.data, quotationsData.data, quotation?.id],
+  );
+
+  /** Gérer l'édition d'un élément */
   const handleEditElement = useCallback(
     (index: number) => {
       const elements = form.getValues("elements");
@@ -296,15 +343,15 @@ function CreateQuotation({ quotation, openChange }: Props) {
     [form],
   );
 
-  // Fonction pour gérer la suppression d'un élément
+  /** Gérer la suppression d'un élément */
   const handleDeleteElement = useCallback(
     (index: number) => {
       const currentElements = form.getValues("elements");
       const newElements = [...currentElements];
       newElements.splice(index, 1);
-      form.setValue("elements", newElements);
+      form.setValue("elements", newElements, { shouldValidate: true });
 
-      // Si on supprime l'élément en cours d'édition
+      // Mettre à jour l'index d'édition
       if (editingIndex === index) {
         setEditingIndex(null);
         setEditingElement(null);
@@ -315,17 +362,30 @@ function CreateQuotation({ quotation, openChange }: Props) {
     [form, editingIndex],
   );
 
-  // Fonction pour gérer la mise à jour des éléments depuis AddElement
+  /** Gérer la mise à jour des éléments */
   const handleElementsChange = useCallback(
-    (newElements: any[]) => {
-      form.setValue("elements", newElements);
-      setEditingIndex(null);
-      setEditingElement(null);
-      setOpen(false);
-    },
-    [form],
-  );
+  (newElements: any[]) => {
+    form.setValue("elements", newElements, { shouldValidate: true });
+    setEditingIndex(null);
+    setEditingElement(null);
+    setOpen(false);
+  },
+  [form],
+);
 
+  /** Soumission du formulaire */
+  function onSubmit(values: FormValues) {
+    // Validation supplémentaire
+    if (!values.elements || values.elements.length === 0) {
+      toast.error("Veuillez ajouter au moins un élément au devis");
+      return;
+    }
+
+    console.log("Form values before submit:", values); // Pour déboguer
+    mutate({ values, id: quotation?.id });
+  }
+
+  // États de chargement
   if (
     cmdRqstData.isLoading ||
     providersData.isLoading ||
@@ -334,8 +394,26 @@ function CreateQuotation({ quotation, openChange }: Props) {
     return <LoadingPage />;
   }
 
-  function onSubmit(values: FormValues) {
-    mutate({ values, id: quotation?.id });
+  // Gestion des erreurs
+  if (cmdRqstData.isError || providersData.isError || quotationsData.isError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <p className="text-destructive">
+          Erreur lors du chargement des données
+        </p>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => {
+            cmdRqstData.refetch();
+            providersData.refetch();
+            quotationsData.refetch();
+          }}
+        >
+          Réessayer
+        </Button>
+      </div>
+    );
   }
 
   if (cmdRqstData.isSuccess && quotationsData.isSuccess)
@@ -351,32 +429,14 @@ function CreateQuotation({ quotation, openChange }: Props) {
             name="commandRequestId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>{"Demande de cotation"}</FormLabel>
+                <FormLabel isRequired>Demande de cotation</FormLabel>
                 <FormControl>
                   <SearchableSelect
                     width="w-full"
                     allLabel=""
                     options={
-                      cmdRqstData.data.data
-                        .filter((request) => {
-                          // 1. On récupère tous les IDs des besoins rattachés à cette demande de cotation
-                          const allBesoinIds = request.besoins.map((b) => b.id);
-
-                          // 2. On récupère les IDs des besoins qui ont déjà été validés (SELECTED) dans des devis existants
-                          const validatedBesoinIds = quotationsData.data.data
-                            .filter((q) => q.commandRequestId === request.id) // Uniquement les devis de cette demande
-                            .flatMap((q) => q.element || []) // On aplatit tous les éléments des devis
-                            .filter((el) => el.status === "SELECTED") // Uniquement ceux qui sont validés
-                            .map((el) => el.requestModelId); // On récupère l'ID du besoin d'origine
-
-                          // 3. On garde la demande SEULEMENT S'IL RESTE au moins un besoin
-                          // qui n'est pas encore présent dans la liste des besoins validés.
-                          const isFullyProcessed = allBesoinIds.every((id) =>
-                            validatedBesoinIds.includes(id),
-                          );
-
-                          return !isFullyProcessed;
-                        })
+                      cmdRqstData.data?.data
+                        .filter((request) => hasAvailableNeeds(request.id))
                         .map((request) => ({
                           label: `${request.title} - ${request.reference}`,
                           value: request.id.toString(),
@@ -387,6 +447,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                       field.onChange(parseInt(value));
                     }}
                     placeholder="Sélectionner"
+                    disabled={!!quotation} // ← Désactiver en mode édition
                   />
                 </FormControl>
                 <FormMessage />
@@ -400,8 +461,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
             name="providerId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>{"Fournisseur"}</FormLabel>
-
+                <FormLabel isRequired>Fournisseur</FormLabel>
                 <FormControl>
                   <Select
                     value={field.value ? String(field.value) : undefined}
@@ -432,7 +492,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                       <div className="max-h-[380px] overflow-y-auto">
                         {filteredProviders.length === 0 ? (
                           <div className="p-3 text-sm text-muted-foreground text-center">
-                            {"Aucun fournisseur trouvé"}
+                            Aucun fournisseur trouvé
                           </div>
                         ) : (
                           filteredProviders.map((provider) => (
@@ -440,13 +500,11 @@ function CreateQuotation({ quotation, openChange }: Props) {
                               key={provider.id}
                               value={String(provider.id)}
                               className="uppercase"
-                              disabled={quotationsData.data.data
-                                .filter(
-                                  (x) =>
-                                    x.commandRequestId ===
-                                    form.getValues("commandRequestId"),
-                                )
-                                .some((u) => u.providerId === provider.id)}
+                              disabled={
+                                (!!quotation && field.value !== provider.id) ||
+                                (!!watchedCommandId &&
+                                  isProviderUsed(provider.id))
+                              }
                             >
                               {provider.name}
                             </SelectItem>
@@ -468,13 +526,12 @@ function CreateQuotation({ quotation, openChange }: Props) {
                             setOpenP(true);
                           }}
                         >
-                          {"Ajouter un fournisseur"}
+                          Ajouter un fournisseur
                         </Button>
                       </div>
                     </SelectContent>
                   </Select>
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -486,7 +543,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
             name="dueDate"
             render={({ field }) => (
               <FormItem className="@min-[640px]:col-span-2">
-                <FormLabel isRequired>{"Date limite de livraison"}</FormLabel>
+                <FormLabel isRequired>Date limite de livraison</FormLabel>
                 <FormControl>
                   <div className="relative flex gap-2">
                     <Input
@@ -512,9 +569,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
                         >
                           <CalendarIcon className="size-3.5" />
-                          <span className="sr-only">
-                            {"Sélectionner une date"}
-                          </span>
+                          <span className="sr-only">Sélectionner une date</span>
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent
@@ -535,6 +590,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                             field.onChange(value);
                             setDueDate(false);
                           }}
+                          disabled={(date) => date < new Date()}
                         />
                       </PopoverContent>
                     </Popover>
@@ -551,16 +607,16 @@ function CreateQuotation({ quotation, openChange }: Props) {
             name="elements"
             render={({ field }) => (
               <FormItem className="h-fit @min-[640px]:col-span-2">
-                <FormLabel isRequired>{"Éléments"}</FormLabel>
+                <FormLabel isRequired>Éléments</FormLabel>
                 <FormControl>
                   <div className="grid gap-1.5">
                     {field.value.length === 0 ? (
-                      <span className="px-4 py-3 w-full text-center text-muted-foreground text-sm flex flex-col gap-2 justify-center items-center">
+                      <div className="px-4 py-3 w-full text-center text-muted-foreground text-sm flex flex-col gap-2 justify-center items-center">
                         <span className="inline-flex size-10 rounded-full bg-muted text-muted-foreground items-center justify-center">
-                          <FolderX />
+                          <FolderX className="size-5" />
                         </span>
-                        {"Aucun élément renseigné."}
-                      </span>
+                        Aucun élément renseigné.
+                      </div>
                     ) : (
                       (() => {
                         const groupedElements = field.value.reduce(
@@ -573,7 +629,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                             return acc;
                           },
                           {} as Record<
-                            string,
+                            number,
                             Array<any & { globalIndex: number }>
                           >,
                         );
@@ -582,7 +638,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           ([need, elements]) => (
                             <div
                               key={need}
-                              className="border p-3 rounded-lg bg-gray-50"
+                              className="border p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
                             >
                               <h3 className="font-semibold mb-2">
                                 {
@@ -592,14 +648,14 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                 }
                               </h3>
                               <div className="flex flex-wrap gap-2">
-                                {elements.map((item, localIndex) => (
+                                {elements.map((item) => (
                                   <div
                                     key={item.globalIndex}
-                                    className="w-full bg-gray-50 rounded-sm border border-gray-200 px-2 h-9 inline-flex justify-between gap-2 items-center text-sm"
+                                    className="w-full bg-gray-50 dark:bg-gray-800 rounded-sm border border-gray-200 dark:border-gray-700 px-2 h-9 inline-flex justify-between gap-2 items-center text-sm"
                                   >
                                     <button
                                       type="button"
-                                      className="inline-flex items-center gap-1.5 w-full justify-between text-left truncate cursor-pointer"
+                                      className="inline-flex items-center gap-1.5 w-full justify-between text-left truncate cursor-pointer hover:text-primary transition-colors"
                                       onClick={() =>
                                         handleEditElement(item.globalIndex)
                                       }
@@ -611,13 +667,13 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                           item.price,
                                         )}`}
                                       </span>
-                                      <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-foreground text-primary-foreground">
-                                        {"Modifier"}
+                                      <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
+                                        Modifier
                                       </span>
                                     </button>
                                     <X
                                       size={20}
-                                      className="text-destructive cursor-pointer"
+                                      className="text-destructive cursor-pointer hover:text-destructive/80 transition-colors"
                                       onClick={() =>
                                         handleDeleteElement(item.globalIndex)
                                       }
@@ -631,8 +687,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
                       })()
                     )}
 
-                    <button
-                      className="add-button inline-flex items-center gap-2 text-sm text-primary"
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="add-button inline-flex items-center gap-2 text-sm"
                       onClick={(e) => {
                         e.preventDefault();
                         setEditingElement(null);
@@ -641,9 +699,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
                       }}
                       disabled={!selectedNeeds || selectedNeeds.length === 0}
                     >
-                      {"Ajouter un élément"}
+                      Ajouter un élément
                       <Plus className="w-4 h-4" />
-                    </button>
+                    </Button>
 
                     {!!selectedNeeds && selectedNeeds.length > 0 && (
                       <AddElement
@@ -656,10 +714,12 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           setOpen(state);
                         }}
                         needs={selectedNeeds.filter((n) => {
-                          const validatedBesoinIds = quotationsData.data.data
-                            .flatMap((q) => q.element || []) // On aplatit tous les éléments des devis
-                            .filter((el) => el.status === "SELECTED") // Uniquement ceux qui sont validés
-                            .map((el) => el.requestModelId); // On récupère l'ID du besoin d'origine
+                          const validatedBesoinIds =
+                            quotationsData.data?.data
+                              .filter((q) => q.id !== quotation?.id) // ← Exclure le devis actuel
+                              .flatMap((q) => q.element || [])
+                              .filter((el) => el.status === "SELECTED")
+                              .map((el) => el.requestModelId) || [];
                           return !validatedBesoinIds.includes(n.id);
                         })}
                         value={field.value}
@@ -681,7 +741,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
             name="proof"
             render={({ field }) => (
               <FormItem className="@min-[640px]:col-span-2">
-                <FormLabel isRequired>{"Justificatif"}</FormLabel>
+                <FormLabel isRequired>Justificatif</FormLabel>
                 <FormControl>
                   <FilesUpload
                     value={field.value}
@@ -697,13 +757,27 @@ function CreateQuotation({ quotation, openChange }: Props) {
             )}
           />
 
+          {/* Boutons d'action */}
           <div className="flex justify-end col-span-2 w-full gap-2">
+            {!quotation && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  intentRef.current = "saveAndCreate";
+                  form.handleSubmit(onSubmit)();
+                }}
+                disabled={isPending}
+              >
+                Enregistrer et créer un autre
+              </Button>
+            )}
             <Button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || !form.formState.isValid}
               isLoading={isPending}
               className="w-fit"
-              variant={"primary"}
+              variant="primary"
               onClick={() => (intentRef.current = "save")}
             >
               {quotation ? "Modifier le devis" : "Enregistrer"}
