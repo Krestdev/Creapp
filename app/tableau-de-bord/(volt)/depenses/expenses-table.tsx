@@ -849,9 +849,9 @@ function ExpensesTable({
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
-        const transaction = transactions
-          .filter((t) => t.Type === "DEBIT")
-          .find((t) => t.payement?.id === item.id);
+        const debitTransactions = transactions.filter(
+          (t) => t.Type === "DEBIT",
+        );
 
         return (
           <DropdownMenu>
@@ -900,36 +900,34 @@ function ExpensesTable({
                     <DollarSign />
                     {"Payer"}
                   </DropdownMenuItem>
-                  {!!transaction && (
-                    <DropdownMenuItem>
-                      <PDFDownloadLink
-                        document={
-                          <DepenseDocument
-                            getPaymentType={paymentTypes}
-                            paymentRequest={item}
-                            users={users}
-                            requests={request}
-                            requestTypes={requestTypes}
-                            transaction={transaction}
-                          />
-                        }
-                        fileName={`recu-${item.type}-${item.reference}.pdf`}
-                      >
-                        {({ loading }) => (
-                          <Button
-                            disabled={loading}
-                            variant={"ghost"}
-                            className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5"
-                          >
-                            <Download />
-                            {loading
-                              ? "Génération du PDF..."
-                              : "Télécharger le PDF"}
-                          </Button>
-                        )}
-                      </PDFDownloadLink>
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem>
+                    <PDFDownloadLink
+                      document={
+                        <DepenseDocument
+                          getPaymentType={paymentTypes}
+                          paymentRequest={item}
+                          users={users}
+                          requests={request}
+                          requestTypes={requestTypes}
+                          transactions={debitTransactions}
+                        />
+                      }
+                      fileName={`recu-${item.type}-${item.reference}.pdf`}
+                    >
+                      {({ loading }) => (
+                        <Button
+                          disabled={loading}
+                          variant={"ghost"}
+                          className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5"
+                        >
+                          <Download />
+                          {loading
+                            ? "Génération du PDF..."
+                            : "Télécharger le PDF"}
+                        </Button>
+                      )}
+                    </PDFDownloadLink>
+                  </DropdownMenuItem>
                 </>
               )}
               {selectedTab === 0 && (

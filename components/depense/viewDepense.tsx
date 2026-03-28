@@ -27,7 +27,7 @@ interface Props {
   users: Array<User>;
   requests: Array<RequestModelT>;
   requestTypes: Array<RequestType>;
-  transaction: DebitTransaction;
+  transactions: Array<DebitTransaction>;
 }
 
 const PaymentReceipt: React.FC<Props> = ({
@@ -38,7 +38,7 @@ const PaymentReceipt: React.FC<Props> = ({
   users,
   requests,
   requestTypes,
-  transaction,
+  transactions,
 }) => {
   return (
     <div>
@@ -61,7 +61,7 @@ const PaymentReceipt: React.FC<Props> = ({
                 users={users}
                 requests={requests}
                 requestTypes={requestTypes}
-                transaction={transaction}
+                transactions={transactions}
               />
             </PDFViewer>
           </div>
@@ -76,7 +76,7 @@ const PaymentReceipt: React.FC<Props> = ({
                   users={users}
                   requests={requests}
                   requestTypes={requestTypes}
-                  transaction={transaction}
+                  transactions={transactions}
                 />
               }
               fileName={`recu-transport-${paymentRequest.reference}.pdf`}

@@ -99,6 +99,8 @@ function ShareExpense({
   const [openDoc, setOpenDoc] = useState(false);
   const [paiement, setPaiement] = useState<PaymentRequest | null>(null);
 
+  const debitTransactions = transactions.filter((t) => t.Type === "DEBIT");
+
   // Vérifier si le ticket a déjà un methodId
   const hasExistingMethodId = useMemo(() => {
     return !!ticket.methodId;
@@ -769,7 +771,7 @@ function ShareExpense({
           </div>
         </DialogContent>
       </Dialog>
-      {paiement && !!transaction && (
+      {paiement && (
         <ViewDepense
           open={openDoc}
           openChange={setOpenDoc}
@@ -778,7 +780,7 @@ function ShareExpense({
           users={users}
           requests={requests}
           requestTypes={requestTypes}
-          transaction={transaction}
+          transactions={debitTransactions}
         />
       )}
     </>

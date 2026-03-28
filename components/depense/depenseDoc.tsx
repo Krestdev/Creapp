@@ -270,7 +270,7 @@ interface ReceiptPDFProps {
   users: Array<User>;
   requests: Array<RequestModelT>;
   requestTypes: Array<RequestType>;
-  transaction: DebitTransaction;
+  transactions: Array<DebitTransaction>;
 }
 
 const DepenseDocument: React.FC<ReceiptPDFProps> = ({
@@ -279,7 +279,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
   users,
   requests,
   requestTypes,
-  transaction,
+  transactions,
 }) => {
   const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
@@ -288,8 +288,6 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
 
   //Let's get the requestType
   const rType = requestTypes.find((r) => r.type === paymentRequest.type);
-
-  const receiver = transaction.to.label;
 
   const getBeneficiaryName = () => {
     if (paymentRequest.beneficiary) {
@@ -307,6 +305,15 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
       }`.trim() || "N/A";
 
   const beneficiaryName = getBeneficiaryName();
+
+  const transaction = transactions.find(
+    (t) => t.payement && t.payement.id === paymentRequest.id,
+  );
+
+  const receiver = !!transaction
+    ? transaction.to.label
+    : (beneficiaryName ?? emitter);
+
   const paymentMethod =
     getPaymentType.find((item) => item.id === paymentRequest.methodId)?.label ||
     "N/A";
