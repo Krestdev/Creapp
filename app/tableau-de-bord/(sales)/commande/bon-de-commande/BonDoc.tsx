@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
 
   footer: {
     position: "absolute",
-    bottom: 18,
+    bottom: 92,
     left: 22,
     right: 22,
     flexDirection: "row",
