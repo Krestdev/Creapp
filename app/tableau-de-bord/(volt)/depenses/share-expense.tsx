@@ -324,7 +324,9 @@ function ShareExpense({
     },
   });
 
-  const trans = transactions.find((item) => item.id === ticket.transactionId);
+  const transaction = transactions
+    .filter((t) => t.Type === "DEBIT")
+    .find((item) => item.id === ticket.transactionId);
 
   function onSubmit(values: FormValues) {
     // Validation manuelle pour docNumber
@@ -355,7 +357,7 @@ function ShareExpense({
     // Créer l'objet payload
     const payload: TransactionProps = {
       ...rest,
-      Type: trans?.Type!,
+      Type: transaction?.Type!,
       date: new Date(),
       amount: ticket.price,
       userId: user?.id ?? 0,
@@ -767,7 +769,7 @@ function ShareExpense({
           </div>
         </DialogContent>
       </Dialog>
-      {paiement && (
+      {paiement && !!transaction && (
         <ViewDepense
           open={openDoc}
           openChange={setOpenDoc}
@@ -776,6 +778,7 @@ function ShareExpense({
           users={users}
           requests={requests}
           requestTypes={requestTypes}
+          transaction={transaction}
         />
       )}
     </>

@@ -849,6 +849,9 @@ function ExpensesTable({
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
+        const transaction = transactions
+          .filter((t) => t.Type === "DEBIT")
+          .find((t) => t.payement?.id === item.id);
 
         return (
           <DropdownMenu>
@@ -897,33 +900,36 @@ function ExpensesTable({
                     <DollarSign />
                     {"Payer"}
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <PDFDownloadLink
-                      document={
-                        <DepenseDocument
-                          getPaymentType={paymentTypes}
-                          paymentRequest={item}
-                          users={users}
-                          requests={request}
-                          requestTypes={requestTypes}
-                        />
-                      }
-                      fileName={`recu-transport-${item.reference}.pdf`}
-                    >
-                      {({ loading }) => (
-                        <Button
-                          disabled={loading}
-                          variant={"ghost"}
-                          className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5"
-                        >
-                          <Download />
-                          {loading
-                            ? "Génération du PDF..."
-                            : "Télécharger le PDF"}
-                        </Button>
-                      )}
-                    </PDFDownloadLink>
-                  </DropdownMenuItem>
+                  {!!transaction && (
+                    <DropdownMenuItem>
+                      <PDFDownloadLink
+                        document={
+                          <DepenseDocument
+                            getPaymentType={paymentTypes}
+                            paymentRequest={item}
+                            users={users}
+                            requests={request}
+                            requestTypes={requestTypes}
+                            transaction={transaction}
+                          />
+                        }
+                        fileName={`recu-${item.type}-${item.reference}.pdf`}
+                      >
+                        {({ loading }) => (
+                          <Button
+                            disabled={loading}
+                            variant={"ghost"}
+                            className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5"
+                          >
+                            <Download />
+                            {loading
+                              ? "Génération du PDF..."
+                              : "Télécharger le PDF"}
+                          </Button>
+                        )}
+                      </PDFDownloadLink>
+                    </DropdownMenuItem>
+                  )}
                 </>
               )}
               {selectedTab === 0 && (
@@ -953,7 +959,7 @@ function ExpensesTable({
                         variant={"ghost"}
                         className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5"
                       >
-                        {loading ? "Chargement..." : "Télécharger"}
+                        {loading ? "Chargement..." : "Avis de règlement"}
                         <Download />
                       </Button>
                     )}

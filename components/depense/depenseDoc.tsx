@@ -1,4 +1,5 @@
 import {
+  DebitTransaction,
   PAY_STATUS,
   PaymentRequest,
   PayType,
@@ -269,6 +270,7 @@ interface ReceiptPDFProps {
   users: Array<User>;
   requests: Array<RequestModelT>;
   requestTypes: Array<RequestType>;
+  transaction: DebitTransaction;
 }
 
 const DepenseDocument: React.FC<ReceiptPDFProps> = ({
@@ -277,6 +279,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
   users,
   requests,
   requestTypes,
+  transaction,
 }) => {
   const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
@@ -285,6 +288,8 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
 
   //Let's get the requestType
   const rType = requestTypes.find((r) => r.type === paymentRequest.type);
+
+  const receiver = transaction.to.label;
 
   const getBeneficiaryName = () => {
     if (paymentRequest.beneficiary) {
@@ -346,9 +351,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
           <View style={styles.heroTop}>
             <View>
               <Text style={styles.heroLabel}>Bénéficiaire</Text>
-              <Text style={styles.heroValue}>
-                {beneficiaryName ?? emitter.concat(" (Emetteur)")}
-              </Text>
+              <Text style={styles.heroValue}>{receiver}</Text>
             </View>
 
             <View style={styles.amountBox}>
@@ -392,10 +395,10 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
               </Text>
             </View> */}
 
-            <View style={styles.infoRow}>
+            {/*             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Demandeur / émetteur</Text>
               <Text style={styles.infoValue}>{emitter}</Text>
-            </View>
+            </View> */}
 
             <View
               style={[
@@ -462,8 +465,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
           <Text style={styles.sectionTitle}>Attestation</Text>
           <View style={styles.statementBox}>
             <Text style={styles.statementText}>
-              Je soussigné(e),{" "}
-              <Text style={styles.emphasis}>{emitter || beneficiaryName}</Text>,
+              Je soussigné(e), <Text style={styles.emphasis}>{receiver}</Text>,
               reconnais avoir reçu de la trésorerie la somme de{" "}
               <Text style={styles.emphasis}>
                 {formatFCFA(paymentRequest.price)}
