@@ -145,6 +145,10 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
     });
   };
 
+  const dayStart = new Date();
+  dayStart.setDate(dayStart.getDate() - 1);
+  dayStart.setHours(0, 0, 0, 0);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
@@ -304,7 +308,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
                             field.onChange(value);
                             setDueDate(false);
                           }}
-                          disabled={(date) => date <= new Date()}
+                          disabled={(date) => date <= dayStart}
                         />
                       </PopoverContent>
                     </Popover>
