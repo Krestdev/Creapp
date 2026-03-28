@@ -271,7 +271,7 @@ function ViewExpense({
           )}
 
           {/* Bénéficiaire */}
-          {hasValue(payment.benefId) && (
+          {(hasValue(payment.benefId) || request?.type === "facilitation") && (
             <div className="view-group">
               <span className="view-icon">
                 <CircleUserRoundIcon />
@@ -279,9 +279,13 @@ function ViewExpense({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Bénéficiaire"}</p>
                 <p>
-                  {users.find((u) => u.id === payment.benefId)?.firstName +
+                  {request?.type === "facilitation"
+                    ? users.find((u) => u.id === request.benFac?.list[0].id)?.firstName +
                     " " +
-                    users.find((u) => u.id === payment.benefId)?.lastName}
+                    users.find((u) => u.id === request.benFac?.list[0].id)?.lastName
+                    : users.find((u) => u.id === payment.userId)?.firstName +
+                    " " +
+                    users.find((u) => u.id === payment.userId)?.lastName}
                 </p>
               </div>
             </div>
@@ -632,7 +636,7 @@ function ViewExpense({
                   {signataires?.mode === "ONE"
                     ? "Un dans la liste"
                     : signataires?.mode === "BOTH" &&
-                        signataires.user?.length > 1
+                      signataires.user?.length > 1
                       ? "Tous les signataires"
                       : "Un seul signataire"}
                 </p>
