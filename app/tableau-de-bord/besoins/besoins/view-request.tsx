@@ -9,12 +9,13 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@/components/ui/dialog";
-import { cn, getUserName, XAF } from "@/lib/utils";
+import { cn, getRequestTypeBadge, getUserName, XAF } from "@/lib/utils";
 import {
   Category,
   PaymentRequest,
   ProjectT,
   RequestModelT,
+  RequestType,
   User,
 } from "@/types/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
@@ -22,6 +23,7 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale/fr";
 import {
+  ArchiveIcon,
   ArrowBigUpIcon,
   BriefcaseBusinessIcon,
   Calendar,
@@ -29,7 +31,6 @@ import {
   Check,
   Clock,
   DollarSignIcon,
-  Edit,
   FileIcon,
   FolderIcon,
   InfoIcon,
@@ -38,9 +39,10 @@ import {
   MessageSquareXIcon,
   SquareStackIcon,
   TextQuoteIcon,
+  TypeOutlineIcon,
   UserIcon,
   Users,
-  X,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -53,6 +55,7 @@ interface ViewRequestProps {
   users: Array<User>;
   projects: Array<ProjectT>;
   categories: Array<Category>;
+  requestTypes: RequestType[];
 }
 
 function ViewRequest({
@@ -63,6 +66,7 @@ function ViewRequest({
   users,
   projects,
   categories,
+  requestTypes,
 }: ViewRequestProps) {
   const getStatusBadge = (
     status: RequestModelT["state"],
@@ -119,6 +123,8 @@ function ViewRequest({
 
   const paiement = payments.find((x) => x.requestId === request.id);
 
+  const typeBadge = getRequestTypeBadge({ type: request.type, requestTypes });
+
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
@@ -137,6 +143,17 @@ function ViewRequest({
               <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
                 <p className="text-primary-600 text-sm">{request.ref}</p>
               </div>
+            </div>
+          </div>
+
+          {/**Type */}
+          <div className="view-group">
+            <span className="view-icon">
+              <ArchiveIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Type de besoin"}</p>
+              <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
             </div>
           </div>
 
@@ -270,9 +287,8 @@ function ViewRequest({
                 <div className="space-y-1">
                   {!!paiement?.proof ? (
                     <Link
-                      href={`${
-                        process.env.NEXT_PUBLIC_API
-                      }/${paiement?.proof as string}`}
+                      href={`${process.env.NEXT_PUBLIC_API
+                        }/${paiement?.proof as string}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -450,11 +466,10 @@ function ViewRequest({
                             <p
                               key={ben.id}
                               className="font-semibold capitalize"
-                            >{`${
-                              beneficiary?.firstName +
-                                " " +
-                                beneficiary?.lastName || ben.id
-                            }`}</p>
+                            >{`${beneficiary?.firstName +
+                              " " +
+                              beneficiary?.lastName || ben.id
+                              }`}</p>
                           );
                         })}
                       </div>
@@ -467,13 +482,13 @@ function ViewRequest({
 
           {/* Validation History */}
           {request.type === "speciaux" ? null : (
-            <div className="view-group">
+            <div className="w-full view-group">
               <span className="view-icon">
                 <SquareStackIcon />
               </span>
-              <div className="flex flex-col">
+              <div className="w-full flex flex-col">
                 <p className="view-group-title">{"Historique de validation"}</p>
-                <div className="grid gap-2">
+                <div className="w-full grid gap-2 mt-2">
                   {request.validators
                     .sort((a, b) => a.rank - b.rank)
                     .map((v) => {
@@ -481,7 +496,7 @@ function ViewRequest({
                         <div
                           key={v.id}
                           className={cn(
-                            "px-3 py-2 flex flex-col gap-1 border",
+                            "w-full px-3 py-2 flex flex-col gap-1 border",
                             !v.decision
                               ? "bg-gray-50 border-gray-200"
                               : v.decision.includes("reject")
@@ -505,11 +520,18 @@ function ViewRequest({
                                 ? "Rejeté"
                                 : "Approuvé"}
                           </p>
-                          <span>
-                            {users.find((u) => u.id === v.userId)?.firstName +
-                              " " +
-                              users.find((u) => u.id === v.userId)?.lastName}
-                          </span>
+                          <div className="flex flex-col">
+                            <span>
+                              {users.find((u) => u.id === v.userId)?.firstName +
+                                " " +
+                                users.find((u) => u.id === v.userId)?.lastName}
+                            </span>
+                            {
+                              v.decision &&
+                              <span className="text-xs font-medium">
+                                {format(v.updatedAt, "PPP à p", { locale: fr })}
+                              </span>}
+                          </div>
                         </div>
                       );
                     })}
