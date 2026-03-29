@@ -184,7 +184,7 @@ function Page() {
         },
       },
       {
-        title: "Tickets signés en attente de paiement",
+        title: "Tickets traités",
         value: filteredData.filter(
           (p) => p.status === "signed" || p.status === "simple_signed",
         ).length,
