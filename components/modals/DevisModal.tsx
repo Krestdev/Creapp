@@ -91,6 +91,32 @@ export function DevisModal({
     }
   };
 
+  const totals = data.element.reduce(
+    (acc, el) => {
+      // 1. Determine the IS/IR rate
+      const isIrRate =
+        !el.hasIs || !provider ? 0 : provider.regem === "Réel" ? 2.2 : 5.5;
+
+      // 2. Calculate values for the current line
+      const lineBase = el.priceProposed * el.quantity;
+      const lineReduction = (lineBase * el.reduction) / 100;
+      const lineNet = lineBase - lineReduction; // Net amount after discount
+
+      const lineTVA = (lineNet * el.tva) / 100;
+      const lineIsIr = (lineNet * isIrRate) / 100;
+
+      // 3. Return the updated accumulator object
+      return {
+        totalBase: acc.totalBase + lineBase,
+        totalReduction: acc.totalReduction + lineReduction,
+        totalTVA: acc.totalTVA + lineTVA,
+        totalIsIR: acc.totalIsIR + lineIsIr,
+      };
+    },
+    // 4. Correct Initial Value (must match the shape of the output)
+    { totalTVA: 0, totalBase: 0, totalReduction: 0, totalIsIR: 0 },
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
@@ -109,8 +135,8 @@ export function DevisModal({
               </span>
               <div className="flex flex-col">
                 <p className="text-gray-600">{"Référence"}</p>
-                <div className="w-fit bg-[#F2CFDE] flex items-center justify-center px-1.5 rounded">
-                  <p className="text-[#9E1351] text-sm">{data.ref ?? "N/A"}</p>
+                <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
+                  <p className="text-primary text-sm">{data.ref ?? "N/A"}</p>
                 </div>
               </div>
             </div>
@@ -244,7 +270,7 @@ export function DevisModal({
                 </TableHeader>
 
                 <TableBody>
-                  {data?.element?.map((el, index) => {
+                  {data.element?.map((el, index) => {
                     //IS/IR
                     const isIr = !el.hasIs
                       ? 0
@@ -291,6 +317,41 @@ export function DevisModal({
                   })}
                 </TableBody>
               </Table>
+            </div>
+            <div className="col-span-full flex justify-end items-center gap-2">
+              <span className="text-gray-600">{"Total HT"}</span>
+              <span className="font-semibold text-gray-900">
+                {XAF.format(totals.totalBase)}
+              </span>
+            </div>
+            <div className="col-span-full flex justify-end items-center gap-2">
+              <span className="text-gray-600">{"Total Réduction"}</span>
+              <span className="font-semibold text-gray-900">
+                {XAF.format(totals.totalReduction)}
+              </span>
+            </div>
+            <div className="col-span-full flex justify-end items-center gap-2">
+              <span className="text-gray-600">{"Total TVA"}</span>
+              <span className="font-semibold text-gray-900">
+                {XAF.format(totals.totalTVA)}
+              </span>
+            </div>
+            <div className="col-span-full flex justify-end items-center gap-2">
+              <span className="text-gray-600">{"Total Is/Ir"}</span>
+              <span className="font-semibold text-gray-900">
+                {XAF.format(totals.totalIsIR)}
+              </span>
+            </div>
+            <div className="col-span-full flex justify-end items-center gap-2">
+              <span className="text-gray-600">{"Total TTC"}</span>
+              <span className="font-semibold bg-primary-100 py-1.5 px-3 text-primary-700">
+                {XAF.format(
+                  totals.totalBase -
+                    totals.totalReduction +
+                    totals.totalTVA -
+                    totals.totalIsIR,
+                )}
+              </span>
             </div>
           </div>
         </div>
