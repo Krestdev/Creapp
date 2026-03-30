@@ -58,6 +58,10 @@ import {
 // ----------------------------------------------------------------------
 // VALIDATION
 // ----------------------------------------------------------------------
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
 const SingleFileSchema = z
   .array(
     z.union([
@@ -87,9 +91,7 @@ const formSchema = z.object({
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Le montant doit être un nombre positif",
     }),
-  date_limite: z
-    .date()
-    .min(new Date(), "La date limite doit être dans le futur"),
+  date_limite: z.date().min(today, "La date limite doit être dans le futur"),
   beneficiaire: z.array(z.number()).min(1, "Le bénéficiaire est requis"),
   justificatif: SingleFileSchema,
   priority: z.enum(["low", "medium", "high", "urgent"]),

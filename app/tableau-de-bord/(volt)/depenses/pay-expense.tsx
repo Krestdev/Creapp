@@ -19,10 +19,16 @@ import {
 } from "@/components/ui/form";
 import { XAF } from "@/lib/utils";
 import { transactionQ } from "@/queries/transaction";
-import { Bank, PaymentRequest, Transaction } from "@/types/types";
+import {
+  Bank,
+  PaymentRequest,
+  RequestModelT,
+  Transaction,
+  Vehicle,
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { DollarSignIcon, LandmarkIcon } from "lucide-react";
+import { CarIcon, DollarSignIcon, LandmarkIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -33,6 +39,8 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   banks: Array<Bank>;
   transactions: Array<Transaction>;
+  requests: Array<RequestModelT>;
+  vehicles: Array<Vehicle>;
 }
 
 const formSchema = z.object({
@@ -43,7 +51,18 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function PayExpense({ ticket, open, onOpenChange, transactions }: Props) {
+function PayExpense({
+  ticket,
+  open,
+  onOpenChange,
+  transactions,
+  requests,
+  vehicles,
+}: Props) {
+  const request = requests.find((r) => r.id === ticket.requestId);
+
+  const vehicle = vehicles.find((v) => v.id === request?.vehiclesId);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -124,6 +143,25 @@ function PayExpense({ ticket, open, onOpenChange, transactions }: Props) {
                 <p className="font-semibold">{XAF.format(ticket.price)}</p>
               </div>
             </div>
+            {request && request.type === "gas" && (
+              <div className="view-group">
+                <span className="view-icon">
+                  <CarIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Véhicule"}</p>
+                  <p className="font-semibold">
+                    {vehicle &&
+                      vehicle.mark.concat(
+                        " - ",
+                        vehicle.label,
+                        ` (${vehicle.matricule})`,
+                      )}
+                    {!vehicle && "Aucun véhicule trouvé"}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
