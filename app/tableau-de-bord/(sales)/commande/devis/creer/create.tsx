@@ -131,9 +131,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
         commandRequestId: quotation.commandRequestId,
         providerId: quotation.providerId,
         elements: quotation.element.map((c) => ({
-          id: c.id, // ← Important : garder l'ID pour la mise à jour
-          needId: c.requestModelId, // ← Correction : requestModelId -> needId
-          designation: c.title, // ← Correction : title -> designation
+          id: c.id, 
+          needId: c.requestModelId, 
+          designation: c.title,
           quantity: c.quantity,
           unit: c.unit,
           price: c.priceProposed,
@@ -177,9 +177,9 @@ function CreateQuotation({ quotation, openChange }: Props) {
           userId: user && user.id ? user.id : 0,
         },
         elements: values.elements.map((e) => ({
-          id: e.id, // ← Inclure l'ID pour la mise à jour
-          requestModelId: e.needId, // ← Correction : needId -> requestModelId
-          title: e.designation, // ← Correction : designation -> title
+          id: e.id, 
+          requestModelId: e.needId, 
+          title: e.designation,
           quantity: e.quantity,
           unit: e.unit,
           priceProposed: e.price,
@@ -189,7 +189,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
         })),
       };
 
-      console.log("Payload to send:", payload); // Pour déboguer
+      console.log("Payload to send:", payload); 
 
       if (!id) {
         return quotationQ.create(payload);

@@ -15,9 +15,13 @@ import {
 import {
   ArrowUpDown,
   ChevronDown,
+  Filter,
   LucideEye,
   LucidePen,
   LucideTrash2,
+  Search,
+  Settings2,
+  X,
 } from "lucide-react";
 import * as React from "react";
 
@@ -41,6 +45,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
 import { getRequestTypeBadge } from "@/lib/utils";
 import { categoryQ } from "@/queries/categoryModule";
 import { Category, RequestType, User } from "@/types/types";
@@ -74,12 +87,67 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState("");
+
+  // États pour les filtres
+  const [searchFilter, setSearchFilter] = React.useState("");
+  const [typeFilter, setTypeFilter] = React.useState<string>("all");
+  const [typeSearch, setTypeSearch] = React.useState("");
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
 
   const [selectedItem, setSelectedItem] = React.useState<Category | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [showDetail, setShowDetail] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+
+  // Récupérer les types uniques pour le filtre
+  const uniqueTypes = React.useMemo(() => {
+    const typesMap = new Map();
+    data.forEach((category) => {
+      const typeId = category.type.id;
+      if (!typesMap.has(typeId)) {
+        typesMap.set(typeId, {
+          id: typeId,
+          label: getRequestTypeBadge({ type: category.type.type, requestTypes: types }).label,
+          type: category.type.type,
+        });
+      }
+    });
+    return Array.from(typesMap.values());
+  }, [data, types]);
+
+  // Filtrer les données
+  const filteredData = React.useMemo(() => {
+    return data.filter((category) => {
+      // Filtre par recherche
+      const matchesSearch = searchFilter === "" || 
+        category.label.toLowerCase().includes(searchFilter.toLowerCase()) ||
+        (category.description && category.description.toLowerCase().includes(searchFilter.toLowerCase()));
+      
+      // Filtre par type
+      const matchesType = typeFilter === "all" || 
+        category.type.id === parseInt(typeFilter);
+
+      return matchesSearch && matchesType;
+    });
+  }, [data, searchFilter, typeFilter]);
+
+  // Filtrer les types pour la recherche
+  const filteredTypes = React.useMemo(() => {
+    if (!typeSearch) return uniqueTypes;
+    return uniqueTypes.filter((t) =>
+      t.label.toLowerCase().includes(typeSearch.toLowerCase())
+    );
+  }, [uniqueTypes, typeSearch]);
+
+  // Réinitialiser tous les filtres
+  const resetFilters = () => {
+    setSearchFilter("");
+    setTypeFilter("all");
+    setTypeSearch("");
+  };
+
+  // Compter le nombre de filtres actifs
+  const activeFiltersCount = (typeFilter !== "all" ? 1 : 0) + (searchFilter ? 1 : 0);
 
   const categoryData = useMutation({
     mutationFn: (id: number) => categoryQ.deleteCategory(id),
@@ -98,13 +166,13 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
         header: ({ column }) => {
           return (
             <span
-              className="tablehead"
+              className="tablehead cursor-pointer flex items-center gap-1"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Nom de la catégorie"}
-              <ArrowUpDown />
+              <ArrowUpDown className="h-3 w-3" />
             </span>
           );
         },
@@ -121,13 +189,13 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
         header: ({ column }) => {
           return (
             <span
-              className="tablehead"
+              className="tablehead cursor-pointer flex items-center gap-1"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Description"}
-              <ArrowUpDown />
+              <ArrowUpDown className="h-3 w-3" />
             </span>
           );
         },
@@ -150,13 +218,13 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
         header: ({ column }) => {
           return (
             <span
-              className="tablehead"
+              className="tablehead cursor-pointer flex items-center gap-1"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Type de catégorie"}
-              <ArrowUpDown />
+              <ArrowUpDown className="h-3 w-3" />
             </span>
           );
         },
@@ -187,9 +255,9 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant={"outline"}>
+                <Button variant={"outline"} size="sm">
                   {"Actions"}
-                  <ChevronDown />
+                  <ChevronDown className="ml-2 h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -201,17 +269,15 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
                     setShowDetail(true);
                   }}
                 >
-                  <LucideEye />
+                  <LucideEye className="mr-2 h-4 w-4" />
                   {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
-                    //setSelectedItem(category);
-                    //setIsUpdateModalOpen(true);
                     router.push(`./categories/${category.id}`);
                   }}
                 >
-                  <LucidePen />
+                  <LucidePen className="mr-2 h-4 w-4" />
                   {"Modifier"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -221,7 +287,7 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
                     setIsDeleteModalOpen(true);
                   }}
                 >
-                  <LucideTrash2 />
+                  <LucideTrash2 className="mr-2 h-4 w-4" />
                   {"Supprimer"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -230,11 +296,11 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
         },
       },
     ],
-    [],
+    [router, types],
   );
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -244,34 +310,150 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const search = filterValue.toLowerCase();
-      const name = row.getValue("label") as string;
-
-      return name.toLowerCase().includes(search);
-    },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter,
     },
   });
 
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
-        <Input
-          placeholder="Rechercher par nom de la catégorie..."
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="relative">
+              <Settings2 className="mr-2 h-4 w-4" />
+              {"Filtres"}
+              {activeFiltersCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Filtrer les catégories par type et par recherche"}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="px-5 grid gap-5 mt-6">
+              {/* Filtre par type */}
+              <div className="grid gap-1.5">
+                <Label>{"Type de catégorie"}</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      <span className="truncate">
+                        {typeFilter === "all"
+                          ? "Tous les types"
+                          : uniqueTypes.find((t) => t.id.toString() === typeFilter)?.label || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          placeholder="Rechercher un type..."
+                          className="h-8 pl-8"
+                          value={typeSearch}
+                          onChange={(e) => setTypeSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                        {typeSearch && (
+                          <button
+                            onClick={() => setTypeSearch("")}
+                            className="absolute right-2 top-1/2 -translate-y-1/2"
+                          >
+                            <X className="h-3 w-3 text-muted-foreground" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setTypeFilter("all");
+                        setTypeSearch("");
+                      }}
+                      className={typeFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Tous les types</span>
+                      </div>
+                    </DropdownMenuItem>
+                    {filteredTypes.map((type) => (
+                      <DropdownMenuItem
+                        key={type.id}
+                        onClick={() => {
+                          setTypeFilter(type.id.toString());
+                          setTypeSearch("");
+                        }}
+                        className={typeFilter === type.id.toString() ? "bg-accent" : ""}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{type.label}</span>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                    {filteredTypes.length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun type trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Filtre par recherche */}
+              <div className="grid gap-1.5">
+                <Label>{"Recherche"}</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Nom ou description..."
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    className="pl-8"
+                  />
+                  {searchFilter && (
+                    <button
+                      onClick={() => setSearchFilter("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2"
+                    >
+                      <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Bouton réinitialiser */}
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={resetFilters}
+                  className="w-full"
+                  disabled={activeFiltersCount === 0}
+                >
+                  {"Réinitialiser les filtres"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto bg-transparent">
+            <Button variant="outline" className="bg-transparent">
               {"Colonnes"}
               <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
@@ -286,7 +468,9 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
                     ? "Nom catégorie"
                     : column.id == "description"
                       ? "Description"
-                      : "";
+                      : column.id == "type"
+                        ? "Type"
+                        : "";
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -303,6 +487,44 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Indicateur de filtres actifs */}
+      {activeFiltersCount > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <span className="text-sm text-muted-foreground">Filtres actifs :</span>
+          {typeFilter !== "all" && (
+            <Badge variant="secondary" className="gap-1">
+              Type: {uniqueTypes.find((t) => t.id.toString() === typeFilter)?.label}
+              <button
+                onClick={() => setTypeFilter("all")}
+                className="ml-1 hover:text-foreground"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          {searchFilter && (
+            <Badge variant="secondary" className="gap-1">
+              Recherche: {searchFilter}
+              <button
+                onClick={() => setSearchFilter("")}
+                className="ml-1 hover:text-foreground"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            className="h-6 text-xs"
+          >
+            Tout effacer
+          </Button>
+        </div>
+      )}
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -334,7 +556,6 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  // className={getRowClassName(row.original.status)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
                     <TableCell
@@ -366,7 +587,10 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-between py-4">
+        <div className="text-sm text-muted-foreground">
+          {filteredData.length} catégorie(s)
+        </div>
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
@@ -374,7 +598,7 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
-            <ChevronsLeft />
+            <ChevronsLeft className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -382,15 +606,19 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            <ChevronLeft />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
+          <span className="text-sm">
+            Page {table.getState().pagination.pageIndex + 1} sur{" "}
+            {table.getPageCount()}
+          </span>
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            <ChevronRight />
+            <ChevronRight className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -398,10 +626,11 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >
-            <ChevronsRight />
+            <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
+
       {selectedItem && (
         <>
           <DeleteCategory
