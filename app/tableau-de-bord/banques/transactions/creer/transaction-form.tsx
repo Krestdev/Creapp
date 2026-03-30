@@ -30,9 +30,9 @@ import { Bank, TRANSACTION_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -62,7 +62,6 @@ export const formSchema = z
       .number({ message: "Montant invalide" })
       .gt(0, "Montant > 0 requis"),
 
-    // ⚠️ si tu veux autoriser une date passée, change la condition
     date: z.string({ message: "Veuillez définir une date" }).refine(
       (val) => {
         const d = new Date(val);
@@ -128,9 +127,16 @@ type FormValues = z.infer<typeof formSchema>;
 
 function TransactionForm({ banks, userId }: Props) {
   const [openDate, setOpenDate] = React.useState<boolean>(false);
+  
+  // États pour les selects avec recherche
+  const [openFromBank, setOpenFromBank] = React.useState<boolean>(false);
+  const [openToBank, setOpenToBank] = React.useState<boolean>(false);
+  const [searchFromBank, setSearchFromBank] = useState("");
+  const [searchToBank, setSearchToBank] = useState("");
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    shouldUnregister: true, // ✅ très important ici
+    shouldUnregister: true,
     defaultValues: {
       label: "",
       amount: 5000,
@@ -160,13 +166,41 @@ function TransactionForm({ banks, userId }: Props) {
 
   const type = form.watch("Type");
 
+  // Fonction pour normaliser le texte (recherche)
+  const normalizeText = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+  // Filtrer les banques pour la source
+  const filteredFromBanks = useMemo(() => {
+    const availableBanks = banks.filter((b) => !!b.type && b.type !== "null");
+    return availableBanks.filter((bank) =>
+      normalizeText(bank.label).includes(normalizeText(searchFromBank))
+    );
+  }, [banks, searchFromBank, normalizeText]);
+
+  // Filtrer les banques pour la destination
+  const filteredToBanks = useMemo(() => {
+    const availableBanks = banks.filter((b) => !!b.type && b.type !== "null");
+    return availableBanks.filter((bank) =>
+      normalizeText(bank.label).includes(normalizeText(searchToBank))
+    );
+  }, [banks, searchToBank, normalizeText]);
+
   React.useEffect(() => {
     if (type === "CREDIT") {
       form.setValue("to", undefined);
       form.setValue("fromBankId", undefined);
+      // Réinitialiser la recherche quand on change de type
+      setSearchFromBank("");
+      setSearchToBank("");
     } else {
       form.setValue("from", undefined);
       form.setValue("toBankId", undefined);
+      setSearchFromBank("");
+      setSearchToBank("");
     }
   }, [type, form]);
 
@@ -208,6 +242,7 @@ function TransactionForm({ banks, userId }: Props) {
       return create.mutate(payload);
     }
   }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
@@ -216,7 +251,7 @@ function TransactionForm({ banks, userId }: Props) {
           name="label"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"Libellé de la Transaction"}</FormLabel>
+              <FormLabel isRequired>Libellé de la Transaction</FormLabel>
               <FormControl>
                 <Input {...field} placeholder="Intitulé de la transaction" />
               </FormControl>
@@ -224,12 +259,13 @@ function TransactionForm({ banks, userId }: Props) {
             </FormItem>
           )}
         />
+        
         <FormField
           control={form.control}
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Montant"}</FormLabel>
+              <FormLabel isRequired>Montant</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
@@ -239,7 +275,7 @@ function TransactionForm({ banks, userId }: Props) {
                     className="pr-12"
                   />
                   <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                    {"FCFA"}
+                    FCFA
                   </span>
                 </div>
               </FormControl>
@@ -247,12 +283,13 @@ function TransactionForm({ banks, userId }: Props) {
             </FormItem>
           )}
         />
+        
         <FormField
           control={form.control}
           name="date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Date de la transaction"}</FormLabel>
+              <FormLabel isRequired>Date de la transaction</FormLabel>
               <FormControl>
                 <div className="relative flex gap-2">
                   <Input
@@ -279,7 +316,7 @@ function TransactionForm({ banks, userId }: Props) {
                       >
                         <CalendarIcon className="size-3.5" />
                         <span className="sr-only">
-                          {"Sélectionner une date"}
+                          Sélectionner une date
                         </span>
                       </Button>
                     </PopoverTrigger>
@@ -311,12 +348,13 @@ function TransactionForm({ banks, userId }: Props) {
             </FormItem>
           )}
         />
+        
         <FormField
           control={form.control}
           name="Type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Type"}</FormLabel>
+              <FormLabel isRequired>Type</FormLabel>
               <FormControl>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className="w-full">
@@ -337,31 +375,71 @@ function TransactionForm({ banks, userId }: Props) {
             </FormItem>
           )}
         />
+        
+        {/* Section Source */}
         <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
-          <h3 className="@min-[640px]:col-span-2">{"Source"}</h3>
+          <h3 className="@min-[640px]:col-span-2">Source</h3>
           {type === "DEBIT" ? (
             <FormField
               control={form.control}
               name="fromBankId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Compte source"}</FormLabel>
+                  <FormLabel isRequired>Compte source</FormLabel>
                   <FormControl>
                     <Select
-                      value={!!field.value ? String(field.value) : undefined}
-                      onValueChange={field.onChange}
+                      value={field.value ? String(field.value) : undefined}
+                      onValueChange={(v) => {
+                        field.onChange(v);
+                        setSearchFromBank("");
+                      }}
+                      open={openFromBank}
+                      onOpenChange={(open) => {
+                        setOpenFromBank(open);
+                        if (!open) setSearchFromBank("");
+                      }}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner un compte" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {banks
-                          .filter((b) => !!b.type && b.type !== "null")
-                          .map((bank) => (
-                            <SelectItem key={bank.id} value={String(bank.id)}>
-                              {bank.label}
-                            </SelectItem>
-                          ))}
+                      <SelectContent className="max-h-[500px] p-0">
+                        {/* Champ de recherche */}
+                        <div className="p-2 border-b sticky top-0 bg-background">
+                          <div className="relative">
+                            <Search className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                              placeholder="Rechercher un compte..."
+                              value={searchFromBank}
+                              onChange={(e) => setSearchFromBank(e.target.value)}
+                              onKeyDown={(e) => e.stopPropagation()}
+                              className="h-9 pl-8"
+                            />
+                            {searchFromBank && (
+                              <button
+                                type="button"
+                                onClick={() => setSearchFromBank("")}
+                                className="absolute right-2 top-1/2 -translate-y-1/2"
+                              >
+                                <X className="size-4 text-muted-foreground hover:text-foreground" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Liste scrollable */}
+                        <div className="max-h-[380px] overflow-y-auto">
+                          {filteredFromBanks.length === 0 ? (
+                            <div className="p-3 text-sm text-muted-foreground text-center">
+                              Aucun compte trouvé
+                            </div>
+                          ) : (
+                            filteredFromBanks.map((bank) => (
+                              <SelectItem key={bank.id} value={String(bank.id)}>
+                                {bank.label}
+                              </SelectItem>
+                            ))
+                          )}
+                        </div>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -376,7 +454,7 @@ function TransactionForm({ banks, userId }: Props) {
                 name="from.label"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>{"Nom de la source"}</FormLabel>
+                    <FormLabel isRequired>Nom de la source</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Ex. Krest Holding" />
                     </FormControl>
@@ -389,7 +467,7 @@ function TransactionForm({ banks, userId }: Props) {
                 name="from.accountNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Compte bancaire source"}</FormLabel>
+                    <FormLabel>Compte bancaire source</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -398,7 +476,7 @@ function TransactionForm({ banks, userId }: Props) {
                       />
                     </FormControl>
                     <FormDescription>
-                      {"Numéro de Compte Bancaire du client si applicable"}
+                      Numéro de Compte Bancaire du client si applicable
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -409,7 +487,7 @@ function TransactionForm({ banks, userId }: Props) {
                 name="from.phoneNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Numéro de téléphone source"}</FormLabel>
+                    <FormLabel>Numéro de téléphone source</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -418,7 +496,7 @@ function TransactionForm({ banks, userId }: Props) {
                       />
                     </FormControl>
                     <FormDescription>
-                      {"Numéro de téléphone du si applicable"}
+                      Numéro de téléphone du si applicable
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -427,31 +505,71 @@ function TransactionForm({ banks, userId }: Props) {
             </>
           )}
         </div>
+        
+        {/* Section Destinataire */}
         <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
-          <h3 className="@min-[640px]:col-span-2">{"Destinataire"}</h3>
+          <h3 className="@min-[640px]:col-span-2">Destinataire</h3>
           {type === "CREDIT" ? (
             <FormField
               control={form.control}
               name="toBankId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Compte destinataire"}</FormLabel>
+                  <FormLabel isRequired>Compte destinataire</FormLabel>
                   <FormControl>
                     <Select
-                      value={!!field.value ? String(field.value) : undefined}
-                      onValueChange={field.onChange}
+                      value={field.value ? String(field.value) : undefined}
+                      onValueChange={(v) => {
+                        field.onChange(v);
+                        setSearchToBank("");
+                      }}
+                      open={openToBank}
+                      onOpenChange={(open) => {
+                        setOpenToBank(open);
+                        if (!open) setSearchToBank("");
+                      }}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner un compte" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {banks
-                          .filter((b) => !!b.type && b.type !== "null")
-                          .map((bank) => (
-                            <SelectItem key={bank.id} value={String(bank.id)}>
-                              {bank.label}
-                            </SelectItem>
-                          ))}
+                      <SelectContent className="max-h-[500px] p-0">
+                        {/* Champ de recherche */}
+                        <div className="p-2 border-b sticky top-0 bg-background">
+                          <div className="relative">
+                            <Search className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                              placeholder="Rechercher un compte..."
+                              value={searchToBank}
+                              onChange={(e) => setSearchToBank(e.target.value)}
+                              onKeyDown={(e) => e.stopPropagation()}
+                              className="h-9 pl-8"
+                            />
+                            {searchToBank && (
+                              <button
+                                type="button"
+                                onClick={() => setSearchToBank("")}
+                                className="absolute right-2 top-1/2 -translate-y-1/2"
+                              >
+                                <X className="size-4 text-muted-foreground hover:text-foreground" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Liste scrollable */}
+                        <div className="max-h-[380px] overflow-y-auto">
+                          {filteredToBanks.length === 0 ? (
+                            <div className="p-3 text-sm text-muted-foreground text-center">
+                              Aucun compte trouvé
+                            </div>
+                          ) : (
+                            filteredToBanks.map((bank) => (
+                              <SelectItem key={bank.id} value={String(bank.id)}>
+                                {bank.label}
+                              </SelectItem>
+                            ))
+                          )}
+                        </div>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -466,7 +584,7 @@ function TransactionForm({ banks, userId }: Props) {
                 name="to.label"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>{"Nom du destinataire"}</FormLabel>
+                    <FormLabel isRequired>Nom du destinataire</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Ex. Krest Holding" />
                     </FormControl>
@@ -479,7 +597,7 @@ function TransactionForm({ banks, userId }: Props) {
                 name="to.accountNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Compte bancaire destinataire"}</FormLabel>
+                    <FormLabel>Compte bancaire destinataire</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -488,7 +606,7 @@ function TransactionForm({ banks, userId }: Props) {
                       />
                     </FormControl>
                     <FormDescription>
-                      {"Numéro de Compte Bancaire du client si applicable"}
+                      Numéro de Compte Bancaire du client si applicable
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -499,7 +617,7 @@ function TransactionForm({ banks, userId }: Props) {
                 name="to.phoneNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Numéro de téléphone destinataire"}</FormLabel>
+                    <FormLabel>Numéro de téléphone destinataire</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -508,7 +626,7 @@ function TransactionForm({ banks, userId }: Props) {
                       />
                     </FormControl>
                     <FormDescription>
-                      {"Numéro de téléphone si applicable"}
+                      Numéro de téléphone si applicable
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -523,7 +641,7 @@ function TransactionForm({ banks, userId }: Props) {
           name="proof"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>{"Justificatif"}</FormLabel>
+              <FormLabel isRequired>Justificatif</FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value}
@@ -538,6 +656,7 @@ function TransactionForm({ banks, userId }: Props) {
             </FormItem>
           )}
         />
+        
         <div className="@min-[640px]:col-span-2 w-full inline-flex justify-end">
           <Button
             type="submit"
@@ -545,7 +664,7 @@ function TransactionForm({ banks, userId }: Props) {
             disabled={create.isPending}
             isLoading={create.isPending}
           >
-            {"Enregistrer"}
+            Enregistrer
           </Button>
         </div>
       </form>

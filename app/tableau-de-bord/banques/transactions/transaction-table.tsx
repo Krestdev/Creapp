@@ -97,15 +97,12 @@ function TransactionTable({
     [],
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({
-      type: false,
-    });
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [searchFilter, setSearchFilter] = React.useState("");
   const [selected, setSelected] = React.useState<Transaction>();
   const [view, setView] = React.useState<boolean>(false);
-  const [edit, setEdit] = React.useState<boolean>(false);
 
   const [amountFilter, setAmountFilter] = React.useState<number>(0);
   const [bankFilter, setBankFilter] = React.useState<string>("all");

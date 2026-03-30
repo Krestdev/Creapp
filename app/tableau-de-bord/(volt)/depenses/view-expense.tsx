@@ -211,16 +211,6 @@ function ViewExpense({
             </div>
           </div>
 
-          {/* Description */}
-          <div className="view-group">
-            <span className="view-icon">
-              <TextQuoteIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Description"}</p>
-              <p>{payment.description ?? "N/A"}</p>
-            </div>
-          </div>
 
           {/* Type */}
           <div className="view-group">
@@ -693,6 +683,17 @@ function ViewExpense({
               </div>
             </div>
           )}
+
+          {/* Description */}
+          <div className="view-group col-span-2">
+            <span className="view-icon">
+              <TextQuoteIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Description"}</p>
+              <p>{payment.description ?? "N/A"}</p>
+            </div>
+          </div>
         </div>
 
         {/* Footer */}

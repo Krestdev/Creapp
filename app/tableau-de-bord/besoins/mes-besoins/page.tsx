@@ -138,7 +138,7 @@ const Page = () => {
       );
       return {
         id: projectId,
-        label: project?.label || `Projet ${projectId}`,
+        label: project?.label ?? `Aucun projet`,
       };
     });
   }, [data, projectsData.data]);

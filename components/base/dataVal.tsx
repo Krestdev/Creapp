@@ -246,9 +246,16 @@ export function DataVal({
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : b.state === statusFilter;
-      //Project Filter
-      const matchProject =
-        projectFilter === "all" ? true : b.projectId === Number(projectFilter);
+      //Project Filter - MODIFICATION ICI
+      let matchProject = true;
+      if (projectFilter === "all") {
+        matchProject = true;
+      } else if (projectFilter === "null") {
+        // Option pour les besoins sans projet
+        matchProject = b.projectId === null || b.projectId === undefined;
+      } else {
+        matchProject = b.projectId === Number(projectFilter);
+      }
       //User Filter
       const matchUser =
         userFilter === "all" ? true : b.userId === Number(userFilter);
@@ -704,11 +711,17 @@ export function DataVal({
             </span>
           );
         },
-        cell: ({ row }) => (
-          <div className="text-sm first-letter:uppercase lowercase max-w-[500px] truncate">
-            {getProjectName(row.getValue("projectId"))}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const projectId = row.getValue("projectId");
+          const projectName = projectId 
+            ? getProjectName(projectId as string) 
+            : "Sans projet";
+          return (
+            <div className="text-sm first-letter:uppercase lowercase max-w-[500px] truncate">
+              {projectName}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "categoryId",
@@ -1209,9 +1222,11 @@ export function DataVal({
                         <span className="truncate">
                           {projectFilter === "all"
                             ? "Tous les projets"
-                            : projectsData.find(
-                                (p) => String(p.id) === projectFilter,
-                              )?.label || "Sélectionner"}
+                            : projectFilter === "null"
+                              ? "Sans projet"
+                              : projectsData.find(
+                                  (p) => String(p.id) === projectFilter,
+                                )?.label || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -1241,6 +1256,17 @@ export function DataVal({
                           <span>Tous les projets</span>
                         </div>
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setProjectFilter("null");
+                          setProjectSearch("");
+                        }}
+                        className={projectFilter === "null" ? "bg-accent" : ""}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-red-500">Sans projet</span>
+                        </div>
+                      </DropdownMenuItem>
                       {projectsData
                         .filter((p) =>
                           p.label
@@ -1267,7 +1293,7 @@ export function DataVal({
                         p.label
                           .toLowerCase()
                           .includes(projectSearch.toLowerCase()),
-                      ).length === 0 && (
+                      ).length === 0 && projectSearch && (
                         <div className="px-2 py-4 text-sm text-muted-foreground text-center">
                           Aucun projet trouvé
                         </div>
