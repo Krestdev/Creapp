@@ -630,8 +630,8 @@ export function DataTable({
           />
           <UpdateRequest
             open={isUpdateModalOpen}
-            setOpen={setIsUpdateModalOpen}
-            requestData={selectedItem}
+            onOpenChange={setIsUpdateModalOpen}
+            request={selectedItem}
             users={users}
             projects={projects}
             categories={categories}
