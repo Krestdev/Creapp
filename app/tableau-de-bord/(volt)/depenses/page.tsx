@@ -155,6 +155,7 @@ function Page() {
     getTransactions.isSuccess &&
     getSignataires.isSuccess
   ) {
+    console.log(filteredData.filter((p) => p.status === "validated"));
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente de traitement",
@@ -163,7 +164,7 @@ function Page() {
         more: {
           title: "Montant total",
           value: XAF.format(
-            data.data
+            filteredData
               .filter((p) => p.status === "validated")
               .reduce((total, el) => total + el.price, 0),
           ),
@@ -176,14 +177,14 @@ function Page() {
         more: {
           title: "Montant total",
           value: XAF.format(
-            data.data
+            filteredData
               .filter((p) => p.status === "paid")
               .reduce((total, el) => total + el.price, 0),
           ),
         },
       },
       {
-        title: "Tickets signés en attente de paiement",
+        title: "Tickets traités",
         value: filteredData.filter(
           (p) => p.status === "signed" || p.status === "simple_signed",
         ).length,
@@ -191,7 +192,7 @@ function Page() {
         more: {
           title: "Montant total",
           value: XAF.format(
-            data.data
+            filteredData
               .filter(
                 (p) => p.status === "signed" || p.status === "simple_signed",
               )

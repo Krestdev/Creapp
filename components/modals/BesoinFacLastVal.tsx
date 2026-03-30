@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -35,6 +36,7 @@ import { requestQ } from "@/queries/requestModule";
 import {
   Category,
   PaymentRequest,
+  PayType,
   ProjectT,
   RequestModelT,
   User,
@@ -291,9 +293,9 @@ export default function BesoinFacLastVal({
   // ----------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-3xl">
         {/* Header - FIXE EN HAUT */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+        <DialogHeader>
           <DialogTitle>{"Approbation"}</DialogTitle>
           <DialogDescription>
             {"Approuver la demande de facilitation existante"}
@@ -302,327 +304,300 @@ export default function BesoinFacLastVal({
 
         <Form {...form}>
           {/* Contenu scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <div className="space-y-8 max-w-3xl mx-auto">
-              <div className="flex flex-col @min-[640px]:grid @min-[640px]:grid-cols-2 gap-4">
-                {/* PROJET */}
-                <FormField
-                  control={form.control}
-                  name="projet"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Projet concerné"}</FormLabel>
-                      <SearchableSelect
-                        disabled={true}
-                        onChange={field.onChange}
-                        options={
-                          projects
-                            .filter(
-                              (p) =>
-                                p.status !== "cancelled" &&
-                                p.status !== "Completed" &&
-                                p.status !== "on-hold",
-                            )
-                            .map((p) => ({
-                              value: p.id!.toString(),
-                              label: p.label,
-                            })) ?? []
-                        }
-                        value={field.value}
-                        width="w-full"
-                        allLabel=""
-                        placeholder="Sélectionner un projet"
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Category */}
-                <FormField
-                  control={form.control}
-                  name="categoryId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Categorie"}</FormLabel>
-                      <FormControl>
-                        <Select
-                          defaultValue={
-                            field.value ? String(field.value) : undefined
-                          }
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger className="min-w-60 w-full">
-                            <SelectValue placeholder="Sélectionner" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.filter(
-                              (c) => c.type.type === "facilitation",
-                            ).length === 0 ? (
-                              <SelectItem value="#" disabled>
-                                {"Aucune catégorie enregistrée"}
-                              </SelectItem>
-                            ) : (
-                              categories
-                                .filter((c) => c.type.type === "facilitation")
-                                .map((category) => (
-                                  <SelectItem
-                                    key={category.id}
-                                    value={category.id.toString()}
-                                  >
-                                    {category.label}
-                                  </SelectItem>
-                                ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* TITLE */}
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {"Titre"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Input
-                        {...field}
-                        placeholder="ex. Achat du carburant groupe"
-                        disabled={true}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* BENEFICIAIRE */}
-                <FormField
-                  control={form.control}
-                  name="beneficiaire"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {"Recepteur pour compte"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={true}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionner un recepteur pour compte" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {USERS.map((user) => (
-                            <SelectItem
-                              key={user.id}
-                              value={user.id!.toString()}
-                            >
-                              {user.lastName + " " + user.firstName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* DELAI */}
-                <FormField
-                  control={form.control}
-                  name="delai"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {"Date limite"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Popover
-                          open={openCalendar}
-                          onOpenChange={setOpenCalendar}
-                        >
-                          <PopoverTrigger asChild className="h-10 w-full">
-                            <FormControl>
-                              <Button
-                                type="button"
-                                variant={"outline"}
-                                className="w-full pl-3 text-left font-normal"
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP", { locale: fr })
-                                ) : (
-                                  <span>{"Choisir une date"}</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={(d) => {
-                                field.onChange(d);
-                                setOpenCalendar(false);
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Priorité */}
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {"Priorité"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Select
-                        {...field}
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Choisir une priorité" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="low">Faible</SelectItem>
-                          <SelectItem value="medium">Moyenne</SelectItem>
-                          <SelectItem value="high">Haute</SelectItem>
-                          <SelectItem value="urgent">Urgente</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Description/Détail */}
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel>
-                        {"Description/Détail"}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Textarea
-                        disabled={true}
-                        {...field}
-                        placeholder="Décrivez le besoin"
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* LISTE DES BÉNÉFICIAIRES */}
-                <div className="@min-[640px]:col-span-2">
-                  <BeneficiairesList
-                    onBeneficiairesChange={setBeneficiairesList}
-                    initialBeneficiaires={beneficiairesList}
-                    disabledName={true}
+          <div className="flex flex-col @min-[640px]/dialog:grid @min-[640px]/dialog:grid-cols-2 gap-4">
+            {/* PROJET */}
+            <FormField
+              control={form.control}
+              name="projet"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Projet concerné"}</FormLabel>
+                  <SearchableSelect
+                    disabled={true}
+                    onChange={field.onChange}
+                    options={
+                      projects
+                        .filter(
+                          (p) =>
+                            p.status !== "cancelled" &&
+                            p.status !== "Completed" &&
+                            p.status !== "on-hold",
+                        )
+                        .map((p) => ({
+                          value: p.id!.toString(),
+                          label: p.label,
+                        })) ?? []
+                    }
+                    value={field.value}
+                    width="w-full"
+                    allLabel=""
+                    placeholder="Sélectionner un projet"
                   />
-                </div>
-                
-                {/* Moyen de paiement */}
-                <FormField
-                  control={form.control}
-                  name="paytype"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
-                      <FormControl>
-                        <Select
-                          defaultValue={
-                            field.value ? String(field.value) : undefined
-                          }
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger className="min-w-60 w-full col-span-2">
-                            <SelectValue placeholder="Sélectionner" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">Espèces</SelectItem>
-                            <SelectItem value="chq">Chèque</SelectItem>
-                            <SelectItem value="ov">Virement</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                {/* JUSTIFICATIF */}
-                <FormField
-                  control={form.control}
-                  name="justificatif"
-                  render={({ field }) => (
-                    <FormItem className="@min-[640px]:col-span-2">
-                      <FormLabel>{"Justificatif"}</FormLabel>
-                      <FormControl>
-                        <FilesUpload
-                          value={field.value || []}
-                          onChange={field.onChange}
-                          name={field.name}
-                          disabled={true}
-                          acceptTypes="all"
-                          multiple={false}
-                          maxFiles={1}
+            {/* Category */}
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Categorie"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      defaultValue={
+                        field.value ? String(field.value) : undefined
+                      }
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="min-w-60 w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.filter(
+                          (c) => c.type.type === "facilitation",
+                        ).length === 0 ? (
+                          <SelectItem value="#" disabled>
+                            {"Aucune catégorie enregistrée"}
+                          </SelectItem>
+                        ) : (
+                          categories
+                            .filter((c) => c.type.type === "facilitation")
+                            .map((category) => (
+                              <SelectItem
+                                key={category.id}
+                                value={category.id.toString()}
+                              >
+                                {category.label}
+                              </SelectItem>
+                            ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* TITLE */}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Titre"} </FormLabel>
+                  <Input
+                    {...field}
+                    placeholder="ex. Achat du carburant groupe"
+                    disabled={true}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* BENEFICIAIRE */}
+            <FormField
+              control={form.control}
+              name="beneficiaire"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Recepteur pour compte"}</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={true}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un recepteur pour compte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {USERS.map((user) => (
+                        <SelectItem key={user.id} value={user.id!.toString()}>
+                          {user.lastName + " " + user.firstName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* DELAI */}
+            <FormField
+              control={form.control}
+              name="delai"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Date limite"}</FormLabel>
+                  <FormControl>
+                    <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
+                      <PopoverTrigger asChild className="h-10 w-full">
+                        <FormControl>
+                          <Button
+                            type="button"
+                            variant={"outline"}
+                            className="w-full pl-3 text-left font-normal"
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP", { locale: fr })
+                            ) : (
+                              <span>{"Choisir une date"}</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(d) => {
+                            field.onChange(d);
+                            setOpenCalendar(false);
+                          }}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Priorité */}
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Priorité"}</FormLabel>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Choisir une priorité" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Faible</SelectItem>
+                      <SelectItem value="medium">Moyenne</SelectItem>
+                      <SelectItem value="high">Haute</SelectItem>
+                      <SelectItem value="urgent">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Description/Détail */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="@min-[640px]/dialog:col-span-2">
+                  <FormLabel isRequired>{"Description/Détail"}</FormLabel>
+                  <Textarea
+                    disabled={true}
+                    {...field}
+                    placeholder="Décrivez le besoin"
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* LISTE DES BÉNÉFICIAIRES */}
+            <div className="@min-[640px]/dialog:col-span-2">
+              <BeneficiairesList
+                onBeneficiairesChange={setBeneficiairesList}
+                initialBeneficiaires={beneficiairesList}
+                disabledName={true}
+              />
             </div>
+
+            {/* Moyen de paiement */}
+            <FormField
+              control={form.control}
+              name="paytype"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      defaultValue={
+                        field.value ? String(field.value) : undefined
+                      }
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Espèces</SelectItem>
+                        <SelectItem value="chq">Chèque</SelectItem>
+                        <SelectItem value="ov">Virement</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* JUSTIFICATIF */}
+            <FormField
+              control={form.control}
+              name="justificatif"
+              render={({ field }) => (
+                <FormItem className="@min-[640px]/dialog:col-span-2">
+                  <FormLabel>{"Justificatif"}</FormLabel>
+                  <FormControl>
+                    <FilesUpload
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      name={field.name}
+                      disabled={true}
+                      acceptTypes="all"
+                      multiple={false}
+                      maxFiles={1}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           {/* Boutons - FIXE EN BAS */}
-          <div className="flex gap-3 p-4 border-t shrink-0 justify-end">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={updateMutation.isPending}
             >
-              Annuler
+              {"Annuler"}
             </Button>
             <Button
               type="submit"
               disabled={updateMutation.isPending || !isFormInitialized}
-              className="bg-green-500 hover:bg-green-600"
+              variant={"success"}
               onClick={() => form.handleSubmit(onSubmit)()}
+              isLoading={updateMutation.isPending}
             >
-              Approuver la demande
-              {updateMutation.isPending && (
-                <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />
-              )}
+              {"Approuver la demande"}
             </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

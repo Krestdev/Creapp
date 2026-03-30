@@ -37,8 +37,8 @@ function Page() {
 
   const getUsers = useQuery({
     queryKey: ["users"],
-    queryFn: userQ.getAll
-  })
+    queryFn: userQ.getAll,
+  });
 
   const getPurchase = useQuery({
     queryKey: ["purchaseOrders"],
@@ -51,42 +51,87 @@ function Page() {
   });
 
   const ticketsData: Array<PaymentRequest> = useMemo(() => {
+    const bannedTypes: Array<PaymentRequest["type"]> = [
+      "transport",
+      "others",
+      "appro",
+      "gas",
+    ];
     if (!data) return [];
-    return data.data.filter((ticket) => ticket.status !== "ghost" && ticket.status !== "cancelled");
+    return data.data.filter(
+      (ticket) =>
+        ticket.status !== "ghost" &&
+        ticket.status !== "cancelled" &&
+        !bannedTypes.some((t) => t === ticket.type),
+    );
   }, [data]);
 
   const pending = useMemo(() => {
-    if (!data) return [];
-    return ticketsData.filter((ticket) =>
-      ticket.status === "accepted" || ticket.status === "pending"
+    return ticketsData.filter(
+      (ticket) => ticket.status === "accepted" || ticket.status === "pending",
     );
-  }, [data]);
+  }, [ticketsData]);
 
   const approved = useMemo(() => {
-    if (!data) return [];
-    return data.data.filter(
+    return ticketsData.filter(
       (ticket) =>
-        ticket.status !== "ghost" && ticket.status !== "rejected" && ticket.status !== "cancelled" && ticket.status !== "accepted" && ticket.status !== "pending"
+        ticket.status !== "rejected" &&
+        ticket.status !== "accepted" &&
+        ticket.status !== "pending",
     );
-  }, [data]);
+  }, [ticketsData]);
 
   const unPaid = useMemo(() => {
-    if (!data) return [];
-    return data.data.filter(
+    return ticketsData.filter(
       (ticket) =>
-        ticket.status === "validated" || ticket.status === "signed" || ticket.status === "simple_signed" || ticket.status === "unsigned"
+        ticket.status === "validated" ||
+        ticket.status === "signed" ||
+        ticket.status === "simple_signed" ||
+        ticket.status === "unsigned",
     );
-  }, [data]);
+  }, [ticketsData]);
 
-  if (isLoading || getRequestType.isLoading || getPurchase.isLoading || getInvoices.isLoading || getRequests.isLoading || getUsers.isLoading) {
+  if (
+    isLoading ||
+    getRequestType.isLoading ||
+    getPurchase.isLoading ||
+    getInvoices.isLoading ||
+    getRequests.isLoading ||
+    getUsers.isLoading
+  ) {
     return <LoadingPage />;
   }
 
-  if (isError || getRequestType.isError || getPurchase.isError || getInvoices.isError || getRequests.isError || getUsers.isError) {
-    return <ErrorPage error={error || getRequestType.error! || getPurchase.error! || getInvoices.error! || getUsers.error || getRequests.error} />;
+  if (
+    isError ||
+    getRequestType.isError ||
+    getPurchase.isError ||
+    getInvoices.isError ||
+    getRequests.isError ||
+    getUsers.isError
+  ) {
+    return (
+      <ErrorPage
+        error={
+          error ||
+          getRequestType.error! ||
+          getPurchase.error! ||
+          getInvoices.error! ||
+          getUsers.error ||
+          getRequests.error
+        }
+      />
+    );
   }
 
-  if (isSuccess && getRequestType.isSuccess && getPurchase.isSuccess && getInvoices.isSuccess && getRequests.isSuccess && getUsers.isSuccess) {
+  if (
+    isSuccess &&
+    getRequestType.isSuccess &&
+    getPurchase.isSuccess &&
+    getInvoices.isSuccess &&
+    getRequests.isSuccess &&
+    getUsers.isSuccess
+  ) {
     return (
       <div className="flex flex-col gap-6">
         {user?.role.flatMap((r) => r.label).includes("VOLT") ? (

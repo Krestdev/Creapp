@@ -1,4 +1,5 @@
 import {
+  DebitTransaction,
   PaymentRequest,
   PayType,
   RequestModelT,
@@ -26,6 +27,7 @@ interface Props {
   users: Array<User>;
   requests: Array<RequestModelT>;
   requestTypes: Array<RequestType>;
+  transactions: Array<DebitTransaction>;
 }
 
 const PaymentReceipt: React.FC<Props> = ({
@@ -36,6 +38,7 @@ const PaymentReceipt: React.FC<Props> = ({
   users,
   requests,
   requestTypes,
+  transactions,
 }) => {
   return (
     <div>
@@ -44,7 +47,7 @@ const PaymentReceipt: React.FC<Props> = ({
           {/* Header with burgundy background */}
           <DialogHeader>
             <DialogTitle>{`Reçu ${paymentRequest.title}`}</DialogTitle>
-            <DialogDescription className="text-sm text-white/80 mt-1">
+            <DialogDescription>
               {"Informations relatives aux bons de commande"}
             </DialogDescription>
           </DialogHeader>
@@ -58,6 +61,7 @@ const PaymentReceipt: React.FC<Props> = ({
                 users={users}
                 requests={requests}
                 requestTypes={requestTypes}
+                transactions={transactions}
               />
             </PDFViewer>
           </div>
@@ -72,6 +76,7 @@ const PaymentReceipt: React.FC<Props> = ({
                   users={users}
                   requests={requests}
                   requestTypes={requestTypes}
+                  transactions={transactions}
                 />
               }
               fileName={`recu-transport-${paymentRequest.reference}.pdf`}

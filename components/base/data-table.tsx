@@ -125,7 +125,7 @@ export function DataTable({
   projects,
   payments,
   requestTypes,
-  users
+  users,
 }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -239,11 +239,11 @@ export function DataTable({
         const modifier = original.requestOlds?.find((r) => r.id !== user?.id);
         const modified = !modifier
           ? false
-          : modifier.priority !==original.priority ||
+          : modifier.priority !== original.priority ||
             modifier.amount !== original.amount ||
-            modifier.dueDate !==original.dueDate ||
-            modifier.quantity !==original.quantity ||
-            modifier.unit !==original.unit;
+            modifier.dueDate !== original.dueDate ||
+            modifier.quantity !== original.quantity ||
+            modifier.unit !== original.unit;
         return (
           <div className="flex items-center gap-1.5 uppercase">
             {!!modified && (
@@ -271,7 +271,10 @@ export function DataTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const type = getRequestTypeBadge({type:value.type, requestTypes: requestTypes});
+        const type = getRequestTypeBadge({
+          type: value.type,
+          requestTypes: requestTypes,
+        });
         return <Badge variant={type.variant}>{type.label}</Badge>;
       },
     },
@@ -477,7 +480,7 @@ export function DataTable({
       if (statusLabel.includes(searchValue)) return true;
 
       // 6. Recherche dans le type
-      const typeBadge = getRequestTypeBadge({type:item.type, requestTypes});
+      const typeBadge = getRequestTypeBadge({ type: item.type, requestTypes });
       if (typeBadge.label.toLowerCase().includes(searchValue)) return true;
 
       // 7. Recherche dans la date (formatée)
@@ -629,13 +632,17 @@ export function DataTable({
             open={isUpdateModalOpen}
             setOpen={setIsUpdateModalOpen}
             requestData={selectedItem}
+            users={users}
+            projects={projects}
+            categories={categories}
           />
           <UpdateRequestFac
             open={isUpdateFacModalOpen}
             onOpenChange={setIsUpdateFacModalOpen}
             requestData={selectedItem}
-            users={users.filter(u=> !!u.verified && u.verified === true)}
+            users={users.filter((u) => !!u.verified && u.verified === true)}
             projects={projects}
+            payments={payments}
           />
           <UpdateRHRequest
             open={isUpdateRHModalOpen}

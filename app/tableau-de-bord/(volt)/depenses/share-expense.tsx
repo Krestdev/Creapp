@@ -99,6 +99,8 @@ function ShareExpense({
   const [openDoc, setOpenDoc] = useState(false);
   const [paiement, setPaiement] = useState<PaymentRequest | null>(null);
 
+  const debitTransactions = transactions.filter((t) => t.Type === "DEBIT");
+
   // Vérifier si le ticket a déjà un methodId
   const hasExistingMethodId = useMemo(() => {
     return !!ticket.methodId;
@@ -324,7 +326,9 @@ function ShareExpense({
     },
   });
 
-  const trans = transactions.find((item) => item.id === ticket.transactionId);
+  const transaction = transactions
+    .filter((t) => t.Type === "DEBIT")
+    .find((item) => item.id === ticket.transactionId);
 
   function onSubmit(values: FormValues) {
     // Validation manuelle pour docNumber
@@ -355,7 +359,7 @@ function ShareExpense({
     // Créer l'objet payload
     const payload: TransactionProps = {
       ...rest,
-      Type: trans?.Type!,
+      Type: transaction?.Type!,
       date: new Date(),
       amount: ticket.price,
       userId: user?.id ?? 0,
@@ -776,6 +780,7 @@ function ShareExpense({
           users={users}
           requests={requests}
           requestTypes={requestTypes}
+          transactions={debitTransactions}
         />
       )}
     </>

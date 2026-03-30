@@ -73,8 +73,11 @@ export function DetailTicket({
   const [page, setPage] = useState(1);
   const [file, setFile] = useState<string | File | undefined>(undefined);
 
-  const request = requests.find((req) => req.id === data?.requestId);
+  const request = requests.find((req) => req.id === data.requestId);
   const emitter = users.find((u) => u.id === request?.userId);
+
+  const beneficiary = users.find((u) => u.id === Number(request?.beneficiary));
+  console.log("beneficiary", beneficiary?.firstName);
 
   // Fonction pour obtenir la couleur du badge selon la priorité
   const getPrioriteColor = (priorite: string | undefined) => {
@@ -269,11 +272,10 @@ export function DetailTicket({
                                   <p
                                     key={ben.id}
                                     className="font-semibold capitalize"
-                                  >{`${
-                                    beneficiary?.firstName +
-                                      " " +
-                                      beneficiary?.lastName || ben.id
-                                  }`}</p>
+                                  >{`${beneficiary?.firstName +
+                                    " " +
+                                    beneficiary?.lastName || ben.id
+                                    }`}</p>
                                 );
                               })}
                             </div>
@@ -292,11 +294,9 @@ export function DetailTicket({
                   </span>
                   <div className="flex flex-col">
                     <p className="view-group-title">
-                      {request?.categoryId === 0
-                        ? "Recepteur pour compte"
-                        : "Bénéficiaires"}
+                      {"Bénéficiaires"}
                     </p>
-                    {request?.categoryId === 0 ? (
+                    {request?.beneficiary ? (
                       <p className="font-semibold capitalize">
                         {users.find(
                           (u) => u.id === Number(request?.beneficiary),
@@ -322,11 +322,10 @@ export function DetailTicket({
                                 <p
                                   key={ben.id}
                                   className="font-semibold capitalize"
-                                >{`${
-                                  beneficiary?.firstName +
-                                    " " +
-                                    beneficiary?.lastName || ben.id
-                                }`}</p>
+                                >{`${beneficiary?.firstName +
+                                  " " +
+                                  beneficiary?.lastName || ben.id
+                                  }`}</p>
                               );
                             })}
                           </div>
@@ -420,9 +419,8 @@ export function DetailTicket({
                   <p className="view-group-title">{"Justificatif"}</p>
                   {!!data.justification ? (
                     <Link
-                      href={`${
-                        process.env.NEXT_PUBLIC_API
-                      }/${data.justification}`}
+                      href={`${process.env.NEXT_PUBLIC_API
+                        }/${data.justification}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -501,7 +499,7 @@ export function DetailTicket({
                     <p className="font-semibold">
                       {translateMoyenPaiement(
                         types.find((p) => p.id === data.methodId)?.label ||
-                          "N/A",
+                        "N/A",
                       )}
                     </p>
                   </div>
@@ -601,7 +599,11 @@ export function DetailTicket({
                   </p>
                   <p className="font-semibold">
                     {data?.createdAt
-                      ? format(new Date(data.createdAt), "PPP", { locale: fr })
+                      ? format(
+                        new Date(data.createdAt),
+                        "dd MMMM yyyy à kk:mm",
+                        { locale: fr },
+                      )
                       : "N/A"}
                   </p>
                 </div>
@@ -616,7 +618,11 @@ export function DetailTicket({
                   <p className="view-group-title">{"Modifié le"}</p>
                   <p className="font-semibold">
                     {data?.updatedAt
-                      ? format(new Date(data.updatedAt), "PPP", { locale: fr })
+                      ? format(
+                        new Date(data.updatedAt),
+                        "dd MMMM yyyy à kk:mm",
+                        { locale: fr },
+                      )
                       : "N/A"}
                   </p>
                 </div>

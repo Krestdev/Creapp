@@ -15,6 +15,7 @@ import { TransferTransaction } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import SignTransfers from "./sign-transfers";
+import { userQ } from "@/queries/baseModule";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
@@ -33,6 +34,11 @@ function Page() {
   const getPayType = useQuery({
     queryKey: ["payType"],
     queryFn: payTypeQ.getAll,
+  });
+
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll,
   });
 
   const { user } = useStore();
@@ -93,12 +99,19 @@ function Page() {
     isLoading ||
     getBanks.isLoading ||
     getPayType.isLoading ||
-    signatair.isLoading
+    signatair.isLoading ||
+    getUsers.isLoading
   ) {
     return <LoadingPage />;
   }
 
-  if (isError || getBanks.isError || getPayType.isError || signatair.isError) {
+  if (
+    isError ||
+    getBanks.isError ||
+    getPayType.isError ||
+    signatair.isError ||
+    getUsers.isError
+  ) {
     return (
       <ErrorPage
         error={
@@ -106,6 +119,7 @@ function Page() {
           getBanks.error ||
           getPayType.error ||
           signatair.error ||
+          getUsers.error ||
           undefined
         }
       />
@@ -116,7 +130,8 @@ function Page() {
     isSuccess &&
     getBanks.isSuccess &&
     getPayType.isSuccess &&
-    signatair.isSuccess
+    signatair.isSuccess &&
+    getUsers.isSuccess
   ) {
     return (
       <div className="content">
@@ -135,6 +150,7 @@ function Page() {
           data={filteredData}
           banks={getBanks.data.data}
           paymentMethods={getPayType.data.data}
+          users={getUsers.data.data}
         />
       </div>
     );

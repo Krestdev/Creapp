@@ -65,7 +65,13 @@ import {
 } from "@/components/ui/table";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { Bank, DateFilter, PayType, TransferTransaction } from "@/types/types";
+import {
+  Bank,
+  DateFilter,
+  PayType,
+  TransferTransaction,
+  User,
+} from "@/types/types";
 import { format } from "date-fns";
 import ViewTransaction from "../../banques/transactions/view-transaction";
 import SignTransfer from "./signTransfer";
@@ -74,9 +80,10 @@ interface Props {
   data: Array<TransferTransaction>;
   banks: Array<Bank>;
   paymentMethods: Array<PayType>;
+  users: Array<User>;
 }
 
-function SignTransfers({ data, banks, paymentMethods }: Props) {
+function SignTransfers({ data, banks, paymentMethods, users }: Props) {
   const { user } = useStore();
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -142,23 +149,23 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
         const matchTab =
           selectedTab === 0
             ? transaction.isSigned === false &&
-            !transaction.signers.find((s) => s.userId === user?.id)
+              !transaction.signers.find((s) => s.userId === user?.id)
             : !!transaction.signers.find((u) => u.userId === user?.id);
         // Bank Filter - selon le type de transaction
         let matchBank =
           bankFilter === "all"
             ? true
             : transaction.from.id.toString() === bankFilter ||
-            transaction.to.id.toString() === bankFilter;
+              transaction.to.id.toString() === bankFilter;
         // Search Filter
         const matchSearch =
           search.trim() === ""
             ? true
             : transaction.id.toString().toLocaleLowerCase().includes(search) ||
-            transaction.label.toLocaleLowerCase().includes(search) ||
-            transaction.amount.toString().includes(search) ||
-            transaction.to.label.toLocaleLowerCase().includes(search) ||
-            transaction.from.label.toLocaleLowerCase().includes(search);
+              transaction.label.toLocaleLowerCase().includes(search) ||
+              transaction.amount.toString().includes(search) ||
+              transaction.to.label.toLocaleLowerCase().includes(search) ||
+              transaction.from.label.toLocaleLowerCase().includes(search);
 
         // Filter amount
         const matchAmount =
@@ -527,9 +534,9 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                            customDateRange.from,
-                            "dd/MM/yyyy",
-                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy",
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -647,9 +654,9 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -697,6 +704,7 @@ function SignTransfers({ data, banks, paymentMethods }: Props) {
             open={view}
             openChange={setView}
             transaction={selected}
+            users={users}
           />
           <SignTransfer
             open={toSign}

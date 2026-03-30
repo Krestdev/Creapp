@@ -67,7 +67,7 @@ function getStatusBadge(status: PaymentRequest["status"]): {
 
 function DetailPaiement({ payment, open, openChange, invoices }: Props) {
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
-  const invoice = invoices.find(i=> i.id === payment.invoiceId);
+  const invoice = invoices.find((i) => i.id === payment.invoiceId);
   const getPaymentType = useQuery({
     queryKey: ["paymentType"],
     queryFn: payTypeQ.getAll,
@@ -168,9 +168,7 @@ function DetailPaiement({ payment, open, openChange, invoices }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Justificatif"}</p>
             <Link
-              href={`${
-                process.env.NEXT_PUBLIC_API
-              }/${payment.proof as string}`}
+              href={`${process.env.NEXT_PUBLIC_API}/${payment.proof as string}`}
               target="_blank"
               className="flex gap-0.5 items-center"
             >
@@ -223,7 +221,7 @@ function DetailPaiement({ payment, open, openChange, invoices }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Créé le"}</p>
             <p className="font-semibold">
-              {format(new Date(payment.createdAt), "dd MMMM yyyy", {
+              {format(new Date(payment.createdAt), "dd MMMM yyyy à kk:mm", {
                 locale: fr,
               })}
             </p>
@@ -237,7 +235,7 @@ function DetailPaiement({ payment, open, openChange, invoices }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Modifié le"}</p>
             <p className="font-semibold">
-              {format(new Date(payment.updatedAt), "dd MMMM yyyy", {
+              {format(new Date(payment.updatedAt), "dd MMMM yyyy à kk:mm", {
                 locale: fr,
               })}
             </p>

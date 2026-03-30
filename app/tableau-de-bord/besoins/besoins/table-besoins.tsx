@@ -167,10 +167,10 @@ export function RequestsTable({
         const modified = !modifier
           ? false
           : modifier.priority !== original.priority ||
-            modifier.amount !== original.amount ||
-            modifier.dueDate !== original.dueDate ||
-            modifier.quantity !== original.quantity ||
-            modifier.unit !== original.unit;
+          modifier.amount !== original.amount ||
+          modifier.dueDate !== original.dueDate ||
+          modifier.quantity !== original.quantity ||
+          modifier.unit !== original.unit;
         return (
           <div className="flex items-center gap-1.5 uppercase">
             {!!modified && (
@@ -427,9 +427,9 @@ export function RequestsTable({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                       </TableHead>
                     );
                   })}
@@ -481,6 +481,7 @@ export function RequestsTable({
           categories={categories}
           request={selectedItem}
           projects={projects}
+          requestTypes={requestTypes}
         />
       )}
     </div>

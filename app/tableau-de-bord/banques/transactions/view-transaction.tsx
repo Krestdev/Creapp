@@ -10,37 +10,41 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getTransactionTypeBadge, XAF } from "@/lib/utils";
-import { Transaction, TRANSACTION_STATUS } from "@/types/types";
+import {
+  PaymentRequest,
+  Transaction,
+  TRANSACTION_STATUS,
+  User,
+} from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  ArrowDownToLineIcon,
   ArrowRightLeft,
   ArrowUpToLineIcon,
   Calendar,
   CircleHelpIcon,
   ClipboardListIcon,
-  ClipboardPenIcon,
   DollarSign,
   File,
   FileIcon,
   FilePenIcon,
   LucideHash,
   Tag,
+  UserRoundIcon,
   UsersIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import { PaymentRequest } from "@/types/types";
 
 interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   transaction: Transaction;
+  users: Array<User>;
 }
 
-function ViewTransaction({ open, openChange, transaction }: Props) {
+function ViewTransaction({ open, openChange, transaction, users }: Props) {
   const getSourceDetails = (source: Transaction["from"]) => {
     const details = [];
     // if ("accountNumber" in source && source.accountNumber) {
@@ -62,6 +66,8 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
     }
     return details;
   };
+
+  const createdBy = users.find((u) => u.id === transaction.userId);
 
   const getStatusBadge = (
     status: Transaction["status"],
@@ -393,9 +399,13 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
             <div className="flex flex-col">
               <p className="view-group-title">{"Date de la demande"}</p>
               <p className="font-semibold">
-                {format(new Date(transaction.createdAt), "dd MMMM yyyy, p", {
-                  locale: fr,
-                })}
+                {format(
+                  new Date(transaction.createdAt),
+                  "dd MMMM yyyy à kk:mm",
+                  {
+                    locale: fr,
+                  },
+                )}
               </p>
             </div>
           </div>
@@ -408,13 +418,45 @@ function ViewTransaction({ open, openChange, transaction }: Props) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Date de la transaction"}</p>
                 <p className="font-semibold">
-                  {format(new Date(transaction.date), "dd MMMM yyyy, p", {
+                  {format(new Date(transaction.date), "dd MMMM yyyy à kk:mm", {
                     locale: fr,
                   })}
                 </p>
               </div>
             </div>
           )}
+          {/** Date de mise à jour */}
+          <div className="view-group">
+            <span className="view-icon">
+              <Calendar />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Date de mise à jour"}</p>
+              <p className="font-semibold">
+                {format(
+                  new Date(transaction.updatedAt),
+                  "dd MMMM yyyy à kk:mm",
+                  {
+                    locale: fr,
+                  },
+                )}
+              </p>
+            </div>
+          </div>
+          {/** Créé par */}
+          <div className="view-group">
+            <span className="view-icon">
+              <UserRoundIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Créé par"}</p>
+              <p className="font-semibold">
+                {createdBy
+                  ? createdBy.firstName.concat(" ", createdBy.lastName)
+                  : "N/A"}
+              </p>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>

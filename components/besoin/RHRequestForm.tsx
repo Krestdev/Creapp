@@ -185,6 +185,10 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
     requestMutation.mutate(requestData);
   }
 
+  const dayStart = new Date();
+  dayStart.setDate(dayStart.getDate() - 1);
+  dayStart.setHours(0, 0, 0, 0);
+
   return (
     <Form {...form}>
       <form
@@ -341,7 +345,7 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date < new Date()}
+                      disabled={(date) => date <= dayStart}
                       locale={fr}
                     />
                   </PopoverContent>

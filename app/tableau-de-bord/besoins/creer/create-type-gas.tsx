@@ -98,7 +98,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
       amount: 100,
       liters: 1,
       benef: user?.id,
-      dueDate:defaultDate,
+      dueDate: defaultDate,
       priority: "low",
       vehiclesId: undefined,
       km: 1,
@@ -138,7 +138,11 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
       paytype: "cash",
     });
   };
-  console.log(form.formState.errors);
+  //console.log(form.formState.errors);
+
+  const dayStart = new Date();
+  dayStart.setDate(dayStart.getDate() - 1);
+  dayStart.setHours(0, 0, 0, 0);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
@@ -269,7 +273,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => date <= dayStart}
                   />
                 </PopoverContent>
               </Popover>

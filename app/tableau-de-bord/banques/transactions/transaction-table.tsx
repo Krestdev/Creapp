@@ -57,7 +57,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getTransactionTypeBadge, XAF } from "@/lib/utils";
+import { cn, getTransactionTypeBadge, subText, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   Bank,
@@ -65,18 +65,23 @@ import {
   Transaction,
   TRANSACTION_STATUS,
   TRANSACTION_TYPES,
+  User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewTransaction from "./view-transaction";
-import { StatisticCard, StatisticProps } from "@/components/base/TitleValueCard";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 
 interface Props {
   data: Array<Transaction>;
   canEdit: boolean;
   filterByType?: boolean;
   banks: Array<Bank>;
+  users: Array<User>;
 }
 
 function TransactionTable({
@@ -84,6 +89,7 @@ function TransactionTable({
   canEdit,
   banks,
   filterByType = false,
+  users,
 }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -98,12 +104,12 @@ function TransactionTable({
   const [selected, setSelected] = React.useState<Transaction>();
   const [view, setView] = React.useState<boolean>(false);
 
-  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [amountFilter, setAmountFilter] = React.useState<number>(0);
   const [bankFilter, setBankFilter] = React.useState<string>("all");
   const [amountTypeFilter, setAmountTypeFilter] = React.useState<
     "greater" | "inferior" | "equal" | "aucun"
   >("aucun");
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [customDateRange, setCustomDateRange] = React.useState<
     { from: Date; to: Date } | undefined
   >();
@@ -282,6 +288,7 @@ function TransactionTable({
             if (customDateRange?.from && customDateRange?.to) {
               startDate = customDateRange.from;
               endDate = customDateRange.to;
+              endDate.setHours(23);
             }
             break;
         }
@@ -291,8 +298,8 @@ function TransactionTable({
           (customDateRange?.from && customDateRange?.to)
         ) {
           matchDate =
-            new Date(transaction.createdAt) >= startDate &&
-            new Date(transaction.createdAt) <= endDate;
+            new Date(transaction.updatedAt) >= startDate &&
+            new Date(transaction.updatedAt) <= endDate;
         }
       }
 
@@ -321,33 +328,33 @@ function TransactionTable({
   const montantEntree = entreeTrans.reduce((sum, t) => sum + t.amount, 0);
   const sortieTrans = filteredData.filter((t) => t.Type === "DEBIT");
   const montantSotie = sortieTrans.reduce((sum, t) => sum + t.amount, 0);
-  const total = filteredData.filter(x => x.Type !== "TRANSFER");
+  const total = filteredData.filter((x) => x.Type !== "TRANSFER");
 
   const Statistics: Array<StatisticProps> = [
-      {
-        title: "Entrée",
-        value: entreeTrans.length,
-        variant: "secondary",
-        more: {
-          title: "Nombre de transaction",
-          value: XAF.format(montantEntree),
-        },
+    {
+      title: "Entrée",
+      value: entreeTrans.length,
+      variant: "secondary",
+      more: {
+        title: "Montant Total",
+        value: XAF.format(montantEntree),
       },
-      {
-        title: "Sortie",
-        value: sortieTrans.length,
-        variant: "default",
-        more: {
-          title: "Nombre de transaction",
-          value: XAF.format(montantSotie),
-        },
+    },
+    {
+      title: "Sortie",
+      value: sortieTrans.length,
+      variant: "default",
+      more: {
+        title: "Montant Total",
+        value: XAF.format(montantSotie),
       },
-      {
-        title: "Total",
-        value: total.length,
-        variant: "default",
-      },
-    ];
+    },
+    {
+      title: "Total",
+      value: total.length,
+      variant: "default",
+    },
+  ];
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -383,7 +390,11 @@ function TransactionTable({
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return <span className="font-medium">{value}</span>;
+        return (
+          <span className="font-medium">
+            {subText({ text: value, length: 21 })}
+          </span>
+        );
       },
     },
     {
@@ -472,20 +483,20 @@ function TransactionTable({
       },
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: "updatedAt",
       header: ({ column }) => {
         return (
           <span
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Date"}
+            {"Effectué le"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
-        const value = row.original.createdAt;
+        const value = row.original.updatedAt;
         return (
           <span>
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
@@ -510,6 +521,34 @@ function TransactionTable({
         const value = row.original;
         const { variant, label } = getBadge(value);
         return <Badge variant={variant}>{label}</Badge>;
+      },
+    },
+    {
+      accessorKey: "userId",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Crée par"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original.userId;
+        const user = users.find((u) => u.id === value);
+        return (
+          <span>
+            {user
+              ? subText({
+                  text: user.firstName.concat(" ", user.lastName),
+                  length: 21,
+                })
+              : "N/A"}
+          </span>
+        );
       },
     },
     {
@@ -1133,6 +1172,7 @@ function TransactionTable({
           transaction={selected}
           open={view}
           openChange={setView}
+          users={users}
         />
       )}
       {/* {selected && <EditTransaction transaction={selected} open={edit} openChange={setEdit} />} */}

@@ -113,7 +113,7 @@ export default function FilesUpload({
   value,
   onChange,
   name,
-  maxSizeMB = 2,
+  maxSizeMB = 15,
   maxFiles = 2,
   accept,
   multiple = true,
@@ -260,7 +260,12 @@ export default function FilesUpload({
             <p className="text-sm font-medium">
               {files.length} fichier{files.length > 1 ? "s" : ""}
             </p>
-            <Button disabled={disabled} onClick={clearFiles} variant="delete" size="sm">
+            <Button
+              disabled={disabled}
+              onClick={clearFiles}
+              variant="delete"
+              size="sm"
+            >
               {"Tout supprimer"}
             </Button>
           </div>

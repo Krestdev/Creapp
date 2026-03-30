@@ -27,7 +27,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
-import { Category, PaymentRequest, ProjectT, RequestModelT, User } from "@/types/types";
+import {
+  Category,
+  PaymentRequest,
+  ProjectT,
+  RequestModelT,
+  User,
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -41,7 +47,13 @@ import MultiSelectUsers from "../base/multiSelectUsers";
 import { SearchableSelect } from "../base/searchableSelect";
 import FilesUpload from "../comp-547";
 import { Calendar } from "../ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -53,7 +65,7 @@ const SingleFileSchema = z
       z.string(),
     ]),
   )
-  .max(1, "Pas plus d'un document")
+  .max(1, "Pas plus d'un document");
 
 const formSchema = z.object({
   projet: z.string().min(1, "Le projet est requis"),
@@ -109,10 +121,12 @@ export default function BesoinRHLastVal({
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
   const USERS =
-    users.filter((u) => u.verified).map((u) => ({
-      id: u.id!,
-      name: u.firstName + " " + u.lastName,
-    })) || [];
+    users
+      .filter((u) => u.verified)
+      .map((u) => ({
+        id: u.id!,
+        name: u.firstName + " " + u.lastName,
+      })) || [];
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -139,9 +153,7 @@ export default function BesoinRHLastVal({
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
 
-  const paiement = payments.find(
-    (x) => x.requestId === requestData?.id,
-  );
+  const paiement = payments.find((x) => x.requestId === requestData?.id);
 
   useEffect(() => {
     if (requestData && open && USERS.length > 0) {
@@ -230,12 +242,12 @@ export default function BesoinRHLastVal({
     }: {
       id: number;
       validator:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     }) => requestQ.validate(id, validator?.id!, validator),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
@@ -306,10 +318,11 @@ export default function BesoinRHLastVal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[760px] max-h-[90vh] p-0 gap-0 flex flex-col">
         {/* Header - FIXE EN HAUT */}
-        <DialogHeader variant={"secondary"} className="px-6 pt-6 pb-4 border-b shrink-0">
-          <DialogTitle>
-            {"Approbation"}
-          </DialogTitle>
+        <DialogHeader
+          variant={"secondary"}
+          className="px-6 pt-6 pb-4 border-b shrink-0"
+        >
+          <DialogTitle>{"Approbation"}</DialogTitle>
           <DialogDescription>
             {"Validez les informations du besoin en ressources humaines"}
           </DialogDescription>
@@ -325,9 +338,7 @@ export default function BesoinRHLastVal({
                 name="projet"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>
-                      {"Projet"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Projet"}</FormLabel>
                     <SearchableSelect
                       disabled
                       onChange={field.onChange}
@@ -360,9 +371,7 @@ export default function BesoinRHLastVal({
                 name="titre"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>
-                      {"Titre"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Titre"}</FormLabel>
                     <FormControl>
                       <Input
                         disabled
@@ -381,9 +390,7 @@ export default function BesoinRHLastVal({
                 name="periode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>
-                      {"Période"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Période"}</FormLabel>
                     <FormControl>
                       <Popover>
                         <PopoverTrigger asChild className="h-10 w-full">
@@ -435,9 +442,7 @@ export default function BesoinRHLastVal({
                 name="date_limite"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel isRequired>
-                      {"Date limite"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Date limite"}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild className="h-10 w-full">
                         <FormControl>
@@ -460,7 +465,7 @@ export default function BesoinRHLastVal({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => date <= new Date()}
                           locale={fr}
                         />
                       </PopoverContent>
@@ -476,11 +481,13 @@ export default function BesoinRHLastVal({
                 name="montant"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>
-                      {"Montant"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Montant"}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="Ex. 500 000" {...field} />
+                      <Input
+                        type="number"
+                        placeholder="Ex. 500 000"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -493,9 +500,7 @@ export default function BesoinRHLastVal({
                 name="priority"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>
-                      {"Priorité"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Priorité"}</FormLabel>
                     <Select
                       {...field}
                       onValueChange={(value) => {
@@ -525,9 +530,7 @@ export default function BesoinRHLastVal({
                 name="beneficiaire"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel isRequired>
-                      {"Bénéficiaire(s)"}
-                    </FormLabel>
+                    <FormLabel isRequired>{"Bénéficiaire(s)"}</FormLabel>
                     <FormControl>
                       <MultiSelectUsers
                         disabled
