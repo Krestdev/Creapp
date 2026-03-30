@@ -33,7 +33,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { requestQ } from "@/queries/requestModule";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CommandRequestT, RequestModelT } from "@/types/types";
+import { Category, CommandRequestT, RequestModelT } from "@/types/types";
 import { useStore } from "@/providers/datastore";
 import { toast } from "sonner";
 import { SuccessModal } from "@/components/modals/success-modal";
@@ -64,18 +64,21 @@ interface Request {
 interface UpdateCotationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  commandId: number;
-  commandData?: CommandRequestT;
+  quotationRequest: CommandRequestT;
   onSuccess?: () => void;
-  allCommands: CommandRequestT[] | undefined;
+  quotationRequests: CommandRequestT[];
+  requests: Array<RequestModelT>;
+  categories: Array<Category>;
 }
 
 export function UpdateCotationModal({
   open,
   onOpenChange,
-  commandId,
   onSuccess,
-  commandData,
+  quotationRequest,
+  quotationRequests,
+  requests,
+  categories,
 }: UpdateCotationModalProps) {
   const [selected, setSelected] = useState<Request[]>([]);
   const [dataSup, setDataSup] = useState<RequestModelT[] | undefined>();
@@ -96,7 +99,7 @@ export function UpdateCotationModal({
   // Mutation pour la mise à jour
   const updateCommand = useMutation({
     mutationFn: (data: Partial<CommandRequestT>) =>
-      commandRqstQ.update(commandId, data),
+      commandRqstQ.update(quotationRequest.id, data),
     onSuccess: () => {
       toast.success("Demande de cotation mise à jour avec succès");
       setSuccessOpen(true);
@@ -113,69 +116,28 @@ export function UpdateCotationModal({
     },
   });
 
-  const requestData = useQuery({
-    queryKey: ["requests"],
-    queryFn: () => requestQ.getAll(),
-    enabled: open,
-  });
-
-  // Calculer les besoins disponibles avec useMemo
-  const availableRequests = React.useMemo(() => {
-    if (!open) return [];
-    return (requestData.data?.data || [])
-      .filter((item) => item.state === "validated")
-      .map((item) => ({
-        id: item.id,
-        name: item.label,
-        dueDate: item.dueDate,
-      }));
-  }, [open, requestData.data?.data]);
-
   // Effet pour initialiser les données quand la modal s'ouvre
   React.useEffect(() => {
-    if (!open || !commandData || !availableRequests.length) return;
-
     // Calculer les données initiales
-    const selectedRequests =
-      commandData.besoins?.map((b) => ({
-        id: b.id,
-        name: b.label,
-        dueDate: b.dueDate,
-      })) || [];
-
-    const dataSupData = commandData.besoins || [];
+    const selectedRequests = quotationRequest.besoins.map((b) => ({
+      id: b.id,
+      name: b.label,
+      dueDate: b.dueDate,
+    }));
 
     // Mettre à jour les états
     setSelected(selectedRequests);
-    setDataSup(dataSupData);
+    setDataSup(quotationRequest.besoins);
 
     // Reset du formulaire
     form.reset({
-      name: commandData.name || "",
-      telephone: commandData.phone || "",
-      titre: commandData.title || "",
-      requests: selectedRequests.map((r) => r.id),
-      date_limite: commandData.dueDate
-        ? new Date(commandData.dueDate)
-        : new Date(),
+      name: quotationRequest.name,
+      telephone: quotationRequest.phone,
+      titre: quotationRequest.title,
+      requests: quotationRequest.besoins.map((b) => b.id),
+      date_limite: new Date(quotationRequest.dueDate),
     });
-  }, [open, commandData, availableRequests.length, form]);
-
-  // Effet pour nettoyer les états quand la modal se ferme
-  React.useEffect(() => {
-    if (!open) {
-      // Réinitialiser les états
-      setSelected([]);
-      setDataSup(undefined);
-      form.reset({
-        name: "",
-        telephone: "",
-        titre: "",
-        requests: [],
-        date_limite: new Date(),
-      });
-    }
-  }, [open, form]);
+  }, [open, quotationRequest, form]);
 
   // Fonction pour gérer la sélection des besoins
   const handleRequestsChange = (list: Request[]) => {
@@ -216,17 +178,15 @@ export function UpdateCotationModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[80vw]! w-full max-h-[90vh] p-0 overflow-hidden">
-          <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative shrink-0">
-            <DialogTitle className="text-xl font-semibold text-white">
-              {"Modifier la demande de cotation"}
-            </DialogTitle>
-            <DialogDescription className="text-sm text-white/80 mt-1">
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader variant={"secondary"}>
+            <DialogTitle>{"Modifier la demande de cotation"}</DialogTitle>
+            <DialogDescription>
               {"Modifiez les informations de la demande de cotation"}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-row flex-1 overflow-y-auto gap-4 p-6">
+          <div className="flex flex-row flex-1 gap-4 p-6">
             {/* Formulaire */}
             <div className="w-1/3">
               <Form {...form}>
@@ -381,7 +341,7 @@ export function UpdateCotationModal({
                   <p className="text-[18px] font-semibold">
                     {`Besoins sélectionnés (${selected.length})`}
                     <span className="text-sm font-normal text-muted-foreground ml-2">
-                      {`sur ${availableRequests.length} disponibles`}
+                      {`sur ${requests.length} disponibles`}
                     </span>
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -391,8 +351,8 @@ export function UpdateCotationModal({
                 <Besoins
                   selected={selected}
                   setSelected={setSelected}
-                  dataSup={dataSup}
-
+                  requests={requests}
+                  categories={categories}
                 />
               </div>
             </div>

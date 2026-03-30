@@ -6,6 +6,7 @@ import CreateCotation from "@/components/bdcommande/createCommande";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
+import { categoryQ } from "@/queries/categoryModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { requestQ } from "@/queries/requestModule";
 import { NavLink } from "@/types/types";
@@ -33,6 +34,13 @@ const Page = () => {
   const getCommandRequests = useQuery({
     queryKey: ["commands"],
     queryFn: commandRqstQ.getAll,
+  });
+
+  const getCategories = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => categoryQ.getCategories(),
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const commandRequests = useMemo(() => {
@@ -63,17 +71,34 @@ const Page = () => {
     },
   ];
   const [selectedTab, setSelectedTab] = useState(0);
-  if (getCommandRequests.isLoading || requestData.isLoading) {
+  if (
+    getCommandRequests.isLoading ||
+    requestData.isLoading ||
+    getCategories.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (getCommandRequests.isError || requestData.isError) {
+  if (
+    getCommandRequests.isError ||
+    requestData.isError ||
+    getCategories.isError
+  ) {
     return (
       <ErrorPage
-        error={getCommandRequests.error || requestData.error || undefined}
+        error={
+          getCommandRequests.error ||
+          requestData.error ||
+          getCategories.error ||
+          undefined
+        }
       />
     );
   }
-  if (getCommandRequests.isSuccess && requestData.isSuccess) {
+  if (
+    getCommandRequests.isSuccess &&
+    requestData.isSuccess &&
+    getCategories.isSuccess
+  ) {
     return (
       <div className="content">
         <PageTitle
@@ -87,7 +112,15 @@ const Page = () => {
           setSelectedTab={setSelectedTab}
           selectedTab={selectedTab}
         />
-        {selectedTab === 1 ? <CreateCotation /> : <Cotation />}
+        {selectedTab === 1 ? (
+          <CreateCotation
+            requests={requestData.data.data}
+            quotationRequests={getCommandRequests.data.data}
+            categories={getCategories.data.data}
+          />
+        ) : (
+          <Cotation />
+        )}
       </div>
     );
   }

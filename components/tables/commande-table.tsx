@@ -14,11 +14,8 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  CalendarDays,
-  CalendarIcon,
   CheckCircle,
   ChevronDown,
-  ChevronRight,
   Eye,
   Hourglass,
   LucideIcon,
@@ -50,10 +47,16 @@ import {
 import { cn } from "@/lib/utils";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { quotationQ } from "@/queries/quotation";
-import { CommandRequestT, DateFilter } from "@/types/types";
+import {
+  Category,
+  CommandRequestT,
+  DateFilter,
+  RequestModelT,
+} from "@/types/types";
+import { CollapsibleContent } from "@radix-ui/react-collapsible";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
-import { addDays, format } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
@@ -63,16 +66,8 @@ import { DetailOrder } from "../modals/detail-order";
 import { ModalWarning } from "../modals/modal-warning";
 import { badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+import { Collapsible, CollapsibleTrigger } from "../ui/collapsible";
 import { Label } from "../ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {
   Sheet,
   SheetContent,
@@ -81,21 +76,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
-import { Collapsible, CollapsibleTrigger } from "../ui/collapsible";
-import { CollapsibleContent } from "@radix-ui/react-collapsible";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 
 interface CommandeTableProps {
   data: CommandRequestT[];
+  categories: Array<Category>;
+  requests: Array<RequestModelT>;
 }
 
-export function CommandeTable({ data }: CommandeTableProps) {
+export function CommandeTable({
+  data,
+  categories,
+  requests,
+}: CommandeTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -747,16 +739,19 @@ export function CommandeTable({ data }: CommandeTableProps) {
       )}
       {/* Modale pour modifier le besoin */}
 
-      <UpdateCotationModal
-        open={isUpdateModalOpen}
-        onOpenChange={setIsUpdateModalOpen}
-        commandId={selectedCommand?.id || 0}
-        commandData={selectedCommand}
-        allCommands={data}
-        onSuccess={() => {
-          commandData.refetch();
-        }}
-      />
+      {selectedCommand && (
+        <UpdateCotationModal
+          open={isUpdateModalOpen}
+          onOpenChange={setIsUpdateModalOpen}
+          quotationRequest={selectedCommand}
+          quotationRequests={data}
+          onSuccess={() => {
+            commandData.refetch();
+          }}
+          requests={requests}
+          categories={categories}
+        />
+      )}
 
       <DetailOrder
         open={showOrder}
