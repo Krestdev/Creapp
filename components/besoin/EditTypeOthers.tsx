@@ -51,11 +51,11 @@ import {
   User,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -75,6 +75,7 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
 ];
 
 const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 const formSchema = z.object({
   label: z
@@ -88,17 +89,19 @@ const formSchema = z.object({
   }),
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
-  benef: z.coerce.number(),
+  benef: z.coerce.number().optional(),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
-      return !isNaN(d.getTime()) && d >= today;
+      return !isNaN(d.getTime());
     },
     { message: "Date invalide" },
   ),
   unit: z.string(),
   priority: z.enum(REQUEST_PRIORITIES),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 function EditTypeOthers({
   request,
@@ -110,9 +113,15 @@ function EditTypeOthers({
 }: Props) {
   const { user } = useStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [dueDate, setDueDate] = useState<boolean>(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  // Filtrer les catégories de type "others" une seule fois
+  const filteredCategories = useMemo(() => {
+    return categories.filter((c) => c.type?.type === "others");
+  }, [categories]);
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       label: "",
@@ -130,16 +139,18 @@ function EditTypeOthers({
 
   // Remplir le formulaire avec les données existantes
   useEffect(() => {
-    if (open) {
+    if (open && request) {
       form.reset({
-        label: request.label,
-        description: request.description,
-        amount: request.amount,
-        quantity: request.quantity,
-        unit: request.unit,
+        label: request.label || "",
+        description: request.description || "",
+        amount: request.amount || 100,
+        quantity: request.quantity || 1,
+        unit: request.unit || "",
         benef: request.benef?.[0] || undefined,
-        dueDate: format(new Date(request.dueDate), "yyyy-MM-dd"),
-        priority: request.priority,
+        dueDate: request.dueDate 
+          ? format(new Date(request.dueDate), "yyyy-MM-dd")
+          : format(new Date(), "yyyy-MM-dd"),
+        priority: request.priority || "low",
         categoryId: request.categoryId,
         projectId: request.projectId,
       });
@@ -147,57 +158,79 @@ function EditTypeOthers({
   }, [request, form, open]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (payload: any) => requestQ.update(request.id, payload),
+    mutationFn: async (payload: any) => {
+      return requestQ.update(request.id, payload);
+    },
     onSuccess: () => {
       toast.success("Votre besoin a été modifié avec succès !");
+      // Invalider les requêtes pour rafraîchir les données
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
       onOpenChange(false);
       router.refresh();
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error(error.message || "Une erreur est survenue lors de la modification");
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    mutate({
+  const onSubmit = useCallback((values: FormValues) => {
+    // Validation supplémentaire
+    if (!values.categoryId) {
+      toast.error("Veuillez sélectionner une catégorie");
+      return;
+    }
+    if (!values.projectId) {
+      toast.error("Veuillez sélectionner un projet");
+      return;
+    }
+
+    const payload = {
       label: values.label,
       description: values.description,
       amount: values.amount,
       quantity: values.quantity,
       unit: values.unit,
-      benef: [values.benef],
+      benef: values.benef ? [values.benef] : [],
       dueDate: new Date(values.dueDate),
       priority: values.priority,
       categoryId: values.categoryId,
       projectId: values.projectId,
-    });
-  };
+    };
+
+    mutate(payload);
+  }, [mutate]);
+
+  // Gérer la fermeture du modal
+  const handleOpenChange = useCallback((newOpen: boolean) => {
+    if (!newOpen) {
+      // Réinitialiser le formulaire lors de la fermeture
+      form.reset();
+    }
+    onOpenChange(newOpen);
+  }, [form, onOpenChange]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
-      <DialogContent
-        className="sm:max-w-3xl"
-        onInteractOutside={(e) => e.preventDefault()}
-        style={{ zIndex: 50 }}
-      >
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader variant={"secondary"}>
           <DialogTitle>
-            {request.label
+            {request?.label
               ? `Modifier - ${request.label}`
               : "Modifier le besoin"}
           </DialogTitle>
           <DialogDescription>
-            {"Modifiez les informations du besoin en achat direct"}
+            Modifiez les informations du besoin en achat direct
           </DialogDescription>
         </DialogHeader>
+        
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2">
             <FormField
               control={form.control}
               name="label"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Titre"}</FormLabel>
+                <FormItem className="@min-[640px]:col-span-2">
+                  <FormLabel isRequired>Titre</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex. Thé" {...field} />
                   </FormControl>
@@ -212,34 +245,29 @@ function EditTypeOthers({
               name="categoryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Categorie"}</FormLabel>
+                  <FormLabel isRequired>Catégorie</FormLabel>
                   <FormControl>
                     <Select
-                      defaultValue={
-                        field.value ? String(field.value) : undefined
-                      }
-                      onValueChange={field.onChange}
+                      value={field.value ? String(field.value) : undefined}
+                      onValueChange={(v) => field.onChange(parseInt(v))}
                     >
-                      <SelectTrigger className="min-w-60 w-full">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
-                      <SelectContent className="z-[9999]">
-                        {categories.filter((c) => c.type.type === "others")
-                          .length === 0 ? (
-                          <SelectItem value="#" disabled>
-                            {"Aucune catégorie enregistrée"}
+                      <SelectContent>
+                        {filteredCategories.length === 0 ? (
+                          <SelectItem value="none" disabled>
+                            Aucune catégorie enregistrée
                           </SelectItem>
                         ) : (
-                          categories
-                            .filter((c) => c.type.type === "others")
-                            .map((category) => (
-                              <SelectItem
-                                key={category.id}
-                                value={category.id.toString()}
-                              >
-                                {category.label}
-                              </SelectItem>
-                            ))
+                          filteredCategories.map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.label}
+                            </SelectItem>
+                          ))
                         )}
                       </SelectContent>
                     </Select>
@@ -253,10 +281,14 @@ function EditTypeOthers({
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="@min-[640px]:col-span-full">
-                  <FormLabel isRequired>{"Description"}</FormLabel>
+                <FormItem className="@min-[640px]:col-span-2">
+                  <FormLabel isRequired>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Décrivez votre besoin" {...field} />
+                    <Textarea 
+                      placeholder="Décrivez votre besoin" 
+                      {...field} 
+                      rows={3}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -269,7 +301,7 @@ function EditTypeOthers({
               name="projectId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Projet"}</FormLabel>
+                  <FormLabel isRequired>Projet</FormLabel>
                   <FormControl>
                     <Combobox
                       items={projects}
@@ -277,9 +309,9 @@ function EditTypeOthers({
                       onValueChange={(v) => field.onChange(v?.id ?? "")}
                     >
                       <ComboboxInput placeholder="Sélectionner" />
-                      <ComboboxContent className="z-[9999]">
+                      <ComboboxContent>
                         <ComboboxEmpty>
-                          {"Aucun projet enregistré"}
+                          Aucun projet enregistré
                         </ComboboxEmpty>
                         <ComboboxList>
                           {(item: ProjectT) => (
@@ -307,7 +339,7 @@ function EditTypeOthers({
 
                 return (
                   <FormItem>
-                    <FormLabel isRequired>{"Date limite"}</FormLabel>
+                    <FormLabel isRequired>Date limite</FormLabel>
                     <FormControl>
                       <div className="relative flex gap-2">
                         <Input
@@ -335,12 +367,12 @@ function EditTypeOthers({
                             >
                               <CalendarIcon className="size-3.5" />
                               <span className="sr-only">
-                                {"Sélectionner une date"}
+                                Sélectionner une date
                               </span>
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent
-                            className="w-auto overflow-hidden p-0 z-[9999]"
+                            className="w-auto overflow-hidden p-0"
                             align="end"
                             alignOffset={-8}
                             sideOffset={10}
@@ -356,7 +388,7 @@ function EditTypeOthers({
                                 field.onChange(value);
                                 setDueDate(false);
                               }}
-                              disabled={(date) => date <= new Date()}
+                              disabled={(date) => date < today}
                             />
                           </PopoverContent>
                         </Popover>
@@ -373,18 +405,18 @@ function EditTypeOthers({
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Montant"}</FormLabel>
+                  <FormLabel isRequired>Montant</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type="number"
-                        placeholder="Ex. 15 000 FCFA"
+                        placeholder="Ex. 15 000"
                         {...field}
                         className="pr-12"
                       />
-                      <p className="absolute right-2 top-1/2 -translate-y-1/2">
-                        {"FCFA"}
-                      </p>
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                        FCFA
+                      </span>
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -397,13 +429,12 @@ function EditTypeOthers({
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Quantité"}</FormLabel>
+                  <FormLabel isRequired>Quantité</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       placeholder="Ex. 3"
                       {...field}
-                      className="pr-12"
                     />
                   </FormControl>
                   <FormMessage />
@@ -417,13 +448,13 @@ function EditTypeOthers({
               name="unit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Unité"}</FormLabel>
+                  <FormLabel isRequired>Unité</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
-                      <SelectContent className="z-[9999]">
+                      <SelectContent>
                         {units.map((unit) => (
                           <SelectItem key={unit.value} value={unit.value}>
                             {unit.name}
@@ -443,18 +474,16 @@ function EditTypeOthers({
               name="priority"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Priorité"}</FormLabel>
+                  <FormLabel isRequired>Priorité</FormLabel>
                   <FormControl>
                     <Select
-                      defaultValue={
-                        field.value ? String(field.value) : undefined
-                      }
+                      value={field.value}
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="min-w-60 w-full">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
-                      <SelectContent className="z-[9999]">
+                      <SelectContent>
                         {PRIORITIES.map((priority) => (
                           <SelectItem
                             key={priority.value}
@@ -476,7 +505,7 @@ function EditTypeOthers({
               name="benef"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
+                  <FormLabel isRequired>Bénéficiaire</FormLabel>
                   <FormControl>
                     <Combobox
                       items={users}
@@ -489,9 +518,9 @@ function EditTypeOthers({
                       }
                     >
                       <ComboboxInput placeholder="Sélectionner" />
-                      <ComboboxContent className="z-[9999]">
+                      <ComboboxContent>
                         <ComboboxEmpty>
-                          {"Aucun utilisateur enregistré"}
+                          Aucun utilisateur enregistré
                         </ComboboxEmpty>
                         <ComboboxList>
                           {(item: User) => (
@@ -509,10 +538,10 @@ function EditTypeOthers({
             />
 
             {/* Boutons */}
-            <DialogFooter className="w-full col-span-full">
+            <DialogFooter className="w-full col-span-full mt-4">
               <DialogClose asChild>
                 <Button type="button" variant="outline" disabled={isPending}>
-                  {"Annuler"}
+                  Annuler
                 </Button>
               </DialogClose>
               <Button
@@ -521,21 +550,12 @@ function EditTypeOthers({
                 isLoading={isPending}
                 variant={"secondary"}
               >
-                {"Enregistrer les modifications"}
+                Enregistrer les modifications
               </Button>
             </DialogFooter>
           </form>
         </Form>
       </DialogContent>
-
-      {/* Overlay personnalisé */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/50"
-          style={{ zIndex: 40 }}
-          onClick={() => onOpenChange(false)}
-        />
-      )}
     </Dialog>
   );
 }

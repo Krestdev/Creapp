@@ -1,10 +1,17 @@
 "use client";
-
-import MultiSelectUsers from "@/components/base/multiSelectUsers";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -33,507 +40,517 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-
+import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
-
-import { units } from "@/data/unit";
-import { Category, ProjectT, RequestModelT, User } from "@/types/types";
+import {
+  Category,
+  PRIORITIES,
+  ProjectT,
+  RequestModelT,
+  User,
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { ChevronDownIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { CalendarIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import z from "zod";
 
-// ----------------------------------------------------------------------
-// VALIDATION
-// ----------------------------------------------------------------------
-const formSchema = z.object({
-  projet: z.string(),
-  categorie: z.string(),
-  titre: z.string().min(1),
-  description: z.string(),
-  quantity: z.string().refine((val) => !isNaN(Number(val)), {
-    message: "Le montant doit être un nombre valide",
-  }),
-  unite: z.string().optional(),
-  datelimite: z.date().optional(),
-  beneficiaire: z.string().optional(),
-  utilisateurs: z.array(z.number()).optional(), // IDs des users
-});
-
-interface UpdateRequestProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  requestData: RequestModelT;
-  projects: Array<ProjectT>;
+interface Props {
+  request: RequestModelT;
   users: Array<User>;
   categories: Array<Category>;
+  projects: Array<ProjectT>;
+  open: boolean;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function UpdateRequest({
-  open,
-  setOpen,
-  requestData,
+const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
+  (typeof PRIORITIES)[number]["value"],
+  ...(typeof PRIORITIES)[number]["value"][],
+];
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const formSchema = z.object({
+  label: z
+    .string({ message: "Veuillez renseigner un titre" })
+    .min(5, { message: "Trop court" })
+    .max(50, { message: "Trop long" }),
+  projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
+  description: z.string({ message: "Veuillez renseigner une description" }),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
+  amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
+  quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
+  benef: z.coerce.number().optional(),
+  dueDate: z.string({ message: "Veuillez définir une date" }).refine(
+    (val) => {
+      const d = new Date(val);
+      return !isNaN(d.getTime());
+    },
+    { message: "Date invalide" },
+  ),
+  unit: z.string(),
+  priority: z.enum(REQUEST_PRIORITIES),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+function EditTypeOthers({
+  request,
   users,
-  projects,
   categories,
-}: UpdateRequestProps) {
+  projects,
+  open,
+  onOpenChange,
+}: Props) {
   const { user } = useStore();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [dueDate, setDueDate] = useState<boolean>(false);
 
-  const [openCalendar, setOpenCalendar] = useState(false);
+  // Filtrer les catégories de type "others" une seule fois
+  const filteredCategories = useMemo(() => {
+    return categories.filter((c) => c.type?.type === "others");
+  }, [categories]);
 
-  const [selectedUsers, setSelectedUsers] = useState<
-    { id: number; name: string }[]
-  >([]);
-
-  const USERS =
-    users
-      .filter((u) => u.verified)
-      .map((u) => ({
-        id: u.id!,
-        name: u.firstName + " " + u.lastName,
-      })) || [];
-
-  // ----------------------------------------------------------------------
-  // FORM INITIALISATION
-  // ----------------------------------------------------------------------
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      projet: "",
-      categorie: "",
-      titre: "",
+      label: "",
       description: "",
-      quantity: "",
-      unite: "",
-      datelimite: new Date(),
-      beneficiaire: "",
-      utilisateurs: [],
+      amount: 100,
+      quantity: 1,
+      benef: undefined,
+      priority: "low",
+      unit: "",
+      categoryId: undefined,
+      projectId: undefined,
+      dueDate: "",
     },
   });
 
-  const beneficiaire = form.watch("beneficiaire");
-
-  // si on repasse à "me", on vide les utilisateurs
+  // Remplir le formulaire avec les données existantes
   useEffect(() => {
-    if (beneficiaire !== "groupe") {
-      setSelectedUsers([]);
-      form.setValue("utilisateurs", []);
+    if (open && request) {
+      form.reset({
+        label: request.label || "",
+        description: request.description || "",
+        amount: request.amount || 100,
+        quantity: request.quantity || 1,
+        unit: request.unit || "",
+        benef: request.benef?.[0] || undefined,
+        dueDate: request.dueDate 
+          ? format(new Date(request.dueDate), "yyyy-MM-dd")
+          : format(new Date(), "yyyy-MM-dd"),
+        priority: request.priority || "low",
+        categoryId: request.categoryId,
+        projectId: request.projectId,
+      });
     }
-  }, [beneficiaire]);
+  }, [request, form, open]);
 
-  // ----------------------------------------------------------------------
-  // INITIALISATION DES DONNEES DU BESOIN
-  // ----------------------------------------------------------------------
-  useEffect(() => {
-    if (open) {
-      // Attendre que les catégories soient chargées
-      const initializeForm = async () => {
-        // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
-        const usersSelection: { id: number; name: string }[] = [];
-        if (requestData.beneficiary === "groupe" && requestData.benef) {
-          const benefIds = Array.isArray(requestData.benef)
-            ? requestData.benef
-            : [];
-          benefIds.forEach((id: number) => {
-            const user = USERS.find((u) => u.id === id);
-            if (user) usersSelection.push(user);
-          });
-          setSelectedUsers(usersSelection);
-        }
-
-        // Réinitialiser le formulaire avec les valeurs
-        form.reset({
-          projet: requestData.projectId?.toString(),
-          categorie: requestData.categoryId?.toString() || "",
-          titre: requestData.label || "",
-          description: requestData.description || "",
-          quantity: requestData.quantity?.toString() || "",
-          unite: requestData.unit || "",
-          datelimite: requestData.dueDate
-            ? new Date(requestData.dueDate)
-            : new Date(),
-          beneficiaire: requestData.beneficiary || "me",
-          utilisateurs: usersSelection.map((u) => u.id),
-        });
-      };
-
-      initializeForm();
-    }
-  }, [requestData, open, form, USERS]);
-
-  // Ajouter un état pour suivre le chargement des données
-  const [isFormInitialized, setIsFormInitialized] = useState(false);
-
-  // Et modifier l'useEffect comme ceci :
-  // Et modifier l'useEffect comme ceci :
-  useEffect(() => {
-    if (open && USERS.length > 0) {
-      const initializeForm = async () => {
-        // Préparer les utilisateurs sélectionnés si bénéficiaire = groupe
-        const usersSelection: { id: number; name: string }[] = [];
-        if (
-          requestData.beneficiary === "groupe" &&
-          requestData.beficiaryList?.flatMap((b) => b.id)
-        ) {
-          const benefIds = Array.isArray(
-            requestData.beficiaryList?.flatMap((b) => b.id),
-          )
-            ? requestData.beficiaryList?.flatMap((b) => b.id)
-            : [];
-          benefIds.forEach((id: number) => {
-            const user = USERS.find((u) => u.id === id);
-            if (user) usersSelection.push(user);
-          });
-          setSelectedUsers(usersSelection);
-        }
-
-        // Réinitialiser le formulaire avec les valeurs
-        form.reset({
-          projet: requestData.projectId?.toString() || "",
-          categorie: requestData.categoryId?.toString() || "",
-          titre: requestData.label || "",
-          description: requestData.description || "",
-          quantity: requestData.quantity?.toString() || "",
-          unite: requestData.unit || "",
-          datelimite: requestData.dueDate
-            ? new Date(requestData.dueDate)
-            : new Date(),
-          beneficiaire: requestData.beneficiary || "me",
-          utilisateurs: usersSelection.map((u) => u.id),
-        });
-        setIsFormInitialized(true);
-      };
-
-      initializeForm();
-    } else {
-      setIsFormInitialized(false);
-    }
-  }, [requestData, open, USERS.length, form]);
-
-  // ----------------------------------------------------------------------
-  // REQUEST MUTATION
-  // ----------------------------------------------------------------------
-
-  const requestMutation = useMutation({
-    mutationFn: async (data: Partial<RequestModelT>) => {
-      if (!requestData.id) throw new Error("ID du besoin manquant");
-      return requestQ.update(Number(requestData.id), data);
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (payload: any) => {
+      return requestQ.update(request.id, payload);
     },
-
     onSuccess: () => {
-      toast.success("Besoin modifié avec succès !");
-      setOpen(false);
+      toast.success("Votre besoin a été modifié avec succès !");
+      // Invalider les requêtes pour rafraîchir les données
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      onOpenChange(false);
+      router.refresh();
     },
-
-    onError: () =>
-      toast.error("Une erreur est survenue lors de la modification."),
+    onError: (error: Error) => {
+      toast.error(error.message || "Une erreur est survenue lors de la modification");
+    },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!requestData?.id) {
-      toast.error("ID du besoin manquant");
+  const onSubmit = useCallback((values: FormValues) => {
+    // Validation supplémentaire
+    if (!values.categoryId) {
+      toast.error("Veuillez sélectionner une catégorie");
+      return;
+    }
+    if (!values.projectId) {
+      toast.error("Veuillez sélectionner un projet");
       return;
     }
 
-    requestMutation.mutate({
-      label: values.titre,
+    const payload = {
+      label: values.label,
       description: values.description,
-      categoryId: Number(values.categorie),
-      quantity: Number(values.quantity),
-      unit: values.unite!,
-      beneficiary: values.beneficiaire!,
-      benef: values.beneficiaire === "groupe" ? values.utilisateurs : [],
-      userId: Number(user?.id),
-      dueDate: values.datelimite!,
-      projectId: Number(values.projet),
-      state: requestData?.state || "pending",
-      priority: requestData?.priority || "medium",
-    });
-  }
+      amount: values.amount,
+      quantity: values.quantity,
+      unit: values.unit,
+      benef: values.benef ? [values.benef] : [],
+      dueDate: new Date(values.dueDate),
+      priority: values.priority,
+      categoryId: values.categoryId,
+      projectId: values.projectId,
+    };
 
-  // ----------------------------------------------------------------------
-  // RENDER
-  // ----------------------------------------------------------------------
+    mutate(payload);
+  }, [mutate]);
+
+  // Gérer la fermeture du modal
+  const handleOpenChange = useCallback((newOpen: boolean) => {
+    if (!newOpen) {
+      // Réinitialiser le formulaire lors de la fermeture
+      form.reset();
+    }
+    onOpenChange(newOpen);
+  }, [form, onOpenChange]);
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-3xl">
-        {/* Header avec fond bordeaux - FIXE */}
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader variant={"secondary"}>
-          <DialogTitle>{"Besoin - " + requestData?.label}</DialogTitle>
+          <DialogTitle>
+            {request?.label
+              ? `Modifier - ${request.label}`
+              : "Modifier le besoin"}
+          </DialogTitle>
           <DialogDescription>
-            {"Modifiez les informations du besoin existant"}
+            Modifiez les informations du besoin en achat direct
           </DialogDescription>
         </DialogHeader>
-
+        
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex-1 flex flex-col"
-          >
-            {/* Contenu du formulaire - SCROLLABLE */}
-            <div className="flex-1 overflow-y-auto px-12 pb-12">
-              <div className="space-y-8 max-w-3xl mx-auto">
-                <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
-                  {/* PROJET */}
-                  <FormField
-                    control={form.control}
-                    name="projet"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Projet concerné</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                              <SelectValue placeholder="Sélectionner un projet" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {projects.map((p) => (
-                              <SelectItem key={p.id} value={p.id!.toString()}>
-                                {p.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="label"
+              render={({ field }) => (
+                <FormItem className="@min-[640px]:col-span-2">
+                  <FormLabel isRequired>Titre</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex. Thé" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                  {/* CATEGORIE */}
-                  <FormField
-                    control={form.control}
-                    name="categorie"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Catégorie</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                              <SelectValue placeholder="Sélectionner une catégorie" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categories.map((c) => (
-                              <SelectItem key={c.id} value={c.id!.toString()}>
-                                {c.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* TITRE */}
-                  <FormField
-                    control={form.control}
-                    name="titre"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Titre"}</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Titre du besoin" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* DESCRIPTION */}
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Description"}</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            className="resize-none"
-                            placeholder="Décrivez le besoin en détail..."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* DATE LIMITE */}
-                  <FormField
-                    control={form.control}
-                    name="datelimite"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Date limite"}</FormLabel>
-                        <FormControl>
-                          <Popover
-                            open={openCalendar}
-                            onOpenChange={setOpenCalendar}
-                          >
-                            <PopoverTrigger
-                              asChild
-                              className="h-10! w-full! rounded! shadow-none!"
+            {/* Category */}
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>Catégorie</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value ? String(field.value) : undefined}
+                      onValueChange={(v) => field.onChange(parseInt(v))}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredCategories.length === 0 ? (
+                          <SelectItem value="none" disabled>
+                            Aucune catégorie enregistrée
+                          </SelectItem>
+                        ) : (
+                          filteredCategories.map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
                             >
-                              <Button
-                                variant="outline"
-                                className="w-full justify-between"
-                              >
-                                {field.value
-                                  ? format(field.value, "PPP", { locale: fr })
-                                  : "Sélectionner une date"}
-                                <ChevronDownIcon />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent align="start" className="p-0">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={(d) => {
-                                  field.onChange(d);
-                                  setOpenCalendar(false);
-                                }}
-                                locale={fr}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                              {category.label}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                  {/* QUANTITE */}
-                  <FormField
-                    control={form.control}
-                    name="quantity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Quantité"}</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="ex. 10"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* UNITE */}
-                  <FormField
-                    control={form.control}
-                    name="unite"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Unité"}</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                              <SelectValue placeholder="Sélectionner l'unité" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {units.map((u) => (
-                              <SelectItem key={u.value} value={u.value}>
-                                {u.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* BENEFICIAIRE */}
-                  <FormField
-                    control={form.control}
-                    name="beneficiaire"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Bénéficiaire"}</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
-                              <SelectValue placeholder="Sélectionner" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="me">{"Moi-même"}</SelectItem>
-                            <SelectItem value="groupe">{"Groupe"}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* MULTISELECT CONDITIONNEL */}
-                  {beneficiaire === "groupe" && (
-                    <FormField
-                      control={form.control}
-                      name="utilisateurs"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Utilisateurs"}</FormLabel>
-
-                          <MultiSelectUsers
-                            display="user"
-                            users={USERS}
-                            selected={selectedUsers}
-                            onChange={(list) => {
-                              setSelectedUsers(list);
-                              field.onChange(list.map((u) => u.id));
-                            }}
-                          />
-
-                          <FormMessage />
-                        </FormItem>
-                      )}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="@min-[640px]:col-span-2">
+                  <FormLabel isRequired>Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Décrivez votre besoin" 
+                      {...field} 
+                      rows={3}
                     />
-                  )}
-                </div>
-              </div>
-            </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            {/* Boutons - FIXE */}
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={requestMutation.isPending}
-              >
-                {"Annuler"}
-              </Button>
+            {/* Project */}
+            <FormField
+              control={form.control}
+              name="projectId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>Projet</FormLabel>
+                  <FormControl>
+                    <Combobox
+                      items={projects}
+                      value={projects.find((p) => p.id === field.value) ?? null}
+                      onValueChange={(v) => field.onChange(v?.id ?? "")}
+                    >
+                      <ComboboxInput placeholder="Sélectionner" />
+                      <ComboboxContent>
+                        <ComboboxEmpty>
+                          Aucun projet enregistré
+                        </ComboboxEmpty>
+                        <ComboboxList>
+                          {(item: ProjectT) => (
+                            <ComboboxItem key={item.id} value={item}>
+                              {item.label}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Date limite de soumission */}
+            <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => {
+                const selectedDate = field.value
+                  ? new Date(field.value)
+                  : undefined;
+
+                return (
+                  <FormItem>
+                    <FormLabel isRequired>Date limite</FormLabel>
+                    <FormControl>
+                      <div className="relative flex gap-2">
+                        <Input
+                          id={field.name}
+                          value={field.value || ""}
+                          placeholder="Sélectionner une date"
+                          className="bg-background pr-10"
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowDown") {
+                              e.preventDefault();
+                              setDueDate(true);
+                            }
+                          }}
+                        />
+                        <Popover open={dueDate} onOpenChange={setDueDate}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              id="date-picker"
+                              type="button"
+                              variant="ghost"
+                              className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                            >
+                              <CalendarIcon className="size-3.5" />
+                              <span className="sr-only">
+                                Sélectionner une date
+                              </span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-auto overflow-hidden p-0"
+                            align="end"
+                            alignOffset={-8}
+                            sideOffset={10}
+                          >
+                            <Calendar
+                              mode="single"
+                              selected={selectedDate}
+                              defaultMonth={selectedDate || today}
+                              captionLayout="dropdown"
+                              onSelect={(date) => {
+                                if (!date) return;
+                                const value = format(date, "yyyy-MM-dd");
+                                field.onChange(value);
+                                setDueDate(false);
+                              }}
+                              disabled={(date) => date < today}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
+
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>Montant</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="Ex. 15 000"
+                        {...field}
+                        className="pr-12"
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                        FCFA
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>Quantité</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Ex. 3"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Unité */}
+            <FormField
+              control={form.control}
+              name="unit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>Unité</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {units.map((unit) => (
+                          <SelectItem key={unit.value} value={unit.value}>
+                            {unit.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Priorité */}
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>Priorité</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PRIORITIES.map((priority) => (
+                          <SelectItem
+                            key={priority.value}
+                            value={priority.value}
+                          >
+                            {priority.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="benef"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>Bénéficiaire</FormLabel>
+                  <FormControl>
+                    <Combobox
+                      items={users}
+                      value={
+                        users.find((user) => user.id === field.value) ?? null
+                      }
+                      onValueChange={(v) => field.onChange(v?.id ?? "")}
+                      itemToStringLabel={(v) =>
+                        v.firstName.concat(" ", v.lastName)
+                      }
+                    >
+                      <ComboboxInput placeholder="Sélectionner" />
+                      <ComboboxContent>
+                        <ComboboxEmpty>
+                          Aucun utilisateur enregistré
+                        </ComboboxEmpty>
+                        <ComboboxList>
+                          {(item: User) => (
+                            <ComboboxItem key={item.id} value={item}>
+                              {item.firstName.concat(" ", item.lastName)}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Boutons */}
+            <DialogFooter className="w-full col-span-full mt-4">
+              <DialogClose asChild>
+                <Button type="button" variant="outline" disabled={isPending}>
+                  Annuler
+                </Button>
+              </DialogClose>
               <Button
                 type="submit"
-                disabled={requestMutation.isPending}
-                isLoading={requestMutation.isPending}
+                disabled={isPending}
+                isLoading={isPending}
+                variant={"secondary"}
               >
-                {"Modifier le besoin"}
+                Enregistrer les modifications
               </Button>
             </DialogFooter>
           </form>
@@ -542,3 +559,5 @@ export default function UpdateRequest({
     </Dialog>
   );
 }
+
+export default EditTypeOthers;
