@@ -84,6 +84,7 @@ import {
   Signatair,
   Transaction,
   User,
+  Vehicle,
 } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { VariantProps } from "class-variance-authority";
@@ -167,6 +168,7 @@ interface Props {
   projects: Array<ProjectT>;
   transactions: Array<Transaction>;
   signataires: Array<Signatair>;
+  vehicles: Array<Vehicle>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -253,6 +255,7 @@ function ExpensesTable({
   projects,
   transactions,
   signataires,
+  vehicles,
 }: Props) {
   const types = requestTypes
     .map((x) => {
@@ -1816,6 +1819,8 @@ function ExpensesTable({
             onOpenChange={setShowPay}
             banks={banks}
             transactions={transactions}
+            requests={request}
+            vehicles={vehicles}
           />
           <CompleteGas
             ticket={selected}

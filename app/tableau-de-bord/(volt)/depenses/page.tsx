@@ -23,6 +23,7 @@ import { projectQ } from "@/queries/projectModule";
 import { transactionQ } from "@/queries/transaction";
 import { signatairQ } from "@/queries/signatair";
 import { useMemo } from "react";
+import { vehicleQ } from "@/queries/vehicule";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -90,6 +91,11 @@ function Page() {
     queryFn: signatairQ.getAll,
   });
 
+  const getVehicles = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: vehicleQ.getAll,
+  });
+
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.data.filter((x) => x.type !== "appro");
@@ -106,7 +112,8 @@ function Page() {
     getProjects.isLoading ||
     getUsers.isLoading ||
     getTransactions.isLoading ||
-    getSignataires.isLoading
+    getSignataires.isLoading ||
+    getVehicles.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -121,7 +128,8 @@ function Page() {
     getProjects.isError ||
     getUsers.isError ||
     getTransactions.isError ||
-    getSignataires.isError
+    getSignataires.isError ||
+    getVehicles.isError
   ) {
     return (
       <ErrorPage
@@ -137,6 +145,7 @@ function Page() {
           getUsers.error ||
           getTransactions.error ||
           getSignataires.error ||
+          getVehicles.error ||
           undefined
         }
       />
@@ -153,7 +162,8 @@ function Page() {
     getProjects.isSuccess &&
     getUsers.isSuccess &&
     getTransactions.isSuccess &&
-    getSignataires.isSuccess
+    getSignataires.isSuccess &&
+    getVehicles.isSuccess
   ) {
     console.log(filteredData.filter((p) => p.status === "validated"));
     const Statistics: Array<StatisticProps> = [
@@ -227,6 +237,7 @@ function Page() {
           projects={getProjects.data.data}
           transactions={getTransactions.data.data}
           signataires={getSignataires.data.data}
+          vehicles={getVehicles.data.data}
         />
       </div>
     );
