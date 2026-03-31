@@ -54,7 +54,7 @@ function Page() {
     const bannedTypes: Array<PaymentRequest["type"]> = [
       "transport",
       "others",
-      "appro",
+      // "appro",
       "gas",
     ];
     if (!data) return [];

@@ -527,7 +527,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                   <View style={[styles.providerCell, styles.providerCellLast]}>
                     <Text style={styles.providerLabel}>Régime fiscal</Text>
                     <Text style={styles.providerValue}>
-                      {real ? "Réel" : "Simplifié"}
+                      {real ? "Réel" : "Impôt Général Synthétique"}
                     </Text>
                   </View>
                 </View>
