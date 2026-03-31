@@ -14,6 +14,8 @@ import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { paymentQ } from "@/queries/payment";
 import { projectQ } from "@/queries/projectModule";
+import { purchaseQ } from "@/queries/purchase-order";
+import { receptionQ } from "@/queries/reception";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { RequestModelT } from "@/types/types";
@@ -52,6 +54,16 @@ const Page = () => {
     queryFn: requestTypeQ.getAll,
   });
 
+  const getReceptions = useQuery({
+    queryKey: ["receptions"],
+    queryFn: receptionQ.getAll,
+  });
+
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
+
   const data: Array<RequestModelT> = useMemo(() => {
     if (!requestData.data) return [];
     return approbatorRequests(requestData.data.data, user?.id);
@@ -61,27 +73,24 @@ const Page = () => {
   const pending = useMemo(() => {
     return data.filter((b) => {
       const myApproval = b.validators.find((v) => v.userId === user?.id);
-      return (
-        b.state !== "rejected" &&
-        myApproval?.validated === false
-      );
+      return b.state !== "rejected" && myApproval?.validated === false;
     }).length;
   }, [data, user?.id]);
 
   const approved = useMemo(() => {
     return data.filter((b) => {
-    const myApproval = b.validators.find((v) => v.userId === user?.id);
-    return myApproval?.validated === true && b.state !== "rejected";
-  }).length;
+      const myApproval = b.validators.find((v) => v.userId === user?.id);
+      return myApproval?.validated === true && b.state !== "rejected";
+    }).length;
   }, [data, user?.id]);
 
   const rejected = useMemo(() => {
     return data.filter((b) => {
-    const myApproval = b.validators.find((v) => v.userId === user?.id);
-    // On compte comme rejeté si l'état est "rejected", peu importe si l'user a cliqué ou non
-    // OU si l'user a validé mais que c'est devenu rejeté plus tard (selon ta logique métier)
-    return b.state === "rejected" || b.state.includes("rejected");
-  }).length;
+      const myApproval = b.validators.find((v) => v.userId === user?.id);
+      // On compte comme rejeté si l'état est "rejected", peu importe si l'user a cliqué ou non
+      // OU si l'user a validé mais que c'est devenu rejeté plus tard (selon ta logique métier)
+      return b.state === "rejected" || b.state.includes("rejected");
+    }).length;
   }, [data, user?.id]);
 
   const Statistics: Array<StatisticProps> = [
@@ -111,7 +120,9 @@ const Page = () => {
     paymentsData.isPending ||
     categoriesData.isPending ||
     requestData.isPending ||
-    getRequestType.isPending
+    getRequestType.isPending ||
+    getReceptions.isPending ||
+    getPurchases.isPending
   ) {
     return <LoadingPage />;
   }
@@ -122,7 +133,9 @@ const Page = () => {
     paymentsData.isError ||
     categoriesData.isError ||
     requestData.isError ||
-    getRequestType.isError
+    getRequestType.isError ||
+    getPurchases.isError ||
+    getReceptions.isError
   ) {
     return (
       <ErrorPage
@@ -133,6 +146,8 @@ const Page = () => {
           categoriesData.error ||
           requestData.error ||
           getRequestType.error ||
+          getReceptions.error ||
+          getPurchases.error ||
           undefined
         }
       />
@@ -145,8 +160,10 @@ const Page = () => {
     paymentsData.data &&
     categoriesData.data &&
     requestData.data &&
-    getRequestType.data
-  ){
+    getRequestType.data &&
+    getPurchases.isSuccess &&
+    getReceptions.isSuccess
+  ) {
     console.log(data);
     return (
       <div className="content">
@@ -172,9 +189,12 @@ const Page = () => {
           requestTypeData={getRequestType.data.data}
           pending={pending}
           cleared={approved + rejected}
+          purchaseOrders={getPurchases.data.data}
+          receptions={getReceptions.data.data}
         />
       </div>
-    );}
+    );
+  }
 };
 
 export default Page;

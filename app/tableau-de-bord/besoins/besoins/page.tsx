@@ -53,6 +53,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { receptionQ } from "@/queries/reception";
+import { purchaseQ } from "@/queries/purchase-order";
 
 function Page() {
   const { user } = useStore();
@@ -95,6 +97,16 @@ function Page() {
   const usersData = useQuery({
     queryKey: ["users"],
     queryFn: async () => userQ.getAll(),
+  });
+
+  const getReceptions = useQuery({
+    queryKey: ["receptions"],
+    queryFn: receptionQ.getAll,
+  });
+
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
   });
 
   const [searchFilter, setSearchFilter] = React.useState("");
@@ -259,7 +271,9 @@ function Page() {
     projectsData.isLoading ||
     paymentsData.isLoading ||
     requestTypes.isLoading ||
-    usersData.isLoading
+    usersData.isLoading ||
+    getReceptions.isLoading ||
+    getPurchases.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -269,7 +283,9 @@ function Page() {
     projectsData.isError ||
     paymentsData.isError ||
     requestTypes.isError ||
-    usersData.isError
+    usersData.isError ||
+    getReceptions.isError ||
+    getPurchases.isError
   ) {
     return (
       <ErrorPage
@@ -280,6 +296,8 @@ function Page() {
           paymentsData.error ||
           requestTypes.error ||
           usersData.error ||
+          getReceptions.error ||
+          getPurchases.error ||
           undefined
         }
       />
@@ -291,7 +309,9 @@ function Page() {
     projectsData.isSuccess &&
     paymentsData.isSuccess &&
     requestTypes.isSuccess &&
-    usersData.isSuccess
+    usersData.isSuccess &&
+    getReceptions.isSuccess &&
+    getPurchases.isSuccess
   ) {
     // Calcul des statistiques
     const sent = requests.data.length /* - cancel */ || 0;
@@ -863,7 +883,9 @@ function Page() {
           projects={projectsData.data.data}
           payments={paymentsData.data.data}
           requestTypes={requestTypes.data.data}
-          users={usersData.data?.data}
+          users={usersData.data.data}
+          receptions={getReceptions.data.data}
+          purchaseOrders={getPurchases.data.data}
         />
       </div>
     );

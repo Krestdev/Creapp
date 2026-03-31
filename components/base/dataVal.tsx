@@ -58,10 +58,12 @@ import { cn, getRequestTypeBadge, getUserName } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
+  BonsCommande,
   Category,
   DateFilter,
   PaymentRequest,
   ProjectT,
+  Reception,
   RequestModelT,
   RequestType,
   User,
@@ -126,6 +128,8 @@ interface DataTableProps {
   requestTypeData: RequestType[];
   pending: number;
   cleared: number;
+  receptions: Array<Reception>;
+  purchaseOrders: Array<BonsCommande>;
 }
 
 export function DataVal({
@@ -140,6 +144,8 @@ export function DataVal({
   requestTypeData,
   pending,
   cleared,
+  receptions,
+  purchaseOrders,
 }: DataTableProps) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -1784,6 +1790,8 @@ export function DataVal({
           categories={categoriesData}
           users={usersData}
           payments={paymentsData}
+          receptions={receptions}
+          purchaseOrders={purchaseOrders}
           actionButton="Approuver"
           action={() => {
             if (!selectedItem) return;

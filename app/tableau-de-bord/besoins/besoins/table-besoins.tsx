@@ -35,9 +35,11 @@ import {
 } from "@/components/ui/table";
 import { cn, getRequestTypeBadge, subText } from "@/lib/utils";
 import {
+  BonsCommande,
   Category,
   PaymentRequest,
   ProjectT,
+  Reception,
   REQUEST_STATUS,
   RequestModelT,
   RequestType,
@@ -55,6 +57,8 @@ interface Props {
   payments: Array<PaymentRequest>;
   requestTypes: Array<RequestType>;
   users: Array<User>;
+  receptions: Array<Reception>;
+  purchaseOrders: Array<BonsCommande>;
 }
 
 export function RequestsTable({
@@ -64,6 +68,8 @@ export function RequestsTable({
   payments,
   requestTypes,
   users,
+  receptions,
+  purchaseOrders,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -167,10 +173,10 @@ export function RequestsTable({
         const modified = !modifier
           ? false
           : modifier.priority !== original.priority ||
-          modifier.amount !== original.amount ||
-          modifier.dueDate !== original.dueDate ||
-          modifier.quantity !== original.quantity ||
-          modifier.unit !== original.unit;
+            modifier.amount !== original.amount ||
+            modifier.dueDate !== original.dueDate ||
+            modifier.quantity !== original.quantity ||
+            modifier.unit !== original.unit;
         return (
           <div className="flex items-center gap-1.5 uppercase">
             {!!modified && (
@@ -427,9 +433,9 @@ export function RequestsTable({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                       </TableHead>
                     );
                   })}
@@ -482,6 +488,8 @@ export function RequestsTable({
           request={selectedItem}
           projects={projects}
           requestTypes={requestTypes}
+          purchaseOrders={purchaseOrders}
+          receptions={receptions}
         />
       )}
     </div>

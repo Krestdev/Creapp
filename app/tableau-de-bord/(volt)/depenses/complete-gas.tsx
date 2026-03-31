@@ -38,6 +38,7 @@ import {
   RequestModelT,
   RequestType,
   User,
+  Vehicle,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -45,6 +46,7 @@ import { format } from "date-fns";
 import {
   ArchiveIcon,
   CalendarIcon,
+  CarIcon,
   TextQuoteIcon,
   UserRoundIcon,
 } from "lucide-react";
@@ -60,6 +62,7 @@ interface Props {
   users: Array<User>;
   requests: Array<RequestModelT>;
   requestTypes: Array<RequestType>;
+  vehicles: Array<Vehicle>;
 }
 
 const formSchema = z.object({
@@ -95,6 +98,7 @@ function CompleteGas({
   users,
   requests,
   requestTypes,
+  vehicles,
 }: Props) {
   //Drivers
   const filteredUsers = useMemo(() => {
@@ -105,6 +109,8 @@ function CompleteGas({
 
   const request = requests.find((r) => r.id === ticket.requestId);
   const emitter = filteredUsers.find((u) => u.id === request?.userId);
+
+  const vehicle = vehicles.find((v) => v.id === request?.vehiclesId);
 
   const typeBadge = !!request
     ? getRequestTypeBadge({ type: request.type, requestTypes: requestTypes })
@@ -165,7 +171,7 @@ function CompleteGas({
             {`Remplissez le formulaire pour compléter les informations relatives au ticket de carburant`}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 p-3 rounded-md border border-dashed bg-gray-100">
+        <div className="grid gap-4 p-3 bg-primary-50 border border-dashed border-primary-200 rounded-md">
           {/**Emetteur */}
           <div className="view-group">
             <span className="view-icon">
@@ -201,6 +207,25 @@ function CompleteGas({
               <p className="">{request?.description ?? "--"}</p>
             </div>
           </div>
+          {request && request.type === "gas" && (
+            <div className="view-group">
+              <span className="view-icon">
+                <CarIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Véhicule"}</p>
+                <p className="font-semibold">
+                  {vehicle &&
+                    vehicle.mark.concat(
+                      " - ",
+                      vehicle.label,
+                      ` (${vehicle.matricule})`,
+                    )}
+                  {!vehicle && "Aucun véhicule trouvé"}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">

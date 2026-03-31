@@ -13,18 +13,15 @@ import {
 } from "@/components/ui/dialog";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
-import { categoryQ } from "@/queries/categoryModule";
-import { paymentQ } from "@/queries/payment";
-import { projectQ } from "@/queries/projectModule";
 import {
+  BonsCommande,
   Category,
   PaymentRequest,
   ProjectT,
+  Reception,
   RequestModelT,
   User,
 } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -51,7 +48,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { Skeleton } from "../ui/skeleton";
+import { RequestStepper } from "../stepper";
 
 interface DetailModalProps {
   open: boolean;
@@ -63,6 +60,8 @@ interface DetailModalProps {
   users: User[];
   projects: ProjectT[];
   categories: Category[];
+  receptions: Array<Reception>;
+  purchaseOrders: Array<BonsCommande>;
 }
 
 export function DetailBesoin({
@@ -73,6 +72,8 @@ export function DetailBesoin({
   payments,
   projects,
   categories,
+  receptions,
+  purchaseOrders,
 }: DetailModalProps) {
   const { user } = useStore();
   const userId = user?.id;
@@ -265,9 +266,7 @@ export function DetailBesoin({
             <div className="flex flex-col">
               <p className="view-group-title">{"Catégorie"}</p>
               <p className="font-semibold">
-                {!getCategoryName(String(data.categoryId)).includes(
-                  "facilita",
-                )
+                {!getCategoryName(String(data.categoryId)).includes("facilita")
                   ? getCategoryName(String(data.categoryId))
                   : data.type === "facilitation"
                     ? "Facilitation"
@@ -375,8 +374,9 @@ export function DetailBesoin({
                 <div className="space-y-1">
                   {!!paiement?.proof ? (
                     <Link
-                      href={`${process.env.NEXT_PUBLIC_API
-                        }/${paiement?.proof as string}`}
+                      href={`${
+                        process.env.NEXT_PUBLIC_API
+                      }/${paiement?.proof as string}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -609,10 +609,11 @@ export function DetailBesoin({
                             <p
                               key={ben.id}
                               className="font-semibold capitalize"
-                            >{`${beneficiary?.firstName +
-                              " " +
-                              beneficiary?.lastName || ben.id
-                              }`}</p>
+                            >{`${
+                              beneficiary?.firstName +
+                                " " +
+                                beneficiary?.lastName || ben.id
+                            }`}</p>
                           );
                         })}
                       </div>
@@ -630,9 +631,7 @@ export function DetailBesoin({
                 <SquareStackIcon />
               </span>
               <div className="w-full flex flex-col">
-                <p className="view-group-title">
-                  {"Historique de validation"}
-                </p>
+                <p className="view-group-title">{"Historique de validation"}</p>
                 <div className="grid gap-2">
                   {data.validators
                     .sort((a, b) => a.rank - b.rank)
@@ -667,11 +666,9 @@ export function DetailBesoin({
                           </p>
                           <div className="flex flex-col">
                             <span>
-                              {users.find((u) => u.id === v.userId)
-                                ?.firstName +
+                              {users.find((u) => u.id === v.userId)?.firstName +
                                 " " +
-                                users.find((u) => u.id === v.userId)
-                                  ?.lastName}
+                                users.find((u) => u.id === v.userId)?.lastName}
                             </span>
                             {v.decision && (
                               <span className="font-medium tracking-tighter">
@@ -693,8 +690,17 @@ export function DetailBesoin({
             </div>
           )}
         </div>
+        {/* Request parours */}
+        <div className="col-span-full w-full mt-4">
+          <RequestStepper
+            request={data}
+            bonCommandes={purchaseOrders}
+            tickets={payments}
+            receptions={receptions}
+          />
+        </div>
         {/* Boutons du footer - fixe en bas */}
-        <DialogFooter className="mt-4 pt-4 border-t">
+        <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">{"Fermer"}</Button>
           </DialogClose>

@@ -53,6 +53,8 @@ import { format } from "date-fns";
 import { ChevronDown, Settings2 } from "lucide-react";
 import React from "react";
 import { TableMyRequests } from "./table-my-requests";
+import { receptionQ } from "@/queries/reception";
+import { purchaseQ } from "@/queries/purchase-order";
 
 const Page = () => {
   const { user } = useStore();
@@ -109,6 +111,16 @@ const Page = () => {
   const getUsers = useQuery({
     queryKey: ["users"],
     queryFn: userQ.getAll,
+  });
+
+  const getReceptions = useQuery({
+    queryKey: ["receptions"],
+    queryFn: receptionQ.getAll,
+  });
+
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
   });
 
   const uniqueCategories = React.useMemo(() => {
@@ -241,7 +253,9 @@ const Page = () => {
     projectsData.isLoading ||
     requestTypes.isLoading ||
     paymentsData.isLoading ||
-    getUsers.isLoading
+    getUsers.isLoading ||
+    getReceptions.isLoading ||
+    getPurchases.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -251,7 +265,9 @@ const Page = () => {
     projectsData.isError ||
     requestTypes.isError ||
     paymentsData.isError ||
-    getUsers.isError
+    getUsers.isError ||
+    getReceptions.isError ||
+    getPurchases.isError
   ) {
     return (
       <ErrorPage
@@ -262,6 +278,8 @@ const Page = () => {
           paymentsData.error ||
           requestTypes.error ||
           getUsers.error ||
+          getReceptions.error ||
+          getPurchases.error ||
           undefined
         }
       />
@@ -273,7 +291,9 @@ const Page = () => {
     projectsData.isSuccess &&
     paymentsData.isSuccess &&
     requestTypes.isSuccess &&
-    getUsers.isSuccess
+    getUsers.isSuccess &&
+    getReceptions.isSuccess &&
+    getPurchases.isSuccess
   ) {
     // Calcul des statistiques
     const sent = data.data.length /* - cancel */ || 0;
@@ -761,6 +781,8 @@ const Page = () => {
           payments={paymentsData.data.data}
           requestTypes={requestTypes.data.data}
           users={getUsers.data.data}
+          receptions={getReceptions.data.data}
+          purchaseOrders={getPurchases.data.data}
         />
       </div>
     );
