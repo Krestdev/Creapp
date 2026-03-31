@@ -1829,6 +1829,7 @@ function ExpensesTable({
             users={users}
             requests={request}
             requestTypes={requestTypes}
+            vehicles={vehicles}
           />
         </>
       )}
