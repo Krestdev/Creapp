@@ -1,3 +1,4 @@
+import LoadingPage from "@/components/loading-page";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -248,7 +249,7 @@ function ViewExpense({
             </div>
           </div>
 
-          {request?.type === "gas" && (
+          {request?.type === "gas" && vehicleData.data?.data && (
             <div className="view-group">
               <span className="view-icon">
                 <Car />
