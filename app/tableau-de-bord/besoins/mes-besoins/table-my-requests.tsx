@@ -58,9 +58,11 @@ import { cn, getRequestTypeBadge, subText } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
+  BonsCommande,
   Category,
   PaymentRequest,
   ProjectT,
+  Reception,
   RequestModelT,
   RequestType,
   User,
@@ -117,6 +119,8 @@ interface Props {
   payments: Array<PaymentRequest>;
   requestTypes: Array<RequestType>;
   users: Array<User>;
+  receptions: Array<Reception>;
+  purchaseOrders: Array<BonsCommande>;
 }
 
 export function TableMyRequests({
@@ -126,6 +130,8 @@ export function TableMyRequests({
   payments,
   requestTypes,
   users,
+  receptions,
+  purchaseOrders,
 }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -632,6 +638,8 @@ export function TableMyRequests({
             users={users}
             projects={projects}
             payments={payments}
+            receptions={receptions}
+            purchaseOrders={purchaseOrders}
             actionButton="Modifier"
             action={() => {
               setIsModalOpen(false);
