@@ -21,6 +21,7 @@ import { invoiceQ } from "@/queries/invoices";
 import { projectQ } from "@/queries/projectModule";
 import { transactionQ } from "@/queries/transaction";
 import { signatairQ } from "@/queries/signatair";
+import { vehicleQ } from "@/queries/vehicule";
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: ["payments"],
@@ -71,6 +72,11 @@ function Page() {
     queryFn: signatairQ.getAll,
   });
 
+  const getVehicles = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: () => vehicleQ.getAll(),
+  });
+
   if (
     isLoading ||
     getInvoices.isLoading ||
@@ -82,7 +88,8 @@ function Page() {
     getPaymentType.isLoading ||
     getProjects.isLoading ||
     getTransactions.isLoading ||
-    getSignataires.isLoading
+    getSignataires.isLoading ||
+    getVehicles.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -97,7 +104,8 @@ function Page() {
     getPaymentType.isError ||
     getProjects.isError ||
     getTransactions.isError ||
-    getSignataires.isError
+    getSignataires.isError ||
+    getVehicles.isError
   ) {
     return (
       <ErrorPage
@@ -113,6 +121,7 @@ function Page() {
           getProjects.error ||
           getTransactions.error ||
           getSignataires.error ||
+          getVehicles.error ||
           undefined
         }
       />
@@ -129,7 +138,8 @@ function Page() {
     getPaymentType.isSuccess &&
     getProjects.isSuccess &&
     getTransactions.isSuccess &&
-    getSignataires.isSuccess
+    getSignataires.isSuccess &&
+    getVehicles.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -191,6 +201,7 @@ function Page() {
           projects={getProjects.data.data}
           transactions={getTransactions.data.data}
           signataires={getSignataires.data.data}
+          vehicles={getVehicles.data.data}
         />
         <ExpensesTable
           payments={data.data.filter(
@@ -206,6 +217,7 @@ function Page() {
           projects={getProjects.data.data}
           transactions={getTransactions.data.data}
           signataires={getSignataires.data.data}
+          vehicles={getVehicles.data.data}
         />
       </div>
     );

@@ -13,10 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
-import { categoryQ } from "@/queries/categoryModule";
-import { paymentQ } from "@/queries/payment";
-import { projectQ } from "@/queries/projectModule";
 import {
   BonsCommande,
   Category,
@@ -26,7 +22,6 @@ import {
   RequestModelT,
   User,
 } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -45,7 +40,6 @@ import {
   LucideHash,
   LucidePieChart,
   MessageSquareXIcon,
-  RouteIcon,
   SquareStackIcon,
   TextQuoteIcon,
   User2,
@@ -54,7 +48,6 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { Skeleton } from "../ui/skeleton";
 import { RequestStepper } from "../stepper";
 
 interface DetailModalProps {

@@ -1,4 +1,5 @@
 "use client";
+import { RequestStepper } from "@/components/stepper";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,9 +12,11 @@ import {
 } from "@/components/ui/dialog";
 import { cn, getRequestTypeBadge, getUserName, XAF } from "@/lib/utils";
 import {
+  BonsCommande,
   Category,
   PaymentRequest,
   ProjectT,
+  Reception,
   RequestModelT,
   RequestType,
   User,
@@ -42,7 +45,7 @@ import {
   TypeOutlineIcon,
   UserIcon,
   Users,
-  X
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -56,6 +59,8 @@ interface ViewRequestProps {
   projects: Array<ProjectT>;
   categories: Array<Category>;
   requestTypes: RequestType[];
+  receptions: Array<Reception>;
+  purchaseOrders: Array<BonsCommande>;
 }
 
 function ViewRequest({
@@ -67,6 +72,8 @@ function ViewRequest({
   projects,
   categories,
   requestTypes,
+  receptions,
+  purchaseOrders,
 }: ViewRequestProps) {
   const getStatusBadge = (
     status: RequestModelT["state"],
@@ -287,8 +294,9 @@ function ViewRequest({
                 <div className="space-y-1">
                   {!!paiement?.proof ? (
                     <Link
-                      href={`${process.env.NEXT_PUBLIC_API
-                        }/${paiement?.proof as string}`}
+                      href={`${
+                        process.env.NEXT_PUBLIC_API
+                      }/${paiement?.proof as string}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -466,10 +474,11 @@ function ViewRequest({
                             <p
                               key={ben.id}
                               className="font-semibold capitalize"
-                            >{`${beneficiary?.firstName +
-                              " " +
-                              beneficiary?.lastName || ben.id
-                              }`}</p>
+                            >{`${
+                              beneficiary?.firstName +
+                                " " +
+                                beneficiary?.lastName || ben.id
+                            }`}</p>
                           );
                         })}
                       </div>
@@ -526,11 +535,11 @@ function ViewRequest({
                                 " " +
                                 users.find((u) => u.id === v.userId)?.lastName}
                             </span>
-                            {
-                              v.decision &&
+                            {v.decision && (
                               <span className="text-xs font-medium">
                                 {format(v.updatedAt, "PPP à p", { locale: fr })}
-                              </span>}
+                              </span>
+                            )}
                           </div>
                         </div>
                       );
@@ -539,6 +548,16 @@ function ViewRequest({
               </div>
             </div>
           )}
+
+          {/* Request parours */}
+          <div className="col-span-full w-full mt-4">
+            <RequestStepper
+              request={request}
+              bonCommandes={purchaseOrders}
+              tickets={payments}
+              receptions={receptions}
+            />
+          </div>
         </div>
         {/* Boutons du footer */}
         <DialogFooter>

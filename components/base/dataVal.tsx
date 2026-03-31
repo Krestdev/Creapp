@@ -58,10 +58,12 @@ import { cn, getRequestTypeBadge, getUserName } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
+  BonsCommande,
   Category,
   DateFilter,
   PaymentRequest,
   ProjectT,
+  Reception,
   RequestModelT,
   RequestType,
   User,
@@ -125,6 +127,8 @@ interface DataTableProps {
   requestTypeData: RequestType[];
   pending: number;
   cleared: number;
+  receptions: Array<Reception>;
+  purchaseOrders: Array<BonsCommande>;
 }
 
 export function DataVal({
@@ -139,6 +143,8 @@ export function DataVal({
   requestTypeData,
   pending,
   cleared,
+  receptions,
+  purchaseOrders,
 }: DataTableProps) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -713,8 +719,8 @@ export function DataVal({
         },
         cell: ({ row }) => {
           const projectId = row.getValue("projectId");
-          const projectName = projectId 
-            ? getProjectName(projectId as string) 
+          const projectName = projectId
+            ? getProjectName(projectId as string)
             : "Sans projet";
           return (
             <div className="text-sm first-letter:uppercase lowercase max-w-[500px] truncate">
@@ -1293,11 +1299,12 @@ export function DataVal({
                         p.label
                           .toLowerCase()
                           .includes(projectSearch.toLowerCase()),
-                      ).length === 0 && projectSearch && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun projet trouvé
-                        </div>
-                      )}
+                      ).length === 0 &&
+                        projectSearch && (
+                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                            Aucun projet trouvé
+                          </div>
+                        )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -1778,6 +1785,8 @@ export function DataVal({
           categories={categoriesData}
           users={usersData}
           payments={paymentsData}
+          receptions={receptions}
+          purchaseOrders={purchaseOrders}
           actionButton="Approuver"
           action={() => {
             if (!selectedItem) return;
@@ -1895,7 +1904,6 @@ export function DataVal({
           onSuccess={() => {
             // Rafraîchir les données si nécessaire
             // Vous pouvez ajouter un callback pour revalider les requêtes
-            
           }}
         />
       )}
