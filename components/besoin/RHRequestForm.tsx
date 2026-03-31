@@ -247,27 +247,43 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
           <FormField
             control={form.control}
             name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel isRequired>{"Categorie"}</FormLabel>
-                <FormControl>
-                  <SearchableSelect
-                    onChange={field.onChange}
-                    options={categories
-                      .filter((c) => c.type.type === "ressource_humaine")
-                      .map((c) => ({
+            render={({ field }) => {
+              const hrCategories = categories.filter(
+                (c) => c.type.type === "ressource_humaine",
+              );
+
+              const selectedCategory = hrCategories.find(
+                (c) => String(c.id) === String(field.value),
+              );
+
+              return (
+                <FormItem>
+                  <FormLabel isRequired>{"Categorie"}</FormLabel>
+                  <FormControl>
+                    <SearchableSelect
+                      onChange={field.onChange}
+                      options={hrCategories.map((c) => ({
                         value: c.id!.toString(),
                         label: c.label,
                       }))}
-                    value={String(field.value)}
-                    width="w-full"
-                    allLabel=""
-                    placeholder="Sélectionner un projet"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+                      value={field.value ? String(field.value) : ""}
+                      width="w-full"
+                      allLabel=""
+                      placeholder="Sélectionner une catégorie"
+                    />
+                  </FormControl>
+
+                  {/* ✅ Affichage de la description sous le SearchableSelect */}
+                  {selectedCategory?.description && (
+                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                      {selectedCategory.description}
+                    </div>
+                  )}
+
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           {/* PERIODE - RANGE */}

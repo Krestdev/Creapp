@@ -182,27 +182,36 @@ export default function SpecialRequestForm({ categories }: Props) {
           <FormField
             control={form.control}
             name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel isRequired>{"Categorie"}</FormLabel>
-                <FormControl>
-                  <Select
-                    defaultValue={field.value ? String(field.value) : undefined}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="min-w-60 w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.filter((c) => c.type.type === "speciaux")
-                        .length === 0 ? (
-                        <SelectItem value="#" disabled>
-                          {"Aucune catégorie enregistrée"}
-                        </SelectItem>
-                      ) : (
-                        categories
-                          .filter((c) => c.type.type === "speciaux")
-                          .map((category) => (
+            render={({ field }) => {
+              // 1. Filtrage des catégories spécialisées
+              const speciauxCategories = categories.filter(
+                (c) => c.type.type === "speciaux",
+              );
+
+              // 2. Recherche de la catégorie sélectionnée (comparaison string/string)
+              const selectedCategory = speciauxCategories.find(
+                (c) => String(c.id) === String(field.value),
+              );
+
+              return (
+                <FormItem>
+                  <FormLabel isRequired>{"Categorie"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      // On utilise 'value' pour que React Hook Form pilote l'affichage
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="min-w-60 w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {speciauxCategories.length === 0 ? (
+                          <SelectItem value="#" disabled>
+                            {"Aucune catégorie enregistrée"}
+                          </SelectItem>
+                        ) : (
+                          speciauxCategories.map((category) => (
                             <SelectItem
                               key={category.id}
                               value={category.id.toString()}
@@ -210,13 +219,22 @@ export default function SpecialRequestForm({ categories }: Props) {
                               {category.label}
                             </SelectItem>
                           ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+
+                  {/* ✅ Description affichée sous le Select */}
+                  {selectedCategory?.description && (
+                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
+                      {selectedCategory.description}
+                    </div>
+                  )}
+
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           {/* MONTANT */}

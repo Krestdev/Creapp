@@ -213,27 +213,33 @@ export default function MyForm({ categories, users, projects }: Props) {
           <FormField
             control={form.control}
             name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel isRequired>{"Categorie"}</FormLabel>
-                <FormControl>
-                  <Select
-                    defaultValue={field.value ? String(field.value) : undefined}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="min-w-60 w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.filter((c) => c.type.type === "achat")
-                        .length === 0 ? (
-                        <SelectItem value="#" disabled>
-                          {"Aucune catégorie enregistrée"}
-                        </SelectItem>
-                      ) : (
-                        categories
-                          .filter((c) => c.type.type === "achat")
-                          .map((category) => (
+            render={({ field }) => {
+              const achatCategories = categories.filter(
+                (c) => c.type.type === "achat",
+              );
+
+              const selectedCategory = achatCategories.find(
+                (c) => String(c.id) === String(field.value),
+              );
+
+              return (
+                <FormItem>
+                  <FormLabel isRequired>{"Categorie"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="min-w-60 w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {achatCategories.length === 0 ? (
+                          <SelectItem value="#" disabled>
+                            {"Aucune catégorie enregistrée"}
+                          </SelectItem>
+                        ) : (
+                          achatCategories.map((category) => (
                             <SelectItem
                               key={category.id}
                               value={category.id.toString()}
@@ -241,13 +247,22 @@ export default function MyForm({ categories, users, projects }: Props) {
                               {category.label}
                             </SelectItem>
                           ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+
+                  {/* ✅ Affichage de la description si elle existe */}
+                  {selectedCategory?.description && (
+                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
+                      {selectedCategory.description}
+                    </div>
+                  )}
+
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           {/* TITRE */}

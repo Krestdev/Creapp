@@ -215,27 +215,36 @@ export default function FacilitationRequestForm({
           <FormField
             control={form.control}
             name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel isRequired>{"Categorie"}</FormLabel>
-                <FormControl>
-                  <Select
-                    defaultValue={field.value ? String(field.value) : undefined}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="min-w-60 w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.filter((c) => c.type.type === "facilitation")
-                        .length === 0 ? (
-                        <SelectItem value="#" disabled>
-                          {"Aucune catégorie enregistrée"}
-                        </SelectItem>
-                      ) : (
-                        categories
-                          .filter((c) => c.type.type === "facilitation")
-                          .map((category) => (
+            render={({ field }) => {
+              // 1. Filtrer les catégories de type "facilitation"
+              const facilitationCategories = categories.filter(
+                (c) => c.type.type === "facilitation",
+              );
+
+              // 2. Trouver l'objet sélectionné (en comparant les IDs comme des Strings)
+              const selectedCategory = facilitationCategories.find(
+                (c) => String(c.id) === String(field.value),
+              );
+
+              return (
+                <FormItem>
+                  <FormLabel isRequired>{"Categorie"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      // 'value' au lieu de 'defaultValue' pour assurer la réactivité
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="min-w-60 w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {facilitationCategories.length === 0 ? (
+                          <SelectItem value="#" disabled>
+                            {"Aucune catégorie enregistrée"}
+                          </SelectItem>
+                        ) : (
+                          facilitationCategories.map((category) => (
                             <SelectItem
                               key={category.id}
                               value={category.id.toString()}
@@ -243,13 +252,22 @@ export default function FacilitationRequestForm({
                               {category.label}
                             </SelectItem>
                           ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+
+                  {/* ✅ Affichage dynamique de la description */}
+                  {selectedCategory?.description && (
+                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
+                      {selectedCategory.description}
+                    </div>
+                  )}
+
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           {/* TITLE */}

@@ -153,27 +153,37 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
         <FormField
           control={form.control}
           name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Categorie"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.filter((c) => c.type.type === "appro")
-                      .length === 0 ? (
-                      <SelectItem value="#" disabled>
-                        {"Aucune catégorie enregistrée"}
-                      </SelectItem>
-                    ) : (
-                      categories
-                        .filter((c) => c.type.type === "appro")
-                        .map((category) => (
+          render={({ field }) => {
+            // ✅ On filtre d'abord pour plus de clarté
+            const approCategories = categories.filter(
+              (c) => c.type.type === "appro",
+            );
+
+            // ✅ Correction ici : String(c.id) === String(field.value)
+            const selectedCategory = approCategories.find(
+              (c) => String(c.id) === String(field.value),
+            );
+
+            return (
+              <FormItem>
+                <FormLabel isRequired>{"Categorie (Appro)"}</FormLabel>
+
+                <FormControl>
+                  <Select
+                    value={field.value ? String(field.value) : ""}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="min-w-60 w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {approCategories.length === 0 ? (
+                        <SelectItem value="#" disabled>
+                          {"Aucune catégorie enregistrée"}
+                        </SelectItem>
+                      ) : (
+                        approCategories.map((category) => (
                           <SelectItem
                             key={category.id}
                             value={category.id.toString()}
@@ -181,13 +191,22 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
                             {category.label}
                           </SelectItem>
                         ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+
+                {/* ✅ La description s'affichera dès que selectedCategory est trouvé */}
+                {selectedCategory?.description && (
+                  <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
+                    {selectedCategory.description}
+                  </div>
+                )}
+
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         <FormField
           control={form.control}

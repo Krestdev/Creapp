@@ -151,27 +151,35 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
         <FormField
           control={form.control}
           name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Categorie"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.filter((c) => c.type.type === "transport")
-                      .length === 0 ? (
-                      <SelectItem value="#" disabled>
-                        {"Aucune catégorie enregistrée"}
-                      </SelectItem>
-                    ) : (
-                      categories
-                        .filter((c) => c.type.type === "transport")
-                        .map((category) => (
+          render={({ field }) => {
+            const transportCategories = categories.filter(
+              (c) => c.type.type === "transport",
+            );
+
+            const selectedCategory = transportCategories.find(
+              (c) => String(c.id) === String(field.value),
+            );
+
+            return (
+              <FormItem>
+                <FormLabel isRequired>{"Categorie"}</FormLabel>
+
+                <FormControl>
+                  <Select
+                    value={field.value ? String(field.value) : ""}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="min-w-60 w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {transportCategories.length === 0 ? (
+                        <SelectItem value="#" disabled>
+                          {"Aucune catégorie enregistrée"}
+                        </SelectItem>
+                      ) : (
+                        transportCategories.map((category) => (
                           <SelectItem
                             key={category.id}
                             value={category.id.toString()}
@@ -179,13 +187,22 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
                             {category.label}
                           </SelectItem>
                         ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+
+                {/* ✅ Description dynamique */}
+                {selectedCategory?.description && (
+                  <div className="first-letter:uppercase px-1 text-sm text-muted-foreground">
+                    <p>{selectedCategory.description}</p>
+                  </div>
+                )}
+
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         <FormField
           control={form.control}

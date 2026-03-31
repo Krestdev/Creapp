@@ -107,7 +107,10 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
       if (!typesMap.has(typeId)) {
         typesMap.set(typeId, {
           id: typeId,
-          label: getRequestTypeBadge({ type: category.type.type, requestTypes: types }).label,
+          label: getRequestTypeBadge({
+            type: category.type.type,
+            requestTypes: types,
+          }).label,
           type: category.type.type,
         });
       }
@@ -119,13 +122,17 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
   const filteredData = React.useMemo(() => {
     return data.filter((category) => {
       // Filtre par recherche
-      const matchesSearch = searchFilter === "" || 
+      const matchesSearch =
+        searchFilter === "" ||
         category.label.toLowerCase().includes(searchFilter.toLowerCase()) ||
-        (category.description && category.description.toLowerCase().includes(searchFilter.toLowerCase()));
-      
+        (category.description &&
+          category.description
+            .toLowerCase()
+            .includes(searchFilter.toLowerCase()));
+
       // Filtre par type
-      const matchesType = typeFilter === "all" || 
-        category.type.id === parseInt(typeFilter);
+      const matchesType =
+        typeFilter === "all" || category.type.id === parseInt(typeFilter);
 
       return matchesSearch && matchesType;
     });
@@ -135,7 +142,7 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
   const filteredTypes = React.useMemo(() => {
     if (!typeSearch) return uniqueTypes;
     return uniqueTypes.filter((t) =>
-      t.label.toLowerCase().includes(typeSearch.toLowerCase())
+      t.label.toLowerCase().includes(typeSearch.toLowerCase()),
     );
   }, [uniqueTypes, typeSearch]);
 
@@ -147,7 +154,8 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
   };
 
   // Compter le nombre de filtres actifs
-  const activeFiltersCount = (typeFilter !== "all" ? 1 : 0) + (searchFilter ? 1 : 0);
+  const activeFiltersCount =
+    (typeFilter !== "all" ? 1 : 0) + (searchFilter ? 1 : 0);
 
   const categoryData = useMutation({
     mutationFn: (id: number) => categoryQ.deleteCategory(id),
@@ -346,11 +354,16 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
                 <Label>{"Type de catégorie"}</Label>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
                       <span className="truncate">
                         {typeFilter === "all"
                           ? "Tous les types"
-                          : uniqueTypes.find((t) => t.id.toString() === typeFilter)?.label || "Sélectionner"}
+                          : uniqueTypes.find(
+                              (t) => t.id.toString() === typeFilter,
+                            )?.label || "Sélectionner"}
                       </span>
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
@@ -398,7 +411,9 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
                           setTypeFilter(type.id.toString());
                           setTypeSearch("");
                         }}
-                        className={typeFilter === type.id.toString() ? "bg-accent" : ""}
+                        className={
+                          typeFilter === type.id.toString() ? "bg-accent" : ""
+                        }
                       >
                         <div className="flex items-center gap-2">
                           <span>{type.label}</span>
@@ -491,10 +506,13 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
       {/* Indicateur de filtres actifs */}
       {activeFiltersCount > 0 && (
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          <span className="text-sm text-muted-foreground">Filtres actifs :</span>
+          <span className="text-sm text-muted-foreground">
+            Filtres actifs :
+          </span>
           {typeFilter !== "all" && (
             <Badge variant="secondary" className="gap-1">
-              Type: {uniqueTypes.find((t) => t.id.toString() === typeFilter)?.label}
+              Type:{" "}
+              {uniqueTypes.find((t) => t.id.toString() === typeFilter)?.label}
               <button
                 onClick={() => setTypeFilter("all")}
                 className="ml-1 hover:text-foreground"
