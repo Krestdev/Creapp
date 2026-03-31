@@ -163,41 +163,60 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
         <FormField
           control={form.control}
           name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Categorie"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.filter((c) => c.type.type === "gas").length ===
-                    0 ? (
-                      <SelectItem value="#" disabled>
-                        {"Aucune catégorie enregistrée"}
-                      </SelectItem>
-                    ) : (
-                      categories
-                        .filter((c) => c.type.type === "gas")
-                        .map((category) => (
+          render={({ field }) => {
+            const gasCategories = categories.filter(
+              (c) => c.type.type === "gas",
+            );
+
+            // ✅ Utilisation de String() pour assurer la correspondance
+            const selectedCategory = gasCategories.find(
+              (c) => String(c.id) === String(field.value),
+            );
+
+            return (
+              <FormItem>
+                <FormLabel isRequired>{"Catégorie"}</FormLabel>
+
+                <FormControl>
+                  <Select
+                    // On s'assure que la valeur passée au Select est une string
+                    value={field.value ? String(field.value) : ""}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="min-w-60 w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {gasCategories.length === 0 ? (
+                        <SelectItem value="#" disabled>
+                          {"Aucune catégorie enregistrée"}
+                        </SelectItem>
+                      ) : (
+                        gasCategories.map((category) => (
                           <SelectItem
                             key={category.id}
-                            value={category.id.toString()}
+                            value={category.id.toString()} // L'ID est stocké en string ici
                           >
                             {category.label}
                           </SelectItem>
                         ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+
+                {/* ✅ Affichage conditionnel de la description */}
+                {selectedCategory?.description && (
+                  <div className="first-letter:uppercase px-1 text-sm text-muted-foreground italic">
+                    {selectedCategory.description}
+                  </div>
+                )}
+
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         <FormField
           control={form.control}
