@@ -108,6 +108,7 @@ import { Pagination } from "./pagination";
 import { TabBar } from "./TabBar";
 import BesoinLastApproVall from "../modals/BesoinApproValid";
 import UpdatePaymentMethod from "../modals/UpdatePaymentMethod";
+import BesoinLastValOther from "../modals/BesoinLastValOther";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -192,6 +193,7 @@ export function DataVal({
   const [isUpdateRHModalOpen, setIsUpdateRHModalOpen] = React.useState(false);
   const [isUpdateApproModalOpen, setIsUpdateApproModalOpen] =
     React.useState(false);
+  const [isUpdateOtherRequest, setIsUpdateOtherRequest] = React.useState(false);
   // Ajoutez ce state avec les autres states de modals
   const [isUpdatePaymentModalOpen, setIsUpdatePaymentModalOpen] =
     React.useState(false);
@@ -945,8 +947,11 @@ export function DataVal({
                           : item.type === "appro"
                             ? (setSelectedItem(item),
                               setIsUpdateApproModalOpen(true))
-                            : (setSelectedItem(item),
-                              setIsLastValModalOpen(true))
+                            : item.type === "others"
+                              ? (setSelectedItem(item),
+                                setIsUpdateOtherRequest(true))
+                              : (setSelectedItem(item),
+                                setIsLastValModalOpen(true))
                       : openValidationModal("approve", item)
                   }
                   disabled={
@@ -1846,66 +1851,64 @@ export function DataVal({
       />
 
       {selectedItem && (
-        <BesoinLastVal
-          open={isLastValModalOpen}
-          onOpenChange={setIsLastValModalOpen}
-          data={selectedItem}
-          titre={"Approuver le besoin"}
-          description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
-          categories={categoriesData}
-          users={usersData}
-        />
-      )}
-
-      {selectedItem && (
-        <BesoinFacLastVal
-          open={isUpdateFacModalOpen}
-          setOpen={setIsUpdateFacModalOpen}
-          requestData={selectedItem}
-          categories={categoriesData}
-          users={usersData}
-          projects={projectsData}
-          payments={paymentsData}
-        />
-      )}
-
-      {selectedItem && (
-        <BesoinRHLastVal
-          open={isUpdateRHModalOpen}
-          setOpen={setIsUpdateRHModalOpen}
-          requestData={selectedItem}
-          payments={paymentsData}
-          users={usersData}
-          categories={categoriesData}
-          projects={projectsData}
-        />
-      )}
-
-      {selectedItem && (
-        <BesoinLastApproVall
-          open={isUpdateApproModalOpen}
-          setOpen={setIsUpdateApproModalOpen}
-          requestData={selectedItem}
-          users={usersData}
-          categories={categoriesData}
-          projects={projectsData}
-        />
-      )}
-
-      {selectedItem && (
-        <UpdatePaymentMethod
-          open={isUpdatePaymentModalOpen}
-          setOpen={setIsUpdatePaymentModalOpen}
-          requestData={selectedItem}
-          categories={categoriesData}
-          users={usersData}
-          projects={projectsData}
-          payments={paymentsData}
-          onSuccess={() => {
-            // Rafraîchir les données si nécessaire
-            // Vous pouvez ajouter un callback pour revalider les requêtes
-          }}
-        />
+        <>
+          <BesoinLastVal
+            open={isLastValModalOpen}
+            onOpenChange={setIsLastValModalOpen}
+            data={selectedItem}
+            titre={"Approuver le besoin"}
+            description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
+            categories={categoriesData}
+            users={usersData}
+          />
+          <BesoinFacLastVal
+            open={isUpdateFacModalOpen}
+            setOpen={setIsUpdateFacModalOpen}
+            requestData={selectedItem}
+            categories={categoriesData}
+            users={usersData}
+            projects={projectsData}
+            payments={paymentsData}
+          />
+          <BesoinRHLastVal
+            open={isUpdateRHModalOpen}
+            setOpen={setIsUpdateRHModalOpen}
+            requestData={selectedItem}
+            payments={paymentsData}
+            users={usersData}
+            categories={categoriesData}
+            projects={projectsData}
+          />
+          <BesoinLastApproVall
+            open={isUpdateApproModalOpen}
+            setOpen={setIsUpdateApproModalOpen}
+            requestData={selectedItem}
+            users={usersData}
+            categories={categoriesData}
+            projects={projectsData}
+          />
+          <UpdatePaymentMethod
+            open={isUpdatePaymentModalOpen}
+            setOpen={setIsUpdatePaymentModalOpen}
+            requestData={selectedItem}
+            categories={categoriesData}
+            users={usersData}
+            projects={projectsData}
+            payments={paymentsData}
+            onSuccess={() => {
+              // Rafraîchir les données si nécessaire
+              // Vous pouvez ajouter un callback pour revalider les requêtes
+            }}
+          />
+          <BesoinLastValOther
+            request={selectedItem}
+            users={usersData}
+            categories={categoriesData}
+            projects={projectsData}
+            open={isUpdateOtherRequest}
+            setOpen={setIsUpdateOtherRequest}
+          />
+        </>
       )}
     </div>
   );
