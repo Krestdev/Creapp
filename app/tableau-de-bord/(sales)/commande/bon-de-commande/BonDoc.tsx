@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#111827",
     paddingTop: 92,
-    paddingBottom: 42,
+    paddingBottom: 92,
     paddingHorizontal: 22,
   },
 
@@ -437,7 +437,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
       <Page size="A4" style={styles.page} wrap>
         <Image fixed style={styles.watermark} src="/images/crea.jpg" />
 
-        <View style={styles.content}>
+        <View style={styles.content} wrap>
           <View style={styles.topGrid} fixed>
             <View style={styles.blockLeft}>
               <View>
@@ -616,7 +616,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
           </View>
 
           <View style={styles.financeWrap}>
-            <View style={styles.conditionsCard}>
+            <View style={styles.conditionsCard} wrap={false}>
               <Text style={styles.cardTitle}>Conditions</Text>
 
               {doc.commandConditions?.map((condition, index) => (
@@ -696,7 +696,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
             </View>
           </View>
 
-          <View style={styles.signaturesWrap}>
+          <View style={styles.signaturesWrap} wrap={false}>
             <View style={styles.signatureBox}>
               <Text style={styles.signatureTitle}>
                 Visa Responsable des achats
