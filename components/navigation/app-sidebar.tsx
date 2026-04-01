@@ -615,12 +615,12 @@ function AppSidebar() {
                 ? filteredTickTransfert?.length
                 : undefined,
           },
-          {
+          /* {
             pageId: "PG-04-04",
             title: "Rapports",
             href: "/tableau-de-bord/ticket/rapports",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-          },
+          }, */
           /* {
             pageId: "PG-04-03",
             title: "Statistiques",

@@ -1,7 +1,7 @@
 "use client";
 
 import { Pagination } from "@/components/base/pagination";
-import { TabBar } from "@/components/base/TabBar";
+import { TabBar, TabProps } from "@/components/base/TabBar";
 import { ModalWarning } from "@/components/modals/modal-warning";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -172,8 +172,14 @@ export function TicketTable({
     "all" | PaymentRequest["priority"]
   >("all");
   const [selectedTab, setSelectedTab] = useState<number>(0);
-  const tabs = [
-    { id: 0, title: "En attentes d'approbation" },
+  const tabs: TabProps["tabs"] = [
+    {
+      id: 0,
+      title: "En attentes d'approbation",
+      badge: data.filter(
+        (t) => t.status === "accepted" || t.status === "pending",
+      ).length,
+    },
     { id: 1, title: "Tickets traités" },
   ];
 
