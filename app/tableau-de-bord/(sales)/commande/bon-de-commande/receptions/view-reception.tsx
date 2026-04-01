@@ -13,7 +13,6 @@ import {
   Quotation,
   Reception,
   RECEPTION_STATUS,
-  User,
 } from "@/types/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VariantProps } from "class-variance-authority";
@@ -22,7 +21,6 @@ import { fr } from "date-fns/locale";
 import {
   CalendarFold,
   CalendarIcon,
-  CheckIcon,
   FileIcon,
   FileTextIcon,
   HelpCircle,
@@ -30,7 +28,6 @@ import {
   MessageSquareQuoteIcon,
   ScrollText,
   SquareUser,
-  XIcon,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -75,14 +72,14 @@ function ViewReception({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{`${cmdReqs?.title ?? "Non défini"}`}</DialogTitle>
           <DialogDescription>
             {"Réception du bon de commande"}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4">
+        <div className="grid gap-4 grid-cols-1 @min-[640px]/dialog:grid-cols-2">
           <div className="view-group">
             <span className="view-icon">
               <LucideHash />
@@ -146,8 +143,40 @@ function ViewReception({
               </p>
             </div>
           </div>
-          {/**Livrables */}
+          {/**Note */}
           <div className="view-group">
+            <span className="view-icon">
+              <MessageSquareQuoteIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Commentaires"}</p>
+              <p className="font-semibold">
+                {!!reception.note && reception.note.length > 0
+                  ? reception.note
+                  : "Aucune note enregistrée"}
+              </p>
+            </div>
+          </div>
+          {/**Created/Updated */}
+          <div className="view-group">
+            <span className="view-icon">
+              <CalendarIcon />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">
+                {reception.updatedAt ? "Mis à jour le" : "Créé le"}
+              </p>
+              <p className="font-semibold">
+                {format(
+                  new Date(reception.updatedAt || reception.createdAt),
+                  "dd MMMM yyyy",
+                  { locale: fr },
+                )}
+              </p>
+            </div>
+          </div>
+          {/**Livrables */}
+          <div className="col-span-full view-group">
             <span className="view-icon">
               <ScrollText />
             </span>
@@ -155,8 +184,8 @@ function ViewReception({
               <p className="view-group-title">{"Livrables"}</p>
               <div className="grid gap-1">
                 {reception.Deliverables.map((item, id) => (
-                  <span
-                    className="w-full inline-flex gap-1.5 items-center text-sm font-medium"
+                  <div
+                    className="w-full inline-flex gap-1.5 py-1 items-start text-sm font-medium"
                     key={id}
                   >
                     <Badge
@@ -170,24 +199,18 @@ function ViewReception({
                     >
                       {`${item.delivered}/${item.quantity}`}
                     </Badge>
-                    {item.title}
-                  </span>
+                    <div className="flex flex-col text-foreground">
+                      {item.title}
+                      <span className="text-muted-foreground">
+                        {"Mis à jour le "}
+                        {format(new Date(item.updatedAt), "dd MMMM yyyy, p", {
+                          locale: fr,
+                        })}
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
-            </div>
-          </div>
-          {/**Note */}
-          <div className="view-group">
-            <span className="view-icon">
-              <MessageSquareQuoteIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Commentaires"}</p>
-              <p className="font-semibold">
-                {!!reception.note && reception.note.length > 0
-                  ? reception.note
-                  : "Aucune note enregistrée"}
-              </p>
             </div>
           </div>
           {/**Justificatif */}
@@ -220,24 +243,6 @@ function ViewReception({
                   <p className="italic">{"Aucun justificatif"}</p>
                 )}
               </div>
-            </div>
-          </div>
-          {/**Created/Updated */}
-          <div className="view-group">
-            <span className="view-icon">
-              <CalendarIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">
-                {reception.updatedAt ? "Mis à jour le" : "Créé le"}
-              </p>
-              <p className="font-semibold">
-                {format(
-                  new Date(reception.updatedAt || reception.createdAt),
-                  "dd MMMM yyyy",
-                  { locale: fr },
-                )}
-              </p>
             </div>
           </div>
         </div>

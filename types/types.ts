@@ -52,6 +52,7 @@ export const PAYMENT_TYPES = [
   { value: "transport", name: "Transport" },
   { value: "gas", name: "Carburant" },
   { value: "appro", name: "Approvisionnement" },
+  { value: "taxes", name: "Impôts & Taxes" },
 ] as const;
 
 export const PAYMENT_METHOD = [
@@ -579,7 +580,12 @@ export type Reception = {
   Command: BonsCommande;
   Provider: Provider;
   Deliverables: Array<
-    QuotationElement & { isDelivered: boolean; delivered: number }
+    QuotationElement & {
+      isDelivered: boolean;
+      delivered: number;
+      createdAt: Date;
+      updatedAt: Date;
+    }
   >;
   note: string;
 };
