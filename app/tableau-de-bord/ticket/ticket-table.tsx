@@ -2,7 +2,6 @@
 
 import { Pagination } from "@/components/base/pagination";
 import { TabBar } from "@/components/base/TabBar";
-import { DetailTicket } from "@/components/modals/detail-ticket";
 import { ModalWarning } from "@/components/modals/modal-warning";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,13 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -42,14 +34,16 @@ import {
 } from "@/components/ui/table";
 import { cn, getRequestTypeBadge, subText } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { } from "@/queries/commandRqstModule";
+import {} from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
   Invoice,
   PAYMENT_TYPES,
   PAY_STATUS,
   PRIORITIES,
+  PayType,
   PaymentRequest,
+  ProjectT,
   RequestModelT,
   RequestType,
   User,
@@ -80,8 +74,9 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import RejectTicket from "./reject-ticket";
+import ViewExpense from "../(volt)/depenses/view-expense";
 import CardTicket from "./card-ticket";
+import RejectTicket from "./reject-ticket";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
@@ -89,6 +84,8 @@ interface TicketsTableProps {
   invoices: Array<Invoice>;
   users: Array<User>;
   requests: Array<RequestModelT>;
+  projects: Array<ProjectT>;
+  payTypes: Array<PayType>;
 }
 
 const getPriorityBadge = (
@@ -161,6 +158,8 @@ export function TicketTable({
   invoices,
   users,
   requests,
+  projects,
+  payTypes,
 }: TicketsTableProps) {
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<"all" | PaymentRequest["type"]>(
@@ -185,28 +184,28 @@ export function TicketTable({
         selectedTab === 0
           ? c.status === "accepted" || c.status === "pending"
           : c.status === "paid" ||
-          c.status === "validated" ||
-          c.status === "unsigned" ||
-          c.status === "signed" ||
-          c.status === "simple_signed";
+            c.status === "validated" ||
+            c.status === "unsigned" ||
+            c.status === "signed" ||
+            c.status === "simple_signed";
       //searchFilter
       const matchSearch =
         searchFilter === ""
           ? true
           : c.id === Number(searchFilter) ||
-          c.price === Number(searchFilter) ||
-          c.account
-            ?.toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.title
-            .toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.description
-            ?.toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase()) ||
-          c.reference
-            .toLocaleLowerCase()
-            .includes(searchFilter.toLocaleLowerCase());
+            c.price === Number(searchFilter) ||
+            c.account
+              ?.toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.title
+              .toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.description
+              ?.toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase()) ||
+            c.reference
+              .toLocaleLowerCase()
+              .includes(searchFilter.toLocaleLowerCase());
       //TypeFilter
       const matchType = typeFilter === "all" ? true : c.type === typeFilter;
       //StatusFilter
@@ -354,7 +353,9 @@ export function TicketTable({
       },
       cell: ({ row }) => {
         // Afficher la référence ou l'ID
-        return <div>{subText({ text: row.getValue("title"), length: 21 })}</div>;
+        return (
+          <div>{subText({ text: row.getValue("title"), length: 21 })}</div>
+        );
       },
     },
     {
@@ -637,7 +638,7 @@ export function TicketTable({
                           {priorityFilter === "all"
                             ? "Toutes les priorités"
                             : PRIORITIES.find((p) => p.value === priorityFilter)
-                              ?.name || "Sélectionner"}
+                                ?.name || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -688,10 +689,10 @@ export function TicketTable({
                           .toLowerCase()
                           .includes(prioritySearch.toLowerCase()),
                       ).length === 0 && (
-                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                            Aucune priorité trouvée
-                          </div>
-                        )}
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucune priorité trouvée
+                        </div>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -709,7 +710,7 @@ export function TicketTable({
                           {statusFilter === "all"
                             ? "Tous les statuts"
                             : PAY_STATUS.find((s) => s.value === statusFilter)
-                              ?.name || "Sélectionner"}
+                                ?.name || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -768,10 +769,10 @@ export function TicketTable({
                           .toLowerCase()
                           .includes(statusSearch.toLowerCase()),
                       ).length === 0 && (
-                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                            Aucun statut trouvé
-                          </div>
-                        )}
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun statut trouvé
+                        </div>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -789,7 +790,7 @@ export function TicketTable({
                           {typeFilter === "all"
                             ? "Tous les types"
                             : PAYMENT_TYPES.find((t) => t.value === typeFilter)
-                              ?.name || "Sélectionner"}
+                                ?.name || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -836,10 +837,10 @@ export function TicketTable({
                       {PAYMENT_TYPES.filter((t) =>
                         t.name.toLowerCase().includes(typeSearch.toLowerCase()),
                       ).length === 0 && (
-                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                            Aucun type trouvé
-                          </div>
-                        )}
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun type trouvé
+                        </div>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -926,9 +927,9 @@ export function TicketTable({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                       </TableHead>
                     );
                   })}
@@ -990,14 +991,16 @@ export function TicketTable({
       </section>
 
       {!!selectedTicket && (
-        <DetailTicket
+        <ViewExpense
           open={openDetailModal}
-          onOpenChange={setOpenDetailModal}
-          data={selectedTicket}
-          invoice={selectedInvoice}
+          openChange={setOpenDetailModal}
+          payment={selectedTicket}
+          invoices={invoices}
           users={users}
-          types={requestTypeData}
+          requestTypes={requestTypeData}
           requests={requests}
+          projects={projects}
+          payTypes={payTypes}
         />
       )}
 

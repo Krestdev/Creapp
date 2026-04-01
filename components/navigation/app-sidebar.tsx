@@ -2,19 +2,22 @@ import useAuthGuard from "@/hooks/useAuthGuard";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { approbatorRequests } from "@/lib/requests-helpers";
 import { useStore } from "@/providers/datastore";
+import { bankQ } from "@/queries/bank";
 import { categoryQ } from "@/queries/categoryModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { paymentQ } from "@/queries/payment";
+import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
 import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
+import { transactionQ } from "@/queries/transaction";
 import {
   NavigationItemProps,
   RequestModelT,
-  Transaction,
   TransferTransaction,
+  PaymentRequest,
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -34,7 +37,7 @@ import {
   Ticket,
 } from "lucide-react";
 import Link from "next/link";
-import React, { use, useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,11 +54,6 @@ import {
 } from "../ui/sidebar";
 import { Skeleton } from "../ui/skeleton";
 import NavigationItem from "./navigation-item";
-import { StatisticProps } from "../base/TitleValueCard";
-import { XAF } from "@/lib/utils";
-import { transactionQ } from "@/queries/transaction";
-import { payTypeQ } from "@/queries/payType";
-import { bankQ } from "@/queries/bank";
 
 function AppSidebar() {
   const { user, logout, isHydrated } = useStore();
@@ -329,8 +327,19 @@ function AppSidebar() {
   }, [ticketsData]);
 
   const ticketPending = useMemo(() => {
+    const bannedTypes: Array<PaymentRequest["type"]> = [
+      "transport",
+      "others",
+      // "appro",
+      "gas",
+    ];
     if (!ticketsData) return [];
-    return ticketsData.filter((ticket) => ticket.status === "accepted");
+    return ticketsData.filter(
+      (ticket) =>
+        ticket.status === "accepted" ||
+        (ticket.status === "pending" &&
+          !bannedTypes.some((t) => t === ticket.type)),
+    );
   }, [ticketsData]);
 
   const ticketsDataP = useMemo(() => {
