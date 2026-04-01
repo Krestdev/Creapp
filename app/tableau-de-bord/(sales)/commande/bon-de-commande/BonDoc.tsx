@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#111827",
     paddingTop: 92,
-    paddingBottom: 92,
+    paddingBottom: 92 + 72,
     paddingHorizontal: 22,
   },
 
@@ -346,6 +346,10 @@ const styles = StyleSheet.create({
   },
 
   signaturesWrap: {
+    position: "absolute",
+    bottom: 80,
+    left: 22,
+    right: 22,
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
@@ -695,19 +699,19 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
               </View>
             </View>
           </View>
+        </View>
 
-          <View style={styles.signaturesWrap} wrap={false}>
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureTitle}>
-                Visa Responsable des achats
-              </Text>
-              <View style={styles.signatureLine} />
-            </View>
+        <View style={styles.signaturesWrap} fixed>
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureTitle}>
+              Visa Responsable des achats
+            </Text>
+            <View style={styles.signatureLine} />
+          </View>
 
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureTitle}>Visa DG</Text>
-              <View style={styles.signatureLine} />
-            </View>
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureTitle}>Visa DG</Text>
+            <View style={styles.signatureLine} />
           </View>
         </View>
 
