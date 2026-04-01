@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Cell, Pie, PieChart } from "recharts";
 
 import {
@@ -12,6 +13,7 @@ import {
 import {
   ChartContainer,
   ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -33,34 +35,11 @@ interface ChartPieLabelListProps {
   invoices?: Invoice[];
 }
 
-// const PAYMENT_TYPES = {
-//   salary: "Salaire",
-//   invoice: "Facture",
-//   expense: "Dépense",
-//   other: "Autre",
-// } as const;
-
 const CHART_COLORS = [
-  "#2563EB", // bleu
-  "#14B8A6", // turquoise
-  "#16A34A", // vert
-  "#F97316", // orange vif
-  "#059669", // vert émeraude
-  "#DC2626", // rouge
-  "#F59E0B", // orange
-  "#7C3AED", // violet
-  "#0EA5E9", // cyan
-  "#DB2777", // rose
-  "#65A30D", // vert olive
-  "#9333EA", // violet foncé
-  "#EA580C", // orange foncé
-  "#0284C7", // bleu clair
-  "#B91C1C", // rouge foncé
-  "#A16207", // moutarde
-  "#1F2937", // gris foncé
-  "#84CC16", // vert lime
-  "#6366F1", // indigo
-  "#EC4899", // rose vif
+  "#2563EB", "#14B8A6", "#16A34A", "#F97316", "#059669",
+  "#DC2626", "#F59E0B", "#7C3AED", "#0EA5E9", "#DB2777",
+  "#65A30D", "#9333EA", "#EA580C", "#0284C7", "#B91C1C",
+  "#A16207", "#1F2937", "#84CC16", "#6366F1", "#EC4899",
 ];
 
 export function ChartPieLabelList({
@@ -70,52 +49,41 @@ export function ChartPieLabelList({
   projects = [],
   title = "Répartition des dépenses",
 }: ChartPieLabelListProps) {
-  // les Factures (liste des IDs)
-  const invoiceIds = data.flatMap((x) => x.invoiceId);
 
-  // Je vais chercher les fournisseurs des factures qui appartiennent à invoiceIds
-  const providerData = invoices.filter((invoice) =>
-    invoiceIds.includes(invoice.id),
-  );
-
-  // Préparer les données
-  const prepareChartData = () => {
+  // 1. Préparation des données groupées
+  const chartData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
     const groups: Record<string, number> = {};
 
     data.forEach((payment) => {
-      let key = "";
+      let key = "Inconnu";
       const price = payment.price || 0;
 
       switch (chartType) {
         case "type":
-          key =
-            PAYMENT_TYPES.find((x) => x.value === payment.type)?.value ||
-            ("other" as any);
+          const typeLabel = PAYMENT_TYPES.find((x) => x.value === payment.type)?.name;
+          key = typeLabel || "Autre";
           break;
+          
         case "project":
-          key = payment.projectId
-            ? `Projet ${
-                projects.find((p) => p.id === payment.projectId)?.label
-              }`
-            : "Sans projet";
+          const project = projects.find((p) => p.id === payment.projectId);
+          key = project ? `Projet ${project.label}` : "Sans projet";
           break;
+          
         case "fournisseur":
-          const provider =
-            providerData.find((p) => p.id === payment.invoiceId)?.command
-              .provider.name || "Inconnu";
-          key =
-            provider.length > 12 ? `${provider.substring(0, 10)}...` : provider;
+          // Utilisation de == pour comparer string/number si nécessaire
+          const invoice = invoices.find((inv) => inv.id == payment.invoiceId);
+          const providerName = invoice?.command?.provider?.name;
+          key = providerName || "Fournisseur inconnu";
           break;
       }
 
-      if (key) {
-        groups[key] = (groups[key] || 0) + price;
-      }
+      groups[key] = (groups[key] || 0) + price;
     });
 
-    const result = Object.entries(groups)
+    // Transformation en tableau pour Recharts
+    let result = Object.entries(groups)
       .map(([name, amount], index) => ({
         name,
         amount: Math.round(amount * 100) / 100,
@@ -123,212 +91,133 @@ export function ChartPieLabelList({
       }))
       .sort((a, b) => b.amount - a.amount);
 
-    // Limiter à 5 catégories pour la lisibilité
+    // Limitation à 5 catégories pour la lisibilité
     if (result.length > 5) {
       const top = result.slice(0, 4);
       const others = result.slice(4);
       const othersTotal = others.reduce((sum, item) => sum + item.amount, 0);
 
-      return [
+      result = [
         ...top,
         {
           name: "Autres",
           amount: Math.round(othersTotal * 100) / 100,
-          fill: CHART_COLORS[5],
+          fill: "#94a3b8", 
         },
       ];
     }
 
     return result;
-  };
+  }, [data, chartType, invoices, projects]);
 
-  const chartData = prepareChartData();
-  const totalAmount = chartData.reduce((sum, item) => sum + item.amount, 0);
+  const totalAmount = React.useMemo(() => 
+    chartData.reduce((sum, item) => sum + item.amount, 0), 
+  [chartData]);
 
-  const translateType = (type: string) => {
-    switch (type) {
-      case "FAC":
-        return "Facilitation";
-      case "RH":
-        return "RH";
-      case "SPECIAL":
-        return "Special";
-      case "PURCHASE":
-        return "Achat";
-      case "Autre":
-        return "Autre";
-      default:
-        return type;
-    }
-  };
+  // 2. Configuration pour le composant ChartContainer de shadcn/ui
+  const chartConfig = React.useMemo(() => {
+    const config = {
+      amount: { label: "Montant" },
+    } as ChartConfig;
 
-  // Calculer les pourcentages pour les labels - 2 chiffres après la virgule
-  const chartDataWithPercent = chartData.map((item) => ({
-    ...item,
-    name: PAYMENT_TYPES.find((e) => e.value === item.name)?.name || "others",
-    // CORRECTION : utiliser toFixed(2) au lieu de Math.round
-    percent:
-      totalAmount > 0
-        ? parseFloat(((item.amount / totalAmount) * 100).toFixed(2))
-        : 0,
-  }));
-
-  // Config du graphique
-  const chartConfig = chartDataWithPercent.reduce(
-    (config, item) => {
+    chartData.forEach((item) => {
       config[item.name] = {
         label: item.name,
         color: item.fill,
       };
-      return config;
-    },
-    {
-      amount: {
-        label: "Montant",
-      },
-    } as ChartConfig,
-  );
+    });
 
-  // Fonction pour afficher les pourcentages sur les portions
+    return config;
+  }, [chartData]);
+
+  // 3. Label personnalisé au centre des portions
   const renderCustomizedLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
+    cx, cy, midAngle, innerRadius, outerRadius, percent
   }: any) => {
-    // Ne pas afficher de label si le pourcentage est trop petit
-    if (percent < 0.05) return null;
+    if (percent < 0.05) return null; // Ne pas afficher si trop petit (< 5%)
 
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    // CORRECTION : multiplier par 100 et formater avec 2 décimales
-    const displayPercent = percent.toFixed(2);
-
     return (
       <text
-        x={x}
-        y={y}
+        x={x} y={y}
         fill="white"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={10}
-        fontWeight="bold"
-        className="drop-shadow-sm pointer-events-none text-[10px]"
+        className="text-[10px] font-bold pointer-events-none"
       >
-        {`${displayPercent}%`}
+        {`${(percent * 100).toFixed(1)}%`}
       </text>
     );
   };
 
-  if (!data || data.length === 0) {
+  if (chartData.length === 0) {
     return (
-      <Card className="h-full">
-        <CardHeader>
-          <CardTitle className="text-sm">{title}</CardTitle>
-        </CardHeader>
-        <CardContent className="h-48 flex items-center justify-center">
-          <p className="text-muted-foreground">Aucune donnée disponible</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (chartDataWithPercent.length === 0) {
-    return (
-      <Card className="h-full">
-        <CardHeader>
-          <CardTitle className="text-sm">{title}</CardTitle>
-        </CardHeader>
-        <CardContent className="h-48 flex items-center justify-center">
-          <p className="text-muted-foreground">Pas de données pour ce type</p>
-        </CardContent>
+      <Card className="h-full flex flex-col items-center justify-center p-6">
+        <p className="text-muted-foreground">Aucune donnée disponible</p>
       </Card>
     );
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">{title}</CardTitle>
+    <Card className="flex flex-col h-full">
+      <CardHeader className="items-center pb-0">
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        {/* Graphique en haut */}
-        <div className="mb-4">
-          <ChartContainer
-            style={{ height: "350px", width: "100%" }}
-            config={chartConfig}
-          >
-            <PieChart>
-              <ChartTooltip
-                cursor={{ fill: "transparent" }}
-                content={
-                  <ChartTooltipContent
-                    nameKey="name"
-                    labelKey="name"
-                    formatter={(value, name, props) => {
-                      // Afficher le pourcentage avec 2 décimales
-                      const percent =
-                        totalAmount > 0
-                          ? parseFloat(
-                              ((Number(value) / totalAmount) * 100).toFixed(2),
-                            )
-                          : 0;
-                      return [
-                        <div key="tooltip" className="space-y-1 min-w-[160px]">
-                          <div className="font-semibold text-sm">{name}</div>
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <span className="text-muted-foreground">
-                              Montant:
-                            </span>
-                            <span className="font-semibold text-right">
-                              {XAF.format(Number(value))}
-                            </span>
-                            <span className="text-muted-foreground">Part:</span>
-                            <span className="font-semibold text-right">
-                              {percent.toFixed(2)}%
-                            </span>
-                          </div>
-                        </div>,
-                      ];
-                    }}
-                  />
-                }
-              />
-              <Pie
-                data={chartDataWithPercent}
-                dataKey="amount"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                label={renderCustomizedLabel}
-                labelLine={false}
-              >
-                {chartDataWithPercent.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.fill}
-                    className="transition-opacity hover:opacity-90 cursor-pointer"
-                  />
-                ))}
-              </Pie>
-              <ChartLegend
-                layout="vertical"
-                verticalAlign="middle"
-                align="right"
-                spacing={20}
-              />
-            </PieChart>
-          </ChartContainer>
-        </div>
+      <CardContent className="flex-1 pb-0">
+        <ChartContainer
+          config={chartConfig}
+          className="mx-auto aspect-square max-h-[350px] pb-0 [&_.recharts-pie-label-line]:display-none"
+        >
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent 
+                  hideLabel 
+                  formatter={(value, name) => (
+                    <div className="flex flex-col gap-1 min-w-[120px]">
+                      <span className="font-bold text-foreground">{name}</span>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Montant:</span>
+                        <span className="font-medium">{XAF.format(Number(value))}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Part:</span>
+                        <span className="font-medium">
+                          {((Number(value) / totalAmount) * 100).toFixed(2)}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                />
+              }
+            />
+            <Pie
+              data={chartData}
+              dataKey="amount"
+              nameKey="name"
+              innerRadius={60}
+              strokeWidth={5}
+              label={renderCustomizedLabel}
+              labelLine={false}
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} />
+              ))}
+            </Pie>
+            <ChartLegend
+              content={<ChartLegendContent nameKey="name" />}
+              className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
+            />
+          </PieChart>
+        </ChartContainer>
       </CardContent>
-      <CardFooter>
-        <div className="mx-auto text-gray-500">
+      <CardFooter className="flex-col gap-2 text-sm">
+        <div className="flex items-center gap-2 font-medium leading-none">
           Total: {XAF.format(totalAmount)}
         </div>
       </CardFooter>
