@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#111827",
     paddingTop: 92,
-    paddingBottom: 42,
+    paddingBottom: 92 + 72,
     paddingHorizontal: 22,
   },
 
@@ -346,6 +346,10 @@ const styles = StyleSheet.create({
   },
 
   signaturesWrap: {
+    position: "absolute",
+    bottom: 80,
+    left: 22,
+    right: 22,
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
@@ -437,7 +441,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
       <Page size="A4" style={styles.page} wrap>
         <Image fixed style={styles.watermark} src="/images/crea.jpg" />
 
-        <View style={styles.content}>
+        <View style={styles.content} wrap>
           <View style={styles.topGrid} fixed>
             <View style={styles.blockLeft}>
               <View>
@@ -527,7 +531,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
                   <View style={[styles.providerCell, styles.providerCellLast]}>
                     <Text style={styles.providerLabel}>Régime fiscal</Text>
                     <Text style={styles.providerValue}>
-                      {real ? "Réel" : "Simplifié"}
+                      {real ? "Réel" : "Impôt Général Synthétique"}
                     </Text>
                   </View>
                 </View>
@@ -616,7 +620,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
           </View>
 
           <View style={styles.financeWrap}>
-            <View style={styles.conditionsCard}>
+            <View style={styles.conditionsCard} wrap={false}>
               <Text style={styles.cardTitle}>Conditions</Text>
 
               {doc.commandConditions?.map((condition, index) => (
@@ -695,19 +699,19 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
               </View>
             </View>
           </View>
+        </View>
 
-          <View style={styles.signaturesWrap}>
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureTitle}>
-                Visa Responsable des achats
-              </Text>
-              <View style={styles.signatureLine} />
-            </View>
+        <View style={styles.signaturesWrap} fixed>
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureTitle}>
+              Visa Responsable des achats
+            </Text>
+            <View style={styles.signatureLine} />
+          </View>
 
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureTitle}>Visa DG</Text>
-              <View style={styles.signatureLine} />
-            </View>
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureTitle}>Visa DG</Text>
+            <View style={styles.signatureLine} />
           </View>
         </View>
 

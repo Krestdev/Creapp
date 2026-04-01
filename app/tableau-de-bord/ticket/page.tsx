@@ -16,6 +16,8 @@ import { PaymentRequest } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { TicketTable } from "./ticket-table";
+import { projectQ } from "@/queries/projectModule";
+import { payTypeQ } from "@/queries/payType";
 
 function Page() {
   const { user } = useStore();
@@ -50,11 +52,21 @@ function Page() {
     queryFn: invoiceQ.getAll,
   });
 
+  const getProjects = useQuery({
+    queryKey: ["projects"],
+    queryFn: projectQ.getAll,
+  });
+
+  const getPayTypes = useQuery({
+    queryKey: ["payTypes"],
+    queryFn: payTypeQ.getAll,
+  });
+
   const ticketsData: Array<PaymentRequest> = useMemo(() => {
     const bannedTypes: Array<PaymentRequest["type"]> = [
       "transport",
       "others",
-      "appro",
+      // "appro",
       "gas",
     ];
     if (!data) return [];
@@ -97,7 +109,9 @@ function Page() {
     getPurchase.isLoading ||
     getInvoices.isLoading ||
     getRequests.isLoading ||
-    getUsers.isLoading
+    getUsers.isLoading ||
+    getProjects.isLoading ||
+    getPayTypes.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -108,7 +122,9 @@ function Page() {
     getPurchase.isError ||
     getInvoices.isError ||
     getRequests.isError ||
-    getUsers.isError
+    getUsers.isError ||
+    getProjects.isError ||
+    getPayTypes.isError
   ) {
     return (
       <ErrorPage
@@ -118,7 +134,9 @@ function Page() {
           getPurchase.error! ||
           getInvoices.error! ||
           getUsers.error ||
-          getRequests.error
+          getRequests.error ||
+          getProjects.error ||
+          getPayTypes.error
         }
       />
     );
@@ -130,7 +148,9 @@ function Page() {
     getPurchase.isSuccess &&
     getInvoices.isSuccess &&
     getRequests.isSuccess &&
-    getUsers.isSuccess
+    getUsers.isSuccess &&
+    getProjects.isSuccess &&
+    getPayTypes.isSuccess
   ) {
     return (
       <div className="flex flex-col gap-6">
@@ -178,9 +198,11 @@ function Page() {
           <TicketTable
             invoices={getInvoices.data.data}
             data={ticketsData}
-            requestTypeData={getRequestType.data?.data}
+            requestTypeData={getRequestType.data.data}
             users={getUsers.data.data}
             requests={getRequests.data.data}
+            projects={getProjects.data.data}
+            payTypes={getPayTypes.data.data}
           />
         ) : (
           <Empty message={"Aucun ticket disponible"} />
