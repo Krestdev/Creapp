@@ -978,7 +978,7 @@ export function DataVal({
                   <LucideBan className="text-destructive" />
                   {"Rejeter"}
                 </DropdownMenuItem>
-                {item.type === "facilitation" && (
+                {(item.type === "facilitation" || item.type === "others") && item.state === "validated" && (
                   <DropdownMenuItem
                     onClick={() => {
                       setSelectedItem(item);
