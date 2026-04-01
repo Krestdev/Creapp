@@ -382,13 +382,14 @@ const styles = StyleSheet.create({
 
   footer: {
     position: "absolute",
-    bottom: 60,
+    bottom: 28,
     left: 22,
     right: 22,
     flexDirection: "row",
     justifyContent: "center",
-    fontSize: 8,
-    color: "#b30505",
+    fontSize: 14,
+    color: "#ffffff",
+    fontWeight: "bold",
   },
 });
 
@@ -718,7 +719,7 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
         <View style={styles.footer} fixed>
           <Text
             render={({ pageNumber, totalPages }) =>
-              `Page ${pageNumber} / ${totalPages}`
+              `${pageNumber}/${totalPages}`
             }
           />
         </View>

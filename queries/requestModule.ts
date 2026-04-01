@@ -369,6 +369,31 @@ class RequestQueries {
         return response.data;
       });
   };
+  createTaxesRequest = async (
+    payload: newRequestOthers,
+  ): Promise<RequestModelT> => {
+    const formData = new FormData();
+    formData.append("label", payload.label);
+    formData.append("description", payload.description);
+    formData.append("amount", payload.amount.toString());
+    formData.append("unit", payload.unit);
+    formData.append("priority", payload.priority);
+    formData.append("type", "taxes");
+    // formData.append("beneficiary", "");
+    if (payload.categoryId)
+      formData.append("categoryId", payload.categoryId.toString());
+    if (payload.projectId)
+      formData.append("projectId", payload.projectId.toString());
+    if (payload.paytype) formData.append("paytype", payload.paytype);
+    if (payload.proof) formData.append("proof", payload.proof[0]);
+    return api
+      .post(`${this.route}/special`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
+  };
   createTransportRequest = async (
     payload: newRequestTransport,
   ): Promise<RequestModelT> => {

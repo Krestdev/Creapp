@@ -36,7 +36,7 @@ const Page = () => {
           subtitle="Consulter et gérez les types de besoins"
         />
         <div className="grid-stats-4">
-          {getRequestType.data?.data.map((item) => (
+          {getRequestType.data.data.map((item) => (
             <Card key={item.id} className="h-full justify-between">
               <div>
                 <CardHeader className="flex justify-between">

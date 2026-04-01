@@ -30,6 +30,7 @@ import CreateTypeOthers from "./create-type-others";
 import CreateTypeTransport from "./create-type-transport";
 import { ArrowLeft } from "lucide-react";
 import CreateTypeApprovisionement from "./create-type-approvisionement";
+import CreateTypeTaxes from "./create-type-taxes";
 
 const Page = () => {
   const { user } = useStore();
@@ -153,6 +154,14 @@ const Page = () => {
               projects={getProjects.data.data}
             />
           );
+        case "taxes":
+          return (
+            <CreateTypeTaxes
+              users={getUsers.data.data}
+              categories={getCategories.data.data}
+              projects={getProjects.data.data}
+            />
+          );
         default:
           return null;
       }
@@ -247,6 +256,15 @@ const Page = () => {
           return {
             className:
               "border-indigo-200 from-indigo-50 to-indigo-100 text-indigo-500",
+          };
+        case "appro":
+          return {
+            className:
+              "border-slate-200 from-slate-50 to-slate-100 text-slate-500",
+          };
+        case "taxes":
+          return {
+            className: "border-blue-200 from-blue-50 to-blue-100 text-blue-500",
           };
         default:
           return {
