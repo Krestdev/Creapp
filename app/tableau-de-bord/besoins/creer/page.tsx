@@ -167,7 +167,7 @@ const Page = () => {
       }
     };
 
-    const types = getRequestType.data.data;
+    const types = getRequestType.data.data.filter((t) => t.type !== "taxes"); //To-Do : Remove this filter since its temporary
 
     const rolePermissions: Record<string, Array<string>> = {
       SUPERADMIN: ["*"],

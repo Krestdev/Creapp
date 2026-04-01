@@ -2,8 +2,10 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -58,30 +60,30 @@ export function SoldeDialog({ open, onOpenChange }: ApproveTicketProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-3xl">
         {/* Header - FIXE EN HAUT */}
         <DialogHeader variant={"default"}>
           <DialogTitle className="uppercase">
             {"Soldes des comptes"}
           </DialogTitle>
           <DialogDescription>
-            {"Consultez vos soldes de comptes ici."}
+            {"Consultez les soldes de comptes enregistrés"}
           </DialogDescription>
         </DialogHeader>
         {/* Cartes récapitulatives */}
-        <div className="grid grid-cols-2 gap-3 px-4 pt-4">
-          <div className="flex items-center justify-between p-4 bg-black border border-blue-200 text-white rounded-lg">
+        <div className="grid grid-cols-1 @min-[640px]/dialog:grid-cols-2 rounded-lg overflow-hidden">
+          <div className="flex items-center justify-between p-4 bg-primary-100 text-primary-800">
             <div>
-              <h3 className="font-medium">{"Total banques"}</h3>
-              <p className="text-sm font-semibold">
+              <h3 className="font-medium text-slate-900">{"Total banques"}</h3>
+              <p className="text-xl font-semibold">
                 {totalBank !== undefined ? XAF.format(totalBank) : "N/A"}
               </p>
             </div>
           </div>
-          <div className="shadow flex items-center justify-between p-4 bg-[#15803D] border border-green-200 text-white rounded-lg">
+          <div className="shadow flex items-center justify-between p-4 bg-secondary text-white">
             <div>
               <h3 className="font-medium">{"Total caisses"}</h3>
-              <p className="text-sm font-semibold">
+              <p className="text-xl font-semibold">
                 {totalCash !== undefined ? XAF.format(totalCash) : "N/A"}
               </p>
             </div>
@@ -89,10 +91,10 @@ export function SoldeDialog({ open, onOpenChange }: ApproveTicketProps) {
         </div>
 
         {/* Contenu scrollable */}
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex-1">
           <div className="space-y-4">
             {/* Liste détaillée des comptes */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 @min-[480px]/dialog:grid-cols-2 @min-[640px]/dialog:grid-cols-3 gap-3">
               {getBanks.isSuccess &&
                 getBanks.data.data
                   .filter((c) => !!c.type)
@@ -114,15 +116,11 @@ export function SoldeDialog({ open, onOpenChange }: ApproveTicketProps) {
         </div>
 
         {/* Footer - FIXE EN BAS */}
-        <div className="shrink-0 flex w-full justify-end gap-3 px-6 py-4 border-t">
-          <Button
-            variant="outline"
-            className="bg-transparent"
-            onClick={() => onOpenChange(false)}
-          >
-            {"Fermer"}
-          </Button>
-        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">{"Fermer"}</Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -302,7 +302,7 @@ export function getRequestTypeBadge({ type, requestTypes }: typesProps): {
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
   const typeData = requestTypes.find((t) => t.type === type);
-  const label = typeData?.label ?? type;
+  const label = subText({ text: typeData?.label ?? type, length: 16 });
   switch (type) {
     case "facilitation":
       return { label, variant: "lime" };
@@ -371,7 +371,7 @@ export function getPaymentTypeBadge({
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
   const typeData = typeList.find((t) => t.type === type);
-  const label = typeData?.label ?? type;
+  const label = subText({ text: typeData?.label ?? type, length: 16 });
   switch (type) {
     case "facilitation":
       return { label, variant: "lime" };
