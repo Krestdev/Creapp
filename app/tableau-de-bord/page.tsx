@@ -9,8 +9,6 @@ import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import React, { useMemo, useState } from "react";
-
-// Imports pour les composants UI
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -52,11 +50,11 @@ import {
 } from "lucide-react";
 import { transactionQ } from "@/queries/transaction";
 import { bankQ } from "@/queries/bank";
-import TransactionChart from "@/components/base/transaction-chart";
 import { projectQ } from "@/queries/projectModule";
 import { invoiceQ } from "@/queries/invoices";
 import LoadingPage from "@/components/loading-page";
 import ErrorPage from "@/components/error-page";
+import { ChartAreaInteractiveAll } from "@/components/Charts/BarcharAll";
 
 const DashboardPage = () => {
   const { user } = useStore();
@@ -67,15 +65,25 @@ const DashboardPage = () => {
     role: "Donneur d'ordre décaissement",
   });
   const manager = isRole({ roleList: user?.role ?? [], role: "manager" });
+  const super_admin = isRole({
+    roleList: user?.role ?? [],
+    role: "SUPERADMIN",
+  });
 
   // Récupérer les paiements
-  const { data: paymentsData, isSuccess, isLoading, isError, error } = useQuery({
+  const {
+    data: paymentsData,
+    isSuccess,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["payments"],
     queryFn: paymentQ.getAll,
     enabled: volt_manager || accountant || volt,
   });
 
-   // My requests (Mes besoins)
+  // My requests (Mes besoins)
   const myRequestsData = useQuery({
     queryKey: ["requests-user", user?.id],
     queryFn: () => {
@@ -88,9 +96,16 @@ const DashboardPage = () => {
   });
 
   // Requests to Approve (Approbation des besoins)
- const allRequestsData = useQuery({
+  const requestToApprove = useQuery({
     queryKey: ["requests-for-approval"],
     queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
+    enabled: !!user,
+  });
+
+  // All request
+  const allRequests = useQuery({
+    queryKey: ["requests"],
+    queryFn: async () => requestQ.getAll(),
     enabled: !!user,
   });
 
@@ -113,7 +128,7 @@ const DashboardPage = () => {
   const getInvoices = useQuery({
     queryKey: ["invoices"],
     queryFn: invoiceQ.getAll,
-    enabled: volt_manager || accountant || volt
+    enabled: volt_manager || accountant || volt,
   });
 
   const [filters, setFilters] = useState<TableFilters>({
@@ -291,11 +306,105 @@ const DashboardPage = () => {
     }, [requestData.data?.data, filters]);
   };
 
+  const useFilteredAllRequests = (
+    requestData: UseQueryResult<{ data: RequestModelT[] }, Error>,
+    filters: TableFilters,
+  ) => {
+    return React.useMemo(() => {
+      if (!requestData.data?.data) {
+        return [];
+      }
+
+      let filtered: RequestModelT[] = requestData.data.data
+
+      // Filtrer par date
+      if (filters.dateFilter) {
+        const now = new Date();
+        let startDate = new Date();
+        let endDate = now;
+
+        switch (filters.dateFilter) {
+          case "today":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "week":
+            startDate.setDate(
+              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+            );
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "month":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          case "custom":
+            if (filters.customDateRange?.from && filters.customDateRange?.to) {
+              startDate = filters.customDateRange.from;
+              endDate = filters.customDateRange.to;
+              endDate.setHours(23, 59, 59, 999);
+            }
+            break;
+        }
+
+        filtered = filtered.filter((item) => {
+          const itemDate = new Date(item.createdAt);
+          return itemDate >= startDate && itemDate <= endDate;
+        });
+      }
+
+      // Filtrer par statut
+      if (filters.statusFilter && filters.statusFilter !== "all") {
+        filtered = filtered.filter(
+          (item) => item.state === filters.statusFilter,
+        );
+      }
+
+      // Filtrer par catégorie
+      if (filters.categoryFilter && filters.categoryFilter !== "all") {
+        filtered = filtered.filter(
+          (item) => String(item.categoryId) === String(filters.categoryFilter),
+        );
+      }
+
+      // Filtrer par recherche globale
+      if (filters.globalFilter) {
+        const searchValue = filters.globalFilter.toLowerCase();
+        filtered = filtered.filter((item) => {
+          const searchText = [item.label || "", item.ref || ""]
+            .join(" ")
+            .toLowerCase();
+          return searchText.includes(searchValue);
+        });
+      }
+
+      // Filtrer par projet
+      if (filters.projectFilter && filters.projectFilter !== "all") {
+        filtered = filtered.filter(
+          (item) => String(item.projectId) === String(filters.projectFilter),
+        );
+      }
+
+      // Filtrer par utilisateur (si nécessaire)
+      if (filters.userFilter && filters.userFilter !== "all") {
+        filtered = filtered.filter(
+          (item) => String(item.userId) === String(filters.userFilter),
+        );
+      }
+
+      return filtered;
+    }, [requestData.data?.data, filters]);
+  };
+
   // Utiliser le hook avec tous les filtres pour "Mes besoins"
   const getMyFilteredData = useFilteredRequests(myRequestsData, filters);
 
   // Utiliser le hook avec tous les filtres pour "Besoins reçus" (tous les besoins)
-  const getAllFilteredData = useFilteredRequests(allRequestsData, filters);
+  const getrequestToApprove = useFilteredRequests(requestToApprove, filters);
+
+  // Utiliser le hook avec tous les filtres pour "Besoins reçus" (tous les besoins)
+  const getAllFilteredData = useFilteredAllRequests(allRequests, filters);
 
   // Filtrer les données des paiements (dépenses payées)
   const getFilteredPayments = useMemo((): PaymentRequest[] => {
@@ -402,6 +511,31 @@ const DashboardPage = () => {
     }
   };
 
+  const getAllSubtitle = () => {
+    if (filters.dateFilter === "custom" && filters.customDateRange) {
+      const fromStr = format(filters.customDateRange.from, "dd/MM/yyyy", {
+        locale: fr,
+      });
+      const toStr = format(filters.customDateRange.to, "dd/MM/yyyy", {
+        locale: fr,
+      });
+      return `Consulter tous les besoins du ${fromStr} au ${toStr}`;
+    }
+
+    switch (filters.dateFilter) {
+      case "today":
+        return "Consulter tous les besoins d'aujourd'hui";
+      case "week":
+        return "Consulter tous les besoins des 7 derniers jours";
+      case "month":
+        return "Consulter tous les besoins du mois en cours";
+      case "year":
+        return "Consulter tous les besoins de l'année en cours";
+      default:
+        return "Consulter tous les besoins (30 derniers jours)";
+    }
+  };
+
   // Calcul des statistiques des besoins de l'utilisateur
   const mySoumis = getMyFilteredData.length || 0;
   const myAttentes =
@@ -410,7 +544,16 @@ const DashboardPage = () => {
     getMyFilteredData.filter((item) => item.state === "rejected").length ?? 0;
   const myValidés = mySoumis - myAttentes - myRejetes;
 
-  // Calcul des statistiques de tous les besoins (reçus)
+  // Calcul des statistiques de tous les besoins a approuver (reçus)
+  const allSoumisApproves = getrequestToApprove.length || 0;
+  const allAttentesApproves =
+    getrequestToApprove.filter((item) => item.state === "pending").length ?? 0;
+  const allRejetesApproves =
+    getrequestToApprove.filter((item) => item.state === "rejected").length ?? 0;
+  const allValidésApproves =
+    allSoumisApproves - allAttentesApproves - allRejetesApproves;
+
+  // Calcul des statistiques de tous les besoins
   const allSoumis = getAllFilteredData.length || 0;
   const allAttentes =
     getAllFilteredData.filter((item) => item.state === "pending").length ?? 0;
@@ -425,9 +568,48 @@ const DashboardPage = () => {
   );
   const nombreDepenses = getFilteredPayments.length;
 
-  if(isLoading || myRequestsData.isLoading || allRequestsData.isLoading || getTransactions.isLoading || getBanks.isLoading || getInvoices.isLoading || getProjects.isLoading) return <LoadingPage/>
-  if(isError || myRequestsData.isError || allRequestsData.isError || getTransactions.isError || getBanks.isError || getInvoices.isError || getProjects.isError) return <ErrorPage error={error || myRequestsData.error || allRequestsData.error || getTransactions.error || getBanks.error || getInvoices.error || getProjects.error || undefined}/>
-  if(isSuccess || myRequestsData.isSuccess || allRequestsData.isSuccess || getTransactions.isSuccess || getBanks.isSuccess || getInvoices.isSuccess || getProjects.isSuccess) {
+  if (
+    isLoading ||
+    myRequestsData.isLoading ||
+    requestToApprove.isLoading ||
+    getTransactions.isLoading ||
+    getBanks.isLoading ||
+    getInvoices.isLoading ||
+    getProjects.isLoading
+  )
+    return <LoadingPage />;
+  if (
+    isError ||
+    myRequestsData.isError ||
+    requestToApprove.isError ||
+    getTransactions.isError ||
+    getBanks.isError ||
+    getInvoices.isError ||
+    getProjects.isError
+  )
+    return (
+      <ErrorPage
+        error={
+          error ||
+          myRequestsData.error ||
+          requestToApprove.error ||
+          getTransactions.error ||
+          getBanks.error ||
+          getInvoices.error ||
+          getProjects.error ||
+          undefined
+        }
+      />
+    );
+  if (
+    isSuccess ||
+    myRequestsData.isSuccess ||
+    requestToApprove.isSuccess ||
+    getTransactions.isSuccess ||
+    getBanks.isSuccess ||
+    getInvoices.isSuccess ||
+    getProjects.isSuccess
+  ) {
     return (
       <div className="content">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -435,7 +617,7 @@ const DashboardPage = () => {
             <h1 className="font-bold">{"Tableau de bord"}</h1>
             <h4 className="font-extralight tracking-wide">{`Bonjour ${user?.firstName}`}</h4>
           </div>
-  
+
           {/* Filtre de période */}
           <DropdownMenu>
             <DropdownMenuTrigger className="h-10 inline-flex gap-2 flex-row items-center text-base border border-input px-5 rounded-md shadow-xs bg-background hover:bg-accent hover:text-accent-foreground">
@@ -533,7 +715,7 @@ const DashboardPage = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-  
+
         {/* Modal pour la sélection de dates personnalisées */}
         <Dialog
           open={isCustomDateModalOpen}
@@ -546,7 +728,7 @@ const DashboardPage = () => {
                 {"Choisissez la période que vous souhaitez filtrer"}
               </DialogDescription>
             </DialogHeader>
-  
+
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -562,7 +744,9 @@ const DashboardPage = () => {
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {tempCustomDateRange?.from ? (
-                          format(tempCustomDateRange.from, "PPP", { locale: fr })
+                          format(tempCustomDateRange.from, "PPP", {
+                            locale: fr,
+                          })
                         ) : (
                           <span>Sélectionner une date</span>
                         )}
@@ -584,7 +768,7 @@ const DashboardPage = () => {
                     </PopoverContent>
                   </Popover>
                 </div>
-  
+
                 <div className="space-y-2">
                   <Label htmlFor="date-to">Date de fin</Label>
                   <Popover>
@@ -621,7 +805,7 @@ const DashboardPage = () => {
                   </Popover>
                 </div>
               </div>
-  
+
               <div className="rounded-md border p-4">
                 <Calendar
                   mode="range"
@@ -635,7 +819,7 @@ const DashboardPage = () => {
                 />
               </div>
             </div>
-  
+
             <DialogFooter>
               <Button
                 variant="outline"
@@ -647,7 +831,7 @@ const DashboardPage = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-  
+
         {/* Cartes de statistiques */}
         <div className="grid-stats-4">
           <StatsCard
@@ -672,8 +856,19 @@ const DashboardPage = () => {
             className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
             dvalueColor="text-green-600"
           />
+          <StatsCard
+            title="Total besoins"
+            titleColor="text-[#52525B]"
+            value={String(allSoumis)}
+            description="Besoins approuvés :"
+            descriptionValue={String(allValidés)}
+            descriptionColor="text-[#A1A1AA]"
+            dividerColor="bg-[#DFDFDF]"
+            className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
+            dvalueColor="text-green-600"
+          />
         </div>
-  
+
         {/* Graphique 1: Mes besoins */}
         <ChartAreaInteractive
           filteredData={getMyFilteredData}
@@ -683,7 +878,7 @@ const DashboardPage = () => {
           description={getSubtitle()}
           type="my"
         />
-  
+
         {/* <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
           <StatsCard
             titleColor="text-[#E4E4E7]"
@@ -708,11 +903,11 @@ const DashboardPage = () => {
             dvalueColor="text-blue-600"
           />
         </div> */}
-  
+
         {/* Graphique 2: Besoins reçus */}
         {manager && (
           <ChartAreaInteractive
-            filteredData={getAllFilteredData}
+            filteredData={getrequestToApprove}
             dateFilter={filters.dateFilter}
             customDateRange={filters.customDateRange}
             title="Besoins reçus"
@@ -720,7 +915,18 @@ const DashboardPage = () => {
             type="all"
           />
         )}
-  
+
+        {super_admin && (
+          <ChartAreaInteractiveAll
+            filteredData={getAllFilteredData}
+            dateFilter={filters.dateFilter}
+            customDateRange={filters.customDateRange}
+            title="Tous les besoins"
+            description={getAllSubtitle()}
+            type="all"
+          />
+        )}
+
         {paymentsData?.data && (
           <Card className="py-4">
             <CardHeader className="flex flex-col items-stretch border-b sm:flex-row">
@@ -762,7 +968,6 @@ const DashboardPage = () => {
       </div>
     );
   }
-
 };
 
 export default DashboardPage;
