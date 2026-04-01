@@ -349,6 +349,7 @@ function ExpensesTable({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
       createdAt: false,
+      updatedAt: false
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -659,6 +660,25 @@ function ExpensesTable({
             <span className="line-clamp-1">{value.title ?? "--"}</span>
           </div>
         );
+      },
+    },
+    {
+      accessorKey: "paytype",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Moyen de paiement"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const paytype = value.method?.label
+        return <span className="line-clamp-1 first-letter:uppercase">{paytype ?? "--"}</span>
       },
     },
     {
