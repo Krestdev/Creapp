@@ -192,9 +192,9 @@ function BesoinLastApproVall({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] max-h-[90vh] p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-3xl">
         {/* Header - FIXE EN HAUT */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+        <DialogHeader>
           <DialogTitle>{"Validation de l'approvisionnement"}</DialogTitle>
           <DialogDescription>
             {"Validez les informations de l'approvisionnement"}
@@ -203,212 +203,210 @@ function BesoinLastApproVall({
 
         <Form {...form}>
           {/* Contenu scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <div className="space-y-4 grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="label"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Titre"}</FormLabel>
-                    <FormControl>
-                      <Input disabled placeholder="Ex. Carburant" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="space-y-4 grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="label"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Titre"}</FormLabel>
+                  <FormControl>
+                    <Input disabled placeholder="Ex. Carburant" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* Category */}
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Categorie"}</FormLabel>
-                    <FormControl>
-                      <Select
-                        defaultValue={
-                          field.value ? String(field.value) : undefined
-                        }
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="min-w-60 w-full">
-                          <SelectValue placeholder="Sélectionner" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.filter((c) => c.type.type === "appro")
-                            .length === 0 ? (
-                            <SelectItem value="#" disabled>
-                              {"Aucune catégorie enregistrée"}
-                            </SelectItem>
-                          ) : (
-                            categories
-                              .filter((c) => c.type.type === "appro")
-                              .map((category) => (
-                                <SelectItem
-                                  key={category.id}
-                                  value={category.id.toString()}
-                                >
-                                  {category.label}
-                                </SelectItem>
-                              ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem className="@min-[640px]:col-span-full">
-                    <FormLabel isRequired>{"Motif"}</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex. Carburant" {...field} disabled />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Project */}
-              <FormField
-                control={form.control}
-                name="projectId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Project"}</FormLabel>
-                    <FormControl>
-                      <Select
-                        defaultValue={
-                          field.value ? String(field.value) : undefined
-                        }
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="min-w-60 w-full">
-                          <SelectValue placeholder="Sélectionner" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {projects.length === 0 ? (
-                            <SelectItem value="#" disabled>
-                              {"Aucun projet enregistré"}
-                            </SelectItem>
-                          ) : (
-                            projects
-                              .filter((x) => x.status !== "cancelled")
-                              .map((category) => (
-                                <SelectItem
-                                  key={category.id}
-                                  value={category.id.toString()}
-                                >
-                                  {category.label}
-                                </SelectItem>
-                              ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Date limite de soumission */}
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => {
-                  const selectedDate = field.value
-                    ? new Date(field.value)
-                    : undefined;
-
-                  return (
-                    <FormItem>
-                      <FormLabel isRequired>{"Date limite"}</FormLabel>
-                      <FormControl>
-                        <div className="relative flex gap-2">
-                          <Input
-                            id={field.name}
-                            value={field.value || ""}
-                            placeholder="Sélectionner une date"
-                            className="bg-background pr-10"
-                            onChange={(e) => {
-                              field.onChange(e.target.value);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "ArrowDown") {
-                                e.preventDefault();
-                                setDueDate(true);
-                              }
-                            }}
-                          />
-                          <Popover open={dueDate} onOpenChange={setDueDate}>
-                            <PopoverTrigger asChild>
-                              <Button
-                                id="date-picker"
-                                type="button"
-                                variant="ghost"
-                                className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+            {/* Category */}
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Categorie"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      defaultValue={
+                        field.value ? String(field.value) : undefined
+                      }
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="min-w-60 w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.filter((c) => c.type.type === "appro")
+                          .length === 0 ? (
+                          <SelectItem value="#" disabled>
+                            {"Aucune catégorie enregistrée"}
+                          </SelectItem>
+                        ) : (
+                          categories
+                            .filter((c) => c.type.type === "appro")
+                            .map((category) => (
+                              <SelectItem
+                                key={category.id}
+                                value={category.id.toString()}
                               >
-                                <CalendarIcon className="size-3.5" />
-                                <span className="sr-only">
-                                  {"Sélectionner une date"}
-                                </span>
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto overflow-hidden p-0"
-                              align="end"
-                              alignOffset={-8}
-                              sideOffset={10}
-                            >
-                              <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                defaultMonth={selectedDate || today}
-                                captionLayout="dropdown"
-                                onSelect={(date) => {
-                                  if (!date) return;
-                                  const value = format(date, "yyyy-MM-dd");
-                                  field.onChange(value);
-                                  setDueDate(false);
-                                }}
-                                disabled={(date) => date < new Date()}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
+                                {category.label}
+                              </SelectItem>
+                            ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* Amount */}
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="@min-[640px]:col-span-full">
+                  <FormLabel isRequired>{"Motif"}</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex. Carburant" {...field} disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Project */}
+            <FormField
+              control={form.control}
+              name="projectId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Project"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      defaultValue={
+                        field.value ? String(field.value) : undefined
+                      }
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="min-w-60 w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projects.length === 0 ? (
+                          <SelectItem value="#" disabled>
+                            {"Aucun projet enregistré"}
+                          </SelectItem>
+                        ) : (
+                          projects
+                            .filter((x) => x.status !== "cancelled")
+                            .map((category) => (
+                              <SelectItem
+                                key={category.id}
+                                value={category.id.toString()}
+                              >
+                                {category.label}
+                              </SelectItem>
+                            ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Date limite de soumission */}
+            <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => {
+                const selectedDate = field.value
+                  ? new Date(field.value)
+                  : undefined;
+
+                return (
                   <FormItem>
-                    <FormLabel isRequired>{"Montant"}</FormLabel>
+                    <FormLabel isRequired>{"Date limite"}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex. 100" {...field} />
+                      <div className="relative flex gap-2">
+                        <Input
+                          id={field.name}
+                          value={field.value || ""}
+                          placeholder="Sélectionner une date"
+                          className="bg-background pr-10"
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowDown") {
+                              e.preventDefault();
+                              setDueDate(true);
+                            }
+                          }}
+                        />
+                        <Popover open={dueDate} onOpenChange={setDueDate}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              id="date-picker"
+                              type="button"
+                              variant="ghost"
+                              className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                            >
+                              <CalendarIcon className="size-3.5" />
+                              <span className="sr-only">
+                                {"Sélectionner une date"}
+                              </span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-auto overflow-hidden p-0"
+                            align="end"
+                            alignOffset={-8}
+                            sideOffset={10}
+                          >
+                            <Calendar
+                              mode="single"
+                              selected={selectedDate}
+                              defaultMonth={selectedDate || today}
+                              captionLayout="dropdown"
+                              onSelect={(date) => {
+                                if (!date) return;
+                                const value = format(date, "yyyy-MM-dd");
+                                field.onChange(value);
+                                setDueDate(false);
+                              }}
+                              disabled={(date) => date < new Date()}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
-              />
-            </div>
+                );
+              }}
+            />
+
+            {/* Amount */}
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Montant"}</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex. 100" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           {/* Boutons - FIXE EN BAS */}
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
+          <DialogFooter>
             <Button
               variant="outline"
               type="button"

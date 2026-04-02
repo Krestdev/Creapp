@@ -34,7 +34,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
-import { newRequestOthers, requestQ } from "@/queries/requestModule";
+import { requestQ, RequestTaxes } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -57,12 +57,21 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
   ...(typeof PRIORITIES)[number]["value"][],
 ];
 
+const methods = [
+  { value: "cash", label: "Espèces" },
+  { value: "chq", label: "Chèque" },
+  { value: "ov", label: "Virement" },
+] as const;
+
+const PAY_METHODS = methods.map((m) => m.value);
+
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
-const SingleFileSchema = z
-  .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
-  .min(1, { message: "Le justificatif est requis" });
+const SingleFileSchema = z.array(
+  z.instanceof(File, { message: "Doit être un fichier valide" }),
+);
+//.min(1, { message: "Le justificatif est requis" });
 
 const formSchema = z.object({
   label: z
@@ -87,6 +96,7 @@ const formSchema = z.object({
   unit: z.string().min(1, "Veuillez sélectionner une unité"),
   priority: z.enum(REQUEST_PRIORITIES),
   proof: SingleFileSchema,
+  payType: z.enum(["cash", "chq", "ov"]),
 });
 
 function CreateTypeTaxes({ users, categories, projects }: Props) {
@@ -108,11 +118,12 @@ function CreateTypeTaxes({ users, categories, projects }: Props) {
       categoryId: undefined,
       projectId: undefined,
       proof: [],
+      payType: undefined,
     },
   });
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (payload: newRequestOthers) =>
+    mutationFn: async (payload: RequestTaxes) =>
       requestQ.createTaxesRequest(payload),
     onSuccess: () => {
       toast.success("Votre besoin a été soumis avec succès !");
@@ -135,8 +146,9 @@ function CreateTypeTaxes({ users, categories, projects }: Props) {
       priority: values.priority,
       categoryId: values.categoryId,
       projectId: values.projectId,
-      paytype: "cash",
+      paytype: values.payType,
       proof: values.proof,
+      userId: user?.id ?? 0,
     });
   };
 
@@ -336,6 +348,30 @@ function CreateTypeTaxes({ users, categories, projects }: Props) {
         />
         <FormField
           control={form.control}
+          name="payType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+              <FormControl>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="min-w-60 w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {methods.map((method) => (
+                      <SelectItem key={method.value} value={method.value}>
+                        {method.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="amount"
           render={({ field }) => (
             <FormItem>
@@ -466,7 +502,7 @@ function CreateTypeTaxes({ users, categories, projects }: Props) {
           name="proof"
           render={({ field }) => (
             <FormItem className="col-span-full">
-              <FormLabel isRequired>{"Justificatif"}</FormLabel>
+              <FormLabel>{"Justificatif"}</FormLabel>
               <FormControl>
                 <FilesUpload
                   value={field.value || []}
@@ -485,8 +521,7 @@ function CreateTypeTaxes({ users, categories, projects }: Props) {
           <Button
             variant={"primary"}
             type="submit"
-            //disabled={isPending}
-            disabled
+            disabled={isPending}
             isLoading={isPending}
           >
             {"Soumettre"}

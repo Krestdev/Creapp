@@ -318,6 +318,10 @@ export function getRequestTypeBadge({ type, requestTypes }: typesProps): {
       return { label, variant: "primary" };
     case "others":
       return { label, variant: "dark" };
+    case "taxes":
+      return { label, variant: "orange" };
+    case "appro":
+      return { label, variant: "fuchsia" };
     default:
       return { label, variant: "outline" };
   }
@@ -429,6 +433,44 @@ export function getPaymentPriorityBadge({
       };
   }
 }
+
+export const getRoleBadge = (
+  data: Role,
+): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} => {
+  const { label } = data;
+  switch (label) {
+    case "USER":
+      return { label: "Employé", variant: "outline" };
+    case "MANAGER":
+      return { label: "Validateur", variant: "pink" };
+    case "SALES":
+      return { label: "Responsable d'achat", variant: "sky" };
+    case "SALES_MANAGER":
+      return { label: "Donneur d'ordre d'achat", variant: "teal" };
+    case "SUPERADMIN":
+      return { label: "Super Administrateur", variant: "purple" };
+    case "ADMIN":
+      return { label: "Administrateur", variant: "indigo" };
+    case "VOLT":
+      return { label: "Trésorier", variant: "lime" };
+    case "VOLT_MANAGER":
+      return {
+        label: "Donneur d'ordre de décaissement",
+        variant: "destructive",
+      };
+    case "RH":
+      return { label: "Ressources Humaines", variant: "orange" };
+    case "ACCOUNTANT":
+      return { label: "Comptable", variant: "blue" };
+    case "DRIVER":
+      return { label: "Conducteur", variant: "fuchsia" };
+    default:
+      return { label, variant: "dark" };
+  }
+};
 
 export const formatFCFA = (value?: number) => {
   if (typeof value !== "number") return "0 FCFA";
