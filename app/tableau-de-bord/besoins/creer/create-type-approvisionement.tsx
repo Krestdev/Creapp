@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -227,35 +228,26 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
           name="projectId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Project"}</FormLabel>
-              <FormControl>
-                <Select
-                  defaultValue={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="min-w-60 w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.length === 0 ? (
-                      <SelectItem value="#" disabled>
-                        {"Aucun projet enregistré"}
-                      </SelectItem>
-                    ) : (
-                      projects
-                        .filter((x) => x.status !== "cancelled")
-                        .map((category) => (
-                          <SelectItem
-                            key={category.id}
-                            value={category.id.toString()}
-                          >
-                            {category.label}
-                          </SelectItem>
-                        ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </FormControl>
+              <FormLabel isRequired>{"Projet concerné"}</FormLabel>
+              <SearchableSelect
+                onChange={field.onChange}
+                options={
+                  projects
+                    .filter(
+                      (p) =>
+                        p.status !== "cancelled" &&
+                        p.status !== "Completed" &&
+                        p.status !== "on-hold",
+                    )
+                    .map((p) => ({
+                      value: p.id!.toString(),
+                      label: p.label,
+                    })) ?? []
+                }
+                value={field.value?.toString() || ""}
+                width="w-full"
+                allLabel=""
+              />
               <FormMessage />
             </FormItem>
           )}
