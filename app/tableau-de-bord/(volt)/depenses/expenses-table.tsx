@@ -24,6 +24,7 @@ import {
   DollarSign,
   Download,
   Eye,
+  FilePenLineIcon,
   Settings2,
   Signature,
   XCircle,
@@ -101,6 +102,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Calendar } from "@/components/ui/calendar";
+import AddProove from "./addProove";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -349,7 +351,7 @@ function ExpensesTable({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
       createdAt: false,
-      updatedAt: false
+      updatedAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -363,6 +365,7 @@ function ExpensesTable({
   const [showPay, setShowPay] = React.useState<boolean>(false);
   const [showGas, setShowGas] = React.useState<boolean>(false);
   const [showShare, setShowShare] = React.useState<boolean>(false);
+  const [showAddFile, setShowAddFile] = React.useState<boolean>(false);
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const [typeFilter, setTypeFilter] = React.useState<
     "all" | PaymentRequest["type"]
@@ -677,8 +680,12 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const paytype = value.method?.label
-        return <span className="line-clamp-1 first-letter:uppercase">{paytype ?? "--"}</span>
+        const paytype = value.method?.label;
+        return (
+          <span className="line-clamp-1 first-letter:uppercase">
+            {paytype ?? "--"}
+          </span>
+        );
       },
     },
     {
@@ -895,6 +902,17 @@ function ExpensesTable({
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
+              {item.status === "paid" && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelected(item);
+                    setShowAddFile(true);
+                  }}
+                >
+                  <FilePenLineIcon />
+                  {"Ajouter la preuve"}
+                </DropdownMenuItem>
+              )}
               {item.type === "gas" && (
                 <DropdownMenuItem
                   disabled={isGasComplete(item)}
@@ -1850,6 +1868,11 @@ function ExpensesTable({
             requests={request}
             requestTypes={requestTypes}
             vehicles={vehicles}
+          />
+          <AddProove
+            ticket={selected}
+            open={showAddFile}
+            onOpenChange={setShowAddFile}
           />
         </>
       )}

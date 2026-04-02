@@ -42,7 +42,7 @@ const SingleFileArray = z
   .nullable();
 
 const formSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1, "Le nom du fournisseur est obligatoire"),
   phone: z.string(),
   // .min(1)
   // .refine((val) => !isNaN(Number(val)), {
@@ -112,7 +112,7 @@ const formSchema = z.object({
     .optional(),
   RCCM: z.string().optional(),
   NIU: z.string().optional(),
-  regem: z.string().optional(),
+  regem: z.string().min(1, "Le régime du fournisseur est obligatoire"),
 });
 
 export default function CreateProviderForm() {
@@ -183,7 +183,9 @@ export default function CreateProviderForm() {
       address: values.address,
       carte_contribuable: values.carte_contribuable?.[0],
       acf: values.acf?.[0],
-      expireAtacf: values.expireAtacf ? new Date(values.expireAtacf) : undefined,
+      expireAtacf: values.expireAtacf
+        ? new Date(values.expireAtacf)
+        : undefined,
       expireAtcarte_contribuable: values.expireAtcarte_contribuable
         ? new Date(values.expireAtcarte_contribuable)
         : undefined,
@@ -319,6 +321,7 @@ export default function CreateProviderForm() {
                   ))}
                 </SelectContent>
               </Select>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -350,9 +353,7 @@ export default function CreateProviderForm() {
           name="expireAtcarte_contribuable"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                {"Date d'expiration Carte contribuable"}
-              </FormLabel>
+              <FormLabel>{"Date d'expiration Carte contribuable"}</FormLabel>
               <FormControl>
                 <div className="relative flex gap-2">
                   <Input
@@ -528,9 +529,7 @@ export default function CreateProviderForm() {
           name="expireAtplan_localisation"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                {"Date d'expiration Plan de localisation"}
-              </FormLabel>
+              <FormLabel>{"Date d'expiration Plan de localisation"}</FormLabel>
               <FormControl>
                 <div className="relative flex gap-2">
                   <Input
@@ -620,9 +619,7 @@ export default function CreateProviderForm() {
           name="expireAtcommerce_registre"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                {"Date d'expiration Registre de commerce"}
-              </FormLabel>
+              <FormLabel>{"Date d'expiration Registre de commerce"}</FormLabel>
               <FormControl>
                 <div className="relative flex gap-2">
                   <Input

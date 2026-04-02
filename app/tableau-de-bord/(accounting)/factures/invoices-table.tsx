@@ -94,6 +94,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox";
+import EditInvoice from "./EditInvoice";
 
 interface Props {
   invoices: Array<Invoice>;
@@ -158,7 +159,7 @@ export function InvoicesTable({
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPayments, setShowPayments] = React.useState<boolean>(false);
   const [cancel, setCancel] = React.useState<boolean>(false);
-  const [statusSearch, setStatusSearch] = React.useState("");
+  const [edit, setEdit] = React.useState(false);
 
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | Invoice["status"]
@@ -498,6 +499,19 @@ export function InvoicesTable({
                 <WalletCardsIcon />
                 {"Voir les paiements"}
               </DropdownMenuItem>
+              {item.payment &&
+                item.payment.filter((x) => x.status !== "rejected").length === 0
+                 && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelected(item);
+                      setEdit(true);
+                    }}
+                  >
+                    <WalletCardsIcon />
+                    {"Modifier la facture"}
+                  </DropdownMenuItem>
+                )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
@@ -984,30 +998,34 @@ export function InvoicesTable({
 
       <Pagination table={table} />
       {selected && (
-        <ViewInvoice
-          invoice={selected}
-          open={showDetail}
-          openChange={setShowDetail}
-          purchases={purchases}
-          users={users}
-        />
-      )}
-      {selected && (
-        <ViewInvoicePayment
-          invoice={selected}
-          open={showPayments}
-          openChange={setShowPayments}
-          purchases={purchases}
-          payments={payments}
-        />
-      )}
-      {selected && (
-        <CancelInvoice
-          invoice={selected}
-          open={cancel}
-          openChange={setCancel}
-          purchases={purchases}
-        />
+        <>
+          <ViewInvoice
+            invoice={selected}
+            open={showDetail}
+            openChange={setShowDetail}
+            purchases={purchases}
+            users={users}
+          />
+          <ViewInvoicePayment
+            invoice={selected}
+            open={showPayments}
+            openChange={setShowPayments}
+            purchases={purchases}
+            payments={payments}
+          />
+          <CancelInvoice
+            invoice={selected}
+            open={cancel}
+            openChange={setCancel}
+            purchases={purchases}
+          />
+          <EditInvoice
+            invoice={selected}
+            open={edit}
+            openChange={setEdit}
+            purchases={purchases}
+          />
+        </>
       )}
     </div>
   );

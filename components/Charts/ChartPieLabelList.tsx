@@ -23,7 +23,9 @@ import {
   Invoice,
   PAYMENT_TYPES,
   PaymentRequest,
+  PayType,
   ProjectT,
+  RequestType,
 } from "@/types/types";
 
 interface ChartPieLabelListProps {
@@ -33,13 +35,30 @@ interface ChartPieLabelListProps {
   description?: string;
   projects?: ProjectT[];
   invoices?: Invoice[];
+  requestType?: RequestType[];
 }
 
 const CHART_COLORS = [
-  "#2563EB", "#14B8A6", "#16A34A", "#F97316", "#059669",
-  "#DC2626", "#F59E0B", "#7C3AED", "#0EA5E9", "#DB2777",
-  "#65A30D", "#9333EA", "#EA580C", "#0284C7", "#B91C1C",
-  "#A16207", "#1F2937", "#84CC16", "#6366F1", "#EC4899",
+  "#2563EB",
+  "#14B8A6",
+  "#16A34A",
+  "#F97316",
+  "#059669",
+  "#DC2626",
+  "#F59E0B",
+  "#7C3AED",
+  "#0EA5E9",
+  "#DB2777",
+  "#65A30D",
+  "#9333EA",
+  "#EA580C",
+  "#0284C7",
+  "#B91C1C",
+  "#A16207",
+  "#1F2937",
+  "#84CC16",
+  "#6366F1",
+  "#EC4899",
 ];
 
 export function ChartPieLabelList({
@@ -47,9 +66,9 @@ export function ChartPieLabelList({
   chartType,
   invoices = [],
   projects = [],
+  requestType = [],
   title = "Répartition des dépenses",
 }: ChartPieLabelListProps) {
-
   // 1. Préparation des données groupées
   const chartData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -62,15 +81,18 @@ export function ChartPieLabelList({
 
       switch (chartType) {
         case "type":
-          const typeLabel = PAYMENT_TYPES.find((x) => x.value === payment.type)?.name;
+          // const typeLabel = PAYMENT_TYPES.find((x) => x.value === payment.type)?.name;
+          const typeLabel = requestType.find(
+            (x) => x.type === payment.type,
+          )?.label;
           key = typeLabel || "Autre";
           break;
-          
+
         case "project":
           const project = projects.find((p) => p.id === payment.projectId);
           key = project ? `Projet ${project.label}` : "Sans projet";
           break;
-          
+
         case "fournisseur":
           // Utilisation de == pour comparer string/number si nécessaire
           const invoice = invoices.find((inv) => inv.id == payment.invoiceId);
@@ -102,7 +124,7 @@ export function ChartPieLabelList({
         {
           name: "Autres",
           amount: Math.round(othersTotal * 100) / 100,
-          fill: "#94a3b8", 
+          fill: "#94a3b8",
         },
       ];
     }
@@ -110,9 +132,10 @@ export function ChartPieLabelList({
     return result;
   }, [data, chartType, invoices, projects]);
 
-  const totalAmount = React.useMemo(() => 
-    chartData.reduce((sum, item) => sum + item.amount, 0), 
-  [chartData]);
+  const totalAmount = React.useMemo(
+    () => chartData.reduce((sum, item) => sum + item.amount, 0),
+    [chartData],
+  );
 
   // 2. Configuration pour le composant ChartContainer de shadcn/ui
   const chartConfig = React.useMemo(() => {
@@ -132,7 +155,12 @@ export function ChartPieLabelList({
 
   // 3. Label personnalisé au centre des portions
   const renderCustomizedLabel = ({
-    cx, cy, midAngle, innerRadius, outerRadius, percent
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
   }: any) => {
     if (percent < 0.05) return null; // Ne pas afficher si trop petit (< 5%)
 
@@ -143,7 +171,8 @@ export function ChartPieLabelList({
 
     return (
       <text
-        x={x} y={y}
+        x={x}
+        y={y}
         fill="white"
         textAnchor="middle"
         dominantBaseline="central"
@@ -162,6 +191,8 @@ export function ChartPieLabelList({
     );
   }
 
+  // ... (reste du code identique au début)
+
   return (
     <Card className="flex flex-col h-full">
       <CardHeader className="items-center pb-0">
@@ -170,20 +201,23 @@ export function ChartPieLabelList({
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[350px] pb-0 [&_.recharts-pie-label-line]:display-none"
+          // On retire "mx-auto" et on utilise flex pour aligner le SVG et la légende
+          className="aspect-square max-h-[350px] w-full [&_.recharts-pie-label-line]:display-none"
         >
           <PieChart>
             <ChartTooltip
               cursor={false}
               content={
-                <ChartTooltipContent 
-                  hideLabel 
+                <ChartTooltipContent
+                  hideLabel
                   formatter={(value, name) => (
                     <div className="flex flex-col gap-1 min-w-[120px]">
                       <span className="font-bold text-foreground">{name}</span>
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Montant:</span>
-                        <span className="font-medium">{XAF.format(Number(value))}</span>
+                        <span className="font-medium">
+                          {XAF.format(Number(value))}
+                        </span>
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Part:</span>
@@ -209,16 +243,21 @@ export function ChartPieLabelList({
                 <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
             </Pie>
+
+            {/* MODIFICATIONS ICI POUR LA LÉGENDE */}
             <ChartLegend
               content={<ChartLegendContent nameKey="name" />}
-              className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
+              layout="vertical"
+              align="right" 
+              verticalAlign="middle" 
+              className="flex-col items-start! gap-2 ml-4" 
             />
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
+      <CardFooter className="flex-col gap-2 text-sm border-top pt-4">
         <div className="flex items-center gap-2 font-medium leading-none">
-          Total: {XAF.format(totalAmount)}
+          Total cumulé : {XAF.format(totalAmount)}
         </div>
       </CardFooter>
     </Card>

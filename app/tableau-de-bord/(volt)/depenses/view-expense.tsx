@@ -212,7 +212,6 @@ function ViewExpense({
             </div>
           </div>
 
-
           {/* Type */}
           <div className="view-group">
             <span className="view-icon">
@@ -270,13 +269,34 @@ function ViewExpense({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Bénéficiaire"}</p>
                 <p>
-                  {request?.type === "facilitation"
-                    ? users.find((u) => u.id === request.benFac?.list[0].id)?.firstName +
-                    " " +
-                    users.find((u) => u.id === request.benFac?.list[0].id)?.lastName
-                    : users.find((u) => u.id === payment.userId)?.firstName +
-                    " " +
-                    users.find((u) => u.id === payment.userId)?.lastName}
+                  {(() => {
+                    // Vérifier dans beneficiary (string)
+                    if (request?.beneficiary && request.beneficiary !== "me") {
+                      const user = users.find(
+                        (x) => x.id === Number(request.beneficiary),
+                      );
+                      if (user) {
+                        return `${user.firstName} ${user.lastName}`;
+                      }
+                    }
+
+                    // Vérifier dans beneficiaryList (array)
+                    if (
+                      request?.beficiaryList &&
+                      request.beficiaryList.length > 0
+                    ) {
+                      const names = request.beficiaryList
+                        .map((b) =>
+                          `${b.firstName || ""} ${b.lastName || ""}`.trim(),
+                        )
+                        .filter((name) => name)
+                        .join(", ");
+                      if (names) {
+                        return names;
+                      }
+                    }
+                    return "--";
+                  })()}
                 </p>
               </div>
             </div>
@@ -627,7 +647,7 @@ function ViewExpense({
                   {signataires?.mode === "ONE"
                     ? "Un dans la liste"
                     : signataires?.mode === "BOTH" &&
-                      signataires.user?.length > 1
+                        signataires.user?.length > 1
                       ? "Tous les signataires"
                       : "Un seul signataire"}
                 </p>
