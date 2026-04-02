@@ -801,3 +801,12 @@ export type CommandCondition = {
   title: string;
   content: string;
 };
+
+export interface Sign {
+  id: number;
+  userId: number;
+  createdAt: Date;
+  updatedAt: Date;
+  signature: string;
+  user: User;
+}

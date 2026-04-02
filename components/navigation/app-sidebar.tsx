@@ -22,6 +22,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
+  CircleUserRoundIcon,
   ClipboardList,
   DollarSign,
   EllipsisVertical,
@@ -736,6 +737,13 @@ function AppSidebar() {
         href: "/tableau-de-bord/parametres",
         authorized: ["SUPERADMIN", "ADMIN"],
         title: "Paramètres",
+      },
+      {
+        pageId: "PG-55540665489",
+        title: "Mon Compte",
+        href: "/tableau-de-bord/profil",
+        authorized: ["USER"],
+        icon: CircleUserRoundIcon,
       },
     ];
 
