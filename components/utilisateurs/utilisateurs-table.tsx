@@ -20,16 +20,13 @@ import {
   LucidePen,
   LucideX,
   Search,
-  Shield,
   Trash2,
-  User,
   UserCheck,
   UserX,
-  Users,
 } from "lucide-react";
 import * as React from "react";
 
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -56,7 +53,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { TranslateRole } from "@/lib/utils";
+import { getRoleBadge, TranslateRole } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { signatairQ } from "@/queries/signatair";
@@ -69,7 +66,6 @@ import { ModalWarning } from "../modals/modal-warning";
 import UpdateUser from "./UpdateUser";
 import { ShowUser } from "./show-user";
 import UpdatePassword from "./updatePassword";
-import { VariantProps } from "class-variance-authority";
 
 interface UtilisateursTableProps {
   data: UserT[];
@@ -116,44 +112,6 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     // Trier les rôles par ordre alphabétique
     return allRoles.sort((a, b) => a.localeCompare(b));
   }, [data]);
-
-  const getRoleBadge = (
-    data: Role,
-  ): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } => {
-    const { label } = data;
-    switch (label) {
-      case "USER":
-        return { label: "Employé", variant: "outline" };
-      case "MANAGER":
-        return { label: "Validateur", variant: "pink" };
-      case "SALES":
-        return { label: "Responsable d'achat", variant: "sky" };
-      case "SALES_MANAGER":
-        return { label: "Donneur d'ordre d'achat", variant: "teal" };
-      case "SUPERADMIN":
-        return { label: "Super Administrateur", variant: "purple" };
-      case "ADMIN":
-        return { label: "Administrateur", variant: "indigo" };
-      case "VOLT":
-        return { label: "Trésorier", variant: "lime" };
-      case "VOLT_MANAGER":
-        return {
-          label: "Donneur d'ordre de décaissement",
-          variant: "destructive",
-        };
-      case "RH":
-        return { label: "Ressources Humaines", variant: "orange" };
-      case "ACCOUNTANT":
-        return { label: "Comptable", variant: "blue" };
-      case "DRIVER":
-        return { label: "Conducteur", variant: "fuchsia" };
-      default:
-        return { label, variant: "dark" };
-    }
-  };
 
   const getRowColor = (status: boolean) => {
     switch (status) {
@@ -272,7 +230,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           return (
             <div className="flex flex-wrap gap-1">
               {role?.map((rol) => {
-                const {label, variant} = getRoleBadge(rol);
+                const { label, variant } = getRoleBadge(rol);
                 return (
                   <Badge key={rol.id} variant={variant}>
                     {label}
@@ -464,7 +422,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                     setIsUpdatePasswordModalOpen(true);
                   }}
                 >
-                  <LucidePen/>
+                  <LucidePen />
                   {"Modifier le mot de passe"}
                 </DropdownMenuItem>
                 {utilisateur.status === "inactive" ? (
