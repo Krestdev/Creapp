@@ -138,6 +138,7 @@ export type User = {
   members: Member[];
   validators?: { id?: number; userId: number; rank: number }[];
   signatairs?: Array<Signatair>;
+  signature?: Document;
 };
 
 export type Role = {
@@ -802,11 +803,20 @@ export type CommandCondition = {
   content: string;
 };
 
-export interface Sign {
-  id: number;
-  userId: number;
+export type Document = {
+  id: string;
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  destination: string;
+  filename: string;
+  path: string;
+  size: number;
+  role: string;
+  ownerId: string;
+  ownerType: string;
   createdAt: Date;
   updatedAt: Date;
-  signature: string;
-  user: User;
-}
+  userId: number | null;
+};
