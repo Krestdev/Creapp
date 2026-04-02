@@ -139,14 +139,13 @@ function ProfilePage({ user, requests }: Props) {
       variant: "secondary",
     },
     {
-      title: "Validé",
+      title: "Validés",
       value: stats.validated,
       variant: "success",
-    },
-    {
-      title: "Rejeté",
-      value: stats.rejected,
-      variant: "destructive",
+      more: {
+        title: "Rejetés",
+        value: stats.rejected,
+      },
     },
   ];
 

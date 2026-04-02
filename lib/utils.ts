@@ -318,6 +318,10 @@ export function getRequestTypeBadge({ type, requestTypes }: typesProps): {
       return { label, variant: "primary" };
     case "others":
       return { label, variant: "dark" };
+    case "taxes":
+      return { label, variant: "orange" };
+    case "appro":
+      return { label, variant: "fuchsia" };
     default:
       return { label, variant: "outline" };
   }
