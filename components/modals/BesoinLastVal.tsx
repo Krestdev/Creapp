@@ -75,7 +75,7 @@ export function BesoinLastVal({
   titre,
   description,
   categories,
-  users
+  users,
 }: ValidationModalProps) {
   const [openD, setOpenD] = useState(false);
   const { isHydrated, user } = useStore();
@@ -169,9 +169,28 @@ export function BesoinLastVal({
 
   const submitForm = async (values: FormValues) => {
     const { unit, quantity, ...rest } = values;
-    const payload: Partial<RequestModelT> = (data.type === "gas" || data.type === "transport") 
-      ? { id: data.id, label: rest.title, description: rest.description, priority: rest.priority, dueDate: rest.dueDate, userId: data.userId, amount: rest.amount, unit: unit, quantity: Number(quantity) } 
-      : { id: data.id, label: rest.title, description: rest.description, priority: rest.priority, dueDate: rest.dueDate, userId: data.userId, amount: rest.amount };
+    const payload: Partial<RequestModelT> =
+      data.type === "gas" || data.type === "transport"
+        ? {
+            id: data.id,
+            label: rest.title,
+            description: rest.description,
+            priority: rest.priority,
+            dueDate: rest.dueDate,
+            userId: data.userId,
+            amount: rest.amount,
+            unit: unit,
+            quantity: Number(quantity),
+          }
+        : {
+            id: data.id,
+            label: rest.title,
+            description: rest.description,
+            priority: rest.priority,
+            dueDate: rest.dueDate,
+            userId: data.userId,
+            amount: rest.amount,
+          };
     try {
       requestMutation.mutate(payload);
     } catch {
@@ -208,225 +227,227 @@ export function BesoinLastVal({
     }
   }, [open, data]);
 
-  const requestBy = users.find(u => u.id === data.userId);
+  const requestBy = users.find((u) => u.id === data.userId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col max-h-[90vh] p-0">
+      <DialogContent className="sm:max-w-xl">
         {/* HEADER - Fixé en haut */}
         <DialogHeader
           variant={isError ? "error" : isSuccess ? "success" : "default"}
-          className="px-6 pt-6 pb-4 border-b shrink-0"
         >
-          <DialogTitle>
-            {"Approbation"}
-          </DialogTitle>
+          <DialogTitle>{"Approbation"}</DialogTitle>
           <DialogDescription>{headerDescription}</DialogDescription>
         </DialogHeader>
 
         {/* FORM - Zone scrollable */}
         {!isSuccess && !isError && (
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(submitForm)}
-                className="space-y-4"
-              >
-                {/* Titre */}
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(submitForm)}
+              className="space-y-4"
+            >
+              {/* Titre */}
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Titre"}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="ex. Chantier Duval"
+                        {...field}
+                        disabled
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {!!requestBy && (
+                <div className="grid gap-2">
+                  <Label>{"Emetteur"}</Label>
+                  <Input
+                    value={requestBy.firstName.concat(" ", requestBy.lastName)}
+                    disabled
+                  />
+                </div>
+              )}
+
+              {!!data.amount && (
                 <FormField
                   control={form.control}
-                  name="title"
+                  name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel isRequired>{"Titre"}</FormLabel>
+                      <FormLabel>{"Montant"}</FormLabel>
                       <FormControl>
-                        <Input placeholder="ex. Chantier Duval" {...field} disabled />
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            placeholder="Ex. 15 000 FCFA"
+                            {...field}
+                            className="pr-12"
+                          />
+                          <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                            {"FCFA"}
+                          </p>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
-                {!!requestBy && (
-                  <div className="grid gap-2">
-                    <Label>{"Emetteur"}</Label>
-                    <Input value={requestBy.firstName.concat(" ", requestBy.lastName)} disabled />
-                  </div>
-                )}
-                
-                {!!data.amount && (
-                  <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Montant"}</FormLabel>
+              )}
+
+              {/* Date */}
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Date limite"}</FormLabel>
+                    <Popover open={openD} onOpenChange={setOpenD}>
+                      <PopoverTrigger asChild>
                         <FormControl>
-                          <div className="relative">
-                            <Input
-                              type="number"
-                              placeholder="Ex. 15 000 FCFA"
-                              {...field}
-                              className="pr-12"
-                            />
-                            <p className="absolute right-2 top-1/2 -translate-y-1/2">
-                              {"FCFA"}
-                            </p>
-                          </div>
+                          <Button
+                            variant="outline"
+                            className="w-full h-10 justify-between font-normal"
+                          >
+                            {field.value
+                              ? format(field.value, "PPP", { locale: fr })
+                              : "Sélectionner une date"}
+                            <ChevronDownIcon />
+                          </Button>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(date) => {
+                            field.onChange(date);
+                            setOpenD(false);
+                          }}
+                          locale={fr}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
 
-                {/* Date */}
-                <FormField
-                  control={form.control}
-                  name="dueDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Date limite"}</FormLabel>
-                      <Popover open={openD} onOpenChange={setOpenD}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className="w-full h-10 justify-between font-normal"
-                            >
-                              {field.value
-                                ? format(field.value, "PPP", { locale: fr })
-                                : "Sélectionner une date"}
-                              <ChevronDownIcon />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(date) => {
-                              field.onChange(date);
-                              setOpenD(false);
-                            }}
-                            locale={fr}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Priorité */}
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Priorité"}</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={isPending}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionnez une priorité" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="low">{"Normale"}</SelectItem>
-                          <SelectItem value="medium">{"Moyenne"}</SelectItem>
-                          <SelectItem value="high">{"Haute"}</SelectItem>
-                          <SelectItem value="urgent">{"Urgente"}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Quantité */}
-                {data.type !== "transport" && (
-                  <FormField
-                    control={form.control}
-                    name="quantity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel isRequired>{"Quantité"}</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Quantité..."
-                            {...field}
-                            disabled={isPending}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {/* UNIT */}
-                {data.type !== "transport" && (
-                  <FormField
-                    control={form.control}
-                    name="unit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Unité"}</FormLabel>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
-                              <SelectValue placeholder="Sélectionner l'unité" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {units.map((unit) => (
-                              <SelectItem key={unit.value} value={unit.value}>
-                                {unit.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {/* Description */}
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Description"}</FormLabel>
+              {/* Priorité */}
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Priorité"}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={isPending}
+                    >
                       <FormControl>
-                        <Textarea
-                          rows={4}
-                          className="resize-none"
-                          placeholder="Description détaillée..."
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionnez une priorité" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="low">{"Normale"}</SelectItem>
+                        <SelectItem value="medium">{"Moyenne"}</SelectItem>
+                        <SelectItem value="high">{"Haute"}</SelectItem>
+                        <SelectItem value="urgent">{"Urgente"}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Quantité */}
+              {data.type !== "transport" && (
+                <FormField
+                  control={form.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel isRequired>{"Quantité"}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Quantité..."
                           {...field}
-                          disabled
+                          disabled={isPending}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </form>
-            </Form>
-          </div>
+              )}
+
+              {/* UNIT */}
+              {data.type !== "transport" && (
+                <FormField
+                  control={form.control}
+                  name="unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{"Unité"}</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
+                            <SelectValue placeholder="Sélectionner l'unité" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {units.map((unit) => (
+                            <SelectItem key={unit.value} value={unit.value}>
+                              {unit.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Description"}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={4}
+                        className="resize-none"
+                        placeholder="Description détaillée..."
+                        {...field}
+                        disabled
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
         )}
 
         {/* Footer - Fixe en bas pour le formulaire */}
         {!isSuccess && !isError && (
-          <DialogFooter className="px-6 py-4 border-t mt-auto shrink-0">
+          <DialogFooter>
             <Button
               type="submit"
               variant={"success"}
@@ -437,11 +458,7 @@ export function BesoinLastVal({
               {"Approuver"}
             </Button>
             <DialogClose asChild>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isPending}
-              >
+              <Button type="button" variant="outline" disabled={isPending}>
                 {"Fermer"}
               </Button>
             </DialogClose>
@@ -450,7 +467,7 @@ export function BesoinLastVal({
 
         {/* Footer Success/Error - Fixe en bas */}
         {(isSuccess || isError) && (
-          <div className="shrink-0 flex gap-3 px-6 py-4 border-t mt-auto justify-end">
+          <DialogFooter>
             {/* Bouton pour réessayer */}
             {isError && (
               <Button type="button" variant={"primary"} onClick={handleRetry}>
@@ -466,7 +483,7 @@ export function BesoinLastVal({
             >
               {"Fermer"}
             </Button>
-          </div>
+          </DialogFooter>
         )}
       </DialogContent>
     </Dialog>

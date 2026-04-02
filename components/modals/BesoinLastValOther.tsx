@@ -182,11 +182,11 @@ export default function BesoinLastValOther({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Approbation & Modification</DialogTitle>
+          <DialogTitle>{"Approbation & Modification"}</DialogTitle>
           <DialogDescription>
-            Vérifiez et ajustez les informations avant la validation finale.
+            {"Vérifiez et ajustez les informations avant la validation finale"}
           </DialogDescription>
         </DialogHeader>
 
@@ -202,7 +202,7 @@ export default function BesoinLastValOther({
               name="label"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Titre</FormLabel>
+                  <FormLabel isRequired>{"Titre"}</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -222,7 +222,7 @@ export default function BesoinLastValOther({
                 return (
                   <FormItem>
                     <FormLabel isRequired className="w-full">
-                      Catégorie
+                      {"Catégorie"}
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -253,17 +253,17 @@ export default function BesoinLastValOther({
               name="projectId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Projet</FormLabel>
+                  <FormLabel isRequired>{"Projet"}</FormLabel>
                   <Combobox
                     items={projects.filter((p) => p.status !== "cancelled")}
                     value={projects.find((p) => p.id === field.value) ?? null}
                     onValueChange={(v) => field.onChange(v?.id)}
                   >
                     <FormControl>
-                      <ComboboxInput placeholder="Projet..." />
+                      <ComboboxInput placeholder={"Projet..."} />
                     </FormControl>
                     <ComboboxContent>
-                      <ComboboxEmpty>Aucun projet</ComboboxEmpty>
+                      <ComboboxEmpty>{"Aucun projet"}</ComboboxEmpty>
                       <ComboboxList>
                         {(item: ProjectT) => (
                           <ComboboxItem key={item.id} value={item}>
@@ -284,7 +284,7 @@ export default function BesoinLastValOther({
               name="benef"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Bénéficiaire</FormLabel>
+                  <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
                   <Combobox
                     items={users}
                     value={users.find((u) => u.id === field.value) ?? null}
@@ -315,7 +315,7 @@ export default function BesoinLastValOther({
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Montant</FormLabel>
+                  <FormLabel isRequired>{"Montant"}</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>
@@ -328,7 +328,7 @@ export default function BesoinLastValOther({
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Quantité</FormLabel>
+                  <FormLabel isRequired>{"Quantité"}</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>
@@ -343,7 +343,7 @@ export default function BesoinLastValOther({
               name="unit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Unité</FormLabel>
+                  <FormLabel isRequired>{"Unité"}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
@@ -367,7 +367,7 @@ export default function BesoinLastValOther({
               name="priority"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Priorité</FormLabel>
+                  <FormLabel isRequired>{"Priorité"}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
@@ -394,7 +394,7 @@ export default function BesoinLastValOther({
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel isRequired className="mb-1">
-                    Date limite
+                    {"Date limite"}
                   </FormLabel>
                   <Popover open={openDate} onOpenChange={setOpenDate}>
                     <PopoverTrigger asChild>
@@ -447,9 +447,9 @@ export default function BesoinLastValOther({
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cash">Espèces</SelectItem>
-                        <SelectItem value="chq">Chèque</SelectItem>
-                        <SelectItem value="ov">Virement</SelectItem>
+                        <SelectItem value="cash">{"Espèces"}</SelectItem>
+                        <SelectItem value="chq">{"Chèque"}</SelectItem>
+                        <SelectItem value="ov">{"Virement"}</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -464,7 +464,9 @@ export default function BesoinLastValOther({
               name="description"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel isRequired>Description / Justification</FormLabel>
+                  <FormLabel isRequired>
+                    {"Description / Justification"}
+                  </FormLabel>
                   <FormControl>
                     <Textarea {...field} rows={3} />
                   </FormControl>
@@ -473,19 +475,20 @@ export default function BesoinLastValOther({
               )}
             />
 
-            <DialogFooter className="gap-3 mt-4 ml-auto col-span-2 pt-4">
+            <DialogFooter>
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setOpen(false)}
               >
-                Annuler
+                {"Annuler"}
               </Button>
-              <Button type="submit" disabled={isProcessing}>
-                {isProcessing && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Mettre à jour et Approuver
+              <Button
+                type="submit"
+                disabled={isProcessing}
+                isLoading={isProcessing}
+              >
+                {"Mettre à jour et Approuver"}
               </Button>
             </DialogFooter>
           </form>

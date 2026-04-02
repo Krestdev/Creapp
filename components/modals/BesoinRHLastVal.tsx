@@ -318,12 +318,9 @@ export default function BesoinRHLastVal({
   // ----------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] max-h-[90vh] p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-3xl">
         {/* Header - FIXE EN HAUT */}
-        <DialogHeader
-          variant={"secondary"}
-          className="px-6 pt-6 pb-4 border-b shrink-0"
-        >
+        <DialogHeader variant={"secondary"}>
           <DialogTitle>{"Approbation"}</DialogTitle>
           <DialogDescription>
             {"Validez les informations du besoin en ressources humaines"}
@@ -332,131 +329,88 @@ export default function BesoinRHLastVal({
 
         <Form {...form}>
           {/* Contenu scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <div className="space-y-4">
-              {/* PROJET */}
-              <FormField
-                control={form.control}
-                name="projet"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Projet"}</FormLabel>
-                    <SearchableSelect
+          <div className="space-y-4">
+            {/* PROJET */}
+            <FormField
+              control={form.control}
+              name="projet"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Projet"}</FormLabel>
+                  <SearchableSelect
+                    disabled
+                    onChange={field.onChange}
+                    options={
+                      projects
+                        .filter(
+                          (p) =>
+                            p.status !== "cancelled" &&
+                            p.status !== "Completed" &&
+                            p.status !== "on-hold",
+                        )
+                        .map((p) => ({
+                          value: p.id!.toString(),
+                          label: p.label,
+                        })) ?? []
+                    }
+                    value={field.value}
+                    width="w-full"
+                    allLabel=""
+                    placeholder="Sélectionner un projet"
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* TITRE */}
+            <FormField
+              control={form.control}
+              name="titre"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Titre"}</FormLabel>
+                  <FormControl>
+                    <Input
                       disabled
-                      onChange={field.onChange}
-                      options={
-                        projects
-                          .filter(
-                            (p) =>
-                              p.status !== "cancelled" &&
-                              p.status !== "Completed" &&
-                              p.status !== "on-hold",
-                          )
-                          .map((p) => ({
-                            value: p.id!.toString(),
-                            label: p.label,
-                          })) ?? []
-                      }
-                      value={field.value}
-                      width="w-full"
-                      allLabel=""
-                      placeholder="Sélectionner un projet"
+                      placeholder="Ex. Salaires Octobre"
+                      {...field}
                     />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* TITRE */}
-              <FormField
-                control={form.control}
-                name="titre"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Titre"}</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled
-                        placeholder="Ex. Salaires Octobre"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* PERIODE - RANGE */}
-              <FormField
-                control={form.control}
-                name="periode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Période"}</FormLabel>
-                    <FormControl>
-                      <Popover>
-                        <PopoverTrigger asChild className="h-10 w-full">
-                          <FormControl>
-                            <Button
-                              disabled
-                              type="button"
-                              variant={"outline"}
-                              className="w-full pl-3 text-left font-normal"
-                            >
-                              {field.value?.from && field.value?.to ? (
-                                <>
-                                  {format(field.value.from, "PPP", {
-                                    locale: fr,
-                                  })}{" "}
-                                  -{" "}
-                                  {format(field.value.to, "PPP", {
-                                    locale: fr,
-                                  })}
-                                </>
-                              ) : (
-                                <span>{"Choisir une période"}</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="range"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            numberOfMonths={2}
-                            locale={fr}
-                            className="rounded-md border"
-                            defaultMonth={field.value?.from || new Date()}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* DATE LIMITE */}
-              <FormField
-                control={form.control}
-                name="date_limite"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel isRequired>{"Date limite"}</FormLabel>
+            {/* PERIODE - RANGE */}
+            <FormField
+              control={form.control}
+              name="periode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Période"}</FormLabel>
+                  <FormControl>
                     <Popover>
                       <PopoverTrigger asChild className="h-10 w-full">
                         <FormControl>
                           <Button
+                            disabled
                             type="button"
                             variant={"outline"}
                             className="w-full pl-3 text-left font-normal"
                           >
-                            {field.value ? (
-                              format(field.value, "PPP", { locale: fr })
+                            {field.value?.from && field.value?.to ? (
+                              <>
+                                {format(field.value.from, "PPP", {
+                                  locale: fr,
+                                })}{" "}
+                                -{" "}
+                                {format(field.value.to, "PPP", {
+                                  locale: fr,
+                                })}
+                              </>
                             ) : (
-                              <span>Choisir une date</span>
+                              <span>{"Choisir une période"}</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -464,142 +418,179 @@ export default function BesoinRHLastVal({
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode="single"
+                          mode="range"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date <= new Date()}
+                          numberOfMonths={2}
                           locale={fr}
+                          className="rounded-md border"
+                          defaultMonth={field.value?.from || new Date()}
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* MONTANT */}
-              <FormField
-                control={form.control}
-                name="montant"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Montant"}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Ex. 500 000"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* PRIORITE */}
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Priorité"}</FormLabel>
-                    <Select
-                      {...field}
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                      }}
-                    >
+            {/* DATE LIMITE */}
+            <FormField
+              control={form.control}
+              name="date_limite"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel isRequired>{"Date limite"}</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild className="h-10 w-full">
                       <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Choisir une priorité" />
-                        </SelectTrigger>
+                        <Button
+                          type="button"
+                          variant={"outline"}
+                          className="w-full pl-3 text-left font-normal"
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: fr })
+                          ) : (
+                            <span>Choisir une date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">{"Faible"}</SelectItem>
-                        <SelectItem value="medium">{"Moyenne"}</SelectItem>
-                        <SelectItem value="high">{"Haute"}</SelectItem>
-                        <SelectItem value="urgent">{"Urgente"}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* BENEFICIAIRE */}
-              <FormField
-                control={form.control}
-                name="beneficiaire"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel isRequired>{"Bénéficiaire(s)"}</FormLabel>
-                    <FormControl>
-                      <MultiSelectUsers
-                        disabled
-                        users={USERS}
-                        selected={USERS.filter((u) =>
-                          field.value?.includes(u.id),
-                        )}
-                        onChange={(selectedUsers) => {
-                          field.onChange(selectedUsers.map((u) => u.id));
-                        }}
-                        display={"user"}
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date <= new Date()}
+                        locale={fr}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* JUSTIFICATIF */}
-              <FormField
-                control={form.control}
-                name="justificatif"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel>{"Justificatif"}</FormLabel>
-                    <FormControl>
-                      <FilesUpload
-                        disabled
-                        value={field.value || []}
-                        onChange={field.onChange}
-                        name={field.name}
-                        acceptTypes="all"
-                        multiple={false}
-                        maxFiles={1}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* MONTANT */}
+            <FormField
+              control={form.control}
+              name="montant"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Montant"}</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Ex. 500 000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* DESCRIPTION */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel isRequired>
-                      {"Description détaillée du besoin"}
-                    </FormLabel>
+            {/* PRIORITE */}
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Priorité"}</FormLabel>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                    }}
+                  >
                     <FormControl>
-                      <Textarea
-                        disabled
-                        placeholder="Description détaillée du besoin RH"
-                        className="resize-none min-h-[120px]"
-                        {...field}
-                      />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Choisir une priorité" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <SelectContent>
+                      <SelectItem value="low">{"Faible"}</SelectItem>
+                      <SelectItem value="medium">{"Moyenne"}</SelectItem>
+                      <SelectItem value="high">{"Haute"}</SelectItem>
+                      <SelectItem value="urgent">{"Urgente"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* BENEFICIAIRE */}
+            <FormField
+              control={form.control}
+              name="beneficiaire"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel isRequired>{"Bénéficiaire(s)"}</FormLabel>
+                  <FormControl>
+                    <MultiSelectUsers
+                      disabled
+                      users={USERS}
+                      selected={USERS.filter((u) =>
+                        field.value?.includes(u.id),
+                      )}
+                      onChange={(selectedUsers) => {
+                        field.onChange(selectedUsers.map((u) => u.id));
+                      }}
+                      display={"user"}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* JUSTIFICATIF */}
+            <FormField
+              control={form.control}
+              name="justificatif"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel>{"Justificatif"}</FormLabel>
+                  <FormControl>
+                    <FilesUpload
+                      disabled
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      name={field.name}
+                      acceptTypes="all"
+                      multiple={false}
+                      maxFiles={1}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* DESCRIPTION */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel isRequired>
+                    {"Description détaillée du besoin"}
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      disabled
+                      placeholder="Description détaillée du besoin RH"
+                      className="resize-none min-h-[120px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           {/* Boutons - FIXE EN BAS */}
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
+          <DialogFooter>
             <DialogClose asChild>
               <Button
                 type="button"
@@ -614,6 +605,7 @@ export default function BesoinRHLastVal({
               disabled={updateMutation.isPending || !isFormInitialized}
               variant={"success"}
               onClick={() => form.handleSubmit(onSubmit)()}
+              isLoading={updateMutation.isPending}
             >
               {"Valider"}
             </Button>
