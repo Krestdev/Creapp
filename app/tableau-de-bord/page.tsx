@@ -55,6 +55,8 @@ import { invoiceQ } from "@/queries/invoices";
 import LoadingPage from "@/components/loading-page";
 import ErrorPage from "@/components/error-page";
 import { ChartAreaInteractiveAll } from "@/components/Charts/BarcharAll";
+import { payTypeQ } from "@/queries/payType";
+import { requestTypeQ } from "@/queries/requestType";
 
 const DashboardPage = () => {
   const { user } = useStore();
@@ -124,6 +126,11 @@ const DashboardPage = () => {
     queryKey: ["projectsList"],
     queryFn: projectQ.getAll,
   });
+
+  const requestType = useQuery({
+    queryKey: ["paymentType"],
+    queryFn: requestTypeQ.getAll
+  })
 
   const getInvoices = useQuery({
     queryKey: ["invoices"],
@@ -946,6 +953,7 @@ const DashboardPage = () => {
                 description="Répartition par type de paiement"
                 projects={getProjects.data?.data}
                 invoices={getInvoices.data?.data}
+                requestType={requestType.data?.data}
               />
               {/* Dépense par fournisseur */}
               <ChartPieLabelList
@@ -955,6 +963,7 @@ const DashboardPage = () => {
                 description="Répartition par fournisseur"
                 projects={getProjects.data?.data}
                 invoices={getInvoices.data?.data}
+                requestType={requestType.data?.data}
               />
             </CardContent>
           </Card>
