@@ -18,6 +18,22 @@ export type newRequestOthers = Omit<
   projectId: number;
 };
 
+export type RequestTaxes = Omit<
+  RequestModelT,
+  | "id"
+  | "type"
+  | "createdAt"
+  | "updatedAt"
+  | "ref"
+  | "validators"
+  | "state"
+  | "beneficiary"
+> & {
+  amount: number;
+  benef: Array<number>;
+  projectId: number;
+};
+
 export type newRequestTransport = Omit<
   RequestModelT,
   | "id"
@@ -370,22 +386,26 @@ class RequestQueries {
       });
   };
   createTaxesRequest = async (
-    payload: newRequestOthers,
+    payload: RequestTaxes,
   ): Promise<RequestModelT> => {
     const formData = new FormData();
     formData.append("label", payload.label);
     formData.append("description", payload.description);
     formData.append("amount", payload.amount.toString());
+    formData.append("dueDate", payload.dueDate.toISOString());
     formData.append("unit", payload.unit);
     formData.append("priority", payload.priority);
     formData.append("type", "taxes");
-    // formData.append("beneficiary", "");
+    formData.append("userId", payload.userId.toString());
+    formData.append("beneficiary", payload.benef[0].toString());
+    formData.append("benef", JSON.stringify(payload.benef));
     if (payload.categoryId)
       formData.append("categoryId", payload.categoryId.toString());
     if (payload.projectId)
       formData.append("projectId", payload.projectId.toString());
     if (payload.paytype) formData.append("paytype", payload.paytype);
-    if (payload.proof) formData.append("proof", payload.proof[0]);
+    if (payload.proof && payload.proof.length > 0)
+      formData.append("proof", payload.proof[0]);
     return api
       .post(`${this.route}/special`, formData, {
         headers: { "Content-Type": "multipart/form-data" },

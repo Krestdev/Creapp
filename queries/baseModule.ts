@@ -1,5 +1,5 @@
 import api from "@/providers/axios";
-import { LoginResponse, ResponseT, User, Role } from "@/types/types";
+import { LoginResponse, ResponseT, User, Role, Sign } from "@/types/types";
 
 class UserQueries {
   route = "/base/user";
@@ -183,6 +183,26 @@ class UserQueries {
 
   getRolePages = async (roleId: number): Promise<{ data: any }> => {
     return api.get(`${this.route}/rolePages/${roleId}`).then((response) => {
+      return response.data;
+    });
+  };
+
+  createSignature = async (signature: File): Promise<Sign> => {
+    const formData = new FormData();
+    formData.append("signature", signature);
+    return api
+      .post("/createSignature", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        return response.data;
+      });
+  };
+
+  getSignature = async (userId: number): Promise<Sign> => {
+    return api.get(`/getSignature/${userId}`).then((response) => {
       return response.data;
     });
   };
