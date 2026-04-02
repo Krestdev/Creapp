@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, LucideEye } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { DetailBesoin } from "./detail-besoin";
+import { useQuery } from "@tanstack/react-query";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
+import { userQ } from "@/queries/baseModule";
+import { paymentQ } from "@/queries/payment";
+import { receptionQ } from "@/queries/reception";
+import { purchaseQ } from "@/queries/purchase-order";
+import { useStore } from "@/providers/datastore";
 
 interface Request {
   id: number;
@@ -66,13 +75,76 @@ export function BesoinsTraiter({
   categories,
   isHome,
 }: BesoinsTraiterTableProps) {
+  const { user } = useStore();
+  const categoriesData = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoryQ.getCategories,
+  });
+  const projectsData = useQuery({
+    queryKey: ["projects"],
+    queryFn: projectQ.getAll,
+  });
+
+  const usersData = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll,
+  });
+
+  const paymentsData = useQuery({
+    queryKey: ["payments"],
+    queryFn: paymentQ.getAll,
+  });
+
+  const getReceptions = useQuery({
+    queryKey: ["receptions"],
+    queryFn: receptionQ.getAll,
+  });
+
+  const getPurchases = useQuery({
+    queryKey: ["purchaseOrders"],
+    queryFn: purchaseQ.getAll,
+  });
+
+  const isUserLastValidatorForRequest = (request: RequestModelT): boolean => {
+    const rank = request.validators.find((v) => v.userId === user?.id)?.rank;
+    return !!rank && !request.validators.some((x) => x.rank > rank);
+  };
+
+  const getValidationInfo = (request: RequestModelT) => {
+    const userPosition = request.validators.find(
+      (v) => v.userId === user?.id,
+    )?.rank;
+    const isLastValidator = isUserLastValidatorForRequest(request);
+    const categoryName = getCategoryName(String(request.categoryId));
+
+    const totalValidators = request.validators.length;
+    const validatedCount = request.validators.filter(
+      (v) => v.validated === true,
+    ).length;
+
+    return {
+      userPosition,
+      isLastValidator,
+      categoryName,
+      totalValidators,
+      validatedCount,
+      progress:
+        totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
+      canValidate:
+        request.state === "pending" &&
+        request.validators.find((v) => v.rank === userPosition)?.validated ===
+          false,
+    };
+  };
+
   const [isOpenModal, setIsModalOpen] = React.useState(false);
+  const [isOpenModalView, setIsModalOpenView] = React.useState(false);
   const [select, setSelect] = React.useState<RequestModelT>();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
@@ -90,7 +162,7 @@ export function BesoinsTraiter({
         ? new Date(requestModel.dueDate)
         : undefined,
     }),
-    []
+    [],
   );
 
   // Créer un mapping ID -> Request pour un accès rapide
@@ -142,7 +214,7 @@ export function BesoinsTraiter({
         setSelected(selectedRequests);
       }
     },
-    [internalSelectedIds, requestMap, convertToRequest, setSelected]
+    [internalSelectedIds, requestMap, convertToRequest, setSelected],
   );
 
   // Gérer la sélection/désélection de toutes les lignes
@@ -172,7 +244,7 @@ export function BesoinsTraiter({
         }
       }
     },
-    [data, convertToRequest, setSelected]
+    [data, convertToRequest, setSelected],
   );
 
   const getCategoryName = (categoryId: string | number) => {
@@ -196,8 +268,7 @@ export function BesoinsTraiter({
     });
   }, [data, categories]);
 
-  const qteunt = (qte: number, unt: string) =>
-    `${qte} ${unt}`;
+  const qteunt = (qte: number, unt: string) => `${qte} ${unt}`;
 
   const columns: ColumnDef<RequestModelT>[] = [
     {
@@ -251,7 +322,9 @@ export function BesoinsTraiter({
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div className="max-w-[300px] truncate">{row.getValue("label")}</div>,
+      cell: ({ row }) => (
+        <div className="max-w-[300px] truncate">{row.getValue("label")}</div>
+      ),
     },
     {
       accessorKey: "categoryId",
@@ -286,17 +359,14 @@ export function BesoinsTraiter({
       header: ({ column }) => (
         <span
           className="tablehead cursor-pointer select-none flex items-center"
-          onClick={() =>
-            column.toggleSorting(column.getIsSorted() === "asc")
-          }
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Quantité"}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </span>
       ),
 
-      accessorFn: (row) =>
-        qteunt(row.quantity, row.unit),
+      accessorFn: (row) => qteunt(row.quantity, row.unit),
 
       cell: ({ row }) => {
         const fullName = row.getValue("fullName") as string;
@@ -304,14 +374,8 @@ export function BesoinsTraiter({
       },
 
       sortingFn: (rowA, rowB) => {
-        const nameA = qteunt(
-          rowA.original.quantity,
-          rowA.original.unit
-        );
-        const nameB = qteunt(
-          rowB.original.quantity,
-          rowB.original.unit
-        );
+        const nameA = qteunt(rowA.original.quantity, rowA.original.unit);
+        const nameB = qteunt(rowB.original.quantity, rowB.original.unit);
 
         return nameA.localeCompare(nameB, "fr", {
           sensitivity: "base",
@@ -365,6 +429,28 @@ export function BesoinsTraiter({
               className="bg-[#013E7B]"
             >
               {"Déstocker"}
+            </Button>
+          </div>
+        );
+      },
+    },
+
+    // Mettre l'action pour voir les détails du besoin
+    {
+      id: "details",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className=" flex justify-end gap-2">
+            <Button
+            variant={"outline"}
+              onClick={() => {
+                setSelect(item);
+                setIsModalOpenView(true);
+              }}
+            >
+              <LucideEye className="h-4 w-4" />
             </Button>
           </div>
         );
@@ -486,9 +572,9 @@ export function BesoinsTraiter({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -501,14 +587,15 @@ export function BesoinsTraiter({
                 return (
                   <TableRow
                     key={row.id}
-                    className={`border-none ${index % 2 === 1 ? "bg-gray-200" : ""
-                      }`}
+                    className={`border-none ${
+                      index % 2 === 1 ? "bg-gray-200" : ""
+                    }`}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className="border-none">
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}
@@ -534,11 +621,37 @@ export function BesoinsTraiter({
         <Pagination table={table} pageSize={15} />
       )}
 
-      <ModalDestockage
-        open={isOpenModal}
-        onOpenChange={setIsModalOpen}
-        data={select!}
-      />
+      {select && (
+        <>
+          <ModalDestockage
+            open={isOpenModal}
+            onOpenChange={setIsModalOpen}
+            data={select}
+          />
+          <DetailBesoin
+            open={isOpenModalView}
+            onOpenChange={setIsModalOpenView}
+            data={select}
+            projects={projectsData.data?.data!}
+            categories={categoriesData.data?.data!}
+            users={usersData.data?.data!}
+            payments={paymentsData.data?.data!}
+            receptions={getReceptions.data?.data!}
+            purchaseOrders={getPurchases.data?.data!}
+            actionButton="Approuver"
+            action={() => {
+              if (!select) return;
+
+              const validationInfo = getValidationInfo(select);
+              if (validationInfo.isLastValidator) {
+                setIsModalOpen(false);
+              } else {
+                setIsModalOpen(false);
+              }
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
