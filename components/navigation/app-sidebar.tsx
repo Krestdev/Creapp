@@ -265,10 +265,10 @@ function AppSidebar() {
       getQuotationRequests.data &&
       getQuotations.data
       ? groupQuotationsByCommandRequest(
-          getQuotationRequests.data.data,
-          getQuotations.data.data,
-          providers.data.data,
-        ).filter((c) => c.status === "NOT_PROCESSED")
+        getQuotationRequests.data.data,
+        getQuotations.data.data,
+        providers.data.data,
+      ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
   }, [providers.data, getQuotationRequests.data, getQuotations.data]);
 
@@ -645,18 +645,18 @@ function AppSidebar() {
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
-              signedTicket &&
-              pendingTicket &&
-              simpleTicket &&
-              approvedTicket?.length +
+                signedTicket &&
+                pendingTicket &&
+                simpleTicket &&
+                approvedTicket?.length +
                 signedTicket?.length +
                 pendingTicket?.length +
                 simpleTicket?.length >
                 0
                 ? approvedTicket?.length +
-                  signedTicket?.length +
-                  pendingTicket?.length +
-                  simpleTicket?.length
+                signedTicket?.length +
+                pendingTicket?.length +
+                simpleTicket?.length
                 : undefined,
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
