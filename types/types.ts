@@ -772,7 +772,7 @@ type SignMode = "ONE" | "BOTH";
 
 export type Signatair = {
   id: number;
-  userIds: number[];
+  userIds?: number[];
   createdAt: Date;
   updatedAt: Date;
   bankId: number;

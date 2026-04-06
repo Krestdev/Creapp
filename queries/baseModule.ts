@@ -12,9 +12,9 @@ class UserQueries {
   login = async (data: {
     email: string;
     password: string;
-  }): Promise<ResponseT<LoginResponse>> => {
+  }): Promise<{ user: User; token: string }> => {
     return api.post(`${this.route}/login`, data).then((response) => {
-      return response.data;
+      return response.data.data;
     });
   };
 
