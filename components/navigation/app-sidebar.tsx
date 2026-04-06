@@ -515,7 +515,7 @@ function AppSidebar() {
         pageId: "PG-03",
         icon: ClipboardList,
         href: "/tableau-de-bord/commande",
-        authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+        authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER", "VOLT_MANAGER"],
         title: "Commande",
         items: [
           {
@@ -536,7 +536,7 @@ function AppSidebar() {
             pageId: "PG-03-45",
             title: "Approbation Devis",
             href: "/tableau-de-bord/commande/devis/approbation",
-            authorized: ["SUPERADMIN", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES_MANAGER", "VOLT_MANAGER"], //To-Do remove sales_manager here, he should no longer have access
             badgeValue:
               approbationDevis && approbationDevis.length > 0
                 ? approbationDevis?.length

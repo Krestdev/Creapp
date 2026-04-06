@@ -518,7 +518,7 @@ export type BonsCommande = {
   hasPrecompt: boolean;
   netToPay: number;
   commandConditions: Array<CommandCondition>;
-  commandFile?: string;
+  commandFile?: string; //Bon de commande signé
   invoice: Array<Invoice>;
 };
 
