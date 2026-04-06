@@ -175,7 +175,7 @@ const Page = () => {
       VOLT_MANAGER: ["speciaux"],
       DRIVER: ["gas"],
       VOLT: ["appro"],
-      USER: ["facilitation", "others", "achat", "transport"],
+      USER: ["facilitation", "others", "achat", "transport", "taxes"],
     };
 
     // const typesList = (roles: Array<Role>): Array<RequestType> => {
