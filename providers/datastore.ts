@@ -26,7 +26,7 @@ export const useStore = create<Store>()(
         set({
           user: user,
           token: token,
-          isSignataire: user.signatairs.length > 0,
+          isSignataire: user.signatairs && user.signatairs.length > 0,
         }),
       logout: () =>
         set({ user: undefined, token: undefined, isSignataire: false }),

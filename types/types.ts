@@ -137,7 +137,7 @@ export type User = {
   role: Role[];
   members: Member[];
   validators?: { id?: number; userId: number; rank: number }[];
-  signatairs: Signatair[];
+  signatairs?: Signatair[];
   signature?: Document;
 };
 
