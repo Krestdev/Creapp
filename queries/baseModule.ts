@@ -1,5 +1,5 @@
 import api from "@/providers/axios";
-import { LoginResponse, ResponseT, Role, User } from "@/types/types";
+import { ResponseT, Role, User } from "@/types/types";
 
 class UserQueries {
   route = "/base/user";
@@ -14,6 +14,7 @@ class UserQueries {
     password: string;
   }): Promise<{ user: User; token: string }> => {
     return api.post(`${this.route}/login`, data).then((response) => {
+      //console.log(response.data.data.user.signatairs);
       return response.data.data;
     });
   };

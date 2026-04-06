@@ -11,6 +11,7 @@ interface Store {
   login: ({ user, token }: { user: User; token: string }) => void;
   logout: () => void;
   update: ({ user }: { user: User }) => void;
+  isSignataire: boolean;
 }
 
 export const useStore = create<Store>()(
@@ -19,12 +20,16 @@ export const useStore = create<Store>()(
       user: undefined,
       isHydrated: false,
       token: undefined,
+      isSignataire: false,
       setIsHydrated: (v: boolean) => set({ isHydrated: v }),
-      login: ({ user, token }) => {
-        console.log(user);
-        return set({ user: user, token: token });
-      },
-      logout: () => set({ user: undefined, token: undefined }),
+      login: ({ user, token }) =>
+        set({
+          user: user,
+          token: token,
+          isSignataire: user.signatairs.length > 0,
+        }),
+      logout: () =>
+        set({ user: undefined, token: undefined, isSignataire: false }),
       update: ({ user }) => set({ user: user }),
     }),
     {

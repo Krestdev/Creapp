@@ -11,12 +11,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
-import { LoginResponse, ResponseT, User } from "@/types/types";
+import { User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { NextResponse } from "next/server";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
