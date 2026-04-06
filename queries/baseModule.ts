@@ -191,7 +191,7 @@ class UserQueries {
     const formData = new FormData();
     formData.append("signature", signature);
     return api
-      .post("/createSignature", formData, {
+      .post(`${this.route}/createSignature`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -202,7 +202,7 @@ class UserQueries {
   };
 
   getSignature = async (userId: number): Promise<Document> => {
-    return api.get(`/getSignature/${userId}`).then((response) => {
+    return api.get(`${this.route}/getSignature/${userId}`).then((response) => {
       return response.data;
     });
   };
