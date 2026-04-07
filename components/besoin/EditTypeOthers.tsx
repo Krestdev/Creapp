@@ -250,6 +250,7 @@ function EditTypeOthers({
                     <Select
                       value={field.value ? String(field.value) : undefined}
                       onValueChange={(v) => field.onChange(parseInt(v))}
+                      disabled
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner" />

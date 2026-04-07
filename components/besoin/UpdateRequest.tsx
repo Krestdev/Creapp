@@ -243,6 +243,7 @@ function EditTypeOthers({
             <FormField
               control={form.control}
               name="categoryId"
+              disabled
               render={({ field }) => (
                 <FormItem>
                   <FormLabel isRequired>Catégorie</FormLabel>
