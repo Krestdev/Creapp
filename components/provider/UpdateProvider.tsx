@@ -43,63 +43,77 @@ type FileValue = File | string;
 const FileSchema = z.union([z.instanceof(File), z.string()]).nullable();
 
 const formSchema = z.object({
-  name: z.string().min(1, "Le nom est obligatoire"),
-  phone: z.string().min(1, "Le téléphone est obligatoire"),
-  email: z.string().email("Email invalide"),
-  address: z.string().min(1, "L'adresse est obligatoire"),
-
-  // ✅ TOUJOURS string
-  RCCM: z.string(),
-  NIU: z.string(),
-
-  regem: z.string().min(1, "Le régime est obligatoire"),
-
-  // ✅ fichiers
+  name: z.string().min(1, "Le nom du fournisseur est obligatoire"),
+  phone: z.string(),
+  // .min(1)
+  // .refine((val) => !isNaN(Number(val)), {
+  //   message: "Le numéro de téléphone doit contenir uniquement des chiffres",
+  // }),
+  email: z.string().optional(),
+  address: z.string(),
   carte_contribuable: FileSchema,
   acf: FileSchema,
-  expireAtacf: z.string({ message: "Veuillez définir une date" }).refine(
-        (val) => {
-          const d = new Date(val);
-          const now = new Date();
-          return !isNaN(d.getTime()) && d > now;
-        },
-        { message: "Date invalide" },
-      ),
-  expireAtcarte_contribuable: z.string({ message: "Veuillez définir une date" }).refine(
-    (val) => {
-      const d = new Date(val);
-      const now = new Date();
-      return !isNaN(d.getTime()) && d > now;
-    },
-    { message: "Date invalide" },
-  ),
-  expireAtplan_localisation: z.string({ message: "Veuillez définir une date" }).refine(
-    (val) => {
-      const d = new Date(val);
-      const now = new Date();
-      return !isNaN(d.getTime()) && d > now;
-    },
-    { message: "Date invalide" },
-  ),
-  expireAtcommerce_registre: z.string({ message: "Veuillez définir une date" }).refine(
-    (val) => {
-      const d = new Date(val);
-      const now = new Date();
-      return !isNaN(d.getTime()) && d > now;
-    },
-    { message: "Date invalide" },
-  ),
-  plan_localisation: FileSchema,
-  commerce_registre: FileSchema,
-  banck_attestation: FileSchema,
-  expireAtbanck_attestation: z.string({ message: "Veuillez définir une date" }).refine(
+  expireAtacf: z
+    .string({ message: "Veuillez définir une date" })
+    .refine(
       (val) => {
         const d = new Date(val);
         const now = new Date();
         return !isNaN(d.getTime()) && d > now;
       },
       { message: "Date invalide" },
-    ),
+    )
+    .optional(),
+  expireAtcarte_contribuable: z
+    .string({ message: "Veuillez définir une date" })
+    .refine(
+      (val) => {
+        const d = new Date(val);
+        const now = new Date();
+        return !isNaN(d.getTime()) && d > now;
+      },
+      { message: "Date invalide" },
+    )
+    .optional(),
+  plan_localisation: FileSchema,
+  commerce_registre: FileSchema,
+  expireAtplan_localisation: z
+    .string({ message: "Veuillez définir une date" })
+    .refine(
+      (val) => {
+        const d = new Date(val);
+        const now = new Date();
+        return !isNaN(d.getTime()) && d > now;
+      },
+      { message: "Date invalide" },
+    )
+    .optional(),
+  expireAtcommerce_registre: z
+    .string({ message: "Veuillez définir une date" })
+    .refine(
+      (val) => {
+        const d = new Date(val);
+        const now = new Date();
+        return !isNaN(d.getTime()) && d > now;
+      },
+      { message: "Date invalide" },
+    )
+    .optional(),
+  banck_attestation: FileSchema.optional(),
+  expireAtbanck_attestation: z
+    .string({ message: "Veuillez définir une date" })
+    .refine(
+      (val) => {
+        const d = new Date(val);
+        const now = new Date();
+        return !isNaN(d.getTime()) && d > now;
+      },
+      { message: "Date invalide" },
+    )
+    .optional(),
+  RCCM: z.string().optional(),
+  NIU: z.string().optional(),
+  regem: z.string().min(1, "Le régime du fournisseur est obligatoire"),
 });
 
 // Type pour le formulaire
@@ -215,11 +229,11 @@ export default function UpdateProvider({
       email: values.email,
       address: values.address,
       regem: values.regem,
-      expireAtbanck_attestation: new Date(values.expireAtbanck_attestation),
-      expireAtacf: new Date(values.expireAtacf),
-      expireAtcarte_contribuable: new Date(values.expireAtcarte_contribuable),
-      expireAtplan_localisation: new Date(values.expireAtplan_localisation),
-      expireAtcommerce_registre: new Date(values.expireAtcommerce_registre),
+      expireAtbanck_attestation: new Date(values.expireAtbanck_attestation!),
+      expireAtacf: new Date(values.expireAtacf!),
+      expireAtcarte_contribuable: new Date(values.expireAtcarte_contribuable!),
+      expireAtplan_localisation: new Date(values.expireAtplan_localisation!),
+      expireAtcommerce_registre: new Date(values.expireAtcommerce_registre!),
     };
 
     // Ajouter les champs optionnels s'ils ont une valeur
@@ -832,7 +846,7 @@ export default function UpdateProvider({
               type="submit"
               variant="primary"
               form="update-provider-form"
-              disabled={providerMutation.isPending || !form.formState.isDirty}
+              disabled={providerMutation.isPending}
               isLoading={providerMutation.isPending}
             >
               {"Enregistrer"}

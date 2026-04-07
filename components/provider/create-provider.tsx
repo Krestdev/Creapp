@@ -303,7 +303,7 @@ export default function CreateProviderForm() {
           name="regem"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel>{"Régime"}</FormLabel>
+              <FormLabel isRequired>{"Régime"}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
