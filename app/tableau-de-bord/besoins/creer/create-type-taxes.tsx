@@ -1,5 +1,4 @@
 "use client";
-import { SearchableSelect } from "@/components/base/searchableSelect";
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -178,34 +177,52 @@ function CreateTypeTaxes({ users, categories, projects }: Props) {
           control={form.control}
           name="categoryId"
           render={({ field }) => {
-            const hrCategories = categories.filter(
-              (c) => c.type.type === "ressource_humaine",
+            // 1. On filtre les catégories "others"
+            const taxesCategories = categories.filter(
+              (c) => c.type.type === "taxes",
             );
 
-            const selectedCategory = hrCategories.find(
+            // 2. On trouve la catégorie sélectionnée en convertissant les IDs en String
+            // pour garantir que la comparaison fonctionne (Nombre vs Texte)
+            const selectedCategory = taxesCategories.find(
               (c) => String(c.id) === String(field.value),
             );
 
             return (
               <FormItem>
-                <FormLabel isRequired>{"Categorie"}</FormLabel>
+                <FormLabel isRequired>{"Catégorie"}</FormLabel>
+
                 <FormControl>
-                  <SearchableSelect
-                    onChange={field.onChange}
-                    options={hrCategories.map((c) => ({
-                      value: c.id!.toString(),
-                      label: c.label,
-                    }))}
+                  <Select
                     value={field.value ? String(field.value) : ""}
-                    width="w-full"
-                    allLabel=""
-                    placeholder="Sélectionner une catégorie"
-                  />
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="min-w-60 w-full">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {taxesCategories.length === 0 ? (
+                        <SelectItem value="#" disabled>
+                          {"Aucune catégorie enregistrée"}
+                        </SelectItem>
+                      ) : (
+                        taxesCategories.map((category) => (
+                          <SelectItem
+                            key={category.id}
+                            value={category.id.toString()}
+                          >
+                            {category.label}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 </FormControl>
 
-                {/* ✅ Affichage de la description sous le SearchableSelect */}
+                {/* La description s'affiche maintenant correctement */}
                 {selectedCategory?.description && (
-                  <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                  <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
                     {selectedCategory.description}
                   </div>
                 )}
@@ -215,7 +232,6 @@ function CreateTypeTaxes({ users, categories, projects }: Props) {
             );
           }}
         />
-        {/* Description */}
         <FormField
           control={form.control}
           name="description"

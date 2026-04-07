@@ -214,11 +214,11 @@ export default function MyForm({ categories, users, projects }: Props) {
             control={form.control}
             name="categoryId"
             render={({ field }) => {
-              const hrCategories = categories.filter(
-                (c) => c.type.type === "ressource_humaine",
+              const achatCategories = categories.filter(
+                (c) => c.type.type === "achat",
               );
 
-              const selectedCategory = hrCategories.find(
+              const selectedCategory = achatCategories.find(
                 (c) => String(c.id) === String(field.value),
               );
 
@@ -226,22 +226,35 @@ export default function MyForm({ categories, users, projects }: Props) {
                 <FormItem>
                   <FormLabel isRequired>{"Categorie"}</FormLabel>
                   <FormControl>
-                    <SearchableSelect
-                      onChange={field.onChange}
-                      options={hrCategories.map((c) => ({
-                        value: c.id!.toString(),
-                        label: c.label,
-                      }))}
+                    <Select
                       value={field.value ? String(field.value) : ""}
-                      width="w-full"
-                      allLabel=""
-                      placeholder="Sélectionner une catégorie"
-                    />
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="min-w-60 w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {achatCategories.length === 0 ? (
+                          <SelectItem value="#" disabled>
+                            {"Aucune catégorie enregistrée"}
+                          </SelectItem>
+                        ) : (
+                          achatCategories.map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.label}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
 
-                  {/* ✅ Affichage de la description sous le SearchableSelect */}
+                  {/* ✅ Affichage de la description si elle existe */}
                   {selectedCategory?.description && (
-                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
                       {selectedCategory.description}
                     </div>
                   )}

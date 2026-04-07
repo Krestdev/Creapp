@@ -183,11 +183,13 @@ export default function SpecialRequestForm({ categories }: Props) {
             control={form.control}
             name="categoryId"
             render={({ field }) => {
-              const hrCategories = categories.filter(
-                (c) => c.type.type === "ressource_humaine",
+              // 1. Filtrage des catégories spécialisées
+              const speciauxCategories = categories.filter(
+                (c) => c.type.type === "speciaux",
               );
 
-              const selectedCategory = hrCategories.find(
+              // 2. Recherche de la catégorie sélectionnée (comparaison string/string)
+              const selectedCategory = speciauxCategories.find(
                 (c) => String(c.id) === String(field.value),
               );
 
@@ -195,22 +197,36 @@ export default function SpecialRequestForm({ categories }: Props) {
                 <FormItem>
                   <FormLabel isRequired>{"Categorie"}</FormLabel>
                   <FormControl>
-                    <SearchableSelect
-                      onChange={field.onChange}
-                      options={hrCategories.map((c) => ({
-                        value: c.id!.toString(),
-                        label: c.label,
-                      }))}
+                    <Select
+                      // On utilise 'value' pour que React Hook Form pilote l'affichage
                       value={field.value ? String(field.value) : ""}
-                      width="w-full"
-                      allLabel=""
-                      placeholder="Sélectionner une catégorie"
-                    />
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="min-w-60 w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {speciauxCategories.length === 0 ? (
+                          <SelectItem value="#" disabled>
+                            {"Aucune catégorie enregistrée"}
+                          </SelectItem>
+                        ) : (
+                          speciauxCategories.map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.label}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
 
-                  {/* ✅ Affichage de la description sous le SearchableSelect */}
+                  {/* ✅ Description affichée sous le Select */}
                   {selectedCategory?.description && (
-                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
                       {selectedCategory.description}
                     </div>
                   )}
