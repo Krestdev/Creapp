@@ -358,15 +358,15 @@ export type Provider = {
   id: number;
   name: string;
   carte_contribuable?: string | File;
-  expireAtcarte_contribuable?: Date;
+  expireAtcarte_contribuable: Date | null;
   acf?: string | File;
   expireAtacf?: Date;
   plan_localisation?: string | File;
-  expireAtplan_localisation?: Date;
+  expireAtplan_localisation: Date | null;
   commerce_registre?: string | File;
-  expireAtcommerce_registre?: Date;
+  expireAtcommerce_registre: Date | null;
   banck_attestation?: string | File;
-  expireAtbanck_attestation?: Date;
+  expireAtbanck_attestation: Date | null;
 };
 
 export const QUOTATION_STATUS = [
