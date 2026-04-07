@@ -219,7 +219,7 @@ function EditTypeOthers({
               : "Modifier le besoin"}
           </DialogTitle>
           <DialogDescription>
-            Modifiez les informations du besoin en achat direct
+            Modifiez les informations du besoin
           </DialogDescription>
         </DialogHeader>
         

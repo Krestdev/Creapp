@@ -216,13 +216,11 @@ export default function FacilitationRequestForm({
             control={form.control}
             name="categoryId"
             render={({ field }) => {
-              // 1. Filtrer les catégories de type "facilitation"
-              const facilitationCategories = categories.filter(
-                (c) => c.type.type === "facilitation",
+              const hrCategories = categories.filter(
+                (c) => c.type.type === "ressource_humaine",
               );
 
-              // 2. Trouver l'objet sélectionné (en comparant les IDs comme des Strings)
-              const selectedCategory = facilitationCategories.find(
+              const selectedCategory = hrCategories.find(
                 (c) => String(c.id) === String(field.value),
               );
 
@@ -230,36 +228,22 @@ export default function FacilitationRequestForm({
                 <FormItem>
                   <FormLabel isRequired>{"Categorie"}</FormLabel>
                   <FormControl>
-                    <Select
-                      // 'value' au lieu de 'defaultValue' pour assurer la réactivité
+                    <SearchableSelect
+                      onChange={field.onChange}
+                      options={hrCategories.map((c) => ({
+                        value: c.id!.toString(),
+                        label: c.label,
+                      }))}
                       value={field.value ? String(field.value) : ""}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="min-w-60 w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {facilitationCategories.length === 0 ? (
-                          <SelectItem value="#" disabled>
-                            {"Aucune catégorie enregistrée"}
-                          </SelectItem>
-                        ) : (
-                          facilitationCategories.map((category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={category.id.toString()}
-                            >
-                              {category.label}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
+                      width="w-full"
+                      allLabel=""
+                      placeholder="Sélectionner une catégorie"
+                    />
                   </FormControl>
 
-                  {/* ✅ Affichage dynamique de la description */}
+                  {/* ✅ Affichage de la description sous le SearchableSelect */}
                   {selectedCategory?.description && (
-                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
+                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
                       {selectedCategory.description}
                     </div>
                   )}

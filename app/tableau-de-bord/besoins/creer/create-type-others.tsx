@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -169,52 +170,34 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
           control={form.control}
           name="categoryId"
           render={({ field }) => {
-            // 1. On filtre les catégories "others"
-            const otherCategories = categories.filter(
-              (c) => c.type.type === "others",
+            const hrCategories = categories.filter(
+              (c) => c.type.type === "ressource_humaine",
             );
 
-            // 2. On trouve la catégorie sélectionnée en convertissant les IDs en String
-            // pour garantir que la comparaison fonctionne (Nombre vs Texte)
-            const selectedCategory = otherCategories.find(
+            const selectedCategory = hrCategories.find(
               (c) => String(c.id) === String(field.value),
             );
 
             return (
               <FormItem>
-                <FormLabel isRequired>{"Catégorie"}</FormLabel>
-
+                <FormLabel isRequired>{"Categorie"}</FormLabel>
                 <FormControl>
-                  <Select
+                  <SearchableSelect
+                    onChange={field.onChange}
+                    options={hrCategories.map((c) => ({
+                      value: c.id!.toString(),
+                      label: c.label,
+                    }))}
                     value={field.value ? String(field.value) : ""}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="min-w-60 w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      {otherCategories.length === 0 ? (
-                        <SelectItem value="#" disabled>
-                          {"Aucune catégorie enregistrée"}
-                        </SelectItem>
-                      ) : (
-                        otherCategories.map((category) => (
-                          <SelectItem
-                            key={category.id}
-                            value={category.id.toString()}
-                          >
-                            {category.label}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                    width="w-full"
+                    allLabel=""
+                    placeholder="Sélectionner une catégorie"
+                  />
                 </FormControl>
 
-                {/* La description s'affiche maintenant correctement */}
+                {/* ✅ Affichage de la description sous le SearchableSelect */}
                 {selectedCategory?.description && (
-                  <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
+                  <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
                     {selectedCategory.description}
                   </div>
                 )}
@@ -224,6 +207,8 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
             );
           }}
         />
+
+        {/* Description */}
         <FormField
           control={form.control}
           name="description"
