@@ -313,7 +313,7 @@ export default function CreateProviderForm() {
                 <SelectContent>
                   {[
                     { id: 1, value: "Réel" },
-                    { id: 2, value: "Simplifié" },
+                    { id: 2, value: "Impot général synthétique" },
                   ].map((p) => (
                     <SelectItem key={p.id} value={p.value}>
                       {p.value}

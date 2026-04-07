@@ -149,14 +149,14 @@ export default function UpdateProvider({
       regem: "",
       carte_contribuable: null,
       acf: null,
-      expireAtacf: format(new Date(), "yyyy-MM-dd"),
-      expireAtcarte_contribuable: format(new Date(), "yyyy-MM-dd"),
-      expireAtplan_localisation: format(new Date(), "yyyy-MM-dd"),
-      expireAtcommerce_registre: format(new Date(), "yyyy-MM-dd"),
+      expireAtacf: undefined,
+      expireAtcarte_contribuable: undefined,
+      expireAtplan_localisation: undefined,
+      expireAtcommerce_registre: undefined,
       plan_localisation: null,
       commerce_registre: null,
       banck_attestation: null,
-      expireAtbanck_attestation: format(new Date(), "yyyy-MM-dd"),
+      expireAtbanck_attestation: undefined,
     }),
     [],
   );
@@ -181,14 +181,14 @@ export default function UpdateProvider({
 
         carte_contribuable: providerData.carte_contribuable ?? null,
         acf: providerData.acf ?? null,
-          expireAtacf: providerData.expireAtacf ? format(new Date(providerData.expireAtacf), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
-          expireAtcarte_contribuable: providerData.expireAtcarte_contribuable ? format(new Date(providerData.expireAtcarte_contribuable), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
-          expireAtplan_localisation: providerData.expireAtplan_localisation ? format(new Date(providerData.expireAtplan_localisation), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
-          expireAtcommerce_registre: providerData.expireAtcommerce_registre ? format(new Date(providerData.expireAtcommerce_registre), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+          expireAtacf: providerData.expireAtacf ? format(new Date(providerData.expireAtacf), "yyyy-MM-dd") : undefined,
+          expireAtcarte_contribuable: providerData.expireAtcarte_contribuable ? format(new Date(providerData.expireAtcarte_contribuable), "yyyy-MM-dd") : undefined,
+          expireAtplan_localisation: providerData.expireAtplan_localisation ? format(new Date(providerData.expireAtplan_localisation), "yyyy-MM-dd") : undefined,
+          expireAtcommerce_registre: providerData.expireAtcommerce_registre ? format(new Date(providerData.expireAtcommerce_registre), "yyyy-MM-dd") : undefined,
         plan_localisation: providerData.plan_localisation ?? null,
         commerce_registre: providerData.commerce_registre ?? null,
         banck_attestation: providerData.banck_attestation ?? null,
-        expireAtbanck_attestation: providerData.expireAtbanck_attestation ? format(new Date(providerData.expireAtbanck_attestation), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+        expireAtbanck_attestation: providerData.expireAtbanck_attestation ? format(new Date(providerData.expireAtbanck_attestation), "yyyy-MM-dd") : undefined,
       });
     } else if (!open) {
       form.reset(defaultValues);
@@ -394,7 +394,7 @@ export default function UpdateProvider({
               name="regem"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Régime"}</FormLabel>
+                  <FormLabel isRequired>{"Régime"}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
@@ -403,7 +403,7 @@ export default function UpdateProvider({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="Réel">{"Réel"}</SelectItem>
-                      <SelectItem value="Simplifié">{"Simplifié"}</SelectItem>
+                      <SelectItem value="Simplifié">{"Impot général synthétique"}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -438,7 +438,7 @@ export default function UpdateProvider({
               name="expireAtcarte_contribuable"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Date d'Expiration Carte de contribuable"}</FormLabel>
+                  <FormLabel>{"Date d'Expiration Carte de contribuable"}</FormLabel>
                   <FormControl>
                     <div className="relative flex gap-2">
                       <Input
@@ -520,7 +520,7 @@ export default function UpdateProvider({
           name="expireAtacf"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Date d'Expiration ACF"}</FormLabel>
+              <FormLabel>{"Date d'Expiration ACF"}</FormLabel>
               <FormControl>
                 <div className="relative flex gap-2">
                   <Input
@@ -607,7 +607,7 @@ export default function UpdateProvider({
               name="expireAtplan_localisation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Date d'Expiration Plan de localisation"}</FormLabel>
+                  <FormLabel>{"Date d'Expiration Plan de localisation"}</FormLabel>
                   <FormControl>
                     <div className="relative flex gap-2">
                       <Input
@@ -690,7 +690,7 @@ export default function UpdateProvider({
               name="expireAtcommerce_registre"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Date d'Expiration Registre de commerce"}</FormLabel>
+                  <FormLabel>{"Date d'Expiration Registre de commerce"}</FormLabel>
                   <FormControl>
                     <div className="relative flex gap-2">
                       <Input
@@ -772,7 +772,7 @@ export default function UpdateProvider({
           name="expireAtbanck_attestation"
           render={({ field }) => (
             <FormItem>
-              <FormLabel isRequired>{"Date d'Expiration de l'Attestation bancaire"}</FormLabel>
+              <FormLabel>{"Date d'Expiration de l'Attestation bancaire"}</FormLabel>
               <FormControl>
                 <div className="relative flex gap-2">
                   <Input
