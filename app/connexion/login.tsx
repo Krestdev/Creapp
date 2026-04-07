@@ -11,12 +11,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
-import { LoginResponse, ResponseT } from "@/types/types";
+import { User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { NextResponse } from "next/server";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -40,17 +39,12 @@ function Login() {
   const loginAPI = useMutation({
     mutationFn: (data: { email: string; password: string }) =>
       userQ.login(data),
-    onSuccess: (data: ResponseT<LoginResponse>) => {
-      const user = data.data.user;
-      const res = NextResponse.json({ success: true, user });
-      res.cookies.set("userRole", JSON.stringify(user.role), {
-        httpOnly: true,
-      });
-      login(data.data);
+    onSuccess: (data: { user: User, token: string }) => {
+      login(data);
       router.push("/tableau-de-bord");
     },
-    onError: (error: any) => {
-      toast.error("Erreur de connexion, veuillez vérifier vos identifiants.");
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 

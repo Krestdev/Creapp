@@ -5,6 +5,7 @@ import {
   StatisticProps,
 } from "@/components/base/TitleValueCard";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getRoleBadge } from "@/lib/utils";
@@ -18,12 +19,14 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  FileIcon,
   Mail,
   Phone,
   ShieldCheck,
   TrendingUp,
   XCircle,
 } from "lucide-react";
+import Link from "next/link";
 import React, { useMemo } from "react";
 
 interface Props {
@@ -160,9 +163,8 @@ function ProfilePage({ user, requests }: Props) {
               {initials}
             </div>
             <span
-              className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-background ${
-                user.status === "active" ? "bg-green-500" : "bg-gray-400"
-              }`}
+              className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-background ${user.status === "active" ? "bg-green-500" : "bg-gray-400"
+                }`}
             />
           </div>
 
@@ -212,11 +214,29 @@ function ProfilePage({ user, requests }: Props) {
             value={
               user.lastConnection
                 ? format(new Date(user.lastConnection), "dd MMM yyyy, HH:mm", {
-                    locale: fr,
-                  })
+                  locale: fr,
+                })
                 : "—"
             }
           />
+          <div className="view-group">
+            <div className="view-icon"><FileIcon /></div>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Signature"}</p>
+              {
+                !!user.signature ? (
+                  <Link href={`${process.env.NEXT_PUBLIC_API}/${user.signature}`} target="_blank" className="flex gap-0.5 items-center">
+                    <img src={"/images/pdf.png"} alt="justificatif" className="h-7 w-auto aspect-square" />
+                    <p className="text-foreground font-medium">{"Signature"}</p>
+                  </Link>
+                ) : (
+                  <Link href={"/tableau-de-bord/profil/signature"}>
+                    <Button size={"sm"} variant={"primary"}>{"Ajouter une signature"}</Button>
+                  </Link>
+                )
+              }
+            </div>
+          </div>
           {departments.length > 0 && (
             <InfoRow
               icon={Briefcase}
@@ -285,7 +305,7 @@ function ProfilePage({ user, requests }: Props) {
                             req.state === "validated"
                               ? "text-green-600"
                               : req.state === "rejected" ||
-                                  req.state === "cancel"
+                                req.state === "cancel"
                                 ? "text-red-500"
                                 : req.state === "in-review"
                                   ? "text-blue-500"

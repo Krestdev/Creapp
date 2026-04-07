@@ -137,7 +137,7 @@ export type User = {
   role: Role[];
   members: Member[];
   validators?: { id?: number; userId: number; rank: number }[];
-  signatairs?: Array<Signatair>;
+  signatairs?: Signatair[];
   signature?: Document;
 };
 
@@ -518,7 +518,7 @@ export type BonsCommande = {
   hasPrecompt: boolean;
   netToPay: number;
   commandConditions: Array<CommandCondition>;
-  commandFile?: string;
+  commandFile?: string; //Bon de commande signé
   invoice: Array<Invoice>;
 };
 
@@ -772,7 +772,7 @@ type SignMode = "ONE" | "BOTH";
 
 export type Signatair = {
   id: number;
-  userIds: number[];
+  userIds?: number[];
   createdAt: Date;
   updatedAt: Date;
   bankId: number;

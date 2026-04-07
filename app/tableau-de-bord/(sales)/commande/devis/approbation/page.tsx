@@ -12,7 +12,10 @@ import { isRole } from "@/lib/utils";
 
 function Page() {
   const { user } = useStore();
-  const isAuthorized = isRole({roleList: user?.role ?? [], role: "Donner d'ordre achat"});
+  const isAuthorized = isRole({
+    roleList: user?.role ?? [],
+    role: "Donner d'ordre achat",
+  });
 
   const quotations = useQuery({
     queryKey: ["quotations"],

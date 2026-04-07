@@ -57,7 +57,7 @@ import { Skeleton } from "../ui/skeleton";
 import NavigationItem from "./navigation-item";
 
 function AppSidebar() {
-  const { user, logout, isHydrated } = useStore();
+  const { user, logout, isHydrated, isSignataire } = useStore();
 
   // Utilisation du hook pour la protection globale
   const { userRoles } = useAuthGuard({
@@ -265,10 +265,10 @@ function AppSidebar() {
       getQuotationRequests.data &&
       getQuotations.data
       ? groupQuotationsByCommandRequest(
-          getQuotationRequests.data.data,
-          getQuotations.data.data,
-          providers.data.data,
-        ).filter((c) => c.status === "NOT_PROCESSED")
+        getQuotationRequests.data.data,
+        getQuotations.data.data,
+        providers.data.data,
+      ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
   }, [providers.data, getQuotationRequests.data, getQuotations.data]);
 
@@ -515,7 +515,7 @@ function AppSidebar() {
         pageId: "PG-03",
         icon: ClipboardList,
         href: "/tableau-de-bord/commande",
-        authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+        authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER", "VOLT_MANAGER"],
         title: "Commande",
         items: [
           {
@@ -536,7 +536,7 @@ function AppSidebar() {
             pageId: "PG-03-45",
             title: "Approbation Devis",
             href: "/tableau-de-bord/commande/devis/approbation",
-            authorized: ["SUPERADMIN", "SALES_MANAGER"],
+            authorized: ["SUPERADMIN", "SALES_MANAGER", "VOLT_MANAGER"], //To-Do remove sales_manager here, he should no longer have access
             badgeValue:
               approbationDevis && approbationDevis.length > 0
                 ? approbationDevis?.length
@@ -645,18 +645,18 @@ function AppSidebar() {
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
-              signedTicket &&
-              pendingTicket &&
-              simpleTicket &&
-              approvedTicket?.length +
+                signedTicket &&
+                pendingTicket &&
+                simpleTicket &&
+                approvedTicket?.length +
                 signedTicket?.length +
                 pendingTicket?.length +
                 simpleTicket?.length >
                 0
                 ? approvedTicket?.length +
-                  signedTicket?.length +
-                  pendingTicket?.length +
-                  simpleTicket?.length
+                signedTicket?.length +
+                pendingTicket?.length +
+                simpleTicket?.length
                 : undefined,
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
@@ -750,7 +750,7 @@ function AppSidebar() {
     // Filtrer les liens de navigation selon les rôles de l'utilisateur
     const filteredNavLinks = navLinks.filter((navLink) => {
       if (navLink.pageId === "PG-0000551") {
-        return !!user?.signatairs && user.signatairs.length > 0;
+        return isSignataire;
       }
       if (navLink.authorized.length === 0) return true;
       return navLink.authorized.some((role) => userRoles.includes(role));
