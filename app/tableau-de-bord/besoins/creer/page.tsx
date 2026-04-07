@@ -167,7 +167,7 @@ const Page = () => {
       }
     };
 
-    const types = getRequestType.data.data;
+    const types = getRequestType.data.data.filter(x => x.type !== "others");
 
     const rolePermissions: Record<string, Array<string>> = {
       SUPERADMIN: ["*"],
@@ -175,7 +175,7 @@ const Page = () => {
       VOLT_MANAGER: ["speciaux"],
       DRIVER: ["gas"],
       VOLT: ["appro"],
-      USER: ["facilitation", "others", "achat", "transport", "taxes"],
+      USER: ["facilitation", "others", "achat", "transport"],
     };
 
     // const typesList = (roles: Array<Role>): Array<RequestType> => {
