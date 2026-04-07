@@ -230,36 +230,22 @@ export default function FacilitationRequestForm({
                 <FormItem>
                   <FormLabel isRequired>{"Categorie"}</FormLabel>
                   <FormControl>
-                    <Select
-                      // 'value' au lieu de 'defaultValue' pour assurer la réactivité
+                    <SearchableSelect
+                      onChange={field.onChange}
+                      options={facilitationCategories.map((c) => ({
+                        value: c.id!.toString(),
+                        label: c.label,
+                      }))}
                       value={field.value ? String(field.value) : ""}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="min-w-60 w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {facilitationCategories.length === 0 ? (
-                          <SelectItem value="#" disabled>
-                            {"Aucune catégorie enregistrée"}
-                          </SelectItem>
-                        ) : (
-                          facilitationCategories.map((category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={category.id.toString()}
-                            >
-                              {category.label}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
+                      width="w-full"
+                      allLabel=""
+                      placeholder="Sélectionner une catégorie"
+                    />
                   </FormControl>
 
-                  {/* ✅ Affichage dynamique de la description */}
+                  {/* ✅ Affichage de la description sous le SearchableSelect */}
                   {selectedCategory?.description && (
-                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
+                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
                       {selectedCategory.description}
                     </div>
                   )}

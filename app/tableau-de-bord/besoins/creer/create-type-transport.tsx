@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -162,45 +163,30 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
 
             return (
               <FormItem>
-                <FormLabel isRequired>{"Categorie"}</FormLabel>
+                  <FormLabel isRequired>{"Categorie"}</FormLabel>
+                  <FormControl>
+                    <SearchableSelect
+                      onChange={field.onChange}
+                      options={transportCategories.map((c) => ({
+                        value: c.id!.toString(),
+                        label: c.label,
+                      }))}
+                      value={field.value ? String(field.value) : ""}
+                      width="w-full"
+                      allLabel=""
+                      placeholder="Sélectionner une catégorie"
+                    />
+                  </FormControl>
 
-                <FormControl>
-                  <Select
-                    value={field.value ? String(field.value) : ""}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="min-w-60 w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
+                  {/* ✅ Affichage de la description sous le SearchableSelect */}
+                  {selectedCategory?.description && (
+                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                      {selectedCategory.description}
+                    </div>
+                  )}
 
-                    <SelectContent>
-                      {transportCategories.length === 0 ? (
-                        <SelectItem value="#" disabled>
-                          {"Aucune catégorie enregistrée"}
-                        </SelectItem>
-                      ) : (
-                        transportCategories.map((category) => (
-                          <SelectItem
-                            key={category.id}
-                            value={category.id.toString()}
-                          >
-                            {category.label}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-
-                {/* ✅ Description dynamique */}
-                {selectedCategory?.description && (
-                  <div className="first-letter:uppercase px-1 text-sm text-muted-foreground">
-                    <p>{selectedCategory.description}</p>
-                  </div>
-                )}
-
-                <FormMessage />
-              </FormItem>
+                  <FormMessage />
+                </FormItem>
             );
           }}
         />
