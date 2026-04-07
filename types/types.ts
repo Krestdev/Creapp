@@ -360,7 +360,7 @@ export type Provider = {
   carte_contribuable?: string | File;
   expireAtcarte_contribuable: Date | null;
   acf?: string | File;
-  expireAtacf?: Date;
+  expireAtacf?: Date | null;
   plan_localisation?: string | File;
   expireAtplan_localisation: Date | null;
   commerce_registre?: string | File;

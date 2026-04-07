@@ -44,10 +44,6 @@ const SingleFileArray = z
 const formSchema = z.object({
   name: z.string().min(1, "Le nom du fournisseur est obligatoire"),
   phone: z.string(),
-  // .min(1)
-  // .refine((val) => !isNaN(Number(val)), {
-  //   message: "Le numéro de téléphone doit contenir uniquement des chiffres",
-  // }),
   email: z.string().email().optional(),
   address: z.string(),
   carte_contribuable: SingleFileArray,
@@ -121,6 +117,7 @@ export default function CreateProviderForm() {
   const [selectCarteDate, setSelectCarteDate] = useState<boolean>(false);
   const [selectPlanDate, setSelectPlanDate] = useState<boolean>(false);
   const [selectCommerceDate, setSelectCommerceDate] = useState<boolean>(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -173,7 +170,7 @@ export default function CreateProviderForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const data = {
+    const data: Omit<Provider, "id" | "createdAt"> = {
       name: values.name,
       email: values.email,
       RCCM: values.RCCM,
@@ -183,24 +180,23 @@ export default function CreateProviderForm() {
       address: values.address,
       carte_contribuable: values.carte_contribuable?.[0],
       acf: values.acf?.[0],
-      expireAtacf: values.expireAtacf
-        ? new Date(values.expireAtacf)
-        : undefined,
+      // Correction: convertir undefined en null pour correspondre au type Provider
+      expireAtacf: values.expireAtacf ? new Date(values.expireAtacf) : null,
       expireAtcarte_contribuable: values.expireAtcarte_contribuable
         ? new Date(values.expireAtcarte_contribuable)
-        : undefined,
+        : null,
       plan_localisation: values.plan_localisation?.[0],
       expireAtplan_localisation: values.expireAtplan_localisation
         ? new Date(values.expireAtplan_localisation)
-        : undefined,
+        : null,
       commerce_registre: values.commerce_registre?.[0],
       expireAtcommerce_registre: values.expireAtcommerce_registre
         ? new Date(values.expireAtcommerce_registre)
-        : undefined,
+        : null,
       banck_attestation: values.banck_attestation?.[0] ?? undefined,
       expireAtbanck_attestation: values.expireAtbanck_attestation
         ? new Date(values.expireAtbanck_attestation)
-        : undefined,
+        : null,
     };
     registerAPI.mutate(data);
   }
@@ -358,7 +354,7 @@ export default function CreateProviderForm() {
                 <div className="relative flex gap-2">
                   <Input
                     id={field.name}
-                    value={field.value}
+                    value={field.value ?? ""}
                     placeholder="Sélectionner une date"
                     className="bg-background pr-10"
                     onChange={(e) => {
@@ -447,7 +443,7 @@ export default function CreateProviderForm() {
                 <div className="relative flex gap-2">
                   <Input
                     id={field.name}
-                    value={field.value}
+                    value={field.value ?? ""}
                     placeholder="Sélectionner une date"
                     className="bg-background pr-10"
                     onChange={(e) => {
@@ -534,7 +530,7 @@ export default function CreateProviderForm() {
                 <div className="relative flex gap-2">
                   <Input
                     id={field.name}
-                    value={field.value}
+                    value={field.value ?? ""}
                     placeholder="Sélectionner une date"
                     className="bg-background pr-10"
                     onChange={(e) => {
@@ -624,7 +620,7 @@ export default function CreateProviderForm() {
                 <div className="relative flex gap-2">
                   <Input
                     id={field.name}
-                    value={field.value}
+                    value={field.value ?? ""}
                     placeholder="Sélectionner une date"
                     className="bg-background pr-10"
                     onChange={(e) => {
@@ -715,7 +711,7 @@ export default function CreateProviderForm() {
                 <div className="relative flex gap-2">
                   <Input
                     id={field.name}
-                    value={field.value}
+                    value={field.value ?? ""}
                     placeholder="Sélectionner une date"
                     className="bg-background pr-10"
                     onChange={(e) => {
