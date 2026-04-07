@@ -71,6 +71,7 @@ import {
   PaymentRequest,
   PRIORITIES,
   PURCHASE_ORDER_STATUS,
+  User,
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -89,6 +90,7 @@ interface BonsCommandeTableProps {
   payments: Array<PaymentRequest>;
   conditions: Array<CommandCondition>;
   invoices: Array<Invoice>;
+  users: Array<User>;
 }
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
@@ -139,9 +141,8 @@ export function PurchaseTable({
   payments,
   conditions,
   invoices,
+  users,
 }: BonsCommandeTableProps) {
-  const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
-
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -431,7 +432,8 @@ export function PurchaseTable({
                 disabled={item.status !== "APPROVED" || !!item.commandFile}
               >
                 <FileTextIcon />
-                {"Compléter (Bon signé)"}
+                {"Générer le bon signé"}{" "}
+                {/**Previously Compléter (Bon signé) */}
               </DropdownMenuItem>
               {!!item.commandFile && item.commandFile.length > 0 && (
                 <Link
@@ -903,7 +905,7 @@ export function PurchaseTable({
           open={view}
           openChange={setView}
           purchaseOrder={selectedValue}
-          users={getUsers.data?.data ?? []}
+          users={users}
         />
       )}
       {selectedValue && (

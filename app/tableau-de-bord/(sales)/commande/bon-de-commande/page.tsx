@@ -22,6 +22,7 @@ import { PurchaseTable } from "./PurchaseTable";
 import { CommandConditionQ } from "@/queries/commandsConditions";
 import { invoiceQ } from "@/queries/invoices";
 import { receptionQ } from "@/queries/reception";
+import { userQ } from "@/queries/baseModule";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -52,6 +53,11 @@ const Page = () => {
   const getReceptions = useQuery({
     queryKey: ["receptions"],
     queryFn: receptionQ.getAll,
+  });
+
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll,
   });
 
   const { user } = useStore();
@@ -150,7 +156,8 @@ const Page = () => {
     getPayments.isLoading ||
     getConditions.isLoading ||
     getInvoices.isLoading ||
-    getReceptions.isLoading
+    getReceptions.isLoading ||
+    getUsers.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -159,7 +166,8 @@ const Page = () => {
     getPayments.isError ||
     getConditions.isError ||
     getInvoices.isError ||
-    getReceptions.isError
+    getReceptions.isError ||
+    getUsers.isError
   ) {
     return (
       <ErrorPage
@@ -169,6 +177,7 @@ const Page = () => {
           getInvoices.error ||
           getConditions.error ||
           getReceptions.error ||
+          getUsers.error ||
           undefined
         }
       />
@@ -179,7 +188,8 @@ const Page = () => {
     getPayments.isSuccess &&
     getConditions.isSuccess &&
     getInvoices.isSuccess &&
-    getReceptions.isSuccess
+    getReceptions.isSuccess &&
+    getUsers.isSuccess
   )
     return (
       <div className="content">
@@ -212,6 +222,7 @@ const Page = () => {
           payments={getPayments.data.data}
           conditions={getConditions.data.data}
           invoices={getInvoices.data.data}
+          users={getUsers.data.data}
         />
       </div>
     );

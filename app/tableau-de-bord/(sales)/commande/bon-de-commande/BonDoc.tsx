@@ -367,6 +367,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
+  signatureImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",
+  },
+
   signatureTitle: {
     fontSize: 8.5,
     fontWeight: "bold",
@@ -393,7 +399,11 @@ const styles = StyleSheet.create({
   },
 });
 
-export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
+export const BonDocument: React.FC<{
+  doc: BonsCommande;
+  signature?: string;
+  validatorSignature?: string;
+}> = ({ doc, signature, validatorSignature }) => {
   const real = isRealRegime(doc.provider.regem);
   const applyPrecompte = doc.hasPrecompt === true;
 
@@ -708,11 +718,17 @@ export const BonDocument: React.FC<{ doc: BonsCommande }> = ({ doc }) => {
               Visa Responsable des achats
             </Text>
             <View style={styles.signatureLine} />
+            {!!signature && (
+              <Image src={signature} style={styles.signatureImage} />
+            )}
           </View>
 
           <View style={styles.signatureBox}>
             <Text style={styles.signatureTitle}>Visa DG</Text>
             <View style={styles.signatureLine} />
+            {!!validatorSignature && (
+              <Image src={validatorSignature} style={styles.signatureImage} />
+            )}
           </View>
         </View>
 

@@ -1,5 +1,5 @@
 import api from "@/providers/axios";
-import { ResponseT, Role, User } from "@/types/types";
+import { ResponseT, Role, User, Document } from "@/types/types";
 
 class UserQueries {
   route = "/base/user";

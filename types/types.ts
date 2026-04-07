@@ -520,6 +520,12 @@ export type BonsCommande = {
   commandConditions: Array<CommandCondition>;
   commandFile?: string; //Bon de commande signé
   invoice: Array<Invoice>;
+  validator?: {
+    userId: number;
+    createdAt: Date;
+    updatedAt: Date;
+    decision: "APPROVED" | "REJECTED";
+  };
 };
 
 export const INVOICE_STATUS = [
