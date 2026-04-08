@@ -522,7 +522,7 @@ export type BonsCommande = {
   commandFile?: string; //Bon de commande signé
   invoice: Array<Invoice>;
   validatorId?: number;
-  validator?: {
+  validators?: {
     userId: number;
     createdAt: Date;
     updatedAt: Date;

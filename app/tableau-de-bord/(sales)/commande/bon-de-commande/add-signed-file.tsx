@@ -29,7 +29,7 @@ function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
   /**Responsable Achat */
   const saleUserId = purchaseOrder.devi.userId;
   /**Responsable Validation */
-  const validatorUserId = purchaseOrder.validatorId;
+  const validatorUserId = purchaseOrder.validators?.userId;
   /**Fetch Signature */
   const saleSignature = useQuery({
     queryKey: ["signature", saleUserId],
