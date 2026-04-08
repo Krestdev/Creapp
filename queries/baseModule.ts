@@ -204,7 +204,7 @@ class UserQueries {
 
   getSignature = async (userId: number): Promise<Document> => {
     return api.get(`${this.route}/getSignature/${userId}`).then((response) => {
-      return response.data;
+      return response.data.data;
     });
   };
 }

@@ -8,6 +8,7 @@ import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import ProfilePage from "./profile";
+import { userQ } from "@/queries/baseModule";
 
 function Page() {
   const { user } = useStore();
@@ -31,13 +32,19 @@ function Page() {
     enabled: !!user,
   });
 
-  if (requests.isLoading) {
+  const getUser = useQuery({
+    queryKey: ["user", user?.id],
+    queryFn: () => userQ.getOne(user!.id),
+    enabled: !!user,
+  });
+
+  if (requests.isLoading || getUser.isLoading) {
     return <LoadingPage />;
   }
-  if (requests.isError) {
-    return <ErrorPage error={requests.error} />;
+  if (requests.isError || getUser.isError) {
+    return <ErrorPage error={requests.error || getUser.error || undefined} />;
   }
-  if (requests.isSuccess) {
+  if (requests.isSuccess && getUser.isSuccess) {
     console.log(requests.data.data);
     return (
       <div className="content">
@@ -46,7 +53,7 @@ function Page() {
           subtitle={"Informations personnelles et configuration"}
           links={links}
         />
-        <ProfilePage user={user!} requests={requests.data.data} />
+        <ProfilePage user={getUser.data.data} requests={requests.data.data} />
       </div>
     );
   }

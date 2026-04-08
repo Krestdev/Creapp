@@ -200,7 +200,7 @@ export function PurchaseTable({
   ): { progress: number; value: number } => {
     //To-Do complete this code
     const data = invoices.filter((i) => i.commandId === purchaseOrder.id);
-    console.log(data);
+    //console.log(data);
 
     const values = data.flatMap((i) =>
       i.payment.map((p) => {

@@ -369,8 +369,8 @@ const styles = StyleSheet.create({
 
   signatureImage: {
     width: "100%",
-    height: "100%",
-    resizeMode: "contain",
+    height: 50,
+    objectFit: "contain",
   },
 
   signatureTitle: {
@@ -460,7 +460,7 @@ export const BonDocument: React.FC<{
                 <Text style={styles.text}>{company.name}</Text>
               </View>
 
-              <View>
+              {/* <View>
                 <Text style={styles.smallLabel}>Agent demandeur</Text>
                 <Text style={styles.text}>{doc.devi.commandRequest.name}</Text>
               </View>
@@ -468,7 +468,7 @@ export const BonDocument: React.FC<{
               <View>
                 <Text style={styles.smallLabel}>Téléphone</Text>
                 <Text style={styles.text}>{doc.devi.commandRequest.phone}</Text>
-              </View>
+              </View> */}
 
               <View>
                 <Text style={styles.smallLabel}>Lieu de livraison</Text>

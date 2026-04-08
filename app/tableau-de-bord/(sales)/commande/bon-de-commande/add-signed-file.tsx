@@ -11,10 +11,10 @@ import {
 import { userQ } from "@/queries/baseModule";
 import { AddFileProps, purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande } from "@/types/types";
-import { PDFViewer } from "@react-pdf/renderer";
+import { PDFViewer, pdf } from "@react-pdf/renderer";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { BonDocument } from "./BonDoc";
 
@@ -25,17 +25,34 @@ interface Props {
 }
 
 function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
+  const [isGenerating, setIsGenerating] = useState(false);
+  /**Responsable Achat */
   const saleUserId = purchaseOrder.devi.userId;
+  /**Responsable Validation */
+  const validatorUserId = purchaseOrder.validatorId;
+  /**Fetch Signature */
   const saleSignature = useQuery({
     queryKey: ["signature", saleUserId],
-    queryFn: () => userQ.getSignature(saleUserId || 0),
-    enabled: !!saleUserId,
+    queryFn: () => userQ.getSignature(saleUserId),
   });
   const validatorSignature = useQuery({
-    queryKey: ["signature", purchaseOrder.validator?.userId],
-    queryFn: () => userQ.getSignature(purchaseOrder.validator?.userId || 0),
-    enabled: !!purchaseOrder.validator?.userId,
+    queryKey: ["signature", validatorUserId],
+    queryFn: () => userQ.getSignature(validatorUserId ?? 0),
+    enabled: !!validatorUserId,
   });
+
+  React.useEffect(() => {
+    if (!!validatorSignature.data) {
+      console.log(
+        `image : ${process.env.NEXT_PUBLIC_API}/${validatorSignature.data.path}`,
+      );
+    }
+    if (!!saleSignature.data) {
+      console.log(
+        `image2 : ${process.env.NEXT_PUBLIC_API}/${saleSignature.data.path}`,
+      );
+    }
+  }, [saleSignature.data, validatorSignature.data]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: ({ id, proof }: AddFileProps) =>
@@ -51,11 +68,43 @@ function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
     },
   });
 
-  function onSubmit(file: File) {
-    const value = file;
-    if (!value)
-      return toast.error("Veuillez insérer le bon de commande signé !");
-    mutate({ id: purchaseOrder.id, proof: value });
+  async function handleSave() {
+    if (!saleSignature.data || !validatorSignature.data) return;
+
+    try {
+      setIsGenerating(true);
+      const blob = await pdf(
+        <BonDocument
+          doc={purchaseOrder}
+          signature={`${process.env.NEXT_PUBLIC_API}/${saleSignature.data.path}`}
+          validatorSignature={`${process.env.NEXT_PUBLIC_API}/${validatorSignature.data.path}`}
+        />,
+      ).toBlob();
+
+      const fileName = `Bon_de_commande_${purchaseOrder.devi.commandRequest.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`;
+      const file = new File([blob], fileName, { type: "application/pdf" });
+
+      mutate(
+        { id: purchaseOrder.id, proof: file },
+        {
+          onSuccess: () => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          },
+        },
+      );
+    } catch (error) {
+      toast.error("Erreur lors de la génération du PDF");
+      console.error(error);
+    } finally {
+      setIsGenerating(false);
+    }
   }
 
   return (
@@ -77,7 +126,7 @@ function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
             </p>
           ) : (
             !saleSignature.data && (
-              <p>
+              <p className="text-destructive">
                 {
                   "Vous n'avez pas de signature, veuillez l'ajouter dans votre profil"
                 }
@@ -91,7 +140,7 @@ function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
             </p>
           ) : (
             !validatorSignature.data && (
-              <p>
+              <p className="text-destructive">
                 {
                   "Le validateur n'a pas de signature, veuillez l'ajouter dans son profil"
                 }
@@ -110,14 +159,18 @@ function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
         </div>
         <DialogFooter>
           <Button
-            type="submit"
+            type="button"
             variant={"primary"}
+            onClick={handleSave}
             disabled={
-              isPending || !saleSignature.data || !validatorSignature.data
+              isPending ||
+              isGenerating ||
+              !saleSignature.data ||
+              !validatorSignature.data
             }
-            isLoading={isPending}
+            isLoading={isPending || isGenerating}
           >
-            {"Enregistrer"}
+            {"Enregistrer et Télécharger"}
           </Button>
           <Button
             onClick={(e) => {

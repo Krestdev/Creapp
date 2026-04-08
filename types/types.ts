@@ -139,6 +139,7 @@ export type User = {
   validators?: { id?: number; userId: number; rank: number }[];
   signatairs?: Signatair[];
   signature?: Document;
+  signatureId?: string;
 };
 
 export type Role = {
@@ -520,6 +521,7 @@ export type BonsCommande = {
   commandConditions: Array<CommandCondition>;
   commandFile?: string; //Bon de commande signé
   invoice: Array<Invoice>;
+  validatorId?: number;
   validator?: {
     userId: number;
     createdAt: Date;

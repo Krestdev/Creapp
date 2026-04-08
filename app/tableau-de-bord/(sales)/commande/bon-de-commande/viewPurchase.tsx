@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -43,14 +44,7 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
 
         {/* pdf here */}
         <DialogFooter className="shrink-0 sticky z-10 w-full bottom-0">
-          {isRejected ? (
-            // Si le statut est REJECTED, afficher simplement un bouton désactivé
-            <Button variant={"primary"} disabled>
-              Bon de commande rejeté
-            </Button>
-          ) : (
-            // Si le statut n'est pas REJECTED, afficher le lien de téléchargement
-            <PDFDownloadLink
+          {/* <PDFDownloadLink
               document={<BonDocument doc={purchaseOrder} />}
               fileName={`BonDeCommande_${purchaseOrder.reference}.pdf`}
             >
@@ -59,8 +53,10 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
                   {loading ? "Préparation..." : "Télécharger le PDF"}
                 </Button>
               )}
-            </PDFDownloadLink>
-          )}
+            </PDFDownloadLink> */}
+          <DialogClose asChild>
+            <Button variant={"outline"}>{"Fermer"}</Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

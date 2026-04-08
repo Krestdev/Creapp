@@ -224,8 +224,8 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
     },
   });
 
-  console.log(form.formState.errors);
-  console.log(form.getValues("instalments"));
+  //console.log(form.formState.errors);
+  //console.log(form.getValues("instalments"));
 
   // Mettre à jour les échéances de paiement lorsque les données sont chargées
   React.useEffect(() => {
