@@ -113,9 +113,11 @@ function ViewExpense({
   requestTypes,
 }: Props) {
   const request = requests.find((r) => r.id === payment.requestId);
+
   const vehicleData = useQuery({
-    queryKey: ["vehicle"],
-    queryFn: () => vehicleQ.getOne(request?.vehiclesId!),
+    queryKey: ["vehicle", request?.vehiclesId],
+    queryFn: () => vehicleQ.getOne(request!.vehiclesId!),
+    enabled: !!request?.vehiclesId, // 🔥 clé ici
   });
 
   const invoice = invoices.find((p) => p.id === payment.invoiceId);

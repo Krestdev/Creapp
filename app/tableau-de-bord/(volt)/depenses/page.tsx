@@ -165,7 +165,6 @@ function Page() {
     getSignataires.isSuccess &&
     getVehicles.isSuccess
   ) {
-    console.log(filteredData.filter((p) => p.status === "validated"));
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente de traitement",
