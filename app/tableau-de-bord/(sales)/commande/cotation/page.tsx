@@ -6,6 +6,7 @@ import CreateCotation from "@/components/bdcommande/createCommande";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
+import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { requestQ } from "@/queries/requestModule";
@@ -29,6 +30,11 @@ const Page = () => {
     queryFn: () => {
       return requestQ.getAll();
     },
+  });
+
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: () => userQ.getAll(),
   });
 
   const getCommandRequests = useQuery({
@@ -74,14 +80,16 @@ const Page = () => {
   if (
     getCommandRequests.isLoading ||
     requestData.isLoading ||
-    getCategories.isLoading
+    getCategories.isLoading ||
+    getUsers.isLoading
   ) {
     return <LoadingPage />;
   }
   if (
     getCommandRequests.isError ||
     requestData.isError ||
-    getCategories.isError
+    getCategories.isError ||
+    getUsers.isError
   ) {
     return (
       <ErrorPage
@@ -89,6 +97,7 @@ const Page = () => {
           getCommandRequests.error ||
           requestData.error ||
           getCategories.error ||
+          getUsers.error ||
           undefined
         }
       />
@@ -97,7 +106,8 @@ const Page = () => {
   if (
     getCommandRequests.isSuccess &&
     requestData.isSuccess &&
-    getCategories.isSuccess
+    getCategories.isSuccess &&
+    getUsers.isSuccess
   ) {
     return (
       <div className="content">
@@ -114,6 +124,7 @@ const Page = () => {
         />
         {selectedTab === 1 ? (
           <CreateCotation
+            users={getUsers.data.data}
             requests={requestData.data.data}
             quotationRequests={getCommandRequests.data.data}
             categories={getCategories.data.data}

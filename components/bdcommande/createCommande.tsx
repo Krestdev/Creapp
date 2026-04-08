@@ -18,9 +18,9 @@ import {
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
-import { Category, CommandRequestT, RequestModelT } from "@/types/types";
+import { Category, CommandRequestT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -30,6 +30,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 import Besoins from "../bdcommande/besoins";
 import { DetailOrder } from "../modals/detail-order";
+import { userQ } from "@/queries/baseModule";
+import { SearchableSelect } from "../base/searchableSelect";
 
 const formSchema = z.object({
   name: z.string().min(1, "Le nom est obligatoire"),
@@ -52,12 +54,14 @@ interface Request {
 
 interface Props {
   requests: Array<RequestModelT>;
+  users: User[];
   quotationRequests: Array<CommandRequestT>;
   categories: Array<Category>;
 }
 
 export default function CreateCotation({
   requests,
+  users,
   quotationRequests,
   categories,
 }: Props) {
@@ -200,6 +204,11 @@ export default function CreateCotation({
 
             <div className="flex flex-col gap-4 border rounded-md bg-gray-50 p-4">
               <h2>{"Contact principal"}</h2>
+              <p>
+                {
+                  "Il s'agit ici du contact principal qui sera affiché sur le bon de commande"
+                }
+              </p>
 
               <FormField
                 control={form.control}
@@ -208,7 +217,17 @@ export default function CreateCotation({
                   <FormItem>
                     <FormLabel isRequired>Nom</FormLabel>
                     <FormControl className="w-[320px]">
-                      <Input placeholder="ex. Cédric" {...field} />
+                      <SearchableSelect
+                        value={field.value ? String(field.value) : ""}
+                        onChange={field.onChange}
+                        options={users.map((r) => ({
+                          value: `${r.firstName} ${r.lastName}`,
+                          label: `${r.firstName} ${r.lastName}`,
+                        })) ?? []}
+                        placeholder="Sélectionnez un nom"
+                        width="w-full"
+                        allLabel=""
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

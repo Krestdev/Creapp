@@ -187,22 +187,21 @@ export default function MyForm({ categories, users, projects }: Props) {
                 <FormLabel isRequired>{"Projet concerné"}</FormLabel>
                 <SearchableSelect
                   onChange={field.onChange}
-                  options={
-                    projects
-                      .filter(
-                        (p) =>
-                          p.status !== "cancelled" &&
-                          p.status !== "Completed" &&
-                          p.status !== "on-hold",
-                      )
-                      .map((p) => ({
-                        value: p.id!.toString(),
-                        label: p.label,
-                      })) ?? []
-                  }
-                  value={field.value?.toString() || ""}
+                  options={projects
+                    .filter(
+                      (p) =>
+                        p.status !== "cancelled" &&
+                        p.status !== "Completed" &&
+                        p.status !== "on-hold",
+                    )
+                    .map((p) => ({
+                      value: p.id!.toString(),
+                      label: p.label,
+                    }))}
+                  value={field.value ? String(field.value) : ""}
                   width="w-full"
                   allLabel=""
+                  placeholder="Sélectionner un projet"
                 />
                 <FormMessage />
               </FormItem>

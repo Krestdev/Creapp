@@ -51,24 +51,44 @@ export function SearchableSelect({
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const [triggerWidth, setTriggerWidth] = React.useState<number>(0);
 
-  // Reset search when closed
+  // Resize dynamique
   React.useEffect(() => {
-    if (!open) {
-      setSearch("");
-    }
+    if (!triggerRef.current) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      setTriggerWidth(entry.contentRect.width);
+    });
+
+    observer.observe(triggerRef.current);
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Reset search quand on ferme
+  React.useEffect(() => {
+    if (!open) setSearch("");
   }, [open]);
 
-  // Get trigger width when open
-  React.useEffect(() => {
-    if (open && triggerRef.current) {
-      setTriggerWidth(triggerRef.current.offsetWidth);
-    }
-  }, [open]);
-
-  const selected = options.find((o) => o.value === value);
-
-  // Determine if we should show the "all" option
+  // Option "all"
   const showAllOption = allLabel && allLabel.trim() !== "";
+
+  // Selected
+  const selected =
+    value === "all"
+      ? { value: "all", label: allLabel }
+      : options.find((o) => o.value === value);
+
+  // 🔥 FILTRAGE PAR CONTENU (contains) au lieu d'exact
+  const filteredOptions = React.useMemo(() => {
+    if (!search) return options;
+    
+    const searchLower = search.toLowerCase().trim();
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(searchLower)
+    );
+  }, [options, search]);
+
+  // Afficher tous les résultats (pas de limite)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -81,32 +101,36 @@ export function SearchableSelect({
           className={cn(
             `${width} h-10 justify-between font-normal text-sm font-sans`,
             !selected && "text-muted-foreground",
-            className,
+            className
           )}
           disabled={disabled}
         >
-          <span className="max-w-70 truncate flex-1 text-left">
+          <span className="max-w-[280px] truncate flex-1 text-left">
             {selected ? selected.label : placeholder}
           </span>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
+
       <PopoverContent
         className="p-0"
         align="start"
-        style={{ width: triggerWidth > 0 ? triggerWidth : "auto" }}
+        style={{ width: triggerWidth || "auto" }}
       >
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput
             placeholder="Rechercher..."
             value={search}
             onValueChange={setSearch}
           />
+
           <CommandEmpty>{emptyLabel}</CommandEmpty>
+
           <CommandGroup className="max-h-[300px] overflow-y-auto">
-            {showAllOption && (
+            {/* Option ALL - uniquement si pas de recherche */}
+            {showAllOption && !search && (
               <CommandItem
-                value={allLabel} 
+                value="all"
                 onSelect={() => {
                   onChange("all");
                   setOpen(false);
@@ -114,18 +138,19 @@ export function SearchableSelect({
               >
                 <Check
                   className={cn(
-                    "mr-2 h-4 w-4 shrink-0",
-                    value === "all" ? "opacity-100" : "opacity-0",
+                    "mr-2 h-4 w-4",
+                    value === "all" ? "opacity-100" : "opacity-0"
                   )}
                 />
-                <span>{allLabel}</span>
+                {allLabel}
               </CommandItem>
             )}
 
-            {options.map((option) => (
+            {/* Options filtrées */}
+            {filteredOptions.map((option) => (
               <CommandItem
                 key={option.value}
-                value={option.label} 
+                value={option.label}
                 onSelect={() => {
                   onChange(option.value);
                   setOpen(false);
@@ -133,19 +158,13 @@ export function SearchableSelect({
               >
                 <Check
                   className={cn(
-                    "mr-2 h-4 w-4 shrink-0",
-                    value === option.value ? "opacity-100" : "opacity-0",
+                    "mr-2 h-4 w-4",
+                    value === option.value ? "opacity-100" : "opacity-0"
                   )}
                 />
-                <span>{option.label}</span>
+                {option.label}
               </CommandItem>
             ))}
-
-            {options.length === 0 && !showAllOption && (
-              <CommandItem disabled className="text-muted-foreground">
-                {emptyLabel}
-              </CommandItem>
-            )}
           </CommandGroup>
         </Command>
       </PopoverContent>

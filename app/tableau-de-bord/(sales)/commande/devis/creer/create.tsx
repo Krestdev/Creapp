@@ -501,7 +501,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                               value={String(provider.id)}
                               className="uppercase"
                               disabled={
-                                (!!quotation && field.value !== provider.id) ||
+                                // (!!quotation && field.value !== provider.id) ||
                                 (!!watchedCommandId &&
                                   isProviderUsed(provider.id))
                               }

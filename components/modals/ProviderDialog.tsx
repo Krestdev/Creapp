@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
+import { Provider } from "@/types/types";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -44,7 +45,7 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
   });
 
   const { mutate: registerProvider, isPending } = useMutation({
-    mutationFn: (data: { name: string }) => providerQ.create(data),
+    mutationFn: (data: Omit<Provider, "id" | "createdAt">) => providerQ.create(data),
     // Dans ProviderDialog, modifiez le onSuccess :
     onSuccess: () => {
       toast.success("Fournisseur ajouté avec succès !");
@@ -61,7 +62,13 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      registerProvider({ name: values.name });
+      registerProvider({
+        name: values.name,
+        expireAtcarte_contribuable: null,
+        expireAtplan_localisation: null,
+        expireAtcommerce_registre: null,
+        expireAtbanck_attestation: null,
+      });
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
