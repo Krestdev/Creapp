@@ -265,10 +265,10 @@ function AppSidebar() {
       getQuotationRequests.data &&
       getQuotations.data
       ? groupQuotationsByCommandRequest(
-        getQuotationRequests.data.data,
-        getQuotations.data.data,
-        providers.data.data,
-      ).filter((c) => c.status === "NOT_PROCESSED")
+          getQuotationRequests.data.data,
+          getQuotations.data.data,
+          providers.data.data,
+        ).filter((c) => c.status === "NOT_PROCESSED")
       : [];
   }, [providers.data, getQuotationRequests.data, getQuotations.data]);
 
@@ -536,7 +536,7 @@ function AppSidebar() {
             pageId: "PG-03-45",
             title: "Approbation Devis",
             href: "/tableau-de-bord/commande/devis/approbation",
-            authorized: ["SUPERADMIN", "SALES_MANAGER", "VOLT_MANAGER"], //To-Do remove sales_manager here, he should no longer have access
+            authorized: ["SUPERADMIN", /*  "SALES_MANAGER", */ "VOLT_MANAGER"], //To-Do remove sales_manager here, he should no longer have access
             badgeValue:
               approbationDevis && approbationDevis.length > 0
                 ? approbationDevis?.length
@@ -645,18 +645,18 @@ function AppSidebar() {
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
-                signedTicket &&
-                pendingTicket &&
-                simpleTicket &&
-                approvedTicket?.length +
+              signedTicket &&
+              pendingTicket &&
+              simpleTicket &&
+              approvedTicket?.length +
                 signedTicket?.length +
                 pendingTicket?.length +
                 simpleTicket?.length >
                 0
                 ? approvedTicket?.length +
-                signedTicket?.length +
-                pendingTicket?.length +
-                simpleTicket?.length
+                  signedTicket?.length +
+                  pendingTicket?.length +
+                  simpleTicket?.length
                 : undefined,
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
