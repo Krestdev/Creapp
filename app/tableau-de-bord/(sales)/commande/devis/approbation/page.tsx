@@ -33,11 +33,23 @@ function Page() {
     queryFn: commandRqstQ.getAll,
   });
 
-  if (!isAuthorized) {
-    return <ErrorPage statusCode={401} />;
+  if (quotations.isLoading || providers.isLoading || commands.isLoading) {
+    return <LoadingPage />;
   }
   if (quotations.isError || providers.isError || commands.isError) {
     return <ErrorPage />;
+  }
+  if (!isAuthorized) {
+    return (
+      <ErrorPage
+        statusCode={401}
+        message={
+          isAuthorized === false
+            ? "Vous n'êtes pas autorisé !"
+            : "Impossible de récupérer vos informations"
+        }
+      />
+    );
   }
   if (quotations.isSuccess && providers.isSuccess && commands.isSuccess)
     return (

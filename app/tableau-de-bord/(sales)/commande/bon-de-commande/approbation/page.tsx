@@ -22,14 +22,23 @@ function Page() {
     queryFn: purchaseQ.getAll,
   });
 
-  if (!auth) {
-    return <ErrorPage statusCode={401} />;
-  }
   if (isLoading) {
     return <LoadingPage />;
   }
   if (isError) {
     return <ErrorPage error={error} />;
+  }
+  if (!auth) {
+    return (
+      <ErrorPage
+        statusCode={401}
+        message={
+          auth === false
+            ? "Vous n'êtes pas autorisé !"
+            : "Impossible de récupérer vos informations"
+        }
+      />
+    );
   }
   if (isSuccess) {
     return (

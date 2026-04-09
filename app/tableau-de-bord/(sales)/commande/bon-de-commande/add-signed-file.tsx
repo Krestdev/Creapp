@@ -29,7 +29,7 @@ function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
   /**Responsable Achat */
   const saleUserId = purchaseOrder.devi.userId;
   /**Responsable Validation */
-  const validatorUserId = purchaseOrder.validatorId;
+  const validatorUserId = purchaseOrder.validators?.userId;
   /**Fetch Signature */
   const saleSignature = useQuery({
     queryKey: ["signature", saleUserId],
@@ -109,7 +109,7 @@ function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"secondary"}>
           <DialogTitle>{`Télécharger le bon signé - ${
             purchaseOrder.devi.commandRequest.title

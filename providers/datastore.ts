@@ -7,14 +7,23 @@ interface Store {
   user?: User;
   isHydrated: boolean;
   token?: string;
+  isSignataire: boolean;
+}
+interface Actions {
   setIsHydrated: (v: boolean) => void;
   login: ({ user, token }: { user: User; token: string }) => void;
   logout: () => void;
   update: ({ user }: { user: User }) => void;
-  isSignataire: boolean;
 }
 
-export const useStore = create<Store>()(
+const initialState: Store = {
+  user: undefined,
+  isHydrated: false,
+  token: undefined,
+  isSignataire: false,
+};
+
+export const useStore = create<Store & Actions>()(
   persist(
     (set) => ({
       user: undefined,
@@ -28,8 +37,7 @@ export const useStore = create<Store>()(
           token: token,
           isSignataire: user.signatairs && user.signatairs.length > 0,
         }),
-      logout: () =>
-        set({ user: undefined, token: undefined, isSignataire: false }),
+      logout: () => set(initialState),
       update: ({ user }) => set({ user: user }),
     }),
     {
