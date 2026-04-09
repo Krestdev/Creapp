@@ -63,7 +63,6 @@ import z from "zod";
 interface Props {
   request: RequestModelT;
   users: Array<User>;
-  categories: Array<Category>;
   projects: Array<ProjectT>;
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
@@ -84,9 +83,6 @@ const formSchema = z.object({
     .max(50, { message: "Trop long" }),
   projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
-  categoryId: z.coerce.number({
-    message: "Veuillez sélectionner une catégorie",
-  }),
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
   benef: z.coerce.number().optional(),
@@ -106,7 +102,6 @@ type FormValues = z.infer<typeof formSchema>;
 function EditTypeOthers({
   request,
   users,
-  categories,
   projects,
   open,
   onOpenChange,
@@ -115,11 +110,6 @@ function EditTypeOthers({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [dueDate, setDueDate] = useState<boolean>(false);
-
-  // Filtrer les catégories de type "others" une seule fois
-  const filteredCategories = useMemo(() => {
-    return categories.filter((c) => c.type?.type === request.type);
-  }, [categories]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -131,7 +121,6 @@ function EditTypeOthers({
       benef: undefined,
       priority: "low",
       unit: "",
-      categoryId: undefined,
       projectId: undefined,
       dueDate: "",
     },
@@ -151,7 +140,6 @@ function EditTypeOthers({
           ? format(new Date(request.dueDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),
         priority: request.priority || "low",
-        categoryId: request.categoryId,
         projectId: request.projectId,
       });
     }
@@ -178,10 +166,6 @@ function EditTypeOthers({
   const onSubmit = useCallback(
     (values: FormValues) => {
       // Validation supplémentaire
-      if (!values.categoryId) {
-        toast.error("Veuillez sélectionner une catégorie");
-        return;
-      }
       if (!values.projectId) {
         toast.error("Veuillez sélectionner un projet");
         return;
@@ -196,7 +180,6 @@ function EditTypeOthers({
         benef: values.benef ? [values.benef] : [],
         dueDate: new Date(values.dueDate),
         priority: values.priority,
-        categoryId: values.categoryId,
         projectId: values.projectId,
       };
 
@@ -244,45 +227,6 @@ function EditTypeOthers({
                   <FormLabel isRequired>Titre</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex. Thé" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Category */}
-            <FormField
-              control={form.control}
-              name="categoryId"
-              disabled
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>Catégorie</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.value ? String(field.value) : undefined}
-                      onValueChange={(v) => field.onChange(parseInt(v))}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredCategories.length === 0 ? (
-                          <SelectItem value="none" disabled>
-                            Aucune catégorie enregistrée
-                          </SelectItem>
-                        ) : (
-                          filteredCategories.map((category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={category.id.toString()}
-                            >
-                              {category.label}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

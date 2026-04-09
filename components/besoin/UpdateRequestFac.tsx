@@ -65,7 +65,6 @@ const formSchema = z.object({
   delai: z
     .date()
     .min(new Date(), "Le delai d'exécution doit être dans le futur"),
-  category: z.string().min(1, "La categorie est requise"),
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().min(1, "La description est requise"),
   justificatif: SingleFileSchema,
@@ -104,7 +103,6 @@ export default function UpdateRequestFac({
     defaultValues: {
       beneficiaire: "",
       projet: "",
-      category: "facilitation",
       delai: new Date(),
       justificatif: [],
       title: "",
@@ -147,7 +145,6 @@ export default function UpdateRequestFac({
           form.reset({
             beneficiaire: requestData.beneficiary?.toString() || "",
             projet: requestData.projectId?.toString() || "",
-            category: requestData.type === "facilitation" ? "facilitation" : "",
             delai: requestData.dueDate
               ? new Date(requestData.dueDate)
               : new Date(),
@@ -273,32 +270,6 @@ export default function UpdateRequestFac({
                     allLabel=""
                     placeholder="Sélectionner un projet"
                   />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* CATEGORIE */}
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Categorie"}</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={true}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner une categorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="facilitation">
-                        {"Facilitation"}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

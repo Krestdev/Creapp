@@ -94,9 +94,6 @@ const formSchema = z.object({
     .max(50, { message: "Trop long" }),
   projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
-  categoryId: z.coerce.number({
-    message: "Veuillez sélectionner une catégorie",
-  }),
   // amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
   benef: z.coerce.number().optional(),
@@ -109,7 +106,7 @@ const formSchema = z.object({
   ),
   unit: z.string(),
   priority: z.enum(REQUEST_PRIORITIES),
-  proof: SingleFileSchema
+  proof: SingleFileSchema,
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -142,7 +139,6 @@ function EditTypeSettle({
       benef: undefined,
       priority: "low",
       unit: "",
-      categoryId: undefined,
       projectId: undefined,
       dueDate: "",
       proof: [],
@@ -163,7 +159,6 @@ function EditTypeSettle({
           ? format(new Date(request.dueDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),
         priority: request.priority || "low",
-        categoryId: request.categoryId,
         projectId: request.projectId,
         proof: request.proof,
       });
@@ -191,10 +186,6 @@ function EditTypeSettle({
   const onSubmit = useCallback(
     (values: FormValues) => {
       // Validation supplémentaire
-      if (!values.categoryId) {
-        toast.error("Veuillez sélectionner une catégorie");
-        return;
-      }
       if (!values.projectId) {
         toast.error("Veuillez sélectionner un projet");
         return;
@@ -209,7 +200,6 @@ function EditTypeSettle({
         benef: values.benef ? [values.benef] : [],
         dueDate: new Date(values.dueDate),
         priority: values.priority,
-        categoryId: values.categoryId,
         projectId: values.projectId,
         proof: values.proof,
       };
@@ -263,46 +253,6 @@ function EditTypeSettle({
                 </FormItem>
               )}
             />
-
-            {/* Category */}
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>Catégorie</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.value ? String(field.value) : undefined}
-                      onValueChange={(v) => field.onChange(parseInt(v))}
-                      disabled
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredCategories.length === 0 ? (
-                          <SelectItem value="none" disabled>
-                            Aucune catégorie enregistrée
-                          </SelectItem>
-                        ) : (
-                          filteredCategories.map((category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={category.id.toString()}
-                            >
-                              {category.label}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="description"

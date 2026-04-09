@@ -84,9 +84,6 @@ const formSchema = z.object({
     .max(50, { message: "Trop long" }),
   projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
-  categoryId: z.coerce.number({
-    message: "Veuillez sélectionner une catégorie",
-  }),
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
   benef: z.coerce.number().optional(),
@@ -118,7 +115,7 @@ function EditTypeOthers({
 
   // Filtrer les catégories de type "others" une seule fois
   const filteredCategories = useMemo(() => {
-    return categories.filter((c) => c.type?.type === "others");
+    return categories.filter((c) => c.type?.type === request.type);
   }, [categories]);
 
   const form = useForm<FormValues>({
@@ -131,7 +128,6 @@ function EditTypeOthers({
       benef: undefined,
       priority: "low",
       unit: "",
-      categoryId: undefined,
       projectId: undefined,
       dueDate: "",
     },
@@ -147,11 +143,10 @@ function EditTypeOthers({
         quantity: request.quantity || 1,
         unit: request.unit || "",
         benef: request.benef?.[0] || undefined,
-        dueDate: request.dueDate 
+        dueDate: request.dueDate
           ? format(new Date(request.dueDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),
         priority: request.priority || "low",
-        categoryId: request.categoryId,
         projectId: request.projectId,
       });
     }
@@ -169,45 +164,48 @@ function EditTypeOthers({
       router.refresh();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Une erreur est survenue lors de la modification");
+      toast.error(
+        error.message || "Une erreur est survenue lors de la modification",
+      );
     },
   });
 
-  const onSubmit = useCallback((values: FormValues) => {
-    // Validation supplémentaire
-    if (!values.categoryId) {
-      toast.error("Veuillez sélectionner une catégorie");
-      return;
-    }
-    if (!values.projectId) {
-      toast.error("Veuillez sélectionner un projet");
-      return;
-    }
+  const onSubmit = useCallback(
+    (values: FormValues) => {
+      // Validation supplémentaire
+      if (!values.projectId) {
+        toast.error("Veuillez sélectionner un projet");
+        return;
+      }
 
-    const payload = {
-      label: values.label,
-      description: values.description,
-      amount: values.amount,
-      quantity: values.quantity,
-      unit: values.unit,
-      benef: values.benef ? [values.benef] : [],
-      dueDate: new Date(values.dueDate),
-      priority: values.priority,
-      categoryId: values.categoryId,
-      projectId: values.projectId,
-    };
+      const payload = {
+        label: values.label,
+        description: values.description,
+        amount: values.amount,
+        quantity: values.quantity,
+        unit: values.unit,
+        benef: values.benef ? [values.benef] : [],
+        dueDate: new Date(values.dueDate),
+        priority: values.priority,
+        projectId: values.projectId,
+      };
 
-    mutate(payload);
-  }, [mutate]);
+      mutate(payload);
+    },
+    [mutate],
+  );
 
   // Gérer la fermeture du modal
-  const handleOpenChange = useCallback((newOpen: boolean) => {
-    if (!newOpen) {
-      // Réinitialiser le formulaire lors de la fermeture
-      form.reset();
-    }
-    onOpenChange(newOpen);
-  }, [form, onOpenChange]);
+  const handleOpenChange = useCallback(
+    (newOpen: boolean) => {
+      if (!newOpen) {
+        // Réinitialiser le formulaire lors de la fermeture
+        form.reset();
+      }
+      onOpenChange(newOpen);
+    },
+    [form, onOpenChange],
+  );
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -222,9 +220,12 @@ function EditTypeOthers({
             Modifiez les informations du besoin en achat direct
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2"
+          >
             <FormField
               control={form.control}
               name="label"
@@ -239,45 +240,6 @@ function EditTypeOthers({
               )}
             />
 
-            {/* Category */}
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>Catégorie</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.value ? String(field.value) : undefined}
-                      onValueChange={(v) => field.onChange(parseInt(v))}
-                      disabled
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredCategories.length === 0 ? (
-                          <SelectItem value="none" disabled>
-                            Aucune catégorie enregistrée
-                          </SelectItem>
-                        ) : (
-                          filteredCategories.map((category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={category.id.toString()}
-                            >
-                              {category.label}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="description"
@@ -285,9 +247,9 @@ function EditTypeOthers({
                 <FormItem className="@min-[640px]:col-span-2">
                   <FormLabel isRequired>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Décrivez votre besoin" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Décrivez votre besoin"
+                      {...field}
                       rows={3}
                     />
                   </FormControl>
@@ -311,9 +273,7 @@ function EditTypeOthers({
                     >
                       <ComboboxInput placeholder="Sélectionner" />
                       <ComboboxContent>
-                        <ComboboxEmpty>
-                          Aucun projet enregistré
-                        </ComboboxEmpty>
+                        <ComboboxEmpty>Aucun projet enregistré</ComboboxEmpty>
                         <ComboboxList>
                           {(item: ProjectT) => (
                             <ComboboxItem key={item.id} value={item}>
@@ -432,11 +392,7 @@ function EditTypeOthers({
                 <FormItem>
                   <FormLabel isRequired>Quantité</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Ex. 3"
-                      {...field}
-                    />
+                    <Input type="number" placeholder="Ex. 3" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -477,10 +433,7 @@ function EditTypeOthers({
                 <FormItem>
                   <FormLabel isRequired>Priorité</FormLabel>
                   <FormControl>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>

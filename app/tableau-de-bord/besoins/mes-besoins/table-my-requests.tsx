@@ -153,8 +153,10 @@ export function TableMyRequests({
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isUpdateFacModalOpen, setIsUpdateFacModalOpen] = React.useState(false);
   const [isUpdateRHModalOpen, setIsUpdateRHModalOpen] = React.useState(false);
-  const [isUpdateOthersModalOpen, setIsUpdateOthersModalOpen] = React.useState(false);
-  const [isUpdateSettleModalOpen, setIsUpdateSettleModalOpen] = React.useState(false);
+  const [isUpdateOthersModalOpen, setIsUpdateOthersModalOpen] =
+    React.useState(false);
+  const [isUpdateSettleModalOpen, setIsUpdateSettleModalOpen] =
+    React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
 
@@ -659,7 +661,6 @@ export function TableMyRequests({
             request={selectedItem}
             users={users}
             projects={projects}
-            categories={categories}
           />
           <UpdateRequestFac
             open={isUpdateFacModalOpen}
