@@ -109,6 +109,7 @@ import { TabBar } from "./TabBar";
 import BesoinLastApproVall from "../modals/BesoinApproValid";
 import UpdatePaymentMethod from "../modals/UpdatePaymentMethod";
 import BesoinLastValOther from "../modals/BesoinLastValOther";
+import BesoinLastValSettle from "../modals/BesoinLastValSettle";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -200,6 +201,7 @@ export function DataVal({
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
+  const [isUpdateSettleRequest, setIsUpdateSettleRequest] = React.useState(false);
   const [statusSearch, setStatusSearch] = React.useState("");
   const [categorySearch, setCategorySearch] = React.useState("");
   const [projectSearch, setProjectSearch] = React.useState("");
@@ -949,7 +951,10 @@ export function DataVal({
                               setIsUpdateApproModalOpen(true))
                             : item.type === "others"
                               ? (setSelectedItem(item),
-                                setIsUpdateOtherRequest(true))
+                                setIsUpdateOtherRequest(true)) :
+                                item.type === "settle" ?
+                                 (setSelectedItem(item),
+                                  setIsUpdateSettleRequest(true))
                               : (setSelectedItem(item),
                                 setIsLastValModalOpen(true))
                       : openValidationModal("approve", item)
@@ -1907,6 +1912,14 @@ export function DataVal({
             projects={projectsData}
             open={isUpdateOtherRequest}
             setOpen={setIsUpdateOtherRequest}
+          />
+          <BesoinLastValSettle
+            request={selectedItem}
+            users={usersData}
+            categories={categoriesData}
+            projects={projectsData}
+            open={isUpdateSettleRequest}
+            setOpen={setIsUpdateSettleRequest}
           />
         </>
       )}

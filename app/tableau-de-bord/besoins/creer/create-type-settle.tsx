@@ -1,0 +1,472 @@
+"use client";
+import { SearchableSelect } from "@/components/base/searchableSelect";
+import FilesUpload from "@/components/comp-547";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { units } from "@/data/unit";
+import { useStore } from "@/providers/datastore";
+import {
+  newRequestSettle,
+  requestQ,
+} from "@/queries/requestModule";
+import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import z from "zod";
+
+interface Props {
+  users: Array<User>;
+  categories: Array<Category>;
+  projects: Array<ProjectT>;
+}
+
+const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
+  (typeof PRIORITIES)[number]["value"],
+  ...(typeof PRIORITIES)[number]["value"][],
+];
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const SingleFileSchema = z
+  .array(
+    z.union([
+      z.instanceof(File, { message: "Doit être un fichier valide" }),
+      z.string(),
+    ]),
+  )
+  .optional();
+
+const formSchema = z.object({
+  label: z
+    .string({ message: "Veuillez renseigner un titre" })
+    .min(5, { message: "Trop court" })
+    .max(50, { message: "Trop long" }),
+  projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
+  description: z.string().optional(),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
+  amount: z.coerce.number().optional(),
+  quantity: z.coerce
+    .number()
+    .min(1, { message: "Veuillez définir une quantité" }),
+  benef: z.coerce.number().optional(),
+  dueDate: z.string({ message: "Veuillez définir une date" }).refine(
+    (val) => {
+      const d = new Date(val);
+      return !isNaN(d.getTime()) && d >= today;
+    },
+    { message: "Date invalide" },
+  ),
+  unit: z.string().min(1, "Veuillez sélectionner une unité"),
+  proof: SingleFileSchema,
+});
+
+function CreateTypeSettle({ users, categories, projects }: Props) {
+  const { user } = useStore();
+  const router = useRouter();
+
+  const [dueDate, setDueDate] = useState<boolean>(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      label: "",
+      description: "",
+      amount: 100,
+      quantity: 1,
+      benef: undefined,
+      unit: "",
+      categoryId: undefined,
+      projectId: undefined,
+      proof: [],
+    },
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (payload: newRequestSettle) =>
+      requestQ.createSettleRequest(payload),
+    onSuccess: () => {
+      toast.success("Votre besoin a été soumis avec succès !");
+      router.push("./mes-besoins");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    mutate({
+      label: values.label,
+      description: values.description ?? "",
+      amount: values.amount ?? 0,
+      quantity: values.quantity,
+      unit: values.unit,
+      benef: values.benef ? [values.benef] : [],
+      dueDate: new Date(values.dueDate),
+      priority: "low",
+      categoryId: values.categoryId,
+      projectId: values.projectId,
+      proof: values.proof,
+      userId: user?.id ?? 0,
+    });
+  };
+
+  const dayStart = new Date();
+  dayStart.setDate(dayStart.getDate() - 1);
+  dayStart.setHours(0, 0, 0, 0);
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
+        <FormField
+          control={form.control}
+          name="label"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Titre"}</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ex. Expédition de marchandises"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Category */}
+        <FormField
+          control={form.control}
+          name="categoryId"
+          render={({ field }) => {
+            // 1. On filtre les catégories "settle"
+            const settleCategories = categories.filter(
+              (c) => c.type.type === "settle",
+            );
+
+            // 2. On trouve la catégorie sélectionnée en convertissant les IDs en String
+            // pour garantir que la comparaison fonctionne (Nombre vs Texte)
+            const selectedCategory = settleCategories.find(
+              (c) => String(c.id) === String(field.value),
+            );
+
+            return (
+              <FormItem>
+                <FormLabel isRequired>{"Catégorie"}</FormLabel>
+
+                <FormControl>
+                  <SearchableSelect
+                    onChange={field.onChange}
+                    options={settleCategories.map((c) => ({
+                      value: c.id!.toString(),
+                      label: c.label,
+                    }))}
+                    value={field.value ? String(field.value) : ""}
+                    width="w-full"
+                    allLabel=""
+                    placeholder="Sélectionner une catégorie"
+                  />
+                </FormControl>
+
+                {/* La description s'affiche maintenant correctement */}
+                {selectedCategory?.description && (
+                  <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
+                    {selectedCategory.description}
+                  </div>
+                )}
+
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem className="@min-[640px]:col-span-full">
+              <FormLabel>{"Description"}</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Décrivez votre besoin" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Project */}
+        <FormField
+          control={form.control}
+          name="projectId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Projet"}</FormLabel>
+              <FormControl>
+                <Combobox
+                  items={projects.filter((x) => x.status !== "cancelled")}
+                  value={projects.find((p) => p.id === field.value) ?? null}
+                  onValueChange={(v) => field.onChange(v?.id ?? "")}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>{"Aucun projet enregistré"}</ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: ProjectT) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.label}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Date limite de soumission */}
+        <FormField
+          control={form.control}
+          name="dueDate"
+          render={({ field }) => {
+            const selectedDate = field.value
+              ? new Date(field.value)
+              : undefined;
+
+            return (
+              <FormItem>
+                <FormLabel isRequired>{"Date limite"}</FormLabel>
+                <FormControl>
+                  <div className="relative flex gap-2">
+                    <Input
+                      id={field.name}
+                      value={field.value || ""}
+                      placeholder="Sélectionner une date"
+                      className="bg-background pr-10"
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowDown") {
+                          e.preventDefault();
+                          setDueDate(true);
+                        }
+                      }}
+                    />
+                    <Popover open={dueDate} onOpenChange={setDueDate}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="date-picker"
+                          type="button"
+                          variant="ghost"
+                          className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                        >
+                          <CalendarIcon className="size-3.5" />
+                          <span className="sr-only">
+                            {"Sélectionner une date"}
+                          </span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-auto overflow-hidden p-0"
+                        align="end"
+                        alignOffset={-8}
+                        sideOffset={10}
+                      >
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          defaultMonth={selectedDate || today}
+                          captionLayout="dropdown"
+                          onSelect={(date) => {
+                            if (!date) return;
+                            const value = format(date, "yyyy-MM-dd");
+                            field.onChange(value);
+                            setDueDate(false);
+                          }}
+                          disabled={(date) => date <= dayStart}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+        <FormField
+          control={form.control}
+          name="quantity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Quantité"}</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Ex. 3"
+                  {...field}
+                  className="pr-12"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Unité */}
+        <FormField
+          control={form.control}
+          name="unit"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Unité"}</FormLabel>
+              <FormControl>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {units.map((unit) => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {unit.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="amount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Montant"}</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Ex. 15 000 FCFA"
+                    {...field}
+                    className="pr-12"
+                  />
+                  <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                    {"FCFA"}
+                  </p>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="benef"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Bénéficiaire"}</FormLabel>
+              <FormControl>
+                <Combobox
+                  items={users}
+                  value={users.find((user) => user.id === field.value) ?? null}
+                  onValueChange={(v) => field.onChange(v?.id ?? "")}
+                  itemToStringLabel={(v) => v.firstName.concat(" ", v.lastName)}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun utilisateur enregistré"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: User) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.firstName.concat(" ", item.lastName)}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* JUSTIFICATIF */}
+        <FormField
+          control={form.control}
+          name="proof"
+          render={({ field }) => (
+            <FormItem className="md:col-span-2">
+              <FormLabel>{"Justificatif"}</FormLabel>
+              <FormControl>
+                <FilesUpload
+                  value={field.value || []}
+                  onChange={field.onChange}
+                  name={field.name}
+                  acceptTypes="all"
+                  multiple={false}
+                  maxFiles={1}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="@min-[640px]:col-span-full w-full flex justify-end">
+          <Button
+            variant={"primary"}
+            type="submit"
+            disabled={isPending}
+            isLoading={isPending}
+          >
+            {"Soumettre"}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+
+export default CreateTypeSettle;

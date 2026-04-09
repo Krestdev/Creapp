@@ -72,6 +72,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import EditTypeOthers from "@/components/besoin/EditTypeOthers";
+import EditTypeSettle from "@/components/besoin/EditTypeSettle";
 
 const statusConfig = {
   pending: {
@@ -152,8 +153,8 @@ export function TableMyRequests({
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [isUpdateFacModalOpen, setIsUpdateFacModalOpen] = React.useState(false);
   const [isUpdateRHModalOpen, setIsUpdateRHModalOpen] = React.useState(false);
-  const [isUpdateOthersModalOpen, setIsUpdateOthersModalOpen] =
-    React.useState(false);
+  const [isUpdateOthersModalOpen, setIsUpdateOthersModalOpen] = React.useState(false);
+  const [isUpdateSettleModalOpen, setIsUpdateSettleModalOpen] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
 
@@ -424,7 +425,9 @@ export function TableMyRequests({
                         ? setIsUpdateRHModalOpen(true)
                         : item.type === "others"
                           ? setIsUpdateOthersModalOpen(true)
-                          : setIsUpdateModalOpen(true);
+                          : item.type === "settle"
+                            ? setIsUpdateSettleModalOpen(true)
+                            : setIsUpdateModalOpen(true);
                   }}
                   disabled={
                     item.state !== "pending" ||
@@ -673,6 +676,7 @@ export function TableMyRequests({
             users={users}
             projects={projects}
           />
+
           <EditTypeOthers
             request={selectedItem}
             users={users}
@@ -680,6 +684,14 @@ export function TableMyRequests({
             projects={projects}
             open={isUpdateOthersModalOpen}
             onOpenChange={setIsUpdateOthersModalOpen}
+          />
+          <EditTypeSettle
+            request={selectedItem}
+            users={users}
+            categories={categories}
+            projects={projects}
+            open={isUpdateSettleModalOpen}
+            onOpenChange={setIsUpdateSettleModalOpen}
           />
         </>
       )}

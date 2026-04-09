@@ -31,6 +31,7 @@ import CreateTypeTransport from "./create-type-transport";
 import { ArrowLeft } from "lucide-react";
 import CreateTypeApprovisionement from "./create-type-approvisionement";
 import CreateTypeTaxes from "./create-type-taxes";
+import CreateTypeSettle from "./create-type-settle";
 
 const Page = () => {
   const { user } = useStore();
@@ -162,12 +163,20 @@ const Page = () => {
               projects={getProjects.data.data}
             />
           );
+        case "settle":
+          return (
+            <CreateTypeSettle
+              users={getUsers.data.data}
+              categories={getCategories.data.data}
+              projects={getProjects.data.data}
+            />
+          );
         default:
           return null;
       }
     };
 
-    const types = getRequestType.data.data.filter(x => x.type !== "others");
+    const types = getRequestType.data.data.filter((x) => x.type !== "others");
 
     const rolePermissions: Record<string, Array<string>> = {
       SUPERADMIN: ["*"],
@@ -175,7 +184,7 @@ const Page = () => {
       VOLT_MANAGER: ["speciaux"],
       DRIVER: ["gas"],
       VOLT: ["appro"],
-      USER: ["facilitation", "others", "achat", "transport", "taxes"],
+      USER: ["facilitation", "others", "achat", "transport", "taxes", "settle"],
     };
 
     // const typesList = (roles: Array<Role>): Array<RequestType> => {
@@ -265,6 +274,11 @@ const Page = () => {
         case "taxes":
           return {
             className: "border-blue-200 from-blue-50 to-blue-100 text-blue-500",
+          };
+        case "settle":
+          return {
+            className:
+              "border-cyan-200 from-cyan-50 to-cyan-100 text-cyan-500",
           };
         default:
           return {
