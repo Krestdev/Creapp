@@ -13,7 +13,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { VariantProps } from "class-variance-authority";
-import { ArrowUpDown, ChevronDown, Eye, Settings2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Eye,
+  FileSpreadsheetIcon,
+  Settings2,
+} from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
@@ -57,6 +63,7 @@ import { formatToShortName, totalAmountPurchase, XAF } from "@/lib/utils";
 import { BonsCommande, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
 import { format } from "date-fns";
 import ViewPurchase from "../viewPurchase";
+import ViewSignedPurchase from "../viewSignedPurchase";
 
 interface Props {
   data: Array<BonsCommande>;
@@ -128,6 +135,8 @@ export function ApprovedTable({ data }: Props) {
 
   // modals
   const [view, setView] = React.useState(false);
+  //View signed file
+  const [viewSigned, setViewSigned] = React.useState(false);
   const [selectedValue, setSelectedValue] = React.useState<BonsCommande>();
 
   const filteredData = React.useMemo(() => {
@@ -201,38 +210,42 @@ export function ApprovedTable({ data }: Props) {
       },
     },
 
-   {
-         accessorKey: "amount",
-         header: ({ column }) => (
-           <span
-             className="tablehead"
-             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-           >
-             {"Montant TTC"}
-             <ArrowUpDown />
-           </span>
-         ),
-         cell: ({ row }) => {
-           const po = row.original;
-           return <div className="font-medium">{XAF.format(po.netToPay)}</div>;
-         },
-       },
-       {
-         accessorKey: "amountHT",
-         header: ({ column }) => (
-           <span
-             className="tablehead"
-             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-           >
-             {"Montant HT"}
-             <ArrowUpDown />
-           </span>
-         ),
-         cell: ({ row }) => {
-           const po = row.original;
-           return <div className="font-medium">{XAF.format(totalAmountPurchase(po))}</div>;
-         },
-       },
+    {
+      accessorKey: "amount",
+      header: ({ column }) => (
+        <span
+          className="tablehead"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          {"Montant TTC"}
+          <ArrowUpDown />
+        </span>
+      ),
+      cell: ({ row }) => {
+        const po = row.original;
+        return <div className="font-medium">{XAF.format(po.netToPay)}</div>;
+      },
+    },
+    {
+      accessorKey: "amountHT",
+      header: ({ column }) => (
+        <span
+          className="tablehead"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          {"Montant HT"}
+          <ArrowUpDown />
+        </span>
+      ),
+      cell: ({ row }) => {
+        const po = row.original;
+        return (
+          <div className="font-medium">
+            {XAF.format(totalAmountPurchase(po))}
+          </div>
+        );
+      },
+    },
 
     {
       accessorKey: "priority",
@@ -316,6 +329,18 @@ export function ApprovedTable({ data }: Props) {
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
+              {!!item.commandFile && item.commandFile.length > 0 && (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setSelectedValue(item);
+                    setViewSigned(true);
+                  }}
+                >
+                  <FileSpreadsheetIcon />
+                  {"Voir le bon signé"}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -614,12 +639,20 @@ export function ApprovedTable({ data }: Props) {
 
       {/* VIEW */}
       {selectedValue && (
-        <ViewPurchase
-          open={view}
-          openChange={setView}
-          purchaseOrder={selectedValue}
-          users={[]}
-        />
+        <>
+          <ViewPurchase
+            open={view}
+            openChange={setView}
+            purchaseOrder={selectedValue}
+            users={[]}
+          />
+          <ViewSignedPurchase
+            open={viewSigned}
+            openChange={setViewSigned}
+            purchaseOrder={selectedValue}
+            fileUrl={`${process.env.NEXT_PUBLIC_API}/${selectedValue.commandFile}`}
+          />
+        </>
       )}
     </div>
   );

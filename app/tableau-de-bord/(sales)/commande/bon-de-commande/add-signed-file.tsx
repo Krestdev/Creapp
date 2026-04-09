@@ -109,7 +109,7 @@ function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"secondary"}>
           <DialogTitle>{`Télécharger le bon signé - ${
             purchaseOrder.devi.commandRequest.title

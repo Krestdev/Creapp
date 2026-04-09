@@ -169,7 +169,7 @@ function ViewReception({
               <p className="font-semibold">
                 {format(
                   new Date(reception.updatedAt || reception.createdAt),
-                  "dd MMMM yyyy",
+                  "dd MMMM yyyy, p",
                   { locale: fr },
                 )}
               </p>

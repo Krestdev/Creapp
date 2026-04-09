@@ -39,13 +39,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -62,8 +55,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
 import { totalAmountPurchase, XAF } from "@/lib/utils";
-import { userQ } from "@/queries/baseModule";
 import {
   BonsCommande,
   CommandCondition,
@@ -73,17 +70,12 @@ import {
   PURCHASE_ORDER_STATUS,
   User,
 } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import Link from "next/link";
 import AddSignedFile from "./add-signed-file";
 import EditPurchase from "./editPurchase";
 import ViewPurchase from "./viewPurchase";
-import Link from "next/link";
-import {
-  Progress,
-  ProgressLabel,
-  ProgressValue,
-} from "@/components/ui/progress";
+import ViewSignedPurchase from "./viewSignedPurchase";
 
 interface BonsCommandeTableProps {
   data: Array<BonsCommande>;
@@ -171,6 +163,8 @@ export function PurchaseTable({
   const [edit, setEdit] = React.useState<boolean>(false);
   //Complete Modal
   const [complete, setComplete] = React.useState<boolean>(false);
+  //ViewSignedModal
+  const [viewSigned, setViewSigned] = React.useState<boolean>(false);
   //Selected
   const [selectedValue, setSelectedValue] = React.useState<BonsCommande>();
 
@@ -436,15 +430,16 @@ export function PurchaseTable({
                 {/**Previously Compléter (Bon signé) */}
               </DropdownMenuItem>
               {!!item.commandFile && item.commandFile.length > 0 && (
-                <Link
-                  href={`${process.env.NEXT_PUBLIC_API}/${item.commandFile}`}
-                  target="_blank"
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setSelectedValue(item);
+                    setViewSigned(true);
+                  }}
                 >
-                  <DropdownMenuItem className="cursor-pointer">
-                    <FileSpreadsheetIcon />
-                    {"Voir le bon signé"}
-                  </DropdownMenuItem>
-                </Link>
+                  <FileSpreadsheetIcon />
+                  {"Voir le bon signé"}
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -921,6 +916,14 @@ export function PurchaseTable({
           open={complete}
           openChange={setComplete}
           purchaseOrder={selectedValue}
+        />
+      )}
+      {selectedValue && (
+        <ViewSignedPurchase
+          open={viewSigned}
+          openChange={setViewSigned}
+          purchaseOrder={selectedValue}
+          fileUrl={`${process.env.NEXT_PUBLIC_API}/${selectedValue.commandFile}`}
         />
       )}
     </div>
