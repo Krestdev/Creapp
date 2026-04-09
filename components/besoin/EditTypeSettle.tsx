@@ -97,7 +97,7 @@ const formSchema = z.object({
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),
-  amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
+  // amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
   benef: z.coerce.number().optional(),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
@@ -137,7 +137,7 @@ function EditTypeSettle({
     defaultValues: {
       label: "",
       description: "",
-      amount: 100,
+      // amount: 100,
       quantity: 1,
       benef: undefined,
       priority: "low",
@@ -155,7 +155,7 @@ function EditTypeSettle({
       form.reset({
         label: request.label || "",
         description: request.description || "",
-        amount: request.amount || 100,
+        // amount: request.amount || 100,
         quantity: request.quantity || 1,
         unit: request.unit || "",
         benef: request.benef?.[0] || undefined,
@@ -203,7 +203,7 @@ function EditTypeSettle({
       const payload = {
         label: values.label,
         description: values.description,
-        amount: values.amount,
+        // amount: values.amount,
         quantity: values.quantity,
         unit: values.unit,
         benef: values.benef ? [values.benef] : [],
@@ -424,7 +424,7 @@ function EditTypeSettle({
               }}
             />
 
-            <FormField
+            {/* <FormField
               control={form.control}
               name="amount"
               render={({ field }) => (
@@ -446,7 +446,7 @@ function EditTypeSettle({
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
 
             <FormField
               control={form.control}

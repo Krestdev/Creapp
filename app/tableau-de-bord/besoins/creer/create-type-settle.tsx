@@ -83,7 +83,6 @@ const formSchema = z.object({
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),
-  amount: z.coerce.number().optional(),
   quantity: z.coerce
     .number()
     .min(1, { message: "Veuillez définir une quantité" }),
@@ -110,7 +109,6 @@ function CreateTypeSettle({ users, categories, projects }: Props) {
     defaultValues: {
       label: "",
       description: "",
-      amount: 100,
       quantity: 1,
       benef: undefined,
       unit: "",
@@ -136,7 +134,6 @@ function CreateTypeSettle({ users, categories, projects }: Props) {
     mutate({
       label: values.label,
       description: values.description ?? "",
-      amount: values.amount ?? 0,
       quantity: values.quantity,
       unit: values.unit,
       benef: values.benef ? [values.benef] : [],
@@ -376,7 +373,7 @@ function CreateTypeSettle({ users, categories, projects }: Props) {
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="amount"
           render={({ field }) => (
@@ -398,7 +395,7 @@ function CreateTypeSettle({ users, categories, projects }: Props) {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         <FormField
           control={form.control}

@@ -51,15 +51,16 @@ import {
   RequestModelT,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import FilesUpload from "../comp-547";
+import { paymentQ } from "@/queries/payment";
 
 interface Props {
   open: boolean;
@@ -83,14 +84,13 @@ const SingleFileSchema = z
       z.string(),
     ]),
   )
-  .min(1, "Au moins un fichier est requis");
+  .optional();
 
 const formSchema = z.object({
   label: z.string().min(5, "Trop court").max(50, "Trop long"),
   projectId: z.coerce.number().min(1, "Projet requis"),
   description: z.string().min(1, "Description requise"),
   categoryId: z.coerce.number().min(1, "Catégorie requise"),
-  amount: z.coerce.number().min(1, "Montant requis"),
   quantity: z.coerce.number().min(1, "Quantité requise"),
   benef: z.coerce.number().min(1, "Bénéficiaire requis"),
   dueDate: z.date({ required_error: "Date requise" }),
@@ -115,12 +115,18 @@ export default function BesoinLastValSettle({
   const { user } = useStore();
   const [openDate, setOpenDate] = useState(false);
 
+  const payments = useQuery({
+    queryKey: ["payments"],
+    queryFn: () => paymentQ.getAll(),
+  });
+
+  const paiement = payments.data?.data.find((x) => x.requestId === request?.id);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       label: request.label,
       description: request.description,
-      amount: request.amount,
       quantity: request.quantity,
       benef: request.benef?.[0],
       priority: (request.priority as any) || "low",
@@ -135,23 +141,31 @@ export default function BesoinLastValSettle({
 
   // Réinitialiser le formulaire quand la requête change ou à l'ouverture
   useEffect(() => {
+    let proofValue: any[] = [];
+    if (paiement?.proof) {
+      if (typeof paiement?.proof === "string") {
+        proofValue = [paiement?.proof];
+      } else if (Array.isArray(paiement?.proof)) {
+        proofValue = paiement?.proof;
+      }
+    }
+
     if (open) {
       form.reset({
         label: request.label,
         description: request.description,
-        amount: request.amount,
+        projectId: request.projectId,
         quantity: request.quantity,
         benef: request.beficiaryList?.[0].id,
         priority: (request.priority as any) || "low",
         unit: request.unit,
         categoryId: request.categoryId,
-        projectId: request.projectId,
         dueDate: request.dueDate ? new Date(request.dueDate) : new Date(),
         paytype: undefined,
-        proof: request.proof || [],
+        proof: proofValue,
       });
     }
-  }, [open, request, form]);
+  }, [open, request, form, paiement]);  
 
   const validator = categories
     .find((cat) => cat.id === request?.categoryId)
@@ -171,11 +185,20 @@ export default function BesoinLastValSettle({
   const updateAndValidate = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
       const payload = {
-        ...values,
         id: request.id,
+        quantity: values.quantity,
+        unit: values.unit,
+        description: values.description,
+        priority: values.priority,
+        label: values.label,
+        userId: user?.id,
+        beneficiary: request.beneficiary,
+        projectId: request.projectId,
+        categoryId: request.categoryId,
         dueDate: values.dueDate,
-        benef: [values.benef],
+        benef: request.benef,
         paytype: values.paytype,
+        proof: values.proof,
       };
       await requestQ.specialUpdate(payload, Number(request.id));
       return request.id;
@@ -195,8 +218,8 @@ export default function BesoinLastValSettle({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-3xl max-h-[80vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <DialogTitle>{"Approbation & Modification"}</DialogTitle>
           <DialogDescription>
             {"Vérifiez et ajustez les informations avant la validation finale"}
@@ -206,328 +229,328 @@ export default function BesoinLastValSettle({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            className="flex-1 overflow-y-auto px-6"
           >
-            {/* Titre */}
-            <FormField
-              control={form.control}
-              disabled
-              name="label"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Titre"}</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Catégorie */}
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => {
-                const settle = categories.filter(
-                  (c) => c.type.type === "settle",
-                );
-                return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6">
+              {/* Titre */}
+              <FormField
+                control={form.control}
+                disabled
+                name="label"
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired className="w-full">
-                      {"Catégorie"}
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={String(field.value)}
+                    <FormLabel isRequired>{"Titre"}</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Catégorie */}
+              <FormField
+                control={form.control}
+                name="categoryId"
+                disabled
+                render={({ field }) => {
+                  const settle = categories.filter(
+                    (c) => c.type.type === "settle",
+                  );
+                  return (
+                    <FormItem>
+                      <FormLabel isRequired className="w-full">
+                        {"Catégorie"}
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={String(field.value)}
+                        disabled
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {settle.map((c) => (
+                            <SelectItem key={c.id} value={String(c.id)}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
+              {/* Projet */}
+              <FormField
+                control={form.control}
+                name="projectId"
+                disabled
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Projet"}</FormLabel>
+                    <Combobox
+                      items={projects.filter((p) => p.status !== "cancelled")}
+                      value={projects.find((p) => p.id === field.value) ?? null}
+                      onValueChange={(v) => field.onChange(v?.id)}
+                      disabled
                     >
+                      <FormControl>
+                        <ComboboxInput disabled placeholder={"Projet..."} />
+                      </FormControl>
+                      <ComboboxContent>
+                        <ComboboxEmpty>{"Aucun projet"}</ComboboxEmpty>
+                        <ComboboxList>
+                          {(item: ProjectT) => (
+                            <ComboboxItem key={item.id} value={item}>
+                              {item.label}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Bénéficiaire */}
+              <FormField
+                control={form.control}
+                name="benef"
+                disabled
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
+                    <Combobox
+                      items={users}
+                      value={users.find((u) => u.id === field.value) ?? null}
+                      onValueChange={(v) => field.onChange(v?.id)}
+                      itemToStringLabel={(v) => `${v.firstName} ${v.lastName}`}
+                      disabled
+                    >
+                      <FormControl>
+                        <ComboboxInput disabled placeholder="Bénéficiaire..." />
+                      </FormControl>
+                      <ComboboxContent>
+                        <ComboboxList>
+                          {(u: User) => (
+                            <ComboboxItem key={u.id} value={u}>
+                              {u.firstName} {u.lastName}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Quantité */}
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Quantité"}</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Unité */}
+              <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Unité"}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {settle.map((c) => (
-                          <SelectItem key={c.id} value={String(c.id)}>
-                            {c.label}
+                        {units.map((u) => (
+                          <SelectItem key={u.value} value={u.value}>
+                            {u.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
-                );
-              }}
-            />
+                )}
+              />
 
-            {/* Projet */}
-            <FormField
-              control={form.control}
-              name="projectId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Projet"}</FormLabel>
-                  <Combobox
-                    items={projects.filter((p) => p.status !== "cancelled")}
-                    value={projects.find((p) => p.id === field.value) ?? null}
-                    onValueChange={(v) => field.onChange(v?.id)}
-                  >
-                    <FormControl>
-                      <ComboboxInput placeholder={"Projet..."} />
-                    </FormControl>
-                    <ComboboxContent>
-                      <ComboboxEmpty>{"Aucun projet"}</ComboboxEmpty>
-                      <ComboboxList>
-                        {(item: ProjectT) => (
-                          <ComboboxItem key={item.id} value={item}>
-                            {item.label}
-                          </ComboboxItem>
-                        )}
-                      </ComboboxList>
-                    </ComboboxContent>
-                  </Combobox>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Bénéficiaire */}
-            <FormField
-              control={form.control}
-              name="benef"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
-                  <Combobox
-                    items={users}
-                    value={users.find((u) => u.id === field.value) ?? null}
-                    onValueChange={(v) => field.onChange(v?.id)}
-                    itemToStringLabel={(v) => `${v.firstName} ${v.lastName}`}
-                  >
-                    <FormControl>
-                      <ComboboxInput placeholder="Bénéficiaire..." />
-                    </FormControl>
-                    <ComboboxContent>
-                      <ComboboxList>
-                        {(u: User) => (
-                          <ComboboxItem key={u.id} value={u}>
-                            {u.firstName} {u.lastName}
-                          </ComboboxItem>
-                        )}
-                      </ComboboxList>
-                    </ComboboxContent>
-                  </Combobox>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Montant & Quantité */}
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Montant"}</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Quantité"}</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Unité & Priorité */}
-            <FormField
-              control={form.control}
-              name="unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Unité"}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {units.map((u) => (
-                        <SelectItem key={u.value} value={u.value}>
-                          {u.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Priorité"}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {PRIORITIES.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Date limite */}
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel isRequired className="mb-1">
-                    {"Date limite"}
-                  </FormLabel>
-                  <Popover open={openDate} onOpenChange={setOpenDate}>
-                    <PopoverTrigger asChild>
+              {/* Priorité */}
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Priorité"}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          className="w-full pl-3 text-left font-normal"
-                        >
-                          {field.value
-                            ? format(field.value, "dd/MM/yyyy", { locale: fr })
-                            : "Sélectionner"}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          field.onChange(date);
-                          setOpenDate(false);
-                        }}
-                        disabled={(date) =>
-                          date < new Date(new Date().setHours(0, 0, 0, 0))
-                        }
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Moyen de paiement */}
-            <FormField
-              control={form.control}
-              name="paytype"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
-                  <FormControl>
-                    <Select
-                      defaultValue={
-                        field.value ? String(field.value) : undefined
-                      }
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cash">{"Espèces"}</SelectItem>
-                        <SelectItem value="chq">{"Chèque"}</SelectItem>
-                        <SelectItem value="ov">{"Virement"}</SelectItem>
+                        {PRIORITIES.map((p) => (
+                          <SelectItem key={p.value} value={p.value}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Description */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel isRequired>
-                    {"Description / Justification"}
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={3} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Date limite */}
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel isRequired className="mb-1">
+                      {"Date limite"}
+                    </FormLabel>
+                    <Popover open={openDate} onOpenChange={setOpenDate}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className="w-full pl-3 text-left font-normal"
+                          >
+                            {field.value
+                              ? format(field.value, "dd/MM/yyyy", { locale: fr })
+                              : "Sélectionner"}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(date) => {
+                            field.onChange(date);
+                            setOpenDate(false);
+                          }}
+                          disabled={(date) =>
+                            date < new Date(new Date().setHours(0, 0, 0, 0))
+                          }
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* JUSTIFICATIF */}
-            <FormField
-              control={form.control}
-              name="proof"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>{"Justificatif"}</FormLabel>
-                  <FormControl>
-                    <FilesUpload
-                      value={field.value || []}
-                      onChange={field.onChange}
-                      name={field.name}
-                      acceptTypes="all"
-                      multiple={false}
-                      maxFiles={1}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Moyen de paiement */}
+              <FormField
+                control={form.control}
+                name="paytype"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+                    <FormControl>
+                      <Select
+                        defaultValue={
+                          field.value ? String(field.value) : undefined
+                        }
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cash">{"Espèces"}</SelectItem>
+                          <SelectItem value="chq">{"Chèque"}</SelectItem>
+                          <SelectItem value="ov">{"Virement"}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setOpen(false)}
-              >
-                {"Annuler"}
-              </Button>
-              <Button
-                type="submit"
-                disabled={isProcessing}
-                isLoading={isProcessing}
-              >
-                {"Mettre à jour et Approuver"}
-              </Button>
-            </DialogFooter>
+              {/* Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                disabled
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel isRequired>
+                      {"Description / Justification"}
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea {...field} rows={3} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* JUSTIFICATIF */}
+              <FormField
+                control={form.control}
+                name="proof"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel isRequired>{"Justificatif"}</FormLabel>
+                    <FormControl>
+                      <FilesUpload
+                        disabled
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        name={field.name}
+                        acceptTypes="all"
+                        multiple={false}
+                        maxFiles={1}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </form>
         </Form>
+        
+        <DialogFooter className="px-6 py-4 border-t mt-auto">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setOpen(false)}
+          >
+            {"Annuler"}
+          </Button>
+          <Button
+            type="submit"
+            disabled={isProcessing}
+            isLoading={isProcessing}
+            onClick={form.handleSubmit(onSubmit)}
+          >
+            {"Mettre à jour et Approuver"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

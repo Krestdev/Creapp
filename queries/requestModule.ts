@@ -201,6 +201,9 @@ class RequestQueries {
   ): Promise<{ data: RequestModelT; id: number }> => {
     const formData = new FormData();
 
+    console.log(data);
+    
+
     Object.entries(data).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
 

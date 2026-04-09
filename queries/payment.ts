@@ -34,6 +34,14 @@ export type PayloadGasCompletion = {
   deadline: Date;
 };
 
+export type PayloadSettleCompletion = {
+  id: number;
+  //km: number;
+  price: number;
+  benefId: number;
+  deadline: Date;
+};
+
 class PaymentQueries {
   route = "/request/payment";
 
@@ -286,6 +294,21 @@ class PaymentQueries {
     return api
       .put(`${this.route}/gas/${id}`, {
         liters,
+        price,
+        benefId,
+        deadline,
+      })
+      .then((response) => response.data);
+  };
+
+  settleCompletion = async ({
+    payload,
+  }: {
+    payload: PayloadSettleCompletion;
+  }): Promise<{ data: PaymentRequest }> => {
+    const { id, price, benefId, deadline } = payload;
+    return api
+      .put(`${this.route}/settle/${id}`, {
         price,
         benefId,
         deadline,
