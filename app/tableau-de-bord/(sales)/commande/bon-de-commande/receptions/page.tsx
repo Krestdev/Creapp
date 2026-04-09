@@ -42,7 +42,7 @@ const ReceptionsPage = () => {
       value: getReceptions.data?.data.length ?? 0,
       variant: "primary",
       more: {
-        title: "Receptions completés",
+        title: "Receptions completées",
         value:
           getReceptions.data?.data.filter((x) => x.Status === "COMPLETED")
             .length ?? 0,
