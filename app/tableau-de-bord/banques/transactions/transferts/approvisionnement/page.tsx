@@ -34,6 +34,7 @@ function Page() {
         r.method?.type === "cash" &&
         r.type !== "transport" &&
         r.type !== "gas" &&
+        r.type !== "settle" &&
         r.status === "validated" &&
         r.selected === false,
     ); //To-Do Complete this
