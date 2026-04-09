@@ -10,6 +10,10 @@ import { ReceptionTable } from "./reception-table";
 import { quotationQ } from "@/queries/quotation";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { purchaseQ } from "@/queries/purchase-order";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 
 const ReceptionsPage = () => {
   const getReceptions = useQuery({
@@ -31,6 +35,33 @@ const ReceptionsPage = () => {
     queryKey: ["purchaseOrders"],
     queryFn: purchaseQ.getAll,
   });
+
+  const Statistics: Array<StatisticProps> = [
+    {
+      title: "Total Receptions",
+      value: getReceptions.data?.data.length ?? 0,
+      variant: "primary",
+      more: {
+        title: "Receptions completés",
+        value:
+          getReceptions.data?.data.filter((x) => x.Status === "COMPLETED")
+            .length ?? 0,
+      },
+    },
+    {
+      title: "Receptions en attente",
+      value:
+        (getReceptions.data?.data.filter((x) => x.Status === "PENDING").length ?? 0) +
+        (getReceptions.data?.data.filter((c) => c.Status === "PARTIAL").length ?? 0),
+      variant: "secondary",
+      more: {
+        title: "Receptions partielles",
+        value:
+          getReceptions.data?.data.filter((c) => c.Status === "PARTIAL")
+            .length ?? 0,
+      },
+    },
+  ];
 
   if (
     getReceptions.isLoading ||
@@ -72,6 +103,12 @@ const ReceptionsPage = () => {
           }
           color={"red"}
         />
+
+        <div className="grid-stats-4">
+          {Statistics.map((data, id) => (
+            <StatisticCard key={id} {...data} className="h-full" />
+          ))}
+        </div>
 
         <ReceptionTable
           data={getReceptions.data.data}
