@@ -44,7 +44,7 @@ function Page() {
     return (
       <div className="content">
         <PageTitle
-          title="Approbation"
+          title="Approbation BC"
           subtitle="Approbation des bons de commandes"
           color="blue"
         />

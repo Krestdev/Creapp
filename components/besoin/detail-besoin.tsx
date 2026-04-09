@@ -700,7 +700,7 @@ export function DetailBesoin({
           />
         </div>
         {/* Boutons du footer - fixe en bas */}
-        <DialogFooter>
+        <DialogFooter className="px-6 py-4 border-t shrink-0">
           <DialogClose asChild>
             <Button variant="outline">{"Fermer"}</Button>
           </DialogClose>

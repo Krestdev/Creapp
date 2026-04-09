@@ -115,7 +115,7 @@ function CompleteSettle({
   const [dueDate, setDueDate] = React.useState<boolean>(false);
 
   const request = requests.find((r) => r.id === ticket.requestId);
-  const emitter = filteredUsers.find((u) => u.id === request?.userId);
+  const beneficiaire = filteredUsers.find((u) => u.id === Number(request?.beneficiary));
 
   const vehicle = vehicles.find((v) => v.id === request?.vehiclesId);
 
@@ -128,7 +128,7 @@ function CompleteSettle({
     defaultValues: {
       price: 0,
       //km: 180000,
-      driverId: emitter?.id,
+      driverId: beneficiaire?.id,
       deadline: format(new Date(), "yyyy-MM-dd"),
     },
   });
@@ -138,7 +138,7 @@ function CompleteSettle({
       form.reset({
         price: 0,
         //km: 180000,
-        driverId: emitter?.id,
+        driverId: beneficiaire?.id,
         deadline: format(new Date(), "yyyy-MM-dd"),
       });
     }
@@ -184,9 +184,9 @@ function CompleteSettle({
             <div className="flex flex-col">
               <p className="view-group-title">{"Emetteur du besoin"}</p>
               <p className="font-semibold">
-                {!emitter
+                {!beneficiaire
                   ? "Introuvable"
-                  : emitter.firstName.concat(" ", emitter.lastName)}
+                  : beneficiaire.firstName.concat(" ", beneficiaire.lastName)}
               </p>
             </div>
           </div>

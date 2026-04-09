@@ -330,7 +330,7 @@ const Page = () => {
               className="w-fit"
             >
               <ArrowLeft />
-              {"Précédent"}
+              {"Revenir aux types"}
             </Button>
             <h3>{types.find((t) => t.type === requestType)?.label}</h3>
           </div>

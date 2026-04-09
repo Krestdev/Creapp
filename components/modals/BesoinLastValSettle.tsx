@@ -534,7 +534,7 @@ export default function BesoinLastValSettle({
           </form>
         </Form>
         
-        <DialogFooter className="px-6 py-4 border-t mt-auto">
+        <DialogFooter className="px-6 py-4 border-t shrink-0">
           <Button
             type="button"
             variant="ghost"
