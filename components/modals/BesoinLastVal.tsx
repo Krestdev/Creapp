@@ -447,7 +447,7 @@ export function BesoinLastVal({
 
         {/* Footer - Fixe en bas pour le formulaire */}
         {!isSuccess && !isError && (
-          <DialogFooter>
+          <DialogFooter className="px-6 py-4 border-t shrink-0">
             <Button
               type="submit"
               variant={"success"}
@@ -467,7 +467,7 @@ export function BesoinLastVal({
 
         {/* Footer Success/Error - Fixe en bas */}
         {(isSuccess || isError) && (
-          <DialogFooter>
+          <DialogFooter className="px-6 py-4 border-t shrink-0">
             {/* Bouton pour réessayer */}
             {isError && (
               <Button type="button" variant={"primary"} onClick={handleRetry}>

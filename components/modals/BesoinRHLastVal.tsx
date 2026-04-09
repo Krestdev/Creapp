@@ -590,7 +590,7 @@ export default function BesoinRHLastVal({
           </div>
 
           {/* Boutons - FIXE EN BAS */}
-          <DialogFooter>
+          <DialogFooter className="px-6 py-4 border-t shrink-0">
             <DialogClose asChild>
               <Button
                 type="button"
