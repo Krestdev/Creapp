@@ -168,6 +168,7 @@ export function PurchaseApprovalTable({ data }: Props) {
     {
       id: 0,
       title: "Bons de commandes en attente",
+      badge: data.filter((po) => po.status === "PENDING").length,
     },
     {
       id: 1,
