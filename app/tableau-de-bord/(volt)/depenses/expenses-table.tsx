@@ -924,7 +924,7 @@ function ExpensesTable({
                   {"Ajouter la preuve"}
                 </DropdownMenuItem>
               )}
-              {item.type === "gas" || item.type === "settle" && (
+              {(item.type === "gas" || item.type === "settle") && (
                 <DropdownMenuItem
                   disabled={isGasComplete(item) || isSettleComplete(item)}
                   onClick={() => {
