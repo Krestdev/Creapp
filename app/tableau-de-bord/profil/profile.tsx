@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getRoleBadge } from "@/lib/utils";
-import { RequestModelT, User } from "@/types/types";
+import { RequestModelT, User, Document } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -32,6 +32,7 @@ import React, { useMemo } from "react";
 interface Props {
   user: User;
   requests: Array<RequestModelT>;
+  signature?: Document;
 }
 
 // Map request state to badge styling
@@ -93,7 +94,7 @@ function StatTile({
   );
 }
 
-function ProfilePage({ user, requests }: Props) {
+function ProfilePage({ user, requests, signature }: Props) {
   const fullName = `${user.firstName} ${user.lastName}`;
   const initials = `${user.firstName?.charAt(0) ?? ""}${user.lastName?.charAt(0) ?? ""}`;
 
@@ -220,21 +221,28 @@ function ProfilePage({ user, requests }: Props) {
                 : "—"
             }
           />
-          {!user.signatureId && (
-            <div className="view-group">
-              <div className="view-icon">
-                <FileIcon />
-              </div>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Signature"}</p>
+          <div className="view-group">
+            <div className="view-icon">
+              <FileIcon />
+            </div>
+            <div className="flex flex-col">
+              <p className="view-group-title">{"Signature"}</p>
+              {!user.signatureId || !signature ? (
                 <Link href={"/tableau-de-bord/profil/signature"}>
                   <Button size={"sm"} variant={"primary"}>
                     {"Ajouter une signature"}
                   </Button>
                 </Link>
-              </div>
+              ) : (
+                !!signature && (
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_API}/${signature.path}`}
+                    className="h-12 w-auto"
+                  />
+                )
+              )}
             </div>
-          )}
+          </div>
           {departments.length > 0 && (
             <InfoRow
               icon={Briefcase}
