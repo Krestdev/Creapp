@@ -24,6 +24,29 @@ function viewSignedPurchase({
   fileUrl,
   purchaseOrder,
 }: Props) {
+  const downloadFile = async (fileUrl: string, fileName?: string) => {
+    try {
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Create a hidden link and click it
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName || "download.pdf";
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
@@ -37,21 +60,20 @@ function viewSignedPurchase({
         </DialogHeader>
 
         {/* pdf here */}
-        <object
-          data={fileUrl}
-          type="application/pdf"
-          className="w-full h-[60vh] border-none"
-        >
-          <p>
-            Le fichier PDF n'a pas pu être chargé. Veuillez le télécharger pour
-            le visualiser.
-          </p>
-        </object>
+        <iframe
+          src={`https://docs.google.com/gview?url=${fileUrl}&embedded=true`}
+          className="w-full h-[60vh]"
+        />
 
         <DialogFooter>
-          <a href={fileUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant={"primary"}>{"Télécharger"}</Button>
-          </a>
+          <Button
+            variant={"primary"}
+            onClick={() =>
+              downloadFile(fileUrl, purchaseOrder.devi.commandRequest.title)
+            }
+          >
+            {"Télécharger"}
+          </Button>
           <DialogClose asChild>
             <Button variant={"outline"}>{"Fermer"}</Button>
           </DialogClose>

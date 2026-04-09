@@ -38,11 +38,21 @@ function Page() {
     enabled: !!user,
   });
 
-  if (requests.isLoading || getUser.isLoading) {
+  const signature = useQuery({
+    queryKey: ["signature", user?.id],
+    queryFn: () => userQ.getSignature(user!.id),
+    enabled: !!user && !!user.signatureId,
+  });
+
+  if (requests.isLoading || getUser.isLoading || signature.isLoading) {
     return <LoadingPage />;
   }
-  if (requests.isError || getUser.isError) {
-    return <ErrorPage error={requests.error || getUser.error || undefined} />;
+  if (requests.isError || getUser.isError || signature.isError) {
+    return (
+      <ErrorPage
+        error={requests.error || getUser.error || signature.error || undefined}
+      />
+    );
   }
   if (requests.isSuccess && getUser.isSuccess) {
     console.log(requests.data.data);
@@ -53,7 +63,11 @@ function Page() {
           subtitle={"Informations personnelles et configuration"}
           links={links}
         />
-        <ProfilePage user={getUser.data.data} requests={requests.data.data} />
+        <ProfilePage
+          user={getUser.data.data}
+          requests={requests.data.data}
+          signature={signature.data}
+        />
       </div>
     );
   }
