@@ -103,6 +103,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Calendar } from "@/components/ui/calendar";
 import AddProove from "./addProove";
+import CompleteSettle from "./complete-settle";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -245,6 +246,15 @@ function isGasComplete(item: PaymentRequest) {
   );
 }
 
+function isSettleComplete(item: PaymentRequest) {
+  return (
+    item.type === "settle" &&
+    !!item.benefId &&
+    !!item.price &&
+    !!item.deadline
+  );
+}
+
 function ExpensesTable({
   payments,
   invoices,
@@ -364,6 +374,7 @@ function ExpensesTable({
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPay, setShowPay] = React.useState<boolean>(false);
   const [showGas, setShowGas] = React.useState<boolean>(false);
+  const [showSettle, setShowSettle] = React.useState<boolean>(false);
   const [showShare, setShowShare] = React.useState<boolean>(false);
   const [showAddFile, setShowAddFile] = React.useState<boolean>(false);
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
@@ -913,12 +924,15 @@ function ExpensesTable({
                   {"Ajouter la preuve"}
                 </DropdownMenuItem>
               )}
-              {item.type === "gas" && (
+              {item.type === "gas" || item.type === "settle" && (
                 <DropdownMenuItem
-                  disabled={isGasComplete(item)}
+                  disabled={isGasComplete(item) || isSettleComplete(item)}
                   onClick={() => {
                     setSelected(item);
-                    setShowGas(true);
+                    item.type === "gas" ?
+                    setShowGas(true) : 
+                    setShowSettle(true)
+                    ;
                   }}
                 >
                   <ArrowRightToLine />
@@ -975,7 +989,8 @@ function ExpensesTable({
                 <DropdownMenuItem
                   disabled={
                     item.status === "unsigned" ||
-                    (item.type === "gas" && !isGasComplete(item))
+                    ((item.type === "gas") && !isGasComplete(item)) ||
+                    ((item.type === "settle") && !isSettleComplete(item))
                   }
                   onClick={() => {
                     setSelected(item);
@@ -1864,6 +1879,15 @@ function ExpensesTable({
             ticket={selected}
             open={showGas}
             onOpenChange={setShowGas}
+            users={users}
+            requests={request}
+            requestTypes={requestTypes}
+            vehicles={vehicles}
+          />
+          <CompleteSettle
+            ticket={selected}
+            open={showSettle}
+            onOpenChange={setShowSettle}
             users={users}
             requests={request}
             requestTypes={requestTypes}

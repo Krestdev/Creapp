@@ -32,7 +32,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getRequestTypeBadge } from "@/lib/utils";
-import { PayloadGasCompletion, paymentQ } from "@/queries/payment";
+import {
+  PayloadGasCompletion,
+  PayloadSettleCompletion,
+  paymentQ,
+} from "@/queries/payment";
 import {
   PaymentRequest,
   RequestModelT,
@@ -75,14 +79,16 @@ const formSchema = z.object({
   /* km: z.coerce.number({
     message: "Veuillez définir le Kilométrage avant recharge",
   }), */
-  liters: z.coerce
-    .number({
-      message: "Veuillez définir le nombre de litres rechargés",
-    })
-    .refine((data) => data > 0, {
-      message: "Le nombre de litres doit être supérieur à 0",
-    }),
-  driverId: z.coerce.number({ message: "Veuillez sélectionner le conducteur" }),
+  //   liters: z.coerce
+  //     .number({
+  //       message: "Veuillez définir le nombre de litres rechargés",
+  //     })
+  //     .refine((data) => data > 0, {
+  //       message: "Le nombre de litres doit être supérieur à 0",
+  //     }),
+  driverId: z.coerce.number({
+    message: "Veuillez sélectionner le bénéficiaire",
+  }),
   deadline: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
@@ -92,7 +98,7 @@ const formSchema = z.object({
   ),
 });
 
-function CompleteGas({
+function CompleteSettle({
   ticket,
   open,
   onOpenChange,
@@ -122,7 +128,6 @@ function CompleteGas({
     defaultValues: {
       price: 0,
       //km: 180000,
-      liters: 0,
       driverId: emitter?.id,
       deadline: format(new Date(), "yyyy-MM-dd"),
     },
@@ -133,7 +138,6 @@ function CompleteGas({
       form.reset({
         price: 0,
         //km: 180000,
-        liters: 0,
         driverId: emitter?.id,
         deadline: format(new Date(), "yyyy-MM-dd"),
       });
@@ -141,8 +145,8 @@ function CompleteGas({
   }, [open]);
 
   const payGas = useMutation({
-    mutationFn: async (payload: PayloadGasCompletion) =>
-      paymentQ.gasCompletion({ payload }),
+    mutationFn: async (payload: PayloadSettleCompletion) =>
+      paymentQ.settleCompletion({ payload }),
     onSuccess: () => {
       toast.success("Paiement mis à jour avec succès !");
       onOpenChange(false);
@@ -157,7 +161,6 @@ function CompleteGas({
     payGas.mutate({
       id: ticket.id,
       price: values.price,
-      liters: values.liters,
       //km: values.km,
       benefId: values.driverId,
       deadline: new Date(values.deadline),
@@ -169,7 +172,7 @@ function CompleteGas({
         <DialogHeader variant={"secondary"}>
           <DialogTitle>{`Compléter - ${ticket.title}`}</DialogTitle>
           <DialogDescription>
-            {`Remplissez le formulaire pour compléter les informations relatives au ticket de carburant`}
+            {`Remplissez le formulaire pour compléter les informations relatives au ticket de régularisation`}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 p-3 bg-primary-50 border border-dashed border-primary-200 rounded-md">
@@ -253,7 +256,7 @@ function CompleteGas({
                 </FormItem>
               )}
             />
-            <FormField
+            {/* <FormField
               control={form.control}
               name="liters"
               render={({ field }) => (
@@ -275,8 +278,8 @@ function CompleteGas({
                   <FormMessage />
                 </FormItem>
               )}
-            />
-            {/* <FormField
+            /> 
+             <FormField
               control={form.control}
               name="km"
               render={({ field }) => (
@@ -373,7 +376,7 @@ function CompleteGas({
               name="driverId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Conducteur"}</FormLabel>
+                  <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
                   <FormControl>
                     <Select
                       value={field.value ? field.value.toString() : undefined}
@@ -381,22 +384,15 @@ function CompleteGas({
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue
-                          placeholder={"Sélectionner un conducteur"}
+                          placeholder={"Sélectionner le bénéficiaire"}
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {users
-                          .filter((u) =>
-                            u.role.some((r) => r.label === "DRIVER"),
-                          )
-                          .map((user) => (
-                            <SelectItem
-                              key={user.id}
-                              value={user.id.toString()}
-                            >
-                              {user.firstName.concat(" ", user.lastName)}
-                            </SelectItem>
-                          ))}
+                        {users.map((user) => (
+                          <SelectItem key={user.id} value={user.id.toString()}>
+                            {user.firstName.concat(" ", user.lastName)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -430,4 +426,4 @@ function CompleteGas({
   );
 }
 
-export default CompleteGas;
+export default CompleteSettle;

@@ -18,6 +18,26 @@ export type newRequestOthers = Omit<
   projectId: number;
 };
 
+export type newRequestSettle = Omit<
+  RequestModelT,
+  | "id"
+  | "type"
+  | "createdAt"
+  | "updatedAt"
+  | "ref"
+  | "validators"
+  | "state"
+  | "userId"
+  | "beneficiary"
+> & {
+  amount?: number;
+  description?: string;
+  benef?: Array<number>;
+  proof?: (string | File)[];
+  userId: number;
+  projectId: number;
+};
+
 export type RequestTaxes = Omit<
   RequestModelT,
   | "id"
@@ -180,6 +200,9 @@ class RequestQueries {
     id: number,
   ): Promise<{ data: RequestModelT; id: number }> => {
     const formData = new FormData();
+
+    console.log(data);
+    
 
     Object.entries(data).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
@@ -385,6 +408,82 @@ class RequestQueries {
         return response.data;
       });
   };
+
+  // createSettleRequest = async (
+  //   payload: newRequestSettle,
+  // ): Promise<RequestModelT> => {
+  //   return api
+  //     .post(this.route, { ...payload, type: "settle", beneficiary: "" })
+  //     .then((response) => {
+  //       return response.data;
+  //     });
+  // };
+
+  createSettleRequest = async (
+    payload: newRequestSettle,
+  ): Promise<RequestModelT> => {
+    const formData = new FormData();
+    formData.append("label", payload.label);
+    formData.append("description", payload.description);
+    payload.amount && formData.append("amount", payload.amount.toString());
+    formData.append("dueDate", payload.dueDate.toISOString());
+    formData.append("unit", payload.unit);
+    formData.append("priority", "medium");
+    formData.append("type", "settle");
+    formData.append("userId", payload.userId.toString());
+    payload.benef &&
+      formData.append("beneficiary", payload.benef[0].toString());
+    formData.append("benef", JSON.stringify(payload.benef));
+    if (payload.categoryId)
+      formData.append("categoryId", payload.categoryId.toString());
+    if (payload.projectId)
+      formData.append("projectId", payload.projectId.toString());
+    if (payload.paytype) formData.append("paytype", payload.paytype);
+    if (payload.proof && payload.proof.length > 0)
+      formData.append("proof", payload.proof[0]);
+    return api
+      .post(`${this.route}/special`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
+  };
+
+  // Edit settle request formData
+  editSettleRequest = async (
+    id: number,
+    payload: newRequestSettle,
+  ): Promise<RequestModelT> => {
+    const formData = new FormData();
+    formData.append("label", payload.label);
+    formData.append("description", payload.description);
+    payload.amount && formData.append("amount", payload.amount.toString());
+    formData.append("dueDate", payload.dueDate.toISOString());
+    formData.append("unit", payload.unit);
+    formData.append("priority", "medium");
+    formData.append("type", "settle");
+    formData.append("userId", payload.userId.toString());
+    payload.benef &&
+      formData.append("beneficiary", payload.benef[0].toString());
+    formData.append("benef", JSON.stringify(payload.benef));
+    if (payload.categoryId)
+      formData.append("categoryId", payload.categoryId.toString());
+    if (payload.projectId)
+      formData.append("projectId", payload.projectId.toString());
+    if (payload.paytype) formData.append("paytype", payload.paytype);
+    if (payload.proof && payload.proof.length > 0)
+      formData.append("proof", payload.proof[0]);
+    return api
+      .put(`${this.route}/special/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
+  };
+
+
   createTaxesRequest = async (
     payload: RequestTaxes,
   ): Promise<RequestModelT> => {
@@ -414,6 +513,7 @@ class RequestQueries {
         return response.data;
       });
   };
+
   createTransportRequest = async (
     payload: newRequestTransport,
   ): Promise<RequestModelT> => {

@@ -53,6 +53,7 @@ export const PAYMENT_TYPES = [
   { value: "gas", name: "Carburant" },
   { value: "appro", name: "Approvisionnement" },
   { value: "taxes", name: "Impôts & Taxes" },
+  { value: "settle", name: "Regularisation" },
 ] as const;
 
 export const PAYMENT_METHOD = [
