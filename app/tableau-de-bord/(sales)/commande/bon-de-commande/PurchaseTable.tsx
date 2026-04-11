@@ -157,6 +157,39 @@ export function PurchaseTable({
     "all" | "yes" | "no"
   >("all");
 
+  // Nouveaux filtres pour fournisseur et cotation
+  const [providerFilter, setProviderFilter] = React.useState<string>("all");
+  const [providerSearch, setProviderSearch] = React.useState("");
+  const [cotationFilter, setCotationFilter] = React.useState<string>("all");
+  const [cotationSearch, setCotationSearch] = React.useState("");
+
+  // Extraire la liste unique des fournisseurs
+  const uniqueProviders = React.useMemo(() => {
+    const providers = new Map();
+    data?.forEach((po) => {
+      if (po.provider && po.provider.id) {
+        providers.set(po.provider.id, po.provider);
+      }
+    });
+    return Array.from(providers.values());
+  }, [data]);
+
+  // Extraire la liste unique des cotations (devis)
+  const uniqueCotations = React.useMemo(() => {
+    const cotations = new Map();
+    data?.forEach((po) => {
+      if (po.devi && po.devi.id) {
+        cotations.set(po.devi.id, {
+          id: po.devi.id,
+          label: `${po.devi.commandRequest.title} - ${po.devi.commandRequest.reference}`,
+          reference: po.devi.commandRequest.reference,
+          title: po.devi.commandRequest.title,
+        });
+      }
+    });
+    return Array.from(cotations.values());
+  }, [data]);
+
   //ViewModal
   const [view, setView] = React.useState<boolean>(false);
   //EditModal
@@ -186,8 +219,18 @@ export function PurchaseTable({
       });
     }
 
+    // Filtre par fournisseur
+    if (providerFilter !== "all") {
+      filtered = filtered.filter((po) => po.provider?.id === parseInt(providerFilter));
+    }
+
+    // Filtre par cotation
+    if (cotationFilter !== "all") {
+      filtered = filtered.filter((po) => po.devi?.id === parseInt(cotationFilter));
+    }
+
     return filtered;
-  }, [data, statusFilter, priorityFilter, penaltyFilter]);
+  }, [data, statusFilter, priorityFilter, penaltyFilter, providerFilter, cotationFilter]);
 
   const getProgress = (
     purchaseOrder: BonsCommande,
@@ -225,7 +268,6 @@ export function PurchaseTable({
         <div className="font-medium uppercase">{row.getValue("reference")}</div>
       ),
     },
-
     {
       accessorKey: "devi",
       header: ({ column }) => (
@@ -342,20 +384,6 @@ export function PurchaseTable({
         );
       },
     },
-
-    /* {
-      id: "penalties",
-      accessorFn: (row) => (row.hasPenalties ? "yes" : "no"),
-      header: () => <span className="tablehead">{"Pénalités"}</span>,
-      cell: ({ row }) => {
-        const has = !!row.original.hasPenalties;
-        return (
-          <Badge variant={has ? "amber" : "outline"}>
-            {has ? "Oui" : "Non"}
-          </Badge>
-        );
-      },
-    }, */
 
     {
       accessorKey: "createdAt",
@@ -474,6 +502,11 @@ export function PurchaseTable({
       const paymentMethodText = (po.paymentMethod ?? "").toLowerCase();
       const paymentTermsText = (po.paymentTerms ?? "").toLowerCase();
       const locationText = (po.deliveryLocation ?? "").toLowerCase();
+      
+      // Recherche sur le fournisseur
+      const providerText = (po.provider?.name ?? "").toLowerCase();
+      // Recherche sur la cotation
+      const cotationText = `${po.devi?.commandRequest?.title ?? ""} ${po.devi?.commandRequest?.reference ?? ""}`.toLowerCase();
 
       return (
         String(po.id).includes(s) ||
@@ -484,7 +517,9 @@ export function PurchaseTable({
         paymentMethodText.includes(s) ||
         paymentTermsText.includes(s) ||
         locationText.includes(s) ||
-        createdText.includes(s)
+        createdText.includes(s) ||
+        providerText.includes(s) ||
+        cotationText.includes(s)
       );
     },
     state: {
@@ -500,9 +535,13 @@ export function PurchaseTable({
     setGlobalFilter("");
     setStatusFilter("all");
     setPriorityFilter("all");
+    setProviderFilter("all");
+    setCotationFilter("all");
     // Réinitialiser les recherches
     setStatusSearch("");
     setPrioritySearch("");
+    setProviderSearch("");
+    setCotationSearch("");
     // setPenaltyFilter("all"); // Si vous décommentez le filtre pénalités
   };
 
@@ -533,7 +572,7 @@ export function PurchaseTable({
                   <Input
                     id="searchPO"
                     type="search"
-                    placeholder="ID, devis, fournisseur, statut..."
+                    placeholder="Ref, Cotation, fournisseur, statut"
                     value={globalFilter ?? ""}
                     onChange={(e) => setGlobalFilter(e.target.value)}
                   />
@@ -684,46 +723,139 @@ export function PurchaseTable({
                   </DropdownMenu>
                 </div>
 
-                {/* Filtre par pénalités (commenté) */}
-                {/* <div className="space-y-3">
-        <Label>{"Pénalités"}</Label>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <span className="truncate">
-                {penaltyFilter === "all"
-                  ? "Toutes"
-                  : penaltyFilter === "yes"
-                  ? "Oui"
-                  : penaltyFilter === "no"
-                  ? "Non"
-                  : "Sélectionner"}
-              </span>
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-            <DropdownMenuItem
-              onClick={() => setPenaltyFilter("all")}
-              className={penaltyFilter === "all" ? "bg-accent" : ""}
-            >
-              <span>Toutes</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setPenaltyFilter("yes")}
-              className={penaltyFilter === "yes" ? "bg-accent" : ""}
-            >
-              <span>Oui</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setPenaltyFilter("no")}
-              className={penaltyFilter === "no" ? "bg-accent" : ""}
-            >
-              <span>Non</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div> */}
+                {/* Filtre par fournisseur avec recherche */}
+                <div className="space-y-3">
+                  <Label>{"Fournisseur"}</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {providerFilter === "all"
+                            ? "Tous les fournisseurs"
+                            : uniqueProviders.find(p => p.id === parseInt(providerFilter))?.name || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher un fournisseur..."
+                          className="h-8"
+                          value={providerSearch}
+                          onChange={(e) => setProviderSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setProviderFilter("all");
+                          setProviderSearch("");
+                        }}
+                        className={providerFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Tous les fournisseurs</span>
+                      </DropdownMenuItem>
+                      {uniqueProviders
+                        .filter(p => p.name.toLowerCase().includes(providerSearch.toLowerCase()))
+                        .map((p) => (
+                          <DropdownMenuItem
+                            key={p.id}
+                            onClick={() => {
+                              setProviderFilter(String(p.id));
+                              setProviderSearch("");
+                            }}
+                            className={providerFilter === String(p.id) ? "bg-accent" : ""}
+                          >
+                            <span>{p.name}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      {uniqueProviders.filter(p => 
+                        p.name.toLowerCase().includes(providerSearch.toLowerCase())
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun fournisseur trouvé
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Filtre par cotation avec recherche */}
+                <div className="space-y-3">
+                  <Label>{"Cotation"}</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {cotationFilter === "all"
+                            ? "Toutes les cotations"
+                            : uniqueCotations.find(c => c.id === parseInt(cotationFilter))?.label || "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                        <Input
+                          placeholder="Rechercher une cotation..."
+                          className="h-8"
+                          value={cotationSearch}
+                          onChange={(e) => setCotationSearch(e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setCotationFilter("all");
+                          setCotationSearch("");
+                        }}
+                        className={cotationFilter === "all" ? "bg-accent" : ""}
+                      >
+                        <span>Toutes les cotations</span>
+                      </DropdownMenuItem>
+                      {uniqueCotations
+                        .filter(c => 
+                          c.label.toLowerCase().includes(cotationSearch.toLowerCase()) ||
+                          c.reference.toLowerCase().includes(cotationSearch.toLowerCase()) ||
+                          c.title.toLowerCase().includes(cotationSearch.toLowerCase())
+                        )
+                        .map((c) => (
+                          <DropdownMenuItem
+                            key={c.id}
+                            onClick={() => {
+                              setCotationFilter(String(c.id));
+                              setCotationSearch("");
+                            }}
+                            className={cotationFilter === String(c.id) ? "bg-accent" : ""}
+                          >
+                            <span className="truncate">{c.label}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      {uniqueCotations.filter(c => 
+                        c.label.toLowerCase().includes(cotationSearch.toLowerCase())
+                      ).length === 0 && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucune cotation trouvée
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
 
                 <Button
                   variant="outline"
@@ -740,6 +872,8 @@ export function PurchaseTable({
           {(statusFilter !== "all" ||
             priorityFilter !== "all" ||
             penaltyFilter !== "all" ||
+            providerFilter !== "all" ||
+            cotationFilter !== "all" ||
             globalFilter) && (
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <span>Filtres actifs:</span>
@@ -753,6 +887,18 @@ export function PurchaseTable({
               {priorityFilter !== "all" && (
                 <Badge variant="outline" className="font-normal">
                   {`Priorité: ${getPriorityLabel(priorityFilter).label}`}
+                </Badge>
+              )}
+
+              {providerFilter !== "all" && (
+                <Badge variant="outline" className="font-normal">
+                  {`Fournisseur: ${uniqueProviders.find(p => p.id === parseInt(providerFilter))?.name}`}
+                </Badge>
+              )}
+
+              {cotationFilter !== "all" && (
+                <Badge variant="outline" className="font-normal">
+                  {`Cotation: ${uniqueCotations.find(c => c.id === parseInt(cotationFilter))?.reference}`}
                 </Badge>
               )}
 
@@ -869,6 +1015,8 @@ export function PurchaseTable({
                     {(statusFilter !== "all" ||
                       priorityFilter !== "all" ||
                       penaltyFilter !== "all" ||
+                      providerFilter !== "all" ||
+                      cotationFilter !== "all" ||
                       globalFilter) && (
                       <Button
                         variant="ghost"
@@ -888,11 +1036,6 @@ export function PurchaseTable({
 
       {/* PAGINATION + INFOS */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* <div className="text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} sur{" "}
-          {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
-        </div> */}
-
         {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       </div>
       {selectedValue && (

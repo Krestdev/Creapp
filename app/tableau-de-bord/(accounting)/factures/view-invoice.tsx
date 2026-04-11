@@ -36,9 +36,47 @@ interface Props {
   users: Array<User>;
 }
 
+// Fonction pour calculer le pourcentage de paiement
+function getPaymentProgress(invoice: Invoice): { progress: number; value: number } {
+  if (invoice.payment.length === 0) return { progress: 0, value: 0 };
+  const values = invoice.payment.map((p) => {
+    if (p.status !== "paid") return 0;
+    return p.price;
+  });
+  const value = values.reduce((acc, i) => acc + i, 0);
+  return {
+    value,
+    progress: (value * 100) / invoice.amount,
+  };
+}
+
+// Fonction pour déterminer le statut basé sur le pourcentage
+function getStatusFromProgress(progress: number, originalStatus: Invoice["status"]): Invoice["status"] {
+  // Si la facture est annulée, garder le statut CANCELLED
+  if (originalStatus === "CANCELLED") return "CANCELLED";
+  
+  // Si le pourcentage est à 100%, considérer comme payée
+  if (progress >= 100) return "PAID";
+  
+  // Si le pourcentage est entre 0 et 100%, considérer comme impayée (partiellement payée)
+  if (progress > 0 && progress < 100) return "UNPAID";
+  
+  // Sinon, garder le statut original
+  return originalStatus;
+}
+
 function ViewInvoice({ invoice, open, openChange, purchases, users }: Props) {
   const purchase = purchases.find((p) => p.id === invoice.commandId);
   const files = typeof invoice.proof === "string" ? invoice.proof : "";
+  
+  // Calculer le pourcentage de paiement
+  const paymentProgress = getPaymentProgress(invoice);
+  
+  // Déterminer le statut réel basé sur le pourcentage
+  const actualStatus = getStatusFromProgress(paymentProgress.progress, invoice.status);
+  
+  // Obtenir le badge correspondant au statut réel
+  const statusBadge = getInvoiceStatusBadge(actualStatus);
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
@@ -68,9 +106,14 @@ function ViewInvoice({ invoice, open, openChange, purchases, users }: Props) {
           </span>
           <div className="flex flex-col">
             <p className="view-group-title">{"Statut"}</p>
-            <Badge variant={getInvoiceStatusBadge(invoice.status).variant}>
-              {getInvoiceStatusBadge(invoice.status).label}
+            <Badge variant={statusBadge.variant}>
+              {statusBadge.label}
             </Badge>
+            {paymentProgress.progress > 0 && paymentProgress.progress < 100 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Payé: {XAF.format(paymentProgress.value)} / {XAF.format(invoice.amount)} ({Math.round(paymentProgress.progress)}%)
+              </p>
+            )}
           </div>
         </div>
         {/**Fournisseur */}
@@ -93,6 +136,16 @@ function ViewInvoice({ invoice, open, openChange, purchases, users }: Props) {
           <div className="flex flex-col">
             <p className="view-group-title">{"Montant"}</p>
             <p className="font-semibold">{XAF.format(invoice.amount)}</p>
+          </div>
+        </div>
+        {/**Montant payé */}
+        <div className="view-group">
+          <span className="view-icon">
+            <DollarSign />
+          </span>
+          <div className="flex flex-col">
+            <p className="view-group-title">{"Montant payé"}</p>
+            <p className="font-semibold">{XAF.format(paymentProgress.value)}</p>
           </div>
         </div>
         {/**Justificatif */}
