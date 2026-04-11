@@ -11,6 +11,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -50,6 +51,7 @@ export function SearchableSelect({
   const [search, setSearch] = React.useState("");
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const [triggerWidth, setTriggerWidth] = React.useState<number>(0);
+  const listRef = React.useRef<HTMLDivElement>(null);
 
   // Resize dynamique
   React.useEffect(() => {
@@ -69,6 +71,18 @@ export function SearchableSelect({
     if (!open) setSearch("");
   }, [open]);
 
+  // Scroll automatique vers le haut quand on ouvre
+  React.useEffect(() => {
+    if (open && listRef.current) {
+      // Petit délai pour que le DOM soit prêt
+      setTimeout(() => {
+        if (listRef.current) {
+          listRef.current.scrollTop = 0;
+        }
+      }, 0);
+    }
+  }, [open]);
+
   // Option "all"
   const showAllOption = allLabel && allLabel.trim() !== "";
 
@@ -78,7 +92,7 @@ export function SearchableSelect({
       ? { value: "all", label: allLabel }
       : options.find((o) => o.value === value);
 
-  // 🔥 FILTRAGE PAR CONTENU (contains) au lieu d'exact
+  // Filtrer les options
   const filteredOptions = React.useMemo(() => {
     if (!search) return options;
     
@@ -87,8 +101,6 @@ export function SearchableSelect({
       option.label.toLowerCase().includes(searchLower)
     );
   }, [options, search]);
-
-  // Afficher tous les résultats (pas de limite)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -117,55 +129,67 @@ export function SearchableSelect({
         align="start"
         style={{ width: triggerWidth || "auto" }}
       >
-        <Command shouldFilter={false}>
+        <Command shouldFilter={false} className="overflow-hidden">
           <CommandInput
             placeholder="Rechercher..."
             value={search}
             onValueChange={setSearch}
           />
+          
+          {/* Ajout de onWheel pour permettre le scroll avec la molette */}
+          <div
+            ref={listRef}
+            className="max-h-[300px] overflow-y-auto"
+            onWheel={(e) => {
+              // Permet le scroll même si la molette est utilisée ailleurs
+              e.stopPropagation();
+            }}
+          >
+            <CommandList className="h-full">
+              <CommandEmpty>{emptyLabel}</CommandEmpty>
 
-          <CommandEmpty>{emptyLabel}</CommandEmpty>
+              <CommandGroup>
+                {/* Option ALL - uniquement si pas de recherche */}
+                {showAllOption && !search && (
+                  <CommandItem
+                    value="all"
+                    onSelect={() => {
+                      onChange("all");
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === "all" ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {allLabel}
+                  </CommandItem>
+                )}
 
-          <CommandGroup className="max-h-[300px] overflow-y-auto">
-            {/* Option ALL - uniquement si pas de recherche */}
-            {showAllOption && !search && (
-              <CommandItem
-                value="all"
-                onSelect={() => {
-                  onChange("all");
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === "all" ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {allLabel}
-              </CommandItem>
-            )}
-
-            {/* Options filtrées */}
-            {filteredOptions.map((option) => (
-              <CommandItem
-                key={option.value}
-                value={option.label}
-                onSelect={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === option.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {option.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+                {/* Options filtrées */}
+                {filteredOptions.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.label}
+                    onSelect={() => {
+                      onChange(option.value);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === option.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </div>
         </Command>
       </PopoverContent>
     </Popover>

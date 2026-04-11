@@ -86,15 +86,8 @@ import Link from "next/link";
 import CancelInvoice from "./cancel-invoice";
 import ViewInvoice from "./view-invoice";
 import ViewInvoicePayment from "./view-invoice-payment";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
 import EditInvoice from "./EditInvoice";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 
 interface Props {
   invoices: Array<Invoice>;
@@ -164,12 +157,8 @@ export function InvoicesTable({
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | Invoice["status"]
   >("all");
-  const [providerFilter, setProviderFilter] = React.useState<"all" | string>(
-    "",
-  );
-  const [purchaseFilter, setPurchaseFilter] = React.useState<"all" | string>(
-    "",
-  );
+  const [providerFilter, setProviderFilter] = React.useState<"all" | string>("all");
+  const [purchaseFilter, setPurchaseFilter] = React.useState<"all" | string>("all");
   const [amountTypeFilter, setAmountTypeFilter] = React.useState<
     "greater" | "inferior" | "equal" | "aucun"
   >("aucun");
@@ -183,24 +172,22 @@ export function InvoicesTable({
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
     setDateFilter(undefined);
-    if (setCustomDateRange) {
-      setCustomDateRange(undefined);
-    }
+    setCustomDateRange(undefined);
     setGlobalFilter("");
     setStatusFilter("all");
     setProviderFilter("all");
-    setPurchaseFilter("");
+    setPurchaseFilter("all");
     setAmountFilter(0);
     setAmountTypeFilter("aucun");
+    setCustomOpen(false);
   };
-
-  const providersData = ["Tous", ...providers.map((p) => p.name)];
 
   const data: Array<Invoice> = React.useMemo(() => {
     return invoices.filter((invoice) => {
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
+      
       //Status Filter
       let matchStatus =
         statusFilter === "all" ? true : invoice.status === statusFilter;
@@ -242,6 +229,7 @@ export function InvoicesTable({
             new Date(invoice.createdAt) <= endDate;
         }
       }
+      
       //Amount Filter
       const matchAmount =
         amountTypeFilter === "aucun"
@@ -251,15 +239,16 @@ export function InvoicesTable({
             : amountTypeFilter === "equal"
               ? invoice.amount === amountFilter
               : invoice.amount < amountFilter;
+      
       //Provider Filter
       const matchProvider =
-        providerFilter === ""
+        providerFilter === "all"
           ? true
           : Number(providerFilter) === invoice.command.providerId;
 
       //Purchase Filter
       const matchPurchaseOrder =
-        purchaseFilter === ""
+        purchaseFilter === "all"
           ? true
           : Number(purchaseFilter) === invoice.commandId;
 
@@ -272,6 +261,7 @@ export function InvoicesTable({
       );
     });
   }, [
+    invoices,
     statusFilter,
     customDateRange,
     dateFilter,
@@ -389,7 +379,6 @@ export function InvoicesTable({
         const value = row.original;
         const status = getInvoiceStatusBadge(value.status);
         const i = getProgress(value);
-        //return <Badge variant={status.variant}>{status.label}</Badge>;
         return (
           <Progress value={i.progress} className={"w-full"}>
             <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
@@ -500,8 +489,8 @@ export function InvoicesTable({
                 {"Voir les paiements"}
               </DropdownMenuItem>
               {item.payment &&
-                item.payment.filter((x) => x.status !== "rejected").length === 0
-                 && (
+                item.payment.filter((x) => x.status !== "rejected").length ===
+                  0 && (
                   <DropdownMenuItem
                     onClick={() => {
                       setSelected(item);
@@ -534,7 +523,7 @@ export function InvoicesTable({
   ];
 
   const table = useReactTable({
-    data: data, // CORRECTION: 'data' au lieu de 'payments'
+    data: data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -615,86 +604,30 @@ export function InvoicesTable({
               {/**Provider Filter */}
               <div className="grid gap-1.5">
                 <Label>{"Fournisseur"}</Label>
-                {/* <Select
+                <SearchableSelect
+                  onChange={(v) => setProviderFilter(v)}
+                  options={providers.map((x) => ({
+                    label: x.name,
+                    value: x.id.toString(),
+                  }))}
                   value={providerFilter}
-                  onValueChange={setProviderFilter}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un fournisseur" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
-                    {providers.map((p) => (
-                      <SelectItem key={p.id} value={p.id.toString()}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select> */}
-                <Combobox
-                  items={providersData}
-                  value={providerFilter}
-                  onValueChange={(v) => setProviderFilter(v ?? "Tous")}
-                >
-                  <ComboboxInput placeholder="Sélectionner" />
-                  <ComboboxContent>
-                    <ComboboxEmpty>
-                      {"Aucun bon de commande correspondant"}
-                    </ComboboxEmpty>
-                    <ComboboxList>
-                      {(item) => (
-                        <ComboboxItem key={item} value={item}>
-                          {item}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
+                  width="w-full"
+                  allLabel="Tous les fournisseurs"
+                />
               </div>
               {/**Purchase Order Filter */}
               <div className="grid gap-1.5">
                 <Label>{"Bon de commande"}</Label>
-                {/* <Select
+                <SearchableSelect
+                  onChange={(v) => setPurchaseFilter(v)}
+                  options={purchases.map((x) => ({
+                    label: x.devi.commandRequest.title,
+                    value: x.id.toString(),
+                  }))}
                   value={purchaseFilter}
-                  onValueChange={setPurchaseFilter}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un Bon" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
-                    {purchases.map((p) => (
-                      <SelectItem key={p.id} value={p.id.toString()}>
-                        {p.devi.commandRequest.title ?? p.reference}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select> */}
-                <Combobox
-                  items={purchases}
-                  value={
-                    purchases.find((p) => p.id === Number(purchaseFilter)) ??
-                    null
-                  }
-                  onValueChange={(v) =>
-                    setPurchaseFilter(v?.id.toString() ?? "")
-                  }
-                  itemToStringLabel={(v) => v.devi.commandRequest.title}
-                >
-                  <ComboboxInput placeholder="Sélectionner" />
-                  <ComboboxContent>
-                    <ComboboxEmpty>
-                      {"Aucun bon de commande correspondant"}
-                    </ComboboxEmpty>
-                    <ComboboxList>
-                      {(item: BonsCommande) => (
-                        <ComboboxItem key={item.id} value={item}>
-                          {item.devi.commandRequest.title}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
+                  width="w-full"
+                  allLabel="Tous les bons de commande"
+                 />
               </div>
               {/* Filter by amount */}
               <div className="grid gap-1.5">
