@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -115,7 +116,9 @@ function CompleteSettle({
   const [dueDate, setDueDate] = React.useState<boolean>(false);
 
   const request = requests.find((r) => r.id === ticket.requestId);
-  const beneficiaire = filteredUsers.find((u) => u.id === Number(request?.beneficiary));
+  const beneficiaire = filteredUsers.find(
+    (u) => u.id === Number(request?.beneficiary),
+  );
 
   const vehicle = vehicles.find((v) => v.id === request?.vehiclesId);
 
@@ -378,7 +381,7 @@ function CompleteSettle({
                 <FormItem>
                   <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
                   <FormControl>
-                    <Select
+                    {/* <Select
                       value={field.value ? field.value.toString() : undefined}
                       onValueChange={field.onChange}
                     >
@@ -394,7 +397,17 @@ function CompleteSettle({
                           </SelectItem>
                         ))}
                       </SelectContent>
-                    </Select>
+                    </Select> */}
+                    <SearchableSelect
+                      options={users.map((user) => ({
+                        value: user.id.toString(),
+                        label: user.firstName.concat(" ", user.lastName),
+                      }))}
+                      value={field.value ? field.value.toString() : undefined}
+                      onChange={field.onChange}
+                      placeholder={"Sélectionner le bénéficiaire"}
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
