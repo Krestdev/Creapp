@@ -52,7 +52,7 @@ const TX_TYPES = TRANSACTION_TYPES.filter((c) => c.value !== "TRANSFER").map(
 const sourceSchema = z.object({
   label: z.string().optional(),
   accountNumber: z.string().optional(),
-  phoneNumber: z.string().optional(),
+  phoneNum: z.string().optional(),
 });
 
 export const formSchema = z
@@ -127,13 +127,13 @@ type FormValues = z.infer<typeof formSchema>;
 
 function TransactionForm({ banks, userId }: Props) {
   const [openDate, setOpenDate] = React.useState<boolean>(false);
-  
+
   // États pour les selects avec recherche
   const [openFromBank, setOpenFromBank] = React.useState<boolean>(false);
   const [openToBank, setOpenToBank] = React.useState<boolean>(false);
   const [searchFromBank, setSearchFromBank] = useState("");
   const [searchToBank, setSearchToBank] = useState("");
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     shouldUnregister: true,
@@ -177,7 +177,7 @@ function TransactionForm({ banks, userId }: Props) {
   const filteredFromBanks = useMemo(() => {
     const availableBanks = banks.filter((b) => !!b.type && b.type !== "null");
     return availableBanks.filter((bank) =>
-      normalizeText(bank.label).includes(normalizeText(searchFromBank))
+      normalizeText(bank.label).includes(normalizeText(searchFromBank)),
     );
   }, [banks, searchFromBank, normalizeText]);
 
@@ -185,7 +185,7 @@ function TransactionForm({ banks, userId }: Props) {
   const filteredToBanks = useMemo(() => {
     const availableBanks = banks.filter((b) => !!b.type && b.type !== "null");
     return availableBanks.filter((bank) =>
-      normalizeText(bank.label).includes(normalizeText(searchToBank))
+      normalizeText(bank.label).includes(normalizeText(searchToBank)),
     );
   }, [banks, searchToBank, normalizeText]);
 
@@ -214,7 +214,7 @@ function TransactionForm({ banks, userId }: Props) {
         from: {
           label: values.from?.label ?? "",
           accountNumber: values.from?.accountNumber,
-          phoneNumber: values.from?.phoneNumber,
+          phoneNum: values.from?.phoneNum,
         },
         toBankId: values.toBankId,
         userId,
@@ -235,7 +235,7 @@ function TransactionForm({ banks, userId }: Props) {
         to: {
           label: values.to?.label ?? "",
           accountNumber: values.to?.accountNumber,
-          phoneNumber: values.to?.phoneNumber,
+          phoneNum: values.to?.phoneNum,
         },
         userId,
       };
@@ -259,7 +259,7 @@ function TransactionForm({ banks, userId }: Props) {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="amount"
@@ -283,7 +283,7 @@ function TransactionForm({ banks, userId }: Props) {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="date"
@@ -315,9 +315,7 @@ function TransactionForm({ banks, userId }: Props) {
                         className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
                       >
                         <CalendarIcon className="size-3.5" />
-                        <span className="sr-only">
-                          Sélectionner une date
-                        </span>
+                        <span className="sr-only">Sélectionner une date</span>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent
@@ -348,7 +346,7 @@ function TransactionForm({ banks, userId }: Props) {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="Type"
@@ -375,7 +373,7 @@ function TransactionForm({ banks, userId }: Props) {
             </FormItem>
           )}
         />
-        
+
         {/* Section Source */}
         <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
           <h3 className="@min-[640px]:col-span-2">Source</h3>
@@ -410,7 +408,9 @@ function TransactionForm({ banks, userId }: Props) {
                             <Input
                               placeholder="Rechercher un compte..."
                               value={searchFromBank}
-                              onChange={(e) => setSearchFromBank(e.target.value)}
+                              onChange={(e) =>
+                                setSearchFromBank(e.target.value)
+                              }
                               onKeyDown={(e) => e.stopPropagation()}
                               className="h-9 pl-8"
                             />
@@ -425,7 +425,7 @@ function TransactionForm({ banks, userId }: Props) {
                             )}
                           </div>
                         </div>
-                        
+
                         {/* Liste scrollable */}
                         <div className="max-h-[380px] overflow-y-auto">
                           {filteredFromBanks.length === 0 ? (
@@ -484,7 +484,7 @@ function TransactionForm({ banks, userId }: Props) {
               />
               <FormField
                 control={form.control}
-                name="from.phoneNumber"
+                name="from.phoneNum"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Numéro de téléphone source</FormLabel>
@@ -505,7 +505,7 @@ function TransactionForm({ banks, userId }: Props) {
             </>
           )}
         </div>
-        
+
         {/* Section Destinataire */}
         <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
           <h3 className="@min-[640px]:col-span-2">Destinataire</h3>
@@ -555,7 +555,7 @@ function TransactionForm({ banks, userId }: Props) {
                             )}
                           </div>
                         </div>
-                        
+
                         {/* Liste scrollable */}
                         <div className="max-h-[380px] overflow-y-auto">
                           {filteredToBanks.length === 0 ? (
@@ -614,7 +614,7 @@ function TransactionForm({ banks, userId }: Props) {
               />
               <FormField
                 control={form.control}
-                name="to.phoneNumber"
+                name="to.phoneNum"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Numéro de téléphone destinataire</FormLabel>
@@ -656,7 +656,7 @@ function TransactionForm({ banks, userId }: Props) {
             </FormItem>
           )}
         />
-        
+
         <div className="@min-[640px]:col-span-2 w-full inline-flex justify-end">
           <Button
             type="submit"
