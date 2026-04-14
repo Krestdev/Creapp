@@ -76,6 +76,7 @@ import { toast } from "sonner";
 import { paymentQ } from "@/queries/payment";
 import { useMutation } from "@tanstack/react-query";
 import { ModalWarning } from "../modals/modal-warning";
+import EditPaymentMethod from "@/app/tableau-de-bord/(accounting)/factures/paiements/edit-payment-method";
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -176,6 +177,7 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
   const [openRejectModal, setOpenRejectModal] = React.useState<boolean>(false);
+  const [updateMethod, setUpdateMethod] = React.useState<boolean>(false);
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | PaymentRequest["status"]
   >("all");
@@ -386,6 +388,20 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
               >
                 <LucidePen />
                 {"Modifier"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setUpdateMethod(true);
+                }}
+                disabled={
+                  item.status !== "pending" &&
+                  item.status !== "validated" &&
+                  item.status !== "accepted"
+                }
+              >
+                <LucidePen />
+                {"Modifier la méthode de paiement"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
@@ -830,6 +846,12 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
             onAction={() => toReject.mutate(selected)}
             actionText="Annuler"
             variant="error"
+          />
+          <EditPaymentMethod
+            open={updateMethod}
+            openChange={setUpdateMethod}
+            payment={selected}
+            invoices={invoices}
           />
         </>
       )}
