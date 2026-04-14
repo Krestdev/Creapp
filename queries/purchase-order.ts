@@ -83,7 +83,10 @@ class PurchaseOrder {
   approve = async (item: BonsCommande): Promise<{ data: BonsCommande }> => {
     const conditions = item.commandConditions.map((condition) => condition.id);
     return api
-      .put(`${this.route}/${item.id}`, { status: "APPROVED", conditions })
+      .put(`${this.route}/commandVerdict/${item.id}`, {
+        status: "APPROVED",
+        conditions,
+      })
       .then((response) => {
         return response.data;
       });
@@ -94,7 +97,7 @@ class PurchaseOrder {
   ): Promise<{ data: BonsCommande }> => {
     const conditions = bon.commandConditions.map((c) => c.id);
     return api
-      .put(`${this.route}/${bon.id}`, {
+      .put(`${this.route}/commandVerdict/${bon.id}`, {
         status: "REJECTED",
         motif: reason,
         conditions,
