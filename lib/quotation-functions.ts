@@ -7,18 +7,18 @@ import {
 } from "@/types/types";
 
 export const computeQuotationGroupStatus = (
-  quotations: Quotation[]
+  quotations: Quotation[],
 ): QuotationGroupStatus => {
   // Si aucun devis => pas traité (logique “liste”)
   if (!quotations.length) return "NOT_PROCESSED";
 
   const allInitial = quotations.every(
-    (q) => q.status === "PENDING" || q.status === "SUBMITTED"
+    (q) => q.status === "PENDING" || q.status === "SUBMITTED",
   );
   if (allInitial) return "NOT_PROCESSED";
 
   const allFinal = quotations.every(
-    (q) => q.status === "APPROVED" || q.status === "REJECTED"
+    (q) => q.status === "APPROVED" || q.status === "REJECTED",
   );
   if (allFinal) return "PROCESSED";
 
@@ -28,16 +28,16 @@ export const computeQuotationGroupStatus = (
 export const groupQuotationsByCommandRequest = (
   commandRequests: CommandRequestT[],
   quotations: Quotation[],
-  providers: Provider[]
+  providers: Provider[],
 ): QuotationGroup[] => {
   const providerMap = new Map<number, Provider>(
-    providers.map((p) => [p.id, p])
+    providers.map((p) => [p.id, p]),
   );
 
   return commandRequests
     .map((cr): QuotationGroup | null => {
       const requestQuotations = quotations.filter(
-        (q) => q.commandRequestId === cr.id
+        (q) => q.commandRequestId === cr.id,
       );
 
       // Si tu veux afficher aussi les demandes sans devis, remplace par un group vide.
@@ -45,20 +45,26 @@ export const groupQuotationsByCommandRequest = (
 
       // Providers uniques (sans doublons)
       const providerIds = Array.from(
-        new Set(requestQuotations.map((q) => q.providerId))
+        new Set(requestQuotations.map((q) => q.providerId)),
       );
 
       const groupProviders = providerIds
         .map((id) => providerMap.get(id))
         .filter((p): p is Provider => !!p);
+      const maxDate = requestQuotations.reduce((max, q) => {
+        return new Date(q.createdAt).getTime() > max.getTime()
+          ? new Date(q.createdAt)
+          : max;
+      }, new Date(cr.createdAt));
 
       return {
         commandRequest: cr,
         quotations: requestQuotations,
         providers: groupProviders,
         status: computeQuotationGroupStatus(requestQuotations),
-        createdAt: cr.createdAt,
+        createdAt: maxDate,
       };
     })
-    .filter((g): g is QuotationGroup => g !== null);
+    .filter((g): g is QuotationGroup => g !== null)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 };

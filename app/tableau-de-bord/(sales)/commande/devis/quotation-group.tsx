@@ -68,6 +68,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { DevisGroup } from "./DevisGroup";
 import { subText } from "@/lib/utils";
+import { fr } from "date-fns/locale";
 
 interface QuotationGroupTableProps {
   providers: Array<Provider>;
@@ -218,9 +219,13 @@ export function QuotationGroupTable({
     },
     {
       accessorKey: "createdAt",
-      header: () => <span className="tablehead">{"Date de création"}</span>,
+      header: () => <span className="tablehead">{"Mis à jour le"}</span>,
       cell: ({ row }) => {
-        return <div>{format(row.getValue("createdAt"), "dd/MM/yyyy")}</div>;
+        return (
+          <div>
+            {format(row.getValue("createdAt"), "dd/MM/yyyy, p", { locale: fr })}
+          </div>
+        );
       },
     },
     {
