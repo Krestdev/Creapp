@@ -67,6 +67,7 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { DevisGroup } from "./DevisGroup";
+import { subText } from "@/lib/utils";
 
 interface QuotationGroupTableProps {
   providers: Array<Provider>;
@@ -122,8 +123,8 @@ export function QuotationGroupTable({
   const [selectedItem, setSelectedItem] = React.useState<QuotationGroup | null>(
     null,
   );
-const [providerSearch, setProviderSearch] = React.useState("");
-const [commandRequestSearch, setCommandRequestSearch] = React.useState("");
+  const [providerSearch, setProviderSearch] = React.useState("");
+  const [commandRequestSearch, setCommandRequestSearch] = React.useState("");
   //Unique array with all commandRequests Ids
   const commandRequests = [
     ...new Map(
@@ -173,7 +174,7 @@ const [commandRequestSearch, setCommandRequestSearch] = React.useState("");
         const group = row.original;
         return (
           <div className="font-medium">
-            {group.commandRequest.title} -{" "}
+            {subText({ text: group.commandRequest.title, length: 21 })} -{" "}
             <span className="text-red-500">
               {group.commandRequest.reference}
             </span>
@@ -305,14 +306,14 @@ const [commandRequestSearch, setCommandRequestSearch] = React.useState("");
   });
 
   const resetAllFilters = () => {
-  setGlobalFilter("");
-  setProviderFilter("all");
-  setCommandRequestFilter("all");
-  setStatusFilter("all");
-  // Réinitialiser les recherches
-  setProviderSearch("");
-  setCommandRequestSearch("");
-};
+    setGlobalFilter("");
+    setProviderFilter("all");
+    setCommandRequestFilter("all");
+    setStatusFilter("all");
+    // Réinitialiser les recherches
+    setProviderSearch("");
+    setCommandRequestSearch("");
+  };
 
   return (
     <div className="w-full space-y-4">
