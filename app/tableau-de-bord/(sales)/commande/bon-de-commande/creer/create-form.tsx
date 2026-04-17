@@ -307,9 +307,9 @@ function CreateForm() {
                         .filter(
                           (c) =>
                             c.status === "APPROVED" &&
-                            !getPurchases.data.data.some(
-                              (a) => a.deviId === c.id,
-                            ),
+                            !getPurchases.data.data
+                              .filter((p) => p.status !== "REJECTED")
+                              .some((a) => a.deviId === c.id),
                         )
                         .map((quote) => (
                           <SelectItem
