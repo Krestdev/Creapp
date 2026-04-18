@@ -54,7 +54,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -182,317 +182,320 @@ export default function BesoinLastValOther({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-3xl flex flex-col p-0 gap-0 h-[80vh] max-h-[80vh]">
+        <DialogHeader className="px-6 py-4 border-b shrink-0">
           <DialogTitle>{"Approbation & Modification"}</DialogTitle>
           <DialogDescription>
             {"Vérifiez et ajustez les informations avant la validation finale"}
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            {/* Titre */}
-            <FormField
-              control={form.control}
-              disabled
-              name="label"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Titre"}</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Catégorie */}
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => {
-                const others = categories.filter(
-                  (c) => c.type.type === "others",
-                );
-                return (
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              id="approval-form"
+            >
+              {/* Titre */}
+              <FormField
+                control={form.control}
+                disabled
+                name="label"
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired className="w-full">
-                      {"Catégorie"}
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={String(field.value)}
+                    <FormLabel isRequired>{"Titre"}</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Catégorie */}
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => {
+                  const others = categories.filter(
+                    (c) => c.type.type === "others",
+                  );
+                  return (
+                    <FormItem>
+                      <FormLabel isRequired className="w-full">
+                        {"Catégorie"}
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={String(field.value)}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {others.map((c) => (
+                            <SelectItem key={c.id} value={String(c.id)}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
+              {/* Projet */}
+              <FormField
+                control={form.control}
+                name="projectId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Projet"}</FormLabel>
+                    <Combobox
+                      items={projects.filter((p) => p.status !== "cancelled")}
+                      value={projects.find((p) => p.id === field.value) ?? null}
+                      onValueChange={(v) => field.onChange(v?.id)}
                     >
+                      <FormControl>
+                        <ComboboxInput placeholder={"Projet..."} />
+                      </FormControl>
+                      <ComboboxContent>
+                        <ComboboxEmpty>{"Aucun projet"}</ComboboxEmpty>
+                        <ComboboxList>
+                          {(item: ProjectT) => (
+                            <ComboboxItem key={item.id} value={item}>
+                              {item.label}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Bénéficiaire */}
+              <FormField
+                control={form.control}
+                name="benef"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
+                    <Combobox
+                      items={users}
+                      value={users.find((u) => u.id === field.value) ?? null}
+                      onValueChange={(v) => field.onChange(v?.id)}
+                      itemToStringLabel={(v) => `${v.firstName} ${v.lastName}`}
+                    >
+                      <FormControl>
+                        <ComboboxInput placeholder="Bénéficiaire..." />
+                      </FormControl>
+                      <ComboboxContent>
+                        <ComboboxList>
+                          {(u: User) => (
+                            <ComboboxItem key={u.id} value={u}>
+                              {u.firstName} {u.lastName}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Montant & Quantité */}
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Montant"}</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Quantité"}</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Unité & Priorité */}
+              <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Unité"}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {others.map((c) => (
-                          <SelectItem key={c.id} value={String(c.id)}>
-                            {c.label}
+                        {units.map((u) => (
+                          <SelectItem key={u.value} value={u.value}>
+                            {u.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
-                );
-              }}
-            />
-
-            {/* Projet */}
-            <FormField
-              control={form.control}
-              name="projectId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Projet"}</FormLabel>
-                  <Combobox
-                    items={projects.filter((p) => p.status !== "cancelled")}
-                    value={projects.find((p) => p.id === field.value) ?? null}
-                    onValueChange={(v) => field.onChange(v?.id)}
-                  >
-                    <FormControl>
-                      <ComboboxInput placeholder={"Projet..."} />
-                    </FormControl>
-                    <ComboboxContent>
-                      <ComboboxEmpty>{"Aucun projet"}</ComboboxEmpty>
-                      <ComboboxList>
-                        {(item: ProjectT) => (
-                          <ComboboxItem key={item.id} value={item}>
-                            {item.label}
-                          </ComboboxItem>
-                        )}
-                      </ComboboxList>
-                    </ComboboxContent>
-                  </Combobox>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Bénéficiaire */}
-            <FormField
-              control={form.control}
-              name="benef"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
-                  <Combobox
-                    items={users}
-                    value={users.find((u) => u.id === field.value) ?? null}
-                    onValueChange={(v) => field.onChange(v?.id)}
-                    itemToStringLabel={(v) => `${v.firstName} ${v.lastName}`}
-                  >
-                    <FormControl>
-                      <ComboboxInput placeholder="Bénéficiaire..." />
-                    </FormControl>
-                    <ComboboxContent>
-                      <ComboboxList>
-                        {(u: User) => (
-                          <ComboboxItem key={u.id} value={u}>
-                            {u.firstName} {u.lastName}
-                          </ComboboxItem>
-                        )}
-                      </ComboboxList>
-                    </ComboboxContent>
-                  </Combobox>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Montant & Quantité */}
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Montant"}</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Quantité"}</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Unité & Priorité */}
-            <FormField
-              control={form.control}
-              name="unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Unité"}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {units.map((u) => (
-                        <SelectItem key={u.value} value={u.value}>
-                          {u.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Priorité"}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {PRIORITIES.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Date limite */}
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel isRequired className="mb-1">
-                    {"Date limite"}
-                  </FormLabel>
-                  <Popover open={openDate} onOpenChange={setOpenDate}>
-                    <PopoverTrigger asChild>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Priorité"}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          className="w-full pl-3 text-left font-normal"
-                        >
-                          {field.value
-                            ? format(field.value, "dd/MM/yyyy", { locale: fr })
-                            : "Sélectionner"}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          field.onChange(date);
-                          setOpenDate(false);
-                        }}
-                        disabled={(date) =>
-                          date < new Date(new Date().setHours(0, 0, 0, 0))
-                        }
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Moyen de paiement */}
-            <FormField
-              control={form.control}
-              name="paytype"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
-                  <FormControl>
-                    <Select
-                      defaultValue={
-                        field.value ? String(field.value) : undefined
-                      }
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cash">{"Espèces"}</SelectItem>
-                        <SelectItem value="chq">{"Chèque"}</SelectItem>
-                        <SelectItem value="ov">{"Virement"}</SelectItem>
+                        {PRIORITIES.map((p) => (
+                          <SelectItem key={p.value} value={p.value}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Description */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel isRequired>
-                    {"Description / Justification"}
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={3} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Date limite */}
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel isRequired className="mb-1">
+                      {"Date limite"}
+                    </FormLabel>
+                    <Popover open={openDate} onOpenChange={setOpenDate}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className="w-full pl-3 text-left font-normal"
+                          >
+                            {field.value
+                              ? format(field.value, "dd/MM/yyyy", {
+                                  locale: fr,
+                                })
+                              : "Sélectionner"}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(date) => {
+                            field.onChange(date);
+                            setOpenDate(false);
+                          }}
+                          disabled={(date) =>
+                            date < new Date(new Date().setHours(0, 0, 0, 0))
+                          }
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <DialogFooter className="px-6 py-4 border-t shrink-0">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setOpen(false)}
-              >
-                {"Annuler"}
-              </Button>
-              <Button
-                type="submit"
-                disabled={isProcessing}
-                isLoading={isProcessing}
-              >
-                {"Mettre à jour et Approuver"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+              {/* Moyen de paiement */}
+              <FormField
+                control={form.control}
+                name="paytype"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+                    <FormControl>
+                      <Select
+                        defaultValue={
+                          field.value ? String(field.value) : undefined
+                        }
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cash">{"Espèces"}</SelectItem>
+                          <SelectItem value="chq">{"Chèque"}</SelectItem>
+                          <SelectItem value="ov">{"Virement"}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel isRequired>
+                      {"Description / Justification"}
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea {...field} rows={3} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </div>
+
+        {/* Footer: Fixe en bas */}
+        <DialogFooter className="px-6 py-4 border-t shrink-0">
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            {"Annuler"}
+          </Button>
+          <Button
+            type="submit"
+            disabled={isProcessing}
+            isLoading={isProcessing}
+            form="approval-form"
+          >
+            {"Mettre à jour et Approuver"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

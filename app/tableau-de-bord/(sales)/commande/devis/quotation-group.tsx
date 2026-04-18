@@ -172,7 +172,7 @@ const [commandRequestSearch, setCommandRequestSearch] = React.useState("");
       cell: ({ row }) => {
         const group = row.original;
         return (
-          <div className="font-medium">
+          <div className="font-medium max-w-125 truncate">
             {group.commandRequest.title} -{" "}
             <span className="text-red-500">
               {group.commandRequest.reference}

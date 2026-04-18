@@ -281,7 +281,7 @@ export function PurchaseApprovalTable({ data }: Props) {
       ),
       cell: ({ row }) => {
         const devi: BonsCommande["devi"] = row.getValue("devi");
-        return <div className="font-medium">{devi.commandRequest.title}</div>;
+        return <div className="font-medium max-w-[500px] truncate">{devi.commandRequest.title}</div>;
       },
     },
 
