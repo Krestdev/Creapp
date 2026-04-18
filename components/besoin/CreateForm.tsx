@@ -65,12 +65,9 @@ const formSchema = z.object({
   }),
   titre: z.string().min(1, "Le titre est requis"),
   description: z.string(),
-  quantity: z
-    .string()
-    .min(1, "La quantité est requise")
-    .refine((val) => !isNaN(Number(val)), {
-      message: "Le montant doit être un nombre valide",
-    }),
+  quantity: z.coerce
+    .number()
+    .refine((val) => val < 1, "La quantité doit être supérieure à 0"),
   unite: z.string().min(1, "L'unité est requise"),
   datelimite: z.date().min(today, "La date limite doit être dans le futur"),
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
@@ -92,7 +89,7 @@ export default function MyForm({ categories, users, projects }: Props) {
       categoryId: undefined,
       titre: "",
       description: "",
-      quantity: "",
+      quantity: 1,
       unite: "",
       datelimite: undefined,
       beneficiaire: "",

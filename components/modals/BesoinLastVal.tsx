@@ -93,14 +93,6 @@ export function BesoinLastVal({
     },
   });
 
-  const requestData = useQuery({
-    queryKey: ["requests"],
-    queryFn: () => {
-      return requestQ.getAll();
-    },
-    enabled: isHydrated,
-  });
-
   const validator = categories
     .find((cat) => cat.id === data?.categoryId)
     ?.validators?.find((v) => v.userId === user?.id);
@@ -121,7 +113,6 @@ export function BesoinLastVal({
     }) => requestQ.validate(id, validator?.id!, validator),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
-      requestData.refetch();
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
@@ -232,7 +223,6 @@ export function BesoinLastVal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
-        {/* HEADER - Fixé en haut */}
         <DialogHeader
           variant={isError ? "error" : isSuccess ? "success" : "default"}
         >
@@ -447,7 +437,7 @@ export function BesoinLastVal({
 
         {/* Footer - Fixe en bas pour le formulaire */}
         {!isSuccess && !isError && (
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
+          <DialogFooter>
             <Button
               type="submit"
               variant={"success"}
@@ -467,7 +457,7 @@ export function BesoinLastVal({
 
         {/* Footer Success/Error - Fixe en bas */}
         {(isSuccess || isError) && (
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
+          <DialogFooter>
             {/* Bouton pour réessayer */}
             {isError && (
               <Button type="button" variant={"primary"} onClick={handleRetry}>
