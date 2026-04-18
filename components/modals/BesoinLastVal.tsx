@@ -230,7 +230,7 @@ export function BesoinLastVal({
         </DialogHeader>
 
         {/* FORM - Zone scrollable */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="flex-1">
           {!isSuccess && !isError && (
             <Form {...form}>
               <form className="space-y-4" id="approval-form">
