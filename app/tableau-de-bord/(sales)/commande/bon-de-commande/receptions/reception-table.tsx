@@ -192,7 +192,7 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
         const original = row.original;
         const item = purchases.find((p) => p.id === original.CommandId);
         return (
-          <div className="font-medium">
+          <div className="font-medium max-w-[300px] truncate">
             {item?.devi.commandRequest.title ?? "N/A"}
           </div>
         );

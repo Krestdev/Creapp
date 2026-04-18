@@ -62,8 +62,8 @@ export function UpdateRequestType({
 
   // Mutation pour la mise à jour
   const updateMutation = useMutation({
-    mutationFn: (values: { id: number; label: string }) => {
-      return requestTypeQ.update(data?.id!, { label: values.label });
+    mutationFn: (values: { id: number; label: string, description: string }) => {
+      return requestTypeQ.update(data?.id!, { label: values.label, description: values.description });
     },
     onSuccess: () => {
       toast.success("Type de besoin modifié avec succès");
@@ -94,6 +94,7 @@ export function UpdateRequestType({
     updateMutation.mutate({
       id: data.id,
       label: values.label,
+      description: values.description,
       // Note: description n'est pas envoyé car elle est désactivée
     });
   };
@@ -160,11 +161,11 @@ export function UpdateRequestType({
                       className="resize-none"
                       rows={4}
                       {...field}
-                      disabled // Description est désactivée
+                      disabled 
                     />
                   </FormControl>
                   <FormMessage />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-red-600">
                     La description ne peut pas être modifiée
                   </p>
                 </FormItem>

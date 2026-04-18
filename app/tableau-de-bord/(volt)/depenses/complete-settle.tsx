@@ -381,23 +381,6 @@ function CompleteSettle({
                 <FormItem>
                   <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
                   <FormControl>
-                    {/* <Select
-                      value={field.value ? field.value.toString() : undefined}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue
-                          placeholder={"Sélectionner le bénéficiaire"}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {users.map((user) => (
-                          <SelectItem key={user.id} value={user.id.toString()}>
-                            {user.firstName.concat(" ", user.lastName)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select> */}
                     <SearchableSelect
                       options={users.map((user) => ({
                         value: user.id.toString(),

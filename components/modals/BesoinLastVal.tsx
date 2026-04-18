@@ -148,7 +148,7 @@ export function BesoinLastVal({
     if (open) {
       form.reset({
         title: data.label,
-        dueDate: new Date(data.dueDate), // Handle undefined or null dates
+        dueDate: new Date(data.dueDate),
         priority: data.priority,
         quantity: String(data.quantity),
         description: data.description || "",
@@ -202,7 +202,6 @@ export function BesoinLastVal({
   // Reset complet quand le modal se ferme
   useEffect(() => {
     if (!open) {
-      // Reset du formulaire
       form.reset({
         title: data?.label || "",
         dueDate: data?.dueDate ? new Date(data.dueDate) : undefined,
@@ -212,7 +211,6 @@ export function BesoinLastVal({
         unit: data?.unit || "",
       });
 
-      // Reset des mutations
       requestMutation.reset();
       validateRequest.reset();
     }
@@ -225,217 +223,231 @@ export function BesoinLastVal({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader
           variant={isError ? "error" : isSuccess ? "success" : "default"}
+          className="px-6 py-4 border-b shrink-0"
         >
           <DialogTitle>{"Approbation"}</DialogTitle>
           <DialogDescription>{headerDescription}</DialogDescription>
         </DialogHeader>
 
         {/* FORM - Zone scrollable */}
-        {!isSuccess && !isError && (
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(submitForm)}
-              className="space-y-4"
-            >
-              {/* Titre */}
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Titre"}</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="ex. Chantier Duval"
-                        {...field}
-                        disabled
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {!!requestBy && (
-                <div className="grid gap-2">
-                  <Label>{"Emetteur"}</Label>
-                  <Input
-                    value={requestBy.firstName.concat(" ", requestBy.lastName)}
-                    disabled
-                  />
-                </div>
-              )}
-
-              {!!data.amount && (
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {!isSuccess && !isError && (
+            <Form {...form}>
+              <form className="space-y-4" id="approval-form">
+                {/* Titre */}
                 <FormField
                   control={form.control}
-                  name="amount"
+                  name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{"Montant"}</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type="number"
-                            placeholder="Ex. 15 000 FCFA"
-                            {...field}
-                            className="pr-12"
-                          />
-                          <p className="absolute right-2 top-1/2 -translate-y-1/2">
-                            {"FCFA"}
-                          </p>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {/* Date */}
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Date limite"}</FormLabel>
-                    <Popover open={openD} onOpenChange={setOpenD}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className="w-full h-10 justify-between font-normal"
-                          >
-                            {field.value
-                              ? format(field.value, "PPP", { locale: fr })
-                              : "Sélectionner une date"}
-                            <ChevronDownIcon />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={(date) => {
-                            field.onChange(date);
-                            setOpenD(false);
-                          }}
-                          locale={fr}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Priorité */}
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Priorité"}</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      disabled={isPending}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionnez une priorité" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">{"Normale"}</SelectItem>
-                        <SelectItem value="medium">{"Moyenne"}</SelectItem>
-                        <SelectItem value="high">{"Haute"}</SelectItem>
-                        <SelectItem value="urgent">{"Urgente"}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Quantité */}
-              {data.type !== "transport" && (
-                <FormField
-                  control={form.control}
-                  name="quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Quantité"}</FormLabel>
+                      <FormLabel isRequired>{"Titre"}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Quantité..."
+                          placeholder="ex. Chantier Duval"
                           {...field}
-                          disabled={isPending}
+                          disabled
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              )}
 
-              {/* UNIT */}
-              {data.type !== "transport" && (
+                {!!requestBy && (
+                  <div className="grid gap-2">
+                    <Label>{"Emetteur"}</Label>
+                    <Input
+                      value={requestBy.firstName.concat(
+                        " ",
+                        requestBy.lastName,
+                      )}
+                      disabled
+                    />
+                  </div>
+                )}
+
+                {!!data.amount && (
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{"Montant"}</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              placeholder="Ex. 15 000 FCFA"
+                              {...field}
+                              className="pr-12"
+                            />
+                            <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                              {"FCFA"}
+                            </p>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* Date */}
                 <FormField
                   control={form.control}
-                  name="unit"
+                  name="dueDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{"Unité"}</FormLabel>
+                      <FormLabel isRequired>{"Date limite"}</FormLabel>
+                      <Popover open={openD} onOpenChange={setOpenD}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className="w-full h-10 justify-between font-normal"
+                            >
+                              {field.value
+                                ? format(field.value, "PPP", { locale: fr })
+                                : "Sélectionner une date"}
+                              <ChevronDownIcon />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(date) => {
+                              field.onChange(date);
+                              setOpenD(false);
+                            }}
+                            locale={fr}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Priorité */}
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel isRequired>{"Priorité"}</FormLabel>
                       <Select
-                        value={field.value}
                         onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        disabled={isPending}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
-                            <SelectValue placeholder="Sélectionner l'unité" />
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Sélectionnez une priorité" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {units.map((unit) => (
-                            <SelectItem key={unit.value} value={unit.value}>
-                              {unit.name}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="low">{"Normale"}</SelectItem>
+                          <SelectItem value="medium">{"Moyenne"}</SelectItem>
+                          <SelectItem value="high">{"Haute"}</SelectItem>
+                          <SelectItem value="urgent">{"Urgente"}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              )}
 
-              {/* Description */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Description"}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        rows={4}
-                        className="resize-none"
-                        placeholder="Description détaillée..."
-                        {...field}
-                        disabled
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                {/* Quantité */}
+                {data.type !== "transport" && (
+                  <FormField
+                    control={form.control}
+                    name="quantity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel isRequired>{"Quantité"}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Quantité..."
+                            {...field}
+                            disabled={isPending}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
-            </form>
-          </Form>
-        )}
 
-        {/* Footer - Fixe en bas pour le formulaire */}
+                {/* UNIT */}
+                {data.type !== "transport" && (
+                  <FormField
+                    control={form.control}
+                    name="unit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{"Unité"}</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
+                              <SelectValue placeholder="Sélectionner l'unité" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {units.map((unit) => (
+                              <SelectItem key={unit.value} value={unit.value}>
+                                {unit.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* Description */}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel isRequired>{"Description"}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={4}
+                          className="resize-none"
+                          placeholder="Description détaillée..."
+                          {...field}
+                          disabled
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          )}
+
+          {/* Message Success/Error sans formulaire */}
+          {(isSuccess || isError) && (
+            <div className="flex flex-col items-center justify-center h-full">
+              <p className="text-center text-muted-foreground">
+                {isSuccess
+                  ? "Le besoin a été approuvé avec succès."
+                  : "Une erreur est survenue lors de l'approbation."}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer - Fixe en bas */}
         {!isSuccess && !isError && (
           <DialogFooter>
             <Button
@@ -443,7 +455,7 @@ export function BesoinLastVal({
               variant={"success"}
               disabled={isPending}
               isLoading={isPending}
-              onClick={form.handleSubmit(submitForm)}
+              form="approval-form"
             >
               {"Approuver"}
             </Button>

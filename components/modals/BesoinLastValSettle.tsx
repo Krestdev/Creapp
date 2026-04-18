@@ -191,7 +191,7 @@ export default function BesoinLastValSettle({
         description: values.description,
         priority: values.priority,
         label: values.label,
-        userId: user?.id,
+        userId: request.userId,
         beneficiary: request.beneficiary,
         projectId: request.projectId,
         categoryId: request.categoryId,
