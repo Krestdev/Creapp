@@ -68,7 +68,8 @@ interface ValidationModalProps {
   users: Array<User>;
 }
 
-export function BesoinLastVal({
+export function 
+BesoinLastVal({
   open,
   onOpenChange,
   data,
