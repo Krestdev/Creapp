@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -101,81 +102,72 @@ function ShareExpense({
 
   const debitTransactions = transactions.filter((t) => t.Type === "DEBIT");
 
-  // Vérifier si le ticket a déjà un methodId
-  const hasExistingMethodId = useMemo(() => {
-    return !!ticket.methodId;
-  }, [ticket.methodId]);
-
-  // Créer le schéma de validation conditionnel
-  const formSchema = useMemo(() => {
-    const baseSchema = z.object({
+  // Schéma — simple et direct
+  const formSchema = z.object({
+    label: z.string().min(2, "Libellé trop court"),
+    fromBankId: z.coerce.number({
+      required_error: "Veuillez sélectionner un compte source",
+      invalid_type_error: "Veuillez sélectionner un compte source",
+    }),
+    methodId: z
+      .number({
+        required_error: "Veuillez sélectionner un moyen de paiement",
+        invalid_type_error: "Veuillez sélectionner un moyen de paiement",
+      })
+      .int()
+      .positive("Veuillez sélectionner un moyen de paiement"),
+    to: z.object({
       label: z.string().min(2, "Libellé trop court"),
-      fromBankId: z.coerce.number({
-        required_error: "Veuillez sélectionner un compte source",
-        invalid_type_error: "Veuillez sélectionner un compte source",
-      }),
-      ...(hasExistingMethodId
-        ? {}
-        : {
-            methodId: z
-              .number({
-                required_error: "Veuillez sélectionner un moyen de paiement",
-                invalid_type_error:
-                  "Veuillez sélectionner un moyen de paiement",
-              })
-              .int()
-              .positive("Veuillez sélectionner un moyen de paiement"),
-          }),
-      to: z.object({
-        label: z.string().min(2, "Libellé trop court"),
-        accountNumber: z.string().optional(),
-        phoneNum: z.string().optional(),
-      }),
-      docNumber: z.string().optional(),
-    });
-
-    return baseSchema;
-  }, [hasExistingMethodId]);
+      accountNumber: z.string().optional(),
+      phoneNum: z.string().optional(),
+    }),
+    docNumber: z.string().optional(),
+  });
 
   type FormValues = z.infer<typeof formSchema>;
 
+  //Let's check if the ticket is a facilitation ticket
   const isFacilitation = ticket.type?.toLowerCase() === "facilitation";
+  //Let's find the beneficiary of the facilitation ticket
   const besoinFac = requests.find((x) => x.id === ticket.requestId);
+  //Let's find the beneficiary of the facilitation ticket
   const benef = users.find((x) => x.id === Number(besoinFac?.beneficiary));
 
-  //console.log(besoinFac);
   //Let's save the user who created the request to use it later on
   const requestUser = users.find(
     (u) => u.id === requests.find((r) => r.id === ticket.requestId)?.userId,
   );
 
+  // defaultValues — plus de spread conditionnel
+  const defaultValues: Partial<FormValues> = {
+    label: ticket.title,
+    fromBankId: undefined,
+    methodId: ticket.methodId ?? undefined, // pré-remplir si déjà défini
+    to: {
+      label: isFacilitation
+        ? `${benef?.firstName} ${benef?.lastName}`
+        : (ticket.invoice?.command.provider.name ??
+          (requestUser
+            ? `${requestUser.firstName} ${requestUser.lastName}`
+            : "")),
+      accountNumber: "",
+      phoneNum: "",
+    },
+    docNumber: "",
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      label: ticket.title,
-      fromBankId: undefined,
-      // Si le ticket n'a pas de methodId, laisser undefined
-      ...(hasExistingMethodId ? {} : { methodId: undefined }),
-      to: {
-        label: isFacilitation
-          ? benef?.firstName + " " + benef?.lastName
-          : (ticket.invoice?.command.provider.name ?? !!ticket.requestId)
-            ? requestUser?.firstName.concat(" ", requestUser?.lastName)
-            : "",
-        accountNumber: "",
-        phoneNum: "",
-      },
-      docNumber: "",
-    },
+    defaultValues,
   });
 
+  //Let's reset the form when the dialog is opened
   useEffect(() => {
     if (open)
       return form.reset({
         label: ticket.title,
         fromBankId: undefined,
-        // Si le ticket n'a pas de methodId, laisser undefined
-        ...(hasExistingMethodId ? {} : { methodId: undefined }),
+        methodId: ticket.methodId ?? undefined,
         to: {
           label: isFacilitation
             ? benef?.firstName + " " + benef?.lastName
@@ -189,25 +181,25 @@ function ShareExpense({
       });
   }, [open]);
 
-  // Observer la valeur de la banque sélectionnée
+  //Let's observe the value of the selected bank
   const selectedBankId = useWatch({
     control: form.control,
     name: "fromBankId",
   });
 
-  // Observer la valeur de methodId (si présent dans le formulaire)
+  //Let's observe the value of methodId (if present in the form)
   const selectedMethodId = useWatch({
     control: form.control,
     name: "methodId",
   });
 
-  // Observer la valeur du numéro de document
+  //Let's observe the value of docNumber
   const docNumberValue = useWatch({
     control: form.control,
     name: "docNumber",
   });
 
-  // Obtenir le type de paiement du ticket ou du formulaire
+  // Let's register the payment method
   const paymentMethod = useMemo(() => {
     // Priorité : methodId du formulaire (si présent) puis methodId du ticket
     const methodId = selectedMethodId || ticket.methodId;
@@ -219,12 +211,12 @@ function ShareExpense({
     return payTypes.find((payType: PayType) => payType.id === methodId);
   }, [payTypes, ticket.methodId, selectedMethodId]);
 
-  // Vérifier si le mode de paiement est "espèces" en se basant aussi sur le select du formulaire
+  // Let's check if the payment method is "cash" based on the form's select
   const isCashPayment = useMemo(() => {
     return paymentMethod?.type?.toLowerCase() === "cash";
   }, [paymentMethod]);
 
-  // Vérifier si le moyen de paiement nécessite un numéro de pièce
+  // Let's check if the payment method requires a document number
   const requiresDocNumberField = useMemo(() => {
     return requiresDocNumber(paymentMethod!);
   }, [paymentMethod]);
@@ -330,33 +322,18 @@ function ShareExpense({
     .filter((t) => t.Type === "DEBIT")
     .find((item) => item.id === ticket.transactionId);
 
+  // onSubmit — plus de finalMethodId bricolé
   function onSubmit(values: FormValues) {
-    // Validation manuelle pour docNumber
-    if (
-      requiresDocNumberField &&
-      (!values.docNumber || values.docNumber.trim().length === 0)
-    ) {
+    if (requiresDocNumberField && !values.docNumber?.trim()) {
       form.setError("docNumber", {
         type: "manual",
         message: "Le numéro de pièce est requis pour ce moyen de paiement",
       });
-      toast.error("Veuillez renseigner le numéro de pièce");
       return;
     }
 
     const { to, fromBankId, methodId, docNumber, ...rest } = values;
 
-    // Utiliser methodId du formulaire si présent, sinon celui du ticket
-    const finalMethodId = Number(methodId) || ticket.methodId;
-
-    if (!finalMethodId) {
-      toast.error("Veuillez sélectionner un moyen de paiement");
-      return;
-    }
-
-    const status = isCashPayment ? "simple_signed" : "unsigned";
-
-    // Créer l'objet payload
     const payload: TransactionProps = {
       ...rest,
       Type: transaction?.Type!,
@@ -367,13 +344,11 @@ function ShareExpense({
       label: ticket.title,
       to,
       fromBankId,
-      status: status,
-      // Inclure methodId dans le payload
-      methodId: finalMethodId,
-      // Inclure docNumber seulement s'il est fourni
-      ...(docNumber && { docNumber: docNumber }),
+      status: isCashPayment ? "simple_signed" : "unsigned",
+      methodId,
+      ...(docNumber?.trim() && { docNumber }),
     };
-    //console.log("Payload à envoyer pour la transaction :", payload);
+
     share.mutate(payload);
   }
 
@@ -438,64 +413,41 @@ function ShareExpense({
                   </div>
                 </div>
 
-                {/* Champ moyen de paiement UNIQUEMENT si le ticket n'en a pas déjà */}
-                {!hasExistingMethodId && (
-                  <FormField
-                    control={form.control}
-                    name="methodId"
-                    render={({ field }) => (
-                      <FormItem className="@min-[640px]:col-span-2">
-                        <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
-                        <FormDescription className="text-amber-600">
-                          {`Ce paiement n'a pas encore de moyen de paiement
-                          défini. Veuillez en sélectionner un.`}
-                        </FormDescription>
-                        <FormControl>
-                          <Select
-                            value={
-                              field.value ? String(field.value) : undefined
-                            }
-                            onValueChange={(value) => {
-                              field.onChange(Number(value));
-                            }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Sélectionner un moyen de paiement" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {payTypes.map((payType) => (
-                                <SelectItem
-                                  key={payType.id}
-                                  value={String(payType.id)}
-                                >
-                                  {payType.label ||
-                                    `Moyen de paiement ${payType.id}`}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {/* Afficher la méthode de paiement si elle existe déjà */}
-                {hasExistingMethodId && paymentMethod && (
-                  <div className="@min-[640px]:col-span-2 p-3 rounded-sm border bg-green-50/30">
-                    <h3 className="font-medium text-sm mb-1">
-                      Moyen de paiement défini
-                    </h3>
-                    <p className="font-semibold text-green-700">
-                      {paymentMethod.label || `Type ${ticket.methodId}`}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Ce paiement a déjà un moyen de paiement configuré. Pour le
-                      modifier, veuillez éditer le paiement directement.
-                    </p>
-                  </div>
-                )}
+                {/* Le champ methodId dans le JSX — toujours affiché, plus de condition*/}
+                <FormField
+                  control={form.control}
+                  name="methodId"
+                  render={({ field }) => (
+                    <FormItem className="@min-[640px]:col-span-2">
+                      <FormLabel isRequired>Moyen de paiement</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value ? String(field.value) : undefined}
+                          onValueChange={(value) =>
+                            field.onChange(Number(value))
+                          }
+                          disabled={ticket.methodId !== null}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Sélectionner un moyen de paiement" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {payTypes.map((payType) => (
+                              <SelectItem
+                                key={payType.id}
+                                value={String(payType.id)}
+                              >
+                                {payType.label ??
+                                  `Moyen de paiement ${payType.id}`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {/* Champ numéro de pièce - Affiché uniquement pour chèque ou OV */}
                 {requiresDocNumberField && (
@@ -716,41 +668,17 @@ function ShareExpense({
               </form>
             </Form>
           </div>
-          <div className="shrink-0 flex gap-3 p-6 pt-0 ml-auto">
+          <DialogFooter>
             <Button
               onClick={() => {
-                // Vérifier si le solde est suffisant
                 if (selectedBank && selectedBank.balance < ticket.price) {
-                  toast.error(
-                    `Solde insuffisant. Disponible: ${selectedBank.balance.toLocaleString()} FCFA, Montant requis: ${ticket.price.toLocaleString()} FCFA`,
-                  );
+                  toast.error(`Solde insuffisant...`);
                   return;
                 }
-
-                // Validation pour docNumber si requis
-                if (
-                  requiresDocNumberField &&
-                  (!docNumberValue || docNumberValue.trim().length === 0)
-                ) {
-                  form.setError("docNumber", {
-                    type: "manual",
-                    message:
-                      "Le numéro de pièce est requis pour ce moyen de paiement",
-                  });
-                  toast.error("Veuillez renseigner le numéro de pièce");
-                  return;
-                }
-
-                // Appeler la fonction retournée par handleSubmit
                 form.handleSubmit(onSubmit)();
               }}
-              variant={"primary"}
-              disabled={
-                share.isPending ||
-                filteredBanks.length === 0 ||
-                (!hasExistingMethodId && !selectedMethodId) ||
-                (requiresDocNumberField && !validateDocNumber)
-              }
+              variant="primary"
+              disabled={share.isPending || filteredBanks.length === 0}
               isLoading={share.isPending}
             >
               {isCashPayment
@@ -768,7 +696,7 @@ function ShareExpense({
             >
               {"Annuler"}
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       {paiement && (

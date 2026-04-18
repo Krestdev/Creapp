@@ -1,7 +1,7 @@
 import api from "@/providers/axios";
 import { Transaction } from "@/types/types";
 
-type source = { label: string; accountNumber?: string; phoneNumber?: string };
+type source = { label: string; accountNumber?: string; phoneNum?: string };
 
 export interface TransactionProps extends Omit<
   Transaction,
