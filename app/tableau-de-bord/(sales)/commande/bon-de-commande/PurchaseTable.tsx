@@ -60,7 +60,7 @@ import {
   ProgressLabel,
   ProgressValue,
 } from "@/components/ui/progress";
-import { totalAmountPurchase, XAF } from "@/lib/utils";
+import { subText, totalAmountPurchase, XAF } from "@/lib/utils";
 import {
   BonsCommande,
   CommandCondition,
@@ -221,16 +221,27 @@ export function PurchaseTable({
 
     // Filtre par fournisseur
     if (providerFilter !== "all") {
-      filtered = filtered.filter((po) => po.provider?.id === parseInt(providerFilter));
+      filtered = filtered.filter(
+        (po) => po.provider?.id === parseInt(providerFilter),
+      );
     }
 
     // Filtre par cotation
     if (cotationFilter !== "all") {
-      filtered = filtered.filter((po) => po.devi?.id === parseInt(cotationFilter));
+      filtered = filtered.filter(
+        (po) => po.devi?.id === parseInt(cotationFilter),
+      );
     }
 
     return filtered;
-  }, [data, statusFilter, priorityFilter, penaltyFilter, providerFilter, cotationFilter]);
+  }, [
+    data,
+    statusFilter,
+    priorityFilter,
+    penaltyFilter,
+    providerFilter,
+    cotationFilter,
+  ]);
 
   const getProgress = (
     purchaseOrder: BonsCommande,
@@ -282,9 +293,9 @@ export function PurchaseTable({
       cell: ({ row }) => {
         const name: BonsCommande["devi"] = row.getValue("devi");
         return (
-          <div className="font-medium uppercase">
-            {name.commandRequest.title} -{" "}
-            <span className="text-red-500 lowercase">
+          <div className="font-medium">
+            {subText({ text: name.commandRequest.title, length: 21 })} -{" "}
+            <span className="text-red-500">
               {name.commandRequest.reference}
             </span>
           </div>
@@ -502,11 +513,12 @@ export function PurchaseTable({
       const paymentMethodText = (po.paymentMethod ?? "").toLowerCase();
       const paymentTermsText = (po.paymentTerms ?? "").toLowerCase();
       const locationText = (po.deliveryLocation ?? "").toLowerCase();
-      
+
       // Recherche sur le fournisseur
       const providerText = (po.provider?.name ?? "").toLowerCase();
       // Recherche sur la cotation
-      const cotationText = `${po.devi?.commandRequest?.title ?? ""} ${po.devi?.commandRequest?.reference ?? ""}`.toLowerCase();
+      const cotationText =
+        `${po.devi?.commandRequest?.title ?? ""} ${po.devi?.commandRequest?.reference ?? ""}`.toLowerCase();
 
       return (
         String(po.id).includes(s) ||
@@ -735,7 +747,9 @@ export function PurchaseTable({
                         <span className="truncate">
                           {providerFilter === "all"
                             ? "Tous les fournisseurs"
-                            : uniqueProviders.find(p => p.id === parseInt(providerFilter))?.name || "Sélectionner"}
+                            : uniqueProviders.find(
+                                (p) => p.id === parseInt(providerFilter),
+                              )?.name || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -764,7 +778,11 @@ export function PurchaseTable({
                         <span>Tous les fournisseurs</span>
                       </DropdownMenuItem>
                       {uniqueProviders
-                        .filter(p => p.name.toLowerCase().includes(providerSearch.toLowerCase()))
+                        .filter((p) =>
+                          p.name
+                            .toLowerCase()
+                            .includes(providerSearch.toLowerCase()),
+                        )
                         .map((p) => (
                           <DropdownMenuItem
                             key={p.id}
@@ -772,13 +790,17 @@ export function PurchaseTable({
                               setProviderFilter(String(p.id));
                               setProviderSearch("");
                             }}
-                            className={providerFilter === String(p.id) ? "bg-accent" : ""}
+                            className={
+                              providerFilter === String(p.id) ? "bg-accent" : ""
+                            }
                           >
                             <span>{p.name}</span>
                           </DropdownMenuItem>
                         ))}
-                      {uniqueProviders.filter(p => 
-                        p.name.toLowerCase().includes(providerSearch.toLowerCase())
+                      {uniqueProviders.filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(providerSearch.toLowerCase()),
                       ).length === 0 && (
                         <div className="px-2 py-4 text-sm text-muted-foreground text-center">
                           Aucun fournisseur trouvé
@@ -800,7 +822,9 @@ export function PurchaseTable({
                         <span className="truncate">
                           {cotationFilter === "all"
                             ? "Toutes les cotations"
-                            : uniqueCotations.find(c => c.id === parseInt(cotationFilter))?.label || "Sélectionner"}
+                            : uniqueCotations.find(
+                                (c) => c.id === parseInt(cotationFilter),
+                              )?.label || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -829,10 +853,17 @@ export function PurchaseTable({
                         <span>Toutes les cotations</span>
                       </DropdownMenuItem>
                       {uniqueCotations
-                        .filter(c => 
-                          c.label.toLowerCase().includes(cotationSearch.toLowerCase()) ||
-                          c.reference.toLowerCase().includes(cotationSearch.toLowerCase()) ||
-                          c.title.toLowerCase().includes(cotationSearch.toLowerCase())
+                        .filter(
+                          (c) =>
+                            c.label
+                              .toLowerCase()
+                              .includes(cotationSearch.toLowerCase()) ||
+                            c.reference
+                              .toLowerCase()
+                              .includes(cotationSearch.toLowerCase()) ||
+                            c.title
+                              .toLowerCase()
+                              .includes(cotationSearch.toLowerCase()),
                         )
                         .map((c) => (
                           <DropdownMenuItem
@@ -841,13 +872,17 @@ export function PurchaseTable({
                               setCotationFilter(String(c.id));
                               setCotationSearch("");
                             }}
-                            className={cotationFilter === String(c.id) ? "bg-accent" : ""}
+                            className={
+                              cotationFilter === String(c.id) ? "bg-accent" : ""
+                            }
                           >
                             <span className="truncate">{c.label}</span>
                           </DropdownMenuItem>
                         ))}
-                      {uniqueCotations.filter(c => 
-                        c.label.toLowerCase().includes(cotationSearch.toLowerCase())
+                      {uniqueCotations.filter((c) =>
+                        c.label
+                          .toLowerCase()
+                          .includes(cotationSearch.toLowerCase()),
                       ).length === 0 && (
                         <div className="px-2 py-4 text-sm text-muted-foreground text-center">
                           Aucune cotation trouvée
@@ -892,13 +927,13 @@ export function PurchaseTable({
 
               {providerFilter !== "all" && (
                 <Badge variant="outline" className="font-normal">
-                  {`Fournisseur: ${uniqueProviders.find(p => p.id === parseInt(providerFilter))?.name}`}
+                  {`Fournisseur: ${uniqueProviders.find((p) => p.id === parseInt(providerFilter))?.name}`}
                 </Badge>
               )}
 
               {cotationFilter !== "all" && (
                 <Badge variant="outline" className="font-normal">
-                  {`Cotation: ${uniqueCotations.find(c => c.id === parseInt(cotationFilter))?.reference}`}
+                  {`Cotation: ${uniqueCotations.find((c) => c.id === parseInt(cotationFilter))?.reference}`}
                 </Badge>
               )}
 
