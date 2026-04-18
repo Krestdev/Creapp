@@ -165,7 +165,7 @@ export default function BesoinLastValSettle({
         proof: proofValue,
       });
     }
-  }, [open, request, form, paiement]);  
+  }, [open, request, form, paiement]);
 
   const validator = categories
     .find((cat) => cat.id === request?.categoryId)
@@ -218,8 +218,8 @@ export default function BesoinLastValSettle({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-3xl max-h-[80vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b">
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader variant={"secondary"}>
           <DialogTitle>{"Approbation & Modification"}</DialogTitle>
           <DialogDescription>
             {"Vérifiez et ajustez les informations avant la validation finale"}
@@ -227,10 +227,7 @@ export default function BesoinLastValSettle({
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex-1 overflow-y-auto px-6"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6">
               {/* Titre */}
               <FormField
@@ -436,7 +433,9 @@ export default function BesoinLastValSettle({
                             className="w-full pl-3 text-left font-normal"
                           >
                             {field.value
-                              ? format(field.value, "dd/MM/yyyy", { locale: fr })
+                              ? format(field.value, "dd/MM/yyyy", {
+                                  locale: fr,
+                                })
                               : "Sélectionner"}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -533,13 +532,9 @@ export default function BesoinLastValSettle({
             </div>
           </form>
         </Form>
-        
-        <DialogFooter className="px-6 py-4 border-t shrink-0">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setOpen(false)}
-          >
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
             {"Annuler"}
           </Button>
           <Button

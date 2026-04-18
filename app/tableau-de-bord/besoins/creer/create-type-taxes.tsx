@@ -85,7 +85,9 @@ const formSchema = z.object({
     message: "Veuillez sélectionner une catégorie",
   }),
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
-  quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
+  quantity: z.coerce
+    .number({ message: "Veuillez définir une quantité" })
+    .refine((val) => val < 1, "La quantité doit être supérieure à 0"),
   benef: z.coerce.number(),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
@@ -191,30 +193,30 @@ function CreateTypeTaxes({ users, categories, projects }: Props) {
 
             return (
               <FormItem>
-                  <FormLabel isRequired>{"Categorie"}</FormLabel>
-                  <FormControl>
-                    <SearchableSelect
-                      onChange={field.onChange}
-                      options={taxesCategories.map((c) => ({
-                        value: c.id!.toString(),
-                        label: c.label,
-                      }))}
-                      value={field.value ? String(field.value) : ""}
-                      width="w-full"
-                      allLabel=""
-                      placeholder="Sélectionner une catégorie"
-                    />
-                  </FormControl>
+                <FormLabel isRequired>{"Categorie"}</FormLabel>
+                <FormControl>
+                  <SearchableSelect
+                    onChange={field.onChange}
+                    options={taxesCategories.map((c) => ({
+                      value: c.id!.toString(),
+                      label: c.label,
+                    }))}
+                    value={field.value ? String(field.value) : ""}
+                    width="w-full"
+                    allLabel=""
+                    placeholder="Sélectionner une catégorie"
+                  />
+                </FormControl>
 
-                  {/* ✅ Affichage de la description sous le SearchableSelect */}
-                  {selectedCategory?.description && (
-                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
-                      {selectedCategory.description}
-                    </div>
-                  )}
+                {/* ✅ Affichage de la description sous le SearchableSelect */}
+                {selectedCategory?.description && (
+                  <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                    {selectedCategory.description}
+                  </div>
+                )}
 
-                  <FormMessage />
-                </FormItem>
+                <FormMessage />
+              </FormItem>
             );
           }}
         />

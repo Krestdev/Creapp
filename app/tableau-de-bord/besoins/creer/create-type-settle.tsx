@@ -35,10 +35,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
-import {
-  newRequestSettle,
-  requestQ,
-} from "@/queries/requestModule";
+import { newRequestSettle, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -85,7 +82,7 @@ const formSchema = z.object({
   }),
   quantity: z.coerce
     .number()
-    .min(1, { message: "Veuillez définir une quantité" }),
+    .refine((val) => val < 1, "La quantité doit être supérieure à 0"),
   benef: z.coerce.number().optional(),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {

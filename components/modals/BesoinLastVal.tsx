@@ -50,7 +50,9 @@ const formSchema = z.object({
   priority: z.enum(["medium", "high", "low", "urgent"], {
     required_error: "La priorité est obligatoire",
   }),
-  quantity: z.string().min(1, "La quantité est obligatoire"),
+  quantity: z.coerce
+    .number()
+    .refine((val) => val < 1, "La quantité doit être supérieure à 0"),
   description: z.string().optional(),
   unit: z.string().min(1, "L'unité est obligatoire"),
   amount: z.coerce.number().optional(),
@@ -79,7 +81,7 @@ BesoinLastVal({
   users,
 }: ValidationModalProps) {
   const [openD, setOpenD] = useState(false);
-  const { isHydrated, user } = useStore();
+  const { user } = useStore();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -87,19 +89,11 @@ BesoinLastVal({
       title: data.label,
       dueDate: new Date(data.dueDate),
       priority: data.priority as "medium" | "high" | "low" | "urgent",
-      quantity: String(data.quantity),
+      quantity: data.quantity,
       description: data?.description || "",
       unit: data.unit,
       amount: data.amount,
     },
-  });
-
-  const requestData = useQuery({
-    queryKey: ["requests"],
-    queryFn: () => {
-      return requestQ.getAll();
-    },
-    enabled: isHydrated,
   });
 
   const validator = categories
@@ -122,7 +116,6 @@ BesoinLastVal({
     }) => requestQ.validate(id, validator?.id!, validator),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
-      requestData.refetch();
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
@@ -149,10 +142,6 @@ BesoinLastVal({
     },
   });
 
-  const isSuccess = requestMutation.isSuccess || validateRequest.isSuccess;
-  const isError = requestMutation.isError || validateRequest.isError;
-  const isPending = requestMutation.isPending || validateRequest.isPending;
-
   // Reset when modal opens
   useEffect(() => {
     if (open) {
@@ -160,7 +149,7 @@ BesoinLastVal({
         title: data.label,
         dueDate: new Date(data.dueDate),
         priority: data.priority,
-        quantity: String(data.quantity),
+        quantity: data.quantity,
         description: data.description || "",
         unit: data.unit,
         amount: data.amount,
@@ -199,16 +188,6 @@ BesoinLastVal({
     }
   };
 
-  const handleRetry = () => {
-    requestMutation.reset();
-  };
-
-  const headerDescription = isError
-    ? "Une erreur est survenue. Vous pouvez réessayer."
-    : isSuccess
-      ? "Besoin approuvée avec succès."
-      : description;
-
   // Reset complet quand le modal se ferme
   useEffect(() => {
     if (!open) {
@@ -216,13 +195,10 @@ BesoinLastVal({
         title: data?.label || "",
         dueDate: data?.dueDate ? new Date(data.dueDate) : undefined,
         priority: data?.priority as "medium" | "high" | "low" | "urgent",
-        quantity: String(data?.quantity || ""),
+        quantity: data?.quantity || 1,
         description: data?.description || "",
         unit: data?.unit || "",
       });
-
-      requestMutation.reset();
-      validateRequest.reset();
     }
   }, [open, data]);
 
@@ -230,270 +206,239 @@ BesoinLastVal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl flex flex-col p-0 gap-0 h-[80vh] max-h-[90vh]">
-        {/* HEADER - Fixé en haut */}
-        <DialogHeader
-          variant={isError ? "error" : isSuccess ? "success" : "default"}
-          className="px-6 py-4 border-b shrink-0"
-        >
-          <DialogTitle>{"Approbation"}</DialogTitle>
-          <DialogDescription>{headerDescription}</DialogDescription>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader variant={"secondary"}>
+          <DialogTitle>{`Approbation - ${data.label}`}</DialogTitle>
+          <DialogDescription>
+            {description ?? "Valider un besoin"}
+          </DialogDescription>
         </DialogHeader>
 
         {/* FORM - Zone scrollable */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {!isSuccess && !isError && (
-            <Form {...form}>
-              <form className="space-y-4" id="approval-form">
-                {/* Titre */}
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Titre"}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="ex. Chantier Duval"
-                          {...field}
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {!!requestBy && (
-                  <div className="grid gap-2">
-                    <Label>{"Emetteur"}</Label>
+        <Form {...form}>
+          <form className="grid gap-4" onSubmit={form.handleSubmit(submitForm)}>
+            {/* Titre */}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Titre"}</FormLabel>
+                  <FormControl>
                     <Input
-                      value={requestBy.firstName.concat(" ", requestBy.lastName)}
+                      placeholder="ex. Chantier Duval"
+                      {...field}
                       disabled
                     />
-                  </div>
-                )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                {!!data.amount && (
-                  <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Montant"}</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              type="number"
-                              placeholder="Ex. 15 000 FCFA"
-                              {...field}
-                              className="pr-12"
-                            />
-                            <p className="absolute right-2 top-1/2 -translate-y-1/2">
-                              {"FCFA"}
-                            </p>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {/* Date */}
-                <FormField
-                  control={form.control}
-                  name="dueDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Date limite"}</FormLabel>
-                      <Popover open={openD} onOpenChange={setOpenD}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className="w-full h-10 justify-between font-normal"
-                            >
-                              {field.value
-                                ? format(field.value, "PPP", { locale: fr })
-                                : "Sélectionner une date"}
-                              <ChevronDownIcon />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(date) => {
-                              field.onChange(date);
-                              setOpenD(false);
-                            }}
-                            locale={fr}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+            {!!requestBy && (
+              <div className="grid gap-2">
+                <Label>{"Emetteur"}</Label>
+                <Input
+                  value={requestBy.firstName.concat(" ", requestBy.lastName)}
+                  disabled
                 />
-
-                {/* Priorité */}
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Priorité"}</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={isPending}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionnez une priorité" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="low">{"Normale"}</SelectItem>
-                          <SelectItem value="medium">{"Moyenne"}</SelectItem>
-                          <SelectItem value="high">{"Haute"}</SelectItem>
-                          <SelectItem value="urgent">{"Urgente"}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Quantité */}
-                {data.type !== "transport" && (
-                  <FormField
-                    control={form.control}
-                    name="quantity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel isRequired>{"Quantité"}</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Quantité..."
-                            {...field}
-                            disabled={isPending}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {/* UNIT */}
-                {data.type !== "transport" && (
-                  <FormField
-                    control={form.control}
-                    name="unit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Unité"}</FormLabel>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
-                              <SelectValue placeholder="Sélectionner l'unité" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {units.map((unit) => (
-                              <SelectItem key={unit.value} value={unit.value}>
-                                {unit.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {/* Description */}
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Description"}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          rows={4}
-                          className="resize-none"
-                          placeholder="Description détaillée..."
-                          {...field}
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </form>
-            </Form>
-          )}
-
-          {/* Message Success/Error sans formulaire */}
-          {(isSuccess || isError) && (
-            <div className="flex flex-col items-center justify-center h-full">
-              <p className="text-center text-muted-foreground">
-                {isSuccess 
-                  ? "Le besoin a été approuvé avec succès." 
-                  : "Une erreur est survenue lors de l'approbation."}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer - Fixe en bas */}
-        {!isSuccess && !isError && (
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
-            <Button
-              type="submit"
-              variant={"success"}
-              disabled={isPending}
-              isLoading={isPending}
-              form="approval-form"
-            >
-              {"Approuver"}
-            </Button>
-            <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={isPending}>
-                {"Fermer"}
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        )}
-
-        {/* Footer Success/Error - Fixe en bas */}
-        {(isSuccess || isError) && (
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
-            {isError && (
-              <Button type="button" variant={"primary"} onClick={handleRetry}>
-                {"Réessayer"}
-              </Button>
+              </div>
             )}
-            <Button
-              variant={"outline"}
-              onClick={() => {
-                form.reset();
-                onOpenChange(false);
-              }}
-            >
-              {"Fermer"}
-            </Button>
-          </DialogFooter>
-        )}
+
+            {!!data.amount && (
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Montant"}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          placeholder="Ex. 15 000 FCFA"
+                          {...field}
+                          className="pr-12"
+                        />
+                        <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                          {"FCFA"}
+                        </p>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Date */}
+            <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Date limite"}</FormLabel>
+                  <Popover open={openD} onOpenChange={setOpenD}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className="w-full h-10 justify-between font-normal"
+                        >
+                          {field.value
+                            ? format(field.value, "PPP", { locale: fr })
+                            : "Sélectionner une date"}
+                          <ChevronDownIcon />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          setOpenD(false);
+                        }}
+                        locale={fr}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Priorité */}
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Priorité"}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={
+                      requestMutation.isPending || validateRequest.isPending
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionnez une priorité" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">{"Normale"}</SelectItem>
+                      <SelectItem value="medium">{"Moyenne"}</SelectItem>
+                      <SelectItem value="high">{"Haute"}</SelectItem>
+                      <SelectItem value="urgent">{"Urgente"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Quantité */}
+            {data.type !== "transport" && (
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Quantité"}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Quantité..."
+                        {...field}
+                        disabled={
+                          requestMutation.isPending || validateRequest.isPending
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* UNIT */}
+            {data.type !== "transport" && (
+              <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Unité"}</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
+                          <SelectValue placeholder="Sélectionner l'unité" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {units.map((unit) => (
+                          <SelectItem key={unit.value} value={unit.value}>
+                            {unit.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Description */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Description"}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={4}
+                      className="resize-none"
+                      placeholder="Description détaillée..."
+                      {...field}
+                      disabled
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button
+                type="submit"
+                variant={"success"}
+                disabled={
+                  requestMutation.isPending || validateRequest.isPending
+                }
+                isLoading={
+                  requestMutation.isPending || validateRequest.isPending
+                }
+              >
+                {"Approuver"}
+              </Button>
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={
+                    requestMutation.isPending || validateRequest.isPending
+                  }
+                >
+                  {"Fermer"}
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
