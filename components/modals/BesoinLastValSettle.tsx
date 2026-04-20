@@ -91,7 +91,9 @@ const formSchema = z.object({
   projectId: z.coerce.number().min(1, "Projet requis"),
   description: z.string().min(1, "Description requise"),
   categoryId: z.coerce.number().min(1, "Catégorie requise"),
-  quantity: z.coerce.number().min(1, "Quantité requise"),
+  quantity: z.coerce
+    .number()
+    .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
   benef: z.coerce.number().min(1, "Bénéficiaire requis"),
   dueDate: z.date({ required_error: "Date requise" }),
   unit: z.string().min(1, "Unité requise"),
