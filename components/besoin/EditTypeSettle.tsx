@@ -42,7 +42,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
-import { requestQ } from "@/queries/requestModule";
+import { newRequestSettle, requestQ } from "@/queries/requestModule";
 import {
   Category,
   PRIORITIES,
@@ -146,7 +146,8 @@ function EditTypeSettle({
       proof: [],
     },
   });
-  console.log(request);
+
+  //console.log(request);
 
   // Remplir le formulaire avec les données existantes
   useEffect(() => {
@@ -169,7 +170,7 @@ function EditTypeSettle({
   }, [request, form, open]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (payload: newRequestSettle) => {
       return requestQ.editSettleRequest(request.id, payload);
     },
     onSuccess: () => {
@@ -193,8 +194,7 @@ function EditTypeSettle({
         toast.error("Veuillez sélectionner un projet");
         return;
       }
-
-      const payload = {
+      const payload: newRequestSettle = {
         label: values.label,
         description: values.description,
         // amount: values.amount,
@@ -205,6 +205,7 @@ function EditTypeSettle({
         priority: values.priority,
         projectId: values.projectId,
         proof: values.proof,
+        userId: user?.id!,
       };
 
       mutate(payload);

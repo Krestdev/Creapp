@@ -202,7 +202,6 @@ class RequestQueries {
     const formData = new FormData();
 
     console.log(data);
-    
 
     Object.entries(data).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
@@ -482,7 +481,6 @@ class RequestQueries {
         return response.data;
       });
   };
-
 
   createTaxesRequest = async (
     payload: RequestTaxes,
