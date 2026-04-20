@@ -67,7 +67,7 @@ const formSchema = z.object({
   description: z.string(),
   quantity: z.coerce
     .number()
-    .refine((val) => val < 1, "La quantité doit être supérieure à 0"),
+    .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
   unite: z.string().min(1, "L'unité est requise"),
   datelimite: z.date().min(today, "La date limite doit être dans le futur"),
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),

@@ -87,7 +87,7 @@ const formSchema = z.object({
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   quantity: z.coerce
     .number({ message: "Veuillez définir une quantité" })
-    .refine((val) => val < 1, "La quantité doit être supérieure à 0"),
+    .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
   benef: z.coerce.number(),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
