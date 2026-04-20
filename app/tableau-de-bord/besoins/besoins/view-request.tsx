@@ -315,7 +315,7 @@ function ViewRequest({
           )}
 
           {/* Quantité pour achat */}
-          {request.type === "achat" && (
+          {(request.type === "achat" || request.type === "settle") && (
             <div className="view-group">
               <span className="view-icon">
                 <LucidePieChart />

@@ -515,7 +515,7 @@ export default function BesoinLastValSettle({
                 name="proof"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
-                    <FormLabel isRequired>{"Justificatif"}</FormLabel>
+                    <FormLabel>{"Justificatif"}</FormLabel>
                     <FormControl>
                       <FilesUpload
                         disabled
