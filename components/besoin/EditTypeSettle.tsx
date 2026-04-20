@@ -95,7 +95,9 @@ const formSchema = z.object({
   projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
   // amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
-  quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
+  quantity: z.coerce
+    .number({ message: "Veuillez définir une quantité" })
+    .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
   benef: z.coerce.number().optional(),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
@@ -144,6 +146,7 @@ function EditTypeSettle({
       proof: [],
     },
   });
+  console.log(request);
 
   // Remplir le formulaire avec les données existantes
   useEffect(() => {
@@ -154,7 +157,7 @@ function EditTypeSettle({
         // amount: request.amount || 100,
         quantity: request.quantity || 1,
         unit: request.unit || "",
-        benef: request.benef?.[0] || undefined,
+        benef: Number(request.beneficiary) || undefined,
         dueDate: request.dueDate
           ? format(new Date(request.dueDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),
