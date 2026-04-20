@@ -52,7 +52,7 @@ const formSchema = z.object({
   }),
   quantity: z.coerce
     .number()
-    .refine((val) => val < 1, "La quantité doit être supérieure à 0"),
+    .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
   description: z.string().optional(),
   unit: z.string().min(1, "L'unité est obligatoire"),
   amount: z.coerce.number().optional(),
@@ -70,7 +70,8 @@ interface ValidationModalProps {
   users: Array<User>;
 }
 
-export function BesoinLastVal({
+export function 
+BesoinLastVal({
   open,
   onOpenChange,
   data,
