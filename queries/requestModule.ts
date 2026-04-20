@@ -459,6 +459,7 @@ class RequestQueries {
     formData.append("description", payload.description);
     payload.amount && formData.append("amount", payload.amount.toString());
     formData.append("dueDate", payload.dueDate.toISOString());
+    formData.append("quantity", payload.quantity.toString());
     formData.append("unit", payload.unit);
     formData.append("priority", "medium");
     formData.append("type", "settle");
