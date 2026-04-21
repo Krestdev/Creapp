@@ -35,7 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getQuotationAmount, XAF } from "@/lib/utils";
+import { getQuotationAmount, subText, XAF } from "@/lib/utils";
 import {
   CommandRequestT,
   Provider,
@@ -154,7 +154,7 @@ export function DevisTable({
       },
       cell: ({ row }) => (
         <div className="font-medium first-letter:uppercase">
-          {`${getQuotationTitle(row.getValue("commandRequestId"))} - `}
+          {`${subText({ text: getQuotationTitle(row.getValue("commandRequestId")), length: 21 })} - `}
           <span className="text-destructive text-[12px]">{`${getQuotationRef(
             row.getValue("commandRequestId"),
           )}`}</span>
