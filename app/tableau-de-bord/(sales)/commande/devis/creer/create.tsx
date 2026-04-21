@@ -41,6 +41,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import AddElement from "./addElement";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   commandRequestId: z.number({ message: "Requis" }),
@@ -81,10 +82,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
   quotation?: Quotation;
-  openChange?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function CreateQuotation({ quotation, openChange }: Props) {
+function CreateQuotation({ quotation }: Props) {
+  const router = useRouter();
   const intentRef = React.useRef<"save" | "saveAndCreate">("save");
   const [open, setOpen] = React.useState<boolean>(false);
   const [openP, setOpenP] = React.useState<boolean>(false);
@@ -131,8 +132,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
         commandRequestId: quotation.commandRequestId,
         providerId: quotation.providerId,
         elements: quotation.element.map((c) => ({
-          id: c.id, 
-          needId: c.requestModelId, 
+          id: c.id,
+          needId: c.requestModelId,
           designation: c.title,
           quantity: c.quantity,
           unit: c.unit,
@@ -177,8 +178,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
           userId: user && user.id ? user.id : 0,
         },
         elements: values.elements.map((e) => ({
-          id: e.id, 
-          requestModelId: e.needId, 
+          id: e.id,
+          requestModelId: e.needId,
           title: e.designation,
           quantity: e.quantity,
           unit: e.unit,
@@ -189,7 +190,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
         })),
       };
 
-      console.log("Payload to send:", payload); 
+      console.log("Payload to send:", payload);
 
       if (!id) {
         return quotationQ.create(payload);
@@ -204,13 +205,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
           : "Votre devis a été créé avec succès",
       );
 
-      if (openChange) {
-        openChange(false);
-      }
-
-      if (intent === "save" && openChange) {
-        openChange(false);
-      } else if (intent === "saveAndCreate") {
+      if (intent === "save") {
         // Réinitialisation pour un nouvel ajout
         form.reset({
           commandRequestId: undefined,
@@ -225,6 +220,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
         setSelectedNeeds([]);
         setPreviousCommandId(undefined);
         intentRef.current = "save";
+      } else {
+        router.push("/tableau-de-bord/commande/devis");
       }
     },
     onError: (error) => {
@@ -364,14 +361,14 @@ function CreateQuotation({ quotation, openChange }: Props) {
 
   /** Gérer la mise à jour des éléments */
   const handleElementsChange = useCallback(
-  (newElements: any[]) => {
-    form.setValue("elements", newElements, { shouldValidate: true });
-    setEditingIndex(null);
-    setEditingElement(null);
-    setOpen(false);
-  },
-  [form],
-);
+    (newElements: any[]) => {
+      form.setValue("elements", newElements, { shouldValidate: true });
+      setEditingIndex(null);
+      setEditingElement(null);
+      setOpen(false);
+    },
+    [form],
+  );
 
   /** Soumission du formulaire */
   function onSubmit(values: FormValues) {
@@ -502,8 +499,8 @@ function CreateQuotation({ quotation, openChange }: Props) {
                               className="uppercase"
                               disabled={
                                 // (!!quotation && field.value !== provider.id) ||
-                                (!!watchedCommandId &&
-                                  isProviderUsed(provider.id))
+                                !!watchedCommandId &&
+                                isProviderUsed(provider.id)
                               }
                             >
                               {provider.name}
