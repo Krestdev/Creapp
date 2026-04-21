@@ -27,13 +27,21 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { formatToShortName, isProviderValid } from "@/lib/utils";
+import { formatToShortName, isProviderValid, XAF } from "@/lib/utils";
 import { CommandConditionQ } from "@/queries/commandsConditions";
 import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
 import { CreatePurchasePayload, purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
-import { CommandCondition, PENALITY_MODE, PRIORITIES } from "@/types/types";
+import {
+  BonsCommande,
+  CommandCondition,
+  PayType,
+  PENALITY_MODE,
+  PRIORITIES,
+  Provider,
+  Quotation,
+} from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -121,7 +129,19 @@ export const formSchema = z
     }
   });
 
-function CreateForm() {
+function CreateForm({
+  quotations,
+  providers,
+  purchases,
+  paymentType,
+  conditions,
+}: {
+  quotations: Quotation[];
+  providers: Provider[];
+  purchases: BonsCommande[];
+  paymentType: PayType[];
+  conditions: CommandCondition[];
+}) {
   const [selectDate, setSelectDate] = React.useState(false);
   const [selectedConditions, setSelectedConditions] = React.useState<
     CommandCondition[]
@@ -130,34 +150,13 @@ function CreateForm() {
     {},
   );
 
-  const getQuotations = useQuery({
-    queryKey: ["quotations"],
-    queryFn: quotationQ.getAll,
-  });
-  const getProviders = useQuery({
-    queryKey: ["providers"],
-    queryFn: providerQ.getAll,
-  });
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
-  });
-  const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
-    queryFn: payTypeQ.getAll,
-  });
-  const conditions = useQuery({
-    queryKey: ["conditions"],
-    queryFn: () => CommandConditionQ.getAll(),
-  });
-
   // Définir la valeur par défaut pour paymentMethod
   const defaultPaymentMethod = React.useMemo(() => {
-    if (getPaymentType.data?.data && getPaymentType.data.data.length > 0) {
-      return getPaymentType.data.data[0].id.toString();
+    if (paymentType && paymentType.length > 0) {
+      return paymentType[0].id.toString();
     }
     return "bank-transfer"; // Valeur par défaut de fallback
-  }, [getPaymentType.data]);
+  }, [paymentType]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -180,8 +179,8 @@ function CreateForm() {
 
   // Mettre à jour la valeur de paymentMethod lorsque les données sont chargées
   React.useEffect(() => {
-    if (getPaymentType.data?.data && getPaymentType.data.data.length > 0) {
-      const firstMethodId = getPaymentType.data.data[0].id.toString();
+    if (paymentType && paymentType.length > 0) {
+      const firstMethodId = paymentType[0].id.toString();
 
       // Définir la valeur seulement si elle est vide ou si c'est la valeur de fallback
       const currentValue = form.getValues("paymentMethod");
@@ -189,9 +188,60 @@ function CreateForm() {
         form.setValue("paymentMethod", firstMethodId);
       }
     }
-  }, [getPaymentType.data, form]);
+  }, [paymentType, form]);
 
-  const methodValue = form.watch("paymentMethod");
+  const deviId = form.watch("deviId");
+  const precompte = form.watch("hasPrecompt");
+
+  const netToPay = React.useMemo(() => {
+    const devi = quotations.find((q) => Number(q.id) === Number(deviId));
+
+    const provider = providers.find((p) => p.id === devi?.providerId);
+
+    const ACOMPTE_IS_REEL = 0.022;
+    const IR_SIMPLIFIE = 0.055;
+    const PRECOMPTE = 0.02;
+
+    const isRealRegime = (regem?: string) => {
+      const v = (regem ?? "").toLowerCase().trim();
+      return v === "reel" || v === "réel";
+    };
+
+    const real = isRealRegime(provider?.regem);
+    const applyPrecompte = precompte === true;
+
+    const lines = (devi?.element ?? []).map((el) => {
+      const lineHTBrut = (el.quantity ?? 0) * (el.priceProposed ?? 0);
+      const lineRRR = lineHTBrut * (el.reduction / 100);
+      const lineBase = Math.max(0, lineHTBrut - lineRRR);
+
+      const lineTVA = real ? lineBase * (el.tva / 100) : 0;
+
+      // ✅ Simplified: rate is 0 if hasIs is falsy
+      const isIrRate = el.hasIs ? (real ? ACOMPTE_IS_REEL : IR_SIMPLIFIE) : 0;
+      const lineIsIr = lineBase * isIrRate;
+
+      // ✅ Precompte is a withholding — subtract, don't add
+      const linePrecompte = applyPrecompte ? lineBase * PRECOMPTE : 0;
+      const lineNetToPay = lineBase + lineTVA - lineIsIr - linePrecompte;
+
+      return {
+        ...el,
+        lineHTBrut,
+        lineRRR,
+        lineBase,
+        lineTVA,
+        lineIsIr,
+        linePrecompte,
+        lineNetToPay,
+      };
+    });
+
+    // ✅ Defaults to 0 if lines is empty or devi not found
+    return lines.reduce((sum, l) => sum + l.lineNetToPay, 0);
+  }, [deviId, precompte, quotations, providers]);
+
+  //const methodValue = form.watch("paymentMethod");
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -231,9 +281,7 @@ function CreateForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const quotation = getQuotations.data?.data.find(
-      (q) => q.id === values.deviId,
-    );
+    const quotation = quotations.find((q) => q.id === values.deviId);
 
     if (!quotation) {
       toast.error("Devis introuvable");
@@ -274,6 +322,7 @@ function CreateForm() {
         escompteRate: values.escompteRate,
         keepTaxes: values.keepTaxes,
         hasPrecompt: values.hasPrecompt,
+        netToPay: netToPay,
       },
       conditions: values.conditions,
       ids: ids,
@@ -301,40 +350,39 @@ function CreateForm() {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getQuotations.isSuccess &&
-                      getPurchases.isSuccess &&
-                      getQuotations.data.data
-                        .filter(
-                          (c) =>
-                            c.status === "APPROVED" &&
-                            !getPurchases.data.data
-                              .filter((p) => p.status !== "REJECTED")
-                              .some((a) => a.deviId === c.id),
-                        )
-                        .map((quote) => (
-                          <SelectItem
-                            key={quote.id}
-                            value={String(quote.id)}
-                            className="line-clamp-1"
-                          >
-                            {`${
-                              quote.commandRequest.title
-                            } - ${formatToShortName(
-                              getProviders.data?.data.find(
-                                (p) => p.id === quote.providerId,
-                              )?.name,
-                            )}`}
-                          </SelectItem>
-                        ))}
-                    {getQuotations.data &&
-                      getQuotations.data.data.length === 0 && (
-                        <SelectItem value="-" disabled>
-                          {"Aucun devis disponible"}
+                    {quotations
+                      .filter(
+                        (c) =>
+                          c.status === "APPROVED" &&
+                          !purchases
+                            .filter((p) => p.status !== "REJECTED")
+                            .some((a) => a.deviId === c.id),
+                      )
+                      .map((quote) => (
+                        <SelectItem
+                          key={quote.id}
+                          value={String(quote.id)}
+                          className="line-clamp-1"
+                        >
+                          {`${quote.commandRequest.title} - ${formatToShortName(
+                            providers.find((p) => p.id === quote.providerId)
+                              ?.name,
+                          )}`}
                         </SelectItem>
-                      )}
+                      ))}
+                    {quotations.length === 0 && (
+                      <SelectItem value="-" disabled>
+                        {"Aucun devis disponible"}
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </FormControl>
+              {!!netToPay && (
+                <FormDescription>
+                  {`Net à payer : ${XAF.format(netToPay)}`}
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -364,7 +412,7 @@ function CreateForm() {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getPaymentType.data?.data.map((p) => (
+                    {paymentType.map((p) => (
                       <SelectItem key={p.id} value={p.id.toString()}>
                         {p.label}
                       </SelectItem>
@@ -681,7 +729,7 @@ function CreateForm() {
           <FormLabel isRequired>{"Conditions du bon de commande"}</FormLabel>
           <MultiSelectConditions
             display="Conditions"
-            conditions={conditions.data?.data || []}
+            conditions={conditions}
             selected={selectedConditions}
             onChange={(selected) => {
               setSelectedConditions(selected);

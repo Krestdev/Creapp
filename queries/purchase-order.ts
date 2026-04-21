@@ -12,7 +12,6 @@ export type CreatePurchasePayload = {
     | "reference"
     | "provider"
     | "instalments"
-    | "netToPay"
     | "commandConditions"
     | "invoice"
   > & {
