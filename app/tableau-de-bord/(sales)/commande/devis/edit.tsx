@@ -21,12 +21,9 @@ function EditQuotation({ open, openChange, quotation }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl w-full max-h-[80vh] p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-3xl">
         {/* Header fixe */}
-        <DialogHeader
-          variant={"secondary"}
-          className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0"
-        >
+        <DialogHeader variant={"secondary"}>
           <DialogTitle className="uppercase">
             {`Devis - ${
               providers.data?.data.find((p) => p.id === quotation.providerId)

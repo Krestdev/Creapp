@@ -82,9 +82,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
   quotation?: Quotation;
+  openChange?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function CreateQuotation({ quotation }: Props) {
+function CreateQuotation({ quotation, openChange }: Props) {
   const router = useRouter();
   const intentRef = React.useRef<"save" | "saveAndCreate">("save");
   const [open, setOpen] = React.useState<boolean>(false);
@@ -204,6 +205,9 @@ function CreateQuotation({ quotation }: Props) {
           ? "Votre devis a été modifié avec succès"
           : "Votre devis a été créé avec succès",
       );
+      if (openChange) {
+        openChange(false);
+      }
 
       if (intent === "save") {
         // Réinitialisation pour un nouvel ajout
