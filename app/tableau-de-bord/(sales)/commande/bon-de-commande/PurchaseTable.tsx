@@ -1094,6 +1094,7 @@ export function PurchaseTable({
           open={complete}
           openChange={setComplete}
           purchaseOrder={selectedValue}
+          users={users}
         />
       )}
       {selectedValue && (

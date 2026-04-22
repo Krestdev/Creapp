@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { userQ } from "@/queries/baseModule";
 import { AddFileProps, purchaseQ } from "@/queries/purchase-order";
-import { BonsCommande } from "@/types/types";
+import { BonsCommande, User } from "@/types/types";
 import { pdf } from "@react-pdf/renderer";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
@@ -23,14 +23,18 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   purchaseOrder: BonsCommande;
+  users: User[];
 }
 
-function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
+function AddSignedFile({ open, openChange, purchaseOrder, users }: Props) {
   const [isGenerating, setIsGenerating] = useState(false);
   /**Responsable Achat */
   const saleUserId = purchaseOrder.devi.userId;
   /**Responsable Validation */
   const validatorUserId = purchaseOrder.validators?.userId;
+
+  const saleUser = users.find((u) => u.id === saleUserId);
+  const validatorUser = users.find((u) => u.id === validatorUserId);
   /**Fetch Signature */
   const saleSignature = useQuery({
     queryKey: ["signature", saleUserId],
@@ -155,6 +159,8 @@ function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
                   doc={purchaseOrder}
                   signature={`${process.env.NEXT_PUBLIC_API}/${saleSignature.data.path}`}
                   validatorSignature={`${process.env.NEXT_PUBLIC_API}/${validatorSignature.data.path}`}
+                  signatureUser={saleUser}
+                  validatorUser={validatorUser}
                 />
               }
               fileName={`Bon_de_commande_${purchaseOrder.devi.commandRequest.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`}

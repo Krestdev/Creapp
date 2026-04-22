@@ -1,5 +1,5 @@
 import { company, formatXAF } from "@/lib/utils";
-import { BonsCommande } from "@/types/types";
+import { BonsCommande, User } from "@/types/types";
 import {
   Document,
   Page,
@@ -380,6 +380,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
+  signatureName: {
+    fontSize: 8,
+    fontWeight: "medium",
+    color: "#374151",
+    textAlign: "center",
+  },
+
   signatureLine: {
     marginTop: 22,
     borderTopWidth: 1,
@@ -402,8 +409,10 @@ const styles = StyleSheet.create({
 export const BonDocument: React.FC<{
   doc: BonsCommande;
   signature?: string;
+  signatureUser?: User;
   validatorSignature?: string;
-}> = ({ doc, signature, validatorSignature }) => {
+  validatorUser?: User;
+}> = ({ doc, signature, validatorSignature, signatureUser, validatorUser }) => {
   const real = isRealRegime(doc.provider.regem);
   const applyPrecompte = doc.hasPrecompt === true;
 
@@ -721,6 +730,13 @@ export const BonDocument: React.FC<{
             {!!signature && (
               <Image src={signature} style={styles.signatureImage} />
             )}
+            {!!signatureUser && (
+              <Text style={styles.signatureName}>
+                {signatureUser.firstName
+                  .concat(" ")
+                  .concat(signatureUser.lastName)}
+              </Text>
+            )}
           </View>
 
           <View style={styles.signatureBox}>
@@ -728,6 +744,13 @@ export const BonDocument: React.FC<{
             <View style={styles.signatureLine} />
             {!!validatorSignature && (
               <Image src={validatorSignature} style={styles.signatureImage} />
+            )}
+            {!!validatorUser && (
+              <Text style={styles.signatureName}>
+                {validatorUser.firstName
+                  .concat(" ")
+                  .concat(validatorUser.lastName)}
+              </Text>
             )}
           </View>
         </View>
