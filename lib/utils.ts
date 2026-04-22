@@ -85,9 +85,13 @@ export const formatToShortName = (
   }
 
   const firstName = parts[0];
-  const secondInitial = parts[1].charAt(0).toUpperCase();
+  const secondName = parts[1];
+  const initials = parts
+    .slice(2)
+    .map((name) => name.charAt(0).toUpperCase())
+    .join("");
 
-  return `${firstName} ${secondInitial}.`;
+  return `${firstName} ${secondName} ${initials}`;
 };
 
 export function isProviderValid(provider: Provider): boolean {
