@@ -40,7 +40,14 @@ function Page() {
       {
         title: "Solde Total",
         value: XAF.format(
-          getBanks.data.data.reduce((sum, bank) => sum + bank.balance, 0)
+          getBanks.data.data
+            .filter(
+              (b) =>
+                b.type === "BANK" ||
+                b.type === "CASH" ||
+                b.type === "CASH_REGISTER",
+            )
+            .reduce((sum, bank) => sum + bank.balance, 0),
         ),
         variant: "primary",
       },
@@ -49,7 +56,7 @@ function Page() {
         value: XAF.format(
           getBanks.data.data
             .filter((b) => b.type === "BANK")
-            .reduce((sum, bank) => sum + bank.balance, 0)
+            .reduce((sum, bank) => sum + bank.balance, 0),
         ),
         variant: "secondary",
         more: {
@@ -62,7 +69,7 @@ function Page() {
         value: XAF.format(
           getBanks.data.data
             .filter((b) => b.type === "CASH" || b.type === "CASH_REGISTER")
-            .reduce((sum, bank) => sum + bank.balance, 0)
+            .reduce((sum, bank) => sum + bank.balance, 0),
         ),
         variant: "dark",
         more: {
