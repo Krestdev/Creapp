@@ -1,7 +1,6 @@
 "use client";
 
 import { BonsCommande } from "@/types/types";
-import { PDFViewer } from "@react-pdf/renderer";
 import { BonDocument } from "./BonDoc";
 import { CrossPlatformPDFViewer } from "@/components/cross-view-pdf";
 

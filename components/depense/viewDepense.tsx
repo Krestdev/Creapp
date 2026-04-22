@@ -6,7 +6,7 @@ import {
   RequestType,
   User,
 } from "@/types/types";
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 import React, { Dispatch, SetStateAction } from "react";
 import { Button } from "../ui/button";
 import {
@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import DepenseDocument from "./depenseDoc";
+import { CrossPlatformPDFViewer } from "@/components/cross-view-pdf";
 
 interface Props {
   open: boolean;
@@ -54,16 +55,20 @@ const PaymentReceipt: React.FC<Props> = ({
 
           {/* Option 1: PDF Viewer (for preview) */}
           <div style={{ height: "500px", marginBottom: "20px" }}>
-            <PDFViewer width="100%" height="100%">
-              <DepenseDocument
-                getPaymentType={payTypes}
-                paymentRequest={paymentRequest}
-                users={users}
-                requests={requests}
-                requestTypes={requestTypes}
-                transactions={transactions}
-              />
-            </PDFViewer>
+            <CrossPlatformPDFViewer
+              document={
+                <DepenseDocument
+                  getPaymentType={payTypes}
+                  paymentRequest={paymentRequest}
+                  users={users}
+                  requests={requests}
+                  requestTypes={requestTypes}
+                  transactions={transactions}
+                />
+              }
+              fileName={`Depense_${paymentRequest.reference}.pdf`}
+              style={{ width: "100%", height: "100%" }}
+            />
           </div>
 
           {/* Option 2: PDF Download Link */}

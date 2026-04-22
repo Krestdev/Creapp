@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { CommandRequestT } from "@/types/types";
 import { DownloadButton } from "../bdcommande/TéléchargeButton";
-import { PDFViewer } from "@react-pdf/renderer";
+import { CrossPlatformPDFViewer } from "@/components/cross-view-pdf";
 import CotationPDF from "../bdcommande/DétailCotation";
 import { Description } from "@radix-ui/react-dialog";
 
@@ -40,9 +40,11 @@ export function DetailOrder({
           </DialogDescription>
         </DialogHeader>
         <div style={{ height: "500px", marginBottom: "20px" }}>
-          <PDFViewer width="100%" height="100%">
-            <CotationPDF data={data} />
-          </PDFViewer>
+          <CrossPlatformPDFViewer
+            document={<CotationPDF data={data} />}
+            fileName={`Demande_${data.reference}.pdf`}
+            style={{ width: "100%", height: "100%" }}
+          />
         </div>
 
         {/* Footer buttons */}

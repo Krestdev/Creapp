@@ -11,12 +11,13 @@ import {
 import { userQ } from "@/queries/baseModule";
 import { AddFileProps, purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande } from "@/types/types";
-import { PDFViewer, pdf } from "@react-pdf/renderer";
+import { pdf } from "@react-pdf/renderer";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { BonDocument } from "./BonDoc";
+import { CrossPlatformPDFViewer } from "@/components/cross-view-pdf";
 
 interface Props {
   open: boolean;
@@ -148,13 +149,17 @@ function AddSignedFile({ open, openChange, purchaseOrder }: Props) {
             )
           )}
           {!!validatorSignature.data && !!saleSignature.data && (
-            <PDFViewer>
-              <BonDocument
-                doc={purchaseOrder}
-                signature={`${process.env.NEXT_PUBLIC_API}/${saleSignature.data.path}`}
-                validatorSignature={`${process.env.NEXT_PUBLIC_API}/${validatorSignature.data.path}`}
-              />
-            </PDFViewer>
+            <CrossPlatformPDFViewer
+              document={
+                <BonDocument
+                  doc={purchaseOrder}
+                  signature={`${process.env.NEXT_PUBLIC_API}/${saleSignature.data.path}`}
+                  validatorSignature={`${process.env.NEXT_PUBLIC_API}/${validatorSignature.data.path}`}
+                />
+              }
+              fileName={`Bon_de_commande_${purchaseOrder.devi.commandRequest.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`}
+              style={{ width: "100%", height: "500px" }}
+            />
           )}
         </div>
         <DialogFooter>
