@@ -468,18 +468,21 @@ export function PurchaseTable({
                 {"Générer le bon signé"}{" "}
                 {/**Previously Compléter (Bon signé) */}
               </DropdownMenuItem>
-              {!!item.commandFile && item.commandFile.length > 0 && (
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setSelectedValue(item);
-                    setViewSigned(true);
-                  }}
-                >
-                  <FileSpreadsheetIcon />
-                  {"Voir le bon signé"}
-                </DropdownMenuItem>
-              )}
+              {
+                //!!item.commandFile && item.commandFile.length > 0 && (
+                !!item && (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setSelectedValue(item);
+                      setViewSigned(true);
+                    }}
+                  >
+                    <FileSpreadsheetIcon />
+                    {"Voir le bon signé"}
+                  </DropdownMenuItem>
+                )
+              }
             </DropdownMenuContent>
           </DropdownMenu>
         );
