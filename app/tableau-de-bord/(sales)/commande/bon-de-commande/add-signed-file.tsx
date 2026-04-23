@@ -83,6 +83,8 @@ function AddSignedFile({ open, openChange, purchaseOrder, users }: Props) {
           doc={purchaseOrder}
           signature={`${process.env.NEXT_PUBLIC_API}/${saleSignature.data.path}`}
           validatorSignature={`${process.env.NEXT_PUBLIC_API}/${validatorSignature.data.path}`}
+          signatureUser={saleUser}
+          validatorUser={validatorUser}
         />,
       ).toBlob();
 
