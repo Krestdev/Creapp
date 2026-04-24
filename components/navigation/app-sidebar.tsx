@@ -726,7 +726,7 @@ function AppSidebar() {
       },
       {
         pageId: "PG-10235-01",
-        title: "Règlages Commandes",
+        title: "Réglages Commandes",
         href: "/tableau-de-bord/parametres-commandes",
         authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
         icon: Settings2Icon,

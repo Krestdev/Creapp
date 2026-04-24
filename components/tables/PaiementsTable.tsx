@@ -50,7 +50,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, XAF } from "@/lib/utils";
+import { cn, subText, XAF } from "@/lib/utils";
 import {
   BonsCommande,
   Invoice,
@@ -253,7 +253,7 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
         const purchase =
           invoices.find((i) => i.id === value)?.command.devi.commandRequest
             .title ?? "Non défini";
-        return <div>{purchase}</div>;
+        return <div>{subText({ text: purchase, length: 21 })}</div>;
       },
     },
     {
