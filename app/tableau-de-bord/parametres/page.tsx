@@ -1,7 +1,6 @@
 "use client";
 
 import PageTitle from "@/components/pageTitle";
-import SettingsCard from "@/components/settings/settings-card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { cva, VariantProps } from "class-variance-authority";
@@ -9,7 +8,6 @@ import {
   ArchiveIcon,
   Box,
   Car,
-  ChevronRightIcon,
   ContactRoundIcon,
   LucideIcon,
   LucideProps,
