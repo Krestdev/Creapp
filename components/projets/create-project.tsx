@@ -9,18 +9,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
 import { projectQ } from "@/queries/projectModule";
-import { ProjectCreateResponse, ProjectT, ResponseT } from "@/types/types";
+import { ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { SearchableSelect } from "../base/searchableSelect";
 import { Textarea } from "../ui/textarea";
-import { Loader2 } from "lucide-react";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -37,10 +34,9 @@ export const formSchema = z.object({
 
   description: z.string().min(1, { message: "Ce champ est requis" }).optional(),
 
-  chiefid: z
-    .string({ message: "Veuillez définir un chef de projet" })
-    .min(1, "Veuillez sélectionner un chef de projet"),
-
+  chiefId: z.coerce.number({
+    message: "Veuillez sélectionner un chef de projet",
+  }),
   budget: z.coerce
     .number({
       invalid_type_error: "Veuillez entrer un nombre valide",
@@ -54,17 +50,21 @@ export const formSchema = z.object({
 
 type Schema = z.infer<typeof formSchema>;
 
-export function ProjectCreateForm() {
+export function ProjectCreateForm({
+  users,
+  userId,
+}: {
+  users: User[];
+  userId: number;
+}) {
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
-      chiefid: "",
+      chiefId: undefined,
       label: "",
       description: "",
     },
   });
-
-  const { isHydrated, user } = useStore();
 
   const projectApi = useMutation({
     mutationFn: (
@@ -73,20 +73,14 @@ export function ProjectCreateForm() {
         "reference" | "updatedAt" | "createdAt" | "id" | "chief"
       > & { chiefId: number },
     ) => projectQ.create(data),
-    onSuccess: (data: ResponseT<ProjectCreateResponse>) => {
+    onSuccess: () => {
       toast.success("Projet créé avec succès !");
       form.reset();
     },
-    onError: (error: any) => {
-      toast.error("Une erreur est survenue lors de la creation du projet.");
-      console.error("Register error:", error);
+    onError: (error: Error) => {
+      toast.error(error.message);
+      //console.error("Register error:", error.message);
     },
-  });
-
-  const userApi = useQuery({
-    queryKey: ["users"],
-    queryFn: () => userQ.getAll(),
-    enabled: isHydrated,
   });
 
   const onsubmit = (values: z.infer<typeof formSchema>) => {
@@ -97,9 +91,9 @@ export function ProjectCreateForm() {
       label: values.label,
       description: values.description || "",
       budget: values.budget ?? 0,
-      chiefId: parseInt(values.chiefid, 10),
+      chiefId: values.chiefId,
       status: "planning",
-      userId: user?.id!,
+      userId: userId,
     };
     projectApi.mutate(data);
   };
@@ -115,10 +109,7 @@ export function ProjectCreateForm() {
           name="label"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                {"Titre du Projet"}
-                <span className="text-destructive">*</span>
-              </FormLabel>
+              <FormLabel isRequired>{"Titre du Projet"}</FormLabel>
               <FormControl>
                 <Input {...field} placeholder="ex. Autoroute A5" />
               </FormControl>
@@ -128,26 +119,23 @@ export function ProjectCreateForm() {
         />
         <FormField
           control={form.control}
-          name="chiefid"
+          name="chiefId"
           render={({ field }) => {
-            const options = userApi.data
-              ? userApi.data.data.filter((u) => u.verified).map((user) => ({
-                  value: String(user.id),
-                  label: user.lastName + " " + user.firstName,
-                }))
-              : [];
+            const options = users
+              .filter((u) => u.verified)
+              .map((user) => ({
+                value: String(user.id),
+                label: user.lastName + " " + user.firstName,
+              }));
             return (
               <FormItem>
-                <FormLabel>
-                  {"Chef du Projet"}
-                  <span className="text-destructive">*</span>
-                </FormLabel>
+                <FormLabel isRequired>{"Chef du Projet"}</FormLabel>
                 <FormControl>
                   <SearchableSelect
                     width="w-full"
                     allLabel="" // Pas d'option "all"
                     options={options}
-                    value={field.value}
+                    value={String(field.value)}
                     onChange={field.onChange}
                     placeholder="Sélectionner un chef de projet"
                     emptyLabel="Aucun utilisateur trouvé"
@@ -163,10 +151,7 @@ export function ProjectCreateForm() {
           name="description"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel>
-                {"Description du Projet"}{" "}
-                <span className="text-destructive">*</span>
-              </FormLabel>
+              <FormLabel isRequired>{"Description du Projet"}</FormLabel>
               <FormControl>
                 <Textarea {...field} placeholder="Décrivez le projet" />
               </FormControl>
@@ -202,9 +187,9 @@ export function ProjectCreateForm() {
             disabled={projectApi.isPending}
             type="submit"
             variant={"primary"}
+            isLoading={projectApi.isPending}
           >
             {"Enrégistrer"}
-            {projectApi.isPending && <Loader2 className="ml-2 animate-spin" />}
           </Button>
         </div>
       </form>

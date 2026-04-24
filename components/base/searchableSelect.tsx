@@ -95,10 +95,10 @@ export function SearchableSelect({
   // Filtrer les options
   const filteredOptions = React.useMemo(() => {
     if (!search) return options;
-    
+
     const searchLower = search.toLowerCase().trim();
     return options.filter((option) =>
-      option.label.toLowerCase().includes(searchLower)
+      option.label.toLowerCase().includes(searchLower),
     );
   }, [options, search]);
 
@@ -113,7 +113,7 @@ export function SearchableSelect({
           className={cn(
             `${width} h-10 justify-between font-normal text-sm font-sans`,
             !selected && "text-muted-foreground",
-            className
+            className,
           )}
           disabled={disabled}
         >
@@ -135,7 +135,7 @@ export function SearchableSelect({
             value={search}
             onValueChange={setSearch}
           />
-          
+
           {/* Ajout de onWheel pour permettre le scroll avec la molette */}
           <div
             ref={listRef}
@@ -161,7 +161,7 @@ export function SearchableSelect({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        value === "all" ? "opacity-100" : "opacity-0"
+                        value === "all" ? "opacity-100" : "opacity-0",
                       )}
                     />
                     {allLabel}
@@ -181,7 +181,7 @@ export function SearchableSelect({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        value === option.value ? "opacity-100" : "opacity-0"
+                        value === option.value ? "opacity-100" : "opacity-0",
                       )}
                     />
                     {option.label}
