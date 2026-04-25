@@ -27,8 +27,8 @@ function Page() {
     return (
       <div className="content">
         <PageTitle
-          title="Créer une transaction"
-          subtitle="Complétez le formulaire pour enregistrer une nouvelle transaction"
+          title="Créer un rapprochement"
+          subtitle="Complétez le formulaire pour enregistrer un rapprochement"
           color="blue"
         />
         <TransactionForm banks={banks.data} userId={user?.id ?? 0} />

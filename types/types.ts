@@ -2,28 +2,18 @@ import { LucideIcon } from "lucide-react";
 import React from "react";
 import { DateRange } from "react-day-picker";
 
-export interface NavigationItemProps {
+export interface NavigationGroup {
   pageId: string;
-  icon: LucideIcon;
-  href: string;
   authorized: string[];
+  className?: string;
   title: string;
-  badgeValue?: number;
-  items?: {
+  items: {
     pageId: string;
     icon?: LucideIcon;
     title: string;
     href: string;
     authorized: string[];
     badgeValue?: number;
-    items?: {
-      pageId: string;
-      icon?: LucideIcon;
-      title: string;
-      href: string;
-      authorized: string[];
-      badgeValue?: number;
-    }[];
   }[];
 }
 

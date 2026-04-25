@@ -18,7 +18,7 @@ function Page() {
   const auth = isRole({ roleList: user?.role ?? [], role: "trésorier" });
   const links: Array<NavLink> = [
     {
-      title: "Créer une transaction",
+      title: "Créer un rapprochement",
       href: "./transactions/creer",
     },
   ];

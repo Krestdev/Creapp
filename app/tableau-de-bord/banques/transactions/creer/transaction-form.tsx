@@ -251,9 +251,9 @@ function TransactionForm({ banks, userId }: Props) {
           name="label"
           render={({ field }) => (
             <FormItem className="@min-[640px]:col-span-2">
-              <FormLabel isRequired>Libellé de la Transaction</FormLabel>
+              <FormLabel isRequired>Libellé du rapprochement</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Intitulé de la transaction" />
+                <Input {...field} placeholder="Intitulé du rapprochement" />
               </FormControl>
               <FormMessage />
             </FormItem>

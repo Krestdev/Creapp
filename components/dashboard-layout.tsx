@@ -27,7 +27,21 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
             <NavigationBreadcrumb />
           </div>
         </div>
-        <main className="p-6 @container">{children}</main>
+        <main className="flex-1">
+          <div className="p-6 @container min-h-[calc(100vh-100px)]">
+            {children}
+          </div>
+          <div className="w-full flex justify-center items-center gap-2 h-10 bg-slate-50 text-sm text-slate-600">
+            Copyright © 2026 Creapp. Tous droits réservés. Réalisé par{" "}
+            <a
+              href="https://krestdev.com"
+              className="text-primary cursor-pointer hover:underline"
+              target="_blank"
+            >
+              KrestDev
+            </a>
+          </div>
+        </main>
       </section>
     </SidebarProvider>
   );

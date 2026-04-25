@@ -1,6 +1,7 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { approbatorRequests } from "@/lib/requests-helpers";
+import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
 import { categoryQ } from "@/queries/categoryModule";
@@ -14,30 +15,34 @@ import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
 import { transactionQ } from "@/queries/transaction";
 import {
-  NavigationItemProps,
+  NavigationGroup,
+  PaymentRequest,
   RequestModelT,
   TransferTransaction,
-  PaymentRequest,
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
+  ArrowLeftRightIcon,
+  ArrowRightLeftIcon,
+  BadgeDollarSignIcon,
   BriefcaseBusiness,
+  CircleDollarSignIcon,
   CircleUserRoundIcon,
-  ClipboardList,
-  DollarSign,
   EllipsisVertical,
   LandmarkIcon,
   LayoutDashboardIcon,
   LockIcon,
   LogOutIcon,
   ReceiptIcon,
-  ScrollText,
   Settings2Icon,
   SettingsIcon,
   SignatureIcon,
+  TablePropertiesIcon,
   Ticket,
+  VoteIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import React, { useMemo } from "react";
 import {
   DropdownMenu,
@@ -51,13 +56,20 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "../ui/sidebar";
 import { Skeleton } from "../ui/skeleton";
-import NavigationItem from "./navigation-item";
 
 function AppSidebar() {
   const { user, logout, isHydrated, isSignataire } = useStore();
+
+  const pathname = usePathname();
 
   // Utilisation du hook pour la protection globale
   const { userRoles } = useAuthGuard({
@@ -462,27 +474,41 @@ function AppSidebar() {
     getPayType.isSuccess &&
     getBanks.isSuccess
   ) {
-    const navLinks: NavigationItemProps[] = [
+    const navLinks: NavigationGroup[] = [
       {
         pageId: "PG-00-00",
-        icon: LayoutDashboardIcon,
-        href: "/tableau-de-bord",
         authorized: ["USER"],
         title: "Tableau de bord",
+        items: [
+          {
+            pageId: "PG-00-01",
+            icon: LayoutDashboardIcon,
+            href: "/tableau-de-bord",
+            authorized: ["USER"],
+            title: "Tableau de bord",
+          },
+        ],
       },
       {
         pageId: "PG-00",
-        icon: BriefcaseBusiness,
-        href: "/tableau-de-bord/projets",
         authorized: ["SUPERADMIN", "ADMIN"],
         title: "Projets",
+        className: "text-teal-800",
+        items: [
+          {
+            pageId: "PG-00-02",
+            icon: BriefcaseBusiness,
+            href: "/tableau-de-bord/projets",
+            authorized: ["SUPERADMIN", "ADMIN"],
+            title: "Projets",
+          },
+        ],
       },
       {
-        icon: ScrollText,
         pageId: "PG-02",
-        href: "/tableau-de-bord/besoins",
         authorized: ["SUPERADMIN", "MANAGER", "USER"],
         title: "Besoins",
+        className: "text-primary-800",
         items: [
           {
             pageId: "PG-02-01",
@@ -513,10 +539,9 @@ function AppSidebar() {
       },
       {
         pageId: "PG-03",
-        icon: ClipboardList,
-        href: "/tableau-de-bord/commande",
         authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER", "VOLT_MANAGER"],
-        title: "Commande",
+        title: "Commandes",
+        className: "text-sky-800",
         items: [
           {
             pageId: "PG-03-01",
@@ -571,19 +596,20 @@ function AppSidebar() {
       {
         pageId: "PG-03-07",
         title: "Factures",
-        href: "/tableau-de-bord/factures",
+        className: "text-orange-800",
         authorized: ["SUPERADMIN", "ACCOUNTANT"],
-        icon: ReceiptIcon,
         items: [
           {
             pageId: "PG-03-07-01",
             title: "Factures",
+            icon: ReceiptIcon,
             href: "/tableau-de-bord/factures",
             authorized: ["ACCOUNTANT", "SUPERADMIN"],
           },
           {
             pageId: "PG-03-07-02",
             title: "Paiements",
+            icon: CircleDollarSignIcon,
             href: "/tableau-de-bord/factures/paiements",
             authorized: ["ACCOUNTANT", "SUPERADMIN"],
           },
@@ -591,13 +617,13 @@ function AppSidebar() {
       },
       {
         pageId: "PG-04",
-        icon: Ticket,
-        href: "/tableau-de-bord/ticket",
         authorized: ["SUPERADMIN", "VOLT_MANAGER"],
         title: "Tickets",
+        className: "text-purple-800",
         items: [
           {
             pageId: "PG-04-01",
+            icon: Ticket,
             title: "Tickets",
             href: "/tableau-de-bord/ticket",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
@@ -609,6 +635,7 @@ function AppSidebar() {
           {
             pageId: "PG-04-02",
             title: "Approvisionnements",
+            icon: ArrowLeftRightIcon,
             href: "/tableau-de-bord/ticket/transferts",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
             badgeValue:
@@ -632,16 +659,14 @@ function AppSidebar() {
       },
       {
         pageId: "PG-91",
-        icon: DollarSign,
-        href: "/tableau-de-bord/depenses",
         authorized: ["VOLT", "SUPERADMIN"],
         title: "Dépenses",
-        badgeValue:
-          overall && overall?.length > 0 ? overall?.length : undefined,
+        className: "text-emerald-800",
         items: [
           {
             pageId: "PG-23354987-00",
             title: "Dépenses",
+            icon: BadgeDollarSignIcon,
             href: "/tableau-de-bord/depenses",
             badgeValue:
               approvedTicket &&
@@ -671,13 +696,13 @@ function AppSidebar() {
       {
         pageId: "PG-0000551",
         title: "Signatures",
-        href: "/tableau-de-bord/signatures",
+        className: "text-rose-800",
         authorized: [],
-        icon: SignatureIcon,
         items: [
           {
             pageId: "PG-0000551-01",
             title: "Tickets",
+            icon: SignatureIcon,
             href: "/tableau-de-bord/signatures/tickets",
             authorized: [],
             badgeValue:
@@ -688,6 +713,7 @@ function AppSidebar() {
           {
             pageId: "PG-0000551-02",
             title: "Transferts",
+            icon: VoteIcon,
             href: "/tableau-de-bord/signatures/transferts",
             authorized: [],
             badgeValue:
@@ -697,26 +723,28 @@ function AppSidebar() {
       },
       {
         pageId: "PG-56489713246",
-        icon: LandmarkIcon,
-        href: "/tableau-de-bord/banques",
         authorized: ["ACCOUNTANT", "VOLT", "SUPERADMIN"],
         title: "Banques",
+        className: "text-indigo-800",
         items: [
           {
             pageId: "PG-23354987-00",
             title: "Liste des comptes",
+            icon: LandmarkIcon,
             href: "/tableau-de-bord/banques",
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
           {
             pageId: "PG-23354987-01",
             title: "Transactions",
+            icon: TablePropertiesIcon,
             href: "/tableau-de-bord/banques/transactions",
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
           {
             pageId: "PG-23354987-02",
             title: "Transferts",
+            icon: ArrowRightLeftIcon,
             href: "/tableau-de-bord/banques/transactions/transferts",
             authorized: ["SUPERADMIN", "VOLT"],
             badgeValue:
@@ -726,24 +754,40 @@ function AppSidebar() {
       },
       {
         pageId: "PG-10235-01",
-        title: "Réglages Commandes",
-        href: "/tableau-de-bord/parametres-commandes",
-        authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
-        icon: Settings2Icon,
-      },
-      {
-        pageId: "PG-08",
-        icon: SettingsIcon,
-        href: "/tableau-de-bord/parametres",
-        authorized: ["SUPERADMIN", "ADMIN"],
-        title: "Paramètres",
+        title: "Réglages",
+        className: "text-red-800",
+        authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER", "ADMIN"],
+        items: [
+          {
+            pageId: "PG-10235-01-01",
+            title: "Commandes",
+            icon: Settings2Icon,
+            href: "/tableau-de-bord/parametres-commandes",
+            authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
+          },
+          {
+            pageId: "PG-10235-01-02",
+            title: "Paramètres",
+            icon: SettingsIcon,
+            href: "/tableau-de-bord/parametres",
+            authorized: ["SUPERADMIN", "ADMIN"],
+          },
+        ],
       },
       {
         pageId: "PG-55540665489",
         title: "Mon Compte",
-        href: "/tableau-de-bord/profil",
+        className: "text-slate-800",
         authorized: ["USER"],
-        icon: CircleUserRoundIcon,
+        items: [
+          {
+            pageId: "PG-55540665489-01",
+            title: "Mon Profil",
+            icon: CircleUserRoundIcon,
+            href: "/tableau-de-bord/profil",
+            authorized: ["USER"],
+          },
+        ],
       },
     ];
 
@@ -764,15 +808,41 @@ function AppSidebar() {
           </Link>
         </SidebarHeader>
         <SidebarContent className="p-2 flex flex-col gap-1.5">
-          {filteredNavLinks.map(({ items, ...props }, id) => (
-            <NavigationItem
-              key={id}
-              {...props}
-              items={items?.filter((item) => {
-                if (item.authorized.length === 0) return true;
-                return item.authorized.some((role) => userRoles.includes(role));
-              })}
-            />
+          {filteredNavLinks.map(({ items, title, className }, id) => (
+            <SidebarGroup key={id}>
+              <SidebarGroupLabel className={cn(className)}>
+                {title}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {items
+                    .filter((i) => {
+                      if (i.authorized.length === 0) return true;
+                      return i.authorized.some((role) =>
+                        userRoles.includes(role),
+                      );
+                    })
+                    .map((item, id) => (
+                      <SidebarMenuItem key={id}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname === item.href}
+                        >
+                          <Link href={item.href}>
+                            {item.icon && <item.icon size={20} />}
+                            <span className="w-full">{item.title}</span>
+                            {item.badgeValue && item.badgeValue > 0 && (
+                              <span className="inline-flex shrink-0 h-[26px] min-w-[26px] px-1 items-center justify-center text-center rounded bg-accent text-xs font-medium text-primary-700">
+                                {item.badgeValue > 99 ? "99+" : item.badgeValue}
+                              </span>
+                            )}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
           ))}
         </SidebarContent>
         <SidebarFooter className="px-0">
