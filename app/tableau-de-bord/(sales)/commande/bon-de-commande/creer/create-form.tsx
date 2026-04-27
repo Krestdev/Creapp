@@ -107,6 +107,10 @@ export const formSchema = z
     escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
     keepTaxes: z.boolean(),
     hasPrecompt: z.boolean(),
+    object: z
+      .string()
+      .max(300, { message: "L'objet ne doit pas depasser 300 caractères" })
+      .optional(),
     conditions: z
       .array(z.number())
       .min(1, "Veuillez sélectionner au moins une condition"),
@@ -166,6 +170,7 @@ function CreateForm({
       deliveryDelay: format(new Date(), "yyyy-MM-dd"),
       deliveryLocation: "",
       amountBase: 0,
+      object: "",
       hasPenalties: false,
       penaltyMode: "",
       instalments: [{ percentage: 100, deadLine: undefined }],
@@ -266,6 +271,7 @@ function CreateForm({
         deliveryDelay: format(new Date(), "yyyy-MM-dd"),
         deliveryLocation: "",
         amountBase: 0,
+        object: "",
         hasPenalties: false,
         penaltyMode: "",
         instalments: [{ percentage: 100, deadLine: undefined }],
@@ -323,6 +329,7 @@ function CreateForm({
         keepTaxes: values.keepTaxes,
         hasPrecompt: values.hasPrecompt,
         netToPay: netToPay,
+        object: values.object,
       },
       conditions: values.conditions,
       ids: ids,
@@ -331,7 +338,7 @@ function CreateForm({
     mutate(payload);
   }
 
-  const penalty = form.watch("hasPenalties");
+  //const penalty = form.watch("hasPenalties");
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
@@ -383,6 +390,22 @@ function CreateForm({
                   {`Net à payer : ${XAF.format(netToPay)}`}
                 </FormDescription>
               )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="object"
+          render={({ field }) => (
+            <FormItem className="col-span-full">
+              <FormLabel>{"Objet"}</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder="Renseignez l'objet de la commande"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

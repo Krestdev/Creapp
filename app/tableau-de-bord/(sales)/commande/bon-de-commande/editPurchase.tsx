@@ -94,6 +94,10 @@ const paymentSchema = z.object({
 export const formSchema = z
   .object({
     deviId: z.coerce.number({ message: "Veuillez définir un devis" }),
+    object: z
+      .string()
+      .max(300, { message: "Doit contenir au plus 300 caractères" })
+      .optional(),
     deliveryDelay: z.string({ message: "Veuillez définir une date" }).refine(
       (val) => {
         const d = new Date(val);
@@ -205,6 +209,7 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       priority: purchaseOrder.priority || "medium",
+      object: purchaseOrder.object || "",
       paymentTerms: purchaseOrder.paymentTerms || "",
       deliveryDelay: purchaseOrder.deliveryDelay
         ? format(new Date(purchaseOrder.deliveryDelay), "yyyy-MM-dd")
@@ -284,6 +289,7 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
     const payload: updatePoPayload = {
       amountBase: values.amountBase ?? 0,
       priority: values.priority,
+      object: values.object,
       paymentMethod: values.paymentMethod,
       paymentTerms: values.paymentTerms,
       deliveryDelay: new Date(values.deliveryDelay),
@@ -355,6 +361,19 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
                           )}
                       </SelectContent>
                     </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="object"
+              render={({ field }) => (
+                <FormItem className="col-span-full">
+                  <FormLabel>Objet</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Objet" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -519,6 +519,7 @@ export type BonsCommande = {
     updatedAt: Date;
     decision: "APPROVED" | "REJECTED";
   };
+  object?: string;
 };
 
 export const INVOICE_STATUS = [

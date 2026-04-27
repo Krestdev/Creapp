@@ -573,6 +573,18 @@ export const BonDocument: React.FC<{
             </View>
           </View>
 
+          {!!doc.object && doc.object.trim().length > 0 && (
+            <View
+              style={{ flexDirection: "row", gap: 10, width: "100%" }}
+              fixed
+            >
+              <View style={styles.metaCard}>
+                <Text style={styles.metaLabel}>Objet</Text>
+                <Text style={styles.metaValue}>{doc.object}</Text>
+              </View>
+            </View>
+          )}
+
           <View style={styles.tableCard}>
             <View style={styles.tableHeader}>
               <Text style={[styles.th, styles.colDesignation]}>
