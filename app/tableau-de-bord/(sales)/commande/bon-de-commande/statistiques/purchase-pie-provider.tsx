@@ -50,6 +50,7 @@ function PieProviderPurchase({ data }: Props) {
     <ChartPieDonut
       data={allProviders}
       legendData={top4}
+      valueLabel="Montant"
       tooltipConfig={{
         valueFormatter: (value) => `${XAF.format(value)} - `,
       }}
