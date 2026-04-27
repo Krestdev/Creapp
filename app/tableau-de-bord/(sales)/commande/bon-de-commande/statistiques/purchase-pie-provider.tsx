@@ -32,19 +32,24 @@ function PieProviderPurchase({ data }: Props) {
         });
       }
     });
-  const providerPieData: Array<ChartDataItem> = Array.from(
+  const allProviders: Array<ChartDataItem> = Array.from(
     providerMap.entries()
-  ).map(([id, data], index) => ({
-    id: id,
-    value: data.value,
-    label: data.count > 1 ? `${data.label} (${data.count})` : data.label,
-    color: getRandomColor(index),
-    name: `provider_${id}`,
-  }));
+  )
+    .sort(([, a], [, b]) => b.value - a.value)
+    .map(([id, data], index) => ({
+      id: id,
+      value: data.value,
+      label: data.count > 1 ? `${data.label} (${data.count})` : data.label,
+      color: getRandomColor(index),
+      name: `provider_${id}`,
+    }));
+
+  const top4 = allProviders.slice(0, 4);
 
   return (
     <ChartPieDonut
-      data={providerPieData}
+      data={allProviders}
+      legendData={top4}
       tooltipConfig={{
         valueFormatter: (value) => `${XAF.format(value)} - `,
       }}

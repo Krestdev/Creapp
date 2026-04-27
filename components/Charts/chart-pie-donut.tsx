@@ -20,6 +20,8 @@ export interface ChartDataItem {
 
 interface DonutChartProps {
   data: ChartDataItem[];
+  /** Si fourni, seuls ces items sont affichés dans la légende (le pie reste complet) */
+  legendData?: ChartDataItem[];
   chartConfig?: ChartConfig;
   innerRadius?: number;
   maxHeight?: number;
@@ -40,6 +42,7 @@ interface DonutChartProps {
 
 export function ChartPieDonut({
   data,
+  legendData,
   chartConfig,
   innerRadius = 40,
   maxHeight = 300,
@@ -127,7 +130,7 @@ export function ChartPieDonut({
 
     {showLegend && (
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-1 md:grid-cols-2">
-        {data.map((item, index) => {
+        {(legendData ?? data).map((item, index) => {
           const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : "0";
           return (
             <div key={item.id || index} className="flex items-center justify-between">
