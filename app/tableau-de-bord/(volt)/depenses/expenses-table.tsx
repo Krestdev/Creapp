@@ -17,6 +17,7 @@ import {
   ArrowUpDown,
   AsteriskIcon,
   Ban,
+  BanIcon,
   CheckCircle,
   ChevronDown,
   Clock,
@@ -104,6 +105,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import AddProove from "./addProove";
 import CompleteSettle from "./complete-settle";
+import CancelTicket from "./cancel-ticket";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -248,10 +250,7 @@ function isGasComplete(item: PaymentRequest) {
 
 function isSettleComplete(item: PaymentRequest) {
   return (
-    item.type === "settle" &&
-    !!item.benefId &&
-    !!item.price &&
-    !!item.deadline
+    item.type === "settle" && !!item.benefId && !!item.price && !!item.deadline
   );
 }
 
@@ -377,6 +376,7 @@ function ExpensesTable({
   const [showSettle, setShowSettle] = React.useState<boolean>(false);
   const [showShare, setShowShare] = React.useState<boolean>(false);
   const [showAddFile, setShowAddFile] = React.useState<boolean>(false);
+  const [showCancel, setShowCancel] = React.useState<boolean>(false);
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const [typeFilter, setTypeFilter] = React.useState<
     "all" | PaymentRequest["type"]
@@ -929,10 +929,9 @@ function ExpensesTable({
                   disabled={isGasComplete(item) || isSettleComplete(item)}
                   onClick={() => {
                     setSelected(item);
-                    item.type === "gas" ?
-                    setShowGas(true) : 
-                    setShowSettle(true)
-                    ;
+                    item.type === "gas"
+                      ? setShowGas(true)
+                      : setShowSettle(true);
                   }}
                 >
                   <ArrowRightToLine />
@@ -989,8 +988,8 @@ function ExpensesTable({
                 <DropdownMenuItem
                   disabled={
                     item.status === "unsigned" ||
-                    ((item.type === "gas") && !isGasComplete(item)) ||
-                    ((item.type === "settle") && !isSettleComplete(item))
+                    (item.type === "gas" && !isGasComplete(item)) ||
+                    (item.type === "settle" && !isSettleComplete(item))
                   }
                   onClick={() => {
                     setSelected(item);
@@ -1013,13 +1012,23 @@ function ExpensesTable({
                         variant={"ghost"}
                         className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5"
                       >
-                        {loading ? "Chargement..." : "Avis de règlement"}
                         <Download />
+                        {loading ? "Chargement..." : "Avis de règlement"}
                       </Button>
                     )}
                   </PDFDownloadLink>
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setShowCancel(true);
+                }}
+                disabled={item.type === "achat"}
+              >
+                <BanIcon />
+                {"Annulation"}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -1897,6 +1906,11 @@ function ExpensesTable({
             ticket={selected}
             open={showAddFile}
             onOpenChange={setShowAddFile}
+          />
+          <CancelTicket
+            data={selected}
+            open={showCancel}
+            openChange={setShowCancel}
           />
         </>
       )}

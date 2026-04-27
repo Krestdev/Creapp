@@ -42,6 +42,11 @@ export type PayloadSettleCompletion = {
   deadline: Date;
 };
 
+export type PaymentCancelPayload = {
+  id: number;
+  reason: string;
+};
+
 class PaymentQueries {
   route = "/request/payment";
 
@@ -312,6 +317,20 @@ class PaymentQueries {
         price,
         benefId,
         deadline,
+      })
+      .then((response) => response.data);
+  };
+
+  cancel = async ({
+    id,
+    reason,
+  }: PaymentCancelPayload): Promise<{ data: PaymentRequest }> => {
+    const formData = new FormData();
+    formData.append("reason", reason);
+    formData.append("status", "cancelled");
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       })
       .then((response) => response.data);
   };
