@@ -157,8 +157,12 @@ export function InvoicesTable({
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | Invoice["status"]
   >("all");
-  const [providerFilter, setProviderFilter] = React.useState<"all" | string>("all");
-  const [purchaseFilter, setPurchaseFilter] = React.useState<"all" | string>("all");
+  const [providerFilter, setProviderFilter] = React.useState<"all" | string>(
+    "all",
+  );
+  const [purchaseFilter, setPurchaseFilter] = React.useState<"all" | string>(
+    "all",
+  );
   const [amountTypeFilter, setAmountTypeFilter] = React.useState<
     "greater" | "inferior" | "equal" | "aucun"
   >("aucun");
@@ -187,7 +191,7 @@ export function InvoicesTable({
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
-      
+
       //Status Filter
       let matchStatus =
         statusFilter === "all" ? true : invoice.status === statusFilter;
@@ -229,7 +233,7 @@ export function InvoicesTable({
             new Date(invoice.createdAt) <= endDate;
         }
       }
-      
+
       //Amount Filter
       const matchAmount =
         amountTypeFilter === "aucun"
@@ -239,7 +243,7 @@ export function InvoicesTable({
             : amountTypeFilter === "equal"
               ? invoice.amount === amountFilter
               : invoice.amount < amountFilter;
-      
+
       //Provider Filter
       const matchProvider =
         providerFilter === "all"
@@ -380,7 +384,7 @@ export function InvoicesTable({
         const status = getInvoiceStatusBadge(value.status);
         const i = getProgress(value);
         return (
-          <Progress value={i.progress} className={"w-full"}>
+          <Progress value={i.progress} className={"w-full flex-col"}>
             <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
             <ProgressValue />
           </Progress>
@@ -627,7 +631,7 @@ export function InvoicesTable({
                   value={purchaseFilter}
                   width="w-full"
                   allLabel="Tous les bons de commande"
-                 />
+                />
               </div>
               {/* Filter by amount */}
               <div className="grid gap-1.5">

@@ -26,7 +26,7 @@ function Progress({
       className={cn("flex flex-wrap gap-3", className)}
       {...props}
     >
-      {children}
+      <div className="flex flex-row justify-between gap-2">{children}</div>
       <ProgressTrack>
         <ProgressIndicator className={progressTrackStyle(value)} />
       </ProgressTrack>
