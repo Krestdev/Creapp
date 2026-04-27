@@ -147,6 +147,8 @@ const getStatusVariant = (
       return { label: "Payé", variant: "purple" };
     case "pending":
       return { label: "En attente", variant: "amber" };
+    case "rejected":
+      return { label: "Rejeté", variant: "destructive" };
     default:
       return { label: "Approuvé", variant: "success" };
   }
@@ -193,6 +195,7 @@ export function TicketTable({
             c.status === "validated" ||
             c.status === "unsigned" ||
             c.status === "signed" ||
+            c.status === "rejected" ||
             c.status === "simple_signed";
       //searchFilter
       const matchSearch =
@@ -746,7 +749,9 @@ export function TicketTable({
                       </DropdownMenuItem>
                       {PAY_STATUS.filter(
                         (c) =>
-                          c.value === "accepted" || c.value === "validated",
+                          c.value === "accepted" ||
+                          c.value === "validated" ||
+                          c.value === "rejected",
                       )
                         .filter((s) =>
                           s.name
