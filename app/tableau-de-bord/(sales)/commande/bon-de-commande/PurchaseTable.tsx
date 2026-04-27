@@ -1069,10 +1069,8 @@ export function PurchaseTable({
         </Table>
       </div>
 
-      {/* PAGINATION + INFOS */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
-      </div>
+      {/* PAGINATION */}
+      {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
       {selectedValue && (
         <ViewPurchase
           open={view}

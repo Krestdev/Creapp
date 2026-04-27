@@ -815,7 +815,7 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
       </div>
 
       {/* Afficher le nombre de résultats filtrés */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
+      <div className="flex items-center justify-end gap-4 text-sm text-muted-foreground">
         <div>
           {table.getFilteredRowModel().rows.length} résultat
           {table.getFilteredRowModel().rows.length > 1 ? "s" : ""} sur{" "}
