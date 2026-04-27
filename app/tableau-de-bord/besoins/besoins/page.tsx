@@ -38,7 +38,12 @@ import { paymentQ } from "@/queries/payment";
 import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
-import { DateFilter, REQUEST_STATUS } from "@/types/types";
+import {
+  DateFilter,
+  PAYMENT_TYPES,
+  REQUEST_STATUS,
+  RequestModelT,
+} from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ChevronDown, Settings2 } from "lucide-react";
@@ -114,6 +119,9 @@ function Page() {
   const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
   const [projectFilter, setProjectFilter] = React.useState<string>("all");
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
+  const [typeFilter, setTypeFilter] = React.useState<
+    "all" | RequestModelT["type"]
+  >("all");
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
     React.useState(false);
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -132,6 +140,7 @@ function Page() {
     setUserFilter("all");
     setProjectFilter("all");
     setStatusFilter("all");
+    setTypeFilter("all");
     setDateFilter(undefined);
     setCustomDateRange(undefined);
     setIsCustomDateModalOpen(false);
@@ -204,6 +213,8 @@ function Page() {
         categoryFilter === "all"
           ? true
           : item.categoryId === Number(categoryFilter);
+      //Type Filter
+      const matchType = typeFilter === "all" ? true : item.type === typeFilter;
       //Project Filter
       const matchProject =
         projectFilter === "all"
@@ -251,7 +262,8 @@ function Page() {
         matchStatus &&
         matchDate &&
         matchSearch &&
-        matchUser
+        matchUser &&
+        matchType
       );
     });
   }, [
@@ -263,6 +275,7 @@ function Page() {
     dateFilter,
     customDateRange,
     userFilter,
+    typeFilter,
   ]);
 
   if (
@@ -553,6 +566,28 @@ function Page() {
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
+              </div>
+              {/**Type Filter */}
+              <div className="grid gap-1.5">
+                <Label htmlFor="type">{"Type de besoin"}</Label>
+                <Select
+                  value={typeFilter}
+                  onValueChange={(v) =>
+                    setTypeFilter(v as RequestModelT["type"] | "all")
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Type de besoin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous</SelectItem>
+                    {PAYMENT_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={String(type.value)}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Project filter */}

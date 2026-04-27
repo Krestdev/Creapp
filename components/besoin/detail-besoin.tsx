@@ -395,7 +395,7 @@ export function DetailBesoin({
           )}
 
           {/* Quantité pour achat */}
-          {data.type === "achat" && (
+          {(data.type === "achat" || data.type === "settle") && (
             <div className="view-group">
               <span className="view-icon">
                 <LucidePieChart />
