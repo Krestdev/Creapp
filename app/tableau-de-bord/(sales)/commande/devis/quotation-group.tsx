@@ -721,17 +721,7 @@ export function QuotationGroupTable({
           </TableBody>
         </Table>
       </div>
-
-      {/* PAGINATION ET INFORMATIONS */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* <div className="text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} sur{" "}
-          {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
-        </div> */}
-
-        {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
-      </div>
-
+      <Pagination table={table} />
       <DevisGroup
         open={openView}
         onOpenChange={setOpenView}

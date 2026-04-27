@@ -70,7 +70,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { XAF } from "@/lib/utils";
+import { subText, XAF } from "@/lib/utils";
 import {
   BonsCommande,
   DateFilter,
@@ -345,7 +345,14 @@ export function InvoicesTable({
       cell: ({ row }) => {
         const value = row.original;
         const purchase = purchases.find((p) => p.id === value.commandId);
-        return <div>{purchase?.devi.commandRequest.title ?? "--"}</div>;
+        return (
+          <div>
+            {subText({
+              text: purchase?.devi.commandRequest.title ?? "--",
+              length: 21,
+            })}
+          </div>
+        );
       },
     },
     {
