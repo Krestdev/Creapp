@@ -737,7 +737,7 @@ function AppSidebar() {
         items: [
           {
             pageId: "PG-23354987-00",
-            title: "Liste des comptes",
+            title: "États des comptes",
             icon: LandmarkIcon,
             href: "/tableau-de-bord/banques",
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
