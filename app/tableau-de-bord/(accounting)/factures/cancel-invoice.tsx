@@ -51,7 +51,7 @@ function CancelInvoice({ open, openChange, invoice, purchases }: Props) {
             disabled={toCancel.isPending}
             isLoading={toCancel.isPending}
           >
-            {"Annuler"}
+            {"Annuler le paiement"}
           </Button>
           <Button
             variant={"outline"}
@@ -61,7 +61,7 @@ function CancelInvoice({ open, openChange, invoice, purchases }: Props) {
             }}
             disabled={toCancel.isPending}
           >
-            {"Annuler"}
+            {"Fermer"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -467,6 +467,17 @@ function ViewExpense({
                   </div>
                 </div>
               )}
+              {hasValue(payment.reason) && (
+                <div className="view-group">
+                  <span className="view-icon">
+                    <AlertCircle />
+                  </span>
+                  <div className="flex flex-col">
+                    <p className="view-group-title">{"Motif"}</p>
+                    <p className="font-semibold">{payment.reason}</p>
+                  </div>
+                </div>
+              )}
 
               {hasValue(payment.justification) && (
                 <div className="view-group">
