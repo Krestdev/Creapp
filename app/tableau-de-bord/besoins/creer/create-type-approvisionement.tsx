@@ -16,14 +16,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useStore } from "@/providers/datastore";
 import { newRequestApprovisionement, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -75,7 +67,6 @@ const formSchema = z.object({
 });
 
 function CreateTypeApprovisionement({ users, categories, projects }: Props) {
-  const { user } = useStore();
   const router = useRouter();
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
@@ -167,30 +158,30 @@ function CreateTypeApprovisionement({ users, categories, projects }: Props) {
 
             return (
               <FormItem>
-                  <FormLabel isRequired>{"Categorie"}</FormLabel>
-                  <FormControl>
-                    <SearchableSelect
-                      onChange={field.onChange}
-                      options={approCategories.map((c) => ({
-                        value: c.id!.toString(),
-                        label: c.label,
-                      }))}
-                      value={field.value ? String(field.value) : ""}
-                      width="w-full"
-                      allLabel=""
-                      placeholder="Sélectionner une catégorie"
-                    />
-                  </FormControl>
+                <FormLabel isRequired>{"Categorie"}</FormLabel>
+                <FormControl>
+                  <SearchableSelect
+                    onChange={field.onChange}
+                    options={approCategories.map((c) => ({
+                      value: c.id!.toString(),
+                      label: c.label,
+                    }))}
+                    value={field.value ? String(field.value) : ""}
+                    width="w-full"
+                    allLabel=""
+                    placeholder="Sélectionner une catégorie"
+                  />
+                </FormControl>
 
-                  {/* ✅ Affichage de la description sous le SearchableSelect */}
-                  {selectedCategory?.description && (
-                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
-                      {selectedCategory.description}
-                    </div>
-                  )}
+                {/* ✅ Affichage de la description sous le SearchableSelect */}
+                {selectedCategory?.description && (
+                  <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                    {selectedCategory.description}
+                  </div>
+                )}
 
-                  <FormMessage />
-                </FormItem>
+                <FormMessage />
+              </FormItem>
             );
           }}
         />

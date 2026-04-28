@@ -1,5 +1,4 @@
 "use client";
-import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -33,7 +32,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
-import { useStore } from "@/providers/datastore";
 import { newRequestOthers, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -60,15 +58,6 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
-const SingleFileSchema = z
-  .array(
-    z.union([
-      z.instanceof(File, { message: "Doit être un fichier valide" }),
-      z.string(),
-    ]),
-  )
-  .min(1, { message: "Le justificatif est requis" });
-
 const formSchema = z.object({
   label: z
     .string({ message: "Veuillez renseigner un titre" })
@@ -93,11 +82,9 @@ const formSchema = z.object({
   ),
   unit: z.string().min(1, "Veuillez sélectionner une unité"),
   priority: z.enum(REQUEST_PRIORITIES),
-  // proof: SingleFileSchema,
 });
 
 function CreateTypeOthers({ users, categories, projects }: Props) {
-  const { user } = useStore();
   const router = useRouter();
 
   const [dueDate, setDueDate] = useState<boolean>(false);
@@ -114,7 +101,6 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       unit: "",
       categoryId: undefined,
       projectId: undefined,
-      // proof: [],
     },
   });
 
@@ -142,7 +128,6 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       priority: values.priority,
       categoryId: values.categoryId,
       projectId: values.projectId,
-      // proof: values.proof,
     });
   };
 
@@ -466,27 +451,6 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
             </FormItem>
           )}
         />
-        {/* JUSTIFICATIF */}
-        {/* <FormField
-          control={form.control}
-          name="proof"
-          render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel isRequired>{"Justificatif"}</FormLabel>
-              <FormControl>
-                <FilesUpload
-                  value={field.value || []}
-                  onChange={field.onChange}
-                  name={field.name}
-                  acceptTypes="all"
-                  multiple={false}
-                  maxFiles={1}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
         <div className="@min-[640px]:col-span-full w-full flex justify-end">
           <Button
             variant={"primary"}

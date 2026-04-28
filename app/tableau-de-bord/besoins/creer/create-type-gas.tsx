@@ -59,6 +59,7 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
 ];
 
 const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 const formSchema = z.object({
   label: z
@@ -75,7 +76,13 @@ const formSchema = z.object({
   km: z.coerce.number(),
   liters: z.coerce.number(),
   benef: z.coerce.number(),
-  dueDate: z.date().min(today, "La date limite doit être dans le futur"),
+  dueDate: z.string({ message: "Veuillez définir une date" }).refine(
+    (val) => {
+      const d = new Date(val);
+      return !isNaN(d.getTime()) && d >= today;
+    },
+    { message: "Date invalide" },
+  ),
   unit: z.string(),
   priority: z.enum(REQUEST_PRIORITIES),
 });
@@ -88,6 +95,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
   const defaultDate = new Date();
   defaultDate.setDate(today.getDate() + 7);
 
@@ -99,7 +107,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
       amount: 100,
       liters: 1,
       benef: user?.id,
-      dueDate: defaultDate,
+      dueDate: format(defaultDate, "yyyy-MM-dd"),
       priority: "low",
       vehiclesId: undefined,
       km: 1,
@@ -144,6 +152,7 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
   const dayStart = new Date();
   dayStart.setDate(dayStart.getDate() - 1);
   dayStart.setHours(0, 0, 0, 0);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
@@ -249,41 +258,73 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
         <FormField
           control={form.control}
           name="dueDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel isRequired>{"Date limite"}</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild className="h-10 w-full!">
-                  <FormControl className="w-full">
-                    <Button
-                      type="button"
-                      variant={"outline"}
-                      className={cn(
-                        "w-[320px] pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground",
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP", { locale: fr })
-                      ) : (
-                        <span>{"Choisir une date"}</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) => date <= dayStart}
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            // Convertir la valeur string en Date pour le calendrier
+            const selectedDate = field.value
+              ? new Date(field.value)
+              : undefined;
+
+            return (
+              <FormItem>
+                <FormLabel isRequired>{"Date limite"}</FormLabel>
+                <FormControl>
+                  <div className="relative flex gap-2">
+                    <Input
+                      id={field.name}
+                      value={field.value || ""}
+                      placeholder="Sélectionner une date"
+                      className="bg-background pr-10"
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowDown") {
+                          e.preventDefault();
+                          setDueDate(true);
+                        }
+                      }}
+                    />
+                    <Popover open={dueDate} onOpenChange={setDueDate}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="date-picker"
+                          type="button"
+                          variant="ghost"
+                          className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                        >
+                          <CalendarIcon className="size-3.5" />
+                          <span className="sr-only">
+                            {"Sélectionner une date"}
+                          </span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-auto overflow-hidden p-0"
+                        align="end"
+                        alignOffset={-8}
+                        sideOffset={10}
+                      >
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          defaultMonth={selectedDate || today}
+                          captionLayout="dropdown"
+                          onSelect={(date) => {
+                            if (!date) return;
+                            const value = format(date, "yyyy-MM-dd");
+                            field.onChange(value);
+                            setDueDate(false);
+                          }}
+                          disabled={(date) => date <= dayStart}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         {/* Vehicle */}
         <FormField
