@@ -149,6 +149,7 @@ function BesoinLastApproVall({
     },
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
+      setOpen(false);
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
@@ -163,7 +164,7 @@ function BesoinLastApproVall({
         id: requestData?.id!,
         validator: validator,
       });
-      setOpen(false);
+      //setOpen(false);
     },
     onError: (error: Error) => {
       toast.error(error.message);

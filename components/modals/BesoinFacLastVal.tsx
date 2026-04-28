@@ -224,6 +224,7 @@ export default function BesoinFacLastVal({
     },
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
+      setOpen(false);
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
@@ -241,7 +242,7 @@ export default function BesoinFacLastVal({
         id: requestData?.id!,
         validator: validator,
       });
-      setOpen(false);
+      //setOpen(false);
 
       onSuccess?.();
     },

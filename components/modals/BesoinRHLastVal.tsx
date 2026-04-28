@@ -253,6 +253,7 @@ export default function BesoinRHLastVal({
     }) => requestQ.validate(id, validator?.id!, validator),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
+      setOpen(false);
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
@@ -267,7 +268,7 @@ export default function BesoinRHLastVal({
 
     onSuccess: () => {
       toast.success("Besoin RH validé avec succès !");
-      setOpen(false);
+      //setOpen(false);
       onSuccess?.();
       validateRequest.mutateAsync({
         id: requestData?.id!,

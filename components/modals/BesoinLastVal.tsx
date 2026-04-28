@@ -115,6 +115,7 @@ export function BesoinLastVal({
     }) => requestQ.validate(id, validator?.id!, validator),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
+      onOpenChange(false);
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
