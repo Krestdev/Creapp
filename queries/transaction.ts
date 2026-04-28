@@ -170,6 +170,18 @@ class TransactionQuery {
       });
   };
 
+  cancel = async (id: number): Promise<{ data: Transaction }> => {
+    const formData = new FormData();
+    formData.append("status", "REJECTED");
+    return api
+      .put(`${this.route}/transferUpdate/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        return response.data;
+      });
+  };
+
   //Complete Payments
   completePayment = async ({
     id,

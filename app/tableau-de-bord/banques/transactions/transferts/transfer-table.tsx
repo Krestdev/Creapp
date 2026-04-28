@@ -12,6 +12,7 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
+  BanIcon,
   CheckCircleIcon,
   ChevronDown,
   ClipboardPenIcon,
@@ -81,6 +82,7 @@ import ViewTransaction from "../view-transaction";
 import CompleteTransfer from "./complete-transfer";
 import RequestSign from "./requestSign";
 import { EditTransferDialog } from "./updateDialog";
+import { CancelTransfert } from "./cancel-transfert";
 
 interface Props {
   data: Array<TransferTransaction>;
@@ -98,9 +100,10 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [searchFilter, setSearchFilter] = React.useState("");
-  const [selected, setSelected] = React.useState<Transaction>();
+  const [selected, setSelected] = React.useState<TransferTransaction>();
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
+  const [cancel, setCancel] = React.useState<boolean>(false);
   const [toSign, setToSign] = React.useState<boolean>(false);
   const [complete, setComplete] = React.useState<boolean>(false);
 
@@ -507,6 +510,16 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
                 <CheckCircleIcon className="text-green-600" />
                 {"Exécuter le transfert"}
               </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={item.status === "APPROVED"}
+                onClick={() => {
+                  setSelected(item);
+                  setCancel(true);
+                }}
+              >
+                <BanIcon />
+                {"Annuler le transfert"}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -886,6 +899,13 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
           open={toSign}
           openChange={setToSign}
           paymentMethods={paymentMethods}
+        />
+      )}
+      {selected && (
+        <CancelTransfert
+          open={cancel}
+          onOpenChange={setCancel}
+          transfer={selected}
         />
       )}
     </div>
