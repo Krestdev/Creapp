@@ -342,7 +342,7 @@ export function BesoinLastVal({
             />
 
             {/* Quantité */}
-            {data.type !== "transport" && (
+            {data.type !== "transport" && data.type !== "gas" && (
               <FormField
                 control={form.control}
                 name="quantity"
@@ -365,7 +365,7 @@ export function BesoinLastVal({
             )}
 
             {/* UNIT */}
-            {data.type !== "transport" && (
+            {data.type !== "transport" && data.type !== "gas" && (
               <FormField
                 control={form.control}
                 name="unit"
