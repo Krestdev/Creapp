@@ -626,13 +626,13 @@ function AppSidebar() {
       {
         pageId: "PG-04",
         authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-        title: "Tickets",
+        title: "Autorisations",
         className: "text-purple-800",
         items: [
           {
             pageId: "PG-04-01",
             icon: Ticket,
-            title: "Tickets",
+            title: "Paiements",
             href: "/tableau-de-bord/ticket",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
             badgeValue:
@@ -709,7 +709,7 @@ function AppSidebar() {
         items: [
           {
             pageId: "PG-0000551-01",
-            title: "Tickets",
+            title: "Paiements",
             icon: SignatureIcon,
             href: "/tableau-de-bord/signatures/tickets",
             authorized: [],

@@ -164,7 +164,7 @@ function Page() {
           <>
             <PageTitle
               title="Approbation"
-              subtitle="Validez les tickets de paiement des bons de commandes"
+              subtitle="Validation des paiements des bons de commandes"
               color="green"
             />
             <div className="grid-stats-4">
