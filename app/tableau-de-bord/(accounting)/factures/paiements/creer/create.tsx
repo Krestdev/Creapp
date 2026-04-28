@@ -9,7 +9,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,11 +25,12 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
-import { Invoice, PaymentRequest, PRIORITIES } from "@/types/types";
+import { Invoice, PaymentRequest, PRIORITIES, ProjectT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -46,38 +47,64 @@ const PAY_PRIORITY = PRIORITIES.map((m) => m.value) as [
   ...(typeof PRIORITIES)[number]["value"][],
 ];
 
-const formSchema = z.object({
-  invoiceId: z.number({ message: "Requis" }),
-  deadline: z.string({ message: "Veuillez définir une date" }).refine(
-    (val) => {
-      const d = new Date(val);
-      return !isNaN(d.getTime());
-    },
-    { message: "Date invalide" },
-  ),
-  isPartial: z.boolean(),
-  price: z.number({ message: "Veuillez renseigner un montant" }),
-  method: z.string().min(1, "Ce champ est requis"),
-  priority: z.enum(PAY_PRIORITY),
-  proof: z
-    .array(
-      z.union([
-        z.instanceof(File, { message: "Doit être un fichier valide" }),
-        z.string(),
-      ]),
-    )
-    .min(1, "Veuillez ajouter un élément")
-    .max(1, "Un seul justificatif autorisé"),
-});
+const OPTIONS = [
+  { value: "project", label: "Un seul projet" },
+  { value: "custom", label: "Plusieurs projets" },
+  { value: "none", label: "Aucun" },
+] as const;
+
+const PROJECT_OPTIONS = OPTIONS.map((o) => o.value) as [
+  (typeof OPTIONS)[number]["value"],
+  ...(typeof OPTIONS)[number]["value"][],
+];
+
+const formSchema = z
+  .object({
+    project: z.enum(PROJECT_OPTIONS),
+    description: z.string().optional(),
+    invoiceId: z.number({ message: "Requis" }),
+    deadline: z.string({ message: "Veuillez définir une date" }).refine(
+      (val) => {
+        const d = new Date(val);
+        return !isNaN(d.getTime());
+      },
+      { message: "Date invalide" },
+    ),
+    isPartial: z.boolean(),
+    price: z.number({ message: "Veuillez renseigner un montant" }),
+    method: z.string().min(1, "Ce champ est requis"),
+    priority: z.enum(PAY_PRIORITY),
+    proof: z
+      .array(
+        z.union([
+          z.instanceof(File, { message: "Doit être un fichier valide" }),
+          z.string(),
+        ]),
+      )
+      .min(1, "Veuillez ajouter un élément")
+      .max(1, "Un seul justificatif autorisé"),
+  })
+  .superRefine((values, ctx) => {
+    if (values.project === "project" || values.project === "custom") {
+      if (!values.description || values.description.trim() === "") {
+        return ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "La description est requise",
+          path: ["description"],
+        });
+      }
+    }
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
   invoices: Array<Invoice>;
   payments: Array<PaymentRequest>;
+  projects: Array<ProjectT>;
 }
 
-function CreatePaiement({ invoices, payments }: Props) {
+function CreatePaiement({ invoices, payments, projects }: Props) {
   /**Data states */
   const { user } = useStore();
 
@@ -95,6 +122,8 @@ function CreatePaiement({ invoices, payments }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      description: "",
+      project: undefined,
       invoiceId: undefined,
       deadline: format(new Date(), "yyyy-MM-dd"),
       isPartial: false,
@@ -108,6 +137,7 @@ function CreatePaiement({ invoices, payments }: Props) {
   const invoiceId = form.watch("invoiceId");
   const isPartial = form.watch("isPartial");
   const methodValue = form.watch("method");
+  const project = form.watch("project");
 
   const createPayment = useMutation({
     mutationFn: async (
@@ -135,10 +165,20 @@ function CreatePaiement({ invoices, payments }: Props) {
   }, [getPaymentType.data, methodValue, form]);
 
   const invoice = React.useMemo(() => {
-    return invoices.find(p => p.id === invoiceId)
+    return invoices.find((p) => p.id === invoiceId);
   }, [invoices, invoiceId]);
 
-  const toPay = invoice && invoice.amount - payments.filter(p => p.invoiceId === invoice?.id && p.status !== "rejected" && p.status !== "cancelled").reduce((total, e) => total + e.price, 0);
+  const toPay =
+    invoice &&
+    invoice.amount -
+      payments
+        .filter(
+          (p) =>
+            p.invoiceId === invoice?.id &&
+            p.status !== "rejected" &&
+            p.status !== "cancelled",
+        )
+        .reduce((total, e) => total + e.price, 0);
 
   const rest = !!toPay && toPay >= 0 ? toPay : 0;
 
@@ -188,23 +228,32 @@ function CreatePaiement({ invoices, payments }: Props) {
     }
     if (values.price > rest) {
       toast.error("Montant invalide !");
-      return form.setError("price", { message: "Votre montant est supérieur au reste à payer" })
+      return form.setError("price", {
+        message: "Votre montant est supérieur au reste à payer",
+      });
     }
     const payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId"> =
-    {
-      methodId: Number(values.method),
-      type: "achat",
-      deadline: new Date(values.deadline),
-      title: invoice.title,
-      price: values.price,
-      priority: values.priority,
-      userId: user?.id ?? 0,
-      proof: values.proof[0],
-      invoiceId: values.invoiceId,
-      isPartial: values.isPartial,
-    };
+      {
+        methodId: Number(values.method),
+        description: values.description || "",
+        type: "achat",
+        deadline: new Date(values.deadline),
+        title: invoice.title,
+        price: values.price,
+        priority: values.priority,
+        userId: user?.id ?? 0,
+        proof: values.proof[0],
+        invoiceId: values.invoiceId,
+        isPartial: values.isPartial,
+      };
     createPayment.mutate(payload);
   }
+
+  React.useEffect(() => {
+    if (project) {
+      form.setValue("description", "");
+    }
+  }, [project]);
 
   return (
     <Form {...form}>
@@ -236,7 +285,11 @@ function CreatePaiement({ invoices, payments }: Props) {
                             ?.filter(
                               (payment) => payment.invoiceId === request.id,
                             )
-                            .filter((c) => c.status !== "rejected" && c.status !== "cancelled");
+                            .filter(
+                              (c) =>
+                                c.status !== "rejected" &&
+                                c.status !== "cancelled",
+                            );
                         }, [payments, request]);
                         const paid =
                           pay
@@ -264,6 +317,84 @@ function CreatePaiement({ invoices, payments }: Props) {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="project"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mode d'attribution</FormLabel>
+              <FormControl>
+                <Select
+                  defaultValue={field.value ? String(field.value) : undefined}
+                  onValueChange={field.onChange}
+                  disabled={!invoiceId}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez une option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {OPTIONS.map((project) => (
+                      <SelectItem key={project.value} value={project.value}>
+                        {project.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {project === "project" && (
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>Projet</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value ? String(field.value) : undefined}
+                    onValueChange={field.onChange}
+                    disabled={!invoiceId}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un projet" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects.map((project) => (
+                        <SelectItem key={project.id} value={project.label}>
+                          {project.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {project === "custom" && (
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem className="col-span-full">
+                <FormLabel isRequired>Projets</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Décrivez les projets associés"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {/* Date limite de soumission */}
         <FormField
