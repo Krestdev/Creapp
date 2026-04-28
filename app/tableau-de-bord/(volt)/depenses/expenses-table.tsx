@@ -220,7 +220,11 @@ function getStatusBadge(status: PaymentRequest["status"]): {
           ? "Payé"
           : status === "simple_signed"
             ? "Paiement ouvert"
-            : "En attente";
+            : status === "cancelled"
+              ? "Annulé"
+              : status === "validated"
+                ? "En attente"
+                : status;
 
   switch (status) {
     case "pending_depense":
@@ -233,6 +237,8 @@ function getStatusBadge(status: PaymentRequest["status"]): {
       return { label, variant: "success" };
     case "simple_signed":
       return { label, variant: "success" };
+    case "cancelled":
+      return { label, variant: "dark" };
     default:
       return { label, variant: "yellow" };
   }
@@ -439,6 +445,10 @@ function ExpensesTable({
       id: 2,
       title: "Tickets payés",
     },
+    {
+      id: 3,
+      title: "Tickets annulés",
+    },
   ];
 
   const filteredData = React.useMemo(() => {
@@ -469,7 +479,9 @@ function ExpensesTable({
             ? p.status === "pending_depense" ||
               p.status === "signed" ||
               p.status === "simple_signed"
-            : p.status === "paid";
+            : selectedTab === 2
+              ? p.status === "paid"
+              : selectedTab === 3 && p.status === "cancelled";
       //Filter type
       const matchType = typeFilter === "all" ? true : p.type === typeFilter;
       //Filter priority
