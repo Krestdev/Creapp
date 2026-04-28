@@ -48,7 +48,7 @@ export function CancelTransfert({ open, onOpenChange, transfer }: CancelProps) {
   // Mutation pour mettre à jour le transfert
   const cancelMutation = useMutation({
     mutationFn: async (data: FormSchemaType) => {
-      return transactionQ.cancel(transfer.id);
+      return transactionQ.cancel(transfer.id, data.reason);
     },
     onSuccess: () => {
       toast.success("Transfert annulé avec succès");

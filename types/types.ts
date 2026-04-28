@@ -673,6 +673,7 @@ export const TRANSACTION_STATUS = [
   { value: "PENDING", name: "En attente" },
   { value: "REJECTED", name: "Rejeté" },
   { value: "ACCEPTED", name: "Accepté" },
+  { value: "CANCELLED", name: "Annulé" },
 ] as const;
 
 export type TransactionBase = {

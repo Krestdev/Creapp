@@ -170,9 +170,13 @@ class TransactionQuery {
       });
   };
 
-  cancel = async (id: number): Promise<{ data: Transaction }> => {
+  cancel = async (
+    id: number,
+    reason: string,
+  ): Promise<{ data: Transaction }> => {
     const formData = new FormData();
-    formData.append("status", "REJECTED");
+    formData.append("status", "CANCELLED");
+    formData.append("reason", reason);
     return api
       .put(`${this.route}/transferUpdate/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },

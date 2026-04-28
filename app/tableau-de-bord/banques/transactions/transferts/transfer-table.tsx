@@ -511,7 +511,11 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
                 {"Exécuter le transfert"}
               </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={item.status === "APPROVED"}
+                disabled={
+                  item.status === "APPROVED" ||
+                  item.status === "CANCELLED" ||
+                  item.status === "REJECTED"
+                }
                 onClick={() => {
                   setSelected(item);
                   setCancel(true);
