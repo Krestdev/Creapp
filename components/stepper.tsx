@@ -13,8 +13,12 @@ import type {
   Reception,
   RequestModelT,
 } from "@/types/types";
-import { Check, X } from "lucide-react";
-import { useRequestStepper, type StepDef } from "@/hooks/use-request-stepper";
+import { BanIcon, Check, X } from "lucide-react";
+import {
+  StepStatus,
+  useRequestStepper,
+  type StepDef,
+} from "@/hooks/use-request-stepper";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,7 +27,7 @@ export interface StepItem {
   tooltip?: string;
 }
 
-export type StepState = "done" | "active" | "upcoming" | "error";
+export type StepState = StepStatus | "upcoming";
 
 export interface StepperProps {
   steps: StepDef[];
@@ -40,6 +44,7 @@ function getStepState(
 ): StepState {
   if (step.status === "error") return "error";
   if (step.status === "done" || index < currentStep) return "done";
+  if (step.status === "cancelled") return "cancelled";
   if (index === currentStep) return "active";
   return "upcoming";
 }
@@ -48,7 +53,8 @@ const STATUS_LABEL: Record<StepState, string> = {
   done: "Terminée",
   active: "En cours",
   upcoming: "À venir",
-  error: "Rejeté / Annulé",
+  error: "Rejeté",
+  cancelled: "Annulé",
 };
 
 // ─── Bubble ───────────────────────────────────────────────────────────────────
@@ -64,11 +70,13 @@ function StepBubble({ state, index }: { state: StepState; index: number }) {
           "border-primary bg-primary text-primary-foreground ring-4 ring-primary/20",
         state === "upcoming" && "border-border bg-muted text-muted-foreground",
         state === "error" && "border-destructive bg-destructive text-white",
+        state === "cancelled" && "border-slate-300 bg-slate-300 text-white",
       )}
     >
       {state === "done" && <Check className="size-5 stroke-[2.5]" />}
       {state === "error" && <X className="size-5 stroke-[2.5]" />}
       {(state === "active" || state === "upcoming") && <span>{index + 1}</span>}
+      {state === "cancelled" && <BanIcon className="size-5 stroke-[2.5]" />}
     </div>
   );
 }
@@ -83,6 +91,7 @@ function StepConnector({ state }: { state: StepState }) {
         "absolute left-1/2 top-6 h-px w-full transition-colors duration-500",
         state === "done" && "bg-green-600/80",
         state === "error" && "bg-destructive/30",
+        state === "cancelled" && "bg-slate-300",
         (state === "active" || state === "upcoming") && "bg-border",
       )}
     />
@@ -99,6 +108,7 @@ function StepLabel({ label, state }: { label: string; state: StepState }) {
         state === "done" && "text-green-700",
         state === "active" && "text-primary",
         state === "upcoming" && "text-muted-foreground",
+        state === "cancelled" && "text-slate-700",
         state === "error" && "text-destructive",
       )}
     >
@@ -131,6 +141,7 @@ function StepTooltipContent({
           state === "active" && "bg-primary-100 text-primary",
           state === "upcoming" && "bg-muted text-muted-foreground",
           state === "error" && "bg-destructive/10 text-destructive",
+          state === "cancelled" && "bg-slate-100 text-slate-700",
         )}
       >
         {STATUS_LABEL[state]}

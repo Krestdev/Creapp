@@ -8,7 +8,7 @@ import type { StepItem } from "@/components/stepper";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type StepStatus = "done" | "active" | "error";
+export type StepStatus = "done" | "active" | "error" | "cancelled";
 
 export interface StepDef extends StepItem {
   /** Surcharge de l'état : "error" affiche une croix rouge */
@@ -45,12 +45,18 @@ function findLinkedTicket(
   requestId: number,
   tickets: PaymentRequest[],
 ): PaymentRequest | undefined {
-  return tickets
-    .filter((t) => t.requestId === requestId)
-    .sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    )[0];
+  const linked = tickets.filter((t) => t.requestId === requestId);
+  if (linked.length === 0) return undefined;
+
+  // Prioriser les tickets actifs (ni rejetés ni annulés)
+  const activeLinked = linked.filter(
+    (t) => t.status !== "rejected" && t.status !== "cancelled"
+  );
+  const pool = activeLinked.length > 0 ? activeLinked : linked;
+
+  return pool.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  )[0];
 }
 
 /** Bon de commande lié à ce besoin via ses devis/éléments */
@@ -58,9 +64,20 @@ function findLinkedBC(
   requestId: number,
   bonCommandes: BonsCommande[],
 ): BonsCommande | undefined {
-  return bonCommandes.find((bc) =>
+  const linked = bonCommandes.filter((bc) =>
     bc.devi?.element?.some((el) => el.requestModelId === requestId),
   );
+  if (linked.length === 0) return undefined;
+
+  // Prioriser les BC actifs (ni rejetés ni annulés)
+  const activeLinked = linked.filter(
+    (bc) => bc.status !== "REJECTED" && (bc.status as string) !== "CANCELLED"
+  );
+  const pool = activeLinked.length > 0 ? activeLinked : linked;
+
+  return pool.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  )[0];
 }
 
 /** Réception liée à un bon de commande */
@@ -86,7 +103,8 @@ function circuitFacilitationRH(
 
   // ── Étape 1 : Validation ──────────────────────────────────────────────────
   const step1Done = request.state === "validated" || request.state === "store";
-  const step1Error = isTerminated;
+  const step1Error = request.state === "rejected";
+  const step1Cancelled = request.state === "cancel";
 
   // ── Étape 2 : DG ─────────────────────────────────────────────────────────
   const step2Done =
@@ -95,6 +113,7 @@ function circuitFacilitationRH(
     TICKET_ADVANCED_STATUSES.has(ticket.status) &&
     ticket.status !== "rejected";
   const step2Error = step1Done && !!ticket && ticket.status === "rejected";
+  const step2Cancelled = step1Done && !!ticket && ticket.status === "cancelled";
 
   // ── Étape 3 : Trésorerie ─────────────────────────────────────────────────
   const step3Done =
@@ -115,12 +134,24 @@ function circuitFacilitationRH(
     {
       label: "Validation",
       tooltip: "Approbation hiérarchique du besoin",
-      status: step1Error ? "error" : step1Done ? "done" : undefined,
+      status: step1Error
+        ? "error"
+        : step1Cancelled
+          ? "cancelled"
+          : step1Done
+            ? "done"
+            : undefined,
     },
     {
       label: "DG",
       tooltip: "Validation par la Direction Générale",
-      status: step2Error ? "error" : step2Done ? "done" : undefined,
+      status: step2Error
+        ? "error"
+        : step2Cancelled
+          ? "cancelled"
+          : step2Done
+            ? "done"
+            : undefined,
     },
     {
       label: "Trésorerie",
@@ -149,10 +180,15 @@ function circuitSimple(
     request.state === "rejected" || request.state === "cancel";
 
   const step1Done = request.state === "validated" || request.state === "store";
-  const step1Error = isTerminated;
+  const step1Error = request.state === "rejected";
+  const step1Cancelled = request.state === "cancel";
 
   const step2Done =
     step1Done && !!ticket && TICKET_TRESORERIE_STATUSES.has(ticket.status);
+
+  const step2Error = step1Done && !!ticket && ticket.status === "rejected";
+
+  const step2Cancelled = step1Done && !!ticket && ticket.status === "cancelled";
 
   const step3Done = step2Done && ticket?.status === "paid";
 
@@ -165,12 +201,24 @@ function circuitSimple(
     {
       label: "Validation",
       tooltip: "Approbation hiérarchique du besoin",
-      status: step1Error ? "error" : step1Done ? "done" : undefined,
+      status: step1Error
+        ? "error"
+        : step1Cancelled
+          ? "cancelled"
+          : step1Done
+            ? "done"
+            : undefined,
     },
     {
       label: "Trésorerie",
       tooltip: "Prise en charge par la trésorerie",
-      status: step2Done ? "done" : undefined,
+      status: step2Error
+        ? "error"
+        : step2Cancelled
+          ? "cancelled"
+          : step2Done
+            ? "done"
+            : undefined,
     },
     {
       label: "Payé",
@@ -195,11 +243,18 @@ function circuitAchat(
     request.state === "rejected" || request.state === "cancel";
 
   const step1Done = request.state === "validated" || request.state === "store";
-  const step1Error = isTerminated;
+  const step1Error = request.state === "rejected";
+  const step1Cancelled = request.state === "cancel";
 
   // BC créé et approuvé
   const step2Done =
     step1Done && !!bonCommande && bonCommande.status === "APPROVED";
+
+  const step2Error =
+    step1Done && !!bonCommande && bonCommande.status === "REJECTED";
+
+  const step2Cancelled =
+    step1Done && !!bonCommande && (bonCommande.status as string) === "CANCELLED";
 
   // Livraison complète
   const step3Done = step2Done && reception?.Status === "COMPLETED";
@@ -213,12 +268,24 @@ function circuitAchat(
     {
       label: "Validation",
       tooltip: "Approbation hiérarchique du besoin",
-      status: step1Error ? "error" : step1Done ? "done" : undefined,
+      status: step1Error
+        ? "error"
+        : step1Cancelled
+          ? "cancelled"
+          : step1Done
+            ? "done"
+            : undefined,
     },
     {
       label: "Bon de commande",
       tooltip: "Bon de commande approuvé fournisseur",
-      status: step2Done ? "done" : undefined,
+      status: step2Error
+        ? "error"
+        : step2Cancelled
+          ? "cancelled"
+          : step2Done
+            ? "done"
+            : undefined,
     },
     {
       label: "Livraison",
