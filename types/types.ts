@@ -20,7 +20,7 @@ export interface NavigationGroup {
 export interface PageTitleProps {
   title: string;
   subtitle: string;
-  color?: "red" | "blue" | "green" | "none";
+  color?: "red" | "blue" | "green" | "purple" | "none";
   links?: Array<NavLink>;
 }
 

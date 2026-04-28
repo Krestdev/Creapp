@@ -23,6 +23,8 @@ import { CommandConditionQ } from "@/queries/commandsConditions";
 import { invoiceQ } from "@/queries/invoices";
 import { receptionQ } from "@/queries/reception";
 import { userQ } from "@/queries/baseModule";
+import { payTypeQ } from "@/queries/payType";
+import { quotationQ } from "@/queries/quotation";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -58,6 +60,16 @@ const Page = () => {
   const getUsers = useQuery({
     queryKey: ["users"],
     queryFn: userQ.getAll,
+  });
+
+  const getQuotations = useQuery({
+    queryKey: ["quotations"],
+    queryFn: quotationQ.getAll,
+  });
+
+  const getPaymentType = useQuery({
+    queryKey: ["paymentTypes"],
+    queryFn: payTypeQ.getAll,
   });
 
   const { user } = useStore();
@@ -157,7 +169,9 @@ const Page = () => {
     getConditions.isLoading ||
     getInvoices.isLoading ||
     getReceptions.isLoading ||
-    getUsers.isLoading
+    getUsers.isLoading ||
+    getQuotations.isLoading ||
+    getPaymentType.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -167,7 +181,9 @@ const Page = () => {
     getConditions.isError ||
     getInvoices.isError ||
     getReceptions.isError ||
-    getUsers.isError
+    getUsers.isError ||
+    getQuotations.isError ||
+    getPaymentType.isError
   ) {
     return (
       <ErrorPage
@@ -178,6 +194,8 @@ const Page = () => {
           getConditions.error ||
           getReceptions.error ||
           getUsers.error ||
+          getQuotations.error ||
+          getPaymentType.error ||
           undefined
         }
       />
@@ -189,7 +207,9 @@ const Page = () => {
     getConditions.isSuccess &&
     getInvoices.isSuccess &&
     getReceptions.isSuccess &&
-    getUsers.isSuccess
+    getUsers.isSuccess &&
+    getQuotations.isSuccess &&
+    getPaymentType.isSuccess
   )
     return (
       <div className="content">
@@ -223,6 +243,8 @@ const Page = () => {
           conditions={getConditions.data.data}
           invoices={getInvoices.data.data}
           users={getUsers.data.data}
+          quotations={getQuotations.data.data}
+          paytypes={getPaymentType.data.data}
         />
       </div>
     );

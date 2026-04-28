@@ -66,8 +66,10 @@ import {
   CommandCondition,
   Invoice,
   PaymentRequest,
+  PayType,
   PRIORITIES,
   PURCHASE_ORDER_STATUS,
+  Quotation,
   User,
 } from "@/types/types";
 import { format } from "date-fns";
@@ -83,6 +85,8 @@ interface BonsCommandeTableProps {
   conditions: Array<CommandCondition>;
   invoices: Array<Invoice>;
   users: Array<User>;
+  quotations: Array<Quotation>;
+  paytypes: Array<PayType>;
 }
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
@@ -134,6 +138,8 @@ export function PurchaseTable({
   conditions,
   invoices,
   users,
+  quotations,
+  paytypes,
 }: BonsCommandeTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -1085,6 +1091,8 @@ export function PurchaseTable({
           openChange={setEdit}
           purchaseOrder={selectedValue}
           conditions={conditions}
+          quotations={quotations}
+          paytypes={paytypes}
         />
       )}
       {selectedValue && (

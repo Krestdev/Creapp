@@ -17,6 +17,8 @@ const PageTitle = ({ title, subtitle, color, links = [] }: PageTitleProps) => {
         return "from-[#0F5499] to-[#002244]";
       case "green":
         return "from-[#15803D] to-[#0B411F]";
+      case "purple":
+        return "from-purple-800 to-purple-950";
       case "none":
         return "from-slate-600 to-slate-700";
       default:

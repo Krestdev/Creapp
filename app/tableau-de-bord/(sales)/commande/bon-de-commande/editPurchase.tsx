@@ -35,20 +35,17 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { formatToShortName } from "@/lib/utils";
-import { payTypeQ } from "@/queries/payType";
-import { providerQ } from "@/queries/providers";
 import { purchaseQ, updatePoPayload } from "@/queries/purchase-order";
-import { quotationQ } from "@/queries/quotation";
 import {
   BonsCommande,
   CommandCondition,
   PAYMENT_METHOD,
-  PENALITY_MODE,
+  PayType,
   PRIORITIES,
+  Quotation,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import React from "react";
@@ -61,6 +58,8 @@ interface Props {
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   purchaseOrder: BonsCommande;
   conditions: Array<CommandCondition>;
+  quotations: Array<Quotation>;
+  paytypes: Array<PayType>;
 }
 
 const PO_PRIORITIES = PRIORITIES.map((s) => s.value) as [
@@ -84,7 +83,7 @@ const paymentSchema = z.object({
       (val) => {
         const d = new Date(val);
         const now = new Date();
-        return !isNaN(d.getTime()) && d >= now;
+        return !isNaN(d.getTime());
       },
       { message: "Date invalide" },
     )
@@ -124,7 +123,6 @@ export const formSchema = z
     hasPenalties: z.boolean(),
     amountBase: z.coerce.number().optional(),
     penaltyMode: z.string().optional(),
-    providerId: z.coerce.number({ message: "Veuillez définir un fournisseur" }),
     escompteRate: z.coerce.number().min(0, "Le taux doit être positif"),
     keepTaxes: z.boolean(),
     hasPrecompt: z.boolean(),
@@ -150,7 +148,14 @@ export const formSchema = z
     }
   });
 
-function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
+function EditPurchase({
+  open,
+  openChange,
+  purchaseOrder,
+  conditions,
+  quotations,
+  paytypes,
+}: Props) {
   const [selectDate, setSelectDate] = React.useState(false); //Popover select Date
   const [duePopovers, setDuePopovers] = React.useState<Record<number, boolean>>(
     {},
@@ -159,25 +164,12 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
     CommandCondition[]
   >(purchaseOrder.commandConditions);
 
-  const getQuotations = useQuery({
-    queryKey: ["quotations"],
-    queryFn: quotationQ.getAll,
-  });
-  const getProviders = useQuery({
-    queryKey: ["providers"],
-    queryFn: providerQ.getAll,
-  });
-  const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
-    queryFn: payTypeQ.getAll,
-  });
-
   // Définir la valeur par défaut pour paymentMethod
   const defaultPaymentMethod = React.useMemo(() => {
-    if (getPaymentType.data?.data && getPaymentType.data.data.length > 0) {
+    if (paytypes && paytypes.length > 0) {
       const purchaseOrderMethod = purchaseOrder?.paymentMethod || "";
       // Vérifier si la méthode de paiement actuelle existe dans la liste
-      const exists = getPaymentType.data.data.some(
+      const exists = paytypes.some(
         (p) => p.id.toString() === purchaseOrderMethod,
       );
 
@@ -185,11 +177,11 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
         return purchaseOrderMethod;
       } else {
         // Si la méthode n'existe pas, prendre la première de la liste
-        return getPaymentType.data.data[0].id.toString();
+        return paytypes[0].id.toString();
       }
     }
     return purchaseOrder.paymentMethod || ""; // Garder la valeur existante ou vide
-  }, [getPaymentType.data, purchaseOrder?.paymentMethod]);
+  }, [paytypes, purchaseOrder?.paymentMethod]);
 
   // Définir les échéances par défaut avec vérification
   const defaultInstalments = React.useMemo(() => {
@@ -220,7 +212,6 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
       penaltyMode: purchaseOrder.penaltyMode || "",
       paymentMethod: defaultPaymentMethod,
       deviId: purchaseOrder.deviId || -1,
-      providerId: purchaseOrder.providerId || -1,
       instalments: defaultInstalments,
       escompteRate: purchaseOrder.escompteRate ?? 0,
       keepTaxes: purchaseOrder.keepTaxes ?? false,
@@ -232,17 +223,41 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
   //console.log(form.formState.errors);
   //console.log(form.getValues("instalments"));
 
+  React.useEffect(() => {
+    if (open) {
+      form.reset({
+        priority: purchaseOrder.priority || "medium",
+        object: purchaseOrder.object || "",
+        paymentTerms: purchaseOrder.paymentTerms || "",
+        deliveryDelay: purchaseOrder.deliveryDelay
+          ? format(new Date(purchaseOrder.deliveryDelay), "yyyy-MM-dd")
+          : format(new Date(), "yyyy-MM-dd"),
+        deliveryLocation: purchaseOrder?.deliveryLocation || "",
+        amountBase: purchaseOrder.amountBase || 0,
+        hasPenalties: purchaseOrder.hasPenalties || false,
+        penaltyMode: purchaseOrder.penaltyMode || "",
+        paymentMethod: defaultPaymentMethod,
+        deviId: purchaseOrder.deviId || -1,
+        instalments: defaultInstalments,
+        escompteRate: purchaseOrder.escompteRate ?? 0,
+        keepTaxes: purchaseOrder.keepTaxes ?? false,
+        hasPrecompt: purchaseOrder.hasPrecompt ?? false,
+        conditions: purchaseOrder.commandConditions.map((c) => c.id) ?? [],
+      });
+    }
+  }, [open]);
+
   // Mettre à jour les échéances de paiement lorsque les données sont chargées
   React.useEffect(() => {
-    if (getPaymentType.data?.data && getPaymentType.data.data.length > 0) {
+    if (paytypes.length > 0) {
       const purchaseOrderMethod = purchaseOrder?.paymentMethod || "";
-      const exists = getPaymentType.data.data.some(
+      const exists = paytypes.some(
         (p) => p.id.toString() === purchaseOrderMethod,
       );
 
       // Si la méthode de paiement actuelle n'existe pas dans la liste, la mettre à jour
       if (!exists) {
-        const firstMethodId = getPaymentType.data.data[0].id.toString();
+        const firstMethodId = paytypes[0].id.toString();
         form.setValue("paymentMethod", firstMethodId);
       }
     }
@@ -254,12 +269,7 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
     ) {
       form.setValue("instalments", defaultInstalments);
     }
-  }, [
-    getPaymentType.data,
-    purchaseOrder?.paymentMethod,
-    form,
-    defaultInstalments,
-  ]);
+  }, [paytypes, purchaseOrder?.paymentMethod, form, defaultInstalments]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -341,24 +351,22 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>
-                        {getQuotations.data &&
-                          getQuotations.data.data
-                            .filter((c) => c.status === "APPROVED")
-                            .map((quote) => (
-                              <SelectItem
-                                key={quote.id}
-                                value={String(quote.id)}
-                                className="line-clamp-1"
-                              >
-                                {`${quote.commandRequest.title}`}
-                              </SelectItem>
-                            ))}
-                        {getQuotations.data &&
-                          getQuotations.data.data.length === 0 && (
-                            <SelectItem value="-" disabled>
-                              {"Aucun devis disponible"}
+                        {quotations
+                          .filter((c) => c.status === "APPROVED")
+                          .map((quote) => (
+                            <SelectItem
+                              key={quote.id}
+                              value={String(quote.id)}
+                              className="line-clamp-1"
+                            >
+                              {`${quote.commandRequest.title}`}
                             </SelectItem>
-                          )}
+                          ))}
+                        {quotations.length === 0 && (
+                          <SelectItem value="-" disabled>
+                            {"Aucun devis disponible"}
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -374,51 +382,6 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
                   <FormLabel>Objet</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Objet" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="providerId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Fournisseur"}</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={String(field.value)}
-                      onValueChange={field.onChange}
-                      disabled
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {getQuotations.data &&
-                          getQuotations.data.data
-                            .filter((c) => c.status === "APPROVED")
-                            .map((quote) => (
-                              <SelectItem
-                                key={quote.id}
-                                value={String(quote.id)}
-                                className="line-clamp-1"
-                              >
-                                {`${formatToShortName(
-                                  getProviders.data?.data.find(
-                                    (p) => p.id === quote.providerId,
-                                  )?.name,
-                                )}`}
-                              </SelectItem>
-                            ))}
-                        {getQuotations.data &&
-                          getQuotations.data.data.length === 0 && (
-                            <SelectItem value="-" disabled>
-                              {"Aucun devis disponible"}
-                            </SelectItem>
-                          )}
-                      </SelectContent>
-                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -449,7 +412,7 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>
-                        {getPaymentType.data?.data.map((p) => (
+                        {paytypes.map((p) => (
                           <SelectItem key={p.id} value={p.id.toString()}>
                             {p.label}
                           </SelectItem>
@@ -792,9 +755,7 @@ function EditPurchase({ open, openChange, purchaseOrder, conditions }: Props) {
               name="paymentTerms"
               render={({ field }) => (
                 <FormItem className="@min-[560px]/dialog:col-span-2">
-                  <FormLabel isRequired>
-                    {"Conditions supplémentaires"}
-                  </FormLabel>
+                  <FormLabel>{"Conditions supplémentaires"}</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
