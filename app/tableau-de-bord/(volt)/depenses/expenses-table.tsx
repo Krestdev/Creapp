@@ -481,7 +481,9 @@ function ExpensesTable({
               p.status === "simple_signed"
             : selectedTab === 2
               ? p.status === "paid"
-              : selectedTab === 3 && p.status === "cancelled";
+              : selectedTab === 3 &&
+                p.status === "cancelled" &&
+                p.type !== "achat";
       //Filter type
       const matchType = typeFilter === "all" ? true : p.type === typeFilter;
       //Filter priority
