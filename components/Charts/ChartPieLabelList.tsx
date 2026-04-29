@@ -90,7 +90,7 @@ export function ChartPieLabelList({
 
         case "project":
           const project = projects.find((p) => p.id === payment.projectId);
-          key = project ? `Projet ${project.label}` : "Sans projet";
+          key = project ? `Projet ${project.label}` : "N/A";
           break;
 
         case "fournisseur":
@@ -248,9 +248,9 @@ export function ChartPieLabelList({
             <ChartLegend
               content={<ChartLegendContent nameKey="name" />}
               layout="vertical"
-              align="right" 
-              verticalAlign="middle" 
-              className="flex-col items-start! gap-2 ml-4" 
+              align="right"
+              verticalAlign="middle"
+              className="flex-col items-start! gap-2 ml-4"
             />
           </PieChart>
         </ChartContainer>

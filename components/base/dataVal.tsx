@@ -757,7 +757,7 @@ export function DataVal({
           const projectId = row.getValue("projectId");
           const projectName = projectId
             ? getProjectName(projectId as string)
-            : "Sans projet";
+            : "N/A";
           return (
             <div className="text-sm first-letter:uppercase lowercase max-w-[500px] truncate">
               {projectName}
