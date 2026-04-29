@@ -402,7 +402,9 @@ function CreatePaiement({ invoices, payments, projects }: Props) {
                         filteredProjects.map((project) => (
                           <DropdownMenuItem
                             key={project.id}
-                            onClick={() => field.onChange(project.id)}
+                            onClick={() =>
+                              field.onChange(project.id.toString())
+                            }
                           >
                             {project.label}
                           </DropdownMenuItem>
