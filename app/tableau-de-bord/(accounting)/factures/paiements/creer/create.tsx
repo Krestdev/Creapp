@@ -4,6 +4,12 @@ import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Form,
   FormControl,
   FormField,
@@ -35,7 +41,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -110,6 +116,15 @@ function CreatePaiement({ invoices, payments, projects }: Props) {
 
   const router = useRouter();
 
+  const [searchProject, setSearchProject] = React.useState<string>("");
+  const filteredProjects = React.useMemo(() => {
+    if (!searchProject) {
+      return projects;
+    }
+    return projects.filter((project) =>
+      project.label.toLowerCase().includes(searchProject.toLowerCase()),
+    );
+  }, [projects, searchProject]);
   const [dueDate, setDueDate] = React.useState<boolean>(false);
   const today = new Date(); //On part sur 3 jours de delai de base :)
   today.setDate(today.getDate() + 3);
@@ -354,7 +369,48 @@ function CreatePaiement({ invoices, payments, projects }: Props) {
               <FormItem>
                 <FormLabel isRequired>Projet</FormLabel>
                 <FormControl>
-                  <Select
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-full justify-between gap-2">
+                      <span className="w-full text-start line-clamp-1">
+                        {field.value
+                          ? projects.find((x) => x.id === Number(field.value))
+                              ?.label
+                          : "Sélectionner un projet"}
+                      </span>
+                      <ChevronDown className="text-muted-foreground" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="max-h-[250px] overflow-y-auto max-w-sm pt-0 min-w-sm">
+                      <div className="w-full sticky top-0 bg-white py-2 z-10">
+                        <Input
+                          placeholder="Rechercher un projet"
+                          value={searchProject}
+                          onChange={(e) => {
+                            setSearchProject(e.target.value);
+                          }}
+                          type="search"
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                      {filteredProjects.length === 0 ? (
+                        <DropdownMenuItem disabled>
+                          {"Aucun projet"}
+                        </DropdownMenuItem>
+                      ) : (
+                        filteredProjects.map((project) => (
+                          <DropdownMenuItem
+                            key={project.id}
+                            onClick={() => field.onChange(project.id)}
+                          >
+                            {project.label}
+                          </DropdownMenuItem>
+                        ))
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {/* <Select
                     value={field.value ? String(field.value) : undefined}
                     onValueChange={field.onChange}
                     disabled={!invoiceId}
@@ -369,7 +425,7 @@ function CreatePaiement({ invoices, payments, projects }: Props) {
                         </SelectItem>
                       ))}
                     </SelectContent>
-                  </Select>
+                  </Select> */}
                 </FormControl>
                 <FormMessage />
               </FormItem>
