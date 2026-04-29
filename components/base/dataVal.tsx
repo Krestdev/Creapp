@@ -54,7 +54,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, getUserName, XAF } from "@/lib/utils";
+import {
+  cn,
+  getRequestTypeBadge,
+  getUserName,
+  subText,
+  XAF,
+} from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
@@ -735,7 +741,15 @@ export function DataVal({
                     0,
                   ) || 0,
                 );
-          return <div>{amount}</div>;
+          return (
+            <div
+              className={cn(
+                amount === "N/A" ? "text-muted-foreground" : "font-medium",
+              )}
+            >
+              {amount}
+            </div>
+          );
         },
       },
       {
@@ -759,8 +773,15 @@ export function DataVal({
             ? getProjectName(projectId as string)
             : "N/A";
           return (
-            <div className="text-sm first-letter:uppercase lowercase max-w-[500px] truncate">
-              {projectName}
+            <div
+              className={cn(
+                "text-sm",
+                projectName === "N/A"
+                  ? "text-muted-foreground"
+                  : "first-letter:uppercase lowercase",
+              )}
+            >
+              {subText({ text: projectName, length: 21 })}
             </div>
           );
         },
