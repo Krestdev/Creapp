@@ -34,6 +34,7 @@ import {
   Invoice,
   PaymentRequest,
   PayType,
+  Provider,
   RequestModelT,
   RequestType,
   Signatair,
@@ -59,6 +60,7 @@ interface Props {
   transactions: Array<Transaction>;
   payTypes: Array<PayType>;
   signataires: Array<Signatair>;
+  providers: Array<Provider>;
 }
 
 // Fonction pour vérifier si un moyen de paiement nécessite un numéro de pièce
@@ -94,6 +96,7 @@ function ShareExpense({
   transactions,
   signataires,
   payTypes,
+  providers,
 }: Props) {
   const { user } = useStore();
 
@@ -101,6 +104,10 @@ function ShareExpense({
   const [paiement, setPaiement] = useState<PaymentRequest | null>(null);
 
   const debitTransactions = transactions.filter((t) => t.Type === "DEBIT");
+
+  const provider = useMemo(() => {
+    return providers.find((x) => x.id === ticket.facture?.command.providerId);
+  }, [providers, ticket.facture?.command.providerId]);
 
   // Schéma — simple et direct
   const formSchema = z.object({
@@ -166,9 +173,10 @@ function ShareExpense({
         to: {
           label: isFacilitation
             ? benef?.firstName + " " + benef?.lastName
-            : (ticket.facture?.command.provider.name ?? !!ticket.requestId)
-              ? requestUser?.firstName.concat(" ", requestUser?.lastName)
-              : "",
+            : !!provider
+              ? provider.name
+              : (requestUser?.firstName.concat(" ", requestUser?.lastName) ??
+                ""),
           accountNumber: "",
           phoneNum: "",
         },

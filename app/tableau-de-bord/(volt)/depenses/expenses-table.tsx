@@ -1891,6 +1891,7 @@ function ExpensesTable({
             transactions={transactions}
             signataires={signataires}
             payTypes={paymentTypes}
+            providers={providers}
           />
           <PayExpense
             ticket={selected}
