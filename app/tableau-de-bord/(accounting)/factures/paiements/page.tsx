@@ -5,6 +5,7 @@ import PageTitle from "@/components/pageTitle";
 import { PaiementsTable } from "@/components/tables/PaiementsTable";
 import { invoiceQ } from "@/queries/invoices";
 import { paymentQ } from "@/queries/payment";
+import { providerQ } from "@/queries/providers";
 import { purchaseQ } from "@/queries/purchase-order";
 import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
@@ -30,15 +31,45 @@ function Page() {
     queryFn: invoiceQ.getAll,
   });
 
-  if (getPayments.isLoading || getPurchases.isLoading || getInvoices.isLoading) {
+  const getProviders = useQuery({
+    queryKey: ["providers"],
+    queryFn: providerQ.getAll,
+  });
+
+  if (
+    getPayments.isLoading ||
+    getPurchases.isLoading ||
+    getInvoices.isLoading ||
+    getProviders.isLoading
+  ) {
     return <LoadingPage />;
   }
 
-  if (getPayments.isError || getPurchases.isError || getInvoices.isError) {
-    return <ErrorPage />;
+  if (
+    getPayments.isError ||
+    getPurchases.isError ||
+    getInvoices.isError ||
+    getProviders.isError
+  ) {
+    return (
+      <ErrorPage
+        error={
+          getPayments.error ||
+          getPurchases.error ||
+          getInvoices.error ||
+          getProviders.error ||
+          undefined
+        }
+      />
+    );
   }
 
-  if (getPayments.isSuccess && getPurchases.isSuccess && getInvoices.isSuccess)
+  if (
+    getPayments.isSuccess &&
+    getPurchases.isSuccess &&
+    getInvoices.isSuccess &&
+    getProviders.isSuccess
+  )
     return (
       <div className="flex flex-col gap-6">
         <PageTitle
@@ -53,6 +84,7 @@ function Page() {
           payments={getPayments.data.data.filter((p) => p.type === "achat")}
           purchases={getPurchases.data.data}
           invoices={getInvoices.data.data}
+          providers={getProviders.data.data}
         />
       </div>
     );

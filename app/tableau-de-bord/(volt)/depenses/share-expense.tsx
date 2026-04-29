@@ -106,16 +106,11 @@ function ShareExpense({
   const formSchema = z.object({
     label: z.string().min(2, "Libellé trop court"),
     fromBankId: z.coerce.number({
-      required_error: "Veuillez sélectionner un compte source",
-      invalid_type_error: "Veuillez sélectionner un compte source",
+      message: "Veuillez sélectionner un compte source",
     }),
-    methodId: z
-      .number({
-        required_error: "Veuillez sélectionner un moyen de paiement",
-        invalid_type_error: "Veuillez sélectionner un moyen de paiement",
-      })
-      .int()
-      .positive("Veuillez sélectionner un moyen de paiement"),
+    methodId: z.coerce
+      .number({ message: "Veuillez sélectionner un moyen de paiement" })
+      .refine((val) => val >= 0, "Veuillez sélectionner un moyen de paiement"),
     to: z.object({
       label: z.string().min(2, "Libellé trop court"),
       accountNumber: z.string().optional(),
@@ -146,7 +141,7 @@ function ShareExpense({
     to: {
       label: isFacilitation
         ? `${benef?.firstName} ${benef?.lastName}`
-        : (ticket.invoice?.command.provider.name ??
+        : (ticket.facture?.command.provider.name ??
           (requestUser
             ? `${requestUser.firstName} ${requestUser.lastName}`
             : "")),
@@ -171,7 +166,7 @@ function ShareExpense({
         to: {
           label: isFacilitation
             ? benef?.firstName + " " + benef?.lastName
-            : (ticket.invoice?.command.provider.name ?? !!ticket.requestId)
+            : (ticket.facture?.command.provider.name ?? !!ticket.requestId)
               ? requestUser?.firstName.concat(" ", requestUser?.lastName)
               : "",
           accountNumber: "",

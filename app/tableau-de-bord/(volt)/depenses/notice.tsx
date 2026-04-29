@@ -27,11 +27,9 @@ const amountToWordsFR = (amount: number) => {
   return `${formatXAF(amount)} (en lettres à configurer)`;
 };
 
-
 type Props = {
   payment: PaymentRequest;
 };
-
 
 const styles = StyleSheet.create({
   page: {
@@ -120,9 +118,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export const NoticeFile = ({
-  payment,
-}: Props) => {
+export const NoticeFile = ({ payment }: Props) => {
   const today = new Date(payment.createdAt || Date.now());
   const beneficiaryLabel = "Monsieur/Madame";
 
@@ -143,7 +139,7 @@ export const NoticeFile = ({
           <Text>{beneficiaryLabel},</Text>
 
           <Text style={styles.paragraph}>
-            {`Veuillez trouver ci-joint le ${payment.method?.label ?? "virement"} ${payment.bank?.label ?? "Banque"} N°${payment.bank?.accountNumber ?? "---"} du ${format(new Date(payment.updatedAt), "dd MMMM yyyy", { locale: fr })} de ${amountLabel} (${amountWords}) émis en votre faveur pour le règlement ${payment.isPartial && "partiel"} de la facture ${payment.invoice?.reference} relatif au bon de commande ${payment.invoice?.command.reference}.`}
+            {`Veuillez trouver ci-joint le ${payment.method?.label ?? "virement"} ${payment.bank?.label ?? "Banque"} N°${payment.bank?.accountNumber ?? "---"} du ${format(new Date(payment.updatedAt), "dd MMMM yyyy", { locale: fr })} de ${amountLabel} (${amountWords}) émis en votre faveur pour le règlement ${payment.isPartial && "partiel"} de la facture ${payment.facture?.reference} relatif au bon de commande ${payment.facture?.command.reference}.`}
           </Text>
 
           <Text style={styles.paragraph}>

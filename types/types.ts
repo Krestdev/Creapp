@@ -94,7 +94,7 @@ export type PaymentRequest = {
   userId: number;
   //commandId?: number | null;
   invoiceId?: number;
-  invoice?: Invoice;
+  facture?: Invoice;
   requestId?: number | null;
   projectId?: number | null;
   createdAt: string;

@@ -57,6 +57,7 @@ import {
   PAY_STATUS,
   PaymentRequest,
   PRIORITIES,
+  Provider,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { Pagination } from "../base/pagination";
@@ -82,6 +83,7 @@ interface Props {
   payments: Array<PaymentRequest>;
   purchases: Array<BonsCommande>;
   invoices: Array<Invoice>;
+  providers: Array<Provider>;
 }
 
 const getPriorityBadge = (
@@ -158,7 +160,12 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-export function PaiementsTable({ payments, purchases, invoices }: Props) {
+export function PaiementsTable({
+  payments,
+  purchases,
+  invoices,
+  providers,
+}: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -184,8 +191,10 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
   const [priorityFilter, setPriorityFilter] = React.useState<
     "all" | PaymentRequest["priority"]
   >("all");
+  const [providerFilter, setProviderFilter] = React.useState<string>("all");
   const [prioritySearch, setPrioritySearch] = React.useState("");
   const [statusSearch, setStatusSearch] = React.useState("");
+  const [providerSearch, setProviderSearch] = React.useState("");
 
   const toReject = useMutation({
     mutationFn: async (data: PaymentRequest) =>
@@ -212,8 +221,14 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
         filtered = filtered.filter((p) => p.priority === priorityFilter);
       }
 
+      if (providerFilter !== "all") {
+        filtered = filtered.filter(
+          (p) => p.facture?.command.providerId === Number(providerFilter),
+        );
+      }
+
       return filtered;
-    }, [payments, statusFilter, priorityFilter]);
+    }, [payments, statusFilter, priorityFilter, providerFilter]);
 
   const columns: ColumnDef<
     PaymentRequest & { providerName: string; bonCommandeTitle: string }
@@ -469,6 +484,8 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
     // Réinitialiser les recherches
     setPrioritySearch("");
     setStatusSearch("");
+    setProviderFilter("all");
+    setProviderSearch("");
   };
 
   return (
@@ -502,23 +519,85 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
                 />
               </div>
 
+              {/* Provider Filter */}
+              <div className="space-y-3">
+                <Label>{"Fournisseur"}</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="w-full justify-between gap-2">
+                    <span className="w-full line-clamp-1 text-start">
+                      {providerFilter === "all"
+                        ? "Tous les fournisseurs"
+                        : providers.find((p) => p.id === Number(providerFilter))
+                            ?.name || "Sélectionner"}
+                    </span>
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un fournisseur"
+                        className="h-8"
+                        value={providerSearch}
+                        onChange={(e) => setProviderSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setProviderFilter("all");
+                        setProviderSearch("");
+                      }}
+                      className={providerFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <span>Tous les fournisseurs</span>
+                    </DropdownMenuItem>
+                    {providers
+                      .filter((p) =>
+                        p.name
+                          .toLowerCase()
+                          .includes(providerSearch.toLowerCase()),
+                      )
+                      .map((p) => (
+                        <DropdownMenuItem
+                          key={p.id}
+                          onClick={() => {
+                            setProviderFilter(p.id.toString());
+                            setProviderSearch("");
+                          }}
+                          className={cn(
+                            providerFilter === p.id.toString() && "bg-accent",
+                          )}
+                        >
+                          <span>{p.name}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    {providers.filter((p) =>
+                      p.name
+                        .toLowerCase()
+                        .includes(providerSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun fournisseur trouvé
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
               {/* Filtre par priorité avec recherche */}
               <div className="space-y-3">
                 <Label>{"Priorité"}</Label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {priorityFilter === "all"
-                          ? "Toutes les priorités"
-                          : PRIORITIES.find((p) => p.value === priorityFilter)
-                              ?.name || "Sélectionner"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
+                  <DropdownMenuTrigger className="w-full justify-between">
+                    {priorityFilter === "all"
+                      ? "Toutes les priorités"
+                      : PRIORITIES.find((p) => p.value === priorityFilter)
+                          ?.name || "Sélectionner"}
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
                     <div className="p-2 sticky top-0 bg-popover z-10 border-b">
@@ -578,20 +657,14 @@ export function PaiementsTable({ payments, purchases, invoices }: Props) {
               <div className="space-y-3">
                 <Label>{"Statut"}</Label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {statusFilter === "all"
-                          ? "Tous les statuts"
-                          : PAY_STATUS.find((s) => s.value === statusFilter)
-                              ?.name || "Sélectionner"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
+                  <DropdownMenuTrigger className="w-full justify-between">
+                    {statusFilter === "all"
+                      ? "Tous les statuts"
+                      : PAY_STATUS.find((s) => s.value === statusFilter)
+                          ?.name || "Sélectionner"}
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                   </DropdownMenuTrigger>
+
                   <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
                     <div className="p-2 sticky top-0 bg-popover z-10 border-b">
                       <Input
