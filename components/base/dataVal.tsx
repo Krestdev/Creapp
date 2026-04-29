@@ -54,7 +54,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, getUserName } from "@/lib/utils";
+import { cn, getRequestTypeBadge, getUserName, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
@@ -201,7 +201,8 @@ export function DataVal({
   const [validationType, setValidationType] = React.useState<
     "approve" | "reject"
   >("approve");
-  const [isUpdateSettleRequest, setIsUpdateSettleRequest] = React.useState(false);
+  const [isUpdateSettleRequest, setIsUpdateSettleRequest] =
+    React.useState(false);
   const [statusSearch, setStatusSearch] = React.useState("");
   const [categorySearch, setCategorySearch] = React.useState("");
   const [projectSearch, setProjectSearch] = React.useState("");
@@ -707,6 +708,37 @@ export function DataVal({
         },
       },
       {
+        accessorKey: "amount",
+        header: ({ column }) => {
+          return (
+            <span
+              className="tablehead cursor-pointer flex items-center"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {"Montant"}
+              <ArrowUpDown />
+            </span>
+          );
+        },
+        cell: ({ row }) => {
+          const value = row.original;
+          const amount =
+            value.type !== "facilitation"
+              ? !!value.amount
+                ? XAF.format(value.amount)
+                : "N/A"
+              : XAF.format(
+                  value.benFac?.list?.reduce(
+                    (acc, item) => acc + item.amount,
+                    0,
+                  ) || 0,
+                );
+          return <div>{amount}</div>;
+        },
+      },
+      {
         accessorKey: "projectId",
         header: ({ column }) => {
           return (
@@ -951,12 +983,12 @@ export function DataVal({
                               setIsUpdateApproModalOpen(true))
                             : item.type === "others"
                               ? (setSelectedItem(item),
-                                setIsUpdateOtherRequest(true)) :
-                                item.type === "settle" ?
-                                 (setSelectedItem(item),
+                                setIsUpdateOtherRequest(true))
+                              : item.type === "settle"
+                                ? (setSelectedItem(item),
                                   setIsUpdateSettleRequest(true))
-                              : (setSelectedItem(item),
-                                setIsLastValModalOpen(true))
+                                : (setSelectedItem(item),
+                                  setIsLastValModalOpen(true))
                       : openValidationModal("approve", item)
                   }
                   disabled={
@@ -983,22 +1015,23 @@ export function DataVal({
                   <LucideBan className="text-destructive" />
                   {"Rejeter"}
                 </DropdownMenuItem>
-                {(item.type === "facilitation" || item.type === "others") && item.state === "validated" && (
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setSelectedItem(item);
-                      setIsUpdatePaymentModalOpen(true);
-                    }}
-                    // disabled={
-                    //   !validationInfo.canValidate ||
-                    //   item.state !== "pending" ||
-                    //   userHasValidated
-                    // }
-                  >
-                    <LucideCreditCard className="h-4 w-4 text-blue-500" />
-                    {"Modifier le moyen de paiement"}
-                  </DropdownMenuItem>
-                )}
+                {(item.type === "facilitation" || item.type === "others") &&
+                  item.state === "validated" && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setIsUpdatePaymentModalOpen(true);
+                      }}
+                      // disabled={
+                      //   !validationInfo.canValidate ||
+                      //   item.state !== "pending" ||
+                      //   userHasValidated
+                      // }
+                    >
+                      <LucideCreditCard className="h-4 w-4 text-blue-500" />
+                      {"Modifier le moyen de paiement"}
+                    </DropdownMenuItem>
+                  )}
               </DropdownMenuContent>
             </DropdownMenu>
             {isAttach ? <Paperclip size={16} /> : ""}
@@ -1592,7 +1625,9 @@ export function DataVal({
                                       ? "Statuts"
                                       : column.id === "validationProgress"
                                         ? "Validation"
-                                        : column.id}
+                                        : column.id === "amount"
+                                          ? "Montant"
+                                          : column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}

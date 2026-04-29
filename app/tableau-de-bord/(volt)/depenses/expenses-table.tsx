@@ -1038,7 +1038,10 @@ function ExpensesTable({
                   setSelected(item);
                   setShowCancel(true);
                 }}
-                disabled={item.type === "achat"}
+                disabled={
+                  item.type === "achat" ||
+                  ["paid", "cancelled", "rejected"].includes(item.status)
+                }
               >
                 <BanIcon />
                 {"Annulation"}

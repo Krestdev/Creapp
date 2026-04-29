@@ -467,7 +467,7 @@ function ViewExpense({
                   </div>
                 </div>
               )}
-              {hasValue(payment.reason) && (
+              {!!payment.reason && (
                 <div className="view-group">
                   <span className="view-icon">
                     <AlertCircle />
@@ -717,17 +717,6 @@ function ViewExpense({
               </div>
             </div>
           )}
-
-          {/* Description */}
-          <div className="view-group col-span-2">
-            <span className="view-icon">
-              <TextQuoteIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Description"}</p>
-              <p>{payment.description ?? "N/A"}</p>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
