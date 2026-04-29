@@ -147,11 +147,10 @@ function ShareExpense({
     methodId: ticket.methodId ?? undefined, // pré-remplir si déjà défini
     to: {
       label: isFacilitation
-        ? `${benef?.firstName} ${benef?.lastName}`
-        : (ticket.facture?.command.provider.name ??
-          (requestUser
-            ? `${requestUser.firstName} ${requestUser.lastName}`
-            : "")),
+        ? benef?.firstName + " " + benef?.lastName
+        : !!provider
+          ? provider.name
+          : (requestUser?.firstName.concat(" ", requestUser?.lastName) ?? ""),
       accountNumber: "",
       phoneNum: "",
     },
