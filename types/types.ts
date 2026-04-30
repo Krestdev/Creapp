@@ -131,6 +131,10 @@ export type User = {
   signatairs?: Signatair[];
   signature?: Document;
   signatureId?: string;
+  serviceId?: number | null;
+  service?: Service | null;
+  servicehead?: Service | null;
+  serviceUserId?: number | null;
 };
 
 export type Role = {
@@ -820,4 +824,15 @@ export type Document = {
   createdAt: Date;
   updatedAt: Date;
   userId: number | null;
+};
+
+export type Service = {
+  id: number;
+  label: string;
+  description: string | null;
+  users: User[];
+  head?: User | null;
+  headId?: number | null;
+  createdAt: string;
+  updatedAt: string;
 };

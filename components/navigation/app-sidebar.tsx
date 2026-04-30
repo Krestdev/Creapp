@@ -26,6 +26,7 @@ import {
   ArrowRightLeftIcon,
   BadgeDollarSignIcon,
   BriefcaseBusiness,
+  Building2Icon,
   CircleDollarSignIcon,
   CircleUserRoundIcon,
   DatabaseIcon,
@@ -757,6 +758,21 @@ function AppSidebar() {
             authorized: ["SUPERADMIN", "VOLT"],
             badgeValue:
               transfersToCheck.length > 0 ? transfersToCheck.length : undefined,
+          },
+        ],
+      },
+      {
+        pageId: "PG-0000354650",
+        title: "Services",
+        className: "text-teal-800",
+        authorized: ["SUPERADMIN", "ADMIN", "VOLT_MANAGER"],
+        items: [
+          {
+            pageId: "PG-0000354650-01",
+            title: "Services",
+            icon: Building2Icon,
+            href: "/tableau-de-bord/services",
+            authorized: ["USER"],
           },
         ],
       },
