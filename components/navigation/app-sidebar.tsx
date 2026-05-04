@@ -857,6 +857,9 @@ function AppSidebar() {
                   {items
                     .filter((i) => {
                       if (i.authorized.length === 0) return true;
+                      if (i.pageId === "PG-02-05") {
+                        return typeof user?.serviceUserId === "number";
+                      }
                       return i.authorized.some((role) =>
                         userRoles.includes(role),
                       );
