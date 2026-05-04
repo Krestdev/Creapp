@@ -182,20 +182,18 @@ function CashRequestForm({ banks, payments }: Props) {
                     </Select>
                   </FormControl>
                   <FormDescription>
-                    <FormDescription>
-                      {fromBank ? (
-                        <span className="text-muted-foreground">
-                          {"Solde disponible : "}
-                          <span className="font-medium text-secondary">
-                            {XAF.format(fromBank.balance)}
-                          </span>
+                    {fromBank ? (
+                      <span className="text-muted-foreground">
+                        {"Solde disponible : "}
+                        <span className="font-medium text-secondary">
+                          {XAF.format(fromBank.balance)}
                         </span>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          {"Sélectionnez un compte"}
-                        </span>
-                      )}
-                    </FormDescription>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        {"Sélectionnez un compte"}
+                      </span>
+                    )}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

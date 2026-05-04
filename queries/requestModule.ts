@@ -277,6 +277,11 @@ class RequestQueries {
     return api.get(`${this.route}/validator/${userId}`).then((res) => res.data);
   };
 
+  //Service head requests
+  getServiceRequests = async (): Promise<{ data: Array<RequestModelT> }> => {
+    return api.get(`${this.route}/chief/requests`).then((res) => res.data);
+  };
+
   // ============================
   //         VALIDATION
   // ============================
@@ -378,6 +383,16 @@ class RequestQueries {
     };
 
     return api.put(`${this.route}/reviewBulk`, body).then((res) => res.data);
+  };
+
+  //Validate Service Requests
+  validateServiceRequests = async (
+    id: number,
+    decision: "APPROVED" | "REJECTED",
+  ): Promise<{ data: RequestModelT }> => {
+    return api
+      .put(`${this.route}/takeaction/${id}`, { decision })
+      .then((res) => res.data);
   };
 
   // ============================

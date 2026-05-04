@@ -176,6 +176,11 @@ function AppSidebar() {
     queryFn: bankQ.getAll,
   });
 
+  const serviceHeadRequests = useQuery({
+    queryKey: ["serviceRequests"],
+    queryFn: () => requestQ.getServiceRequests(),
+  });
+
   const filteredTickTransfert = React.useMemo(() => {
     return getTransactions.data?.data.filter((transaction) => {
       //Filter Tab
@@ -418,7 +423,8 @@ function AppSidebar() {
     providers.isLoading ||
     getPurchases.isLoading ||
     getPayType.isLoading ||
-    getBanks.isLoading
+    getBanks.isLoading ||
+    serviceHeadRequests.isLoading
   ) {
     return (
       <Sidebar>
@@ -446,7 +452,8 @@ function AppSidebar() {
     providers.isError ||
     getPurchases.isError ||
     getPayType.isError ||
-    getBanks.isError
+    getBanks.isError ||
+    serviceHeadRequests.isError
   ) {
     return (
       <Sidebar>
@@ -474,7 +481,8 @@ function AppSidebar() {
     providers.isSuccess &&
     getPurchases.isSuccess &&
     getPayType.isSuccess &&
-    getBanks.isSuccess
+    getBanks.isSuccess &&
+    serviceHeadRequests.isSuccess
   ) {
     const navLinks: NavigationGroup[] = [
       {
@@ -543,6 +551,13 @@ function AppSidebar() {
             href: "/tableau-de-bord/besoins/validation",
             authorized: ["SUPERADMIN", "MANAGER"],
             badgeValue: pendingData.length > 0 ? pendingData.length : undefined,
+          },
+          {
+            pageId: "PG-02-05",
+            title: "Besoins du Service",
+            href: "/tableau-de-bord/besoins/service",
+            authorized: ["SUPERADMIN", "USER"],
+            //badgeValue: serviceHeadRequests.data?.data.length,
           },
         ],
       },

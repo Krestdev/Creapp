@@ -22,6 +22,7 @@ import ExpensesTableSign from "./expenses-table-sign";
 import { userQ } from "@/queries/baseModule";
 import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
+import { purchaseQ } from "@/queries/purchase-order";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
@@ -54,19 +55,24 @@ function Page() {
     queryFn: transactionQ.getAll,
   });
   const getUsers = useQuery({
-      queryKey: ["users"],
-      queryFn: userQ.getAll,
-    });
+    queryKey: ["users"],
+    queryFn: userQ.getAll,
+  });
   const getProjects = useQuery({
-      queryKey: ["projects"],
-      queryFn: async () => {
-        return projectQ.getAll();
-      },
-    });
+    queryKey: ["projects"],
+    queryFn: async () => {
+      return projectQ.getAll();
+    },
+  });
   const getRequests = useQuery({
     queryKey: ["requests"],
     queryFn: requestQ.getAll,
-  })
+  });
+
+  const getPurchases = useQuery({
+    queryKey: ["purchases"],
+    queryFn: purchaseQ.getAll,
+  });
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { user } = useStore();
@@ -109,15 +115,19 @@ function Page() {
 
     // Séparation des paiements par statut
     const pendingDepensePayments = authorizedPayments.filter(
-      (p) => p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "pending_depense"
+      (p) =>
+        p.signer?.flatMap((u) => u.id)?.includes(currentUserId) &&
+        p.status === "pending_depense",
     );
 
     const unsignedPayments = authorizedPayments.filter(
-      (p) => !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) && p.status === "unsigned"
+      (p) =>
+        !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) &&
+        p.status === "unsigned",
     );
 
     const signedPayments = authorizedPayments.filter(
-      (p) => (p.status === "signed" || p.status === "paid")
+      (p) => p.status === "signed" || p.status === "paid",
     );
 
     // Tous les paiements en attente (pour l'onglet)
@@ -195,7 +205,8 @@ function Page() {
     signatair.isLoading ||
     getProjects.isLoading ||
     getUsers.isLoading ||
-    getRequests.isLoading
+    getRequests.isLoading ||
+    getPurchases.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -210,7 +221,8 @@ function Page() {
     signatair.isError ||
     getProjects.isError ||
     getUsers.isError ||
-    getRequests.isError
+    getRequests.isError ||
+    getPurchases.isError
   ) {
     return (
       <ErrorPage
@@ -225,6 +237,7 @@ function Page() {
           getProjects.error ||
           getUsers.error ||
           getRequests.error ||
+          getPurchases.error ||
           undefined
         }
       />
@@ -232,7 +245,6 @@ function Page() {
   }
 
   console.log(filteredData);
-
 
   if (
     isSuccess &&
@@ -244,7 +256,8 @@ function Page() {
     signatair.isSuccess &&
     getProjects.isSuccess &&
     getUsers.isSuccess &&
-    getRequests.isSuccess
+    getRequests.isSuccess &&
+    getPurchases.isSuccess
   ) {
     return (
       <div className="content">
@@ -259,11 +272,11 @@ function Page() {
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
         </div>
-          <TabBar
-            tabs={tabs}
-            setSelectedTab={setSelectedTab}
-            selectedTab={selectedTab}
-          />
+        <TabBar
+          tabs={tabs}
+          setSelectedTab={setSelectedTab}
+          selectedTab={selectedTab}
+        />
         {selectedTab === 0 ? (
           <ExpensesTableSign
             key="pending-table"
@@ -276,8 +289,10 @@ function Page() {
             payType={getPayType.data.data}
             transactions={getTransaction.data.data}
             projects={getProjects.data.data}
-            users={getUsers.data.data} 
-            requests={getRequests.data.data}          />
+            users={getUsers.data.data}
+            requests={getRequests.data.data}
+            purchases={getPurchases.data.data}
+          />
         ) : (
           <ExpensesTableSign
             key="signed-table"
@@ -292,6 +307,7 @@ function Page() {
             projects={getProjects.data.data}
             users={getUsers.data.data}
             requests={getRequests.data.data}
+            purchases={getPurchases.data.data}
           />
         )}
       </div>

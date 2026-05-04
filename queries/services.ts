@@ -13,12 +13,15 @@ export interface UpdateService extends Omit<
   Service,
   "users" | "head" | "createdAt" | "updatedAt" | "id"
 > {
-  users: number[];
   headId?: number;
 }
 
+export interface UpdateUsers {
+  users: number[];
+}
+
 class ServiceQueries {
-  route = "/request/services";
+  route = "/request/service";
 
   // --------------------------------------
   // CREATE (POST)
@@ -49,6 +52,21 @@ class ServiceQueries {
   ): Promise<{ data: Service }> => {
     return api.put(`${this.route}/${id}`, data).then((res) => res.data);
   };
+
+  removeUsers = async (
+    id: number,
+    data: UpdateUsers,
+  ): Promise<{ data: Service }> => {
+    return api.post(`${this.route}/remove/${id}`, data).then((res) => res.data);
+  };
+
+  addUsers = async (
+    id: number,
+    data: UpdateUsers,
+  ): Promise<{ data: Service }> => {
+    return api.post(`${this.route}/add/${id}`, data).then((res) => res.data);
+  };
+
   delete = async (id: number): Promise<{ data: Service }> => {
     return api.delete(`${this.route}/${id}`).then((res) => res.data);
   };

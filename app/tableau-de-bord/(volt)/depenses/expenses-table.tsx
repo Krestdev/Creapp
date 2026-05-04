@@ -74,6 +74,7 @@ import {
 import { cn, getRequestTypeBadge, XAF } from "@/lib/utils";
 import {
   Bank,
+  BonsCommande,
   DateFilter,
   Invoice,
   PaymentRequest,
@@ -174,6 +175,7 @@ interface Props {
   transactions: Array<Transaction>;
   signataires: Array<Signatair>;
   vehicles: Array<Vehicle>;
+  purchases: Array<BonsCommande>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -273,6 +275,7 @@ function ExpensesTable({
   transactions,
   signataires,
   vehicles,
+  purchases,
 }: Props) {
   const types = requestTypes
     .map((x) => {
@@ -1875,6 +1878,7 @@ function ExpensesTable({
           payTypes={paymentTypes}
           requests={request}
           requestTypes={requestTypes}
+          purchases={purchases}
         />
       )}
       {selected && (

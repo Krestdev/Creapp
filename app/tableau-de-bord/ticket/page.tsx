@@ -203,6 +203,7 @@ function Page() {
             requests={getRequests.data.data}
             projects={getProjects.data.data}
             payTypes={getPayTypes.data.data}
+            purchases={getPurchase.data.data}
           />
         ) : (
           <Empty message={"Aucun ticket disponible"} />

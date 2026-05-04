@@ -254,6 +254,8 @@ export type RequestModelT = {
     createdAt: Date;
     updatedAt: Date;
   }>;
+  decision?: "APPROVED" | "REJECTED" | "PENDING";
+  serviceChiefId?: number;
 };
 
 export type TableData = {

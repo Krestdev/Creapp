@@ -10,10 +10,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
 import { cn, getPaymentTypeBadge, XAF } from "@/lib/utils";
 import { signatairQ } from "@/queries/signatair";
 import { vehicleQ } from "@/queries/vehicule";
 import {
+  BonsCommande,
   Invoice,
   PAY_STATUS,
   PaymentRequest,
@@ -34,6 +40,7 @@ import {
   CalendarFoldIcon,
   Car,
   ChevronsUp,
+  CircleDollarSignIcon,
   CircleUserRoundIcon,
   CreditCard,
   DollarSignIcon,
@@ -65,6 +72,7 @@ interface Props {
   users: User[];
   requests: RequestModelT[];
   requestTypes: Array<RequestType>;
+  purchases: Array<BonsCommande>;
 }
 
 function getStatusBadge(status: PaymentRequest["status"]): {
@@ -112,7 +120,29 @@ function ViewExpense({
   users,
   requests,
   requestTypes,
+  purchases,
 }: Props) {
+  //Utility function to get the total amount paid for a purchase order
+  const getProgress = (
+    purchaseOrder: BonsCommande,
+  ): { progress: number; value: number } => {
+    //To-Do complete this code
+    const data = invoices.filter((i) => i.commandId === purchaseOrder.id);
+    //console.log(data);
+
+    const values = data.flatMap((i) =>
+      i.payment.map((p) => {
+        if (p.status !== "paid") return 0;
+        return p.price;
+      }),
+    );
+    return {
+      progress:
+        (values.reduce((acc, i) => acc + i, 0) * 100) / purchaseOrder.netToPay,
+      value: values.reduce((acc, i) => acc + i, 0),
+    };
+  };
+
   const request = requests.find((r) => r.id === payment.requestId);
 
   const vehicleData = useQuery({
@@ -122,6 +152,9 @@ function ViewExpense({
   });
 
   const invoice = invoices.find((p) => p.id === payment.invoiceId);
+  const purchase = purchases.find((p) => p.id === invoice?.commandId);
+  const i = purchase ? getProgress(purchase) : { progress: 0, value: 0 };
+
   const getSignataire = useQuery({
     queryKey: ["signatairs"],
     queryFn: signatairQ.getAll,
@@ -418,6 +451,21 @@ function ViewExpense({
                 </div>
               )}
 
+              {purchase && (
+                <div className="view-group">
+                  <span className="view-icon">
+                    <CircleDollarSignIcon />
+                  </span>
+                  <div className="w-full max-w-40 flex flex-col">
+                    <p className="view-group-title">{"État des paiements"}</p>
+                    <Progress value={i.progress} className={"w-full"}>
+                      <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
+                      <ProgressValue />
+                    </Progress>
+                  </div>
+                </div>
+              )}
+
               {hasValue(payment.deadline) && (
                 <div className="view-group">
                   <span className="view-icon">
@@ -425,7 +473,7 @@ function ViewExpense({
                   </span>
                   <div className="flex flex-col">
                     <p className="view-group-title">{"Date limite"}</p>
-                    <p>
+                    <p className="font-semibold">
                       {format(new Date(payment.deadline), "dd MMMM yyyy", {
                         locale: fr,
                       })}

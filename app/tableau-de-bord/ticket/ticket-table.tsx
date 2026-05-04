@@ -37,6 +37,7 @@ import { useStore } from "@/providers/datastore";
 import {} from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
+  BonsCommande,
   Invoice,
   PAYMENT_TYPES,
   PAY_STATUS,
@@ -86,6 +87,7 @@ interface TicketsTableProps {
   requests: Array<RequestModelT>;
   projects: Array<ProjectT>;
   payTypes: Array<PayType>;
+  purchases: Array<BonsCommande>;
 }
 
 const getPriorityBadge = (
@@ -162,6 +164,7 @@ export function TicketTable({
   requests,
   projects,
   payTypes,
+  purchases,
 }: TicketsTableProps) {
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<"all" | PaymentRequest["type"]>(
@@ -1012,6 +1015,7 @@ export function TicketTable({
           requests={requests}
           projects={projects}
           payTypes={payTypes}
+          purchases={purchases}
         />
       )}
 

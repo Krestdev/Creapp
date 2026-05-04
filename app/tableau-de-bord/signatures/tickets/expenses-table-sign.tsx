@@ -72,6 +72,7 @@ import { cn, getPaymentTypeBadge, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   Bank,
+  BonsCommande,
   DateFilter,
   Invoice,
   PAY_STATUS,
@@ -158,6 +159,7 @@ interface Props {
   users: Array<User>;
   projects: Array<ProjectT>;
   requests: Array<RequestModelT>;
+  purchases: Array<BonsCommande>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -228,6 +230,7 @@ function ExpensesTableSign({
   users,
   projects,
   requests,
+  purchases,
 }: Props) {
   const { user } = useStore();
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -1116,6 +1119,7 @@ function ExpensesTableSign({
           requests={requests}
           payTypes={payType}
           requestTypes={requestTypes}
+          purchases={purchases}
         />
       )}
       {selected && (

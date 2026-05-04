@@ -60,13 +60,19 @@ import {
 } from "@/components/ui/table";
 
 import { formatToShortName, totalAmountPurchase, XAF } from "@/lib/utils";
-import { BonsCommande, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
+import {
+  BonsCommande,
+  PRIORITIES,
+  PURCHASE_ORDER_STATUS,
+  User,
+} from "@/types/types";
 import { format } from "date-fns";
 import ViewPurchase from "../viewPurchase";
 import ViewSignedPurchase from "../viewSignedPurchase";
 
 interface Props {
   data: Array<BonsCommande>;
+  users: Array<User>;
 }
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
@@ -112,7 +118,7 @@ const getPriorityLabel = (
   }
 };
 
-export function ApprovedTable({ data }: Props) {
+export function ApprovedTable({ data, users }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -644,7 +650,7 @@ export function ApprovedTable({ data }: Props) {
             open={view}
             openChange={setView}
             purchaseOrder={selectedValue}
-            users={[]}
+            users={users}
           />
           <ViewSignedPurchase
             open={viewSigned}

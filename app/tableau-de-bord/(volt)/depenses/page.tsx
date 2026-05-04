@@ -96,6 +96,11 @@ function Page() {
     queryFn: vehicleQ.getAll,
   });
 
+  const getPurchases = useQuery({
+    queryKey: ["purchases"],
+    queryFn: purchaseQ.getAll,
+  });
+
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.data.filter((x) => x.type !== "appro");
@@ -113,7 +118,8 @@ function Page() {
     getUsers.isLoading ||
     getTransactions.isLoading ||
     getSignataires.isLoading ||
-    getVehicles.isLoading
+    getVehicles.isLoading ||
+    getPurchases.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -129,7 +135,8 @@ function Page() {
     getUsers.isError ||
     getTransactions.isError ||
     getSignataires.isError ||
-    getVehicles.isError
+    getVehicles.isError ||
+    getPurchases.isError
   ) {
     return (
       <ErrorPage
@@ -146,6 +153,7 @@ function Page() {
           getTransactions.error ||
           getSignataires.error ||
           getVehicles.error ||
+          getPurchases.error ||
           undefined
         }
       />
@@ -163,7 +171,8 @@ function Page() {
     getUsers.isSuccess &&
     getTransactions.isSuccess &&
     getSignataires.isSuccess &&
-    getVehicles.isSuccess
+    getVehicles.isSuccess &&
+    getPurchases.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -237,6 +246,7 @@ function Page() {
           transactions={getTransactions.data.data}
           signataires={getSignataires.data.data}
           vehicles={getVehicles.data.data}
+          purchases={getPurchases.data.data}
         />
       </div>
     );

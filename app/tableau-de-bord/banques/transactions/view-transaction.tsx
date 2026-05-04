@@ -197,7 +197,7 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                   {getStatusBadge(transaction.status).label}
                 </Badge>
                 {!!transaction.reason && (
-                  <p className="mt-1 text-xs text-destructive font-normal">{`Motif: ${transaction.reason}`}</p>
+                  <span className="mt-1 text-xs text-destructive font-normal">{`Motif: ${transaction.reason}`}</span>
                 )}
               </p>
             </div>

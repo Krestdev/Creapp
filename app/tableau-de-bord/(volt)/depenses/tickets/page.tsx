@@ -77,6 +77,11 @@ function Page() {
     queryFn: () => vehicleQ.getAll(),
   });
 
+  const getPurchases = useQuery({
+    queryKey: ["purchases"],
+    queryFn: purchaseQ.getAll,
+  });
+
   if (
     isLoading ||
     getInvoices.isLoading ||
@@ -89,7 +94,8 @@ function Page() {
     getProjects.isLoading ||
     getTransactions.isLoading ||
     getSignataires.isLoading ||
-    getVehicles.isLoading
+    getVehicles.isLoading ||
+    getPurchases.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -105,7 +111,8 @@ function Page() {
     getProjects.isError ||
     getTransactions.isError ||
     getSignataires.isError ||
-    getVehicles.isError
+    getVehicles.isError ||
+    getPurchases.isError
   ) {
     return (
       <ErrorPage
@@ -122,6 +129,7 @@ function Page() {
           getTransactions.error ||
           getSignataires.error ||
           getVehicles.error ||
+          getPurchases.error ||
           undefined
         }
       />
@@ -139,7 +147,8 @@ function Page() {
     getProjects.isSuccess &&
     getTransactions.isSuccess &&
     getSignataires.isSuccess &&
-    getVehicles.isSuccess
+    getVehicles.isSuccess &&
+    getPurchases.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -202,6 +211,7 @@ function Page() {
           transactions={getTransactions.data.data}
           signataires={getSignataires.data.data}
           vehicles={getVehicles.data.data}
+          purchases={getPurchases.data.data}
         />
         <ExpensesTable
           payments={data.data.filter(
@@ -218,6 +228,7 @@ function Page() {
           transactions={getTransactions.data.data}
           signataires={getSignataires.data.data}
           vehicles={getVehicles.data.data}
+          purchases={getPurchases.data.data}
         />
       </div>
     );

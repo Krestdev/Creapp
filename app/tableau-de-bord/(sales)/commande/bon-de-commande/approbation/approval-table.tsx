@@ -73,7 +73,12 @@ import { TabBar } from "@/components/base/TabBar";
 import { Textarea } from "@/components/ui/textarea";
 import { formatToShortName, totalAmountPurchase, XAF } from "@/lib/utils";
 import { purchaseQ } from "@/queries/purchase-order";
-import { BonsCommande, PRIORITIES, PURCHASE_ORDER_STATUS } from "@/types/types";
+import {
+  BonsCommande,
+  PRIORITIES,
+  PURCHASE_ORDER_STATUS,
+  User,
+} from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -81,6 +86,7 @@ import ViewPurchase from "../viewPurchase";
 
 interface Props {
   data: Array<BonsCommande>;
+  users: Array<User>;
 }
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
@@ -129,7 +135,7 @@ const getPriorityLabel = (
 const canDecide = (status: Status) =>
   status === "PENDING" || status === "IN-REVIEW";
 
-export function PurchaseApprovalTable({ data }: Props) {
+export function PurchaseApprovalTable({ data, users }: Props) {
   const purchaseOrderQuery = React.useMemo(() => purchaseQ, []);
 
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -281,7 +287,11 @@ export function PurchaseApprovalTable({ data }: Props) {
       ),
       cell: ({ row }) => {
         const devi: BonsCommande["devi"] = row.getValue("devi");
-        return <div className="font-medium max-w-[500px] truncate">{devi.commandRequest.title}</div>;
+        return (
+          <div className="font-medium max-w-[500px] truncate">
+            {devi.commandRequest.title}
+          </div>
+        );
       },
     },
 
@@ -502,14 +512,14 @@ export function PurchaseApprovalTable({ data }: Props) {
     },
   });
 
- const resetAllFilters = () => {
-  setGlobalFilter("");
-  setPriorityFilter("all");
-  // Réinitialiser les recherches
-  setPrioritySearch("");
-  // setPenaltyFilter("all"); // Si vous décommentez le filtre pénalités
-  // setPenaltySearch(""); // Si vous décommentez le filtre pénalités
-};
+  const resetAllFilters = () => {
+    setGlobalFilter("");
+    setPriorityFilter("all");
+    // Réinitialiser les recherches
+    setPrioritySearch("");
+    // setPenaltyFilter("all"); // Si vous décommentez le filtre pénalités
+    // setPenaltySearch(""); // Si vous décommentez le filtre pénalités
+  };
 
   const isDeciding = approveMutation.isPending || rejectMutation.isPending;
 
@@ -819,13 +829,7 @@ export function PurchaseApprovalTable({ data }: Props) {
       </div>
 
       {/* PAGINATION */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* <div className="text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} sur{" "}
-          {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
-        </div> */}
-        {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
-      </div>
+      <Pagination table={table} pageSize={10} />
 
       {/* VIEW */}
       {selectedValue && (
@@ -833,7 +837,7 @@ export function PurchaseApprovalTable({ data }: Props) {
           open={view}
           openChange={setView}
           purchaseOrder={selectedValue}
-          users={[]}
+          users={users}
         />
       )}
 

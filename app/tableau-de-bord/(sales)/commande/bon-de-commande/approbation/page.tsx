@@ -6,6 +6,7 @@ import { useStore } from "@/providers/datastore";
 import { purchaseQ } from "@/queries/purchase-order";
 import { useQuery } from "@tanstack/react-query";
 import { PurchaseApprovalTable } from "./approval-table";
+import { userQ } from "@/queries/baseModule";
 
 function Page() {
   const { user } = useStore();
@@ -22,11 +23,16 @@ function Page() {
     queryFn: purchaseQ.getAll,
   });
 
-  if (isLoading) {
+  const getUsers = useQuery({
+    queryKey: ["users"],
+    queryFn: userQ.getAll,
+  });
+
+  if (isLoading || getUsers.isLoading) {
     return <LoadingPage />;
   }
-  if (isError) {
-    return <ErrorPage error={error} />;
+  if (isError || getUsers.isError) {
+    return <ErrorPage error={error || getUsers.error || undefined} />;
   }
   if (!auth) {
     return (
@@ -40,7 +46,7 @@ function Page() {
       />
     );
   }
-  if (isSuccess) {
+  if (isSuccess && getUsers.isSuccess) {
     return (
       <div className="content">
         <PageTitle
@@ -48,7 +54,7 @@ function Page() {
           subtitle="Approbation des bons de commandes"
           color="blue"
         />
-        <PurchaseApprovalTable data={data.data} />
+        <PurchaseApprovalTable data={data.data} users={getUsers.data.data} />
       </div>
     );
   }
