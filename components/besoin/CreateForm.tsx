@@ -351,7 +351,7 @@ export default function MyForm({ categories, users, projects }: Props) {
             name="beneficiaire"
             render={({ field }) => (
               <FormItem>
-                <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
+                <FormLabel isRequired>{"À Réceptionner par"}</FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
