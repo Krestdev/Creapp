@@ -108,7 +108,7 @@ const formSchema = z.object({
     .optional(),
   RCCM: z.string().optional(),
   NIU: z.string().optional(),
-  regem: z.string().min(1, "Le régime du fournisseur est obligatoire"),
+  regem: z.enum(["Réel", "Impot général synthétique"]),
 });
 
 export default function CreateProviderForm() {

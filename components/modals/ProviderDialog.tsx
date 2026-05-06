@@ -23,11 +23,19 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Provider } from "@/types/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Le nom du fournisseur doit contenir au moins 2 caractères.",
   }),
+  regem: z.enum(["Réel", "Impot général synthétique"]),
 });
 
 interface DetailModalProps {
@@ -41,18 +49,20 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      regem: undefined,
     },
   });
 
   const { mutate: registerProvider, isPending } = useMutation({
-    mutationFn: (data: Omit<Provider, "id" | "createdAt">) => providerQ.create(data),
+    mutationFn: (data: Omit<Provider, "id" | "createdAt">) =>
+      providerQ.create(data),
     // Dans ProviderDialog, modifiez le onSuccess :
     onSuccess: () => {
       toast.success("Fournisseur ajouté avec succès !");
 
       onOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(
         "Une erreur est survenue lors de la creation du fournisseur.",
       );
@@ -64,6 +74,7 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
     try {
       registerProvider({
         name: values.name,
+        regem: values.regem,
         expireAtcarte_contribuable: null,
         expireAtplan_localisation: null,
         expireAtcommerce_registre: null,
@@ -77,9 +88,9 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-screen overflow-y-auto p-0 gap-0 overflow-x-hidden border-none z-50">
+      <DialogContent className="z-50">
         {/* Header */}
-        <DialogHeader className="bg-linear-to-r from-[#8B1538] to-[#700032] text-white p-6 m-4 rounded-lg pb-8">
+        <DialogHeader variant={"secondary"}>
           <DialogTitle className="text-xl font-semibold">
             {"Créer un fournisseur"}
           </DialogTitle>
@@ -101,6 +112,36 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="regem"
+                render={({ field }) => (
+                  <FormItem className="@min-[640px]:col-span-2">
+                    <FormLabel isRequired>{"Régime"}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10! shadow-none! rounded! py-1">
+                          <SelectValue placeholder="Sélectionner un Régime" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {[
+                          { id: 1, value: "Réel" },
+                          { id: 2, value: "Impot général synthétique" },
+                        ].map((p) => (
+                          <SelectItem key={p.id} value={p.value}>
+                            {p.value}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

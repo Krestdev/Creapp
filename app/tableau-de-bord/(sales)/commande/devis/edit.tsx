@@ -162,7 +162,7 @@ function EditQuotation({ open, openChange, quotation }: Props) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (values: FormValues) =>
-      quotationQ.updateJson(quotation.id, {
+      quotationQ.update(quotation.id, {
         devis: {
           commandRequestId: values.commandRequestId,
           providerId: values.providerId,

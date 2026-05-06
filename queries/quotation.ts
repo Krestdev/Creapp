@@ -16,17 +16,7 @@ interface CreateQuotation {
   elements: Array<Omit<QuotationElement, "id" | "deviId" | "status">>;
 }
 interface UpdateQuotation {
-  devis: Omit<
-    Quotation,
-    | "id"
-    | "element"
-    | "ref"
-    | "createdAt"
-    | "updatedAt"
-    | "status"
-    | "commandRequest"
-    | "provider"
-  >;
+  devis: Partial<Quotation>;
   elements: Array<
     { id?: number } & Omit<QuotationElement, "deviId" | "id" | "status">
   >;
