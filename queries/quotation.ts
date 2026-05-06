@@ -32,6 +32,18 @@ interface UpdateQuotation {
   >;
 }
 
+interface UpdateQuotationPayload {
+  devis: {
+    commandRequestId: number;
+    providerId: number;
+    dueDate: string;
+    userId: number;
+  };
+  elements: Array<
+    { id?: number } & Omit<QuotationElement, "deviId" | "id" | "status">
+  >;
+}
+
 class QuotationQueries {
   route = "/request/devi";
 
@@ -89,6 +101,16 @@ class QuotationQueries {
       })
       .then((response) => response.data);
   };
+  // UPDATE — PUT JSON (no proof/file upload)
+  updateJson = async (
+    id: number,
+    payload: UpdateQuotationPayload,
+  ): Promise<{ data: Quotation }> => {
+    return api
+      .put(`${this.route}/${id}`, payload)
+      .then((response) => response.data);
+  };
+
   cancel = async (id: number): Promise<{ data: Quotation }> => {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
   };

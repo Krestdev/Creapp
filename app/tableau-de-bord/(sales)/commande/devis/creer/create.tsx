@@ -127,7 +127,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
     today.setDate(today.getDate() + 3);
 
     if (quotation) {
-      console.log("Quotation data:", quotation); // Pour déboguer
+      //console.log("Quotation data:", quotation); // Pour déboguer
 
       return {
         commandRequestId: quotation.commandRequestId,
@@ -191,7 +191,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
         })),
       };
 
-      console.log("Payload to send:", payload);
+      //console.log("Payload to send:", payload);
 
       if (!id) {
         return quotationQ.create(payload);
