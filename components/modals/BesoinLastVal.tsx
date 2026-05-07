@@ -42,6 +42,7 @@ import { z } from "zod";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Label } from "../ui/label";
+import { userQ } from "@/queries/baseModule";
 
 // Validation Zod
 const formSchema = z.object({
@@ -67,7 +68,6 @@ interface ValidationModalProps {
   titre: string | undefined;
   description: string | undefined;
   categories: Array<Category>;
-  users: Array<User>;
 }
 
 export function BesoinLastVal({
@@ -77,10 +77,14 @@ export function BesoinLastVal({
   titre,
   description,
   categories,
-  users,
 }: ValidationModalProps) {
   const [openD, setOpenD] = useState(false);
   const { user } = useStore();
+
+  const getUser = useQuery({
+    queryKey: ["user", data.userId],
+    queryFn: () => userQ.getOne(data.userId),
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -202,8 +206,6 @@ export function BesoinLastVal({
     }
   }, [open, data]);
 
-  const requestBy = users.find((u) => u.id === data.userId);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
@@ -236,13 +238,47 @@ export function BesoinLastVal({
               )}
             />
 
-            {!!requestBy && (
+            {getUser.data && (
               <div className="grid gap-2">
                 <Label>{"Emetteur"}</Label>
                 <Input
-                  value={requestBy.firstName.concat(" ", requestBy.lastName)}
+                  value={getUser.data.data.firstName.concat(
+                    " ",
+                    getUser.data.data.lastName,
+                  )}
                   disabled
                 />
+              </div>
+            )}
+
+            {data.beneficiary === "me" && (
+              <div className="grid gap-2">
+                <Label>{"À Réceptionner par"}</Label>
+                <Input
+                  value={getUser.data?.data.firstName.concat(
+                    " ",
+                    getUser.data?.data.lastName,
+                  )}
+                  disabled
+                />
+              </div>
+            )}
+
+            {data.beficiaryList && data.beficiaryList.length > 0 && (
+              <div className="grid gap-2">
+                <Label>{"Bénéficiaires"}</Label>
+                {data.beficiaryList.map((beneficiary) => {
+                  return (
+                    <div key={beneficiary.id} className="grid gap-2">
+                      <Label>
+                        {beneficiary.firstName.concat(
+                          " ",
+                          beneficiary.lastName,
+                        )}
+                      </Label>
+                    </div>
+                  );
+                })}
               </div>
             )}
 

@@ -1848,24 +1848,10 @@ export function DataVal({
           onOpenChange={setIsModalOpen}
           data={selectedItem}
           projects={projectsData}
-          categories={categoriesData}
           users={usersData}
           payments={paymentsData}
           receptions={receptions}
           purchaseOrders={purchaseOrders}
-          actionButton="Approuver"
-          action={() => {
-            if (!selectedItem) return;
-
-            const validationInfo = getValidationInfo(selectedItem);
-            if (validationInfo.isLastValidator) {
-              setIsModalOpen(false);
-              setIsLastValModalOpen(true);
-            } else {
-              setIsModalOpen(false);
-              openValidationModal("approve", selectedItem);
-            }
-          }}
         />
       )}
 
@@ -1920,7 +1906,6 @@ export function DataVal({
             titre={"Approuver le besoin"}
             description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
             categories={categoriesData}
-            users={usersData}
           />
           <BesoinFacLastVal
             open={isUpdateFacModalOpen}

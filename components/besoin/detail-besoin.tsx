@@ -13,15 +13,16 @@ import {
 } from "@/components/ui/dialog";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
+import { categoryQ } from "@/queries/categoryModule";
 import {
   BonsCommande,
-  Category,
   PaymentRequest,
   ProjectT,
   Reception,
   RequestModelT,
   User,
 } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -54,12 +55,9 @@ interface DetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: RequestModelT;
-  action: () => void;
-  actionButton: string;
   payments: PaymentRequest[];
   users: User[];
   projects: ProjectT[];
-  categories: Category[];
   receptions: Array<Reception>;
   purchaseOrders: Array<BonsCommande>;
 }
@@ -71,7 +69,6 @@ export function DetailBesoin({
   users,
   payments,
   projects,
-  categories,
   receptions,
   purchaseOrders,
 }: DetailModalProps) {
@@ -87,10 +84,11 @@ export function DetailBesoin({
     return project?.label || projectId;
   };
 
-  const getCategoryName = (categoryId: string) => {
-    const category = categories.find((cat) => cat.id === Number(categoryId));
-    return category?.label || categoryId;
-  };
+  const getCategory = useQuery({
+    queryKey: ["category", data.categoryId],
+    queryFn: () => categoryQ.getCategory(data.categoryId!),
+    enabled: !!data.categoryId,
+  });
 
   const getUserName = (userId: string) => {
     const user = users.find((u) => u.id === Number(userId));
@@ -265,15 +263,21 @@ export function DetailBesoin({
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Catégorie"}</p>
-              <p className="font-semibold">
-                {!getCategoryName(String(data.categoryId)).includes("facilita")
-                  ? getCategoryName(String(data.categoryId))
-                  : data.type === "facilitation"
-                    ? "Facilitation"
-                    : data.type === "ressource_humaine"
-                      ? "Ressources Humaines"
-                      : data.type === "speciaux" && "Besoins Spéciaux"}
-              </p>
+              {getCategory.isLoading ? (
+                <p className="animate-pulse">{"Chargement..."}</p>
+              ) : (
+                getCategory.isSuccess && (
+                  <p className="font-semibold">
+                    {!getCategory.data.data.label.includes("facilita")
+                      ? getCategory.data.data.label
+                      : data.type === "facilitation"
+                        ? "Facilitation"
+                        : data.type === "ressource_humaine"
+                          ? "Ressources Humaines"
+                          : data.type === "speciaux" && "Besoins Spéciaux"}
+                  </p>
+                )
+              )}
             </div>
           </div>
 
