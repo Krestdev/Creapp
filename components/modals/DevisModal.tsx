@@ -11,7 +11,7 @@ import {
 import { cn, getQuotationAmount, XAF } from "@/lib/utils";
 import { Provider, Quotation, RequestModelT, User } from "@/types/types";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { el, fr } from "date-fns/locale";
 import {
   CheckCircle,
   DollarSign,
@@ -32,6 +32,8 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { useQuery } from "@tanstack/react-query";
+import { requestQ } from "@/queries/requestModule";
 
 interface DetailModalProps {
   open: boolean;
@@ -40,7 +42,6 @@ interface DetailModalProps {
   title: string | undefined;
   users: Array<User>;
   providers: Array<Provider>;
-  requests: Array<RequestModelT>;
 }
 
 export function DevisModal({
@@ -50,7 +51,6 @@ export function DevisModal({
   title,
   users,
   providers,
-  requests,
 }: DetailModalProps) {
   const totalAmount = getQuotationAmount(data, providers);
 
@@ -73,10 +73,6 @@ export function DevisModal({
         " " +
         users.find((u) => u.id === userId)?.lastName || "Non spécifique"
     );
-  };
-
-  const getRequestTitle = (requestId?: number) => {
-    return requests.find((r) => r.id === requestId)?.label || "Non spécifié";
   };
 
   // Formater les dates
@@ -294,7 +290,7 @@ export function DevisModal({
                         )}
                       >
                         <TableCell className="font-medium inline-flex gap-1 items-center">
-                          {getRequestTitle(el.requestModelId) || "N/A"}
+                          {el?.request?.label || "N/A"}
                           {el.status === "SELECTED" && (
                             <CheckCircle size={12} className="text-green-600" />
                           )}

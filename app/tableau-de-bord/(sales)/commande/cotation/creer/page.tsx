@@ -11,10 +11,8 @@ import { useQuery } from "@tanstack/react-query";
 
 const CreerPage = () => {
   const getRequests = useQuery({
-    queryKey: ["requests"],
-    queryFn: () => {
-      return requestQ.getAll();
-    },
+    queryKey: ["requestsQuotation"],
+    queryFn: () => requestQ.getForQuotation(),
   });
 
   const getUsers = useQuery({
@@ -66,9 +64,6 @@ const CreerPage = () => {
     getCommandRequests.isSuccess &&
     getUsers.isSuccess
   ) {
-
-    console.log(getUsers.data.data);
-    
     return (
       <div className="flex flex-col gap-6">
         <PageTitle
@@ -81,7 +76,6 @@ const CreerPage = () => {
         <CreateCotation
           users={getUsers.data.data}
           requests={getRequests.data.data}
-          quotationRequests={getCommandRequests.data.data}
           categories={getCategories.data.data}
         />
       </div>

@@ -26,6 +26,11 @@ class CategoryQueries {
     return api.get(`${this.route}/category/${id}`).then((res) => res.data);
   };
 
+  // GET /request/category/{id}
+  getCategoryForRequest = async (id: number): Promise<{ data: Category }> => {
+    return api.get(`${this.route}/category/request/${id}`).then((res) => res.data);
+  };
+
   // PUT /request/category/{id}
   updateCategory = async (
     id: number,

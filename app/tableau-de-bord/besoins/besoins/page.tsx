@@ -13,6 +13,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -36,6 +43,8 @@ import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { paymentQ } from "@/queries/payment";
 import { projectQ } from "@/queries/projectModule";
+import { purchaseQ } from "@/queries/purchase-order";
+import { receptionQ } from "@/queries/reception";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import {
@@ -44,25 +53,47 @@ import {
   REQUEST_STATUS,
   RequestModelT,
 } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ChevronDown, Settings2 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { RequestsTable } from "./table-besoins";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { receptionQ } from "@/queries/reception";
-import { purchaseQ } from "@/queries/purchase-order";
+import { useFilters } from "@/queries/filters/standard-filter";
+import Filters from "./filters";
 
 function Page() {
   const { user } = useStore();
+
+  const [customFilters, setCustomFilters] = useState<{
+    search: string;
+    user: string;
+    category: string;
+    project: string;
+    status: string;
+    type: string;
+    date: DateFilter;
+    from: string;
+    to: string;
+  }>({
+    search: "",
+    user: "all",
+    category: "all",
+    project: "all",
+    status: "all",
+    type: "all",
+    date: undefined,
+    from: "",
+    to: "",
+  });
+  const [isCustomDateModalOpen, setIsCustomDateModalOpen] = useState(false);
+  const [dateFilter, setDateFilter] = useState<DateFilter>();
+
+  const { filters, setFilters } = useFilters();
+  const paginationState = {
+    pageIndex: filters.pageIndex,
+    pageSize: filters.pageSize,
+  };
+
   const {
     data: requests,
     isLoading,
@@ -70,9 +101,55 @@ function Page() {
     error,
     isSuccess,
   } = useQuery({
-    queryKey: ["requests"],
-    queryFn: async () => requestQ.getAll(),
+    queryKey: ["requests", filters, customFilters, dateFilter],
+    queryFn: async () =>
+      requestQ.getAll({
+        pageIndex: filters.pageIndex,
+        pageSize: filters.pageSize,
+        search: customFilters.search || undefined,
+        user: customFilters.user !== "all" ? customFilters.user : undefined,
+        category:
+          customFilters.category !== "all" ? customFilters.category : undefined,
+        project:
+          customFilters.project !== "all" ? customFilters.project : undefined,
+        status:
+          customFilters.status !== "all" ? customFilters.status : undefined,
+        type: customFilters.type !== "all" ? customFilters.type : undefined,
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
     enabled: !!user,
+    placeholderData: keepPreviousData,
+  });
+
+  const {
+    data: stats,
+    isLoading: isLoadingStats,
+    isError: isErrorStats,
+    error: errorStats,
+    isSuccess: isSuccessStats,
+  } = useQuery({
+    queryKey: ["requests", "stats", filters, customFilters, dateFilter],
+    queryFn: async () =>
+      requestQ.getStats({
+        pageIndex: filters.pageIndex,
+        pageSize: filters.pageSize,
+        search: customFilters.search || undefined,
+        user: customFilters.user !== "all" ? customFilters.user : undefined,
+        category:
+          customFilters.category !== "all" ? customFilters.category : undefined,
+        project:
+          customFilters.project !== "all" ? customFilters.project : undefined,
+        status:
+          customFilters.status !== "all" ? customFilters.status : undefined,
+        type: customFilters.type !== "all" ? customFilters.type : undefined,
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
+    enabled: !!user,
+    placeholderData: keepPreviousData,
   });
 
   const categoryData = useQuery({
@@ -89,10 +166,10 @@ function Page() {
     },
   });
 
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: async () => paymentQ.getAll(),
-  });
+  // const paymentsData = useQuery({
+  //   queryKey: ["payments"],
+  //   queryFn: async () => paymentQ.getAll(),
+  // });
 
   const requestTypes = useQuery({
     queryKey: ["requestType"],
@@ -114,175 +191,55 @@ function Page() {
     queryFn: purchaseQ.getAll,
   });
 
-  const [searchFilter, setSearchFilter] = React.useState("");
-  const [userFilter, setUserFilter] = React.useState<"all" | string>("all");
-  const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
-  const [projectFilter, setProjectFilter] = React.useState<string>("all");
-  const [statusFilter, setStatusFilter] = React.useState<string>("all");
-  const [typeFilter, setTypeFilter] = React.useState<
-    "all" | RequestModelT["type"]
-  >("all");
-  const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
-    React.useState(false);
-  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-  const [customDateRange, setCustomDateRange] = React.useState<
-    { from: Date; to: Date } | undefined
-  >();
-  const [categorySearch, setCategorySearch] = React.useState("");
-  const [userSearch, setUserSearch] = React.useState("");
-  const [projectSearch, setProjectSearch] = React.useState("");
-  const [statusSearch, setStatusSearch] = React.useState("");
-
   // Réinitialiser tous les filtres
   const resetAllFilters = () => {
-    setSearchFilter("");
-    setCategoryFilter("all");
-    setUserFilter("all");
-    setProjectFilter("all");
-    setStatusFilter("all");
-    setTypeFilter("all");
-    setDateFilter(undefined);
-    setCustomDateRange(undefined);
-    setIsCustomDateModalOpen(false);
-    // Réinitialiser les recherches
-    setCategorySearch("");
-    setUserSearch("");
-    setProjectSearch("");
-    setStatusSearch("");
+    setCustomFilters({
+      search: "",
+      user: "all",
+      category: "all",
+      project: "all",
+      status: "all",
+      type: "all",
+      date: undefined,
+      from: "",
+      to: "",
+    });
+    setFilters({
+      pageIndex: 0,
+      pageSize: 10,
+    });
   };
 
   const uniqueCategories = React.useMemo(() => {
-    if (!requests || !categoryData.data) return [];
-
-    const categoryIds = [
-      ...new Set(requests.data.map((req) => req.categoryId)),
+    if (!requests?.data.data || !categoryData.data?.data) return [];
+    return [
+      ...new Set(
+        categoryData.data.data.map((req) => {
+          return { id: req.id, label: req.label };
+        }),
+      ),
     ];
-
-    return categoryIds.map((categoryId) => {
-      const category = categoryData.data.data.find(
-        (cat) => cat.id === Number(categoryId),
-      );
-      return {
-        id: categoryId,
-        name: category?.label || `Catégorie ${categoryId}`,
-      };
-    });
   }, [requests, categoryData.data]);
 
   const uniqueProjects = React.useMemo(() => {
-    if (!requests || !projectsData.data?.data) return [];
+    if (!requests?.data.data || !projectsData.data?.data) return [];
 
-    const projectIds = [...new Set(requests.data.map((req) => req.projectId))];
-
-    return projectIds.map((projectId) => {
-      const project = projectsData.data?.data.find(
-        (proj) => proj.id === Number(projectId),
-      );
-      return {
-        id: projectId,
-        label: project?.label || `Projet ${projectId}`,
-      };
-    });
+    return [
+      ...new Set(
+        projectsData.data.data.map((req) => {
+          return { id: req.id, label: `Projet ${req.label}` };
+        }),
+      ),
+    ];
   }, [requests, projectsData.data]);
 
-  // Fonction pour filtrer les données avec TOUS les filtres
-  const filteredData = React.useMemo(() => {
-    if (!requests) return [];
-    return requests.data.filter((item) => {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      const search = searchFilter.toLocaleLowerCase();
-      //Search Filter
-      const matchSearch =
-        searchFilter.trim() === ""
-          ? true
-          : item.label.toLowerCase().includes(search) ||
-            item.ref.toLocaleLowerCase().includes(search);
-      //User Filter
-      const matchUser =
-        userFilter === "all"
-          ? true
-          : item.userId.toString() === userFilter ||
-            !!item.requestOlds?.some((r) => r.userId.toString() === userFilter);
-      //Status Filter
-      const matchStatus =
-        statusFilter === "all" ? true : item.state === statusFilter;
-      //Category Filter
-      const matchCategory =
-        categoryFilter === "all"
-          ? true
-          : item.categoryId === Number(categoryFilter);
-      //Type Filter
-      const matchType = typeFilter === "all" ? true : item.type === typeFilter;
-      //Project Filter
-      const matchProject =
-        projectFilter === "all"
-          ? true
-          : item.projectId === Number(projectFilter);
-      // Date Filter
-      let matchDate = true;
-      if (dateFilter) {
-        switch (dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (customDateRange?.from && customDateRange?.to) {
-              startDate = customDateRange.from;
-              endDate = customDateRange.to;
-            }
-            break;
-        }
-
-        if (
-          dateFilter !== "custom" ||
-          (customDateRange?.from && customDateRange?.to)
-        ) {
-          matchDate =
-            new Date(item.createdAt) >= startDate &&
-            new Date(item.createdAt) <= endDate;
-        }
-      }
-      return (
-        matchCategory &&
-        matchProject &&
-        matchStatus &&
-        matchDate &&
-        matchSearch &&
-        matchUser &&
-        matchType
-      );
-    });
-  }, [
-    requests,
-    projectFilter,
-    categoryFilter,
-    statusFilter,
-    searchFilter,
-    dateFilter,
-    customDateRange,
-    userFilter,
-    typeFilter,
-  ]);
+  // Client-side filtering is replaced by server-side filtering via API.
 
   if (
     isLoading ||
     categoryData.isLoading ||
     projectsData.isLoading ||
-    paymentsData.isLoading ||
+    // paymentsData.isLoading ||
     requestTypes.isLoading ||
     usersData.isLoading ||
     getReceptions.isLoading ||
@@ -294,7 +251,7 @@ function Page() {
     isError ||
     categoryData.isError ||
     projectsData.isError ||
-    paymentsData.isError ||
+    // paymentsData.isError ||
     requestTypes.isError ||
     usersData.isError ||
     getReceptions.isError ||
@@ -306,7 +263,7 @@ function Page() {
           error ||
           categoryData.error ||
           projectsData.error ||
-          paymentsData.error ||
+          // paymentsData.error ||
           requestTypes.error ||
           usersData.error ||
           getReceptions.error ||
@@ -320,54 +277,38 @@ function Page() {
     isSuccess &&
     categoryData.isSuccess &&
     projectsData.isSuccess &&
-    paymentsData.isSuccess &&
+    // paymentsData.isSuccess &&
     requestTypes.isSuccess &&
     usersData.isSuccess &&
     getReceptions.isSuccess &&
     getPurchases.isSuccess
   ) {
-    // Calcul des statistiques
-    const sent = requests.data.length /* - cancel */ || 0;
-    const awaiting =
-      requests.data.filter((item) => item.state === "pending").length ?? 0;
-    const rejected =
-      requests.data.filter((item) => item.state === "rejected").length ?? 0;
-    const validated = requests.data.filter(
-      (item) => item.state === "validated",
-    ).length;
-    const fromStore = requests.data.filter(
-      (item) => item.state === "store",
-    ).length;
-    const cancelled = requests.data.filter(
-      (item) => item.state === "cancel",
-    ).length;
-
     const Statistics: Array<StatisticProps> = [
       {
         title: "En attente de validation",
-        value: awaiting,
+        value: stats?.data.awaiting || 0,
         variant: "secondary",
         more: {
           title: "Besoins rejetés",
-          value: rejected,
+          value: stats?.data.rejected || 0,
         },
       },
       {
         title: "Besoins émis",
-        value: sent,
+        value: stats?.data.sent || 0,
         variant: "primary",
         more: {
           title: "Besoins approuvés",
-          value: validated,
+          value: stats?.data.validated || 0,
         },
       },
       {
         title: "Besoins Déstockés",
-        value: fromStore,
+        value: stats?.data.fromStore || 0,
         variant: "default",
         more: {
           title: "Besoins annulés",
-          value: cancelled,
+          value: stats?.data.cancelled || 0,
         },
       },
     ];
@@ -399,511 +340,29 @@ function Page() {
                   placeholder="Titre ou référence"
                   name="search"
                   type="search"
-                  value={searchFilter ?? ""}
-                  onChange={(event) => setSearchFilter(event.target.value)}
+                  value={customFilters.search ?? ""}
+                  onChange={(event) =>
+                    setCustomFilters({
+                      ...customFilters,
+                      search: event.target.value,
+                    })
+                  }
                   className="w-full"
                 />
               </div>
-
-              {/* Category filter */}
-              <div className="grid gap-1.5">
-                <Label htmlFor="category">{"Catégorie"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {categoryFilter === "all"
-                          ? "Toutes les catégories"
-                          : uniqueCategories.find(
-                              (c) => String(c.id) === categoryFilter,
-                            )?.name || "Sélectionner une catégorie"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                      <Input
-                        placeholder="Rechercher une catégorie..."
-                        className="h-8"
-                        value={categorySearch}
-                        onChange={(e) => setCategorySearch(e.target.value)}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        autoFocus
-                      />
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setCategoryFilter("all");
-                        setCategorySearch("");
-                      }}
-                      className={categoryFilter === "all" ? "bg-accent" : ""}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>Toutes les catégories</span>
-                      </div>
-                    </DropdownMenuItem>
-                    {uniqueCategories
-                      .filter((category) =>
-                        category.name
-                          .toLowerCase()
-                          .includes(categorySearch.toLowerCase()),
-                      )
-                      .map((category) => (
-                        <DropdownMenuItem
-                          key={category.id}
-                          onClick={() => {
-                            setCategoryFilter(String(category.id));
-                            setCategorySearch("");
-                          }}
-                          className={
-                            categoryFilter === String(category.id)
-                              ? "bg-accent"
-                              : ""
-                          }
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="truncate">{category.name}</span>
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
-                    {uniqueCategories.filter((category) =>
-                      category.name
-                        .toLowerCase()
-                        .includes(categorySearch.toLowerCase()),
-                    ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucune catégorie trouvée
-                      </div>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* User filter */}
-              <div className="grid gap-1.5">
-                <Label htmlFor="initiator">{"Utilisateur"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {userFilter === "all"
-                          ? "Tous les utilisateurs"
-                          : getUserName(
-                              usersData.data.data,
-                              Number(userFilter),
-                            ) || "Sélectionner un utilisateur"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                      <Input
-                        placeholder="Rechercher un utilisateur..."
-                        className="h-8"
-                        value={userSearch}
-                        onChange={(e) => setUserSearch(e.target.value)}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        autoFocus
-                      />
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setUserFilter("all");
-                        setUserSearch("");
-                      }}
-                      className={userFilter === "all" ? "bg-accent" : ""}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>Tous les utilisateurs</span>
-                      </div>
-                    </DropdownMenuItem>
-                    {usersData.data.data
-                      .filter((user) =>
-                        getUserName(usersData.data.data, user.id)!
-                          .toLowerCase()
-                          .includes(userSearch.toLowerCase()),
-                      )
-                      .map((user) => (
-                        <DropdownMenuItem
-                          key={user.id}
-                          onClick={() => {
-                            setUserFilter(String(user.id));
-                            setUserSearch("");
-                          }}
-                          className={
-                            userFilter === String(user.id) ? "bg-accent" : ""
-                          }
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="truncate">
-                              {getUserName(usersData.data.data, user.id)}
-                            </span>
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
-                    {usersData.data.data.filter((user) =>
-                      getUserName(usersData.data.data, user.id)!
-                        .toLowerCase()
-                        .includes(userSearch.toLowerCase()),
-                    ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucun utilisateur trouvé
-                      </div>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              {/**Type Filter */}
-              <div className="grid gap-1.5">
-                <Label htmlFor="type">{"Type de besoin"}</Label>
-                <Select
-                  value={typeFilter}
-                  onValueChange={(v) =>
-                    setTypeFilter(v as RequestModelT["type"] | "all")
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Type de besoin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    {PAYMENT_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={String(type.value)}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Project filter */}
-              <div className="grid gap-1.5">
-                <Label htmlFor="project">{"Projet"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {projectFilter === "all"
-                          ? "Tous les projets"
-                          : uniqueProjects.find(
-                              (p) => String(p.id) === projectFilter,
-                            )?.label || "Sélectionner un projet"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                      <Input
-                        placeholder="Rechercher un projet..."
-                        className="h-8"
-                        value={projectSearch}
-                        onChange={(e) => setProjectSearch(e.target.value)}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        autoFocus
-                      />
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setProjectFilter("all");
-                        setProjectSearch("");
-                      }}
-                      className={projectFilter === "all" ? "bg-accent" : ""}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>Tous les projets</span>
-                      </div>
-                    </DropdownMenuItem>
-                    {uniqueProjects
-                      .filter((project) =>
-                        project.label
-                          .toLowerCase()
-                          .includes(projectSearch.toLowerCase()),
-                      )
-                      .map((project) => (
-                        <DropdownMenuItem
-                          key={project.id}
-                          onClick={() => {
-                            setProjectFilter(String(project.id));
-                            setProjectSearch("");
-                          }}
-                          className={
-                            projectFilter === String(project.id)
-                              ? "bg-accent"
-                              : ""
-                          }
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="truncate">{project.label}</span>
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
-                    {uniqueProjects.filter((project) =>
-                      project.label
-                        .toLowerCase()
-                        .includes(projectSearch.toLowerCase()),
-                    ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucun projet trouvé
-                      </div>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Status filter */}
-              <div className="grid gap-1.5">
-                <Label htmlFor="status">{"Statut"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {statusFilter === "all"
-                          ? "Tous les statuts"
-                          : REQUEST_STATUS.find((s) => s.value === statusFilter)
-                              ?.name || "Sélectionner"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                      <Input
-                        placeholder="Rechercher un statut..."
-                        className="h-8"
-                        value={statusSearch}
-                        onChange={(e) => setStatusSearch(e.target.value)}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        autoFocus
-                      />
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setStatusFilter("all");
-                        setStatusSearch("");
-                      }}
-                      className={statusFilter === "all" ? "bg-accent" : ""}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>Tous les statuts</span>
-                      </div>
-                    </DropdownMenuItem>
-                    {REQUEST_STATUS.filter((status) =>
-                      status.name
-                        .toLowerCase()
-                        .includes(statusSearch.toLowerCase()),
-                    ).map((status) => (
-                      <DropdownMenuItem
-                        key={status.value}
-                        onClick={() => {
-                          setStatusFilter(status.value);
-                          setStatusSearch("");
-                        }}
-                        className={
-                          statusFilter === status.value ? "bg-accent" : ""
-                        }
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>{status.name}</span>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                    {REQUEST_STATUS.filter((status) =>
-                      status.name
-                        .toLowerCase()
-                        .includes(statusSearch.toLowerCase()),
-                    ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucun statut trouvé
-                      </div>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Filtre par période */}
-              <div className="grid gap-1.5">
-                <Label>{"Période"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {dateFilter === undefined
-                          ? "Toutes les périodes"
-                          : dateFilter === "today"
-                            ? "Aujourd'hui"
-                            : dateFilter === "week"
-                              ? "Cette semaine"
-                              : dateFilter === "month"
-                                ? "Ce mois"
-                                : dateFilter === "year"
-                                  ? "Cette année"
-                                  : dateFilter === "custom"
-                                    ? "Personnalisé"
-                                    : "Sélectionner une période"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter(undefined);
-                        setCustomDateRange(undefined);
-                        setIsCustomDateModalOpen(false);
-                      }}
-                      className={dateFilter === undefined ? "bg-accent" : ""}
-                    >
-                      <span>Toutes les périodes</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter("today");
-                        setIsCustomDateModalOpen(false);
-                      }}
-                      className={dateFilter === "today" ? "bg-accent" : ""}
-                    >
-                      <span>Aujourd'hui</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter("week");
-                        setIsCustomDateModalOpen(false);
-                      }}
-                      className={dateFilter === "week" ? "bg-accent" : ""}
-                    >
-                      <span>Cette semaine</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter("month");
-                        setIsCustomDateModalOpen(false);
-                      }}
-                      className={dateFilter === "month" ? "bg-accent" : ""}
-                    >
-                      <span>Ce mois</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter("year");
-                        setIsCustomDateModalOpen(false);
-                      }}
-                      className={dateFilter === "year" ? "bg-accent" : ""}
-                    >
-                      <span>Cette année</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter("custom");
-                        setIsCustomDateModalOpen(true);
-                      }}
-                      className={dateFilter === "custom" ? "bg-accent" : ""}
-                    >
-                      <span>Personnalisé</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Collapsible
-                  open={isCustomDateModalOpen}
-                  onOpenChange={setIsCustomDateModalOpen}
-                  disabled={dateFilter !== "custom"}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      {"Plage personnalisée"}
-                      <span className="text-muted-foreground text-xs">
-                        {customDateRange?.from && customDateRange.to
-                          ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
-                          : "Choisir"}
-                      </span>
-                    </Button>
-                  </CollapsibleTrigger>
-
-                  <CollapsibleContent className="space-y-4 pt-4">
-                    <Calendar
-                      mode="range"
-                      selected={customDateRange}
-                      onSelect={(range) => {
-                        if (!range?.from || !range?.to) return;
-                        const from = new Date(range.from);
-                        const to = new Date(range.to);
-                        to.setHours(23, 59, 59, 999);
-                        setCustomDateRange({ from, to });
-                      }}
-                      numberOfMonths={1}
-                      className="rounded-md border w-full"
-                    />
-                    <div className="space-y-1">
-                      <Button
-                        className="w-full"
-                        onClick={() => {
-                          setCustomDateRange(undefined);
-                          setDateFilter(undefined);
-                          setIsCustomDateModalOpen(false);
-                        }}
-                      >
-                        {"Annuler"}
-                      </Button>
-                      <Button
-                        className="w-full"
-                        variant={"outline"}
-                        onClick={() => {
-                          setIsCustomDateModalOpen(false);
-                        }}
-                      >
-                        {"Réduire"}
-                      </Button>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-
-              {/* Bouton pour réinitialiser les filtres */}
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={resetAllFilters}
-                  className="w-full"
-                >
-                  {"Réinitialiser"}
-                </Button>
-              </div>
+              <Filters
+                customFilters={customFilters}
+                setCustomFilters={setCustomFilters}
+                isCustomDateModalOpen={isCustomDateModalOpen}
+                setIsCustomDateModalOpen={setIsCustomDateModalOpen}
+                setDateFilter={(filter) =>
+                  setCustomFilters({ ...customFilters, date: filter })
+                }
+                resetAllFilters={resetAllFilters}
+                uniqueCategories={uniqueCategories}
+                uniqueProjects={uniqueProjects}
+                users={usersData.data}
+              />
             </div>
           </SheetContent>
         </Sheet>
@@ -913,14 +372,30 @@ function Page() {
           ))}
         </div>
         <RequestsTable
-          data={filteredData}
+          data={requests.data.data}
           categories={categoryData.data.data}
           projects={projectsData.data.data}
-          payments={paymentsData.data.data}
+          // payments={paymentsData.data.data}
           requestTypes={requestTypes.data.data}
           users={usersData.data.data}
           receptions={getReceptions.data.data}
           purchaseOrders={getPurchases.data.data}
+          paginationOptions={{
+            onPaginationChange: (updater) => {
+              setFilters((prev) => {
+                const nextPagination =
+                  typeof updater === "function"
+                    ? updater({
+                        pageIndex: prev.pageIndex,
+                        pageSize: prev.pageSize,
+                      })
+                    : updater;
+                return { ...prev, ...nextPagination };
+              });
+            },
+            rowCount: requests.data.total || requests.data.data.length,
+          }}
+          pagination={paginationState}
         />
       </div>
     );

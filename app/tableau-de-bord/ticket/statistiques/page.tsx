@@ -100,7 +100,7 @@ function Page() {
   };
   const { data, isLoading, isError, error, isSuccess } = useQuery({
     queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
+    queryFn: () => paymentQ.getAll(),
   });
 
   const filteredData: Array<PaymentRequest> = React.useMemo(() => {

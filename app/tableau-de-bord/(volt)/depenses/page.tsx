@@ -37,7 +37,7 @@ function Page() {
 
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
+    queryFn: () => paymentQ.getAll({}),
   });
 
   const getRequestType = useQuery({

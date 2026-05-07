@@ -779,7 +779,6 @@ const Page = () => {
           commands={commands.data.data}
           providers={getProviders.data.data}
           users={getUsers.data.data}
-          requests={getRequests.data.data}
         />
       </div>
     );

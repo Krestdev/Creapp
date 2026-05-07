@@ -47,6 +47,18 @@ export type PaymentCancelPayload = {
   reason: string;
 };
 
+export interface PaymentQueryOptions {
+  state?: "validated" | "pending" | "rejected";
+  userId?: string;
+  paymentType?: string;
+  excludeType?: "deposit" | "expense" | "transport" | "gas";
+  requestId?: string;
+  page?: number;
+  limit?: number;
+  type?: "deposit" | "expense" | "transport" | "gas";
+  date?: string;
+}
+
 class PaymentQueries {
   route = "/request/payment";
 
@@ -144,8 +156,11 @@ class PaymentQueries {
   // --------------------------------------
   // READ (GET ALL)
   // --------------------------------------
-  getAll = async (): Promise<{ data: PaymentRequest[] }> => {
-    return api.get(this.route).then((response) => response.data);
+
+  getAll = async (params?: PaymentQueryOptions): Promise<{ data: PaymentRequest[], total: number }> => {
+    return api.get(this.route, { params }).then((response) => {
+      return response.data.data;
+    });
   };
 
   // --------------------------------------
@@ -153,6 +168,14 @@ class PaymentQueries {
   // --------------------------------------
   getOne = async (id: number): Promise<{ data: PaymentRequest }> => {
     return api.get(`${this.route}/${id}`).then((response) => response.data);
+  };
+
+  getAllByRequestId = async (
+    requestId: number,
+  ): Promise<{ data: PaymentRequest }> => {
+    return api
+      .get(`${this.route}/request/${requestId}`)
+      .then((response) => response.data);
   };
 
   // --------------------------------------

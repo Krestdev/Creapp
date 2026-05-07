@@ -1,14 +1,11 @@
 "use client";
 
 import StatsCard from "@/components/base/StatsCard";
+import { ChartAreaInteractiveAll } from "@/components/Charts/BarcharAll";
 import { ChartAreaInteractive } from "@/components/Charts/BarChart";
 import { ChartPieLabelList } from "@/components/Charts/ChartPieLabelList";
-import { useStore } from "@/providers/datastore";
-import { requestQ } from "@/queries/requestModule";
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import React, { useMemo, useState } from "react";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -40,23 +37,25 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn, isRole, XAF } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
+import { bankQ } from "@/queries/bank";
+import { invoiceQ } from "@/queries/invoices";
 import { paymentQ } from "@/queries/payment";
+import { projectQ } from "@/queries/projectModule";
+import { requestQ } from "@/queries/requestModule";
+import { requestTypeQ } from "@/queries/requestType";
+import { transactionQ } from "@/queries/transaction";
 import { PaymentRequest, RequestModelT, TableFilters } from "@/types/types";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   CalendarDays,
   CalendarIcon,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-import { transactionQ } from "@/queries/transaction";
-import { bankQ } from "@/queries/bank";
-import { projectQ } from "@/queries/projectModule";
-import { invoiceQ } from "@/queries/invoices";
-import LoadingPage from "@/components/loading-page";
-import ErrorPage from "@/components/error-page";
-import { ChartAreaInteractiveAll } from "@/components/Charts/BarcharAll";
-import { payTypeQ } from "@/queries/payType";
-import { requestTypeQ } from "@/queries/requestType";
+import React, { useMemo, useState } from "react";
 
 const DashboardPage = () => {
   const { user } = useStore();
@@ -80,8 +79,8 @@ const DashboardPage = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
+    queryKey: ["paymentsAll"],
+    queryFn: () => paymentQ.getAll(),
     enabled: volt_manager || accountant || volt,
   });
 
@@ -129,8 +128,8 @@ const DashboardPage = () => {
 
   const requestType = useQuery({
     queryKey: ["paymentType"],
-    queryFn: requestTypeQ.getAll
-  })
+    queryFn: requestTypeQ.getAll,
+  });
 
   const getInvoices = useQuery({
     queryKey: ["invoices"],
@@ -314,7 +313,7 @@ const DashboardPage = () => {
   };
 
   const useFilteredAllRequests = (
-    requestData: UseQueryResult<{ data: RequestModelT[] }, Error>,
+    requestData: UseQueryResult<{ data: { data: RequestModelT[] } }, Error>,
     filters: TableFilters,
   ) => {
     return React.useMemo(() => {
@@ -322,7 +321,7 @@ const DashboardPage = () => {
         return [];
       }
 
-      let filtered: RequestModelT[] = requestData.data.data
+      let filtered: RequestModelT[] = requestData.data.data.data;
 
       // Filtrer par date
       if (filters.dateFilter) {
