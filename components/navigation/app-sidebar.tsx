@@ -134,7 +134,7 @@ function AppSidebar() {
   //Get Payments
   const getPayments = useQuery({
     queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
+    queryFn: () => paymentQ.getAll(),
   });
 
   const requestsData = useQuery({
@@ -151,7 +151,7 @@ function AppSidebar() {
 
   const SignPay = useQuery({
     queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
+    queryFn: () => paymentQ.getAll(),
   });
 
   const signatair = useQuery({
@@ -302,8 +302,8 @@ function AppSidebar() {
 
   // Filtrer les besoins validés qui ne sont pas dans une cotation
   const requestToUse = useMemo(() => {
-    if (!requestsData.data || !getCommandRequests.data) return [];
-    return requestsData.data.data.filter(
+    if (!requestsData.data?.data || !getCommandRequests.data?.data) return [];
+    return requestsData.data?.data.data.filter(
       (x) =>
         x.type === "achat" && x.state === "validated" && !isRequestUsed(x.id),
     );
@@ -320,8 +320,10 @@ function AppSidebar() {
   }, [data, user?.id]);
 
   const ticketsData = useMemo(() => {
-    if (!getPayments.data) return [];
-    return getPayments.data.data.filter((ticket) => ticket.status !== "ghost");
+    if (!getPayments.data?.data) return [];
+    console.log(getPayments.data?.data);
+
+    return getPayments.data?.data.filter((ticket) => ticket.status !== "ghost");
   }, [getPayments.data]);
 
   const approvedTicket = useMemo(() => {
@@ -362,19 +364,19 @@ function AppSidebar() {
     );
   }, [ticketsData]);
 
-  const ticketsDataP = useMemo(() => {
-    if (!getPayments.data) return [];
-    return getPayments.data.data.filter(
-      (ticket) =>
-        ticket.status !== "ghost" &&
-        ticket.status !== "pending" &&
-        ticket.status !== "rejected" &&
-        ticket.status !== "validated" &&
-        ticket.status !== "pending_depense" &&
-        ticket.status !== "unsigned" &&
-        ticket.status !== "paid",
-    );
-  }, [getPayments.data]);
+  // const ticketsDataP = useMemo(() => {
+  //   if (!getPayments.data) return [];
+  //   return getPayments.data.data.filter(
+  //     (ticket) =>
+  //       ticket.status !== "ghost" &&
+  //       ticket.status !== "pending" &&
+  //       ticket.status !== "rejected" &&
+  //       ticket.status !== "validated" &&
+  //       ticket.status !== "pending_depense" &&
+  //       ticket.status !== "unsigned" &&
+  //       ticket.status !== "paid",
+  //   );
+  // }, [getPayments.data]);
 
   const overall = useMemo(() => {
     if (!approvedTicket || !signedTicket || !pendingTicket || !simpleTicket)
@@ -550,14 +552,14 @@ function AppSidebar() {
             title: "Approbation",
             href: "/tableau-de-bord/besoins/validation",
             authorized: ["SUPERADMIN", "MANAGER"],
-            badgeValue: pendingData.length > 0 ? pendingData.length : undefined,
+            badgeValue: pendingData.length > 0 ? pendingData.length : undefined, //to-do update router for this
           },
           {
             pageId: "PG-02-05",
             title: "Besoins du Service",
             href: "/tableau-de-bord/besoins/service",
             authorized: ["SUPERADMIN", "USER"],
-            //badgeValue: serviceHeadRequests.data?.data.length,
+            badgeValue: serviceHeadRequests.data?.data.length, //to-do update router for this
           },
         ],
       },
@@ -573,7 +575,7 @@ function AppSidebar() {
             href: "/tableau-de-bord/commande/cotation",
             authorized: ["SUPERADMIN", "SALES"],
             badgeValue:
-              requestToUse.length > 0 ? requestToUse.length : undefined,
+              requestToUse.length > 0 ? requestToUse.length : undefined, //to-do update router for this
           },
           {
             pageId: "PG-03-02",
@@ -587,7 +589,7 @@ function AppSidebar() {
             href: "/tableau-de-bord/commande/devis/approbation",
             authorized: ["SUPERADMIN", "SALES_MANAGER"],
             badgeValue:
-              approbationDevis && approbationDevis.length > 0
+              approbationDevis && approbationDevis.length > 0 //to-do update router for this
                 ? approbationDevis?.length
                 : undefined,
           },
@@ -597,7 +599,7 @@ function AppSidebar() {
             href: "/tableau-de-bord/commande/bon-de-commande",
             authorized: ["SUPERADMIN", "SALES"],
             badgeValue:
-              devisTraite && devisTraite.length > 0
+              devisTraite && devisTraite.length > 0 //to-do update router for this
                 ? devisTraite?.length
                 : undefined,
           },
@@ -607,7 +609,7 @@ function AppSidebar() {
             href: "/tableau-de-bord/commande/bon-de-commande/approbation",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
             badgeValue:
-              purchase && purchase.length > 0 ? purchase?.length : undefined,
+              purchase && purchase.length > 0 ? purchase?.length : undefined, //to-do update router for this
           },
           {
             pageId: "PG-03-065897",
@@ -652,7 +654,7 @@ function AppSidebar() {
             href: "/tableau-de-bord/ticket",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
             badgeValue:
-              ticketPending && ticketPending.length > 0
+              ticketPending && ticketPending.length > 0 //to-do update router for this
                 ? ticketPending?.length
                 : undefined,
           },
@@ -663,7 +665,7 @@ function AppSidebar() {
             href: "/tableau-de-bord/ticket/transferts",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
             badgeValue:
-              filteredTickTransfert && filteredTickTransfert?.length > 0
+              filteredTickTransfert && filteredTickTransfert?.length > 0 //to-do update router for this
                 ? filteredTickTransfert?.length
                 : undefined,
           },
@@ -693,7 +695,7 @@ function AppSidebar() {
             icon: BadgeDollarSignIcon,
             href: "/tableau-de-bord/depenses",
             badgeValue:
-              approvedTicket &&
+              approvedTicket && //to-do update router for this
               signedTicket &&
               pendingTicket &&
               simpleTicket &&
@@ -730,7 +732,7 @@ function AppSidebar() {
             href: "/tableau-de-bord/signatures/tickets",
             authorized: [],
             badgeValue:
-              filteredData?.unsignedPayments?.length > 0
+              filteredData?.unsignedPayments?.length > 0 //to-do update router for this
                 ? filteredData?.unsignedPayments?.length
                 : undefined,
           },
@@ -741,7 +743,9 @@ function AppSidebar() {
             href: "/tableau-de-bord/signatures/transferts",
             authorized: [],
             badgeValue:
-              transfersToSign.length > 0 ? transfersToSign.length : undefined,
+              transfersToSign.length > 0 //to-do update router for this
+                ? transfersToSign.length
+                : undefined,
           },
         ],
       },
@@ -772,7 +776,7 @@ function AppSidebar() {
             href: "/tableau-de-bord/banques/transactions/transferts",
             authorized: ["SUPERADMIN", "VOLT"],
             badgeValue:
-              transfersToCheck.length > 0 ? transfersToCheck.length : undefined,
+              transfersToCheck.length > 0 ? transfersToCheck.length : undefined, //to-do update router for this
           },
         ],
       },

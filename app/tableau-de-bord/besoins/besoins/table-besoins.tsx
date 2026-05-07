@@ -3,14 +3,16 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  PaginationOptions,
+  PaginationState,
+  type SortingState,
   useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import { ArrowUpDown, AsteriskIcon, Eye } from "lucide-react";
 import * as React from "react";
@@ -54,22 +56,26 @@ interface Props {
   data: Array<RequestModelT>;
   categories: Array<Category>;
   projects: Array<ProjectT>;
-  payments: Array<PaymentRequest>;
+  // payments: Array<PaymentRequest>;
   requestTypes: Array<RequestType>;
   users: Array<User>;
   receptions: Array<Reception>;
   purchaseOrders: Array<BonsCommande>;
+  pagination: PaginationState;
+  paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
 }
 
 export function RequestsTable({
   data,
   categories,
   projects,
-  payments,
+  // payments,
   requestTypes,
   users,
   receptions,
   purchaseOrders,
+  paginationOptions,
+  pagination,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -225,12 +231,14 @@ export function RequestsTable({
         );
       },
       cell: ({ row }) => {
-        const value = row.original.userId;
-        const user = users.find((u) => u.id === value);
-        const userName = !!user
-          ? user.firstName.concat(" ", user.lastName)
-          : "Introuvable";
-        return <div>{subText({ text: userName, length: 21 })}</div>;
+        return (
+          <div>
+            {subText({
+              text: `${row.original.user.firstName} ${row.original.user.lastName}`,
+              length: 21,
+            })}
+          </div>
+        );
       },
     },
     {
@@ -330,10 +338,6 @@ export function RequestsTable({
       header: () => <span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
-        const paiement = payments.find((x) => x.requestId === item?.id);
-        const isAttach =
-          (item.type === "facilitation" || item.type === "ressource_humaine") &&
-          paiement?.proof !== null;
 
         return (
           <Button
@@ -362,11 +366,14 @@ export function RequestsTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    manualPagination: true,
+    ...paginationOptions,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination,
     },
   });
 
@@ -482,11 +489,8 @@ export function RequestsTable({
         <ViewRequest
           open={view}
           openChange={setView}
-          payments={payments}
           users={users}
-          categories={categories}
-          request={selectedItem}
-          projects={projects}
+          reqId={selectedItem.id}
           requestTypes={requestTypes}
           purchaseOrders={purchaseOrders}
           receptions={receptions}

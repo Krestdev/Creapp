@@ -55,14 +55,14 @@ interface Request {
 interface Props {
   requests: Array<RequestModelT>;
   users: User[];
-  quotationRequests: Array<CommandRequestT>;
+  // quotationRequests: Array<CommandRequestT>;
   categories: Array<Category>;
 }
 
 export default function CreateCotation({
   requests,
   users,
-  quotationRequests,
+  // quotationRequests,
   categories,
 }: Props) {
   const { user } = useStore();
@@ -101,17 +101,17 @@ export default function CreateCotation({
     },
   });
 
-  //Used requests
-  const usedRequests = quotationRequests.flatMap((item) =>
-    item.besoins.flatMap((b) => b.id),
-  );
-  //Cleaned requests
-  const filteredRequests = requests.filter(
-    (r) =>
-      !usedRequests.some((b) => b === r.id) &&
-      r.type === "achat" &&
-      r.state === "validated",
-  );
+  // //Used requests
+  // const usedRequests = quotationRequests.flatMap((item) =>
+  //   item.besoins.flatMap((b) => b.id),
+  // );
+  // //Cleaned requests
+  // // const filteredRequests = requests.filter(
+  // //   (r) =>
+  // //     !usedRequests.some((b) => b === r.id) &&
+  // //     r.type === "achat" &&
+  // //     r.state === "validated",
+  // // );
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -220,10 +220,12 @@ export default function CreateCotation({
                       <SearchableSelect
                         value={field.value ? String(field.value) : ""}
                         onChange={field.onChange}
-                        options={users.map((r) => ({
-                          value: `${r.firstName} ${r.lastName}`,
-                          label: `${r.firstName} ${r.lastName}`,
-                        })) ?? []}
+                        options={
+                          users.map((r) => ({
+                            value: `${r.firstName} ${r.lastName}`,
+                            label: `${r.firstName} ${r.lastName}`,
+                          })) ?? []
+                        }
                         placeholder="Sélectionnez un nom"
                         width="w-full"
                         allLabel=""
@@ -251,11 +253,11 @@ export default function CreateCotation({
           </form>
         </Form>
         <div className="flex flex-col gap-4 w-full border border-gray-200 rounded-md p-4">
-          <p className="text-[18px] font-semibold">{`Besoins (${filteredRequests.length})`}</p>
+          <p className="text-[18px] font-semibold">{`Besoins (${requests.length})`}</p>
           <Besoins
             selected={selected}
             setSelected={setSelected}
-            requests={filteredRequests}
+            requests={requests}
             categories={categories}
           />
         </div>

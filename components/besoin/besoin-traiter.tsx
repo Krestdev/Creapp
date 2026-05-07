@@ -92,7 +92,7 @@ export function BesoinsTraiter({
 
   const paymentsData = useQuery({
     queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
+    queryFn: () => paymentQ.getAll(),
   });
 
   const getReceptions = useQuery({
@@ -444,7 +444,7 @@ export function BesoinsTraiter({
         return (
           <div className=" flex justify-end gap-2">
             <Button
-            variant={"outline"}
+              variant={"outline"}
               onClick={() => {
                 setSelect(item);
                 setIsModalOpenView(true);

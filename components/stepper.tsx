@@ -199,7 +199,7 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
 
 export interface RequestStepperProps {
   request: RequestModelT;
-  tickets?: PaymentRequest[];
+  ticket?: PaymentRequest;
   bonCommandes?: BonsCommande[];
   receptions?: Reception[];
   className?: string;
@@ -219,14 +219,14 @@ export interface RequestStepperProps {
  */
 export function RequestStepper({
   request,
-  tickets,
+  ticket,
   bonCommandes,
   receptions,
   className,
 }: RequestStepperProps) {
   const { steps, currentStep } = useRequestStepper({
     request,
-    tickets,
+    ticket,
     bonCommandes,
     receptions,
   });

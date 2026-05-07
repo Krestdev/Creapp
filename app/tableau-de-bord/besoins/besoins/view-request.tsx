@@ -11,6 +11,10 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { cn, getRequestTypeBadge, getUserName, XAF } from "@/lib/utils";
+import { categoryQ } from "@/queries/categoryModule";
+import { paymentQ } from "@/queries/payment";
+import { projectQ } from "@/queries/projectModule";
+import { requestQ } from "@/queries/requestModule";
 import {
   BonsCommande,
   Category,
@@ -22,6 +26,7 @@ import {
   User,
 } from "@/types/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
+import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale/fr";
@@ -37,12 +42,12 @@ import {
   FileIcon,
   FolderIcon,
   InfoIcon,
+  Loader2,
   LucideHash,
   LucidePieChart,
   MessageSquareXIcon,
   SquareStackIcon,
   TextQuoteIcon,
-  TypeOutlineIcon,
   UserIcon,
   Users,
   X,
@@ -53,11 +58,8 @@ import React from "react";
 interface ViewRequestProps {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
-  request: RequestModelT;
-  payments: Array<PaymentRequest>;
+  reqId: number;
   users: Array<User>;
-  projects: Array<ProjectT>;
-  categories: Array<Category>;
   requestTypes: RequestType[];
   receptions: Array<Reception>;
   purchaseOrders: Array<BonsCommande>;
@@ -66,11 +68,8 @@ interface ViewRequestProps {
 function ViewRequest({
   open,
   openChange,
-  request,
-  payments,
+  reqId,
   users,
-  projects,
-  categories,
   requestTypes,
   receptions,
   purchaseOrders,
@@ -117,26 +116,40 @@ function ViewRequest({
     }
   };
 
-  // Fonctions pour récupérer les noms
-  const getProjectName = (projectId: string) => {
-    const project = projects.find((proj) => proj.id === Number(projectId));
-    return project?.label || projectId;
-  };
+  const request = useQuery({
+    queryKey: ["request", reqId],
+    queryFn: () => requestQ.getOne(reqId),
+  });
 
-  const getCategoryName = (categoryId: string) => {
-    const category = categories.find((cat) => cat.id === Number(categoryId));
-    return category?.label || categoryId;
-  };
+  const projectData = useQuery({
+    queryKey: ["project", reqId],
+    queryFn: async () => {
+      return projectQ.getProjectByRequestId(reqId as number);
+    },
+  });
+  const category = useQuery({
+    queryKey: ["category", reqId],
+    queryFn: async () => {
+      return categoryQ.getCategoryForRequest(reqId as number);
+    },
+  });
 
-  const paiement = payments.find((x) => x.requestId === request.id);
+  const paiements = useQuery({
+    queryKey: ["payment", reqId],
+    queryFn: async () => paymentQ.getAllByRequestId(reqId as number),
+  });
 
-  const typeBadge = getRequestTypeBadge({ type: request.type, requestTypes });
+  const typeBadge = request.data?.data.type
+    ? getRequestTypeBadge({ type: request.data?.data.type, requestTypes })
+    : null;
 
-  return (
+  return !request.isSuccess ? (
+    <Loader2 className="w-4 h-4 animate-spin" />
+  ) : (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"default"}>
-          <DialogTitle>{`Besoin - ${request.label}`}</DialogTitle>
+          <DialogTitle>{`Besoin - ${request.data?.data.label}`}</DialogTitle>
           <DialogDescription>{"Description du besoin"}</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
@@ -148,7 +161,9 @@ function ViewRequest({
             <div className="flex flex-col">
               <p className="view-group-title">{"Référence"}</p>
               <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
-                <p className="text-primary-600 text-sm">{request.ref}</p>
+                <p className="text-primary-600 text-sm">
+                  {request.data?.data.ref}
+                </p>
               </div>
             </div>
           </div>
@@ -160,12 +175,12 @@ function ViewRequest({
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Type de besoin"}</p>
-              <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
+              <Badge variant={typeBadge?.variant}>{typeBadge?.label}</Badge>
             </div>
           </div>
 
           {/**Amount */}
-          {!!request.amount && (
+          {!!request.data?.data.amount && (
             <div className="view-group">
               <span className="view-icon">
                 <DollarSignIcon />
@@ -174,13 +189,15 @@ function ViewRequest({
                 <div className="flex items-center gap-2">
                   <p className="view-group-title">{"Montant"}</p>
                 </div>
-                <p className="font-semibold">{XAF.format(request.amount)}</p>
+                <p className="font-semibold">
+                  {XAF.format(request.data?.data.amount)}
+                </p>
               </div>
             </div>
           )}
 
           {/* Project */}
-          {!!request.projectId && (
+          {!!request.data?.data.projectId && (
             <div className="view-group">
               <span className="view-icon">
                 <BriefcaseBusinessIcon />
@@ -188,7 +205,7 @@ function ViewRequest({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Projet associé"}</p>
                 <p className="font-semibold">
-                  {getProjectName(String(request.projectId))}
+                  {projectData.isSuccess && projectData.data.data?.label}
                 </p>
               </div>
             </div>
@@ -201,8 +218,12 @@ function ViewRequest({
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Description"}</p>
-              <p className={cn(!request.description && "italic text-gray-600")}>
-                {request.description ?? "Non renseigné"}
+              <p
+                className={cn(
+                  !request.data?.data.description && "italic text-gray-600",
+                )}
+              >
+                {request.data?.data.description ?? "Non renseigné"}
               </p>
             </div>
           </div>
@@ -215,15 +236,16 @@ function ViewRequest({
             <div className="flex flex-col">
               <p className="view-group-title">{"Catégorie"}</p>
               <p className="font-semibold">
-                {!getCategoryName(String(request.categoryId)).includes(
-                  "facilita",
-                )
-                  ? getCategoryName(String(request.categoryId))
-                  : request.type === "facilitation"
-                    ? "Facilitation"
-                    : request.type === "ressource_humaine"
-                      ? "Ressources Humaines"
-                      : request.type === "speciaux" && "Besoins Spéciaux"}
+                {!category.isSuccess
+                  ? "chargement..."
+                  : category.data.data.label.toLowerCase().includes("facilita")
+                    ? category.data.data.label
+                    : request.data?.data.type === "facilitation"
+                      ? "Facilitation"
+                      : request.data?.data.type === "ressource_humaine"
+                        ? "Ressources Humaines"
+                        : request.data?.data.type === "speciaux" &&
+                          "Besoins Spéciaux"}
               </p>
             </div>
           </div>
@@ -237,15 +259,15 @@ function ViewRequest({
               <div className="flex items-center gap-2">
                 <p className="view-group-title">{"Priorité"}</p>
               </div>
-              <Badge variant={getPriority(request.priority).variant}>
-                {request.priority === "urgent" ? (
+              <Badge variant={getPriority(request.data?.data.priority).variant}>
+                {request.data?.data.priority === "urgent" ? (
                   <X />
-                ) : request.priority === "medium" ? (
+                ) : request.data?.data.priority === "medium" ? (
                   <Clock />
                 ) : (
                   <Check />
                 )}
-                {getPriority(request.priority).label}
+                {getPriority(request.data?.data.priority).label}
               </Badge>
             </div>
           </div>
@@ -257,14 +279,14 @@ function ViewRequest({
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Statut"}</p>
-              <Badge variant={getStatusBadge(request.state).variant}>
-                {getStatusBadge(request.state).label}
+              <Badge variant={getStatusBadge(request.data?.data.state).variant}>
+                {getStatusBadge(request.data?.data.state).label}
               </Badge>
             </div>
           </div>
 
           {/* Motif de rejet */}
-          {request.state === "rejected" && (
+          {request.data?.data.state === "rejected" && (
             <div className="view-group">
               <span className="view-icon">
                 <MessageSquareXIcon />
@@ -272,7 +294,7 @@ function ViewRequest({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Motif du rejet"}</p>
                 <p className="text-destructive">
-                  {request.validators
+                  {request.data?.data.validators
                     ?.filter((r) => r.decision?.startsWith("rejected"))
                     .map((r) =>
                       r.decision?.replace(/^rejected - \s*/i, "").trim(),
@@ -284,38 +306,40 @@ function ViewRequest({
           )}
 
           {/* Justificatif */}
-          {request.type !== "speciaux" && request.type !== "achat" && (
-            <div className="view-group">
-              <span className="view-icon">
-                <FileIcon />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Justificatif"}</p>
-                <div className="space-y-1">
-                  {!!paiement?.proof ? (
-                    <Link
-                      href={`${
-                        process.env.NEXT_PUBLIC_API
-                      }/${paiement?.proof as string}`}
-                      target="_blank"
-                      className="flex gap-0.5 items-center"
-                    >
-                      <img
-                        src="/images/pdf.png"
-                        alt="justificatif"
-                        className="h-7 w-auto aspect-square"
-                      />
-                    </Link>
-                  ) : (
-                    <p className="italic">{"Aucun justificatif"}</p>
-                  )}
+          {request.data?.data.type !== "speciaux" &&
+            request.data?.data.type !== "achat" && (
+              <div className="view-group">
+                <span className="view-icon">
+                  <FileIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Justificatif"}</p>
+                  <div className="space-y-1">
+                    {request.data?.data.proof ? (
+                      <Link
+                        href={`${
+                          process.env.NEXT_PUBLIC_API
+                        }/${request.data?.data.proof[0] as string}`}
+                        target="_blank"
+                        className="flex gap-0.5 items-center"
+                      >
+                        <img
+                          src="/images/pdf.png"
+                          alt="justificatif"
+                          className="h-7 w-auto aspect-square"
+                        />
+                      </Link>
+                    ) : (
+                      <p className="italic">{"Aucun justificatif"}</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Quantité pour achat */}
-          {(request.type === "achat" || request.type === "settle") && (
+          {(request.data?.data.type === "achat" ||
+            request.data?.data.type === "settle") && (
             <div className="view-group">
               <span className="view-icon">
                 <LucidePieChart />
@@ -325,26 +349,26 @@ function ViewRequest({
                   <p className="view-group-title">{"Quantité"}</p>
                 </div>
                 <p className="font-semibold">
-                  {request.quantity + " " + request.unit}
+                  {request.data?.data.quantity + " " + request.data?.data.unit}
                 </p>
               </div>
             </div>
           )}
 
           {/* Période pour ressources humaines */}
-          {request.type === "ressource_humaine" && (
+          {request.data?.data.type === "ressource_humaine" && (
             <div className="view-group">
               <span className="view-icon">
                 <CalendarClock />
               </span>
               <div className="flex flex-col">
                 <p className="view-group-title">{"Période"}</p>
-                {request.period ? (
+                {request.data?.data.period ? (
                   <p className="font-semibold">{`Du ${format(
-                    request.period.from!,
+                    request.data?.data.period.from!,
                     "PPP",
                     { locale: fr },
-                  )} au ${format(request.period.to!, "PPP", {
+                  )} au ${format(request.data?.data.period.to!, "PPP", {
                     locale: fr,
                   })}`}</p>
                 ) : (
@@ -355,7 +379,7 @@ function ViewRequest({
           )}
 
           {/* Pour le compte de (facilitation) */}
-          {request.type === "facilitation" && (
+          {request.data?.data.type === "facilitation" && (
             <div className="view-group">
               <span className="view-icon">
                 <Users />
@@ -363,7 +387,7 @@ function ViewRequest({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Pour le compte de"}</p>
                 <div className="flex flex-col">
-                  {request.benFac?.list?.map((ben) => {
+                  {request.data?.data.benFac?.list?.map((ben) => {
                     return (
                       <p
                         key={ben.id}
@@ -384,7 +408,9 @@ function ViewRequest({
             <div className="flex flex-col">
               <p className="view-group-title">{"Initié par"}</p>
               <p className="font-semibold capitalize">
-                {getUserName(users, request.userId)}
+                {request.data?.data.user.firstName +
+                  " " +
+                  request.data?.data.user.lastName}
               </p>
             </div>
           </div>
@@ -397,7 +423,7 @@ function ViewRequest({
             <div className="flex flex-col">
               <p className="view-group-title">{"Créé le"}</p>
               <p className="font-semibold">
-                {format(request.createdAt, "dd MMMM yyyy à kk:mm", {
+                {format(request.data?.data.createdAt, "dd MMMM yyyy à kk:mm", {
                   locale: fr,
                 })}
               </p>
@@ -414,7 +440,7 @@ function ViewRequest({
                 <p className="view-group-title">{"Modifié le"}</p>
               </div>
               <p className="font-semibold">
-                {format(request.updatedAt, "dd MMMM yyyy à kk:mm", {
+                {format(request.data?.data.updatedAt, "dd MMMM yyyy à kk:mm", {
                   locale: fr,
                 })}
               </p>
@@ -431,42 +457,47 @@ function ViewRequest({
                 <p className="view-group-title">{"Date limite"}</p>
               </div>
               <p className="font-semibold">
-                {format(request.dueDate!, "PPP", { locale: fr })}
+                {format(request.data?.data.dueDate!, "PPP", { locale: fr })}
               </p>
             </div>
           </div>
 
           {/* Bénéficiaires */}
-          {request.type !== "speciaux" && (
+          {request.data?.data.type !== "speciaux" && (
             <div className="view-group">
               <span className="view-icon">
                 <Users />
               </span>
               <div className="flex flex-col">
                 <p className="view-group-title">
-                  {request.type === "facilitation"
+                  {request.data?.data.type === "facilitation"
                     ? "Recepteur pour compte"
                     : "Bénéficiaires"}
                 </p>
-                {request.type === "facilitation" ? (
+                {request.data?.data.type === "facilitation" ? (
                   <p className="font-semibold capitalize">
-                    {users.find((u) => u.id === Number(request.beneficiary))
-                      ?.firstName +
+                    hello1
+                    {users.find(
+                      (u) => u.id === Number(request.data?.data.beneficiary),
+                    )?.firstName +
                       " " +
-                      users.find((u) => u.id === Number(request.beneficiary))
-                        ?.lastName}
+                      users.find(
+                        (u) => u.id === Number(request.data?.data.beneficiary),
+                      )?.lastName}
                   </p>
                 ) : (
                   <div className="flex flex-col">
-                    {request.beneficiary === "me" ? (
+                    {request.data?.data.beneficiary === "me" ? (
                       <p className="font-semibold capitalize">
-                        {request.requestOlds && request.requestOlds[0].userId
-                          ? getUserName(users, request.requestOlds[0].userId)
-                          : "Introuvable"}
+                        hello2
+                        {request.data?.data.user.firstName +
+                          " " +
+                          request.data?.data.user.lastName}
                       </p>
                     ) : (
                       <div className="flex flex-col">
-                        {request.beficiaryList?.map((ben) => {
+                        hello3
+                        {request.data?.data.beficiaryList?.map((ben) => {
                           const beneficiary = users.find(
                             (x) => x.id === ben.id,
                           );
@@ -490,7 +521,7 @@ function ViewRequest({
           )}
 
           {/* Validation History */}
-          {request.type === "speciaux" ? null : (
+          {request.data?.data.type === "speciaux" ? null : (
             <div className="w-full view-group">
               <span className="view-icon">
                 <SquareStackIcon />
@@ -498,7 +529,7 @@ function ViewRequest({
               <div className="w-full flex flex-col">
                 <p className="view-group-title">{"Historique de validation"}</p>
                 <div className="w-full grid gap-2 mt-2">
-                  {request.validators
+                  {request.data?.data.validators
                     .sort((a, b) => a.rank - b.rank)
                     .map((v) => {
                       return (
@@ -551,12 +582,14 @@ function ViewRequest({
 
           {/* Request parours */}
           <div className="col-span-full w-full mt-4">
-            <RequestStepper
-              request={request}
-              bonCommandes={purchaseOrders}
-              tickets={payments}
-              receptions={receptions}
-            />
+            {paiements.isSuccess && (
+              <RequestStepper
+                request={request.data?.data}
+                bonCommandes={purchaseOrders}
+                ticket={paiements?.data.data}
+                receptions={receptions}
+              />
+            )}
           </div>
         </div>
         {/* Boutons du footer */}

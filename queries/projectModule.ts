@@ -48,6 +48,12 @@ class ProjectQueries {
       return response.data;
     });
   };
+
+  getProjectByRequestId = async (id: number): Promise<{ data: ProjectT }> => {
+    return api.get(`${this.route}/request/${id}`).then((response) => {
+      return response.data;
+    });
+  };
 }
 
 export const projectQ = new ProjectQueries();

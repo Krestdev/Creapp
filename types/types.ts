@@ -215,8 +215,8 @@ export type RequestModelT = {
   period?: DateRange | undefined;
   paytype?: "cash" | "chq" | "ov";
   beficiaryList?:
-    | { id: number; firstName: string; lastName: string; email: string }[]
-    | null;
+  | { id: number; firstName: string; lastName: string; email: string }[]
+  | null;
   state: (typeof REQUEST_STATUS)[number]["value"];
   priority: "medium" | "high" | "low" | "urgent";
   projectId?: number;
@@ -243,6 +243,10 @@ export type RequestModelT = {
     amount?: number;
     createdAt: Date;
     userId: number;
+    user?: {
+      firstName: string;
+      lastName: string;
+    };
   }>;
   validators: Array<{
     id: number;
@@ -256,6 +260,7 @@ export type RequestModelT = {
   }>;
   decision?: "APPROVED" | "REJECTED" | "PENDING";
   serviceChiefId?: number;
+  user: { firstName: string, lastName: string }
 };
 
 export type TableData = {
@@ -386,6 +391,10 @@ export type QuotationElementStatus =
 export type QuotationElement = {
   id: number;
   requestModelId: number;
+  request?: {
+    id: number;
+    label: string;
+  };
   title: string;
   quantity: number;
   unit: string;

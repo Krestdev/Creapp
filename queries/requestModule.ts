@@ -243,8 +243,37 @@ class RequestQueries {
   };
 
   // Récupérer toutes les demandes
-  getAll = async (): Promise<{ data: RequestModelT[] }> => {
-    return api.get(this.route).then((res) => res.data);
+  getAll = async (params?: Record<string, any>): Promise<{ data: { data: RequestModelT[]; total?: number } }> => {
+    return api.get(this.route, { params }).then((res) => res.data);
+  };
+
+  // ============================
+  //       BÉNÉFICIAIRES
+  // ============================
+
+  // Récupérer toutes les demandes
+  getAllRequestsHavingPayment = async (): Promise<RequestModelT[]> => {
+    return api.get(`${this.route}/requestsWithPayment`).then((res) => res.data);
+  };
+
+  // Récupérer toutes les demandes
+  getForQuotation = async (): Promise<{ data: RequestModelT[] }> => {
+    console.log("getForQuotation");
+    return api.get(`${this.route}/quotation`).then((res) => res.data);
+  };
+
+  // Récupérer toutes les demandes
+  getStats = async (params?: Record<string, any>): Promise<{
+    data: {
+      awaiting: number;
+      rejected: number;
+      validated: number;
+      fromStore: number;
+      cancelled: number;
+      sent: number;
+    }
+  }> => {
+    return api.get(`${this.route}/stats`, { params }).then((res) => res.data);
   };
 
   // Récupérer une demande par ID
@@ -292,10 +321,10 @@ class RequestQueries {
     validatorId: number,
     validator:
       | {
-          id?: number | undefined;
-          userId: number;
-          rank: number;
-        }
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
       | undefined,
   ): Promise<{ data: RequestModelT }> => {
     return api
@@ -311,12 +340,12 @@ class RequestQueries {
       userId: number;
       decision?: string;
       validator?:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     },
   ): Promise<{ data: RequestModelT }> => {
     return api

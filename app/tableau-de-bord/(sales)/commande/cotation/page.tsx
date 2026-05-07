@@ -26,9 +26,9 @@ const Page = () => {
   ];
 
   const requestData = useQuery({
-    queryKey: ["requests"],
+    queryKey: ["requestsQuotation"],
     queryFn: () => {
-      return requestQ.getAll();
+      return requestQ.getForQuotation();
     },
   });
 
@@ -54,15 +54,16 @@ const Page = () => {
     return getCommandRequests.data.data;
   }, [getCommandRequests.data]);
 
-  const isRequestUsed = (requestId: number): boolean =>
-    commandRequests.some((c) => c.besoins.some((b) => b.id === requestId));
+  // const isRequestUsed = (requestId: number): boolean =>
+  //   commandRequests.some((c) => c.besoins.some((b) => b.id === requestId));
 
   const requestToUse = useMemo(() => {
     if (!requestData.data || !getCommandRequests.data) return [];
-    return requestData.data.data.filter(
-      (x) =>
-        x.type === "achat" && x.state === "validated" && !isRequestUsed(x.id),
-    );
+    return requestData.data.data;
+    // filter(
+    //   (x) =>
+    //     x.type === "achat" && x.state === "validated" && !isRequestUsed(x.id),
+    // );
   }, [requestData.data, getCommandRequests.data]);
 
   const tabs: TabProps["tabs"] = [
@@ -126,7 +127,6 @@ const Page = () => {
           <CreateCotation
             users={getUsers.data.data}
             requests={requestData.data.data}
-            quotationRequests={getCommandRequests.data.data}
             categories={getCategories.data.data}
           />
         ) : (

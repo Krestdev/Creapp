@@ -55,7 +55,6 @@ interface DevisTableProps {
   data: Quotation[];
   providers: Array<Provider>;
   commands: Array<CommandRequestT>;
-  requests: Array<RequestModelT>;
   users: Array<User>;
 }
 
@@ -63,7 +62,6 @@ export function DevisTable({
   data,
   providers,
   commands,
-  requests,
   users,
 }: DevisTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -444,7 +442,6 @@ export function DevisTable({
           data={selectedDevis}
           title={selectedQuotation}
           users={users}
-          requests={requests}
           providers={providers}
         />
       )}

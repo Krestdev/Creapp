@@ -15,8 +15,8 @@ const Cotation = () => {
   });
 
   const getRequests = useQuery({
-    queryKey: ["requests"],
-    queryFn: requestQ.getAll,
+    queryKey: ["requestsQuotation"],
+    queryFn: () => requestQ.getForQuotation(),
   });
 
   const getCategories = useQuery({
@@ -40,9 +40,10 @@ const Cotation = () => {
         <div className="flex flex-col">
           <CommandeTable
             data={data.data}
-            requests={getRequests.data.data.filter(
-              (r) => r.type === "achat" && r.state === "validated",
-            )}
+            requests={getRequests.data.data}
+            // .filter(
+            //   (r) => r.type === "achat" && r.state === "validated",
+            // )
             categories={getCategories.data.data}
           />
         </div>

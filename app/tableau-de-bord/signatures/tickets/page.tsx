@@ -27,7 +27,7 @@ import { purchaseQ } from "@/queries/purchase-order";
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
+    queryFn: () => paymentQ.getAll(),
   });
 
   const signatair = useQuery({
