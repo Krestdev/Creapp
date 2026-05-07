@@ -444,7 +444,7 @@ export function BesoinsTraiter({
         return (
           <div className=" flex justify-end gap-2">
             <Button
-            variant={"outline"}
+              variant={"outline"}
               onClick={() => {
                 setSelect(item);
                 setIsModalOpenView(true);
@@ -633,22 +633,10 @@ export function BesoinsTraiter({
             onOpenChange={setIsModalOpenView}
             data={select}
             projects={projectsData.data?.data!}
-            categories={categoriesData.data?.data!}
             users={usersData.data?.data!}
             payments={paymentsData.data?.data!}
             receptions={getReceptions.data?.data!}
             purchaseOrders={getPurchases.data?.data!}
-            actionButton="Approuver"
-            action={() => {
-              if (!select) return;
-
-              const validationInfo = getValidationInfo(select);
-              if (validationInfo.isLastValidator) {
-                setIsModalOpen(false);
-              } else {
-                setIsModalOpen(false);
-              }
-            }}
           />
         </>
       )}

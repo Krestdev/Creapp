@@ -639,21 +639,11 @@ export function TableMyRequests({
             open={isModalOpen}
             onOpenChange={setIsModalOpen}
             data={selectedItem}
-            categories={categories}
             users={users}
             projects={projects}
             payments={payments}
             receptions={receptions}
             purchaseOrders={purchaseOrders}
-            actionButton="Modifier"
-            action={() => {
-              setIsModalOpen(false);
-              {
-                selectedItem?.type === "facilitation"
-                  ? setIsUpdateFacModalOpen(true)
-                  : setIsUpdateModalOpen(true);
-              }
-            }}
           />
           <UpdateRequest
             open={isUpdateModalOpen}
