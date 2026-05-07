@@ -585,7 +585,9 @@ export function DetailBesoin({
                 <p className="view-group-title">
                   {data.type === "facilitation"
                     ? "Recepteur pour compte"
-                    : "Bénéficiaires"}
+                    : data.type === "achat"
+                      ? "À Réceptionner par"
+                      : "Bénéficiaires"}
                 </p>
                 {data.type === "facilitation" ? (
                   <p className="font-semibold capitalize">
