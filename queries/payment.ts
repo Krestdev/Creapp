@@ -157,7 +157,9 @@ class PaymentQueries {
   // READ (GET ALL)
   // --------------------------------------
 
-  getAll = async (params?: PaymentQueryOptions): Promise<{ data: PaymentRequest[], total: number }> => {
+  getAll = async (
+    params?: PaymentQueryOptions,
+  ): Promise<{ data: PaymentRequest[]; total: number }> => {
     return api.get(this.route, { params }).then((response) => {
       return response.data.data;
     });
@@ -176,6 +178,26 @@ class PaymentQueries {
     return api
       .get(`${this.route}/request/${requestId}`)
       .then((response) => response.data);
+  };
+  //Pending for validation count
+  getVoltPendingCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/tickets-pending/count`).then((response) => {
+      return response.data;
+    });
+  };
+
+  //Pending depense count
+  getPendingDepenseCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/paymentToTreat/count`).then((response) => {
+      return response.data;
+    });
+  };
+
+  //To sign count
+  getPendingToSignCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/paymentToSign/count`).then((response) => {
+      return response.data;
+    });
   };
 
   // --------------------------------------

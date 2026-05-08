@@ -67,6 +67,13 @@ class QuotationQueries {
     return api.get(this.route).then((response) => response.data);
   };
 
+  //get Count of quotations to assign to a bonsCommande
+  getToAssignCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/to-assign/count`).then((response) => {
+      return response.data;
+    });
+  };
+
   // UPDATE — PUT multipart
   update = async (
     id: number,

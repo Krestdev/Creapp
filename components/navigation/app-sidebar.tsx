@@ -44,7 +44,7 @@ import {
   VoteIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useMemo } from "react";
 import {
   DropdownMenu,
@@ -70,25 +70,18 @@ import { Skeleton } from "../ui/skeleton";
 
 function AppSidebar() {
   const { user, logout, isHydrated, isSignataire } = useStore();
-
+  const router = useRouter();
   const pathname = usePathname();
+
+  const sessionClose = () => {
+    logout();
+    router.replace("/connexion");
+  };
 
   // Utilisation du hook pour la protection globale
   const { userRoles } = useAuthGuard({
     requireAuth: true,
     authorizedRoles: [],
-  });
-
-  //Get Quotation requests
-  const getQuotationRequests = useQuery({
-    queryKey: ["commands"],
-    queryFn: commandRqstQ.getAll,
-  });
-
-  //Get Quotations
-  const getQuotations = useQuery({
-    queryKey: ["quotations"],
-    queryFn: quotationQ.getAll,
   });
 
   //Get Purchase orders (Bons de commande)
@@ -112,10 +105,9 @@ function AppSidebar() {
     enabled: isHydrated,
   });
 
-  // Get requests for approvals
-  const requestData = useQuery({
-    queryKey: ["requests-for-approval"],
-    queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
+  const pendingRequestApprovalsCount = useQuery({
+    queryKey: ["pending-request-approvals-count"],
+    queryFn: async () => requestQ.getPendingCount(),
     enabled: !!user,
   });
 
@@ -137,16 +129,11 @@ function AppSidebar() {
     queryFn: () => paymentQ.getAll(),
   });
 
-  const requestsData = useQuery({
-    queryKey: ["requests"],
+  const usableRequestsCount = useQuery({
+    queryKey: ["usableRequestsCount"],
     queryFn: () => {
-      return requestQ.getAll();
+      return requestQ.getUsableRequestsCount();
     },
-  });
-
-  const getCommandRequests = useQuery({
-    queryKey: ["commands"],
-    queryFn: commandRqstQ.getAll,
   });
 
   const SignPay = useQuery({
@@ -176,213 +163,84 @@ function AppSidebar() {
     queryFn: bankQ.getAll,
   });
 
-  const serviceHeadRequests = useQuery({
-    queryKey: ["serviceRequests"],
-    queryFn: () => requestQ.getServiceRequests(),
+  //Get service requests count
+  const serviceRequestsCount = useQuery({
+    queryKey: ["service-requests-count"],
+    queryFn: () => requestQ.getServiceRequestsCount(),
+    enabled: !!user,
   });
 
-  const filteredTickTransfert = React.useMemo(() => {
-    return getTransactions.data?.data.filter((transaction) => {
-      //Filter Tab
-      const matchTab =
-        transaction.Type === "TRANSFER" && transaction.status === "PENDING";
-      return matchTab;
-    });
-  }, [getTransactions.data?.data]);
+  const pendingCommandRequestsCount = useQuery({
+    queryKey: ["pending-commandRequests-count"],
+    queryFn: () => commandRqstQ.getPendingCount(),
+    enabled:
+      !!user &&
+      user?.role.some((role) =>
+        ["VOLT_MANAGER", "ADMIN", "SUPERADMIN", "SALES_MANAGER"].includes(
+          role.label,
+        ),
+      ),
+  });
 
-  const filteredData = useMemo(() => {
-    if (!SignPay?.data?.data || !signatair.data?.data || !user) {
-      return {
-        unsignedPayments: [],
-        signedPayments: [],
-      };
-    }
+  const pendingApprovalsTransactionsCount = useQuery({
+    queryKey: ["pending-approvals-transactions-count"],
+    queryFn: () => transactionQ.getApprovePendingCount(),
+    enabled:
+      !!user &&
+      user?.role.some((role) =>
+        ["VOLT_MANAGER", "SUPERADMIN"].includes(role.label),
+      ),
+  });
 
-    const allPayments = SignPay.data.data;
-    const allSignatair = signatair.data.data;
-    const currentUserId = user.id;
+  //Get purchase orders pending count
+  const purchaseOrdersPendingCount = useQuery({
+    queryKey: ["purchaseOrders-pending-count"],
+    queryFn: () => purchaseQ.getPendingCount(),
+    enabled: !!user,
+  });
 
-    // Pré-calculer les signataires autorisés par banque et type de paiement
-    const authorizedSigners = new Map<string, Set<number>>();
+  const quotationToAssignCount = useQuery({
+    queryKey: ["quotation-to-assign-count"],
+    queryFn: () => quotationQ.getToAssignCount(),
+    enabled:
+      !!user &&
+      user?.role.some((role) =>
+        [
+          "SALES_MANAGER",
+          "VOLT_MANAGER",
+          "ADMIN",
+          "SUPERADMIN",
+          "SALES",
+        ].includes(role.label),
+      ),
+  });
 
-    allSignatair.forEach((signer) => {
-      const key = `${signer.bankId}_${signer.payTypeId}`;
-      const userIds = new Set(signer.user?.map((u) => u.id) || []);
-      authorizedSigners.set(key, userIds);
-    });
+  //Volt Pending Count
+  const voltPendingCount = useQuery({
+    queryKey: ["volt-pending-count"],
+    queryFn: () => paymentQ.getVoltPendingCount(),
+    enabled:
+      !!user &&
+      user?.role.some((role) =>
+        ["VOLT_MANAGER", "SUPERADMIN"].includes(role.label),
+      ),
+  });
 
-    // Fonction optimisée pour vérifier si l'utilisateur peut signer
-    const userCanSign = (bankId: number | null, methodId: number | null) => {
-      if (bankId == null || methodId == null) return false;
-      const key = `${bankId}_${methodId}`;
-      const userIds = authorizedSigners.get(key);
-      return userIds ? userIds.has(currentUserId) : false;
-    };
+  //Pending Depense Count
+  const pendingDepenseCount = useQuery({
+    queryKey: ["pending-depense-count"],
+    queryFn: () => paymentQ.getPendingDepenseCount(),
+    enabled:
+      !!user &&
+      user?.role.some((role) => ["VOLT", "SUPERADMIN"].includes(role.label)),
+  });
 
-    // Filtrer les paiements selon les permissions - version optimisée
-    const authorizedPayments = allPayments.filter((p) =>
-      userCanSign(p.bankId!, p.methodId!),
-    );
-
-    // Séparation des paiements par statut
-    const pendingDepensePayments = authorizedPayments.filter(
-      (p) =>
-        p.signer?.flatMap((u) => u.id)?.includes(currentUserId) &&
-        p.status === "pending_depense",
-    );
-
-    const unsignedPayments = authorizedPayments.filter(
-      (p) =>
-        !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) &&
-        p.status === "unsigned",
-    );
-
-    const signedPayments = authorizedPayments.filter(
-      (p) => p.status === "signed" || p.status === "paid",
-    );
-
-    // Tous les paiements en attente (pour l'onglet)
-    const allPendingPayments = [...pendingDepensePayments, ...unsignedPayments];
-
-    return {
-      pendingDepensePayments,
-      unsignedPayments,
-      signedPayments,
-      allPendingPayments,
-      allPayments,
-    };
-  }, [SignPay?.data?.data, signatair.data?.data, user]);
-
-  const data: Array<RequestModelT> = useMemo(() => {
-    if (!requestData.data) return [];
-    return approbatorRequests(requestData.data.data, user?.id);
-  }, [requestData.data, user?.id]);
-
-  const purchase = useMemo(() => {
-    if (!getPurchases.data) return [];
-    return getPurchases.data?.data.filter(
-      (c) => c.status === "IN-REVIEW" || c.status === "PENDING",
-    );
-  }, [getPurchases.data]);
-
-  const devisTraite = useMemo(() => {
-    if (!getQuotations.data || !getPurchases.data) return [];
-    return (
-      getPurchases.isSuccess &&
-      getQuotations.data.data.filter(
-        (c) =>
-          c.status === "APPROVED" &&
-          !getPurchases.data.data.some((a) => a.deviId === c.id),
-      )
-    );
-  }, [getQuotations.data, getPurchases.data]);
-
-  const approbationDevis = useMemo(() => {
-    if (!providers.data || !getQuotationRequests.data || !getQuotations.data)
-      return [];
-    return providers.data.data &&
-      getQuotationRequests.data &&
-      getQuotations.data
-      ? groupQuotationsByCommandRequest(
-          getQuotationRequests.data.data,
-          getQuotations.data.data,
-          providers.data.data,
-        ).filter((c) => c.status === "NOT_PROCESSED")
-      : [];
-  }, [providers.data, getQuotationRequests.data, getQuotations.data]);
-
-  // Récupérer tous les IDs des besoins présents dans les cotations
-  const commandRequests = useMemo(() => {
-    if (!getQuotationRequests.data) return [];
-    return getQuotationRequests.data.data;
-  }, [getQuotationRequests.data]);
-
-  const isRequestUsed = (requestId: number): boolean =>
-    commandRequests.some((c) => c.besoins.some((b) => b.id === requestId));
-
-  // Filtrer les besoins validés qui ne sont pas dans une cotation
-  const requestToUse = useMemo(() => {
-    if (!requestsData.data?.data || !getCommandRequests.data?.data) return [];
-    return requestsData.data?.data.data.filter(
-      (x) =>
-        x.type === "achat" && x.state === "validated" && !isRequestUsed(x.id),
-    );
-  }, [requestsData.data, getCommandRequests.data, isRequestUsed]);
-
-  const pendingData = useMemo(() => {
-    if (!data) return [];
-    return data.filter((b) => {
-      return (
-        b.state === "pending" &&
-        b.validators.find((v) => v.userId === user?.id)?.validated === false
-      );
-    });
-  }, [data, user?.id]);
-
-  const ticketsData = useMemo(() => {
-    if (!getPayments.data?.data) return [];
-    console.log(getPayments.data?.data);
-
-    return getPayments.data?.data.filter((ticket) => ticket.status !== "ghost");
-  }, [getPayments.data]);
-
-  const approvedTicket = useMemo(() => {
-    if (!ticketsData) return [];
-    return ticketsData
-      .filter((x) => x.type !== "appro")
-      .filter((ticket) => ticket.status === "validated");
-  }, [ticketsData]);
-
-  const simpleTicket = useMemo(() => {
-    if (!ticketsData) return [];
-    return ticketsData.filter((ticket) => ticket.status === "simple_signed");
-  }, [ticketsData]);
-
-  const signedTicket = useMemo(() => {
-    if (!ticketsData) return [];
-    return ticketsData.filter((ticket) => ticket.status === "signed");
-  }, [ticketsData]);
-
-  const pendingTicket = useMemo(() => {
-    if (!ticketsData) return [];
-    return ticketsData.filter((ticket) => ticket.status === "pending_depense");
-  }, [ticketsData]);
-
-  const ticketPending = useMemo(() => {
-    const bannedTypes: Array<PaymentRequest["type"]> = [
-      "transport",
-      "others",
-      // "appro",
-      "gas",
-    ];
-    if (!ticketsData) return [];
-    return ticketsData.filter(
-      (ticket) =>
-        ticket.status === "accepted" ||
-        (ticket.status === "pending" &&
-          !bannedTypes.some((t) => t === ticket.type)),
-    );
-  }, [ticketsData]);
-
-  // const ticketsDataP = useMemo(() => {
-  //   if (!getPayments.data) return [];
-  //   return getPayments.data.data.filter(
-  //     (ticket) =>
-  //       ticket.status !== "ghost" &&
-  //       ticket.status !== "pending" &&
-  //       ticket.status !== "rejected" &&
-  //       ticket.status !== "validated" &&
-  //       ticket.status !== "pending_depense" &&
-  //       ticket.status !== "unsigned" &&
-  //       ticket.status !== "paid",
-  //   );
-  // }, [getPayments.data]);
-
-  const overall = useMemo(() => {
-    if (!approvedTicket || !signedTicket || !pendingTicket || !simpleTicket)
-      return [];
-    return approvedTicket?.concat(signedTicket, pendingTicket, simpleTicket);
-  }, [approvedTicket, signedTicket, pendingTicket, simpleTicket]);
+  //Payment to Sign
+  const paymentsToSignCount = useQuery({
+    queryKey: ["payments-to-sign-count"],
+    queryFn: () => paymentQ.getPendingToSignCount(),
+    enabled: !!user?.signatairs && user.signatairs.length > 0,
+  });
 
   //Signataires
   const transfersToSign: Array<TransferTransaction> = useMemo(() => {
@@ -415,18 +273,24 @@ function AppSidebar() {
   }, [getTransactions.data]);
 
   if (
-    getQuotationRequests.isLoading ||
-    getQuotations.isLoading ||
     getPayments.isLoading ||
     signatories.isLoading ||
     myList.isLoading ||
-    requestData.isLoading ||
     categoriesData.isLoading ||
     providers.isLoading ||
     getPurchases.isLoading ||
     getPayType.isLoading ||
     getBanks.isLoading ||
-    serviceHeadRequests.isLoading
+    serviceRequestsCount.isLoading ||
+    pendingRequestApprovalsCount.isLoading ||
+    usableRequestsCount.isLoading ||
+    pendingCommandRequestsCount.isLoading ||
+    quotationToAssignCount.isLoading ||
+    purchaseOrdersPendingCount.isLoading ||
+    voltPendingCount.isLoading ||
+    pendingApprovalsTransactionsCount.isLoading ||
+    pendingDepenseCount.isLoading ||
+    paymentsToSignCount.isLoading
   ) {
     return (
       <Sidebar>
@@ -444,18 +308,24 @@ function AppSidebar() {
     );
   }
   if (
-    getQuotationRequests.isError ||
-    getQuotations.isError ||
     getPayments.isError ||
     signatories.isError ||
     myList.isError ||
-    requestData.isError ||
     categoriesData.isError ||
     providers.isError ||
     getPurchases.isError ||
     getPayType.isError ||
     getBanks.isError ||
-    serviceHeadRequests.isError
+    serviceRequestsCount.isError ||
+    pendingRequestApprovalsCount.isError ||
+    usableRequestsCount.isError ||
+    pendingCommandRequestsCount.isError ||
+    quotationToAssignCount.isError ||
+    purchaseOrdersPendingCount.isError ||
+    voltPendingCount.isError ||
+    pendingApprovalsTransactionsCount.isError ||
+    pendingDepenseCount.isError ||
+    paymentsToSignCount.isError
   ) {
     return (
       <Sidebar>
@@ -473,18 +343,24 @@ function AppSidebar() {
     );
   }
   if (
-    getQuotationRequests.isSuccess &&
-    getQuotations.isSuccess &&
     getPayments.isSuccess &&
     signatories.isSuccess &&
     myList.isSuccess &&
-    requestData.isSuccess &&
     categoriesData.isSuccess &&
     providers.isSuccess &&
     getPurchases.isSuccess &&
     getPayType.isSuccess &&
     getBanks.isSuccess &&
-    serviceHeadRequests.isSuccess
+    serviceRequestsCount.isSuccess &&
+    pendingRequestApprovalsCount.isSuccess &&
+    usableRequestsCount.isSuccess &&
+    pendingCommandRequestsCount.isSuccess &&
+    quotationToAssignCount.isSuccess &&
+    purchaseOrdersPendingCount.isSuccess &&
+    voltPendingCount.isSuccess &&
+    pendingApprovalsTransactionsCount.isSuccess &&
+    pendingDepenseCount.isSuccess &&
+    paymentsToSignCount.isSuccess
   ) {
     const navLinks: NavigationGroup[] = [
       {
@@ -552,14 +428,14 @@ function AppSidebar() {
             title: "Approbation",
             href: "/tableau-de-bord/besoins/validation",
             authorized: ["SUPERADMIN", "MANAGER"],
-            badgeValue: pendingData.length > 0 ? pendingData.length : undefined, //to-do update router for this
+            badgeValue: pendingRequestApprovalsCount.data.data,
           },
           {
             pageId: "PG-02-05",
             title: "Besoins du Service",
             href: "/tableau-de-bord/besoins/service",
             authorized: ["SUPERADMIN", "USER"],
-            badgeValue: serviceHeadRequests.data?.data.length, //to-do update router for this
+            badgeValue: serviceRequestsCount.data.data,
           },
         ],
       },
@@ -574,8 +450,7 @@ function AppSidebar() {
             title: "Demande de cotation",
             href: "/tableau-de-bord/commande/cotation",
             authorized: ["SUPERADMIN", "SALES"],
-            badgeValue:
-              requestToUse.length > 0 ? requestToUse.length : undefined, //to-do update router for this
+            badgeValue: usableRequestsCount.data.data,
           },
           {
             pageId: "PG-03-02",
@@ -588,28 +463,21 @@ function AppSidebar() {
             title: "Approbation Devis",
             href: "/tableau-de-bord/commande/devis/approbation",
             authorized: ["SUPERADMIN", "SALES_MANAGER"],
-            badgeValue:
-              approbationDevis && approbationDevis.length > 0 //to-do update router for this
-                ? approbationDevis?.length
-                : undefined,
+            badgeValue: pendingCommandRequestsCount.data.data,
           },
           {
             pageId: "PG-03-5",
             title: "Bons de commande",
             href: "/tableau-de-bord/commande/bon-de-commande",
             authorized: ["SUPERADMIN", "SALES"],
-            badgeValue:
-              devisTraite && devisTraite.length > 0 //to-do update router for this
-                ? devisTraite?.length
-                : undefined,
+            badgeValue: quotationToAssignCount.data.data,
           },
           {
             pageId: "PG-03-44",
             title: "Approbation BC",
             href: "/tableau-de-bord/commande/bon-de-commande/approbation",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-            badgeValue:
-              purchase && purchase.length > 0 ? purchase?.length : undefined, //to-do update router for this
+            badgeValue: purchaseOrdersPendingCount.data.data,
           },
           {
             pageId: "PG-03-065897",
@@ -653,10 +521,7 @@ function AppSidebar() {
             title: "Paiements",
             href: "/tableau-de-bord/ticket",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-            badgeValue:
-              ticketPending && ticketPending.length > 0 //to-do update router for this
-                ? ticketPending?.length
-                : undefined,
+            badgeValue: voltPendingCount.data.data,
           },
           {
             pageId: "PG-04-02",
@@ -664,10 +529,7 @@ function AppSidebar() {
             icon: ArrowLeftRightIcon,
             href: "/tableau-de-bord/ticket/transferts",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-            badgeValue:
-              filteredTickTransfert && filteredTickTransfert?.length > 0 //to-do update router for this
-                ? filteredTickTransfert?.length
-                : undefined,
+            badgeValue: pendingApprovalsTransactionsCount.data.data,
           },
           /* {
             pageId: "PG-04-04",
@@ -694,21 +556,7 @@ function AppSidebar() {
             title: "Dépenses",
             icon: BadgeDollarSignIcon,
             href: "/tableau-de-bord/depenses",
-            badgeValue:
-              approvedTicket && //to-do update router for this
-              signedTicket &&
-              pendingTicket &&
-              simpleTicket &&
-              approvedTicket?.length +
-                signedTicket?.length +
-                pendingTicket?.length +
-                simpleTicket?.length >
-                0
-                ? approvedTicket?.length +
-                  signedTicket?.length +
-                  pendingTicket?.length +
-                  simpleTicket?.length
-                : undefined,
+            badgeValue: pendingDepenseCount.data.data,
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
           /* {
@@ -731,10 +579,7 @@ function AppSidebar() {
             icon: SignatureIcon,
             href: "/tableau-de-bord/signatures/tickets",
             authorized: [],
-            badgeValue:
-              filteredData?.unsignedPayments?.length > 0 //to-do update router for this
-                ? filteredData?.unsignedPayments?.length
-                : undefined,
+            badgeValue: paymentsToSignCount.data.data,
           },
           {
             pageId: "PG-0000551-02",
@@ -877,7 +722,7 @@ function AppSidebar() {
                           <Link href={item.href}>
                             {item.icon && <item.icon size={20} />}
                             <span className="w-full">{item.title}</span>
-                            {item.badgeValue && item.badgeValue > 0 && (
+                            {!!item.badgeValue && item.badgeValue > 0 && (
                               <span className="inline-flex shrink-0 h-[26px] min-w-[26px] px-1 items-center justify-center text-center rounded bg-accent text-xs font-medium text-primary-700">
                                 {item.badgeValue > 99 ? "99+" : item.badgeValue}
                               </span>
@@ -922,7 +767,7 @@ function AppSidebar() {
                   {"Changer de mot de passe"}
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive" onClick={logout}>
+              <DropdownMenuItem variant="destructive" onClick={sessionClose}>
                 <LogOutIcon />
                 {"Se déconnecter"}
               </DropdownMenuItem>

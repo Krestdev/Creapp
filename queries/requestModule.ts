@@ -243,7 +243,9 @@ class RequestQueries {
   };
 
   // Récupérer toutes les demandes
-  getAll = async (params?: Record<string, any>): Promise<{ data: { data: RequestModelT[]; total?: number } }> => {
+  getAll = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: { data: RequestModelT[]; total?: number } }> => {
     return api.get(this.route, { params }).then((res) => res.data);
   };
 
@@ -263,7 +265,9 @@ class RequestQueries {
   };
 
   // Récupérer toutes les demandes
-  getStats = async (params?: Record<string, any>): Promise<{
+  getStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
     data: {
       awaiting: number;
       rejected: number;
@@ -271,7 +275,7 @@ class RequestQueries {
       fromStore: number;
       cancelled: number;
       sent: number;
-    }
+    };
   }> => {
     return api.get(`${this.route}/stats`, { params }).then((res) => res.data);
   };
@@ -306,9 +310,30 @@ class RequestQueries {
     return api.get(`${this.route}/validator/${userId}`).then((res) => res.data);
   };
 
+  // Notification Requests to approve/reject for
+  getPendingCount = async (): Promise<{ data: number }> => {
+    return api
+      .get(`${this.route}/pendingRequests/count`)
+      .then((res) => res.data);
+  };
+
   //Service head requests
   getServiceRequests = async (): Promise<{ data: Array<RequestModelT> }> => {
     return api.get(`${this.route}/chief/requests`).then((res) => res.data);
+  };
+
+  //Service head requests count
+  getServiceRequestsCount = async (): Promise<{ data: number }> => {
+    return api
+      .get(`${this.route}/chief/requests/count`)
+      .then((res) => res.data);
+  };
+
+  //usableRequests
+  getUsableRequestsCount = async (): Promise<{ data: number }> => {
+    return api
+      .get(`${this.route}/usableRequests/count`)
+      .then((res) => res.data);
   };
 
   // ============================
@@ -321,10 +346,10 @@ class RequestQueries {
     validatorId: number,
     validator:
       | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
+          id?: number | undefined;
+          userId: number;
+          rank: number;
+        }
       | undefined,
   ): Promise<{ data: RequestModelT }> => {
     return api
@@ -340,12 +365,12 @@ class RequestQueries {
       userId: number;
       decision?: string;
       validator?:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     },
   ): Promise<{ data: RequestModelT }> => {
     return api

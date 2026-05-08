@@ -59,6 +59,13 @@ class TransactionQuery {
     });
   };
 
+  //Pending for validation count
+  getApprovePendingCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/appro/count`).then((response) => {
+      return response.data;
+    });
+  };
+
   create = async (
     payload: TransactionProps,
   ): Promise<{ data: Transaction }> => {
