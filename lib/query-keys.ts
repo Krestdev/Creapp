@@ -11,6 +11,7 @@ export const queryKeys = {
   voltPendingCount: ["volt-pending-count"] as const,
   pendingDepenseCount: ["pending-depense-count"] as const,
   paymentsToSignCount: ["payments-to-sign-count"] as const,
+  payment: (id: number) => ["payment", id] as const,
 
   // ─── Requests ──────────────────────────────────────────────────────────────
   requests: ["requests"] as const,
@@ -20,6 +21,7 @@ export const queryKeys = {
   serviceRequestsCount: ["service-requests-count"] as const,
   usableRequestsCount: ["usable-requests-count"] as const,
   requestType: ["requestType"] as const,
+  request: (id: number) => ["request", id] as const,
 
   // ─── Transactions ──────────────────────────────────────────────────────────
   transactions: ["transactions"] as const,

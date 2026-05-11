@@ -60,6 +60,7 @@ import React, { useState } from "react";
 import { RequestsTable } from "./table-besoins";
 import { useFilters } from "@/queries/filters/standard-filter";
 import Filters from "./filters";
+import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
   const { user } = useStore();
@@ -153,14 +154,14 @@ function Page() {
   });
 
   const categoryData = useQuery({
-    queryKey: ["categories"],
+    queryKey: queryKeys.categories,
     queryFn: async () => {
       return categoryQ.getCategories();
     },
   });
 
   const projectsData = useQuery({
-    queryKey: ["projects"],
+    queryKey: queryKeys.projects,
     queryFn: async () => {
       return projectQ.getAll();
     },
@@ -172,22 +173,22 @@ function Page() {
   // });
 
   const requestTypes = useQuery({
-    queryKey: ["requestType"],
+    queryKey: queryKeys.requestType,
     queryFn: requestTypeQ.getAll,
   });
 
   const usersData = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: async () => userQ.getAll(),
   });
 
   const getReceptions = useQuery({
-    queryKey: ["receptions"],
+    queryKey: queryKeys.receptions,
     queryFn: receptionQ.getAll,
   });
 
   const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
+    queryKey: queryKeys.purchaseOrders,
     queryFn: purchaseQ.getAll,
   });
 

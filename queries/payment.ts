@@ -165,6 +165,16 @@ class PaymentQueries {
     });
   };
 
+  getDepenses = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: PaymentRequest[]; total: number }> => {
+    return api
+      .get(`${this.route}/expenses/all`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
   // --------------------------------------
   // READ (GET ONE)
   // --------------------------------------

@@ -82,7 +82,6 @@ const Liste = () => {
             requestTypeData={getRequestType.data.data}
             users={getUsers.data.data}
             requests={getRequests.data.data}
-            payTypes={getPaymentType.data.data}
           />
         </div>
       </div>

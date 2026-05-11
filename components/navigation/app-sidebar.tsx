@@ -59,6 +59,7 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 import { Skeleton } from "../ui/skeleton";
+import { queryKeys } from "@/lib/query-keys";
 
 function AppSidebar() {
   const { user, logout, isHydrated, isSignataire } = useStore();
@@ -77,13 +78,13 @@ function AppSidebar() {
   });
 
   const pendingRequestApprovalsCount = useQuery({
-    queryKey: ["pending-request-approvals-count"],
+    queryKey: queryKeys.pendingRequestApprovalsCount,
     queryFn: async () => requestQ.getPendingCount(),
     enabled: !!user,
   });
 
   const usableRequestsCount = useQuery({
-    queryKey: ["usable-requests-count"],
+    queryKey: queryKeys.usableRequestsCount,
     queryFn: () => {
       return requestQ.getUsableRequestsCount();
     },
@@ -91,67 +92,67 @@ function AppSidebar() {
 
   //Get service requests count
   const serviceRequestsCount = useQuery({
-    queryKey: ["service-requests-count"],
+    queryKey: queryKeys.serviceRequestsCount,
     queryFn: () => requestQ.getServiceRequestsCount(),
     enabled: !!user,
   });
 
   const pendingCommandRequestsCount = useQuery({
-    queryKey: ["pending-commandRequests-count"],
+    queryKey: queryKeys.pendingCommandRequestsCount,
     queryFn: () => commandRqstQ.getPendingCount(),
     enabled: !!user,
   });
 
   const pendingApprovalsTransactionsCount = useQuery({
-    queryKey: ["pending-approvals-transactions-count"],
+    queryKey: queryKeys.pendingApprovalsTransactionsCount,
     queryFn: () => transactionQ.getApprovePendingCount(),
     enabled: !!user,
   });
 
   //Get purchase orders pending count
   const purchaseOrdersPendingCount = useQuery({
-    queryKey: ["purchaseOrders-pending-count"],
+    queryKey: queryKeys.purchaseOrdersPendingCount,
     queryFn: () => purchaseQ.getPendingCount(),
     enabled: !!user,
   });
 
   const quotationToAssignCount = useQuery({
-    queryKey: ["quotation-to-assign-count"],
+    queryKey: queryKeys.quotationToAssignCount,
     queryFn: () => quotationQ.getToAssignCount(),
     enabled: !!user,
   });
 
   //Volt Pending Count
   const voltPendingCount = useQuery({
-    queryKey: ["volt-pending-count"],
+    queryKey: queryKeys.voltPendingCount,
     queryFn: () => paymentQ.getVoltPendingCount(),
     enabled: !!user,
   });
 
   //Pending Depense Count
   const pendingDepenseCount = useQuery({
-    queryKey: ["pending-depense-count"],
+    queryKey: queryKeys.pendingDepenseCount,
     queryFn: () => paymentQ.getPendingDepenseCount(),
     enabled: !!user,
   });
 
   //Payment to Sign
   const paymentsToSignCount = useQuery({
-    queryKey: ["payments-to-sign-count"],
+    queryKey: queryKeys.paymentsToSignCount,
     queryFn: () => paymentQ.getPendingToSignCount(),
     enabled: !!user?.signatairs && user.signatairs.length > 0,
   });
 
   //Pending to Sign transfers count
   const pendingToSignTransfersCount = useQuery({
-    queryKey: ["pending-to-sign-transfers-count"],
+    queryKey: queryKeys.pendingToSignTransfersCount,
     queryFn: () => transactionQ.getPendingToSignCount(),
     enabled: !!user?.signatairs && user.signatairs.length > 0,
   });
 
   //Pending transfers count
   const pendingTransfersCount = useQuery({
-    queryKey: ["pending-transfers-count"],
+    queryKey: queryKeys.pendingTransfersCount,
     queryFn: () => transactionQ.getPendingTransfersCount(),
     enabled: !!user,
   });
