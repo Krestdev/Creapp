@@ -1,6 +1,4 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
-import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
-import { approbatorRequests } from "@/lib/requests-helpers";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
@@ -14,12 +12,7 @@ import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
 import { transactionQ } from "@/queries/transaction";
-import {
-  NavigationGroup,
-  PaymentRequest,
-  RequestModelT,
-  TransferTransaction,
-} from "@/types/types";
+import { NavigationGroup } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeftRightIcon,
@@ -45,7 +38,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useMemo } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,49 +76,10 @@ function AppSidebar() {
     authorizedRoles: [],
   });
 
-  //Get Purchase orders (Bons de commande)
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
-  });
-
-  //Get Providers
-  const providers = useQuery({
-    queryKey: ["providers"],
-    queryFn: providerQ.getAll,
-  });
-
-  // Get Categories
-  const categoriesData = useQuery({
-    queryKey: ["categoryList"],
-    queryFn: async () => {
-      return categoryQ.getCategories();
-    },
-    enabled: isHydrated,
-  });
-
   const pendingRequestApprovalsCount = useQuery({
     queryKey: ["pending-request-approvals-count"],
     queryFn: async () => requestQ.getPendingCount(),
     enabled: !!user,
-  });
-
-  //Get my requests sent
-  const myList = useQuery({
-    queryKey: ["requests", user?.id],
-    queryFn: () => requestQ.getMine(user!.id),
-  });
-
-  //Get signature requests
-  const signatories = useQuery({
-    queryKey: ["SignatairList"],
-    queryFn: signatairQ.getAll,
-  });
-
-  //Get Payments
-  const getPayments = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll(),
   });
 
   const usableRequestsCount = useQuery({
@@ -134,33 +87,6 @@ function AppSidebar() {
     queryFn: () => {
       return requestQ.getUsableRequestsCount();
     },
-  });
-
-  const SignPay = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll(),
-  });
-
-  const signatair = useQuery({
-    queryKey: ["signatairs"],
-    queryFn: signatairQ.getAll,
-  });
-
-  const getTransactions = useQuery({
-    queryKey: ["transactions"],
-    queryFn: () => {
-      return transactionQ.getAll();
-    },
-  });
-
-  const getPayType = useQuery({
-    queryKey: ["payType"],
-    queryFn: payTypeQ.getAll,
-  });
-
-  const getBanks = useQuery({
-    queryKey: ["banks"],
-    queryFn: bankQ.getAll,
   });
 
   //Get service requests count
@@ -173,23 +99,13 @@ function AppSidebar() {
   const pendingCommandRequestsCount = useQuery({
     queryKey: ["pending-commandRequests-count"],
     queryFn: () => commandRqstQ.getPendingCount(),
-    enabled:
-      !!user &&
-      user?.role.some((role) =>
-        ["VOLT_MANAGER", "ADMIN", "SUPERADMIN", "SALES_MANAGER"].includes(
-          role.label,
-        ),
-      ),
+    enabled: !!user,
   });
 
   const pendingApprovalsTransactionsCount = useQuery({
     queryKey: ["pending-approvals-transactions-count"],
     queryFn: () => transactionQ.getApprovePendingCount(),
-    enabled:
-      !!user &&
-      user?.role.some((role) =>
-        ["VOLT_MANAGER", "SUPERADMIN"].includes(role.label),
-      ),
+    enabled: !!user,
   });
 
   //Get purchase orders pending count
@@ -202,37 +118,21 @@ function AppSidebar() {
   const quotationToAssignCount = useQuery({
     queryKey: ["quotation-to-assign-count"],
     queryFn: () => quotationQ.getToAssignCount(),
-    enabled:
-      !!user &&
-      user?.role.some((role) =>
-        [
-          "SALES_MANAGER",
-          "VOLT_MANAGER",
-          "ADMIN",
-          "SUPERADMIN",
-          "SALES",
-        ].includes(role.label),
-      ),
+    enabled: !!user,
   });
 
   //Volt Pending Count
   const voltPendingCount = useQuery({
     queryKey: ["volt-pending-count"],
     queryFn: () => paymentQ.getVoltPendingCount(),
-    enabled:
-      !!user &&
-      user?.role.some((role) =>
-        ["VOLT_MANAGER", "SUPERADMIN"].includes(role.label),
-      ),
+    enabled: !!user,
   });
 
   //Pending Depense Count
   const pendingDepenseCount = useQuery({
     queryKey: ["pending-depense-count"],
     queryFn: () => paymentQ.getPendingDepenseCount(),
-    enabled:
-      !!user &&
-      user?.role.some((role) => ["VOLT", "SUPERADMIN"].includes(role.label)),
+    enabled: !!user,
   });
 
   //Payment to Sign
@@ -242,45 +142,21 @@ function AppSidebar() {
     enabled: !!user?.signatairs && user.signatairs.length > 0,
   });
 
-  //Signataires
-  const transfersToSign: Array<TransferTransaction> = useMemo(() => {
-    if (!getTransactions.data || !signatair.data) return [];
-    return getTransactions.data.data
-      .filter((t) => t.Type === "TRANSFER")
-      .filter((t) => {
-        if (!t.methodId) return false;
-        if (t.from.type === "BANK" && t.to.type === "BANK") {
-          return signatair.data.data
-            .find((x) => x.bankId === t.from.id && x.payTypeId === t.method?.id)
-            ?.user?.some((u) => u.id === user?.id);
-        }
-        return false;
-      })
-      .filter(
-        (t) =>
-          t.isSigned === false && !t.signers.find((s) => s.userId === user?.id),
-      );
-  }, [getTransactions.data, signatair.data, user?.id]);
+  //Pending to Sign transfers count
+  const pendingToSignTransfersCount = useQuery({
+    queryKey: ["pending-to-sign-transfers-count"],
+    queryFn: () => transactionQ.getPendingToSignCount(),
+    enabled: !!user?.signatairs && user.signatairs.length > 0,
+  });
 
-  const transfersToCheck: Array<TransferTransaction> = useMemo(() => {
-    if (!getTransactions.data) return [];
-    return getTransactions.data.data
-      .filter((t) => t.Type === "TRANSFER")
-      .filter((t) => {
-        if (t.status === "ACCEPTED") return true;
-        return false;
-      });
-  }, [getTransactions.data]);
+  //Pending transfers count
+  const pendingTransfersCount = useQuery({
+    queryKey: ["pending-transfers-count"],
+    queryFn: () => transactionQ.getPendingTransfersCount(),
+    enabled: !!user,
+  });
 
   if (
-    getPayments.isLoading ||
-    signatories.isLoading ||
-    myList.isLoading ||
-    categoriesData.isLoading ||
-    providers.isLoading ||
-    getPurchases.isLoading ||
-    getPayType.isLoading ||
-    getBanks.isLoading ||
     serviceRequestsCount.isLoading ||
     pendingRequestApprovalsCount.isLoading ||
     usableRequestsCount.isLoading ||
@@ -290,7 +166,9 @@ function AppSidebar() {
     voltPendingCount.isLoading ||
     pendingApprovalsTransactionsCount.isLoading ||
     pendingDepenseCount.isLoading ||
-    paymentsToSignCount.isLoading
+    paymentsToSignCount.isLoading ||
+    pendingToSignTransfersCount.isLoading ||
+    pendingTransfersCount.isLoading
   ) {
     return (
       <Sidebar>
@@ -308,14 +186,6 @@ function AppSidebar() {
     );
   }
   if (
-    getPayments.isError ||
-    signatories.isError ||
-    myList.isError ||
-    categoriesData.isError ||
-    providers.isError ||
-    getPurchases.isError ||
-    getPayType.isError ||
-    getBanks.isError ||
     serviceRequestsCount.isError ||
     pendingRequestApprovalsCount.isError ||
     usableRequestsCount.isError ||
@@ -325,7 +195,9 @@ function AppSidebar() {
     voltPendingCount.isError ||
     pendingApprovalsTransactionsCount.isError ||
     pendingDepenseCount.isError ||
-    paymentsToSignCount.isError
+    paymentsToSignCount.isError ||
+    pendingToSignTransfersCount.isError ||
+    pendingTransfersCount.isError
   ) {
     return (
       <Sidebar>
@@ -343,14 +215,6 @@ function AppSidebar() {
     );
   }
   if (
-    getPayments.isSuccess &&
-    signatories.isSuccess &&
-    myList.isSuccess &&
-    categoriesData.isSuccess &&
-    providers.isSuccess &&
-    getPurchases.isSuccess &&
-    getPayType.isSuccess &&
-    getBanks.isSuccess &&
     serviceRequestsCount.isSuccess &&
     pendingRequestApprovalsCount.isSuccess &&
     usableRequestsCount.isSuccess &&
@@ -360,7 +224,9 @@ function AppSidebar() {
     voltPendingCount.isSuccess &&
     pendingApprovalsTransactionsCount.isSuccess &&
     pendingDepenseCount.isSuccess &&
-    paymentsToSignCount.isSuccess
+    paymentsToSignCount.isSuccess &&
+    pendingToSignTransfersCount.isSuccess &&
+    pendingTransfersCount.isSuccess
   ) {
     const navLinks: NavigationGroup[] = [
       {
@@ -587,10 +453,7 @@ function AppSidebar() {
             icon: VoteIcon,
             href: "/tableau-de-bord/signatures/transferts",
             authorized: [],
-            badgeValue:
-              transfersToSign.length > 0 //to-do update router for this
-                ? transfersToSign.length
-                : undefined,
+            badgeValue: pendingToSignTransfersCount.data.data,
           },
         ],
       },
@@ -620,8 +483,7 @@ function AppSidebar() {
             icon: ArrowRightLeftIcon,
             href: "/tableau-de-bord/banques/transactions/transferts",
             authorized: ["SUPERADMIN", "VOLT"],
-            badgeValue:
-              transfersToCheck.length > 0 ? transfersToCheck.length : undefined, //to-do update router for this
+            badgeValue: pendingTransfersCount.data.data,
           },
         ],
       },

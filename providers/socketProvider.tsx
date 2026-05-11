@@ -183,6 +183,10 @@ export default function SocketProvider({
         queryKey: ["pending-approvals-transactions-count"],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-to-sign-count"],
+        refetchType: "active",
+      });
     });
 
     socket.on("transaction:update", () => {
@@ -198,6 +202,10 @@ export default function SocketProvider({
         queryKey: ["pending-approvals-transactions-count"],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-to-sign-count"],
+        refetchType: "active",
+      });
     });
 
     socket.on("transaction:delete", () => {
@@ -211,6 +219,10 @@ export default function SocketProvider({
       });
       queryClient.invalidateQueries({
         queryKey: ["pending-approvals-transactions-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-to-sign-count"],
         refetchType: "active",
       });
     });
