@@ -7,7 +7,7 @@ import { ProviderTable } from "./provider-table";
 const ProviderListPage = () => {
   const { isHydrated } = useStore();
   const providerDate = useQuery({
-    queryKey: ["providersList"],
+    queryKey: ["providers"],
     queryFn: () => providerQ.getAll(),
     enabled: isHydrated,
   });

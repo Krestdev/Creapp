@@ -64,7 +64,7 @@ export default function UpdateCategory({ id }: { id: number }) {
   const router = useRouter();
 
   const getCategories = useQuery({
-    queryKey: ["categoryList"],
+    queryKey: ["categories"],
     queryFn: categoryQ.getCategories,
   });
   const getUsers = useQuery({

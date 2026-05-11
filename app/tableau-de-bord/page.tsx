@@ -122,12 +122,12 @@ const DashboardPage = () => {
   });
 
   const getProjects = useQuery({
-    queryKey: ["projectsList"],
+    queryKey: ["projects"],
     queryFn: projectQ.getAll,
   });
 
   const requestType = useQuery({
-    queryKey: ["paymentType"],
+    queryKey: ["paymentTypes"],
     queryFn: requestTypeQ.getAll,
   });
 

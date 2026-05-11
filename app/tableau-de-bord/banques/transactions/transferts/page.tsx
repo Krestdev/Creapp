@@ -34,7 +34,7 @@ function Page() {
   });
 
   const getPaymentMethods = useQuery({
-    queryKey: ["paymentType"],
+    queryKey: ["paymentTypes"],
     queryFn: payTypeQ.getAll,
   });
 

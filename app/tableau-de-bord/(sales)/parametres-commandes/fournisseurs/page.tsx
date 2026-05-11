@@ -16,7 +16,7 @@ function Page() {
   ];
 
    const {data:providers, isError, error, isSuccess, isLoading} = useQuery({
-    queryKey: ["providersList"],
+    queryKey: ["providers"],
     queryFn: () => providerQ.getAll(),
   });
 

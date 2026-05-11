@@ -24,7 +24,7 @@ function Page() {
   });
 
   const signatair = useQuery({
-    queryKey: ["signatairs"],
+    queryKey: ["signataires"],
     queryFn: signatairQ.getAll,
   });
   const getBanks = useQuery({
@@ -32,7 +32,7 @@ function Page() {
     queryFn: bankQ.getAll,
   });
   const getPayType = useQuery({
-    queryKey: ["payType"],
+    queryKey: ["paymentTypes"],
     queryFn: payTypeQ.getAll,
   });
 

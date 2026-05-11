@@ -69,7 +69,7 @@ function DetailPaiement({ payment, open, openChange, invoices }: Props) {
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
   const invoice = invoices.find((i) => i.id === payment.invoiceId);
   const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
+    queryKey: ["paymentTypes"],
     queryFn: payTypeQ.getAll,
   });
 

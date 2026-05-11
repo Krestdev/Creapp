@@ -79,7 +79,7 @@ const Page = () => {
   });
 
   const paymentTypes = useQuery({
-    queryKey: ["payementType"],
+    queryKey: ["paymentTypes"],
     queryFn: () => payTypeQ.getAll(),
   });
 

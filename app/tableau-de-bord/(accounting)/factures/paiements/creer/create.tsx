@@ -130,7 +130,7 @@ function CreatePaiement({ invoices, payments, projects }: Props) {
   today.setDate(today.getDate() + 3);
 
   const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
+    queryKey: ["paymentTypes"],
     queryFn: payTypeQ.getAll,
   });
 

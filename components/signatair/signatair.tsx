@@ -21,7 +21,7 @@ import ErrorPage from "../error-page";
 const SignatairPage = () => {
   const { isHydrated } = useStore();
   const userData = useQuery({
-    queryKey: ["signatairs"],
+    queryKey: ["signataires"],
     queryFn: () => signatairQ.getAll(),
     enabled: isHydrated,
   });

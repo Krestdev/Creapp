@@ -83,7 +83,7 @@ function AppSidebar() {
   });
 
   const usableRequestsCount = useQuery({
-    queryKey: ["usableRequestsCount"],
+    queryKey: ["usable-requests-count"],
     queryFn: () => {
       return requestQ.getUsableRequestsCount();
     },

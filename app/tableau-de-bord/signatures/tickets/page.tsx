@@ -31,7 +31,7 @@ function Page() {
   });
 
   const signatair = useQuery({
-    queryKey: ["signatairs"],
+    queryKey: ["signataires"],
     queryFn: signatairQ.getAll,
   });
   const getRequestType = useQuery({
@@ -47,7 +47,7 @@ function Page() {
     queryFn: bankQ.getAll,
   });
   const getPayType = useQuery({
-    queryKey: ["payType"],
+    queryKey: ["paymentTypes"],
     queryFn: payTypeQ.getAll,
   });
   const getTransaction = useQuery({
@@ -70,7 +70,7 @@ function Page() {
   });
 
   const getPurchases = useQuery({
-    queryKey: ["purchases"],
+    queryKey: ["purchaseOrders"],
     queryFn: purchaseQ.getAll,
   });
 

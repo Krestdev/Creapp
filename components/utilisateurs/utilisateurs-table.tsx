@@ -91,7 +91,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
 
   const signataireData = useQuery({
-    queryKey: ["signatairs"],
+    queryKey: ["signataires"],
     queryFn: () => signatairQ.getAll(),
   });
 

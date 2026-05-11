@@ -74,7 +74,7 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
     data: devis,
     isSuccess,
     // isLoading,
-  } = useQuery({ queryKey: ["commandes"], queryFn: commandRqstQ.getAll });
+  } = useQuery({ queryKey: ["commands"], queryFn: commandRqstQ.getAll });
   if (!data || !isSuccess) return null;
 
   const devisTitle = devis?.data.find(

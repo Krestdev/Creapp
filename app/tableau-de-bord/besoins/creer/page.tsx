@@ -52,7 +52,7 @@ const Page = () => {
   });
 
   const getCategories = useQuery({
-    queryKey: ["categoryList"],
+    queryKey: ["categories"],
     queryFn: async () => categoryQ.getCategories(),
   });
 

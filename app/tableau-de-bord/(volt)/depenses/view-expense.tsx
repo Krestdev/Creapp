@@ -156,7 +156,7 @@ function ViewExpense({
   const i = purchase ? getProgress(purchase) : { progress: 0, value: 0 };
 
   const getSignataire = useQuery({
-    queryKey: ["signatairs"],
+    queryKey: ["signataires"],
     queryFn: signatairQ.getAll,
   });
 

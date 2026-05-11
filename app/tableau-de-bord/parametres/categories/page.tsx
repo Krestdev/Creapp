@@ -18,7 +18,7 @@ function Page() {
   ];
 
   const { isSuccess, isError, error, isLoading, data } = useQuery({
-    queryKey: ["categoryList"],
+    queryKey: ["categories"],
     queryFn: categoryQ.getCategories,
   });
   const getUsers = useQuery({

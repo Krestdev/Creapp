@@ -31,7 +31,7 @@ const Liste = () => {
   });
 
   const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
+    queryKey: ["paymentTypes"],
     queryFn: payTypeQ.getAll,
   });
 
