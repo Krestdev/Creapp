@@ -2,7 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +20,6 @@ import {
   PAYMENT_METHOD,
   PAYMENT_TYPES,
   PaymentRequest,
-  PayType,
   PRIORITIES,
   Provider,
   User,
@@ -58,7 +61,6 @@ interface DepenseFiltersProps {
   setIsCustomDateModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setDateFilter: (filter: DateFilter) => void;
   providers: Provider[];
-  paymentTypes: PayType[];
   users: User[];
   resetAllFilters: () => void;
 }
@@ -70,7 +72,6 @@ export default function DepenseFilters({
   setIsCustomDateModalOpen,
   setDateFilter,
   providers,
-  paymentTypes,
   users,
   resetAllFilters,
 }: DepenseFiltersProps) {
@@ -117,7 +118,7 @@ export default function DepenseFilters({
                 {customFilters.beneficiary === "all"
                   ? "Tous les bénéficiaires"
                   : users.find((u) => u.id === customFilters.beneficiary)
-                    ?.firstName || "Sélectionner un bénéficiaire"}
+                      ?.firstName || "Sélectionner un bénéficiaire"}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -262,7 +263,7 @@ export default function DepenseFilters({
                 {customFilters.provider === "all"
                   ? "Tous les fournisseurs"
                   : providers.find((p) => p.id === customFilters.provider)
-                    ?.name || "Sélectionner un fournisseur"}
+                      ?.name || "Sélectionner un fournisseur"}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -287,9 +288,7 @@ export default function DepenseFilters({
                   provider: "all",
                 });
               }}
-              className={
-                customFilters.provider === "all" ? "bg-accent" : ""
-              }
+              className={customFilters.provider === "all" ? "bg-accent" : ""}
             >
               <div className="flex items-center gap-2">
                 <span>Tous les fournisseurs</span>
@@ -309,9 +308,7 @@ export default function DepenseFilters({
                 }
               >
                 <div className="flex items-center gap-2">
-                  <span className="truncate">
-                    {provider.name}
-                  </span>
+                  <span className="truncate">{provider.name}</span>
                 </div>
               </DropdownMenuItem>
             ))}
@@ -331,8 +328,9 @@ export default function DepenseFilters({
             <Button variant="outline" className="w-full justify-between">
               <span className="truncate">
                 {customFilters.priority === "all"
-                  ? "Toutes les priorités" :
-                  PRIORITIES.find((p) => p.value === customFilters.priority)?.name}
+                  ? "Toutes les priorités"
+                  : PRIORITIES.find((p) => p.value === customFilters.priority)
+                      ?.name}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -345,34 +343,30 @@ export default function DepenseFilters({
                   priority: "all",
                 });
               }}
-              className={
-                customFilters.priority === "all" ? "bg-accent" : ""
-              }
+              className={customFilters.priority === "all" ? "bg-accent" : ""}
             >
               <div className="flex items-center gap-2">
                 <span>Toutes les priorités</span>
               </div>
             </DropdownMenuItem>
-            {
-              PRIORITIES.map((priority) => (
-                <DropdownMenuItem
-                  key={priority.value}
-                  onClick={() => {
-                    setCustomFilters({
-                      ...customFilters,
-                      priority: priority.value,
-                    });
-                  }}
-                  className={
-                    customFilters.priority === priority.value ? "bg-accent" : ""
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{priority.name}</span>
-                  </div>
-                </DropdownMenuItem>
-              ))
-            }
+            {PRIORITIES.map((priority) => (
+              <DropdownMenuItem
+                key={priority.value}
+                onClick={() => {
+                  setCustomFilters({
+                    ...customFilters,
+                    priority: priority.value,
+                  });
+                }}
+                className={
+                  customFilters.priority === priority.value ? "bg-accent" : ""
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <span>{priority.name}</span>
+                </div>
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -384,8 +378,10 @@ export default function DepenseFilters({
             <Button variant="outline" className="w-full justify-between">
               <span className="truncate">
                 {customFilters.paymentMethod === "all"
-                  ? "Toutes les méthodes de paiement" :
-                  PAYMENT_METHOD.find((p) => p.value === customFilters.paymentMethod)?.name}
+                  ? "Toutes les méthodes de paiement"
+                  : PAYMENT_METHOD.find(
+                      (p) => p.value === customFilters.paymentMethod,
+                    )?.name}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -406,26 +402,26 @@ export default function DepenseFilters({
                 <span>Toutes les méthodes de paiement</span>
               </div>
             </DropdownMenuItem>
-            {
-              PAYMENT_METHOD.map((method) => (
-                <DropdownMenuItem
-                  key={method.value}
-                  onClick={() => {
-                    setCustomFilters({
-                      ...customFilters,
-                      paymentMethod: method.value,
-                    });
-                  }}
-                  className={
-                    customFilters.paymentMethod === method.value ? "bg-accent" : ""
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{method.name}</span>
-                  </div>
-                </DropdownMenuItem>
-              ))
-            }
+            {PAYMENT_METHOD.map((method) => (
+              <DropdownMenuItem
+                key={method.value}
+                onClick={() => {
+                  setCustomFilters({
+                    ...customFilters,
+                    paymentMethod: method.value,
+                  });
+                }}
+                className={
+                  customFilters.paymentMethod === method.value
+                    ? "bg-accent"
+                    : ""
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <span>{method.name}</span>
+                </div>
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -438,8 +434,8 @@ export default function DepenseFilters({
               <span className="truncate">
                 {customFilters.type === "all"
                   ? "Tous les types"
-                  : PAYMENT_TYPES.find((t) => t.value === customFilters.type)?.name
-                }
+                  : PAYMENT_TYPES.find((t) => t.value === customFilters.type)
+                      ?.name}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -452,34 +448,28 @@ export default function DepenseFilters({
                   type: "all",
                 });
               }}
-              className={
-                customFilters.type === "all" ? "bg-accent" : ""
-              }
+              className={customFilters.type === "all" ? "bg-accent" : ""}
             >
               <div className="flex items-center gap-2">
                 <span>Tous les types</span>
               </div>
             </DropdownMenuItem>
-            {
-              PAYMENT_TYPES.map((type) => (
-                <DropdownMenuItem
-                  key={type.value}
-                  onClick={() => {
-                    setCustomFilters({
-                      ...customFilters,
-                      type: type.value,
-                    });
-                  }}
-                  className={
-                    customFilters.type === type.value ? "bg-accent" : ""
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{type.name}</span>
-                  </div>
-                </DropdownMenuItem>
-              ))
-            }
+            {PAYMENT_TYPES.map((type) => (
+              <DropdownMenuItem
+                key={type.value}
+                onClick={() => {
+                  setCustomFilters({
+                    ...customFilters,
+                    type: type.value,
+                  });
+                }}
+                className={customFilters.type === type.value ? "bg-accent" : ""}
+              >
+                <div className="flex items-center gap-2">
+                  <span>{type.name}</span>
+                </div>
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -494,8 +484,7 @@ export default function DepenseFilters({
                   ? "Toutes les approvisionnements"
                   : customFilters.isSelected === "true"
                     ? "Approvisionné"
-                    : "Non approvisionné"
-                }
+                    : "Non approvisionné"}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -508,9 +497,7 @@ export default function DepenseFilters({
                   isSelected: "all",
                 });
               }}
-              className={
-                customFilters.isSelected === "all" ? "bg-accent" : ""
-              }
+              className={customFilters.isSelected === "all" ? "bg-accent" : ""}
             >
               <div className="flex items-center gap-2">
                 <span>Toutes les approvisionnements</span>
@@ -523,9 +510,7 @@ export default function DepenseFilters({
                   isSelected: "true",
                 });
               }}
-              className={
-                customFilters.isSelected === "true" ? "bg-accent" : ""
-              }
+              className={customFilters.isSelected === "true" ? "bg-accent" : ""}
             >
               <div className="flex items-center gap-2">
                 <span>Sélectionné</span>
@@ -647,9 +632,9 @@ export default function DepenseFilters({
               <span className="text-muted-foreground text-xs">
                 {customFilters.from && customFilters.to
                   ? `${format(customFilters.from, "dd/MM/yyyy")} → ${format(
-                    customFilters.to,
-                    "dd/MM/yyyy",
-                  )}`
+                      customFilters.to,
+                      "dd/MM/yyyy",
+                    )}`
                   : "Choisir"}
               </span>
             </Button>
