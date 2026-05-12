@@ -215,6 +215,7 @@ function ShareExpense({
 
   // Let's check if the payment method is "cash" based on the form's select
   const isCashPayment = useMemo(() => {
+    if (!paymentMethod) return undefined;
     return paymentMethod?.type?.toLowerCase() === "cash";
   }, [paymentMethod]);
 
@@ -680,7 +681,11 @@ function ShareExpense({
                 form.handleSubmit(onSubmit)();
               }}
               variant="primary"
-              disabled={share.isPending || filteredBanks.length === 0}
+              disabled={
+                share.isPending ||
+                filteredBanks.length === 0 ||
+                isCashPayment === undefined
+              }
               isLoading={share.isPending}
             >
               {isCashPayment
