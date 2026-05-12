@@ -769,6 +769,17 @@ function ViewExpense({
               </div>
             </div>
           )}
+          {!!payment.description && (
+            <div className="view-group col-span-full">
+              <span className="view-icon">
+                <TextQuoteIcon />
+              </span>
+              <div className="w-full flex flex-col">
+                <p className="view-group-title">{"Description"}</p>
+                <p>{payment.description}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
