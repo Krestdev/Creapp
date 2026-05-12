@@ -28,7 +28,7 @@ import { format } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import React from "react";
 
-interface DepenseFiltersProps {
+export interface DepenseFiltersProps {
   customFilters: {
     search: string;
     beneficiary: "all" | number;
@@ -37,6 +37,7 @@ interface DepenseFiltersProps {
     provider: "all" | number;
     priority: "all" | PaymentRequest["priority"];
     paymentMethod: "all" | string;
+    tab: "pending" | "ongoing" | "paid" | "canceled";
     isSelected: "all" | string;
     type: "all" | PaymentRequest["type"];
     date: DateFilter;
@@ -51,6 +52,7 @@ interface DepenseFiltersProps {
     provider: "all" | number;
     priority: "all" | PaymentRequest["priority"];
     paymentMethod: "all" | string;
+    tab: "pending" | "ongoing" | "paid" | "canceled";
     isSelected: "all" | string;
     type: "all" | PaymentRequest["type"];
     date: DateFilter;

@@ -11,7 +11,7 @@ import { bankQ } from "@/queries/bank";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import { requestTypeQ } from "@/queries/requestType";
-import { NavLink } from "@/types/types";
+import { DateFilter, NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { payTypeQ } from "@/queries/payType";
 import ExpensesTable from "./expenses-table";
@@ -24,6 +24,19 @@ import { transactionQ } from "@/queries/transaction";
 import { signatairQ } from "@/queries/signatair";
 import { useMemo } from "react";
 import { vehicleQ } from "@/queries/vehicule";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Settings2 } from "lucide-react";
+import DepenseFilters, { DepenseFiltersProps } from "./depenseFilters";
+import React from "react";
+import { TabBar } from "@/components/base/TabBar";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -32,6 +45,67 @@ function Page() {
       href: "/tableau-de-bord/depenses/creer",
       hide: true,
       disabled: false,
+    },
+  ];
+
+  const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
+    React.useState(false);
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+  const [customFilters, setCustomFilters] = React.useState<
+    DepenseFiltersProps["customFilters"]
+  >({
+    search: "",
+    tab: "pending",
+    beneficiary: "all",
+    amount: 0,
+    amountType: "greater",
+    provider: "all",
+    priority: "all",
+    paymentMethod: "all",
+    isSelected: "all",
+    type: "all",
+    date: undefined,
+    from: "",
+    to: "",
+  });
+
+  const resetAllFilters = () => {
+    setCustomFilters({
+      search: "",
+      tab: "pending",
+      beneficiary: "all",
+      amount: 0,
+      amountType: "greater",
+      provider: "all",
+      priority: "all",
+      paymentMethod: "all",
+      isSelected: "all",
+      type: "all",
+      date: undefined,
+      from: "",
+      to: "",
+    });
+    setDateFilter(undefined);
+  };
+
+  const tabs = [
+    {
+      id: 0,
+      title: "Tickets en attente",
+      //badge: payments.filter((p) => p.status === "validated").length,
+    },
+    {
+      id: 1,
+      title: "Tickets traités",
+      //badge: payments.filter((p) => p.status === "pending_depense" || p.status === "signed" || p.status === "simple_signed").length,
+    },
+    {
+      id: 2,
+      title: "Tickets payés",
+    },
+    {
+      id: 3,
+      title: "Tickets annulés",
     },
   ];
 
@@ -228,11 +302,43 @@ function Page() {
           color="red"
           links={links}
         />
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant={"outline"}>
+              <Settings2 />
+              {"Filtres"}
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les filtres pour affiner les données"}
+              </SheetDescription>
+            </SheetHeader>
+            <DepenseFilters
+              customFilters={customFilters}
+              setCustomFilters={setCustomFilters}
+              isCustomDateModalOpen={isCustomDateModalOpen}
+              setIsCustomDateModalOpen={setIsCustomDateModalOpen}
+              users={getUsers.data.data}
+              providers={getProviders.data.data}
+              setDateFilter={setDateFilter}
+              resetAllFilters={resetAllFilters}
+            />
+          </SheetContent>
+        </Sheet>
         <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           {Statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
         </div>
+        <TabBar
+          tabs={tabs}
+          setSelectedTab={setSelectedTab}
+          selectedTab={selectedTab}
+          className="w-fit"
+        />
         <ExpensesTable
           payments={filteredData}
           banks={getBanks.data.data}
