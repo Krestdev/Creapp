@@ -482,9 +482,7 @@ export function RequestsTable({
       )}
 
       {/* Pagination */}
-      {table.getRowModel().rows?.length > 0 && (
-        <Pagination table={table} pageSize={15} />
-      )}
+      {table.getRowModel().rows?.length > 0 && <Pagination table={table} />}
       {selectedItem && (
         <ViewRequest
           open={view}

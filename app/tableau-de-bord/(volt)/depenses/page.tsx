@@ -286,13 +286,13 @@ function Page() {
           links={links}
         />
         <Sheet>
-          <SheetTrigger asChild>
+          <SheetTrigger asChild className="w-fit">
             <Button variant={"outline"}>
               <Settings2 />
               {"Filtres"}
             </Button>
           </SheetTrigger>
-          <SheetContent>
+          <SheetContent className="px-3">
             <SheetHeader>
               <SheetTitle>{"Filtres"}</SheetTitle>
               <SheetDescription>
@@ -332,10 +332,7 @@ function Page() {
           users={getUsers.data.data}
           projects={getProjects.data.data}
           activeTab={customFilters.tab}
-          pagination={{
-            pageIndex: filters.pageIndex,
-            pageSize: filters.pageSize,
-          }}
+          pagination={filters}
           paginationOptions={{
             onPaginationChange: (updater) => {
               setFilters((prev) => {
