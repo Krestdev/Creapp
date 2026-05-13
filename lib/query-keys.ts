@@ -15,6 +15,8 @@ export const queryKeys = {
   payment: (id: number) => ["payment", id] as const,
   depenses: (...args: any[]) => ["depenses", ...args] as const,
   depensesStats: (...args: any[]) => ["depenses-stats", ...args] as const,
+  tickets: (...args: any[]) => ["tickets", ...args] as const,
+  ticketsStats: (...args: any[]) => ["tickets-stats", ...args] as const,
 
   // ─── Requests ──────────────────────────────────────────────────────────────
   requests: ["requests"] as const,

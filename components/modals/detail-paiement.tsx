@@ -1,21 +1,13 @@
 "use client";
-import React from "react";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
-import {
-  BonsCommande,
-  Invoice,
-  PAY_STATUS,
-  PAYMENT_METHOD,
-  PaymentRequest,
-} from "@/types/types";
+import { queryKeys } from "@/lib/query-keys";
+import { XAF } from "@/lib/utils";
+import { userQ } from "@/queries/baseModule";
+import { payTypeQ } from "@/queries/payType";
+import { PAY_STATUS, PaymentRequest } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
+import { VariantProps } from "class-variance-authority";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   Calendar,
   CalendarFold,
@@ -28,17 +20,19 @@ import {
   User,
   Wallet,
 } from "lucide-react";
-import { VariantProps } from "class-variance-authority";
-import { Badge, badgeVariants } from "../ui/badge";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { userQ } from "@/queries/baseModule";
-import { Button } from "../ui/button";
-import { XAF } from "@/lib/utils";
 import Link from "next/link";
-import { payTypeQ } from "@/queries/payType";
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/query-keys";
+import React from "react";
+import { Badge, badgeVariants } from "../ui/badge";
+import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 
 interface Props {
   payment: PaymentRequest;

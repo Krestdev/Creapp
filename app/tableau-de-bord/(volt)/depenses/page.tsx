@@ -112,6 +112,12 @@ function Page() {
           customFilters.paymentMethod !== "all"
             ? customFilters.paymentMethod
             : undefined,
+        priority:
+          customFilters.priority !== "all" ? customFilters.priority : undefined,
+        isSelected:
+          customFilters.isSelected !== "all"
+            ? customFilters.isSelected
+            : undefined,
         type: customFilters.type !== "all" ? customFilters.type : undefined,
         date: customFilters.date || undefined,
         from: customFilters.from || undefined,
@@ -138,6 +144,8 @@ function Page() {
             ? customFilters.paymentMethod
             : undefined,
         type: customFilters.type !== "all" ? customFilters.type : undefined,
+        priority:
+          customFilters.priority !== "all" ? customFilters.priority : undefined,
         date: customFilters.date || undefined,
         from: customFilters.from || undefined,
         to: customFilters.to || undefined,

@@ -239,6 +239,39 @@ class PaymentQueries {
       });
   };
 
+  getTickets = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: PaymentRequest[]; count: number }> => {
+    return api
+      .get(`${this.route}/expenses/dg/`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
+  getTicketsStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    pending: {
+      count: number;
+      sum: number;
+    };
+    processed: {
+      count: number;
+      sum: number;
+    };
+    paid: {
+      count: number;
+      sum: number;
+    };
+  }> => {
+    return api
+      .get(`${this.route}/expenses/dg/stats`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
   // --------------------------------------
   // READ (GET ONE)
   // --------------------------------------

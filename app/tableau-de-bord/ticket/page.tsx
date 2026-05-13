@@ -1,39 +1,105 @@
 "use client";
 
 import Empty from "@/components/base/empty";
-import StatsCard from "@/components/base/StatsCard";
+import { TabBar } from "@/components/base/TabBar";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
+import { queryKeys } from "@/lib/query-keys";
+import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
-import { invoiceQ } from "@/queries/invoices";
 import { paymentQ } from "@/queries/payment";
-import { purchaseQ } from "@/queries/purchase-order";
+import { payTypeQ } from "@/queries/payType";
+import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
-import { PaymentRequest } from "@/types/types";
+import { DateFilter } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import React from "react";
 import { TicketTable } from "./ticket-table";
-import { projectQ } from "@/queries/projectModule";
-import { payTypeQ } from "@/queries/payType";
+import { TicketFiltersProps } from "./ticketFilters";
 
 function Page() {
   const { user } = useStore();
 
+  const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
+    React.useState(false);
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+
+  const [customFilters, setCustomFilters] = React.useState<
+    TicketFiltersProps["customFilters"]
+  >({
+    search: "",
+    tab: "pending",
+    priority: "all",
+    type: "all",
+    date: undefined,
+    from: "",
+    to: "",
+  });
+
+  const { tab, search, ...otherFilters } = customFilters;
+
+  const resetAllFilters = () => {
+    setCustomFilters({
+      search: "",
+      tab: "pending",
+      priority: "all",
+      type: "all",
+      date: undefined,
+      from: "",
+      to: "",
+    });
+    setDateFilter(undefined);
+  };
+
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 15,
+  });
+
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll(),
+    queryKey: queryKeys.tickets(customFilters, pagination, dateFilter),
+    queryFn: () =>
+      paymentQ.getTickets({
+        pageIndex: pagination.pageIndex,
+        pageSize: pagination.pageSize,
+        search: customFilters.search || undefined,
+        tab: customFilters.tab,
+        priority:
+          customFilters.priority !== "all" ? customFilters.priority : undefined,
+        type: customFilters.type !== "all" ? customFilters.type : undefined,
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
+  });
+
+  const getStats = useQuery({
+    queryKey: queryKeys.ticketsStats(otherFilters, dateFilter),
+    queryFn: () =>
+      paymentQ.getTicketsStats({
+        priority:
+          customFilters.priority !== "all" ? customFilters.priority : undefined,
+        type: customFilters.type !== "all" ? customFilters.type : undefined,
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
   });
 
   const getRequestType = useQuery({
-    queryKey: ["requestType"],
+    queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
 
   const getRequests = useQuery({
-    queryKey: ["requests"],
+    queryKey: queryKeys.requests,
     queryFn: requestQ.getAll,
   });
 
@@ -42,76 +108,24 @@ function Page() {
     queryFn: userQ.getAll,
   });
 
-  const getPurchase = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
-  });
-
-  const getInvoices = useQuery({
-    queryKey: ["invoices"],
-    queryFn: invoiceQ.getAll,
-  });
-
   const getProjects = useQuery({
-    queryKey: ["projects"],
+    queryKey: queryKeys.projects,
     queryFn: projectQ.getAll,
   });
 
   const getPayTypes = useQuery({
-    queryKey: ["payTypes"],
+    queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,
   });
-
-  const ticketsData: Array<PaymentRequest> = useMemo(() => {
-    const bannedTypes: Array<PaymentRequest["type"]> = [
-      "transport",
-      "others",
-      // "appro",
-      "gas",
-    ];
-    if (!data) return [];
-    return data.data.filter(
-      (ticket) =>
-        ticket.status !== "ghost" &&
-        ticket.status !== "cancelled" &&
-        !bannedTypes.some((t) => t === ticket.type),
-    );
-  }, [data]);
-
-  const pending = useMemo(() => {
-    return ticketsData.filter(
-      (ticket) => ticket.status === "accepted" || ticket.status === "pending",
-    );
-  }, [ticketsData]);
-
-  const approved = useMemo(() => {
-    return ticketsData.filter(
-      (ticket) =>
-        ticket.status !== "rejected" &&
-        ticket.status !== "accepted" &&
-        ticket.status !== "pending",
-    );
-  }, [ticketsData]);
-
-  const unPaid = useMemo(() => {
-    return ticketsData.filter(
-      (ticket) =>
-        ticket.status === "validated" ||
-        ticket.status === "signed" ||
-        ticket.status === "simple_signed" ||
-        ticket.status === "unsigned",
-    );
-  }, [ticketsData]);
 
   if (
     isLoading ||
     getRequestType.isLoading ||
-    getPurchase.isLoading ||
-    getInvoices.isLoading ||
     getRequests.isLoading ||
     getUsers.isLoading ||
     getProjects.isLoading ||
-    getPayTypes.isLoading
+    getPayTypes.isLoading ||
+    getStats.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -119,24 +133,22 @@ function Page() {
   if (
     isError ||
     getRequestType.isError ||
-    getPurchase.isError ||
-    getInvoices.isError ||
     getRequests.isError ||
     getUsers.isError ||
     getProjects.isError ||
-    getPayTypes.isError
+    getPayTypes.isError ||
+    getStats.isError
   ) {
     return (
       <ErrorPage
         error={
           error ||
           getRequestType.error! ||
-          getPurchase.error! ||
-          getInvoices.error! ||
           getUsers.error ||
           getRequests.error ||
           getProjects.error ||
-          getPayTypes.error
+          getPayTypes.error ||
+          getStats.error
         }
       />
     );
@@ -145,65 +157,102 @@ function Page() {
   if (
     isSuccess &&
     getRequestType.isSuccess &&
-    getPurchase.isSuccess &&
-    getInvoices.isSuccess &&
     getRequests.isSuccess &&
     getUsers.isSuccess &&
     getProjects.isSuccess &&
-    getPayTypes.isSuccess
+    getPayTypes.isSuccess &&
+    getStats.isSuccess
   ) {
+    const tabs = [
+      {
+        id: "pending",
+        title: "Tickets en attente",
+        badge: getStats.data.pending.count,
+      },
+      {
+        id: "processed",
+        title: "Tickets traités",
+      },
+      {
+        id: "paid",
+        title: "Tickets payés",
+      },
+    ];
+
+    const Statistics: Array<StatisticProps> = [
+      {
+        title: "Tickets en attente de traitement",
+        value: getStats.data.pending.count,
+        variant: "primary",
+        more: {
+          title: "Montant total",
+          value: XAF.format(getStats.data.pending.sum),
+        },
+      },
+      {
+        title: "Tickets payés",
+        value: getStats.data.paid.count,
+        variant: "success",
+        more: {
+          title: "Montant total",
+          value: XAF.format(getStats.data.paid.sum),
+        },
+      },
+      {
+        title: "Tickets traités",
+        value: getStats.data.processed.count,
+        variant: "secondary",
+        more: {
+          title: "Montant total",
+          value: XAF.format(getStats.data.processed.sum),
+        },
+      },
+    ];
+
     return (
       <div className="flex flex-col gap-6">
-        {user?.role.flatMap((r) => r.label).includes("VOLT") ? (
-          <PageTitle
-            title="Tickets"
-            subtitle="Consultez et payez les tickets."
-            color="red"
-          />
-        ) : (
-          <>
-            <PageTitle
-              title="Approbation"
-              subtitle="Validation des paiements des bons de commandes"
-              color="green"
-            />
-            <div className="grid-stats-4">
-              <StatsCard
-                title="Total Tickets"
-                titleColor="text-[#fff]"
-                value={String(ticketsData.length)}
-                description="Tickets en attente :"
-                descriptionValue={String(pending.length)}
-                descriptionColor="text-[#fff]"
-                dividerColor="bg-[#DFDFDF]"
-                className={"bg-[#013E7B] text-[#E4E4E7] border-[#BBF7D0]"}
-                dvalueColor="text-yellow-400"
-              />
-
-              <StatsCard
-                title="Tickets Validées"
-                titleColor="text-[#52525B]"
-                value={String(approved.length)}
-                description="Tickets non payés :"
-                descriptionValue={String(unPaid.length)}
-                descriptionColor="text-[#A1A1AA]"
-                dividerColor="bg-[#DFDFDF]"
-                className={"bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"}
-                dvalueColor="text-destructive"
-              />
-            </div>
-          </>
-        )}
-        {ticketsData.length > 0 ? (
+        <PageTitle
+          title="Tickets"
+          subtitle="Consultez et payez les tickets."
+          color="red"
+        />
+        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
+          {Statistics.map((data, id) => (
+            <StatisticCard key={id} {...data} className="h-full" />
+          ))}
+        </div>
+        <TabBar
+          tabs={tabs}
+          setSelectedTab={(value) => {
+            setCustomFilters({ ...customFilters, tab: value });
+            setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+          }}
+          selectedTab={customFilters.tab}
+          className="w-fit"
+        />
+        {data.data.length > 0 ? (
           <TicketTable
-            invoices={getInvoices.data.data}
-            data={ticketsData}
+            data={data.data}
             requestTypeData={getRequestType.data.data}
             users={getUsers.data.data}
-            requests={getRequests.data.data}
             projects={getProjects.data.data}
             payTypes={getPayTypes.data.data}
-            purchases={getPurchase.data.data}
+            pagination={pagination}
+            paginationOptions={{
+              onPaginationChange: (updater) => {
+                setPagination((prev) => {
+                  const nextPagination =
+                    typeof updater === "function"
+                      ? updater({
+                          pageIndex: pagination.pageIndex,
+                          pageSize: pagination.pageSize,
+                        })
+                      : updater;
+                  return { ...prev, ...nextPagination };
+                });
+              },
+              rowCount: data.count,
+            }}
           />
         ) : (
           <Empty message={"Aucun ticket disponible"} />

@@ -1,7 +1,6 @@
 "use client";
 
 import { Pagination } from "@/components/base/pagination";
-import { TabBar, TabProps } from "@/components/base/TabBar";
 import { ModalWarning } from "@/components/modals/modal-warning";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,16 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -37,15 +26,10 @@ import { useStore } from "@/providers/datastore";
 import {} from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
-  BonsCommande,
-  Invoice,
-  PAYMENT_TYPES,
-  PAY_STATUS,
   PRIORITIES,
   PayType,
   PaymentRequest,
   ProjectT,
-  RequestModelT,
   RequestType,
   User,
 } from "@/types/types";
@@ -53,6 +37,8 @@ import { useMutation } from "@tanstack/react-query";
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  PaginationOptions,
+  PaginationState,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -71,9 +57,8 @@ import {
   Eye,
   Flag,
   LucideCheck,
-  Settings2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import ViewExpense from "../(volt)/depenses/view-expense";
 import CardTicket from "./card-ticket";
@@ -82,12 +67,11 @@ import RejectTicket from "./reject-ticket";
 interface TicketsTableProps {
   data: PaymentRequest[];
   requestTypeData: RequestType[];
-  invoices: Array<Invoice>;
   users: Array<User>;
-  requests: Array<RequestModelT>;
   projects: Array<ProjectT>;
   payTypes: Array<PayType>;
-  purchases: Array<BonsCommande>;
+  pagination: PaginationState;
+  paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
 }
 
 const getPriorityBadge = (
@@ -159,98 +143,12 @@ const getStatusVariant = (
 export function TicketTable({
   data,
   requestTypeData,
-  invoices,
   users,
-  requests,
   projects,
   payTypes,
-  purchases,
+  pagination,
+  paginationOptions,
 }: TicketsTableProps) {
-  const [searchFilter, setSearchFilter] = useState<string>("");
-  const [typeFilter, setTypeFilter] = useState<"all" | PaymentRequest["type"]>(
-    "all",
-  );
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | PaymentRequest["status"]
-  >("all");
-  const [priorityFilter, setPriorityFilter] = useState<
-    "all" | PaymentRequest["priority"]
-  >("all");
-  const [selectedTab, setSelectedTab] = useState<number>(0);
-  const tabs: TabProps["tabs"] = [
-    {
-      id: 0,
-      title: "En attentes d'approbation",
-      badge: data.filter(
-        (t) => t.status === "accepted" || t.status === "pending",
-      ).length,
-    },
-    { id: 1, title: "Tickets traités" },
-  ];
-
-  const filteredData = useMemo(() => {
-    const result = data.filter((c) => {
-      //selectTab
-      const matchTab =
-        selectedTab === 0
-          ? c.status === "accepted" || c.status === "pending"
-          : c.status === "paid" ||
-            c.status === "validated" ||
-            c.status === "unsigned" ||
-            c.status === "signed" ||
-            c.status === "rejected" ||
-            c.status === "simple_signed";
-      //searchFilter
-      const matchSearch =
-        searchFilter === ""
-          ? true
-          : c.id === Number(searchFilter) ||
-            c.price === Number(searchFilter) ||
-            c.account
-              ?.toLocaleLowerCase()
-              .includes(searchFilter.toLocaleLowerCase()) ||
-            c.title
-              .toLocaleLowerCase()
-              .includes(searchFilter.toLocaleLowerCase()) ||
-            c.description
-              ?.toLocaleLowerCase()
-              .includes(searchFilter.toLocaleLowerCase()) ||
-            c.reference
-              .toLocaleLowerCase()
-              .includes(searchFilter.toLocaleLowerCase());
-      //TypeFilter
-      const matchType = typeFilter === "all" ? true : c.type === typeFilter;
-      //StatusFilter
-      const matchStatus =
-        statusFilter === "all" ? true : c.status === statusFilter;
-      //PriorityFilter
-      const matchPriority =
-        priorityFilter === "all" ? true : c.priority === priorityFilter;
-      return (
-        matchPriority && matchStatus && matchType && matchSearch && matchTab
-      );
-    });
-    return result;
-  }, [
-    data,
-    typeFilter,
-    statusFilter,
-    priorityFilter,
-    searchFilter,
-    selectedTab,
-  ]);
-
-  const resetAllFilters = () => {
-    setSearchFilter("");
-    setPriorityFilter("all");
-    setStatusFilter("all");
-    setTypeFilter("all");
-    // Réinitialiser les recherches
-    setPrioritySearch("");
-    setStatusSearch("");
-    setTypeSearch("");
-  };
-
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -265,10 +163,6 @@ export function TicketTable({
   const [openPaiementModal, setOpenPaiementModal] = useState(false);
   const [openRejectModal, setOpenRejectModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<PaymentRequest>();
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice>();
-  const [prioritySearch, setPrioritySearch] = useState("");
-  const [statusSearch, setStatusSearch] = useState("");
-  const [typeSearch, setTypeSearch] = useState("");
 
   const [message, setMessage] = useState<string>("");
 
@@ -341,8 +235,8 @@ export function TicketTable({
         );
       },
       cell: ({ row }) => {
-        const invoiceId = row.original.invoiceId;
-        const invoice = invoices.find((item) => item.id === Number(invoiceId));
+        const value = row.original;
+        const invoice = value.facture;
         return (
           <div className="uppercase">
             {invoice?.command.provider.name ?? "--"}
@@ -505,9 +399,7 @@ export function TicketTable({
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
-
-        const invoiceId = row.original.invoiceId;
-        const invoice = invoices.find((item) => item.id === Number(invoiceId));
+        const invoice = item.facture;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="w-fit">
@@ -520,7 +412,6 @@ export function TicketTable({
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
-                  setSelectedInvoice(invoice);
                   setSelectedTicket(item);
                   setOpenDetailModal(true);
                 }}
@@ -573,7 +464,7 @@ export function TicketTable({
   ];
 
   const table = useReactTable({
-    data: filteredData.sort((a, b) => a.reference.localeCompare(b.reference)),
+    data: data.sort((a, b) => a.reference.localeCompare(b.reference)),
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -593,285 +484,22 @@ export function TicketTable({
         return value?.toString().toLowerCase().includes(searchValue);
       });
     },
+    manualPagination: true,
+    ...paginationOptions,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      pagination,
     },
   });
 
   return (
     <div className="content">
       <div className="flex flex-wrap gap-4 items-center justify-between">
-        <TabBar
-          tabs={tabs}
-          setSelectedTab={setSelectedTab}
-          selectedTab={selectedTab}
-        />
         <div className="flex gap-4 items-center">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant={"outline"}>
-                <Settings2 />
-                {"Filtres"}
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>{"Filtres"}</SheetTitle>
-                <SheetDescription>
-                  {"Configurer les filtres pour affiner les données"}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="px-5 grid gap-5">
-                {/** Search */}
-                <div className="grid gap-1.5">
-                  <Label>{"Recherche"}</Label>
-                  <Input
-                    placeholder="Rechercher par titre"
-                    value={searchFilter}
-                    onChange={(v) => setSearchFilter(v.target.value)}
-                    className="w-full"
-                  />
-                </div>
-
-                {/** Priority */}
-                <div className="grid gap-1.5">
-                  <Label>{"Priorité"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {priorityFilter === "all"
-                            ? "Toutes les priorités"
-                            : PRIORITIES.find((p) => p.value === priorityFilter)
-                                ?.name || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher une priorité..."
-                          className="h-8"
-                          value={prioritySearch}
-                          onChange={(e) => setPrioritySearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setPriorityFilter("all");
-                          setPrioritySearch("");
-                        }}
-                        className={priorityFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <span>Toutes les priorités</span>
-                      </DropdownMenuItem>
-                      {PRIORITIES.filter((p) =>
-                        p.name
-                          .toLowerCase()
-                          .includes(prioritySearch.toLowerCase()),
-                      ).map((priority) => (
-                        <DropdownMenuItem
-                          key={priority.value}
-                          onClick={() => {
-                            setPriorityFilter(priority.value);
-                            setPrioritySearch("");
-                          }}
-                          className={
-                            priorityFilter === priority.value ? "bg-accent" : ""
-                          }
-                        >
-                          <span>{priority.name}</span>
-                        </DropdownMenuItem>
-                      ))}
-                      {PRIORITIES.filter((p) =>
-                        p.name
-                          .toLowerCase()
-                          .includes(prioritySearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucune priorité trouvée
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/** Status */}
-                <div className="grid gap-1.5">
-                  <Label>{"Statut"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {statusFilter === "all"
-                            ? "Tous les statuts"
-                            : PAY_STATUS.find((s) => s.value === statusFilter)
-                                ?.name || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher un statut..."
-                          className="h-8"
-                          value={statusSearch}
-                          onChange={(e) => setStatusSearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setStatusFilter("all");
-                          setStatusSearch("");
-                        }}
-                        className={statusFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <span>Tous les statuts</span>
-                      </DropdownMenuItem>
-                      {PAY_STATUS.filter(
-                        (c) =>
-                          c.value === "accepted" ||
-                          c.value === "validated" ||
-                          c.value === "rejected",
-                      )
-                        .filter((s) =>
-                          s.name
-                            .toLowerCase()
-                            .includes(statusSearch.toLowerCase()),
-                        )
-                        .map((status) => (
-                          <DropdownMenuItem
-                            key={status.value}
-                            onClick={() => {
-                              setStatusFilter(status.value);
-                              setStatusSearch("");
-                            }}
-                            className={
-                              statusFilter === status.value ? "bg-accent" : ""
-                            }
-                          >
-                            <span>{getStatusVariant(status.value).label}</span>
-                          </DropdownMenuItem>
-                        ))}
-                      {PAY_STATUS.filter(
-                        (c) =>
-                          c.value === "accepted" || c.value === "validated",
-                      ).filter((s) =>
-                        s.name
-                          .toLowerCase()
-                          .includes(statusSearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun statut trouvé
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/** Type */}
-                <div className="grid gap-1.5">
-                  <Label>{"Type"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {typeFilter === "all"
-                            ? "Tous les types"
-                            : PAYMENT_TYPES.find((t) => t.value === typeFilter)
-                                ?.name || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher un type..."
-                          className="h-8"
-                          value={typeSearch}
-                          onChange={(e) => setTypeSearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setTypeFilter("all");
-                          setTypeSearch("");
-                        }}
-                        className={typeFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <span>Tous les types</span>
-                      </DropdownMenuItem>
-                      {PAYMENT_TYPES.filter((t) =>
-                        t.name.toLowerCase().includes(typeSearch.toLowerCase()),
-                      ).map((type) => (
-                        <DropdownMenuItem
-                          key={type.value}
-                          onClick={() => {
-                            setTypeFilter(type.value);
-                            setTypeSearch("");
-                          }}
-                          className={
-                            typeFilter === type.value ? "bg-accent" : ""
-                          }
-                        >
-                          <span>{type.name}</span>
-                        </DropdownMenuItem>
-                      ))}
-                      {PAYMENT_TYPES.filter((t) =>
-                        t.name.toLowerCase().includes(typeSearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun type trouvé
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Bouton pour réinitialiser les filtres */}
-                <div className="flex items-end">
-                  <Button
-                    variant="outline"
-                    onClick={resetAllFilters}
-                    className="w-full"
-                  >
-                    {"Réinitialiser"}
-                  </Button>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto bg-transparent">
@@ -992,15 +620,8 @@ export function TicketTable({
         <Pagination table={table} />
       </section>
       <section className="grid grid-cols-1 @min-[740px]:grid-cols-2 gap-4 @min-[760px]:hidden">
-        {filteredData.map((e) => (
-          <CardTicket
-            key={e.id}
-            data={e}
-            requestTypeData={requestTypeData}
-            invoices={invoices}
-            users={users}
-            requests={requests}
-          />
+        {data.map((e) => (
+          <CardTicket key={e.id} data={e} requestTypeData={requestTypeData} />
         ))}
       </section>
 
@@ -1009,13 +630,10 @@ export function TicketTable({
           open={openDetailModal}
           openChange={setOpenDetailModal}
           payment={selectedTicket}
-          invoices={invoices}
           users={users}
           requestTypes={requestTypeData}
-          requests={requests}
           projects={projects}
           payTypes={payTypes}
-          purchases={purchases}
         />
       )}
 
@@ -1049,7 +667,6 @@ export function TicketTable({
           payment={selectedTicket}
           open={openRejectModal}
           openChange={setOpenRejectModal}
-          invoices={invoices}
         />
       )}
     </div>
