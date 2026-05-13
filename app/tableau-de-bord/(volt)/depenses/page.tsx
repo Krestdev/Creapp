@@ -320,6 +320,7 @@ function Page() {
           tabs={tabs}
           setSelectedTab={(value) => {
             setCustomFilters({ ...customFilters, tab: value });
+            setFilters((prev) => ({ ...prev, pageIndex: 0 }));
           }}
           selectedTab={customFilters.tab}
           className="w-fit"

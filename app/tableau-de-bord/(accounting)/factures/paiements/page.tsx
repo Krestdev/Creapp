@@ -255,6 +255,7 @@ function Page() {
           tabs={tabs}
           setSelectedTab={(value) => {
             setCustomFilters({ ...customFilters, tab: value });
+            setPagination((prev) => ({ ...prev, pageIndex: 0 }));
           }}
           selectedTab={customFilters.tab}
           className="w-fit"
@@ -263,7 +264,13 @@ function Page() {
           payments={getPayments.data.data}
           pagination={pagination}
           paginationOptions={{
-            onPaginationChange: setPagination,
+            onPaginationChange: (updater) => {
+              setPagination((prev) => {
+                const nextPagination =
+                  typeof updater === "function" ? updater(prev) : updater;
+                return { ...prev, ...nextPagination };
+              });
+            },
             rowCount: getPayments.data.count,
           }}
         />
