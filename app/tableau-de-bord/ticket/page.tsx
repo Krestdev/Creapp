@@ -16,7 +16,7 @@ import { userQ } from "@/queries/baseModule";
 import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { projectQ } from "@/queries/projectModule";
-import { requestQ } from "@/queries/requestModule";
+
 import { requestTypeQ } from "@/queries/requestType";
 import { DateFilter } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
@@ -98,10 +98,7 @@ function Page() {
     queryFn: requestTypeQ.getAll,
   });
 
-  const getRequests = useQuery({
-    queryKey: queryKeys.requests,
-    queryFn: requestQ.getAll,
-  });
+
 
   const getUsers = useQuery({
     queryKey: ["users"],
@@ -121,7 +118,6 @@ function Page() {
   if (
     isLoading ||
     getRequestType.isLoading ||
-    getRequests.isLoading ||
     getUsers.isLoading ||
     getProjects.isLoading ||
     getPayTypes.isLoading ||
@@ -133,7 +129,6 @@ function Page() {
   if (
     isError ||
     getRequestType.isError ||
-    getRequests.isError ||
     getUsers.isError ||
     getProjects.isError ||
     getPayTypes.isError ||
@@ -145,7 +140,6 @@ function Page() {
           error ||
           getRequestType.error! ||
           getUsers.error ||
-          getRequests.error ||
           getProjects.error ||
           getPayTypes.error ||
           getStats.error
@@ -157,7 +151,6 @@ function Page() {
   if (
     isSuccess &&
     getRequestType.isSuccess &&
-    getRequests.isSuccess &&
     getUsers.isSuccess &&
     getProjects.isSuccess &&
     getPayTypes.isSuccess &&
@@ -242,12 +235,7 @@ function Page() {
               onPaginationChange: (updater) => {
                 setPagination((prev) => {
                   const nextPagination =
-                    typeof updater === "function"
-                      ? updater({
-                          pageIndex: pagination.pageIndex,
-                          pageSize: pagination.pageSize,
-                        })
-                      : updater;
+                    typeof updater === "function" ? updater(prev) : updater;
                   return { ...prev, ...nextPagination };
                 });
               },

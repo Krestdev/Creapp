@@ -346,12 +346,7 @@ function Page() {
             onPaginationChange: (updater) => {
               setFilters((prev) => {
                 const nextPagination =
-                  typeof updater === "function"
-                    ? updater({
-                        pageIndex: filters.pageIndex,
-                        pageSize: filters.pageSize,
-                      })
-                    : updater;
+                  typeof updater === "function" ? updater(prev) : updater;
                 return { ...prev, ...nextPagination };
               });
             },

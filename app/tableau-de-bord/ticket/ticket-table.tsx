@@ -464,7 +464,7 @@ export function TicketTable({
   ];
 
   const table = useReactTable({
-    data: data.sort((a, b) => a.reference.localeCompare(b.reference)),
+    data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
